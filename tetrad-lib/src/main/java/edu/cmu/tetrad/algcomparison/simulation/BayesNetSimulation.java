@@ -42,6 +42,8 @@ public class BayesNetSimulation implements Simulation {
         this.randomGraph = new SingleGraph(im.getDag());
         this.im = im;
         this.pm = im.getBayesPm();
+        this.ims = new ArrayList<>();
+        ims.add(im);
     }
 
     @Override
@@ -50,6 +52,7 @@ public class BayesNetSimulation implements Simulation {
 
         dataSets = new ArrayList<>();
         graphs = new ArrayList<>();
+        ims = new ArrayList<>();
 
         for (int i = 0; i < parameters.getInt("numRuns"); i++) {
             System.out.println("Simulating dataset #" + (i + 1));
@@ -147,7 +150,6 @@ public class BayesNetSimulation implements Simulation {
                     return im.simulateData(parameters.getInt("sampleSize"), true);
                 }
             } else {
-                ims = new ArrayList<>();
                 ims.add(im);
                 return im.simulateData(parameters.getInt("sampleSize"), true);
             }

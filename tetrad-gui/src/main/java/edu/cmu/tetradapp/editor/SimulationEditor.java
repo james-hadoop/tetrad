@@ -352,9 +352,9 @@ public final class SimulationEditor extends JPanel implements KnowledgeEditable,
                     simulation.getParams());
         });
 
-        file.addSeparator();
+//        file.addSeparator();
 
-        file.add(loadSimulation);
+//        file.add(loadSimulation);
         file.add(saveSimulation);
 
         menuBar.add(file);

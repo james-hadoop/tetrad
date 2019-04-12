@@ -44,20 +44,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.RecursiveTask;
 import java.util.regex.Matcher;
 import nu.xom.Builder;
@@ -87,12 +74,6 @@ public final class GraphUtils {
         }
         List<Node> nodes = graph.getNodes();
         Collections.sort(nodes);
-
-//        Collections.sort(nodes, new Comparator<Node>() {
-//            public int compare(Node o1, Node o2) {
-//                return o1.getName().compareTo(o2.getName());
-//            }
-//        });
 
         double rad = 6.28 / nodes.size();
         double phi = .75 * 6.28;    // start from 12 o'clock.
@@ -312,8 +293,6 @@ public final class GraphUtils {
             int numEdges, int maxDegree,
             int maxIndegree, int maxOutdegree, boolean connected,
             boolean layoutAsCircle) {
-        Collections.sort(nodes);
-
         if (nodes.size() <= 0) {
             throw new IllegalArgumentException(
                     "NumNodes most be > 0: " + nodes.size());
@@ -501,10 +480,10 @@ public final class GraphUtils {
 //            cumsum=0.0
 //            # normalization
 //            psum=float(sum(distribution.values()))+float(delta)*len(distribution)
-//            engine=random.random()
+//            r=random.random()
 //            for i in range(0,len(distribution)):
 //            cumsum+=(distribution[i]+delta)/psum
-//            if engine < cumsum:
+//            if r < cumsum:
 //            break
 //            return i
 //
@@ -535,15 +514,15 @@ public final class GraphUtils {
 //                random.seed(seed)
 //
 //                while len(G)<n:
-//                engine = random.random()
+//                r = random.random()
 //                # random choice in alpha,beta,gamma ranges
-//                if engine<alpha:
+//                if r<alpha:
 //                # alpha
 //                # add new node v
 //                        v = len(G)
 //                # choose w according to in-degree and delta_in
 //                w = _choose_node(G, G.in_degree(),delta_in)
-//                elif engine < alpha+beta:
+//                elif r < alpha+beta:
 //                # beta
 //                # choose v according to out-degree and delta_out
 //                v = _choose_node(G, G.out_degree(),delta_out)
@@ -695,7 +674,7 @@ public final class GraphUtils {
     }
 
     // JMO's method for fixing latents
-    private static void fixLatents4(int numLatentConfounders, Graph graph) {
+    public static void fixLatents4(int numLatentConfounders, Graph graph) {
         if (numLatentConfounders == 0) {
             return;
         }
@@ -1597,7 +1576,7 @@ public final class GraphUtils {
     }
 
     private static void treks(Graph graph, Node node1, Node node2,
-                              LinkedList<Node> path, List<List<Node>> paths, int maxLength) {
+            LinkedList<Node> path, List<List<Node>> paths, int maxLength) {
         if (path.size() > (maxLength == -1 ? 1000 : maxLength - 2)) {
             return;
         }
@@ -1659,7 +1638,7 @@ public final class GraphUtils {
     }
 
     private static void treksIncludingBidirected(SemGraph graph, Node node1, Node node2,
-                                                 LinkedList<Node> path, List<List<Node>> paths) {
+            LinkedList<Node> path, List<List<Node>> paths) {
         if (!graph.isShowErrorTerms()) {
             throw new IllegalArgumentException("The SEM Graph must be showing its error terms; this method "
                     + "doesn't traverse two edges between the same nodes well.");
@@ -1710,72 +1689,6 @@ public final class GraphUtils {
             }
 
             treksIncludingBidirected(graph, next, node2, path, paths);
-        }
-
-        path.removeLast();
-    }
-
-    public static List<List<Node>> semidirectedTreks(Graph graph, Node node1, Node node2, int maxLength) {
-        List<List<Node>> paths = new LinkedList<>();
-        semidirectedTreks(graph, node1, node2, new LinkedList<Node>(), paths, maxLength, false);
-        return paths;
-    }
-
-    private static void semidirectedTreks(Graph graph, Node node1, Node node2, LinkedList<Node> path, List<List<Node>> paths,
-                                          int maxLength, boolean directedRight) {
-        if (path.size() > (maxLength == -1 ? 1000 : maxLength - 2)) {
-            return;
-        }
-
-        if (path.contains(node1)) {
-            return;
-        }
-
-        if (node1 == node2) {
-            return;
-        }
-
-        path.addLast(node1);
-
-        for (Edge edge : graph.getEdges(node1)) {
-            Node next = Edges.traverse(node1, edge);
-
-            // Must be a directed edge.
-            if (!(edge.isDirected() || Edges.isUndirectedEdge(edge))) {
-                continue;
-            }
-
-            // Can't have any colliders on the path.
-            if (path.size() > 1) {
-                Node node0 = path.get(path.size() - 2);
-
-                if (next == node0) {
-                    continue;
-                }
-
-                if (directedRight && edge.pointsTowards(node1)) continue;
-
-//                if (graph.isDefCollider(node0, node1, next)) {
-//                    continue;
-//                }
-            }
-
-            // Found a path.
-            if (next == node2) {
-                LinkedList<Node> _path = new LinkedList<>(path);
-                _path.add(next);
-                paths.add(_path);
-                continue;
-            }
-
-            // Nodes may only appear on the path once.
-            if (path.contains(next)) {
-                continue;
-            }
-
-            directedRight = directedRight || edge.pointsTowards(edge.getDistalNode(node1));
-
-            semidirectedTreks(graph, next, node2, path, paths, maxLength, directedRight);
         }
 
         path.removeLast();
@@ -1936,16 +1849,24 @@ public final class GraphUtils {
 
             if (node1 == null) {
                 node1 = edge.getNode1();
-                convertedGraph.addNode(node1);
+                if (!convertedGraph.containsNode(node1)) {
+                    convertedGraph.addNode(node1);
+                }
             }
             if (node2 == null) {
                 node2 = edge.getNode2();
-                convertedGraph.addNode(node2);
+                if (!convertedGraph.containsNode(node2)) {
+                    convertedGraph.addNode(node2);
+                }
             }
 
-            convertedGraph.addNode(node1);
+            if (!convertedGraph.containsNode(node1)) {
+                convertedGraph.addNode(node1);
+            }
 
-            convertedGraph.addNode(node2);
+            if (!convertedGraph.containsNode(node2)) {
+                convertedGraph.addNode(node2);
+            }
 
             if (node1 == null) {
                 throw new IllegalArgumentException("Couldn't find a node by the name " + edge.getNode1().getName()
@@ -2659,7 +2580,7 @@ public final class GraphUtils {
         Graph graph = new EdgeListGraph();
 
         while (!(line = in.readLine().trim()).equals("")) {
-            String[] tokens = line.split(",");
+            String[] tokens = line.split(";");
 
             for (String token : tokens) {
                 graph.addNode(new GraphNode(token));
@@ -2674,7 +2595,7 @@ public final class GraphUtils {
                 break;
             }
 
-//            System.out.println(line);
+            System.out.println(line);
 
             String[] tokens = line.split("\\s+");
 
@@ -3350,7 +3271,7 @@ public final class GraphUtils {
         List<Node> allNodes = new ArrayList<>(notFound);
 
         while (!notFound.isEmpty()) {
-            for (Iterator<Node> it = notFound.iterator(); it.hasNext(); ) {
+            for (Iterator<Node> it = notFound.iterator(); it.hasNext();) {
                 Node node = it.next();
 
                 List<Node> parents = graph.getParents(node);
@@ -3878,9 +3799,9 @@ public final class GraphUtils {
                 if (range <= chunk) {
                     for (int i = from; i < to; i++) {
                         int j = ++count[0];
-//                        if (j % 1000 == 0) {
-//                            System.out.println("Counted " + (count[0]));
-//                        }
+                        if (j % 1000 == 0) {
+                            System.out.println("Counted " + (count[0]));
+                        }
 
                         Edge edge = edges.get(i);
 
@@ -4090,8 +4011,20 @@ public final class GraphUtils {
         }
 
         Formatter fmt = new Formatter();
-        fmt.format("%s%n%n", graphNodesToText(graph, "Graph Nodes:", ','));
-        fmt.format("%s", graphEdgesToText(graph, "Graph Edges:"));
+        fmt.format("%s%n%n", graphNodesToText(graph, "Graph Nodes:", ';'));
+        fmt.format("%s%n", graphEdgesToText(graph, "Graph Edges:"));
+        
+        // Graph Attributes
+        String graphAttributes = graphAttributesToText(graph, "Graph Attributes:");
+        if(graphAttributes != null) {
+        	fmt.format("%s%n", graphAttributes);
+        }
+        
+        // Nodes Attributes
+        String graphNodeAttributes = graphNodeAttributesToText(graph, "Graph Node Attributes:", ';');
+        if(graphNodeAttributes != null) {
+        	fmt.format("%s%n", graphNodeAttributes);
+        }
 
         Set<Triple> ambiguousTriples = graph.getAmbiguousTriples();
         if (!ambiguousTriples.isEmpty()) {
@@ -4111,6 +4044,86 @@ public final class GraphUtils {
         return fmt.toString();
     }
 
+    public static String graphNodeAttributesToText(Graph graph, String title, char delimiter) {
+        List<Node> nodes = graph.getNodes();
+        
+        Map<String, Map<String, Object>> graphNodeAttributes = new LinkedHashMap<>();
+        for (Node node : nodes) {
+            Map<String, Object> attributes = node.getAllAttributes();
+            
+            if(!attributes.isEmpty()) {
+            	for(String key : attributes.keySet()) {
+            		Object value = attributes.get(key);
+            		
+            		Map<String, Object> nodeAttributes = graphNodeAttributes.get(key);
+            		if(nodeAttributes == null) {
+            			nodeAttributes = new LinkedHashMap<>();
+            		}
+            		nodeAttributes.put(node.getName(), value);
+            		
+            		graphNodeAttributes.put(key, nodeAttributes);
+            	}
+            }
+        } 
+
+        if(!graphNodeAttributes.isEmpty()) {
+        	StringBuilder sb = (title == null || title.length() == 0)
+                    ? new StringBuilder()
+                    : new StringBuilder(String.format("%s", title));
+            
+            for(String key : graphNodeAttributes.keySet()) {
+            	Map<String, Object> nodeAttributes = graphNodeAttributes.get(key);
+                int size = nodeAttributes.size();
+                int count = 0;
+                
+                sb.append(String.format("%n%s: [", key));
+                
+                for(String nodeName : nodeAttributes.keySet()) {
+                	Object value = nodeAttributes.get(nodeName);
+                	
+                	sb.append(String.format("%s: %f", nodeName, value));
+                	
+                	count++;
+                	
+                	if(count < size) {
+                		sb.append(delimiter);
+                	}
+                	
+                }
+            	
+                sb.append("]");
+            }
+                    
+        	
+            return sb.toString();
+        }
+        
+
+    	
+    	return null;
+    }
+    
+    public static String graphAttributesToText(Graph graph, String title) {
+        Map<String,Object> attributes = graph.getAllAttributes();
+        if(!attributes.isEmpty()) {
+        	StringBuilder sb = (title == null || title.length() == 0)
+                    ? new StringBuilder()
+                    : new StringBuilder(String.format("%s%n", title));
+                    
+        	for(String key : attributes.keySet()) {
+        		Object value = attributes.get(key);
+        		
+        		sb.append(key);
+        		sb.append(": ");
+        		sb.append(String.format("%f%n", value));
+        	}
+
+        	return sb.toString();
+        }
+    	
+    	return null;
+    }
+    
     public static String graphNodesToText(Graph graph, String title, char delimiter) {
         StringBuilder sb = (title == null || title.length() == 0)
                 ? new StringBuilder()
@@ -5020,7 +5033,7 @@ public final class GraphUtils {
 
     // Needs to be public.
     public static boolean existsInducingPathVisit(Graph graph, Node a, Node b, Node x, Node y,
-                                                  LinkedList<Node> path) {
+            LinkedList<Node> path) {
         if (path.contains(b)) {
             return false;
         }
