@@ -18,24 +18,28 @@
 // along with this program; if not, write to the Free Software               //
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA //
 ///////////////////////////////////////////////////////////////////////////////
+
 package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.NamingProtocol;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 /**
- * Base class for variable specifications for DataSet. These objects govern the
+ * Base class for variable specifications for DataSet.  These objects govern the
  * types of values which may be recorded in a Column of data and provide
- * information about the interpretation of these values. Variables of every type
- * must provide a marker which is recorded in a column of data for that variable
- * when the value is missing; this missing data marker should not be used for
- * other purposes.
+ * information about the interpretation of these values.  Variables of every
+ * type must provide a marker which is recorded in a column of data for that
+ * variable when the value is missing; this missing data marker should not be
+ * used for other purposes.
  *
  * @author Willie Wheeler 7/99
  * @author Joseph Ramsey modifications 12/00
  */
 public abstract class AbstractVariable implements Variable {
-
     static final long serialVersionUID = 23L;
 
     public static int LAST_ID = 0;
@@ -61,6 +65,7 @@ public abstract class AbstractVariable implements Variable {
 //            throw new NullPointerException(
 //                    NamingProtocol.getProtocolDescription() + ": " + name);
 //        }
+
         this.name = name;
     }
 
@@ -100,11 +105,11 @@ public abstract class AbstractVariable implements Variable {
 
     /**
      * Checks to see whether the passed value is an acceptable value for
-     * <tt>this</tt> variable. For <tt>AbstractVariable</tt>, this method always
-     * returns <tt>true</tt>. </p> Subclasses should override
+     * <tt>this</tt> variable.  For <tt>AbstractVariable</tt>, this method
+     * always returns <tt>true</tt>. </p> Subclasses should override
      * <tt>checkValue()</tt> in order to provide for subclass-specific value
-     * checking. The value should pass the test if it can be converted into an
-     * equivalent object of the correct class type (see
+     * checking.  The value should pass the test if it can be converted into
+     * an equivalent object of the correct class type (see
      * <tt>getValueClass()</tt> for this variable; otherwise, it should fail. In
      * general, <tt>checkValue()</tt> should not fail a value for simply not
      * being an instance of a particular class. </p> Since this method is not
@@ -120,7 +125,7 @@ public abstract class AbstractVariable implements Variable {
     }
 
     /**
-     * @return a String representation of this variable. Specifically, the name
+     * @return a String representation of this variable.  Specifically, the name
      * of the variable is returned.
      */
     public String toString() {
@@ -128,6 +133,7 @@ public abstract class AbstractVariable implements Variable {
     }
 
     public abstract Node like(String name);
+
 
     @Override
     public int compareTo(Node node) {
@@ -181,5 +187,9 @@ public abstract class AbstractVariable implements Variable {
 
         return node1.compareTo(node2);
     }
-
 }
+
+
+
+
+

@@ -7,5 +7,5 @@ package edu.cmu.tetrad.data;
  * @author jdramsey
  */
 public enum DataType {
-    Continuous, Discrete, Mixed, Graph, Covariance, All
+    Continuous, Discrete, Mixed, Graph, Covariance
 }

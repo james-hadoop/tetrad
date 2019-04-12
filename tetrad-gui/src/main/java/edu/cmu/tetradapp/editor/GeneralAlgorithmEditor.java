@@ -612,20 +612,20 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
             String algoType = selectedAlgoType.getActionCommand();
             if ("all".equals(algoType)) {
                 if (knowledgeChkBox.isSelected()) {
-                    algorithmModels.getModels(dataType).stream()
+                    algorithmModels.getModels().stream()
                             .filter(e -> HasKnowledge.class.isAssignableFrom(e.getAlgorithm().getClazz()))
                             .forEach(e -> algoModels.addElement(e));
                 } else {
-                    algorithmModels.getModels(dataType).stream()
+                    algorithmModels.getModels().stream()
                             .forEach(e -> algoModels.addElement(e));
                 }
             } else {
                 if (knowledgeChkBox.isSelected()) {
-                    algorithmModels.getModels(AlgType.valueOf(algoType), dataType).stream()
+                    algorithmModels.getModels(AlgType.valueOf(algoType)).stream()
                             .filter(e -> HasKnowledge.class.isAssignableFrom(e.getAlgorithm().getClazz()))
                             .forEach(e -> algoModels.addElement(e));
                 } else {
-                    algorithmModels.getModels(AlgType.valueOf(algoType), dataType).stream()
+                    algorithmModels.getModels(AlgType.valueOf(algoType)).stream()
                             .forEach(e -> algoModels.addElement(e));
                 }
             }

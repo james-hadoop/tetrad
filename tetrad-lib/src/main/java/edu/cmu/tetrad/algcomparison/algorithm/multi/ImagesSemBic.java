@@ -5,18 +5,14 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.annotation.AlgType;
-import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.SemBicScoreImages;
 import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,8 +29,7 @@ import java.util.List;
 @edu.cmu.tetrad.annotation.Algorithm(
         name = "IMaGES Continuous",
         command = "imgs_cont",
-        algoType = AlgType.forbid_latent_common_causes,
-        dataType = DataType.Continuous
+        algoType = AlgType.forbid_latent_common_causes
 )
 public class ImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
 
@@ -46,7 +41,7 @@ public class ImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
 
     @Override
     public Graph search(List<DataModel> dataSets, Parameters parameters) {
-        if (parameters.getInt("numberResampling") < 1) {
+    	if (parameters.getInt("numberResampling") < 1) {
             final SemBicScoreImages score = new SemBicScoreImages(dataSets);
             score.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
             edu.cmu.tetrad.search.Fges search = new edu.cmu.tetrad.search.Fges(score);
@@ -65,7 +60,7 @@ public class ImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
 
             search.setPercentResampleSize(parameters.getDouble("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
-
+            
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt("resamplingEnsemble", 1)) {
                 case 0:
@@ -79,7 +74,7 @@ public class ImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
             }
             search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean("addOriginalDataset"));
-
+            
             search.setParameters(parameters);
             search.setVerbose(parameters.getBoolean("verbose"));
             return search.search();
@@ -99,7 +94,7 @@ public class ImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
 
             search.setPercentResampleSize(parameters.getDouble("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
-
+            
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt("resamplingEnsemble", 1)) {
                 case 0:
@@ -113,7 +108,7 @@ public class ImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
             }
             search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean("addOriginalDataset"));
-
+            
             search.setParameters(parameters);
             search.setVerbose(parameters.getBoolean("verbose"));
             return search.search();

@@ -61,20 +61,6 @@ public interface Node extends TetradSerializable, Comparable<Node> {
     void setNodeType(NodeType nodeType);
 
     /**
-     *
-     * @return the intervention type
-     */
-    NodeVariableType getNodeVariableType();
-
-    /**
-     * Sets the type (domain, interventional status, interventional value..) for
-     * this node variable
-     *
-     * @param nodeVariableType
-     */
-    void setNodeVariableType(NodeVariableType nodeVariableType);
-
-    /**
      * @return a string representation of the node.
      */
     String toString();
@@ -123,18 +109,9 @@ public interface Node extends TetradSerializable, Comparable<Node> {
      * Creates a new node of the same type as this one with the given name.
      */
     Node like(String name);
-
-    /**
-     * Alphabetical order.
-     */
-    public int compareTo(Node node);
-
-    Map<String, Object> getAllAttributes();
-
-    Object getAttribute(String key);
-
-    void removeAttribute(String key);
-
-    void addAttribute(String key, Object value);
-
 }
+
+
+
+
+

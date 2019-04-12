@@ -207,8 +207,8 @@ public class DisplayNode extends JComponent implements Node, TetradSerializableE
         return node;
     }
 
-    @Override
-    public int compareTo(Node node) {
+    public int compareTo(Node o) {
+        Node node = (Node) o;
         final String name = getName();
         String[] tokens1 = name.split(":");
         final String _name = node.getName();

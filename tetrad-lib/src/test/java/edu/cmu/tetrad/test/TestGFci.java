@@ -96,7 +96,7 @@ public class TestGFci {
         gFci.setFaithfulnessAssumed(true);
         Graph outGraph = gFci.search();
 
-        final DagToPag2 dagToPag = new DagToPag2(dag);
+        final DagToPag dagToPag = new DagToPag(dag);
         dagToPag.setCompleteRuleSetUsed(false);
         dagToPag.setMaxPathLength(maxPathLength);
         Graph truePag = dagToPag.convert();
@@ -180,7 +180,7 @@ public class TestGFci {
             gfci.setFaithfulnessAssumed(true);
             Graph pag1 = gfci.search();
 
-            DagToPag2 dagToPag = new DagToPag2(dag);
+            DagToPag dagToPag = new DagToPag(dag);
             dagToPag.setCompleteRuleSetUsed(false);
             Graph pag2 = dagToPag.convert();
 
@@ -223,7 +223,7 @@ public class TestGFci {
 
         System.out.println("Elapsed " + (stop - start) + " ms");
 
-        DagToPag2 dagToPag = new DagToPag2(g);
+        DagToPag dagToPag = new DagToPag(g);
         dagToPag.setVerbose(false);
     }
 
@@ -254,7 +254,7 @@ public class TestGFci {
 
         System.out.println("Elapsed " + (stop - start) + " ms");
 
-        DagToPag2 dagToPag = new DagToPag2(g);
+        DagToPag dagToPag = new DagToPag(g);
         dagToPag.setVerbose(false);
     }
 

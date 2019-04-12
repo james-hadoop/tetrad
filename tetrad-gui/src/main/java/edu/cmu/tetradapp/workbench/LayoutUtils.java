@@ -48,7 +48,7 @@ public class LayoutUtils {
         kamadaKawai, fruchtermReingold, distanceFromSelected
     }
 
-    static Layout layout = Layout.topToBottom;
+    static Layout layout = Layout.bottomToTop;
 
     public static void setLayout(Layout _layout) {
         layout = _layout;

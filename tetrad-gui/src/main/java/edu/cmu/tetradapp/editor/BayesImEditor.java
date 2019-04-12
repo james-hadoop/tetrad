@@ -77,12 +77,10 @@ public class BayesImEditor extends JPanel {
                 comp.addItem(i + 1);
             }
 
-            comp.setSelectedIndex(wrapper.getModelIndex());
-
             comp.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    wrapper.setModelIndex(comp.getSelectedIndex() - 1);
+                    wrapper.setModelIndex(((Integer)comp.getSelectedItem()).intValue() - 1);
                     setEditorPanel();
                     validate();
                 }
@@ -161,8 +159,7 @@ public class BayesImEditor extends JPanel {
         });
 
         targetPanel.add(panel, BorderLayout.CENTER);
-        revalidate();
-        repaint();
+        validate();
     }
 
     /**
@@ -182,7 +179,7 @@ public class BayesImEditor extends JPanel {
     }
 
     public void getBayesIm(BayesIm bayesIm) {
-//        this.wrapper.setBayesIm(bayesIm);
+        this.wrapper.setBayesIm(bayesIm);
         removeAll();
         setEditorPanel();
         revalidate();

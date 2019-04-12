@@ -42,8 +42,6 @@ import java.util.*;
  * @author Alex Smith, December 2008
  * @author Joseph Ramsey
  * @author Choh-Man Teng
- * @deprecated Use DagToPag2 instead, which fixes an important bug, and is a lot faster to boot.
- * What's not to like?
  */
 public final class DagToPag {
 
