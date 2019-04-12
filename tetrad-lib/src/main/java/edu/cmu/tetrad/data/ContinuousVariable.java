@@ -35,7 +35,7 @@ import java.io.ObjectInputStream;
  * Represents a real-valued variable. The values are doubles, and the default
  * missing value marker for is Double.NaN.
  *
- * @author Willie Wheeler 07/99
+ * @author Willie Whee 07/99
  * @author Joseph Ramsey modifications 12/00
  */
 public final class ContinuousVariable extends AbstractVariable
