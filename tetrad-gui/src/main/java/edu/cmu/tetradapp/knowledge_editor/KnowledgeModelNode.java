@@ -139,7 +139,7 @@ public class KnowledgeModelNode implements Node, TetradSerializableExcluded {
         return getName();
     }
 
-    public int compareTo(Object o) {
+    public int compareTo(Node o) {
         Node node = (Node) o;
         final String name = getName();
         String[] tokens1 = name.split(":");

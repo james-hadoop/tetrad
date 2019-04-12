@@ -273,6 +273,9 @@ public final class Fask implements GraphSearch {
     private boolean leftright(double[] x, double[] y) {
         if (minnesotaRule) return leftRightMinnesota(x, y);
 
+        x = correctSkewness(x);
+        y = correctSkewness(y);
+
         double left = cu(x, y, x) / (sqrt(cu(x, x, x) * cu(y, y, x)));
         double right = cu(x, y, y) / (sqrt(cu(x, x, y) * cu(y, y, y)));
         double lr = left - right;

@@ -268,18 +268,57 @@ public class GraphNode implements Node, TetradSerializable {
         }
     }
 
-    public int compareTo(Object o) {
-        String node1 = this.getName();
-        String node2 = ((Node) o).getName();
-        String s1 = node1.replaceAll("\\D+", "");
-        String s2 = node2.replaceAll("\\D+", "");
-        if (s1.isEmpty() && s2.isEmpty()) {
-            return node1.toLowerCase().compareTo(node2.toLowerCase());
-        } else {
-            Integer n1 = s1.isEmpty() ? 0 : Integer.valueOf(s1);
-            Integer n2 = s2.isEmpty() ? 0 : Integer.valueOf(s2);
-            return n1.compareTo(n2);
+    @Override
+    public int compareTo(Node node) {
+        String node1 = getName();
+        String node2 = node.getName();
+
+        boolean isAlpha1 = ALPHA.matcher(node1).matches();
+        boolean isAlpha2 = ALPHA.matcher(node2).matches();
+        boolean isAlphaNum1 = ALPHA_NUM.matcher(node1).matches();
+        boolean isAlphaNum2 = ALPHA_NUM.matcher(node2).matches();
+        boolean isLag1 = LAG.matcher(node1).matches();
+        boolean isLag2 = LAG.matcher(node2).matches();
+
+        if (isAlpha1) {
+            if (isLag2) {
+                return -1;
+            }
+        } else if (isAlphaNum1) {
+            if (isAlphaNum2) {
+                String s1 = node1.replaceAll("\\d+", "");
+                String s2 = node2.replaceAll("\\d+", "");
+                if (s1.equals(s2)) {
+                    String n1 = node1.replaceAll("\\D+", "");
+                    String n2 = node2.replaceAll("\\D+", "");
+
+                    return Integer.valueOf(n1).compareTo(Integer.valueOf(n2));
+                } else {
+                    return s1.compareTo(s2);
+                }
+            } else if (isLag2) {
+                return -1;
+            }
+        } else if (isLag1) {
+            if (isAlpha2 || isAlphaNum2) {
+                return 1;
+            } else if (isLag2) {
+                String l1 = node1.replaceAll(":", "");
+                String l2 = node2.replaceAll(":", "");
+                String s1 = l1.replaceAll("\\d+", "");
+                String s2 = l2.replaceAll("\\d+", "");
+                if (s1.equals(s2)) {
+                    String n1 = l1.replaceAll("\\D+", "");
+                    String n2 = l2.replaceAll("\\D+", "");
+
+                    return Integer.valueOf(n1).compareTo(Integer.valueOf(n2));
+                } else {
+                    return s1.compareTo(s2);
+                }
+            }
         }
+
+        return node1.compareTo(node2);
     }
 }
 

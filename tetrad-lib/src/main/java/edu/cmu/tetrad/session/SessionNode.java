@@ -1077,11 +1077,6 @@ public class SessionNode implements Node, TetradSerializable {
         return null;
     }
 
-    @Override
-    public int compareTo(Object o) {
-        return 0;
-    }
-
     /**
      * True iff the next edge should not be added. (Included for GUI user
      * control.) Reset to true every time an edge is added; edge adds must be
@@ -1834,6 +1829,11 @@ public class SessionNode implements Node, TetradSerializable {
 
     public Parameters getParameters() {
         return parameters;
+    }
+
+    @Override
+    public int compareTo(Node o) {
+        return 0;
     }
 
     /**
