@@ -52,16 +52,19 @@ public class ExampleCompareSimulationContinuousPattern {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         int sampleSize = 500;
+        int numMeasures = 10;
+        int avgDegree = 2;
 
         parameters.set("numRuns", 10);
-        parameters.set("numMeasures", 20);
-        parameters.set("avgDegree", 6);
+        parameters.set("numMeasures", numMeasures);
+        parameters.set("avgDegree", avgDegree);
         parameters.set("sampleSize", sampleSize); // This varies.
         parameters.set("differentGraphs", true);
 
-        parameters.set("alpha", 0.01, 0.001);
+        parameters.set("alpha", 0.1,  0.05, 0.01, 0.001);
         parameters.set("colliderDiscoveryRule", 1, 2, 3);
-        parameters.set("conflictRule", 1, 2, 3);;
+        parameters.set("conflictRule", 1, 2, 3);
+        ;
 
         parameters.set("coefLow", 0.2);
         parameters.set("coefHigh", 0.7);
@@ -69,7 +72,7 @@ public class ExampleCompareSimulationContinuousPattern {
         parameters.set("varLow", 1.0);
         parameters.set("varHigh", 3.0);
 
-        parameters.set("penaltyDiscount", 2);
+        parameters.set("penaltyDiscount", 2, 4, 6);
 
         Statistics statistics = new Statistics();
 
@@ -102,18 +105,18 @@ public class ExampleCompareSimulationContinuousPattern {
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new PcAll(new FisherZ()));
-        algorithms.add(new PcAll(new SemBicTest()));
-        algorithms.add(new Fges(new SemBicScore()));
-        algorithms.add(new Fges(new FisherZScore()));
-        algorithms.add(new Fask(new PcAll(new SemBicTest())));
-        algorithms.add(new Fask(new PcAll(new FisherZ())));
-        algorithms.add(new R3(new PcAll(new SemBicTest())));
+//        algorithms.add(new PcAll(new FisherZ()));
+//        algorithms.add(new PcAll(new SemBicTest()));
+//        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new Fges(new FisherZScore()));
+//        algorithms.add(new Fask(new PcAll(new SemBicTest())));
+//        algorithms.add(new Fask(new PcAll(new FisherZ())));
+//        algorithms.add(new R3(new PcAll(new SemBicTest())));
         algorithms.add(new R3(new PcAll(new FisherZ())));
-        algorithms.add(new Skew(new PcAll(new SemBicTest())));
-        algorithms.add(new Skew(new PcAll(new FisherZ())));
-        algorithms.add(new RSkew(new PcAll(new SemBicTest())));
-        algorithms.add(new RSkew(new PcAll(new FisherZ())));
+//        algorithms.add(new Skew(new PcAll(new SemBicTest())));
+//        algorithms.add(new Skew(new PcAll(new FisherZ())));
+//        algorithms.add(new RSkew(new PcAll(new SemBicTest())));
+//        algorithms.add(new RSkew(new PcAll(new FisherZ())));
 //        algorithms.add(new Lingam());
 //        algorithms.add(new R3(new Glasso()));
 //        algorithms.add(new Skew(new Glasso()));
@@ -138,7 +141,9 @@ public class ExampleCompareSimulationContinuousPattern {
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
-        comparison.compareFromSimulations("comparison.continuous.pattern", simulations, "comparison_all_" + sampleSize, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparison.continuous.pattern", simulations,
+                "comparison_all_" + sampleSize + "_" +
+                numMeasures + "_" + avgDegree, algorithms, statistics, parameters);
     }
 }
 

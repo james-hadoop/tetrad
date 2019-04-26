@@ -51,8 +51,8 @@ public class ExampleCompareSimulationDiscretePag {
         int sampleSize = 500;
 
         parameters.set("numRuns", 10);
-        parameters.set("numMeasures", 10, 20);
-        parameters.set("avgDegree", 2, 4);
+        parameters.set("numMeasures", 20);
+        parameters.set("avgDegree", 4);
         parameters.set("sampleSize", sampleSize); // This varies.
         parameters.set("minCategories", 3);
         parameters.set("maxCategories", 3);
@@ -95,9 +95,9 @@ public class ExampleCompareSimulationDiscretePag {
 
 //        statistics.setWeight("AP", 1.0);
 //        statistics.setWeight("AR", 1.0);
-//        statistics.setWeight("AHP", 1.0);
-//        statistics.setWeight("AHR", 1.0);
-        statistics.setWeight("SHD", 1.0);
+        statistics.setWeight("AHP", 1.0);
+        statistics.setWeight("AHR", 1.0);
+//        statistics.setWeight("SHD", 1.0);
 
         Algorithms algorithms = new Algorithms();
 
@@ -131,7 +131,7 @@ public class ExampleCompareSimulationDiscretePag {
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.PAG_of_the_true_DAG);
 
-        comparison.compareFromSimulations("comparison.discrete.study", simulations, "comparison_all_" + sampleSize, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparison.discrete.pag", simulations, "comparison_all_" + sampleSize, algorithms, statistics, parameters);
     }
 }
 

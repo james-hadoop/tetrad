@@ -31,6 +31,7 @@ import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
 import edu.cmu.tetrad.algcomparison.score.FisherZScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -49,11 +50,9 @@ public class ExampleCompareSimulationContinuousPag {
         int sampleSize = 500;
 
         parameters.set("numRuns", 10);
-        parameters.set("numMeasures", 10, 20);
-        parameters.set("avgDegree", 2, 4);
+        parameters.set("numMeasures", 10);
+        parameters.set("avgDegree", 4);
         parameters.set("sampleSize", sampleSize); // This varies.
-//        parameters.set("minCategories", 3);
-//        parameters.set("maxCategories", 3);
         parameters.set("differentGraphs", true);
 
         parameters.set("alpha", 0.05, 0.01, 0.001);
@@ -61,8 +60,6 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("conflictRule", 1, 2, 3);;
 
         parameters.set("maxDegree", 100);
-//        parameters.set("samplePrior",  1, 5, 10, 15, 20, 25, 30, 50, 80, 100);
-//        parameters.set("structurePrior", 1, 2, 3, 4, 5);
 
         parameters.set("penaltyDiscount", 1, 2, 3, 4);
         parameters.set("discretize", true);
@@ -74,10 +71,6 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("sampleSize"));
         statistics.add(new ParameterColumn("colliderDiscoveryRule"));
         statistics.add(new ParameterColumn("conflictRule"));
-//        statistics.add(new ParameterColumn("samplePrior"));
-//        statistics.add(new ParameterColumn("structurePrior"));
-//        statistics.add(new ParameterColumn("penaltyDiscount"));
-//        statistics.add(new ParameterColumn("discretize"));
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
 
@@ -93,8 +86,8 @@ public class ExampleCompareSimulationContinuousPag {
 //        statistics.add(new SHD());
 //        statistics.add(new ElapsedTime());
 
-        statistics.setWeight("AP", 1.0);
-        statistics.setWeight("AR", 1.0);
+//        statistics.setWeight("AP", 1.0);
+//        statistics.setWeight("AR", 1.0);
         statistics.setWeight("AHP", 1.0);
         statistics.setWeight("AHR", 1.0);
 //        statistics.setWeight("SHD", 1.0);
@@ -120,7 +113,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearFisherModel(new RandomForward()));
 
         Comparison comparison = new Comparison();
 

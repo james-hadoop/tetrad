@@ -30,7 +30,7 @@ public class ArrowConfusion {
     private int TCfn;
     private int TCfp;
 
-    public  ArrowConfusion(Graph truth, Graph est) {
+    public ArrowConfusion(Graph truth, Graph est) {
         this.truth = truth;
         this.est = est;
         arrowsTp = 0;
@@ -96,19 +96,19 @@ public class ArrowConfusion {
             //       System.out.println(e2True);
 
 
-            if (e1True == Endpoint.ARROW && e1Est != Endpoint.ARROW) {
+            if (e1True == Endpoint.ARROW && e1Est == Endpoint.TAIL) {
                 arrowsFn++;
             }
 
-            if (e2True == Endpoint.ARROW && e2Est != Endpoint.ARROW) {
+            if (e2True == Endpoint.ARROW && e2Est == Endpoint.TAIL) {
                 arrowsFn++;
             }
 
-            if (e1True == Endpoint.ARROW && e1Est != Endpoint.ARROW && edge1 != null && edge2 != null) {
+            if (e1True == Endpoint.ARROW && e1Est == Endpoint.TAIL && edge1 != null && edge2 != null) {
                 arrowsFnc = getArrowsFnc() + 1;
             }
 
-            if (e2True == Endpoint.ARROW && e2Est != Endpoint.ARROW && edge1 != null && edge2 != null) {
+            if (e2True == Endpoint.ARROW && e2Est == Endpoint.TAIL && edge1 != null && edge2 != null) {
                 arrowsFnc = getArrowsFnc() + 1;
             }
 
@@ -129,19 +129,19 @@ public class ArrowConfusion {
                 arrowsTpc = getArrowsTpc() + 1;
             }
 
-            if (e1True != Endpoint.ARROW && e1Est != Endpoint.ARROW) {
+            if (e1True == Endpoint.TAIL && e1Est == Endpoint.TAIL) {
                 arrowsTn++;
             }
 
-            if (e2True != Endpoint.ARROW && e2Est != Endpoint.ARROW) {
+            if (e2True == Endpoint.TAIL && e2Est == Endpoint.TAIL) {
                 arrowsTn++;
             }
 
-            if (e1True != Endpoint.ARROW && e1Est != Endpoint.ARROW && edge1 != null && edge2 != null) {
+            if (e1True == Endpoint.TAIL && e1Est == Endpoint.TAIL && edge1 != null && edge2 != null) {
                 arrowsTnc = getArrowsTnc() + 1;
             }
 
-            if (e2True != Endpoint.ARROW && e2Est != Endpoint.ARROW && edge1 != null && edge2 != null) {
+            if (e2True == Endpoint.TAIL && e2Est == Endpoint.TAIL && edge1 != null && edge2 != null) {
                 arrowsTnc = getArrowsTnc() + 1;
             }
         }
@@ -193,19 +193,19 @@ public class ArrowConfusion {
             //          System.out.println(e2True);
 
 
-            if (e1Est == Endpoint.ARROW && e1True != Endpoint.ARROW) {
+            if (e1Est == Endpoint.ARROW && e1True == Endpoint.TAIL) {
                 arrowsFp++;
             }
 
-            if (e2Est == Endpoint.ARROW && e2True != Endpoint.ARROW) {
+            if (e2Est == Endpoint.ARROW && e2True == Endpoint.TAIL) {
                 arrowsFp++;
             }
 
-            if (e1Est == Endpoint.ARROW && e1True != Endpoint.ARROW && edge1 != null && edge2 != null) {
+            if (e1Est == Endpoint.ARROW && e1True == Endpoint.TAIL && edge1 != null && edge2 != null) {
                 arrowsFpc = getArrowsFpc() + 1;
             }
 
-            if (e2Est == Endpoint.ARROW && e2True != Endpoint.ARROW && edge1 != null && edge2 != null) {
+            if (e2Est == Endpoint.ARROW && e2True == Endpoint.TAIL && edge1 != null && edge2 != null) {
                 arrowsFpc = getArrowsFpc() + 1;
             }
 

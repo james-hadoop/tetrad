@@ -151,7 +151,7 @@ public final class FciMax implements GraphSearch {
     }
 
     public Graph search() {
-        Fas fas = new Fas(initialGraph, getIndependenceTest());
+        FasStable fas = new FasStable(initialGraph, getIndependenceTest());
         fas.setVerbose(verbose);
         return search(fas);
     }
@@ -217,53 +217,13 @@ public final class FciMax implements GraphSearch {
     private void addColliders(Graph graph) {
         final Map<Triple, Double> scores = new ConcurrentHashMap<>();
 
-        List<Node> nodes = graph.getNodes();
-
-        class Task extends RecursiveTask<Boolean> {
-            int from;
-            int to;
-            int chunk = 20;
-            List<Node> nodes;
-            Graph graph;
-
-            public Task(List<Node> nodes, Graph graph, Map<Triple, Double> scores, int from, int to) {
-                this.nodes = nodes;
-                this.graph = graph;
-                this.from = from;
-                this.to = to;
-            }
-
-            @Override
-            protected Boolean compute() {
-                if (to - from <= chunk) {
-                    for (int i = from; i < to; i++) {
-                        doNode(graph, scores, nodes.get(i));
-                    }
-
-                    return true;
-                } else {
-                    int mid = (to + from) / 2;
-
-                    Task left = new Task(nodes, graph, scores, from, mid);
-                    Task right = new Task(nodes, graph, scores, mid, to);
-
-                    left.fork();
-                    right.compute();
-                    left.join();
-
-                    return true;
-                }
-            }
+        for (Node node : graph.getNodes()) {
+            doNode(graph, scores, node);
         }
-
-        Task task = new Task(nodes, graph, scores, 0, nodes.size());
-
-        ForkJoinPoolInstance.getInstance().getPool().invoke(task);
 
         List<Triple> tripleList = new ArrayList<>(scores.keySet());
 
-        // Most independent ones first.
-        Collections.sort(tripleList, new Comparator<Triple>() {
+        tripleList.sort(new Comparator<Triple>() {
 
             @Override
             public int compare(Triple o1, Triple o2) {
