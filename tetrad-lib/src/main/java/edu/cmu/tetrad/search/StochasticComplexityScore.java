@@ -137,7 +137,7 @@ public class StochasticComplexityScore implements Score {
         } else {
             for (List<Integer> cell : nCells){
                 int qi = cell.size();
-                plik -= Math.log(Crn(r,qi));
+                plik -= Math.log(Crn(r,qi > 0 ? qi : 1));
             }
         }
 
@@ -148,7 +148,7 @@ public class StochasticComplexityScore implements Score {
         double a = n/this.N;
         double Ca = 0.5 + 0.5*Math.sqrt(1+(4/a));
 
-        return this.N*(Math.log(a)+(a+2)*Math.log(Ca)-(1/Ca)) - 0.5*(Ca+(2/a));
+        return this.N*(Math.log(a)+(a+2)*Math.log(Ca)-(1/Ca)) - 0.5*Math.log(Ca+(2/a));
     }
 
     private double Crn(int r, int n) {

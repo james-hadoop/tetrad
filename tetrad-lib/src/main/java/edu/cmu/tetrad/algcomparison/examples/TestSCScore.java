@@ -46,10 +46,10 @@ public class TestSCScore {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
 
-        parameters.set("numRuns", 10);
-        parameters.set("numMeasures", 10);
+        parameters.set("numRuns", 1);
+        parameters.set("numMeasures", 50);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 500);
+        parameters.set("sampleSize", 1000);
         parameters.set("minCategories", 2);
         parameters.set("maxCategories", 4);
         parameters.set("faithfulnessAssumed", false);
