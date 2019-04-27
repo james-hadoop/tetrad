@@ -54,7 +54,10 @@ public class Lingam {
         data = DataUtils.center(data);
 
         TetradMatrix X = data.getDoubleData();
-        FastIca fastIca = new FastIca(X, 30);
+        FastIca fastIca = new FastIca(X, data.getNumColumns());
+        fastIca.setFunction(FastIca.LOGCOSH);
+        fastIca.setAlgorithmType(FastIca.DEFLATION);
+        fastIca.setMaxIterations(1000);
         fastIca.setVerbose(false);
         FastIca.IcaResult result11 = fastIca.findComponents();
         TetradMatrix W = result11.getW();
@@ -63,7 +66,7 @@ public class Lingam {
 
         PermutationGenerator gen1 = new PermutationGenerator(W.columns());
         int[] perm1 = new int[0];
-        double sum1 = Double.POSITIVE_INFINITY;
+        double sum1 = Double.NEGATIVE_INFINITY;
         int[] choice1;
 
         while ((choice1 = gen1.next()) != null) {
@@ -74,7 +77,7 @@ public class Lingam {
                 sum += 1.0 / abs(wij);
             }
 
-            if (sum < sum1) {
+            if (sum > sum1) {
                 sum1 = sum;
                 perm1 = Arrays.copyOf(choice1, choice1.length);
             }
@@ -93,7 +96,7 @@ public class Lingam {
         System.out.println("WTilde after normalization = " + WTilde);
 
         final int m = data.getNumColumns();
-        TetradMatrix B = TetradMatrix.identity(m).minus(WTilde);
+        TetradMatrix B = TetradMatrix.identity(m).minus(WTilde).transpose();
 
         System.out.println("B = " + B);
 
@@ -107,12 +110,13 @@ public class Lingam {
 
             for (int i = 0; i < W.rows(); i++) {
                 for (int j = i + 1; j < W.columns(); j++) {
-                    final double c = B.get(choice2[i], choice2[j]);
+                    final double c = B.get(perm1[i], perm1[j]);
                     sum += abs(c);
                 }
             }
 
             if (sum < sum2) {
+                System.out.println(sum);
                 sum2 = sum;
                 perm2 = Arrays.copyOf(choice2, choice2.length);
             }
@@ -122,6 +126,8 @@ public class Lingam {
 
         System.out.println("BTilde = " + BTilde);
 
+        data = data.subsetColumns(perm1).subsetColumns(perm2);
+
         final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(data));
         score.setPenaltyDiscount(penaltyDiscount);
         Fges fges = new Fges(score);
@@ -130,7 +136,7 @@ public class Lingam {
         final List<Node> variables = data.getVariables();
 
         for (int i = 0; i < variables.size(); i++) {
-            knowledge.addToTier(i + 1, variables.get(perm2[i]).getName());
+            knowledge.addToTier(perm2[perm1[i]], variables.get(i).getName());
         }
 
         fges.setKnowledge(knowledge);
