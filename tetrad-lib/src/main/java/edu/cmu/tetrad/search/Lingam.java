@@ -60,13 +60,13 @@ public class Lingam {
         fastIca.setMaxIterations(1000);
         fastIca.setVerbose(false);
         FastIca.IcaResult result11 = fastIca.findComponents();
-        TetradMatrix W = result11.getW();
+        TetradMatrix W = result11.getW().transpose();
 
         System.out.println("W = " + W);
 
         PermutationGenerator gen1 = new PermutationGenerator(W.columns());
         int[] perm1 = new int[0];
-        double sum1 = Double.NEGATIVE_INFINITY;
+        double sum1 = Double.POSITIVE_INFINITY;
         int[] choice1;
 
         while ((choice1 = gen1.next()) != null) {
@@ -77,7 +77,7 @@ public class Lingam {
                 sum += 1.0 / abs(wij);
             }
 
-            if (sum > sum1) {
+            if (sum < sum1) {
                 sum1 = sum;
                 perm1 = Arrays.copyOf(choice1, choice1.length);
             }
@@ -96,7 +96,7 @@ public class Lingam {
         System.out.println("WTilde after normalization = " + WTilde);
 
         final int m = data.getNumColumns();
-        TetradMatrix B = TetradMatrix.identity(m).minus(WTilde).transpose();
+        TetradMatrix B = TetradMatrix.identity(m).minus(WTilde);
 
         System.out.println("B = " + B);
 
@@ -110,7 +110,7 @@ public class Lingam {
 
             for (int i = 0; i < W.rows(); i++) {
                 for (int j = i + 1; j < W.columns(); j++) {
-                    final double c = B.get(perm1[i], perm1[j]);
+                    final double c = B.get(i, j);
                     sum += abs(c);
                 }
             }
@@ -126,8 +126,6 @@ public class Lingam {
 
         System.out.println("BTilde = " + BTilde);
 
-        data = data.subsetColumns(perm1).subsetColumns(perm2);
-
         final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(data));
         score.setPenaltyDiscount(penaltyDiscount);
         Fges fges = new Fges(score);
@@ -136,7 +134,7 @@ public class Lingam {
         final List<Node> variables = data.getVariables();
 
         for (int i = 0; i < variables.size(); i++) {
-            knowledge.addToTier(perm2[perm1[i]], variables.get(i).getName());
+            knowledge.addToTier(perm2[i], variables.get(i).getName());
         }
 
         fges.setKnowledge(knowledge);
