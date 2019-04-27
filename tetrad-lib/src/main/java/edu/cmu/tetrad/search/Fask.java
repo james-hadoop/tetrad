@@ -29,10 +29,7 @@ import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static edu.cmu.tetrad.util.StatUtils.correlation;
 import static edu.cmu.tetrad.util.StatUtils.skewness;
@@ -48,7 +45,7 @@ import static java.lang.Math.*;
 public final class Fask implements GraphSearch {
 
     // The score to be used for the FAS adjacency search.
-    private final Score score;
+    private final IndependenceTest test;
 
     // An initial graph to orient, skipping the adjacency step.
     private Graph initialGraph = null;
@@ -87,17 +84,16 @@ public final class Fask implements GraphSearch {
     // True if skew adjacencies should be included in the output.
     private boolean useSkewAdjacencies = true;
 
-    // Threshold for reversing casual judgments for negative coefficients.
-    private double delta = -0.2;
-
-    private boolean minnesotaRule = false;
-
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
-    public Fask(DataSet dataSet, Score score) {
+    public Fask(DataSet dataSet, IndependenceTest test) {
+        if (!dataSet.isContinuous()) {
+            throw new IllegalArgumentException("For FASK, the dataset must be entirely continuous");
+        }
+
         this.dataSet = dataSet;
-        this.score = score;
+        this.test = test;
 
         data = dataSet.getDoubleData().transpose().toArray();
     }
@@ -138,7 +134,6 @@ public final class Fask implements GraphSearch {
 
             G0 = g1;
         } else {
-            IndependenceTest test = new IndTestScore(score, dataSet);
             System.out.println("FAS");
 
             FasStable fas = new FasStable(test);
@@ -184,7 +179,7 @@ public final class Fask implements GraphSearch {
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else {
-                        if (leftright(x, y)) {
+                        if (leftRightMinnesota(x, y)) {
                             graph.addDirectedEdge(X, Y);
                         } else {
                             graph.addDirectedEdge(Y, X);
@@ -202,6 +197,69 @@ public final class Fask implements GraphSearch {
 
         return graph;
     }
+
+//    public Graph search2() {
+//        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
+//        double[][] colData = dataSet.getDoubleData().transpose().toArray();
+//
+//        List<Node> variables = dataSet.getVariables();
+//
+////        Collections.sort(variables, new Comparator<Node>() {
+////            @Override
+////            public int compare(Node o1, Node o2) {
+////                if (o1 == o2) return 0;
+////                int i = variables.indexOf(o1);
+////                int j = variables.indexOf(o2);
+////                final double[] x = colData[i];
+////                final double[] y = colData[j];
+////                return leftRightMinnesota(x, y) ? +1 : -1;
+////            }
+////        });
+//
+//        Graph graph = new EdgeListGraph(variables);
+//
+//        for (int i = 0; i < variables.size(); i++) {
+//            for  (int j = i + 1; j < variables.size(); j++) {
+//                final double[] x = colData[i];
+//                final double[] y = colData[j];
+//
+//                if (leftRightMinnesota(x, y)) {
+//                    graph.addDirectedEdge(variables.get(i), variables.get(j));
+//                } else  {
+//                    graph.addDirectedEdge(variables.get(j), variables.get(i));
+//                }
+//            }
+//        }
+//
+////        Knowledge2 knowledge = new Knowledge2();
+////
+////        for (int i = 0; i < variables.size(); i++) {
+////            knowledge.addToTier(i + 1, variables.get(i).getName());
+////        }
+//
+//        int numOfNodes = variables.size();
+//        for (int i = 0; i < numOfNodes; i++) {
+//            for (int j = i + 1; j < numOfNodes; j++) {
+//                Node n1 = variables.get(i);
+//                Node n2 = variables.get(j);
+//
+//                if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
+//                    continue;
+//                }
+//
+//                Edge edge = graph.getEdge(n1, n2);
+//                if (edge != null && edge.isDirected()) {
+//                    knowledge.setForbidden(edge.getNode2().getName(), edge.getNode1().getName());
+//                }
+//            }
+//        }
+//
+//        final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
+//        score.setPenaltyDiscount(penaltyDiscount);
+//        Fges fges = new Fges(score);
+//        fges.setKnowledge(knowledge);
+//        return fges.search();
+//    }
 
     private boolean bidirected(double[] x, double[] y, Graph G0, Node X, Node Y) {
 
@@ -270,27 +328,6 @@ public final class Fask implements GraphSearch {
         return true;
     }
 
-    private boolean leftright(double[] x, double[] y) {
-        if (minnesotaRule) return leftRightMinnesota(x, y);
-
-        x = correctSkewness(x);
-        y = correctSkewness(y);
-
-        double left = cu(x, y, x) / (sqrt(cu(x, x, x) * cu(y, y, x)));
-        double right = cu(x, y, y) / (sqrt(cu(x, x, y) * cu(y, y, y)));
-        double lr = left - right;
-
-        double r = StatUtils.correlation(x, y);
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
-
-        r *= signum(sx) * signum(sy);
-        lr *= signum(r);
-        if (r < getDelta()) lr *= -1;
-
-        return lr > 0;
-    }
-
     private boolean leftRightMinnesota(double[] x, double[] y) {
         x = correctSkewness(x);
         y = correctSkewness(y);
@@ -312,8 +349,6 @@ public final class Fask implements GraphSearch {
 
         double lr = Q - R;
 
-//        if (StatUtils.correlation(x, y) < 0) lr += delta;
-
         final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
         if (sk_ey < 0) {
@@ -322,7 +357,7 @@ public final class Fask implements GraphSearch {
 
         final double a = correlation(x, y);
 
-        if (a < 0 && sk_ey > -.2) {
+        if (a < 0) {// && sk_ey > 0) {
             lr *= -1;
         }
 
@@ -461,10 +496,6 @@ public final class Fask implements GraphSearch {
         this.knowledge = knowledge;
     }
 
-    public void setMinnesotaRule(boolean minnesotaRule) {
-        this.minnesotaRule = minnesotaRule;
-    }
-
     //======================================== PRIVATE METHODS ====================================//
 
     private boolean knowledgeOrients(Node left, Node right) {
@@ -505,14 +536,6 @@ public final class Fask implements GraphSearch {
 
     public void setUseSkewAdjacencies(boolean useSkewAdjacencies) {
         this.useSkewAdjacencies = useSkewAdjacencies;
-    }
-
-    public double getDelta() {
-        return delta;
-    }
-
-    public void setDelta(double delta) {
-        this.delta = delta;
     }
 }
 

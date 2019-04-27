@@ -3049,6 +3049,8 @@ public final class GraphUtils {
         for (Edge edge : graph.getEdges(node1)) {
             Node child = Edges.traverseDirected(node1, edge);
 
+            if (graph.getEdges(node1, child).size() == 2) return true;
+
             if (child == null) {
                 continue;
             }
@@ -3086,6 +3088,9 @@ public final class GraphUtils {
             Node t = Q.remove();
 
             for (Node u : G.getAdjacentNodes(t)) {
+                if (G.isParentOf(t, u) && G.isParentOf(u, t)) {
+                    return true;
+                }
                 Edge edge = G.getEdge(t, u);
                 Node c = Edges.traverseDirected(t, edge);
 

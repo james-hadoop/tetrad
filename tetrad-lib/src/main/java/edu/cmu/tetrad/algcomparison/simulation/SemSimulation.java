@@ -3,17 +3,15 @@ package edu.cmu.tetrad.algcomparison.simulation;
 import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.graph.SemGraph;
-import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
+import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.SemGraph;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.RandomUtil;
-import edu.pitt.dbmi.data.Dataset;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,12 +19,12 @@ import java.util.List;
  * @author jdramsey
  */
 public class SemSimulation implements Simulation {
+
     static final long serialVersionUID = 23L;
     private RandomGraph randomGraph;
     private SemPm pm;
     private SemIm im;
     private List<DataSet> dataSets = new ArrayList<>();
-    private List<DataSet> dataWithLatents = new ArrayList<>();
     private List<Graph> graphs = new ArrayList<>();
     private List<SemIm> ims = new ArrayList<>();
 
@@ -47,6 +45,8 @@ public class SemSimulation implements Simulation {
         this.randomGraph = new SingleGraph(graph);
         this.im = im;
         this.pm = im.getSemPm();
+        this.ims = new ArrayList<>();
+        ims.add(im);
     }
 
     @Override
@@ -89,19 +89,13 @@ public class SemSimulation implements Simulation {
             }
 
             dataSet.setName("" + (i + 1));
-            dataSets.add(DataUtils.restrictToMeasured(dataSet));
-            dataWithLatents.add(dataSet);
+            dataSets.add(dataSet);
         }
     }
 
     @Override
     public DataModel getDataModel(int index) {
         return dataSets.get(index);
-    }
-
-    @Override
-    public DataModel getDataModelWithLatents(int index) {
-        return dataWithLatents.get(index);
     }
 
     @Override
@@ -125,17 +119,18 @@ public class SemSimulation implements Simulation {
 //        if (pm == null) {
 //            parameters.addAll(SemPm.getParameterNames());
 //        }
-
         if (im == null) {
             parameters.addAll(SemIm.getParameterNames());
         }
 
-        parameters.add("standardize");
         parameters.add("measurementVariance");
         parameters.add("numRuns");
         parameters.add("differentGraphs");
         parameters.add("randomizeColumns");
         parameters.add("sampleSize");
+        parameters.add("saveLatentVars");
+        parameters.add("standardize");
+
         return parameters;
     }
 
@@ -150,9 +145,9 @@ public class SemSimulation implements Simulation {
     }
 
     private DataSet simulate(Graph graph, Parameters parameters) {
-        SemIm im = this.im;
+        boolean saveLatentVars = parameters.getBoolean("saveLatentVars");
 
-        DataSet dataWithLatents;
+        SemIm im = this.im;
 
         if (im == null) {
             SemPm pm = this.pm;
@@ -161,18 +156,16 @@ public class SemSimulation implements Simulation {
                 pm = new SemPm(graph);
                 im = new SemIm(pm, parameters);
                 ims.add(im);
-                dataWithLatents = im.simulateData(parameters.getInt("sampleSize"), true);
+                return im.simulateData(parameters.getInt("sampleSize"), saveLatentVars);
             } else {
                 im = new SemIm(pm, parameters);
                 ims.add(im);
-                dataWithLatents = im.simulateData(parameters.getInt("sampleSize"), true);
+                return im.simulateData(parameters.getInt("sampleSize"), saveLatentVars);
             }
         } else {
             ims.add(im);
-            dataWithLatents = im.simulateData(parameters.getInt("sampleSize"), true);
+            return im.simulateData(parameters.getInt("sampleSize"), saveLatentVars);
         }
-
-        return dataWithLatents;
     }
 
     public List<SemIm> getSemIms() {

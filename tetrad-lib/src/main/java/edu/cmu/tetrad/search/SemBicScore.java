@@ -40,7 +40,7 @@ import static java.lang.Math.log;
  *
  * @author Joseph Ramsey
  */
-public class SemBicScore implements Score, ISemBicScore {
+public class SemBicScore implements Score {
 
     // The covariance matrix.
     private ICovarianceMatrix covariances;
@@ -68,8 +68,6 @@ public class SemBicScore implements Score, ISemBicScore {
     private Set<Integer> forbidden = new HashSet<>();
 
     private Map<String, Integer> indexMap;
-
-    private double sp = 1.0;
 
 
     /**
@@ -109,8 +107,7 @@ public class SemBicScore implements Score, ISemBicScore {
             }
 
             int n = getSampleSize();
-            double strucPrior = getStructurePrior(parents);
-            return -(n) * log(s2) - getPenaltyDiscount() * p * log(n) + strucPrior;
+            return -(n) * log(s2) - getPenaltyDiscount() * p * log(n);
             // + getStructurePrior(parents.length);// - getStructurePrior(parents.length + 1);
         } catch (Exception e) {
             boolean removedOne = true;
@@ -128,13 +125,15 @@ public class SemBicScore implements Score, ISemBicScore {
         }
     }
 
+    double sp = 6.0;
+
     private double getStructurePrior(int parents) {
-        if (getSp() <= 0) {
+        if (sp <= 0) {
             return 0;
         } else {
             int i = parents + 1;
             int c = variables.size();
-            double p = getSp() / (double) c;
+            double p = sp / (double) c;
             return i * Math.log(p) + (c - i) * Math.log(1.0 - p);
         }
     }
@@ -151,12 +150,11 @@ public class SemBicScore implements Score, ISemBicScore {
         try {
             r = partialCorrelation(_x, _y, _z);
         } catch (SingularMatrixException e) {
+//            System.out.println(SearchLogUtils.determinismDetected(_z, _x));
             return Double.NaN;
         }
 
         int p = 2 + z.length;
-        double sp1 = getStructurePrior(append(z, x));
-        double sp2 = getStructurePrior(z);
 
         int N = covariances.getSampleSize();
 //        return -N * Math.log(1.0 - r * r) - p * getPenaltyDiscount() * Math.log(N) + sp1 - sp2;
@@ -381,25 +379,6 @@ public class SemBicScore implements Score, ISemBicScore {
         double v = localScore(i, k);
 
         return Double.isNaN(v);
-    }
-
-    private double getStructurePrior(int[] parents) {
-        if (sp <= 0) {
-            return 0;
-        } else {
-            int i = parents.length;
-            int c = covariances.getDimension();
-            double p = sp / (double) c;
-            return (i) * Math.log(p) + (c - i) * Math.log(1.0 - p);
-        }
-    }
-
-    public double getSp() {
-        return sp;
-    }
-
-    public void setSp(double sp) {
-        this.sp = sp;
     }
 }
 

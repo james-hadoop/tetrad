@@ -1764,7 +1764,7 @@ public final class StatUtils {
 //        return cov / Math.sqrt(var1 * var2);
 
         TetradMatrix inverse = submatrix.inverse();
-        return -(1.0 * inverse.get(0, 1)) / Math.sqrt(inverse.get(0, 0) * inverse.get(1, 1));
+        return (-inverse.get(0, 1)) / Math.sqrt(inverse.get(0, 0) * inverse.get(1, 1));
     }
 
     /**

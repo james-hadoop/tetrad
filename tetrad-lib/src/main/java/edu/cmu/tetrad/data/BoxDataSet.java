@@ -26,13 +26,20 @@ import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradSerializable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import static java.lang.Math.sqrt;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * Wraps a DataBox in such a way that mixed data sets can be storeds. The type
- * of each column must be specified by a Variable object, which must be either a
+ * Wraps a DataBox in such a way that mixed data sets can be stored. The type of
+ * each column must be specified by a Variable object, which must be either a
  * <code>ContinuousVariable</code> or a <code>DiscreteVariable</code>. This
  * class violates object orientation in that the underlying data matrix is
  * retrievable using the getDoubleData() method. This is allowed so that
@@ -802,7 +809,7 @@ public final class BoxDataSet implements DataSet, TetradSerializable {
                 if (i == j) {
                     continue;
                 }
-                corr.set(i, j, corr.get(i, j) / sqrt(corr.get(i, i) * corr.get(j, j)));
+                corr.set(i, j, corr.get(i, j) / Math.sqrt(corr.get(i, i) * corr.get(j, j)));
             }
         }
 
@@ -927,8 +934,8 @@ public final class BoxDataSet implements DataSet, TetradSerializable {
         StringBuilder buf = new StringBuilder();
         List<Node> variables = getVariables();
 
-//        buf.append("\n");
-//
+        buf.append("\n");
+
         for (int i = 0; i < getNumColumns(); i++) {
             buf.append(variables.get(i));
 
@@ -980,10 +987,10 @@ public final class BoxDataSet implements DataSet, TetradSerializable {
                 }
             }
 
-            if (i < getNumRows() - 1) {
-                buf.append("\n");
-            }
+            buf.append("\n");
         }
+
+        buf.append("\n");
 
         if (knowledge != null && !knowledge.isEmpty()) {
             buf.append(knowledge);
@@ -1128,7 +1135,7 @@ public final class BoxDataSet implements DataSet, TetradSerializable {
             retainedVars.add(variables.get(retainedCol));
         }
 
-        dataBox = viewSelection(rows, retainedCols);
+        dataBox = viewSelection(rows, cols);
         variables = retainedVars;
         selection = new HashSet<>();
         multipliers = new HashMap<>(multipliers);
@@ -1287,25 +1294,27 @@ public final class BoxDataSet implements DataSet, TetradSerializable {
      * @param cols The number of columns in the redimensioned data.
      */
     private void resize(int rows, int cols) {
-        int[] _rows = new int[rows];
-        int[] _cols = new int[cols];
-
-        for (int i = 0; i < _rows.length; i++) _rows[i] = i;
-        for (int j = 0; j < _cols.length; j++) _cols[j] = j;
-
-        DataBox _data = dataBox.viewSelection(_rows, _cols);
-
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                if (i < dataBox.numRows() && j < dataBox.numCols()) {
-                    _data.set(i, j, dataBox.get(i, j));
-                } else {
-                    _data.set(i, j, null);
-                }
+        if (dataBox instanceof DoubleDataBox) {
+            DoubleDataBox ddb = (DoubleDataBox) this.dataBox;
+            double[][] data = ddb.getData();
+            double[][] dataNew = new double[rows][cols];
+            int numOfCols = Math.min(cols, data[0].length);
+            int numOfRows = Math.min(rows, data.length);
+            for (int r = 0; r < numOfRows; r++) {
+                System.arraycopy(data[r], 0, dataNew[r], 0, numOfCols);
             }
+            this.dataBox = new DoubleDataBox(dataNew);
+        } else if (dataBox instanceof VerticalDoubleDataBox) {
+            VerticalDoubleDataBox vddb = (VerticalDoubleDataBox) this.dataBox;
+            double[][] data = vddb.getVariableVectors();
+            double[][] dataNew = new double[cols][rows];
+            int numOfCols = Math.min(rows, data[0].length);
+            int numOfRows = Math.min(cols, data.length);
+            for (int r = 0; r < numOfRows; r++) {
+                System.arraycopy(data[r], 0, dataNew[r], 0, numOfCols);
+            }
+            this.dataBox = new VerticalDoubleDataBox(dataNew);
         }
-
-        dataBox = _data;
     }
 
     /**

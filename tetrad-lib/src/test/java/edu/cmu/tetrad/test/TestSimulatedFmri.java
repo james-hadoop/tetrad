@@ -23,32 +23,27 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.FaskConcatenated;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_CConcatenated;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.FgesConcatenated;
-import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.algorithm.multi.*;
+import edu.cmu.tetrad.algcomparison.independence.FisherZ;
+import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.ContinuousVariable;
+import edu.cmu.tetrad.data.CovarianceMatrixOnTheFly;
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.DiscreteVariable;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.util.DataConvertUtils;
+import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.search.Fask;
+import edu.cmu.tetrad.search.IndTestFisherZ;
+import edu.cmu.tetrad.search.Lofs2;
+import edu.cmu.tetrad.sem.GeneralizedSemIm;
+import edu.cmu.tetrad.sem.GeneralizedSemPm;
 import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.RandomUtil;
-import edu.pitt.dbmi.data.Delimiter;
-import edu.pitt.dbmi.data.reader.tabular.MixedTabularDataFileReader;
 import org.junit.Test;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.lang.Math.abs;
+import java.text.ParseException;
 
 /**
  * Pulling this test out for Madelyn.
@@ -57,48 +52,16 @@ import static java.lang.Math.abs;
  */
 public class TestSimulatedFmri {
 
-    @Test
-    public void allTests() {
-//        new ToyFaskBExample().toy_positiveSkews();
-//        new ToyFaskBExample().toy_negativeSkews();
-        new TestSimulatedFmri().trainingData();
-//        new TestSimulatedFmri().testingData();
-//        new TestSimulatedFmri().smithSim();
-//        new TestSachsJoe().task();
-    }
-
-    @Test
-    public void testingData() {
-        simulatedFmri(true);
-    }
-
-    @Test
-    public void trainingData() {
-        simulatedFmri(false);
-    }
-
-    public void simulatedFmri(boolean test) {
+    private void task(boolean testing) {
         Parameters parameters = new Parameters();
+        parameters.set("penaltyDiscount", 4);
+        parameters.set("depth", -1);
+        parameters.set("twoCycleAlpha", 1e-10);
+        parameters.set("reverseOrientationsBySignOfCorrelation", false);
+        parameters.set("reverseOrientationsBySkewnessOfVariables", false);
 
-        parameters.set("penaltyDiscount", 2);
-
-        parameters.set("depth", 5);
-        parameters.set("skewEdgeAlpha", 0.0001);
-        parameters.set("twoCycleAlpha", 0.00000001);
-        parameters.set("useFasAdjacencies", true);
-        parameters.set("useSkewAdjacencies", true);
-        parameters.set("useMask", true);
-        parameters.set("maskThreshold", .4);
-        parameters.set("faskbDelta", -0.8);
-
-        parameters.set("penaltyDiscount", 3);
-
-        // for FASK.
-        parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 4);
-
-        parameters.set("useFasAdjacencies", true);
-        parameters.set("useCorrDiffAdjacencies", true);
+        parameters.set("numRuns", 10);
+        parameters.set("randomSelectionSize", 10);
 
         parameters.set("Structure", "Placeholder");
 
@@ -109,22 +72,21 @@ public class TestSimulatedFmri {
         statistics.add(new AdjacencyRecall());
 //        statistics.add(new MathewsCorrAdj());
         statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadPrecisionCommonAdjacencies());
         statistics.add(new ArrowheadRecall());
-//        statistics.add(new TwoCyclePrecision());
-//        statistics.add(new TwoCycleRecall());
+        statistics.add(new TwoCyclePrecision());
+        statistics.add(new TwoCycleRecall());
         statistics.add(new TwoCycleFalsePositive());
         statistics.add(new TwoCycleFalseNegative());
         statistics.add(new TwoCycleTruePositive());
-//        statistics.add(new ElapsedTime());
-//        statistics.setWeight("AHR", 1.0);
-//        statistics.setWeight("2CP", 1.0);
-//        statistics.setWeight("2CR", 1.0);
-//        statistics.setWeight("2CFP", 1.0);
+        statistics.add(new ElapsedTime());
+        statistics.setWeight("AHR", 1.0);
+        statistics.setWeight("2CP", 1.0);
+        statistics.setWeight("2CR", 1.0);
+        statistics.setWeight("2CFP", 1.0);
 
         Simulations simulations = new Simulations();
 
-        if (!test) {
+        if (!testing) {
             String dir = "/Users/user/Downloads/Cycles_Data_fMRI/";
             String subdir = "data_fslfilter";
 
@@ -217,20 +179,15 @@ public class TestSimulatedFmri {
 
         Algorithms algorithms = new Algorithms();
 
-//        algorithms.add(new FaskConcatenated(new SemBicScore()));
-        algorithms.add(new Fask_CConcatenated(new SemBicTest()));
-//        algorithms.add(new SkewSearchConcatenated(new FisherZSkew()));
-//        algorithms.add(new FaskConcatenated(new SemBicScore()));
-//        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
-//        algorithms.add(new FaskConcatenated(new SemBicScore()));
+        algorithms.add(new FaskConcatenated(new FisherZ()));
 //        algorithms.add(new FaskGfciConcatenated(new SemBicTest()));
 
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.RSkew));
 
         Comparison comparison = new Comparison();
 
-        comparison.setShowAlgorithmIndices(false);
-        comparison.setShowSimulationIndices(false);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setShowSimulationIndices(true);
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
         comparison.setParallelized(false);
@@ -240,28 +197,24 @@ public class TestSimulatedFmri {
 
         String directory;
 
-        if (!test) {
-            directory = "/Users/user/tetrad/comparison_training";
+        if (!testing) {
+            directory = "comparison_training";
         } else {
-            directory = "/Users/user/tetrad/comparison_testing";
+            directory = "comparison_testing";
         }
 
         comparison.compareFromSimulations(directory, simulations, algorithms, statistics, parameters);
     }
 
-    @Test
-    public void smithSim() {
+    //    @Test
+    public void task2() {
         Parameters parameters = new Parameters();
-        parameters.set("penaltyDiscount", 3);
-        parameters.set("twoCycleAlpha", .000000);
-        parameters.set("depth", 5);
-        parameters.set("extraEdgeThreshold", 10);
-        parameters.set("maskThreshold", 10);
-        parameters.set("skewEdgeAlpha", 0.05);
-        parameters.set("faskbDelta", -0.8);
+        parameters.set("penaltyDiscount", 1);
+        parameters.set("depth", -1);
+        parameters.set("twoCycleAlpha", 0);
 
-        parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 5);
+        parameters.set("numRuns", 10);
+        parameters.set("randomSelectionSize", 2);
 
         parameters.set("Structure", "Placeholder");
 
@@ -272,7 +225,6 @@ public class TestSimulatedFmri {
         statistics.add(new AdjacencyRecall());
 //        statistics.add(new MathewsCorrAdj());
         statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadPrecisionCommonAdjacencies());
         statistics.add(new ArrowheadRecall());
         statistics.add(new TwoCyclePrecision());
         statistics.add(new TwoCycleRecall());
@@ -290,10 +242,10 @@ public class TestSimulatedFmri {
         Algorithms algorithms = new Algorithms();
 
         for (int i = 1; i <= 28; i++) {
-            if (i == 21) continue;
-//            simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
+//            if (i == 21) continue;
+            simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
 //            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDdemefilt1"));
-            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
+//            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
         }
 
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.FASKLR));
@@ -305,19 +257,15 @@ public class TestSimulatedFmri {
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.SkewE));
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.Patel));
 
-        algorithms.add(new FaskConcatenated(new SemBicScore()));
-//        algorithms.add(new Fask_CConcatenated(new SemBicTest()));
-//        algorithms.add(new SkewSearchConcatenated());
-
+        algorithms.add(new FaskConcatenated(new FisherZ() {
+        }));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R1));
-//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.Patel));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R3));
-//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.Skew));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.RSkew));
-//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.RSkewE));
+//        algorithms.add(new FasLofsConfcatenated(Lofs2.Rule.RSkewE));
+//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.Skew));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.SkewE));
-
-        algorithms.add(new FgesConcatenated(new SemBicScore()));
+//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.Patel));
 
         Comparison comparison = new Comparison();
 
@@ -330,198 +278,228 @@ public class TestSimulatedFmri {
         comparison.setTabDelimitedTables(false);
         comparison.setSaveGraphs(true);
 
-        String directory = "/Users/user/tetrad/smithsim";
+        String directory = "smithsim";
 
         comparison.compareFromSimulations(directory, simulations, algorithms, statistics, parameters);
     }
 
-    @Test
-    public void test4celllinesdata() {
+    //    @Test
+    public void testTough() {
+        Parameters parameters = new Parameters();
+
+        parameters.set("penaltyDiscount", 2);
+        parameters.set("depth", 5);
+        parameters.set("twoCycleAlpha", .01);
+
+        parameters.set("numRuns", 1);
+        parameters.set("randomSelectionSize", 10);
+
+        parameters.set("Structure", "Placeholder");
+
+        Statistics statistics = new Statistics();
+
+        statistics.add(new ParameterColumn("Structure"));
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new MathewsCorrAdj());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new TwoCyclePrecision());
+        statistics.add(new TwoCycleRecall());
+        statistics.add(new TwoCycleFalsePositive());
+        statistics.add(new TwoCycleFalseNegative());
+        statistics.add(new TwoCycleTruePositive());
+        statistics.add(new ElapsedTime());
+
+        statistics.setWeight("AP", 1.0);
+        statistics.setWeight("AR", 1.0);
+        statistics.setWeight("AHP", 1.0);
+        statistics.setWeight("AHR", 1.0);
+        statistics.setWeight("2CP", 1.0);
+        statistics.setWeight("2CR", 1.0);
+        statistics.setWeight("2CFP", 1.0);
+
+        Simulations simulations = new Simulations();
+
+        String dir = "/Users/jdramsey/Downloads/";
+        String subdir = "data_fslfilter";
+
+        simulations.add(new LoadContinuousDataAndSingleGraph(
+                dir + "Markov_dist_thresh36", subdir));
+
+        Algorithms algorithms = new Algorithms();
+
+//        algorithms.add(new FasLofs(Lofs2.Rule.R1));
+//        algorithms.add(new FasLofs(Lofs2.Rule.R2));
+//        algorithms.add(new FasLofs(Lofs2.Rule.R3));
+//        algorithms.add(new FasLofs(Lofs2.Rule.Patel));
+//        algorithms.add(new FasLofs(Lofs2.Rule.Skew));
+//        algorithms.add(new FasLofs(Lofs2.Rule.RSkew));
+//
+//        algorithms.add(new FgesConcatenated(new edu.cmu.tetrad.algcomparison.score.SemBicScore(), true));
+//        algorithms.add(new PcStableMaxConcatenated(new SemBicTest(), true));
+        algorithms.add(new FaskConcatenated(new FisherZ()));
+//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R1));
+//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R2));
+//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R3));
+//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.Patel));
+//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.Skew));
+//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.RSkew));
+
+        Comparison comparison = new Comparison();
+
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setShowSimulationIndices(true);
+        comparison.setSortByUtility(false);
+        comparison.setShowUtilities(false);
+        comparison.setParallelized(false);
+        comparison.setSaveGraphs(false);
+        comparison.setTabDelimitedTables(false);
+
+        comparison.compareFromSimulations("comparison", simulations, algorithms, statistics, parameters);
+    }
+
+//    @Test
+    public void testClark() {
+
+        double f = .1;
+        int N = 512;
+        double alpha = 1.0;
+        double penaltyDiscount = 1.0;
+
+        for (int i = 0; i < 100; i++) {
+            {
+                Node x = new ContinuousVariable("X");
+                Node y = new ContinuousVariable("Y");
+                Node z = new ContinuousVariable("Z");
+
+                Graph g = new EdgeListGraph();
+                g.addNode(x);
+                g.addNode(y);
+                g.addNode(z);
+
+                g.addDirectedEdge(x, y);
+                g.addDirectedEdge(z, x);
+                g.addDirectedEdge(z, y);
+
+                GeneralizedSemPm pm = new GeneralizedSemPm(g);
+
+                try {
+                    pm.setNodeExpression(g.getNode("X"), "0.5 * Z + E_X");
+                    pm.setNodeExpression(g.getNode("Y"), "0.5 * X + 0.5 * Z + E_Y");
+                    pm.setNodeExpression(g.getNode("Z"), "E_Z");
+
+                    String error = "pow(Uniform(0, 1), " + f + ")";
+                    pm.setNodeExpression(pm.getErrorNode(g.getNode("X")), error);
+                    pm.setNodeExpression(pm.getErrorNode(g.getNode("Y")), error);
+                    pm.setNodeExpression(pm.getErrorNode(g.getNode("Z")), error);
+                } catch (ParseException e) {
+                    System.out.println(e);
+                }
+
+                GeneralizedSemIm im = new GeneralizedSemIm(pm);
+                DataSet data = im.simulateData(N, false);
+
+
+                Fask fask = new Fask(data, new IndTestFisherZ(data, 0.001));
+                fask.setPenaltyDiscount(penaltyDiscount);
+                fask.setAlpha(alpha);
+                Graph out = fask.search();
+
+                System.out.println(out);
+            }
+
+            {
+                Node x = new ContinuousVariable("X");
+                Node y = new ContinuousVariable("Y");
+                Node z = new ContinuousVariable("Z");
+
+                Graph g = new EdgeListGraph();
+                g.addNode(x);
+                g.addNode(y);
+                g.addNode(z);
+
+                g.addDirectedEdge(x, y);
+                g.addDirectedEdge(x, z);
+                g.addDirectedEdge(y, z);
+
+                GeneralizedSemPm pm = new GeneralizedSemPm(g);
+
+                try {
+                    pm.setNodeExpression(g.getNode("X"), "E_X");
+                    pm.setNodeExpression(g.getNode("Y"), "0.4 * X + E_Y");
+                    pm.setNodeExpression(g.getNode("Z"), "0.4 * X + 0.4 * Y + E_Z");
+
+                    String error = "pow(Uniform(0, 1), " + f + ")";
+                    pm.setNodeExpression(pm.getErrorNode(g.getNode("X")), error);
+                    pm.setNodeExpression(pm.getErrorNode(g.getNode("Y")), error);
+                    pm.setNodeExpression(pm.getErrorNode(g.getNode("Z")), error);
+                } catch (ParseException e) {
+                    System.out.println(e);
+                }
+
+                GeneralizedSemIm im = new GeneralizedSemIm(pm);
+                DataSet data = im.simulateData(N, false);
+
+                Fask fask = new Fask(data, new IndTestFisherZ(data, 0.001));
+                fask.setPenaltyDiscount(penaltyDiscount);
+                fask.setAlpha(alpha);
+                Graph out = fask.search();
+
+                System.out.println(out);
+
+            }
+        }
+    }
+
+
+//    @Test
+    public void testClark2() {
+
+        Node x = new ContinuousVariable("X");
+        Node y = new ContinuousVariable("Y");
+        Node z = new ContinuousVariable("Z");
+
+        Graph g = new EdgeListGraph();
+        g.addNode(x);
+        g.addNode(y);
+        g.addNode(z);
+
+        g.addDirectedEdge(x, y);
+        g.addDirectedEdge(x, z);
+        g.addDirectedEdge(y, z);
+
+        GeneralizedSemPm pm = new GeneralizedSemPm(g);
+
         try {
-            DataSet data1 = loadData("BT20_excluded1.csv");
-            DataSet data2 = loadData("BT549_excluded1.csv");
-            DataSet data3 = loadData("MCF7_excluded1.csv");
-            DataSet data4 = loadData("UACC812_excluded1.csv");
+            pm.setNodeExpression(g.getNode("X"), "E_X");
+            pm.setNodeExpression(g.getNode("Y"), "0.4 * X + E_Y");
+            pm.setNodeExpression(g.getNode("Z"), "0.4 * X + 0.4 * Y + E_Z");
 
-            List<Integer> continuousColumns = new ArrayList<>();
-            for (Node node : data1.getVariables()) {
-                if (node instanceof ContinuousVariable) {
-                    continuousColumns.add(data1.getColumn(node));
-                }
-            }
-
-            int[] _continuouscolumns = new int[continuousColumns.size()];
-            for (int i = 0; i < continuousColumns.size(); i++) _continuouscolumns[i] = continuousColumns.get(i);
-
-            DataSet data1a = data1.subsetColumns(_continuouscolumns);
-            DataSet data2a = data2.subsetColumns(_continuouscolumns);
-            DataSet data3a = data3.subsetColumns(_continuouscolumns);
-            DataSet data4a = data4.subsetColumns(_continuouscolumns);
-
-            DataSet concatenated = DataUtils.concatenate(data1a, data2a, data3a, data4a);
-
-            List<String> allCategories = new ArrayList<>();
-
-            allCategories.addAll(addCategories(data1));
-            allCategories.addAll(addCategories(data2));
-            allCategories.addAll(addCategories(data3));
-            allCategories.addAll(addCategories(data4));
-
-            System.out.println(allCategories);
-
-            Map<String, ContinuousVariable> hash = new HashMap<>();
-
-            for (String category : allCategories) {
-                final ContinuousVariable e = new ContinuousVariable(category);
-                if (concatenated.getVariable(e.getName()) == null) {
-                    concatenated.addVariable(e);
-                    hash.put(category, e);
-                }
-            }
-
-            for (String s : hash.keySet()) {
-                Node var = concatenated.getVariable(s);
-                int c = concatenated.getColumn(var);
-
-                for (int r = 0; r < concatenated.getNumRows(); r++) {
-                    concatenated.setDouble(r, c, 0.0 + RandomUtil.getInstance().nextNormal(0, 0.001));
-                }
-            }
-
-            int r = -1;
-
-            r = addIndicatorData(data1, concatenated, 4, hash, r);
-
-            r = addIndicatorData(data2, concatenated, 4, hash, r);
-
-            r = addIndicatorData(data3, concatenated, 4, hash, r);
-
-            r = addIndicatorData(data4, concatenated, 4, hash, r);
-
-            System.out.println(concatenated);
-
-            PrintStream out = new PrintStream("/Users/user/Box Sync/data/4cellLineData/4celllines.with.indicators.jittered.txt");
-            out.println(concatenated);
-            out.flush();
-
-            String[] delays = {"5min", "15min", "30min", "60min", "2hr", "4hr"};
-
-            for (String delay : delays) {
-                Node _delay = hash.get(delay);
-                int hr = concatenated.getColumn(_delay);
-                List<Integer> rows = new ArrayList<>();
-
-                for (int r2 = 0; r2 < concatenated.getNumRows(); r2++) {
-                    if (abs(concatenated.getDouble(r2, hr) - 1.0) < 0.1) {
-                        rows.add(r2);
-                    }
-                }
-
-                int[] _rows = new int[rows.size()];
-                for (int i = 0; i < rows.size(); i++) _rows[i] = rows.get(i);
-
-                DataSet subset = concatenated.subsetRows(_rows);
-
-                System.out.println(subset.getNumRows());
-
-                PrintStream out2 = new PrintStream("/Users/user/Box Sync/data/4cellLineData/4celllines.with.indicators." + delay + ".jittered.txt");
-                out2.println(subset);
-                out2.flush();
-
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private int addIndicatorData(DataSet data1, DataSet concatenated, int discreteColumns, Map<String, ContinuousVariable> hash, int r) {
-        for (int i = 0; i < data1.getNumRows(); i++) {
-            ++r;
-
-            for (int j = 0; j < discreteColumns; j++) {
-                int v = data1.getInt(i, j);
-
-                if (v != -99) {
-                    DiscreteVariable var = (DiscreteVariable) data1.getVariable(j);
-                    String cat = var.getCategory(v);
-                    Node n = hash.get(cat);
-                    int cc = concatenated.getColumn(n);
-                    concatenated.setDouble(r, cc, 1.0 + RandomUtil.getInstance().nextNormal(0, 0.001));
-                }
-            }
-
+            String error = "pow(Uniform(0, 1), 1.5)";
+            pm.setNodeExpression(pm.getErrorNode(g.getNode("X")), error);
+            pm.setNodeExpression(pm.getErrorNode(g.getNode("Y")), error);
+            pm.setNodeExpression(pm.getErrorNode(g.getNode("Z")), error);
+        } catch (ParseException e) {
+            System.out.println(e);
         }
 
-        return r;
+
+        GeneralizedSemIm im = new GeneralizedSemIm(pm);
+        DataSet data = im.simulateData(1000, false);
+
+        Fask fask = new Fask(data, new IndTestFisherZ(data, 0.001));
+        fask.setPenaltyDiscount(1);
+        fask.setAlpha(0.5);
+        Graph out = fask.search();
+
+        System.out.println(out);
     }
 
-    private List<String> addCategories(DataSet data1) {
-        List<String> allCategories = new ArrayList<>();
-        for (Node node : data1.getVariables()) {
-            if (node instanceof DiscreteVariable) {
-                allCategories.addAll(((DiscreteVariable) node).getCategories());
-            }
-        }
-        return allCategories;
-    }
-
-    private DataSet loadData(String name) throws IOException {
-        MixedTabularDataFileReader dataReader = new MixedTabularDataFileReader(20
-                , new File("/Users/user/Box Sync/data/4cellLineData/" + name), Delimiter.COMMA);
-        dataReader.setHasHeader(true);
-
-        return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
-    }
-
-    @Test
-    public void loadNodePairs() {
-        try {
-            final String name = "goldNet2_35N_no_circles.csv";
-            File file = new File("/Users/user/Box Sync/data/4cellLineData/", name);
-
-            BufferedReader buf = new BufferedReader(new FileReader(file));
-
-            Map<String, Node> variables = new HashMap<>();
-            List<Node> nodes = new ArrayList<>();
-            List<Edge> edges = new ArrayList<>();
-
-            String line;
-
-            while ((line = buf.readLine()) != null) {
-                System.out.println(line);
-
-                String[] tokens = line.split(",");
-
-                if (!variables.containsKey(tokens[0])) {
-                    variables.put(tokens[0], new ContinuousVariable(tokens[0]));
-                    nodes.add(variables.get(tokens[0]));
-                }
-
-                if (!variables.containsKey(tokens[1])) {
-                    variables.put(tokens[1], new ContinuousVariable(tokens[1]));
-                    nodes.add(variables.get(tokens[1]));
-                }
-
-                Node n1 = variables.get(tokens[0]);
-                Node n2 = variables.get(tokens[1]);
-                edges.add(Edges.directedEdge(n1, n2));
-            }
-
-            Graph g = new EdgeListGraph(nodes);
-
-            for (Edge edge : edges) {
-                g.addEdge(edge);
-            }
-
-            System.out.println(g);
-
-            GraphUtils.saveGraph(g, new File("/Users/user/Box Sync/data/4cellLineData/goldNet2_35N_no_circles.graph.txt"), false);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static void main(String... args) {
+        new TestSimulatedFmri().task(false);
     }
 }
+
 
 

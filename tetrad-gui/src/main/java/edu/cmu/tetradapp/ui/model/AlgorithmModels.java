@@ -20,6 +20,7 @@ package edu.cmu.tetradapp.ui.model;
 
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.AlgorithmAnnotations;
+import edu.cmu.tetrad.data.DataType;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -69,13 +70,35 @@ public class AlgorithmModels {
         return INSTANCE;
     }
 
-    public List<AlgorithmModel> getModels() {
-        return models;
+    private List<AlgorithmModel> filterInclusivelyByAllOrSpecificDataType(List<AlgorithmModel> algorithmModels, DataType dataType, boolean multiDataSetAlgorithm) {
+        AlgorithmAnnotations algoAnno = AlgorithmAnnotations.getInstance();
+
+        return (dataType == DataType.All)
+                ? algorithmModels
+                : algorithmModels.stream()
+                        .filter(e -> {
+                            return multiDataSetAlgorithm
+                                    ? algoAnno.acceptMultipleDataset(e.getAlgorithm().getClazz())
+                                    : true;
+                        })
+                        .filter(e -> {
+                            for (DataType dt : e.getAlgorithm().getAnnotation().dataType()) {
+                                if (dt == DataType.All || dt == dataType) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        })
+                        .collect(Collectors.toList());
     }
 
-    public List<AlgorithmModel> getModels(AlgType algType) {
+    public List<AlgorithmModel> getModels(DataType dataType, boolean multiDataSetAlgorithm) {
+        return filterInclusivelyByAllOrSpecificDataType(models, dataType, multiDataSetAlgorithm);
+    }
+
+    public List<AlgorithmModel> getModels(AlgType algType, DataType dataType, boolean multiDataSetAlgorithm) {
         return modelMap.containsKey(algType)
-                ? modelMap.get(algType)
+                ? filterInclusivelyByAllOrSpecificDataType(modelMap.get(algType), dataType, multiDataSetAlgorithm)
                 : Collections.EMPTY_LIST;
     }
 

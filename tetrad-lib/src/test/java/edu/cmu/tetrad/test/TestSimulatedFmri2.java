@@ -23,6 +23,7 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
+import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -37,10 +38,9 @@ public class TestSimulatedFmri2 {
 
     public void TestCycles_Data_fMRI_FASK() {
         Parameters parameters = new Parameters();
-        parameters.set("penaltyDiscount", 2);
+        parameters.set("penaltyDiscount", 8);
         parameters.set("depth", -1);
-        parameters.set("faskDelta", -0.2);
-        parameters.set("twoCycleAlpha", 1e-6);
+        parameters.set("twoCycleAlpha", 1e-15);
 
         parameters.set("numRuns", 60);
 //        parameters.set("randomSelectionSize", 1);
@@ -114,7 +114,7 @@ public class TestSimulatedFmri2 {
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask(new SemBicScore()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask(new FisherZ()));
 //
         Comparison comparison = new Comparison();
 

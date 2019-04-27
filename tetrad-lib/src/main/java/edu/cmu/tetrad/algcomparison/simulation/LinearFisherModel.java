@@ -39,7 +39,7 @@ public class LinearFisherModel implements Simulation, TakesData {
         if (shocks != null) {
             JOptionPane.showMessageDialog(JOptionUtils.centeringComp(),
                     "The initial dataset you've provided will be used as initial shocks"
-                    + "\nfor a Fisher model.");
+                            + "\nfor a Fisher model.");
 
             for (DataModel _shocks : shocks) {
                 if (_shocks == null) {
@@ -95,8 +95,6 @@ public class LinearFisherModel implements Simulation, TakesData {
                     parameters.getDouble("varHigh"));
             simulator.setIncludePositiveCoefs(parameters.getBoolean("includePositiveCoefs"));
             simulator.setIncludeNegativeCoefs(parameters.getBoolean("includeNegativeCoefs"));
-            simulator.setBetaLeftValue(parameters.getDouble("betaLeftValue"));
-            simulator.setBetaRightValue(parameters.getDouble("betaRightValue"));
             simulator.setSelfLoopCoef(parameters.getDouble("selfLoopCoef"));
             simulator.setMeanRange(
                     parameters.getDouble("meanLow"),
@@ -138,23 +136,27 @@ public class LinearFisherModel implements Simulation, TakesData {
 
             dataSet.setName("" + (i + 1));
 
-            if (parameters.getDouble("percentDiscrete") > 0.0) {
-                if (this.shuffledOrder == null) {
-                    List<Node> shuffledNodes = new ArrayList<>(dataSet.getVariables());
-                    Collections.shuffle(shuffledNodes);
-                    this.shuffledOrder = shuffledNodes;
-                }
+//            if (parameters.getDouble("percentDiscrete") > 0.0) {
+//                if (this.shuffledOrder == null) {
+//                    List<Node> shuffledNodes = new ArrayList<>(dataSet.getVariables());
+//                    Collections.shuffle(shuffledNodes);
+//                    this.shuffledOrder = shuffledNodes;
+//                }
+//
+//                Discretizer discretizer = new Discretizer(dataSet);
+//
+//                for (int k = 0; k < shuffledOrder.size() * parameters.getDouble("percentDiscrete") * 0.01; k++) {
+//                    discretizer.equalIntervals(dataSet.getVariable(shuffledOrder.get(k).getName()),
+//                            parameters.getInt("numCategories"));
+//                }
+//
+//                String name = dataSet.getName();
+//                dataSet = discretizer.discretize();
+//                dataSet.setName(name);
+//            }
 
-                Discretizer discretizer = new Discretizer(dataSet);
-
-                for (int k = 0; k < shuffledOrder.size() * parameters.getDouble("percentDiscrete") * 0.01; k++) {
-                    discretizer.equalIntervals(dataSet.getVariable(shuffledOrder.get(k).getName()),
-                            parameters.getInt("numCategories"));
-                }
-
-                String name = dataSet.getName();
-                dataSet = discretizer.discretize();
-                dataSet.setName(name);
+            if (parameters.getBoolean("standardize")) {
+                dataSet = DataUtils.standardizeData(dataSet);
             }
 
             if (parameters.getBoolean("randomizeColumns")) {
@@ -167,11 +169,6 @@ public class LinearFisherModel implements Simulation, TakesData {
 
     @Override
     public DataModel getDataModel(int index) {
-        return dataSets.get(index);
-    }
-
-    @Override
-    public DataModel getDataModelWithLatents(int index) {
         return dataSets.get(index);
     }
 
@@ -203,12 +200,8 @@ public class LinearFisherModel implements Simulation, TakesData {
         parameters.add("includePositiveCoefs");
         parameters.add("includeNegativeCoefs");
         parameters.add("errorsNormal");
-        parameters.add("includePositiveSkewsForBeta");
-        parameters.add("includeNegativeSkewsForBeta");
-        parameters.add("betaLeftValue");
-        parameters.add("betaRightValue");
         parameters.add("numRuns");
-        parameters.add("percentDiscrete");
+//        parameters.add("percentDiscrete");
         parameters.add("numCategories");
         parameters.add("differentGraphs");
         parameters.add("sampleSize");
@@ -219,6 +212,7 @@ public class LinearFisherModel implements Simulation, TakesData {
         parameters.add("randomizeColumns");
         parameters.add("measurementVariance");
         parameters.add("saveLatentVars");
+        parameters.add("standardize");
 
         return parameters;
     }
