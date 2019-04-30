@@ -2511,6 +2511,8 @@ public final class SearchGraphUtils {
             if (Edges.getDirectedEdgeHead(e1) == Edges.getDirectedEdgeTail(e2)) {
                 return 1;
             }
+        } else if (bidirected(e1) || bidirected(e2)) {
+            return 2;
         }
 
         return 0;
@@ -2518,6 +2520,10 @@ public final class SearchGraphUtils {
 
     private static boolean directed(Edge e2) {
         return e2 != null && Edges.isDirectedEdge(e2);
+    }
+
+    private static boolean bidirected(Edge e2) {
+        return e2 != null && Edges.isBidirectedEdge(e2);
     }
 
     private static boolean undirected(Edge e2) {

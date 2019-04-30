@@ -23,37 +23,23 @@ package edu.cmu.tetrad.study;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.continuous.dag.Lingam;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.FAS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
-import edu.cmu.tetrad.algcomparison.algorithm.other.Glasso;
-import edu.cmu.tetrad.algcomparison.algorithm.pairwise.R3;
-import edu.cmu.tetrad.algcomparison.algorithm.pairwise.RSkew;
-import edu.cmu.tetrad.algcomparison.algorithm.pairwise.Skew;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.independence.*;
-import edu.cmu.tetrad.algcomparison.score.*;
-import edu.cmu.tetrad.algcomparison.simulation.BayesNetSimulation;
+import edu.cmu.tetrad.algcomparison.independence.FisherZ;
+import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
-import edu.cmu.tetrad.search.Fas;
-import edu.cmu.tetrad.search.FasStable;
-import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * An example script to simulate data and run a comparison analysis on it.
  *
  * @author jdramsey
  */
-public class ExampleCompareSimulationContinuousPattern {
+public class ExampleCompareSimulationContinuousPatternLinearGaussian {
     enum Type{LinearGaussian, LinearNongaussian}
 
     public static void main(String... args) {
@@ -61,7 +47,7 @@ public class ExampleCompareSimulationContinuousPattern {
         int sampleSize = 500;
         int numMeasures = 40;
         int avgDegree = 4;
-        Type type = Type.LinearNongaussian;
+        Type type = Type.LinearGaussian;
 
         parameters.set("numRuns", 10);
         parameters.set("numMeasures", numMeasures);
@@ -74,8 +60,8 @@ public class ExampleCompareSimulationContinuousPattern {
         parameters.set("colliderDiscoveryRule", 2, 3); // took out 1
         parameters.set("conflictRule", 1, 3); // took out 2
 
-        parameters.set("coefLow", 0.2);
-        parameters.set("coefHigh", 0.7);
+        parameters.set("coefLow", 0.3);
+        parameters.set("coefHigh", 0.9);
 
         parameters.set("varLow", 1.0);
         parameters.set("varHigh", 3.0);
@@ -119,10 +105,10 @@ public class ExampleCompareSimulationContinuousPattern {
         algorithms.add(new PcAll(new FisherZ()));
         algorithms.add(new Fges(new SemBicScore()));
 
-        algorithms.add(new R3(new FAS(new FisherZ())));
-        algorithms.add(new Skew(new FAS(new FisherZ())));
-//        algorithms.add(new RSkew(new FAS(new FisherZ())));
-        algorithms.add(new Fask(new FAS(new FisherZ())));
+//        algorithms.add(new R3(new FAS(new FisherZ())));
+//        algorithms.add(new Skew(new FAS(new FisherZ())));
+////        algorithms.add(new RSkew(new FAS(new FisherZ())));
+//        algorithms.add(new Fask(new FAS(new FisherZ())));
 
 
 //        algorithms.add(new Lingam());
@@ -149,7 +135,7 @@ public class ExampleCompareSimulationContinuousPattern {
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
         comparison.setSortByUtility(true);
-//        comparison.setShowUtilities(true);
+        comparison.setShowUtilities(true);
 //        comparison.setParallelized(true);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);

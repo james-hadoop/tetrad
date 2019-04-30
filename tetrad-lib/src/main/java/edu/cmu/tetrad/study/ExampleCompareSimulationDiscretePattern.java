@@ -44,26 +44,26 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationDiscretePattern {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        int sampleSize = 300;
+        int sampleSize = 500;
 
         parameters.set("numRuns", 10);
-        parameters.set("numMeasures", 10, 20);
-        parameters.set("avgDegree", 2, 4);
+        parameters.set("numMeasures", 20);
+        parameters.set("avgDegree", 4);
         parameters.set("sampleSize", sampleSize); // This varies.
         parameters.set("minCategories", 3);
         parameters.set("maxCategories", 3);
         parameters.set("differentGraphs", true);
 
-        parameters.set("alpha", 0.05, 0.01, 0.001);
-        parameters.set("colliderDiscoveryRule", 1, 2, 3);
+        parameters.set("alpha", 0.01);
+        parameters.set("colliderDiscoveryRule", 2);
         parameters.set("conflictRule", 3);;
 
-        parameters.set("maxDegree", 100);
-        parameters.set("samplePrior",  1, 5, 10, 15, 20, 25, 30, 50, 80, 100);
-        parameters.set("structurePrior", 1, 2, 3, 4, 5);
+        parameters.set("maxDegree", 8);
+        parameters.set("samplePrior",  3, 5, 10, 15, 20, 25, 30, 50, 80);
+        parameters.set("structurePrior", 3, 4);
 
 //        parameters.set("penaltyDiscount", 1, 2, 3, 4);
-        parameters.set("discretize", true);
+//        parameters.set("discretize", true);
 
 //        parameters.set("symmetricFirstStep", true, false);
 
@@ -77,7 +77,7 @@ public class ExampleCompareSimulationDiscretePattern {
         statistics.add(new ParameterColumn("samplePrior"));
         statistics.add(new ParameterColumn("structurePrior"));
 //        statistics.add(new ParameterColumn("penaltyDiscount"));
-        statistics.add(new ParameterColumn("discretize"));
+//        statistics.add(new ParameterColumn("discretize"));
         statistics.add(new ParameterColumn("alpha"));
 //        statistics.add(new ParameterColumn("symmetricFirstStep"));
 
@@ -90,14 +90,14 @@ public class ExampleCompareSimulationDiscretePattern {
 //        statistics.add(new MathewsCorrArrow());
 //        statistics.add(new F1Adj());
 //        statistics.add(new F1Arrow());
-        statistics.add(new SHD2());
+        statistics.add(new SHD());
 //        statistics.add(new ElapsedTime());
 
 //        statistics.setWeight("AP", 1.0);
 //        statistics.setWeight("AR", 1.0);
-        statistics.setWeight("AHP", 1.0);
+//        statistics.setWeight("AHP", 1.0);
 //        statistics.setWeight("AHR", 1.0);
-//        statistics.setWeight("SHD2", 1.0);
+        statistics.setWeight("SHD", 1.0);
 
         Algorithms algorithms = new Algorithms();
 
@@ -117,12 +117,12 @@ public class ExampleCompareSimulationDiscretePattern {
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
         comparison.setSortByUtility(true);
-//        comparison.setShowUtilities(true);
+        comparison.setShowUtilities(true);
 //        comparison.setParallelized(true);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
 
-        comparison.compareFromSimulations("comparison.discrete.pattern", simulations, "comparison_all_" + sampleSize, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparison.discrete.pattern", simulations, "comparison_pattern_discrete_" + sampleSize, algorithms, statistics, parameters);
     }
 }
 

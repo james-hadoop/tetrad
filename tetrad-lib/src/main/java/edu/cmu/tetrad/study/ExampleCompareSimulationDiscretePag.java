@@ -126,12 +126,12 @@ public class ExampleCompareSimulationDiscretePag {
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
         comparison.setSortByUtility(true);
-//        comparison.setShowUtilities(true);
+        comparison.setShowUtilities(true);
 //        comparison.setParallelized(true);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.PAG_of_the_true_DAG);
 
-        comparison.compareFromSimulations("comparison.discrete.pag", simulations, "comparison_all_" + sampleSize, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparison.discrete.pag", simulations, "comparison_discrete_pag_" + sampleSize, algorithms, statistics, parameters);
     }
 }
 

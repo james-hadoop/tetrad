@@ -21,6 +21,7 @@ public class ArrowheadPrecisionCommonEdges implements Statistic {
     }
 
     @Override
+
     public String getDescription() {
         return "Arrowhead precision (common edges)";
     }
