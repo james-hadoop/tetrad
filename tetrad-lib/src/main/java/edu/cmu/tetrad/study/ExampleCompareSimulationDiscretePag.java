@@ -38,7 +38,21 @@ import edu.cmu.tetrad.algcomparison.score.DiscreteBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.BayesNetSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.graph.Edge;
+import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.StatUtils;
+import edu.cmu.tetrad.util.TetradMatrix;
+
+import java.util.List;
+
+import static edu.cmu.tetrad.util.StatUtils.correlation;
 
 /**
  * An example script to simulate data and run a comparison analysis on it.
@@ -99,6 +113,8 @@ public class ExampleCompareSimulationDiscretePag {
         statistics.setWeight("AHR", 1.0);
 //        statistics.setWeight("SHD", 1.0);
 
+
+
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new Fci(new ChiSquare()));
@@ -133,6 +149,8 @@ public class ExampleCompareSimulationDiscretePag {
 
         comparison.compareFromSimulations("comparison.discrete.pag", simulations, "comparison_discrete_pag_" + sampleSize, algorithms, statistics, parameters);
     }
+
+
 }
 
 

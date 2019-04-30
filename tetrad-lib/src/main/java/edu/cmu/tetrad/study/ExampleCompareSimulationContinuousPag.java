@@ -79,6 +79,8 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("maxDegree", 4, 5, 6, 8);
 
+        parameters.set("depth", 4);
+
         Statistics statistics = new Statistics();
 
         statistics.add(new ParameterColumn("numMeasures"));
@@ -120,19 +122,19 @@ public class ExampleCompareSimulationContinuousPag {
         algorithms.add(new Fci(new FisherZ()));
 //        algorithms.add(new Fci(new SemBicTest()));
 
-        algorithms.add(new Rfci(new FisherZ()));
-//        algorithms.add(new Rfci(new SemBicTest()));
-
-        algorithms.add(new FciMax(new FisherZ()));
-//        algorithms.add(new FciMax(new SemBicTest()));
-
-        algorithms.add(new CFCI(new FisherZ()));
-//        algorithms.add(new CFCI(new SemBicTest()));
-
-//        algorithms.add(new Gfci(new FisherZ(), new FisherZScore()));
-        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
-//        algorithms.add(new Gfci(new SemBicTest(), new FisherZScore()));
-//        algorithms.add(new Gfci(new SemBicTest(), new SemBicScore()));
+//        algorithms.add(new Rfci(new FisherZ()));
+////        algorithms.add(new Rfci(new SemBicTest()));
+//
+//        algorithms.add(new FciMax(new FisherZ()));
+////        algorithms.add(new FciMax(new SemBicTest()));
+//
+//        algorithms.add(new CFCI(new FisherZ()));
+////        algorithms.add(new CFCI(new SemBicTest()));
+//
+////        algorithms.add(new Gfci(new FisherZ(), new FisherZScore()));
+//        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+////        algorithms.add(new Gfci(new SemBicTest(), new FisherZScore()));
+////        algorithms.add(new Gfci(new SemBicTest(), new SemBicScore()));
 
 
         Simulations simulations = new Simulations();

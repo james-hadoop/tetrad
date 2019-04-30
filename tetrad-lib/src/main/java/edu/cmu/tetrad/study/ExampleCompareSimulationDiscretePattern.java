@@ -55,10 +55,10 @@ public class ExampleCompareSimulationDiscretePattern {
         parameters.set("differentGraphs", true);
 
         parameters.set("alpha", 0.01);
-        parameters.set("colliderDiscoveryRule", 2);
+        parameters.set("colliderDiscoveryRule", 1, 2, 3);
         parameters.set("conflictRule", 3);;
 
-        parameters.set("maxDegree", 8);
+        parameters.set("maxDegree", 5);
         parameters.set("samplePrior",  3, 5, 10, 15, 20, 25, 30, 50, 80);
         parameters.set("structurePrior", 3, 4);
 
