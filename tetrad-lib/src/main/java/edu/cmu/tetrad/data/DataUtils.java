@@ -22,7 +22,9 @@
 package edu.cmu.tetrad.data;
 
 import cern.colt.list.DoubleArrayList;
+import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.search.IndTestFisherZ;
 import edu.cmu.tetrad.util.*;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.BlockRealMatrix;
@@ -1908,66 +1910,40 @@ public final class DataUtils {
         return (DataSet) dataSet;
     }
 
-    public static IKnowledge getKnowledge(DataSet dataSet) {
-        dataSet = DataUtils.standardizeData(dataSet);
-        double[][] colData = dataSet.getDoubleData().transpose().toArray();
+    public static IKnowledge getPairwiseKnowledge(DataSet dataSet) {
+        Graph graph = GraphUtils.completeGraph(new EdgeListGraph(dataSet.getVariables()));
 
-        List<Node> variables = dataSet.getVariables();
+        edu.cmu.tetrad.search.Fask fask = new edu.cmu.tetrad.search.Fask(dataSet, graph);
+        graph = fask.search();
 
-//        Collections.sort(variables, new Comparator<Node>() {
-//            @Override
-//            public int compare(Node o1, Node o2) {
-//                if (o1 == o2) return 0;
-//                int i = variables.indexOf(o1);
-//                int j = variables.indexOf(o2);
-//                final double[] x = colData[i];
-//                final double[] y = colData[j];
-//                return leftRightMinnesota(x, y) ? +1 : -1;
-//            }
-//        });
+        IKnowledge knwl = new Knowledge2();
 
-        Graph graph = new EdgeListGraph(variables);
+        List<String> varNames = dataSet.getVariableNames();
 
-        for (int i = 0; i < variables.size(); i++) {
-            for (int j = i + 1; j < variables.size(); j++) {
-                final double[] x = colData[i];
-                final double[] y = colData[j];
-
-                if (leftRightMinnesota(x, y)) {
-                    graph.addDirectedEdge(variables.get(i), variables.get(j));
-                } else {
-                    graph.addDirectedEdge(variables.get(j), variables.get(i));
-                }
-            }
+        for (String name : varNames) {
+            knwl.addVariable(name);
         }
 
-        IKnowledge knowledge = new Knowledge2();
-//
-//        for (int i = 0; i < variables.size(); i++) {
-//            knowledge.addToTier(i + 1, variables.get(i).getName());
-//        }
+        List<Node> nodes = dataSet.getVariables();
 
-        int numOfNodes = variables.size();
+        int numOfNodes = nodes.size();
         for (int i = 0; i < numOfNodes; i++) {
             for (int j = i + 1; j < numOfNodes; j++) {
-                Node n1 = variables.get(i);
-                Node n2 = variables.get(j);
+                Node n1 = nodes.get(i);
+                Node n2 = nodes.get(j);
 
                 if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
                     continue;
                 }
 
                 Edge edge = graph.getEdge(n1, n2);
-
-                if (edge != null && edge.isDirected() && edge.pointsTowards(n2)) {
-                    knowledge.setForbidden(edge.getNode2().getName(), edge.getNode1().getName());
-                } else if (edge != null && edge.isDirected() && edge.pointsTowards(n1)) {
-                    knowledge.setForbidden(edge.getNode1().getName(), edge.getNode2().getName());
+                if (edge != null && edge.isDirected()) {
+                    knwl.setForbidden(edge.getNode2().getName(), edge.getNode1().getName());
                 }
             }
         }
 
-        return knowledge;
+        return knwl;
     }
 
 

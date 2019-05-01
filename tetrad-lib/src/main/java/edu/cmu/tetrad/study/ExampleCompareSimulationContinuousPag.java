@@ -50,34 +50,35 @@ import static edu.cmu.tetrad.performance.ComparisonParameters.Algorithm.GFCI;
  * @author jdramsey
  */
 public class ExampleCompareSimulationContinuousPag {
-    enum Type{LinearGaussian, LinearNongaussian}
+    enum Type {LinearGaussian, LinearNongaussian}
 
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         int sampleSize = 500;
-        int numMeasures = 20;
+        int numMeasures = 40;
         int avgDegree = 4;
-        ExampleCompareSimulationContinuousPattern.Type type = ExampleCompareSimulationContinuousPattern.Type.LinearGaussian;
+        ExampleCompareSimulationContinuousPag.Type type = ExampleCompareSimulationContinuousPag.Type.LinearNongaussian;
 
         parameters.set("numRuns", 10);
         parameters.set("numMeasures", numMeasures);
-        parameters.set("numLatents", 0);
         parameters.set("avgDegree", avgDegree);
         parameters.set("sampleSize", sampleSize); // This varies.
         parameters.set("differentGraphs", true);
 
-        parameters.set("alpha", 0.01, 0.001, 0.0001, 0.00001);
+        parameters.set("alpha", 0.1, 0.05, 0.01, 0.001);
         parameters.set("penaltyDiscount", 2, 4); // tookout 1
         parameters.set("colliderDiscoveryRule", 2, 3); // took out 1
-        parameters.set("conflictRule", 1, 3); // took out 2
+        parameters.set("conflictRule", /*1,*/ 3); // took out 2
 
-        parameters.set("coefLow", 0.5);
-        parameters.set("coefHigh", 0.9);
+        parameters.set("coefLow", 0.2);
+        parameters.set("coefHigh", 0.7);
 
         parameters.set("varLow", 1.0);
         parameters.set("varHigh", 3.0);
 
-        parameters.set("maxDegree", 4, 5, 6, 8);
+        parameters.set("discretise", true, false);
+
+        parameters.set("maxDegree", 4, 6, 8);
 
         parameters.set("depth", 4);
 
@@ -110,38 +111,25 @@ public class ExampleCompareSimulationContinuousPag {
 //        statistics.setWeight("AHR", 1.0);
 //        statistics.setWeight("SHD", 1.0);
 
-
-        parameters.set("extraEdgeThreshold", 3);
-        parameters.set("randomizeColumns", true);
-        parameters.set("stableFAS", false);
-
-
-
         Algorithms algorithms = new Algorithms();
 
+//        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new PcAll(new FisherZ()));
+//        algorithms.add(new R3(new FAS(new FisherZ())));
+
         algorithms.add(new Fci(new FisherZ()));
-//        algorithms.add(new Fci(new SemBicTest()));
-
         algorithms.add(new Rfci(new FisherZ()));
-//        algorithms.add(new Rfci(new SemBicTest()));
-
         algorithms.add(new FciMax(new FisherZ()));
-//        algorithms.add(new FciMax(new SemBicTest()));
-
         algorithms.add(new CFCI(new FisherZ()));
-//        algorithms.add(new CFCI(new SemBicTest()));
-//
-//        algorithms.add(new Gfci(new FisherZ(), new FisherZScore()));
-//        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
-        algorithms.add(new Gfci(new SemBicTest(), new FisherZScore()));
-////        algorithms.add(new Gfci(new SemBicTest(), new SemBicScore()));
+        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+        algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
 
 
         Simulations simulations = new Simulations();
 
-        if (type == ExampleCompareSimulationContinuousPattern.Type.LinearGaussian) {
+        if (type == ExampleCompareSimulationContinuousPag.Type.LinearGaussian) {
             simulations.add(new SemSimulation(new RandomForward()));
-        } else if (type == ExampleCompareSimulationContinuousPattern.Type.LinearNongaussian) {
+        } else if (type == ExampleCompareSimulationContinuousPag.Type.LinearNongaussian) {
             simulations.add(new LinearFisherModel(new RandomForward()));
             parameters.set("errorsNormal", false);
         }

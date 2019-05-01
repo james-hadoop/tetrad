@@ -7,14 +7,10 @@ import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.StatUtils;
-import edu.cmu.tetrad.util.TetradMatrix;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
@@ -64,7 +60,7 @@ public class Fci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInd
                 initialGraph = algorithm.search(dataSet, parameters);
             }
 
-//            knowledge = DataUtils.getKnowledge((DataSet) dataSet);
+//            IKnowledge knowledge = DataUtils.getPairwiseKnowledge((DataSet) dataSet);
 
             edu.cmu.tetrad.search.Fci search = new edu.cmu.tetrad.search.Fci(test.getTest(dataSet, parameters));
             search.setDepth(parameters.getInt("depth"));

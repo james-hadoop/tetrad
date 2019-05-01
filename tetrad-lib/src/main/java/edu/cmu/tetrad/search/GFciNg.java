@@ -38,7 +38,7 @@ import java.util.List;
  * @author ps7z
  * @author jdramsey
  */
-public final class GFci implements GraphSearch {
+public final class GFciNg implements GraphSearch {
 
     // The PAG being constructed.
     private Graph graph;
@@ -83,7 +83,7 @@ public final class GFci implements GraphSearch {
     private long elapsedTime;
 
     //============================CONSTRUCTORS============================//
-    public GFci(IndependenceTest test, Score score) {
+    public GFciNg(IndependenceTest test, Score score) {
         if (score == null) {
             throw new NullPointerException();
         }
@@ -113,12 +113,12 @@ public final class GFci implements GraphSearch {
         graph = fges.search();
         Graph fgesGraph = new EdgeListGraph(graph);
 
-//        List<DataSet> dataSet = new ArrayList<>();
-//        dataSet.add((DataSet) independenceTest.getData());
-//
-//        Lofs2 lofs2 = new Lofs2(fgesGraph, dataSet);
-//        lofs2.setRule(Lofs2.Rule.R3);
-//        fgesGraph = lofs2.orient();
+        List<DataSet> dataSet = new ArrayList<>();
+        dataSet.add((DataSet) independenceTest.getData());
+
+        Lofs2 lofs2 = new Lofs2(fgesGraph, dataSet);
+        lofs2.setRule(Lofs2.Rule.R3);
+        fgesGraph = lofs2.orient();
 
         graph.reorientAllWith(Endpoint.CIRCLE);
         fciOrientbk(knowledge, graph, graph.getNodes());
