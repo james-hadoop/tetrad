@@ -58,6 +58,8 @@ public class FciMax implements Algorithm, TakesInitialGraph, HasKnowledge, Takes
                 initialGraph = algorithm.search(dataSet, parameters);
             }
 
+//            knowledge = DataUtils.getKnowledge((DataSet) dataSet);
+
             edu.cmu.tetrad.search.FciMax search = new edu.cmu.tetrad.search.FciMax(test.getTest(dataSet, parameters));
             search.setDepth(parameters.getInt("depth"));
             search.setKnowledge(knowledge);

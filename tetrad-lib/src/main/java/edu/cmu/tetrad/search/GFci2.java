@@ -37,7 +37,7 @@ import java.util.List;
  * @author ps7z
  * @author jdramsey
  */
-public final class GFci implements GraphSearch {
+public final class GFci2 implements GraphSearch {
 
     // The PAG being constructed.
     private Graph graph;
@@ -82,7 +82,7 @@ public final class GFci implements GraphSearch {
     private long elapsedTime;
 
     //============================CONSTRUCTORS============================//
-    public GFci(IndependenceTest test, Score score) {
+    public GFci2(IndependenceTest test, Score score) {
         if (score == null) {
             throw new NullPointerException();
         }
@@ -100,122 +100,111 @@ public final class GFci implements GraphSearch {
         logger.log("info", "Starting FCI algorithm.");
         logger.log("info", "Independence test = " + getIndependenceTest() + ".");
 
-        this.graph = new EdgeListGraph(nodes);
+        this.graph = new EdgeListGraphSingleConnections(nodes);
 
-        Fges fges = new Fges(score);
-        fges.setKnowledge(getKnowledge());
-        fges.setVerbose(verbose);
-        fges.setNumPatternsToStore(0);
-        fges.setFaithfulnessAssumed(faithfulnessAssumed);
-        fges.setMaxDegree(maxDegree);
-        fges.setOut(out);
-        graph = fges.search();
-        Graph fgesGraph = new EdgeListGraph(graph);
 
-        graph.reorientAllWith(Endpoint.CIRCLE);
-        fciOrientbk(knowledge, graph, graph.getNodes());
+        DataSet data1 = (DataSet) independenceTest.getData();
 
-        sepsets = new SepsetsGreedy(fgesGraph, independenceTest, null, maxDegree);
+        List<Node> vars = data1.getVariables();
 
-        for (Node b : nodes) {
-            if (Thread.currentThread().isInterrupted()) {
-                break;
+        int[] c = new int[vars.size()];
+        for (int i = 0; i < vars.size(); i++) {
+            c[i] = vars.size() - i - 1;
+        }
+
+        DataSet data2 = data1.subsetColumns(c);
+
+        SemBicScore score1 = new SemBicScore(new CovarianceMatrixOnTheFly(data1));
+        score1.setPenaltyDiscount(2);
+
+        SemBicScore score2 = new SemBicScore(new CovarianceMatrixOnTheFly(data2));
+        score2.setPenaltyDiscount(2);
+
+
+        Fges fges1 = new Fges(score1);
+        fges1.setKnowledge(getKnowledge());
+        fges1.setVerbose(verbose);
+        fges1.setNumPatternsToStore(0);
+        fges1.setFaithfulnessAssumed(faithfulnessAssumed);
+        fges1.setMaxDegree(maxDegree);
+        fges1.setOut(out);
+        Graph fgesGraph1 = fges1.search();
+
+        Fges fges2 = new Fges(score2);
+        fges1.setKnowledge(getKnowledge());
+        fges1.setVerbose(verbose);
+        fges1.setNumPatternsToStore(0);
+        fges1.setFaithfulnessAssumed(faithfulnessAssumed);
+        fges1.setMaxDegree(maxDegree);
+        fges1.setOut(out);
+        Graph fgesGraph2 = fges1.search();
+
+        Graph graph = new EdgeListGraph(fgesGraph1);
+        for (Edge edge : fgesGraph2.getEdges()) {
+            Edge edge1 = fgesGraph1.getEdge(edge.getNode1(), edge.getNode2());
+            if (edge1.getEndpoint1() == Endpoint.ARROW) {
+                edge.setEndpoint1(Endpoint.ARROW);
             }
 
-            List<Node> adjacentNodes = fgesGraph.getAdjacentNodes(b);
-
-            if (adjacentNodes.size() < 2) {
-                continue;
-            }
-
-            ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
-            int[] combination;
-
-            while ((combination = cg.next()) != null) {
-                if (Thread.currentThread().isInterrupted()) {
-                    break;
-                }
-
-                Node a = adjacentNodes.get(combination[0]);
-                Node c = adjacentNodes.get(combination[1]);
-
-                if (fgesGraph.isDefCollider(a, b, c)) {
-                    graph.setEndpoint(a, b, Endpoint.ARROW);
-                    graph.setEndpoint(c, b, Endpoint.ARROW);
-                }
+            if (edge1.getEndpoint2() == Endpoint.ARROW) {
+                edge.setEndpoint2(Endpoint.ARROW);
             }
         }
 
-        for (Node b : nodes) {
-            if (Thread.currentThread().isInterrupted()) {
-                break;
-            }
+        return fgesGraph1;
 
-            List<Node> adjacentNodes = fgesGraph.getAdjacentNodes(b);
-
-            if (adjacentNodes.size() < 2) {
-                continue;
-            }
-
-            ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
-            int[] combination;
-
-            while ((combination = cg.next()) != null) {
-                if (Thread.currentThread().isInterrupted()) {
-                    break;
-                }
-
-                Node a = adjacentNodes.get(combination[0]);
-                Node c = adjacentNodes.get(combination[1]);
-
-                Edge e1 = fgesGraph.getEdge(a, b);
-                Edge e2 = fgesGraph.getEdge(b, c);
-
-                if (fgesGraph.isAdjacentTo(a, c) && ((e1.pointsTowards(a) && (Edges.isUndirectedEdge(e2))
-                        || (e2.pointsTowards(c) && Edges.isUndirectedEdge(e1))))) {
-                    Edge edge = graph.getEdge(a, c);
-
-                    graph.removeEdge(edge);
-
-                    final List<Node> sepset = sepsets.getSepset(a, c);
-
-                    if (sepset == null) {
-                        graph.addEdge(edge);
-                        continue;
-                    }
-
-                    if (!sepset.contains(b)) {
-
-                        System.out.println("Sepset for " + a + " " + c + " is " + sepset);
-
-                        if (!sepset.contains(b)) {
-                            graph.setEndpoint(a, b, Endpoint.ARROW);
-                            graph.setEndpoint(c, b, Endpoint.ARROW);
-                        }
-                    } else {
-                        graph.addEdge(edge);
-                    }
-                }
-            }
-        }
-
-        FciOrient fciOrient = new FciOrient(sepsets);
-        fciOrient.setVerbose(verbose);
-        fciOrient.setOut(out);
-        fciOrient.setKnowledge(getKnowledge());
-        fciOrient.setCompleteRuleSetUsed(completeRuleSetUsed);
-        fciOrient.setMaxPathLength(maxPathLength);
-        fciOrient.doFinalOrientation(graph);
-
-        GraphUtils.replaceNodes(graph, independenceTest.getVariables());
-
-        long time2 = System.currentTimeMillis();
-
-        elapsedTime = time2 - time1;
-
-        graph.setPag(true);
-
-        return graph;
+//        sepsets = new SepsetsGreedy(fgesGraph, independenceTest, null, maxDegree);
+//
+//        for (Node b : nodes) {
+//            if (Thread.currentThread().isInterrupted()) {
+//                break;
+//            }
+//
+//            List<Node> adjacentNodes = fgesGraph.getAdjacentNodes(b);
+//
+//            if (adjacentNodes.size() < 2) {
+//                continue;
+//            }
+//
+//            ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
+//            int[] combination;
+//
+//            while ((combination = cg.next()) != null) {
+//                if (Thread.currentThread().isInterrupted()) {
+//                    break;
+//                }
+//
+//                Node a = adjacentNodes.get(combination[0]);
+//                Node c = adjacentNodes.get(combination[1]);
+//
+//                if (graph.isAdjacentTo(a, c) && fgesGraph.isAdjacentTo(a, c)) {
+//                    final List<Node> sepset = sepsets.getSepset(a, c);
+//                    if (sepset != null && !sepset.contains(b)) {
+//                        graph.removeEdge(a, c);
+//                    }
+//                }
+//            }
+//        }
+//
+//        modifiedR0(fgesGraph);
+//
+//        FciOrient fciOrient = new FciOrient(sepsets);
+//        fciOrient.setVerbose(verbose);
+//        fciOrient.setOut(out);
+//        fciOrient.setKnowledge(getKnowledge());
+//        fciOrient.setCompleteRuleSetUsed(completeRuleSetUsed);
+//        fciOrient.setMaxPathLength(maxPathLength);
+//        fciOrient.doFinalOrientation(graph);
+//
+//        GraphUtils.replaceNodes(graph, independenceTest.getVariables());
+//
+//        long time2 = System.currentTimeMillis();
+//
+//        elapsedTime = time2 - time1;
+//
+//        graph.setPag(true);
+//
+//        return graph;
     }
 
     @Override
@@ -303,8 +292,8 @@ public final class GFci implements GraphSearch {
 
     /**
      * @param completeRuleSetUsed set to true if Zhang's complete rule set
-     *                            should be used, false if only R1-R4 (the rule set of the original FCI)
-     *                            should be used. False by default.
+     * should be used, false if only R1-R4 (the rule set of the original FCI)
+     * should be used. False by default.
      */
     public void setCompleteRuleSetUsed(boolean completeRuleSetUsed) {
         this.completeRuleSetUsed = completeRuleSetUsed;
@@ -320,7 +309,7 @@ public final class GFci implements GraphSearch {
 
     /**
      * @param maxPathLength the maximum length of any discriminating path, or -1
-     *                      if unlimited.
+     * if unlimited.
      */
     public void setMaxPathLength(int maxPathLength) {
         if (maxPathLength < -1) {
@@ -377,14 +366,13 @@ public final class GFci implements GraphSearch {
     }
 
     //===========================================PRIVATE METHODS=======================================//
-
     /**
      * Orients according to background knowledge
      */
     private void fciOrientbk(IKnowledge knowledge, Graph graph, List<Node> variables) {
         logger.log("info", "Starting BK Orientation.");
 
-        for (Iterator<KnowledgeEdge> it = knowledge.forbiddenEdgesIterator(); it.hasNext(); ) {
+        for (Iterator<KnowledgeEdge> it = knowledge.forbiddenEdgesIterator(); it.hasNext();) {
             KnowledgeEdge edge = it.next();
 
             //match strings to variables in the graph.
@@ -405,7 +393,7 @@ public final class GFci implements GraphSearch {
             logger.log("knowledgeOrientation", SearchLogUtils.edgeOrientedMsg("Knowledge", graph.getEdge(from, to)));
         }
 
-        for (Iterator<KnowledgeEdge> it = knowledge.requiredEdgesIterator(); it.hasNext(); ) {
+        for (Iterator<KnowledgeEdge> it = knowledge.requiredEdgesIterator(); it.hasNext();) {
             KnowledgeEdge edge = it.next();
 
             //match strings to variables in this graph

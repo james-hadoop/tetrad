@@ -61,17 +61,17 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("numRuns", 10);
         parameters.set("numMeasures", numMeasures);
-        parameters.set("numLatents", 10);
+        parameters.set("numLatents", 0);
         parameters.set("avgDegree", avgDegree);
         parameters.set("sampleSize", sampleSize); // This varies.
         parameters.set("differentGraphs", true);
 
-        parameters.set("alpha", 0.2, 0.1, 0.05, 0.01, 0.001, 0.0001);
+        parameters.set("alpha", 0.01, 0.001, 0.0001, 0.00001);
         parameters.set("penaltyDiscount", 2, 4); // tookout 1
         parameters.set("colliderDiscoveryRule", 2, 3); // took out 1
         parameters.set("conflictRule", 1, 3); // took out 2
 
-        parameters.set("coefLow", 0.3);
+        parameters.set("coefLow", 0.5);
         parameters.set("coefHigh", 0.9);
 
         parameters.set("varLow", 1.0);
@@ -122,18 +122,18 @@ public class ExampleCompareSimulationContinuousPag {
         algorithms.add(new Fci(new FisherZ()));
 //        algorithms.add(new Fci(new SemBicTest()));
 
-//        algorithms.add(new Rfci(new FisherZ()));
-////        algorithms.add(new Rfci(new SemBicTest()));
+        algorithms.add(new Rfci(new FisherZ()));
+//        algorithms.add(new Rfci(new SemBicTest()));
+
+        algorithms.add(new FciMax(new FisherZ()));
+//        algorithms.add(new FciMax(new SemBicTest()));
+
+        algorithms.add(new CFCI(new FisherZ()));
+//        algorithms.add(new CFCI(new SemBicTest()));
 //
-//        algorithms.add(new FciMax(new FisherZ()));
-////        algorithms.add(new FciMax(new SemBicTest()));
-//
-//        algorithms.add(new CFCI(new FisherZ()));
-////        algorithms.add(new CFCI(new SemBicTest()));
-//
-////        algorithms.add(new Gfci(new FisherZ(), new FisherZScore()));
+//        algorithms.add(new Gfci(new FisherZ(), new FisherZScore()));
 //        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
-////        algorithms.add(new Gfci(new SemBicTest(), new FisherZScore()));
+        algorithms.add(new Gfci(new SemBicTest(), new FisherZScore()));
 ////        algorithms.add(new Gfci(new SemBicTest(), new SemBicScore()));
 
 

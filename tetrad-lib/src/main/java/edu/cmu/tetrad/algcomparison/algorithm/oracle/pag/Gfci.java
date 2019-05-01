@@ -8,15 +8,22 @@ import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.graph.Edge;
+import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.search.GFci;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.StatUtils;
+import edu.cmu.tetrad.util.TetradMatrix;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
 import java.io.PrintStream;
 import java.util.List;
+
+import static edu.cmu.tetrad.util.StatUtils.correlation;
 
 
 /**
@@ -47,7 +54,9 @@ public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
     	if (parameters.getInt("numberResampling") < 1) {
-            GFci search = new GFci(test.getTest(dataSet, parameters), score.getScore(dataSet, parameters));  
+//            knowledge = DataUtils.getKnowledge((DataSet) dataSet);
+
+            GFci search = new GFci(test.getTest(dataSet, parameters), score.getScore(dataSet, parameters));
             search.setMaxDegree(parameters.getInt("maxDegree"));
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean("verbose"));
@@ -156,9 +165,10 @@ public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
         return test;
     }
 
-    @Override
     public ScoreWrapper getScoreWarpper() {
         return score;
     }
+
+
 
 }

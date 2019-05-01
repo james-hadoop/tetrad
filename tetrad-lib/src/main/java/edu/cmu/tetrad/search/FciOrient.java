@@ -1489,7 +1489,7 @@ public final class FciOrient {
      */
     private boolean isArrowpointAllowed(Node x, Node y, Graph graph) {
         if (graph.getEndpoint(x, y) == Endpoint.ARROW) {
-            return true;
+            return false;
         }
 
         if (graph.getEndpoint(x, y) == Endpoint.TAIL) {
@@ -1498,9 +1498,13 @@ public final class FciOrient {
 
         if (graph.getEndpoint(y, x) == Endpoint.ARROW) {
 //            return true;
-            if (!knowledge.isForbidden(x.getName(), y.getName())) {
-                return true;
-            }
+//            if (knowledge.isRequired(x.getName(), y.getName())) {
+//                return false;
+//            }
+//
+//            if (knowledge.isRequired(y.getName(), x.getName())) {
+//                return false;
+//            }
         }
 
         if (graph.getEndpoint(y, x) == Endpoint.TAIL) {
@@ -1509,7 +1513,7 @@ public final class FciOrient {
             }
         }
 
-        return graph.getEndpoint(y, x) == Endpoint.CIRCLE;
+        return graph.getEndpoint(x, y) == Endpoint.CIRCLE;
     }
 
     public boolean isPossibleDsepSearchDone() {

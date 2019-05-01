@@ -102,19 +102,19 @@ public class ArrowConfusion {
                 //       System.out.println(e2True);
 
 
-                if (e1True == Endpoint.ARROW && e1Est == Endpoint.TAIL) {
+                if (e1True == Endpoint.ARROW && e1Est!= Endpoint.ARROW) {
                     arrowsFn++;
                 }
 
-                if (e2True == Endpoint.ARROW && e2Est == Endpoint.TAIL) {
+                if (e2True == Endpoint.ARROW && e2Est!= Endpoint.ARROW) {
                     arrowsFn++;
                 }
 
-                if (e1True == Endpoint.ARROW && e1Est == Endpoint.TAIL && edge1 != null && edge2 != null) {
+                if (e1True == Endpoint.ARROW && e1Est!= Endpoint.ARROW && edge1 != null && edge2 != null) {
                     arrowsFnc = getArrowsFnc() + 1;
                 }
 
-                if (e2True == Endpoint.ARROW && e2Est == Endpoint.TAIL && edge1 != null && edge2 != null) {
+                if (e2True == Endpoint.ARROW && e2Est!= Endpoint.ARROW && edge1 != null && edge2 != null) {
                     arrowsFnc = getArrowsFnc() + 1;
                 }
 
@@ -135,19 +135,19 @@ public class ArrowConfusion {
                     arrowsTpc = getArrowsTpc() + 1;
                 }
 
-                if (e1True == Endpoint.TAIL && e1Est == Endpoint.TAIL) {
+                if (e1True!= Endpoint.ARROW && e1Est!= Endpoint.ARROW) {
                     arrowsTn++;
                 }
 
-                if (e2True == Endpoint.TAIL && e2Est == Endpoint.TAIL) {
+                if (e2True!= Endpoint.ARROW && e2Est!= Endpoint.ARROW) {
                     arrowsTn++;
                 }
 
-                if (e1True == Endpoint.TAIL && e1Est == Endpoint.TAIL && edge1 != null && edge2 != null) {
+                if (e1True!= Endpoint.ARROW && e1Est!= Endpoint.ARROW && edge1 != null && edge2 != null) {
                     arrowsTnc = getArrowsTnc() + 1;
                 }
 
-                if (e2True == Endpoint.TAIL && e2Est == Endpoint.TAIL && edge1 != null && edge2 != null) {
+                if (e2True!= Endpoint.ARROW && e2Est!= Endpoint.ARROW && edge1 != null && edge2 != null) {
                     arrowsTnc = getArrowsTnc() + 1;
                 }
             }
@@ -200,40 +200,40 @@ public class ArrowConfusion {
                 //          System.out.println(e2True);
 
 //            if ((isTruthAdj() && truth.isAdjacentTo(edge.getNode1(), edge.getNode2()))) {
-//                if (e1Est == Endpoint.ARROW && e1True == Endpoint.TAIL) {
+//                if (e1Est == Endpoint.ARROW && e1True!= Endpoint.ARROW) {
 //                    arrowsFp++;
 //                }
 //
-//                if (e2Est == Endpoint.ARROW && e2True == Endpoint.TAIL) {
+//                if (e2Est == Endpoint.ARROW && e2True!= Endpoint.ARROW) {
 //                    arrowsFp++;
 //                }
 //            }
 
                 if (isTruthAdj()) {
                     if (truth.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
-                        if (e1Est == Endpoint.ARROW && e1True == Endpoint.TAIL) {
+                        if (e1Est == Endpoint.ARROW && e1True!= Endpoint.ARROW) {
                             arrowsFp++;
                         }
 
-                        if (e2Est == Endpoint.ARROW && e2True == Endpoint.TAIL) {
+                        if (e2Est == Endpoint.ARROW && e2True!= Endpoint.ARROW) {
                             arrowsFp++;
                         }
                     }
                 } else {
-                    if (e1Est == Endpoint.ARROW && e1True == Endpoint.TAIL) {
+                    if (e1Est == Endpoint.ARROW && e1True!= Endpoint.ARROW) {
                         arrowsFp++;
                     }
 
-                    if (e2Est == Endpoint.ARROW && e2True == Endpoint.TAIL) {
+                    if (e2Est == Endpoint.ARROW && e2True!= Endpoint.ARROW) {
                         arrowsFp++;
                     }
                 }
 
-                if (e1Est == Endpoint.ARROW && e1True == Endpoint.TAIL && edge1 != null && edge2 != null) {
+                if (e1Est == Endpoint.ARROW && e1True!= Endpoint.ARROW && edge1 != null && edge2 != null) {
                     arrowsFpc = getArrowsFpc() + 1;
                 }
 
-                if (e2Est == Endpoint.ARROW && e2True == Endpoint.TAIL && edge1 != null && edge2 != null) {
+                if (e2Est == Endpoint.ARROW && e2True!= Endpoint.ARROW && edge1 != null && edge2 != null) {
                     arrowsFpc = getArrowsFpc() + 1;
                 }
 
