@@ -71,7 +71,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("conflictRule", /*1,*/ 3); // took out 2
 
         parameters.set("coefLow", 0.2);
-        parameters.set("coefHigh", 0.7);
+        parameters.set("coefHigh", 0.9);
 
         parameters.set("varLow", 1.0);
         parameters.set("varHigh", 3.0);
@@ -105,8 +105,8 @@ public class ExampleCompareSimulationContinuousPag {
 //        statistics.add(new SHD());
 //        statistics.add(new ElapsedTime());
 
-        statistics.setWeight("AP", 1.0);
-        statistics.setWeight("AR", 1.0);
+//        statistics.setWeight("AP", 1.0);
+//        statistics.setWeight("AR", 1.0);
         statistics.setWeight("AHP", 1.0);
 //        statistics.setWeight("AHR", 1.0);
 //        statistics.setWeight("SHD", 1.0);
@@ -117,12 +117,13 @@ public class ExampleCompareSimulationContinuousPag {
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new R3(new FAS(new FisherZ())));
 
-        algorithms.add(new Fci(new FisherZ()));
-        algorithms.add(new Rfci(new FisherZ()));
-        algorithms.add(new FciMax(new FisherZ()));
-        algorithms.add(new CFCI(new FisherZ()));
-        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+//        algorithms.add(new Fci(new FisherZ()));
+//        algorithms.add(new Rfci(new FisherZ()));
+//        algorithms.add(new FciMax(new FisherZ()));
+//        algorithms.add(new CFCI(new FisherZ()));
+//        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
         algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
+        algorithms.add(new GfciNg(new SemBicTest(), new SemBicScore()));
 
 
         Simulations simulations = new Simulations();

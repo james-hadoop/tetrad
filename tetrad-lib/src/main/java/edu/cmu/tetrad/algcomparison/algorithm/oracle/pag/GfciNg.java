@@ -50,7 +50,9 @@ public class GfciNg implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesI
     	if (parameters.getInt("numberResampling") < 1) {
 //            knowledge = DataUtils.getPairwiseKnowledge((DataSet) dataSet);
 
-            GFciNg search = new GFciNg(test.getTest(dataSet, parameters), score.getScore(dataSet, parameters));
+            DataSet np = DataUtils.getNonparanormalTransformed((DataSet) dataSet);
+
+            GFciNg search = new GFciNg((DataSet) dataSet, test.getTest(np, parameters), score.getScore(np, parameters));
             search.setMaxDegree(parameters.getInt("maxDegree"));
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean("verbose"));

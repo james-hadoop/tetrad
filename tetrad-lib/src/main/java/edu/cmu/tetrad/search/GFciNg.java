@@ -40,6 +40,7 @@ import java.util.List;
  */
 public final class GFciNg implements GraphSearch {
 
+    private final DataSet dataSet;
     // The PAG being constructed.
     private Graph graph;
 
@@ -79,14 +80,14 @@ public final class GFciNg implements GraphSearch {
     // The score.
     private Score score;
 
-    private SepsetProducer sepsets;
     private long elapsedTime;
 
     //============================CONSTRUCTORS============================//
-    public GFciNg(IndependenceTest test, Score score) {
+    public GFciNg(DataSet dataSet, IndependenceTest test, Score score) {
         if (score == null) {
             throw new NullPointerException();
         }
+        this.dataSet = dataSet;
         this.sampleSize = score.getSampleSize();
         this.score = score;
         this.independenceTest = test;
@@ -101,36 +102,42 @@ public final class GFciNg implements GraphSearch {
         logger.log("info", "Starting FCI algorithm.");
         logger.log("info", "Independence test = " + getIndependenceTest() + ".");
 
-        this.graph = new EdgeListGraph(nodes);
+        Fas fas = new Fas(independenceTest);
+        this.graph = fas.search();
+
+        List<DataSet> dataSet1 = new ArrayList<>();
+        dataSet1.add(this.dataSet);
+
+        Lofs2 lofs1 = new Lofs2(graph, dataSet1);
+        lofs1.setRule(Lofs2.Rule.R3);
+        Graph r3Graph = lofs1.orient();
 
         Fges fges = new Fges(score);
+        fges.setInitialGraph(r3Graph);
         fges.setKnowledge(getKnowledge());
         fges.setVerbose(verbose);
         fges.setNumPatternsToStore(0);
         fges.setFaithfulnessAssumed(faithfulnessAssumed);
         fges.setMaxDegree(maxDegree);
         fges.setOut(out);
-        graph = fges.search();
-        Graph fgesGraph = new EdgeListGraph(graph);
+        Graph fgesGraph = fges.search();
 
-        List<DataSet> dataSet = new ArrayList<>();
-        dataSet.add((DataSet) independenceTest.getData());
-
-        Lofs2 lofs2 = new Lofs2(fgesGraph, dataSet);
-        lofs2.setRule(Lofs2.Rule.R3);
-        fgesGraph = lofs2.orient();
+//        List<DataSet> dataSet = new ArrayList<>();
+//        dataSet.add(this.dataSet);
+//
+//        Lofs2 lofs2 = new Lofs2(fgesGraph, dataSet);
+//        lofs2.setRule(Lofs2.Rule.R3);
+//        fgesGraph = lofs2.orient();
 
         graph.reorientAllWith(Endpoint.CIRCLE);
         fciOrientbk(knowledge, graph, graph.getNodes());
-
-        sepsets = new SepsetsGreedy(fgesGraph, independenceTest, null, maxDegree);
 
         for (Node b : nodes) {
             if (Thread.currentThread().isInterrupted()) {
                 break;
             }
 
-            List<Node> adjacentNodes = fgesGraph.getAdjacentNodes(b);
+            List<Node> adjacentNodes = graph.getAdjacentNodes(b);
 
             if (adjacentNodes.size() < 2) {
                 continue;
@@ -154,12 +161,14 @@ public final class GFciNg implements GraphSearch {
             }
         }
 
+        SepsetProducer sepsets = new SepsetsMaxPValue(graph, independenceTest, null, maxDegree);
+
         for (Node b : nodes) {
             if (Thread.currentThread().isInterrupted()) {
                 break;
             }
 
-            List<Node> adjacentNodes = fgesGraph.getAdjacentNodes(b);
+            List<Node> adjacentNodes = graph.getAdjacentNodes(b);
 
             if (adjacentNodes.size() < 2) {
                 continue;
@@ -176,35 +185,28 @@ public final class GFciNg implements GraphSearch {
                 Node a = adjacentNodes.get(combination[0]);
                 Node c = adjacentNodes.get(combination[1]);
 
-                Edge e1 = fgesGraph.getEdge(a, b);
-                Edge e2 = fgesGraph.getEdge(b, c);
-
-                if (fgesGraph.isAdjacentTo(a, c)/* && ((e1.pointsTowards(a) && (Edges.isUndirectedEdge(e2))
-                        || (e2.pointsTowards(c) && Edges.isUndirectedEdge(e1))))*/) {
-                    Edge edge = graph.getEdge(a, c);
-
-//                    graph.removeEdge(edge);
-
+                if (fgesGraph.isAdjacentTo(a, c) && !graph.isAdjacentTo(a, c)) {
                     final List<Node> sepset = sepsets.getSepset(a, c);
 
                     if (sepset == null) {
-//                        graph.addEdge(edge);
                         continue;
                     }
 
-                    if (!sepset.contains(b)) {
-                        graph.removeEdge(edge);
-
-                        System.out.println("Sepset for " + a + " " + c + " is " + sepset);
-
-                        if (!sepset.contains(b)) {
-                            graph.setEndpoint(a, b, Endpoint.ARROW);
-                            graph.setEndpoint(c, b, Endpoint.ARROW);
-                        }
+                    if (sepset.contains(b)) {
+                        continue;
                     }
-//                    else {
-//                        graph.addEdge(edge);
-//                    }
+
+                    sepset.add(b);
+
+                    if (!independenceTest.isDependent(a, c, sepset)) {
+                        continue;
+                    }
+
+                    System.out.println("Sepset(" + a + ", " + c + ") = " + sepset + ", b = " + b);
+
+//                    graph.removeEdge(a, c);
+                    graph.setEndpoint(a, b, Endpoint.ARROW);
+                    graph.setEndpoint(c, b, Endpoint.ARROW);
                 }
             }
         }
@@ -253,42 +255,42 @@ public final class GFciNg implements GraphSearch {
     }
 
     // Due to Spirtes.
-    public void modifiedR0(Graph fgesGraph) {
-        graph.reorientAllWith(Endpoint.CIRCLE);
-        fciOrientbk(knowledge, graph, graph.getNodes());
-
-        List<Node> nodes = graph.getNodes();
-
-        for (Node b : nodes) {
-            List<Node> adjacentNodes = graph.getAdjacentNodes(b);
-
-            if (adjacentNodes.size() < 2) {
-                continue;
-            }
-
-            ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
-            int[] combination;
-
-            while ((combination = cg.next()) != null) {
-                Node a = adjacentNodes.get(combination[0]);
-                Node c = adjacentNodes.get(combination[1]);
-
-                if (fgesGraph.isDefCollider(a, b, c)) {
-                    graph.setEndpoint(a, b, Endpoint.ARROW);
-                    graph.setEndpoint(c, b, Endpoint.ARROW);
-                } else if (fgesGraph.isAdjacentTo(a, c) && !graph.isAdjacentTo(a, c)) {
-                    List<Node> sepset = sepsets.getSepset(a, c);
-
-                    System.out.println("Sepset for " + a + " " + b + " is " + sepset);
-
-                    if (sepset != null && !sepset.contains(b)) {
-                        graph.setEndpoint(a, b, Endpoint.ARROW);
-                        graph.setEndpoint(c, b, Endpoint.ARROW);
-                    }
-                }
-            }
-        }
-    }
+//    public void modifiedR0(Graph fgesGraph) {
+//        graph.reorientAllWith(Endpoint.CIRCLE);
+//        fciOrientbk(knowledge, graph, graph.getNodes());
+//
+//        List<Node> nodes = graph.getNodes();
+//
+//        for (Node b : nodes) {
+//            List<Node> adjacentNodes = graph.getAdjacentNodes(b);
+//
+//            if (adjacentNodes.size() < 2) {
+//                continue;
+//            }
+//
+//            ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
+//            int[] combination;
+//
+//            while ((combination = cg.next()) != null) {
+//                Node a = adjacentNodes.get(combination[0]);
+//                Node c = adjacentNodes.get(combination[1]);
+//
+//                if (fgesGraph.isDefCollider(a, b, c)) {
+//                    graph.setEndpoint(a, b, Endpoint.ARROW);
+//                    graph.setEndpoint(c, b, Endpoint.ARROW);
+//                } else if (fgesGraph.isAdjacentTo(a, c) && !graph.isAdjacentTo(a, c)) {
+//                    List<Node> sepset = sepsets.getSepset(a, c);
+//
+//                    System.out.println("Sepset for " + a + " " + b + " is " + sepset);
+//
+//                    if (sepset != null && !sepset.contains(b)) {
+//                        graph.setEndpoint(a, b, Endpoint.ARROW);
+//                        graph.setEndpoint(c, b, Endpoint.ARROW);
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     public IKnowledge getKnowledge() {
         return knowledge;

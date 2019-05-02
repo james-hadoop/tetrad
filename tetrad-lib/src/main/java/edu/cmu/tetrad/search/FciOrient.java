@@ -273,7 +273,7 @@ public final class FciOrient {
 
             // R4 requires an arrow orientation.
             if (changeFlag || (firstTime && !knowledge.isEmpty())) {
-                ruleR4B(graph);
+//                ruleR4B(graph);
                 firstTime = false;
             }
 
@@ -288,10 +288,6 @@ public final class FciOrient {
         boolean firstTime = true;
 
         while (changeFlag && !Thread.currentThread().isInterrupted()) {
-            if (Thread.currentThread().isInterrupted()) {
-                break;
-            }
-
             changeFlag = false;
             rulesR1R2cycle(graph);
             ruleR3(graph);
@@ -317,10 +313,6 @@ public final class FciOrient {
             changeFlag = true;
 
             while (changeFlag && !Thread.currentThread().isInterrupted()) {
-                if (Thread.currentThread().isInterrupted()) {
-                    break;
-                }
-
                 changeFlag = false;
                 ruleR6R7(graph);
             }
@@ -329,10 +321,6 @@ public final class FciOrient {
             changeFlag = true;
 
             while (changeFlag && !Thread.currentThread().isInterrupted()) {
-                if (Thread.currentThread().isInterrupted()) {
-                    break;
-                }
-
                 changeFlag = false;
                 rulesR8R9R10(graph);
             }
@@ -360,10 +348,6 @@ public final class FciOrient {
             int[] combination;
 
             while ((combination = cg.next()) != null && !Thread.currentThread().isInterrupted()) {
-                if (Thread.currentThread().isInterrupted()) {
-                    break;
-                }
-
                 Node A = adj.get(combination[0]);
                 Node C = adj.get(combination[1]);
 
@@ -883,22 +867,22 @@ public final class FciOrient {
 
         boolean ind2 = getSepsets().isIndependent(d, c, path2);
 
-        if (!ind && !ind2) {
-            List<Node> sepset = getSepsets().getSepset(d, c);
-
-            if (verbose) {
-                out.println("Sepset for d = " + d + " and c = " + c + " = " + sepset);
-            }
-
-            if (sepset == null) {
-                if (verbose) {
-                    out.println("Must be a sepset: " + d + " and " + c + "; they're non-adjacent.");
-                }
-                return false;
-            }
-
-            ind = sepset.contains(b);
-        }
+//        if (!ind && !ind2) {
+//            List<Node> sepset = getSepsets().getSepset(d, c);
+//
+//            if (verbose) {
+//                out.println("Sepset for d = " + d + " and c = " + c + " = " + sepset);
+//            }
+//
+//            if (sepset == null) {
+//                if (verbose) {
+//                    out.println("Must be a sepset: " + d + " and " + c + "; they're non-adjacent.");
+//                }
+//                return false;
+//            }
+//
+//            ind = sepset.contains(b);
+//        }
 
 //        printDdp(d, path, a, b, c, graph);
         if (ind) {
@@ -1489,7 +1473,7 @@ public final class FciOrient {
      */
     private boolean isArrowpointAllowed(Node x, Node y, Graph graph) {
         if (graph.getEndpoint(x, y) == Endpoint.ARROW) {
-            return false;
+            return true;
         }
 
         if (graph.getEndpoint(x, y) == Endpoint.TAIL) {
@@ -1508,8 +1492,8 @@ public final class FciOrient {
         }
 
         if (graph.getEndpoint(y, x) == Endpoint.TAIL) {
-            if (!knowledge.isForbidden(x.getName(), y.getName())) {
-                return true;
+            if (knowledge.isForbidden(x.getName(), y.getName())) {
+                return false;
             }
         }
 
