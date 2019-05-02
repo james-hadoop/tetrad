@@ -117,11 +117,12 @@ public class ExampleCompareSimulationContinuousPag {
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new R3(new FAS(new FisherZ())));
 
-//        algorithms.add(new Fci(new FisherZ()));
-//        algorithms.add(new Rfci(new FisherZ()));
-//        algorithms.add(new FciMax(new FisherZ()));
-//        algorithms.add(new CFCI(new FisherZ()));
-//        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+        algorithms.add(new Fci(new FisherZ()));
+        algorithms.add(new Rfci(new FisherZ()));
+        algorithms.add(new FciMax(new FisherZ()));
+        algorithms.add(new CFCI(new FisherZ()));
+        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+        algorithms.add(new Gfci(new SemBicTest(), new SemBicScore()));
         algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
         algorithms.add(new GfciNg(new SemBicTest(), new SemBicScore()));
 
@@ -142,6 +143,10 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.setSortByUtility(true);
 //        comparison.setShowUtilities(true);
 //        comparison.setParallelized(true);
+
+        comparison.setSaveGraphs(true);
+        comparison.setSavePags(true);
+        comparison.setSavePatterns(true);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.PAG_of_the_true_DAG);
 

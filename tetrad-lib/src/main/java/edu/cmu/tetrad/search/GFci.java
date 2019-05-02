@@ -101,8 +101,6 @@ public final class GFci implements GraphSearch {
         logger.log("info", "Starting FCI algorithm.");
         logger.log("info", "Independence test = " + getIndependenceTest() + ".");
 
-        this.graph = new EdgeListGraph(nodes);
-
         Fges fges = new Fges(score);
         fges.setKnowledge(getKnowledge());
         fges.setVerbose(verbose);
@@ -110,11 +108,11 @@ public final class GFci implements GraphSearch {
         fges.setFaithfulnessAssumed(faithfulnessAssumed);
         fges.setMaxDegree(maxDegree);
         fges.setOut(out);
-        graph = fges.search();
-        Graph fgesGraph = new EdgeListGraph(graph);
+        Graph fgesGraph = fges.search();
+        graph = new EdgeListGraph(fgesGraph);
 
 //        List<DataSet> dataSet = new ArrayList<>();
-//        dataSet.add((DataSet) independenceTest.getData());
+//        dataSet.add(this.dataSet);
 //
 //        Lofs2 lofs2 = new Lofs2(fgesGraph, dataSet);
 //        lofs2.setRule(Lofs2.Rule.R3);
@@ -123,14 +121,12 @@ public final class GFci implements GraphSearch {
         graph.reorientAllWith(Endpoint.CIRCLE);
         fciOrientbk(knowledge, graph, graph.getNodes());
 
-        sepsets = new SepsetsGreedy(fgesGraph, independenceTest, null, maxDegree);
-
         for (Node b : nodes) {
             if (Thread.currentThread().isInterrupted()) {
                 break;
             }
 
-            List<Node> adjacentNodes = fgesGraph.getAdjacentNodes(b);
+            List<Node> adjacentNodes = graph.getAdjacentNodes(b);
 
             if (adjacentNodes.size() < 2) {
                 continue;
@@ -154,12 +150,14 @@ public final class GFci implements GraphSearch {
             }
         }
 
+        SepsetProducer sepsets = new SepsetsMaxPValue(graph, independenceTest, null, maxDegree);
+
         for (Node b : nodes) {
             if (Thread.currentThread().isInterrupted()) {
                 break;
             }
 
-            List<Node> adjacentNodes = fgesGraph.getAdjacentNodes(b);
+            List<Node> adjacentNodes = graph.getAdjacentNodes(b);
 
             if (adjacentNodes.size() < 2) {
                 continue;
@@ -176,35 +174,28 @@ public final class GFci implements GraphSearch {
                 Node a = adjacentNodes.get(combination[0]);
                 Node c = adjacentNodes.get(combination[1]);
 
-                Edge e1 = fgesGraph.getEdge(a, b);
-                Edge e2 = fgesGraph.getEdge(b, c);
-
-                if (fgesGraph.isAdjacentTo(a, c)/* && ((e1.pointsTowards(a) && (Edges.isUndirectedEdge(e2))
-                        || (e2.pointsTowards(c) && Edges.isUndirectedEdge(e1))))*/) {
-                    Edge edge = graph.getEdge(a, c);
-
-//                    graph.removeEdge(edge);
-
+                if (fgesGraph.isAdjacentTo(a, c) && !graph.isAdjacentTo(a, c)) {
                     final List<Node> sepset = sepsets.getSepset(a, c);
 
                     if (sepset == null) {
-//                        graph.addEdge(edge);
                         continue;
                     }
 
-                    if (!sepset.contains(b)) {
-                        graph.removeEdge(edge);
-
-                        System.out.println("Sepset for " + a + " " + c + " is " + sepset);
-
-                        if (!sepset.contains(b)) {
-                            graph.setEndpoint(a, b, Endpoint.ARROW);
-                            graph.setEndpoint(c, b, Endpoint.ARROW);
-                        }
+                    if (sepset.contains(b)) {
+                        continue;
                     }
-//                    else {
-//                        graph.addEdge(edge);
-//                    }
+
+                    sepset.add(b);
+
+                    if (!independenceTest.isDependent(a, c, sepset)) {
+                        continue;
+                    }
+
+                    System.out.println("Sepset(" + a + ", " + c + ") = " + sepset + ", b = " + b);
+
+//                    graph.removeEdge(a, c);
+                    graph.setEndpoint(a, b, Endpoint.ARROW);
+                    graph.setEndpoint(c, b, Endpoint.ARROW);
                 }
             }
         }
