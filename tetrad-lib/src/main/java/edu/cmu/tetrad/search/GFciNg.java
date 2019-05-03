@@ -23,6 +23,7 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
+import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
@@ -109,12 +110,18 @@ public final class GFciNg implements GraphSearch {
         dataSet1.add(this.dataSet);
 
         Lofs2 lofs1 = new Lofs2(graph, dataSet1);
-        lofs1.setRule(Lofs2.Rule.R3);
+        lofs1.setRule(Lofs2.Rule.Skew);
         Graph r3Graph = lofs1.orient();
 
+//        Fask fask = new Fask(dataSet, independenceTest);
+//        fask.setInitialGraph(graph);
+//        Graph r3Graph = fask.search();
+
+        IKnowledge required = createRequiredKnowledge(r3Graph);
+
         Fges fges = new Fges(score);
-        fges.setInitialGraph(r3Graph);
-        fges.setKnowledge(getKnowledge());
+//        fges.setInitialGraph(r3Graph);
+        fges.setKnowledge(required);
         fges.setVerbose(verbose);
         fges.setNumPatternsToStore(0);
         fges.setFaithfulnessAssumed(faithfulnessAssumed);
@@ -125,7 +132,7 @@ public final class GFciNg implements GraphSearch {
 //        List<DataSet> dataSet = new ArrayList<>();
 //        dataSet.add(this.dataSet);
 //
-//        Lofs2 lofs2 = new Lofs2(fgesGraph, dataSet);
+//        Lofs2 lofs2 = new Lofs2(fgesGraph, dataSe
 //        lofs2.setRule(Lofs2.Rule.R3);
 //        fgesGraph = lofs2.orient();
 
@@ -440,4 +447,33 @@ public final class GFciNg implements GraphSearch {
         logger.log("info", "Finishing BK Orientation.");
     }
 
+    private IKnowledge createRequiredKnowledge(Graph graph) {
+        IKnowledge knwl = new Knowledge2(graph.getNodeNames());
+
+        List<Node> nodes = graph.getNodes();
+
+        int numOfNodes = nodes.size();
+        for (int i = 0; i < numOfNodes; i++) {
+            for (int j = i + 1; j < numOfNodes; j++) {
+                Node n1 = nodes.get(i);
+                Node n2 = nodes.get(j);
+
+                if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
+                    continue;
+                }
+
+                Edge edge = graph.getEdge(n1, n2);
+                if (edge == null) {
+                    continue;
+                } else if (edge.isDirected()) {
+                    knwl.setRequired(edge.getNode1().getName(), edge.getNode2().getName());
+                } else if (Edges.isUndirectedEdge(edge)) {
+                    knwl.setRequired(n1.getName(), n2.getName());
+                    knwl.setRequired(n2.getName(), n1.getName());
+                }
+            }
+        }
+
+        return knwl;
+    }
 }

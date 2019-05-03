@@ -56,29 +56,31 @@ public class ExampleCompareSimulationContinuousPag {
         Parameters parameters = new Parameters();
         int sampleSize = 500;
         int numMeasures = 40;
+        int numLatents = 5;
         int avgDegree = 4;
         ExampleCompareSimulationContinuousPag.Type type = ExampleCompareSimulationContinuousPag.Type.LinearNongaussian;
 
-        parameters.set("numRuns", 10);
+        parameters.set("numRuns", 5);
         parameters.set("numMeasures", numMeasures);
+        parameters.set("numLatents", numLatents);
         parameters.set("avgDegree", avgDegree);
         parameters.set("sampleSize", sampleSize); // This varies.
         parameters.set("differentGraphs", true);
 
-        parameters.set("alpha", 0.1, 0.05, 0.01, 0.001);
+        parameters.set("alpha", 0.05, 0.01, 0.001, 0.0001);
         parameters.set("penaltyDiscount", 2, 4); // tookout 1
-        parameters.set("colliderDiscoveryRule", 2, 3); // took out 1
-        parameters.set("conflictRule", /*1,*/ 3); // took out 2
+//        parameters.set("colliderDiscoveryRule", 2, 3); // took out 1
+//        parameters.set("conflictRule", /*1,*/ 3); // took out 2
 
         parameters.set("coefLow", 0.2);
-        parameters.set("coefHigh", 0.9);
+        parameters.set("coefHigh", 0.7);
 
         parameters.set("varLow", 1.0);
         parameters.set("varHigh", 3.0);
 
         parameters.set("discretise", true, false);
 
-        parameters.set("maxDegree", 4, 6, 8);
+        parameters.set("maxDegree", 4);
 
         parameters.set("depth", 4);
 
@@ -105,9 +107,9 @@ public class ExampleCompareSimulationContinuousPag {
 //        statistics.add(new SHD());
 //        statistics.add(new ElapsedTime());
 
-//        statistics.setWeight("AP", 1.0);
-//        statistics.setWeight("AR", 1.0);
-        statistics.setWeight("AHP", 1.0);
+        statistics.setWeight("AP", 1.0);
+        statistics.setWeight("AR", 1.0);
+        statistics.setWeight("AHPC", 1.0);
 //        statistics.setWeight("AHR", 1.0);
 //        statistics.setWeight("SHD", 1.0);
 
@@ -117,14 +119,14 @@ public class ExampleCompareSimulationContinuousPag {
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new R3(new FAS(new FisherZ())));
 
-        algorithms.add(new Fci(new FisherZ()));
-        algorithms.add(new Rfci(new FisherZ()));
-        algorithms.add(new FciMax(new FisherZ()));
-        algorithms.add(new CFCI(new FisherZ()));
+//        algorithms.add(new Fci(new FisherZ()));
+//        algorithms.add(new Rfci(new FisherZ()));
+//        algorithms.add(new FciMax(new FisherZ()));
+//        algorithms.add(new CFCI(new FisherZ()));
         algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
-        algorithms.add(new Gfci(new SemBicTest(), new SemBicScore()));
+//        algorithms.add(new Gfci(new SemBicTest(), new SemBicScore()));
         algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
-        algorithms.add(new GfciNg(new SemBicTest(), new SemBicScore()));
+//        algorithms.add(new GfciNg(new SemBicTest(), new SemBicScore()));
 
 
         Simulations simulations = new Simulations();
@@ -141,12 +143,12 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
         comparison.setSortByUtility(true);
-//        comparison.setShowUtilities(true);
+        comparison.setShowUtilities(true);
 //        comparison.setParallelized(true);
 
-        comparison.setSaveGraphs(true);
-        comparison.setSavePags(true);
-        comparison.setSavePatterns(true);
+//        comparison.setSaveGraphs(true);
+//        comparison.setSavePags(true);
+//        comparison.setSavePatterns(true);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.PAG_of_the_true_DAG);
 

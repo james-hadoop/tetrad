@@ -273,7 +273,7 @@ public final class FciOrient {
 
             // R4 requires an arrow orientation.
             if (changeFlag || (firstTime && !knowledge.isEmpty())) {
-//                ruleR4B(graph);
+                ruleR4B(graph);
                 firstTime = false;
             }
 
