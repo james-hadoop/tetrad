@@ -67,8 +67,8 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("sampleSize", sampleSize); // This varies.
         parameters.set("differentGraphs", true);
 
-        parameters.set("alpha", 0.05, 0.01, 0.001, 0.0001);
-        parameters.set("penaltyDiscount", 2, 4); // tookout 1
+        parameters.set("alpha", 0.05);
+        parameters.set("penaltyDiscount", 2); // tookout 1
 //        parameters.set("colliderDiscoveryRule", 2, 3); // took out 1
 //        parameters.set("conflictRule", /*1,*/ 3); // took out 2
 
@@ -125,7 +125,7 @@ public class ExampleCompareSimulationContinuousPag {
 //        algorithms.add(new CFCI(new FisherZ()));
         algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
 //        algorithms.add(new Gfci(new SemBicTest(), new SemBicScore()));
-        algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
+//        algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
 //        algorithms.add(new GfciNg(new SemBicTest(), new SemBicScore()));
 
 
@@ -146,9 +146,10 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.setShowUtilities(true);
 //        comparison.setParallelized(true);
 
-//        comparison.setSaveGraphs(true);
-//        comparison.setSavePags(true);
-//        comparison.setSavePatterns(true);
+        comparison.setSaveGraphs(true);
+        comparison.setSavePags(true);
+        comparison.setSavePatterns(true);
+//        comparison.setSaveTrueDags(true);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.PAG_of_the_true_DAG);
 

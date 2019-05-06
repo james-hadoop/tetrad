@@ -80,6 +80,7 @@ public class Comparison {
     private boolean parallelized = true;
     private boolean savePatterns = false;
     private boolean savePags = false;
+//    private boolean saveTrueDags = false;
     private ArrayList<String> dirs = null;
     private ComparisonGraph comparisonGraph = ComparisonGraph.true_DAG;
 
@@ -203,7 +204,8 @@ public class Comparison {
             dir.mkdirs();
             File file = new File(dir, outputFileName);
             this.out = new PrintStream(new FileOutputStream(file));
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -215,7 +217,8 @@ public class Comparison {
 
         int numRuns = parameters.getInt("numRuns");
 
-        for (Simulation simulation : simulations.getSimulations()) {
+        for (
+                Simulation simulation : simulations.getSimulations()) {
             List<SimulationWrapper> wrappers = getSimulationWrappers(simulation, parameters);
 
             for (SimulationWrapper wrapper : wrappers) {
@@ -227,7 +230,8 @@ public class Comparison {
         // Set up the algorithms.
         List<AlgorithmWrapper> algorithmWrappers = new ArrayList<>();
 
-        for (Algorithm algorithm : algorithms.getAlgorithms()) {
+        for (
+                Algorithm algorithm : algorithms.getAlgorithms()) {
             List<Integer> _dims = new ArrayList<>();
             List<String> varyingParameters = new ArrayList<>();
 
@@ -269,7 +273,8 @@ public class Comparison {
         // simulation.
         List<AlgorithmSimulationWrapper> algorithmSimulationWrappers = new ArrayList<>();
 
-        for (SimulationWrapper simulationWrapper : simulationWrappers) {
+        for (
+                SimulationWrapper simulationWrapper : simulationWrappers) {
             for (AlgorithmWrapper algorithmWrapper : algorithmWrappers) {
                 DataType algDataType = algorithmWrapper.getDataType();
                 DataType simDataType = simulationWrapper.getDataType();
@@ -439,6 +444,12 @@ public class Comparison {
                     simulationWrappers, utilities, parameters);
         }
 
+
+        for (int i = 0; i < simulations.getSimulations().size(); i++) {
+            saveToFiles(resultsPath + "/simulation" + (i + 1), simulations.getSimulations().get(i), parameters);
+        }
+
+
         out.close();
     }
 
@@ -477,7 +488,7 @@ public class Comparison {
 
         try {
             int numDataSets = simulation.getNumDataModels();
-            if(numDataSets <= 0){
+            if (numDataSets <= 0) {
 
                 File dir1 = new File(dir, "graph");
                 File dir2 = new File(dir, "data");
@@ -504,7 +515,7 @@ public class Comparison {
                 simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters());
 
                 File subdir = dir;
-                if(simulationWrappers.size() > 1){
+                if (simulationWrappers.size() > 1) {
                     index++;
 
                     subdir = new File(dir, "" + index);
@@ -531,6 +542,13 @@ public class Comparison {
                     dir4.mkdirs();
                 }
 
+//                File dir5 = null;
+//
+//                if (isSaveTrueDags()) {
+//                    dir5 = new File(subdir, "truedags");
+//                    dir5.mkdirs();
+//                }
+
 
                 for (int j = 0; j < simulationWrapper.getNumDataModels(); j++) {
                     File file2 = new File(dir1, "graph." + (j + 1) + ".txt");
@@ -553,6 +571,12 @@ public class Comparison {
                         File file4 = new File(dir4, "pag." + (j + 1) + ".txt");
                         GraphUtils.saveGraph(new DagToPag2(graph).convert(), file4, false);
                     }
+
+//                    if (isSaveTrueDags()) {
+//                        File file5 = new File(dir5, "truedag." + (j + 1) + ".txt");
+//                        GraphUtils.saveGraph(graph, file5, false);
+//
+//                    }
                 }
 
                 PrintStream out = new PrintStream(new FileOutputStream(new File(subdir, "parameters.txt")));
@@ -1079,12 +1103,25 @@ public class Comparison {
     }
 
     /**
-     * @param savePags True if patterns should be saved out.
+     * @return True if patterns should be saved out.
      */
     public void setSavePags(boolean savePags) {
         this.savePags = savePags;
     }
 
+//    /**
+//     * @return True if patterns should be saved out.
+//     */
+//    public boolean isSaveTrueDags() {
+//        return saveTrueDags;
+//    }
+//
+//    /**
+//     * @param savePags True if patterns should be saved out.
+//     */
+//    public void setSaveTrueDags(boolean saveTrueDags) {
+//        this.saveTrueDags = saveTrueDags;
+//    }
 
     /**
      * @return True iff tables should be tab delimited (e.g. for easy pasting into Excel).
@@ -1594,8 +1631,7 @@ public class Comparison {
 
                     if (stat == 0.0) {
                         table.setToken(t + 1, initialColumn + statIndex, "-");
-                    } else
-                        if (stat == Double.POSITIVE_INFINITY) {
+                    } else if (stat == Double.POSITIVE_INFINITY) {
                         table.setToken(t + 1, initialColumn + statIndex, "Yes");
                     } else if (stat == Double.NEGATIVE_INFINITY) {
                         table.setToken(t + 1, initialColumn + statIndex, "No");

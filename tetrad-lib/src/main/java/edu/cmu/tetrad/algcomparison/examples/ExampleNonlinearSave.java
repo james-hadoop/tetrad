@@ -63,7 +63,7 @@ public class ExampleNonlinearSave {
         Simulation simulation = new LinearSineSimulation(new RandomForward());
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
-        comparison.saveToFiles("comparison", simulation, parameters);
+//        comparison.setSaveTrueDags(true);
     }
 }
 
