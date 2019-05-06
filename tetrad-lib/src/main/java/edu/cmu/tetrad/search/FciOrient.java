@@ -23,6 +23,7 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.data.KnowledgeEdge;
+import edu.cmu.tetrad.graph.Edges;
 import edu.cmu.tetrad.graph.Endpoint;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
@@ -273,7 +274,7 @@ public final class FciOrient {
 
             // R4 requires an arrow orientation.
             if (changeFlag || (firstTime && !knowledge.isEmpty())) {
-                ruleR4B(graph);
+//                ruleR4B(graph);
                 firstTime = false;
             }
 
@@ -742,7 +743,11 @@ public final class FciOrient {
                         break;
                     }
 
-                    if (!graph.isParentOf(a, c)) {
+                    if (graph.isAdjacentTo(a, c) && !Edges.isBidirectedEdge(graph.getEdge(a, c))) {
+                        continue;
+                    }
+
+                    if (!graph.isParentOf(a, b)) {
                         continue;
                     }
 

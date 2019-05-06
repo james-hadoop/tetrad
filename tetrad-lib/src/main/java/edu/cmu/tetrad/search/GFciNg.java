@@ -108,19 +108,23 @@ public final class GFciNg implements GraphSearch {
 
         List<DataSet> dataSet1 = new ArrayList<>();
         dataSet1.add(this.dataSet);
-
+//
         Lofs2 lofs1 = new Lofs2(graph, dataSet1);
-        lofs1.setRule(Lofs2.Rule.Skew);
+        lofs1.setRule(Lofs2.Rule.R3);
         Graph r3Graph = lofs1.orient();
+//
 
 //        Fask fask = new Fask(dataSet, independenceTest);
 //        fask.setInitialGraph(graph);
 //        Graph r3Graph = fask.search();
 
+//                if (true) return r3Graph;
+
+//
         IKnowledge required = createRequiredKnowledge(r3Graph);
 
         Fges fges = new Fges(score);
-//        fges.setInitialGraph(r3Graph);
+        fges.setInitialGraph(new EdgeListGraph(r3Graph));
         fges.setKnowledge(required);
         fges.setVerbose(verbose);
         fges.setNumPatternsToStore(0);
@@ -128,6 +132,9 @@ public final class GFciNg implements GraphSearch {
         fges.setMaxDegree(maxDegree);
         fges.setOut(out);
         Graph fgesGraph = fges.search();
+
+//        if (true) return fgesGraph;
+
 
 //        List<DataSet> dataSet = new ArrayList<>();
 //        dataSet.add(this.dataSet);
@@ -137,7 +144,7 @@ public final class GFciNg implements GraphSearch {
 //        fgesGraph = lofs2.orient();
 
         graph.reorientAllWith(Endpoint.CIRCLE);
-        fciOrientbk(knowledge, graph, graph.getNodes());
+//        fciOrientbk(knowledge, graph, graph.getNodes());
 
         for (Node b : nodes) {
             if (Thread.currentThread().isInterrupted()) {
@@ -161,14 +168,21 @@ public final class GFciNg implements GraphSearch {
                 Node a = adjacentNodes.get(combination[0]);
                 Node c = adjacentNodes.get(combination[1]);
 
-                if (fgesGraph.isDefCollider(a, b, c)) {
+                if (graph.isAdjacentTo(a, c)) continue;
+
+                if (r3Graph.isDefCollider(a, b, c)) {
+                    if (b.getName() .equalsIgnoreCase("X5")) {
+                        System.out.println();
+                    }
+
+                    System.out.println("collider orientation rule A " + a + "->" + b + "<-" + c);
                     graph.setEndpoint(a, b, Endpoint.ARROW);
                     graph.setEndpoint(c, b, Endpoint.ARROW);
                 }
             }
         }
 
-        SepsetProducer sepsets = new SepsetsMaxPValue(graph, independenceTest, null, maxDegree);
+        SepsetProducer sepsets = new SepsetsGreedy(graph, independenceTest, null, maxDegree);
 
         for (Node b : nodes) {
             if (Thread.currentThread().isInterrupted()) {
@@ -199,21 +213,29 @@ public final class GFciNg implements GraphSearch {
                         continue;
                     }
 
+                    if (!independenceTest.isIndependent(a, c, sepset)) {
+                        continue;
+                    }
+
+                    System.out.println(SearchLogUtils.independenceFact(a, c, sepset));
+
                     if (sepset.contains(b)) {
                         continue;
                     }
 
                     sepset.add(b);
 
-                    if (!independenceTest.isDependent(a, c, sepset)) {
+                    if (independenceTest.isDependent(a, c, sepset)) {
                         continue;
                     }
 
-                    System.out.println("Sepset(" + a + ", " + c + ") = " + sepset + ", b = " + b);
+                    System.out.println(SearchLogUtils.dependenceFactMsg(a, c, sepset, independenceTest.getPValue()));
+//
+                    System.out.println("collider oriention rule B " + a + "->" + b + "<-" + c);
 
 //                    graph.removeEdge(a, c);
-                    graph.setEndpoint(a, b, Endpoint.ARROW);
-                    graph.setEndpoint(c, b, Endpoint.ARROW);
+//                    graph.setEndpoint(a, b, Endpoint.ARROW);
+//                    graph.setEndpoint(c, b, Endpoint.ARROW);
                 }
             }
         }

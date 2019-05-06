@@ -804,8 +804,8 @@ public final class LargeScaleSimulation {
                 sample *= sqrt(varDist.sample());
 
                 if (!errorsNormal) {
-                    sample = abs(sample);
-//                    sample = sample * sample;
+//                    sample = abs(sample);
+                    sample = sample * sample;
                 }
 
                 shocks[i][j] = sample;
