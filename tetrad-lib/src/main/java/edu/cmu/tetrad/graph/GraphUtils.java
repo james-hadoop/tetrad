@@ -713,10 +713,23 @@ public final class GraphUtils {
         for (Node node : nodes) {
             List<Node> children = dag.getChildren(node);
 
+            for (Node child : new ArrayList<>(children)) {
+                if (child.getNodeType() == NodeType.LATENT) {
+                    children.remove(child);
+                }
+            }
+
             if (children.size() >= 2) {
                 commonCausesAndEffects.add(node);
             } else {
                 List<Node> parents = dag.getParents(node);
+
+                for (Node parent : new ArrayList<>(parents)) {
+                    if (parent.getNodeType() == NodeType.LATENT) {
+                        parents.remove(parent);
+                    }
+                }
+
                 if (parents.size() >= 2 && children.size() >= 1) {
                     commonCausesAndEffects.add(node);
                 }

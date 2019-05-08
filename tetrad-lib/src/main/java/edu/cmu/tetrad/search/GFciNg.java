@@ -108,18 +108,10 @@ public final class GFciNg implements GraphSearch {
 
         List<DataSet> dataSet1 = new ArrayList<>();
         dataSet1.add(this.dataSet);
-//
+
         Lofs2 lofs1 = new Lofs2(graph, dataSet1);
         lofs1.setRule(Lofs2.Rule.R3);
         Graph r3Graph = lofs1.orient();
-//
-
-//        Fask fask = new Fask(dataSet, independenceTest);
-//        fask.setInitialGraph(graph);
-//        Graph r3Graph = fask.search();
-
-//                if (true) return r3Graph;
-
 //
         IKnowledge required = createRequiredKnowledge(r3Graph);
 
@@ -132,16 +124,6 @@ public final class GFciNg implements GraphSearch {
         fges.setMaxDegree(maxDegree);
         fges.setOut(out);
         Graph fgesGraph = fges.search();
-
-//        if (true) return fgesGraph;
-
-
-//        List<DataSet> dataSet = new ArrayList<>();
-//        dataSet.add(this.dataSet);
-//
-//        Lofs2 lofs2 = new Lofs2(fgesGraph, dataSe
-//        lofs2.setRule(Lofs2.Rule.R3);
-//        fgesGraph = lofs2.orient();
 
         graph.reorientAllWith(Endpoint.CIRCLE);
 //        fciOrientbk(knowledge, graph, graph.getNodes());
@@ -175,7 +157,7 @@ public final class GFciNg implements GraphSearch {
                         System.out.println();
                     }
 
-                    System.out.println("collider orientation rule A " + a + "->" + b + "<-" + c);
+                    System.out.println("Copy collider from R3 graph not shielded in the FGES graph: " + a + "->" + b + "<-" + c);
                     graph.setEndpoint(a, b, Endpoint.ARROW);
                     graph.setEndpoint(c, b, Endpoint.ARROW);
                 }
@@ -230,12 +212,10 @@ public final class GFciNg implements GraphSearch {
                     }
 
                     System.out.println(SearchLogUtils.dependenceFactMsg(a, c, sepset, independenceTest.getPValue()));
-//
-                    System.out.println("collider oriention rule B " + a + "->" + b + "<-" + c);
 
-//                    graph.removeEdge(a, c);
-//                    graph.setEndpoint(a, b, Endpoint.ARROW);
-//                    graph.setEndpoint(c, b, Endpoint.ARROW);
+                    System.out.println("Estimate collider from triple shielded in the FGES graph: " + a + "->" + b + "<-" + c);
+                    graph.setEndpoint(a, b, Endpoint.ARROW);
+                    graph.setEndpoint(c, b, Endpoint.ARROW);
                 }
             }
         }
