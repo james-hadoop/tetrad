@@ -101,6 +101,52 @@ public final class GFci implements GraphSearch {
         logger.log("info", "Starting FCI algorithm.");
         logger.log("info", "Independence test = " + getIndependenceTest() + ".");
 
+        Fas fas = new Fas(independenceTest);
+        this.graph = fas.search();
+
+        SepsetProducer sepsets = new SepsetsPossibleDsep(graph, independenceTest, knowledge, 5, 10);
+
+        for (Edge edge : new ArrayList<>(graph.getEdges())) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+
+            Node x = edge.getNode1();
+            Node y = edge.getNode2();
+
+            List<Node> sepset = sepsets.getSepset(x, y);
+
+            if (sepset != null) {
+                graph.removeEdge(x, y);
+
+                if (verbose) {
+                    System.out.println("Possible DSEP Removed " + x + "--- " + y + " sepset = " + sepset);
+                }
+            }
+        }
+
+        orientColliders(nodes);
+
+        FciOrient fciOrient = new FciOrient(new SepsetsGreedy(graph, independenceTest, null, 5));
+        fciOrient.setVerbose(verbose);
+        fciOrient.setOut(out);
+        fciOrient.setKnowledge(getKnowledge());
+        fciOrient.setCompleteRuleSetUsed(completeRuleSetUsed);
+        fciOrient.setMaxPathLength(maxPathLength);
+        fciOrient.doFinalOrientation(graph);
+
+        GraphUtils.replaceNodes(graph, independenceTest.getVariables());
+
+        long time2 = System.currentTimeMillis();
+
+        elapsedTime = time2 - time1;
+
+        graph.setPag(true);
+
+        return graph;
+    }
+
+    private void orientColliders(List<Node> nodes) {
         Fges fges = new Fges(score);
         fges.setKnowledge(getKnowledge());
         fges.setVerbose(verbose);
@@ -109,14 +155,6 @@ public final class GFci implements GraphSearch {
         fges.setMaxDegree(maxDegree);
         fges.setOut(out);
         Graph fgesGraph = fges.search();
-        graph = new EdgeListGraph(fgesGraph);
-
-//        List<DataSet> dataSet = new ArrayList<>();
-//        dataSet.add(this.dataSet);
-//
-//        Lofs2 lofs2 = new Lofs2(fgesGraph, dataSet);
-//        lofs2.setRule(Lofs2.Rule.R3);
-//        fgesGraph = lofs2.orient();
 
         graph.reorientAllWith(Endpoint.CIRCLE);
         fciOrientbk(knowledge, graph, graph.getNodes());
@@ -143,14 +181,21 @@ public final class GFci implements GraphSearch {
                 Node a = adjacentNodes.get(combination[0]);
                 Node c = adjacentNodes.get(combination[1]);
 
+                if (graph.isAdjacentTo(a, c)) continue;
+
                 if (fgesGraph.isDefCollider(a, b, c)) {
+                    if (b.getName() .equalsIgnoreCase("X5")) {
+                        System.out.println();
+                    }
+
+                    System.out.println("Copy collider from R3 graph not shielded in the FGES graph: " + a + "->" + b + "<-" + c);
                     graph.setEndpoint(a, b, Endpoint.ARROW);
                     graph.setEndpoint(c, b, Endpoint.ARROW);
                 }
             }
         }
 
-        SepsetProducer sepsets = new SepsetsMaxPValue(graph, independenceTest, null, maxDegree);
+        SepsetProducer sepsets = new SepsetsGreedy(graph, independenceTest, null, maxDegree);
 
         for (Node b : nodes) {
             if (Thread.currentThread().isInterrupted()) {
@@ -181,6 +226,12 @@ public final class GFci implements GraphSearch {
                         continue;
                     }
 
+                    if (!independenceTest.isIndependent(a, c, sepset)) {
+                        continue;
+                    }
+
+                    System.out.println(SearchLogUtils.independenceFact(a, c, sepset));
+
                     if (sepset.contains(b)) {
                         continue;
                     }
@@ -191,32 +242,14 @@ public final class GFci implements GraphSearch {
                         continue;
                     }
 
-                    System.out.println("Sepset(" + a + ", " + c + ") = " + sepset + ", b = " + b);
+                    System.out.println(SearchLogUtils.dependenceFactMsg(a, c, sepset, independenceTest.getPValue()));
 
-//                    graph.removeEdge(a, c);
+                    System.out.println("Estimate collider from triple shielded in the FGES graph: " + a + "->" + b + "<-" + c);
                     graph.setEndpoint(a, b, Endpoint.ARROW);
                     graph.setEndpoint(c, b, Endpoint.ARROW);
                 }
             }
         }
-
-        FciOrient fciOrient = new FciOrient(sepsets);
-        fciOrient.setVerbose(verbose);
-        fciOrient.setOut(out);
-        fciOrient.setKnowledge(getKnowledge());
-        fciOrient.setCompleteRuleSetUsed(completeRuleSetUsed);
-        fciOrient.setMaxPathLength(maxPathLength);
-        fciOrient.doFinalOrientation(graph);
-
-        GraphUtils.replaceNodes(graph, independenceTest.getVariables());
-
-        long time2 = System.currentTimeMillis();
-
-        elapsedTime = time2 - time1;
-
-        graph.setPag(true);
-
-        return graph;
     }
 
     @Override

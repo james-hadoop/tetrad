@@ -790,7 +790,7 @@ public final class LargeScaleSimulation {
         AbstractRealDistribution distribution;
         AbstractRealDistribution varDist = null;
 
-        distribution = new NormalDistribution(new Well1024a(++seed), 0, 1);
+        distribution = new NormalDistribution(0, 1);
         varDist = new UniformRealDistribution(varLow, varHigh);
 
         int numVars = variableNodes.size();

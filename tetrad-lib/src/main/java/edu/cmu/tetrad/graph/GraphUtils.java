@@ -673,6 +673,25 @@ public final class GraphUtils {
         }
     }
 
+    public static void fixLatents2(int numLatentConfounders, Graph graph) {
+        int index = 0;
+        List<Node> nodes = graph.getNodes();
+
+        while (index++ < numLatentConfounders) {
+            Collections.shuffle(nodes);
+
+            Node x = nodes.get(0);
+            Node y = nodes.get(1);
+
+            Node L = new GraphNode("QQQQ" + index);
+            L.setNodeType(NodeType.LATENT);
+
+            graph.addNode(L);
+            graph.addDirectedEdge(L, x);
+            graph.addDirectedEdge(L, y);
+        }
+    }
+
     // JMO's method for fixing latents
     public static void fixLatents4(int numLatentConfounders, Graph graph) {
         if (numLatentConfounders == 0) {
@@ -680,27 +699,11 @@ public final class GraphUtils {
         }
 
         List<Node> commonCausesAndEffects = getCommonCausesAndEffects(graph);
-        int index = 0;
+        Collections.shuffle(commonCausesAndEffects);
 
-        while (index++ < numLatentConfounders) {
-            if (commonCausesAndEffects.size() == 0) {
-                index--;
-                break;
-            }
-            int i = RandomUtil.getInstance().nextInt(commonCausesAndEffects.size());
+        for (int i = 0; i < numLatentConfounders; i++) {
             Node node = commonCausesAndEffects.get(i);
             node.setNodeType(NodeType.LATENT);
-            commonCausesAndEffects.remove(i);
-        }
-
-        List<Node> nodes = graph.getNodes();
-        while (index++ < numLatentConfounders) {
-            int r = RandomUtil.getInstance().nextInt(nodes.size());
-            if (nodes.get(r).getNodeType() == NodeType.LATENT) {
-                index--;
-            } else {
-                nodes.get(r).setNodeType(NodeType.LATENT);
-            }
         }
     }
 
@@ -713,22 +716,22 @@ public final class GraphUtils {
         for (Node node : nodes) {
             List<Node> children = dag.getChildren(node);
 
-            for (Node child : new ArrayList<>(children)) {
-                if (child.getNodeType() == NodeType.LATENT) {
-                    children.remove(child);
-                }
-            }
+//            for (Node child : new ArrayList<>(children)) {
+//                if (child.getNodeType() == NodeType.LATENT) {
+//                    children.remove(child);
+//                }
+//            }
 
             if (children.size() >= 2) {
                 commonCausesAndEffects.add(node);
             } else {
                 List<Node> parents = dag.getParents(node);
 
-                for (Node parent : new ArrayList<>(parents)) {
-                    if (parent.getNodeType() == NodeType.LATENT) {
-                        parents.remove(parent);
-                    }
-                }
+//                for (Node parent : new ArrayList<>(parents)) {
+//                    if (parent.getNodeType() == NodeType.LATENT) {
+//                        parents.remove(parent);
+//                    }
+//                }
 
                 if (parents.size() >= 2 && children.size() >= 1) {
                     commonCausesAndEffects.add(node);

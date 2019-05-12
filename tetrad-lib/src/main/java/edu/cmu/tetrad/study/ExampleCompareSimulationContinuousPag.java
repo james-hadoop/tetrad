@@ -32,6 +32,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
 import edu.cmu.tetrad.algcomparison.algorithm.pairwise.R3;
 import edu.cmu.tetrad.algcomparison.algorithm.pairwise.Skew;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
+import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
 import edu.cmu.tetrad.algcomparison.score.FisherZScore;
@@ -54,11 +55,12 @@ public class ExampleCompareSimulationContinuousPag {
 
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        int sampleSize = 500;
-        int numMeasures = 40;
-        int numLatents = 10;
-        int avgDegree = 4;
-        ExampleCompareSimulationContinuousPag.Type type = ExampleCompareSimulationContinuousPag.Type.LinearNongaussian;
+        int sampleSize = 1000;
+        int numMeasures = 20;
+        int numLatents = 0;
+        int avgDegree = 6;
+        int maxDegree = 10;
+        ExampleCompareSimulationContinuousPag.Type type = Type.LinearNongaussian;
 
         parameters.set("numRuns", 5);
         parameters.set("numMeasures", numMeasures);
@@ -68,7 +70,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("differentGraphs", true);
 
         parameters.set("alpha", 0.001);
-        parameters.set("penaltyDiscount", 2); // tookout 1
+        parameters.set("penaltyDiscount", 4); // tookout 1
 
         parameters.set("coefLow", 0.3);
         parameters.set("coefHigh", 1.0);
@@ -76,7 +78,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("varLow", 1.0);
         parameters.set("varHigh", 3.0);
 
-        parameters.set("maxDegree", 4);
+        parameters.set("maxDegree", maxDegree);
 
         parameters.set("depth", 4);
 
@@ -101,7 +103,7 @@ public class ExampleCompareSimulationContinuousPag {
 //        statistics.add(new F1Adj());
 //        statistics.add(new F1Arrow());
 //        statistics.add(new SHD());
-//        statistics.add(new ElapsedTime());
+        statistics.add(new ElapsedTime());
 
         statistics.setWeight("AP", 1.0);
         statistics.setWeight("AR", 1.0);
@@ -120,9 +122,7 @@ public class ExampleCompareSimulationContinuousPag {
         algorithms.add(new FciMax(new FisherZ()));
         algorithms.add(new CFCI(new FisherZ()));
         algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
-//        algorithms.add(new Gfci(new SemBicTest(), new SemBicScore()));
         algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
-//        algorithms.add(new GfciNg(new SemBicTest(), new SemBicScore()));
 
 
         Simulations simulations = new Simulations();

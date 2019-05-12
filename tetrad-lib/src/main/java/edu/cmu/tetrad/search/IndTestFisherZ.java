@@ -34,6 +34,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.sqrt;
+import static java.lang.StrictMath.log;
 
 /**
  * Checks conditional independence of variable in a continuous data set using Fisher's Z test. See Spirtes, Glymour, and
@@ -195,7 +197,8 @@ public final class IndTestFisherZ implements IndependenceTest {
             return false;
         }
 
-        double fisherZ = Math.sqrt(n - 3 - z.size()) * 0.5 * (Math.log(1.0 + r) - Math.log(1.0 - r));
+        double q =  0.5 * (log(1.0 + r) - Math.log(1.0 - r));
+        double fisherZ = sqrt(n - 3 - z.size()) * abs(q);
         this.fisherZ = fisherZ;
         this.rho = r;
 
@@ -210,7 +213,7 @@ public final class IndTestFisherZ implements IndependenceTest {
 
             if (b * c == 0) throw new SingularMatrixException();
 
-            return -a / Math.sqrt(b * c);
+            return -a / sqrt(b * c);
         } else {
             int[] indices = new int[z.size() + 2];
             indices[0] = indexMap.get(x);

@@ -23,7 +23,6 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
-import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
@@ -110,12 +109,58 @@ public final class GFciNg implements GraphSearch {
         dataSet1.add(this.dataSet);
 
         Lofs2 lofs1 = new Lofs2(graph, dataSet1);
-        lofs1.setRule(Lofs2.Rule.R3);
+        lofs1.setRule(Lofs2.Rule.Skew);
         Graph r3Graph = lofs1.orient();
-//
-        IKnowledge required = createRequiredKnowledge(r3Graph);
 
-        Fges fges = new Fges(score);
+        IKnowledge forbidden = createForbiddenKnowledge(r3Graph);
+        orientColliders(nodes, r3Graph, forbidden);
+
+        SepsetProducer sepsets = new SepsetsPossibleDsep(graph, independenceTest, knowledge, 5, 10);
+
+        for (Edge edge : new ArrayList<>(graph.getEdges())) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+
+            Node x = edge.getNode1();
+            Node y = edge.getNode2();
+
+            List<Node> sepset = sepsets.getSepset(x, y);
+
+            if (sepset != null) {
+                graph.removeEdge(x, y);
+
+                if (verbose) {
+                    System.out.println("Possible DSEP Removed " + x + "--- " + y + " sepset = " + sepset);
+                }
+            }
+        }
+
+        orientColliders(nodes, r3Graph, forbidden);
+
+        FciOrient fciOrient = new FciOrient(new SepsetsGreedy(graph, independenceTest, null, 5));
+        fciOrient.setVerbose(verbose);
+        fciOrient.setOut(out);
+        fciOrient.setKnowledge(getKnowledge());
+        fciOrient.setCompleteRuleSetUsed(completeRuleSetUsed);
+        fciOrient.setMaxPathLength(maxPathLength);
+        fciOrient.doFinalOrientation(graph);
+
+        GraphUtils.replaceNodes(graph, independenceTest.getVariables());
+
+        long time2 = System.currentTimeMillis();
+
+        elapsedTime = time2 - time1;
+
+        graph.setPag(true);
+
+        return graph;
+    }
+
+    private void orientColliders(List<Node> nodes, Graph r3Graph, IKnowledge required) {
+
+        // This only allows unshielded triples to be shielded.
+        FgesGfciNgSpecial fges = new FgesGfciNgSpecial(score);
         fges.setInitialGraph(new EdgeListGraph(r3Graph));
         fges.setKnowledge(required);
         fges.setVerbose(verbose);
@@ -126,7 +171,7 @@ public final class GFciNg implements GraphSearch {
         Graph fgesGraph = fges.search();
 
         graph.reorientAllWith(Endpoint.CIRCLE);
-//        fciOrientbk(knowledge, graph, graph.getNodes());
+        fciOrientbk(knowledge, graph, graph.getNodes());
 
         for (Node b : nodes) {
             if (Thread.currentThread().isInterrupted()) {
@@ -195,7 +240,7 @@ public final class GFciNg implements GraphSearch {
                         continue;
                     }
 
-                    if (!independenceTest.isIndependent(a, c, sepset)) {
+                    if (independenceTest.isIndependent(a, c, sepset)) {
                         continue;
                     }
 
@@ -219,24 +264,6 @@ public final class GFciNg implements GraphSearch {
                 }
             }
         }
-
-        FciOrient fciOrient = new FciOrient(sepsets);
-        fciOrient.setVerbose(verbose);
-        fciOrient.setOut(out);
-        fciOrient.setKnowledge(getKnowledge());
-        fciOrient.setCompleteRuleSetUsed(completeRuleSetUsed);
-        fciOrient.setMaxPathLength(maxPathLength);
-        fciOrient.doFinalOrientation(graph);
-
-        GraphUtils.replaceNodes(graph, independenceTest.getVariables());
-
-        long time2 = System.currentTimeMillis();
-
-        elapsedTime = time2 - time1;
-
-        graph.setPag(true);
-
-        return graph;
     }
 
     @Override
@@ -469,6 +496,36 @@ public final class GFciNg implements GraphSearch {
                     continue;
                 } else if (edge.isDirected()) {
                     knwl.setRequired(edge.getNode1().getName(), edge.getNode2().getName());
+                } else if (Edges.isUndirectedEdge(edge)) {
+                    knwl.setRequired(n1.getName(), n2.getName());
+                    knwl.setRequired(n2.getName(), n1.getName());
+                }
+            }
+        }
+
+        return knwl;
+    }
+
+    private IKnowledge createForbiddenKnowledge(Graph graph) {
+        IKnowledge knwl = new Knowledge2(graph.getNodeNames());
+
+        List<Node> nodes = graph.getNodes();
+
+        int numOfNodes = nodes.size();
+        for (int i = 0; i < numOfNodes; i++) {
+            for (int j = i + 1; j < numOfNodes; j++) {
+                Node n1 = nodes.get(i);
+                Node n2 = nodes.get(j);
+
+                if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
+                    continue;
+                }
+
+                Edge edge = graph.getEdge(n1, n2);
+                if (edge == null) {
+                    continue;
+                } else if (edge.isDirected()) {
+                    knwl.setForbidden(edge.getNode2().getName(), edge.getNode1().getName());
                 } else if (Edges.isUndirectedEdge(edge)) {
                     knwl.setRequired(n1.getName(), n2.getName());
                     knwl.setRequired(n2.getName(), n1.getName());
