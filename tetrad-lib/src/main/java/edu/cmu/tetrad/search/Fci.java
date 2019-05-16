@@ -21,14 +21,10 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.ICovarianceMatrix;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.data.KnowledgeEdge;
-import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.Endpoint;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.util.*;
@@ -200,15 +196,14 @@ public final class Fci implements GraphSearch {
         this.graph = fas.search();
         this.sepsets = fas.getSepsets();
 
-        graph.reorientAllWith(Endpoint.CIRCLE);
-
-        SepsetProducer sp = new SepsetsPossibleDsep(graph, independenceTest, knowledge, depth, maxPathLength);
-        sp.setVerbose(verbose);
-
         // The original FCI, with or without JiJi Zhang's orientation rules
-        //        // Optional step: Possible Dsep. (Needed for correctness but very time consuming.)
         if (isPossibleDsepSearchDone()) {
-//            long time1 = System.currentTimeMillis();
+            graph.reorientAllWith(Endpoint.CIRCLE);
+            orientColliders(graph, sepsets);
+
+            SepsetProducer sp = new SepsetsPossibleDsep(graph, independenceTest, knowledge, depth, maxPathLength);
+            sp.setVerbose(verbose);
+
             new FciOrient(new SepsetsSet(this.sepsets, independenceTest)).ruleR0(graph);
 
             for (Edge edge : new ArrayList<>(graph.getEdges())) {
@@ -230,33 +225,12 @@ public final class Fci implements GraphSearch {
                     }
                 }
             }
-
-
-//            long time2 = System.currentTimeMillis();
-//            logger.log("info", "Step C: " + (time2 - time1) / 1000. + "s");
-//
-//            // Step FCI D.
-//            long time3 = System.currentTimeMillis();
-//
-//            System.out.println("Starting possible dsep search");
-//            PossibleDsepFci possibleDSep = new PossibleDsepFci(graph, independenceTest);
-//            possibleDSep.setMaxDegree(getPossibleDsepDepth());
-//            possibleDSep.setKnowledge(getKnowledge());
-//            possibleDSep.setMaxPathLength(maxPathLength);
-//            this.sepsets.addAll(possibleDSep.search());
-//            long time4 = System.currentTimeMillis();
-//            logger.log("info", "Step D: " + (time4 - time3) / 1000. + "s");
-//            System.out.println("Starting possible dsep search");
-
-            // Reorient all edges as o-o.
-            graph.reorientAllWith(Endpoint.CIRCLE);
         }
 
         // Step CI C (Zhang's step F3.)
         long time5 = System.currentTimeMillis();
-        //fciOrientbk(getKnowledge(), graph, independenceTest.getVariable());    - Robert Tillman 2008
-//        fciOrientbk(getKnowledge(), graph, variables);
-//        new FciOrient(graph, new Sepsets(this.sepsets)).ruleR0(new Sepsets(this.sepsets));
+        graph.reorientAllWith(Endpoint.CIRCLE);
+        orientColliders(graph, sepsets);
 
         long time6 = System.currentTimeMillis();
         logger.log("info", "Step CI C: " + (time6 - time5) / 1000. + "s");
@@ -266,10 +240,152 @@ public final class Fci implements GraphSearch {
         fciOrient.setCompleteRuleSetUsed(completeRuleSetUsed);
         fciOrient.setMaxPathLength(maxPathLength);
         fciOrient.setKnowledge(knowledge);
-        fciOrient.ruleR0(graph);
         fciOrient.doFinalOrientation(graph);
         graph.setPag(true);
         return graph;
+    }
+
+    private void orientColliders(Graph graph, SepsetMap sepsets) {
+
+        graph.reorientAllWith(Endpoint.CIRCLE);
+        fciOrientbk(knowledge, graph, graph.getNodes());
+
+        List<Node> nodes = graph.getNodes();
+
+        for (Node b : nodes) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+
+            List<Node> adjacentNodes = graph.getAdjacentNodes(b);
+
+            if (adjacentNodes.size() < 2) {
+                continue;
+            }
+
+            ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
+            int[] combination;
+
+            while ((combination = cg.next()) != null) {
+                if (Thread.currentThread().isInterrupted()) {
+                    break;
+                }
+
+                Node a = adjacentNodes.get(combination[0]);
+                Node c = adjacentNodes.get(combination[1]);
+
+                if (graph.isAdjacentTo(a, c)) continue;;
+                List<Node> sepset = sepsets.get(a, c);
+
+                if (sepset.contains(b)) continue;;
+
+                sepset = new ArrayList<>(sepset);
+                sepset.remove(b);
+
+                if (independenceTest.isDependent(a, c, sepset)) continue;
+//                double s1 = independenceTest.getScore();
+
+                sepset.add(b);
+                if (independenceTest.isIndependent(a, c, sepset)) continue;
+//                double s2 = independenceTest.getScore();
+
+//                if (s1 > s2) continue;
+
+                if (knowledge.isForbidden(a.getName(), b.getName()) || knowledge.isForbidden(c.getName(), b.getName()))
+                    continue;
+
+                System.out.println("Orient collider from sepset: " + a + "->" + b + "<-" + c);
+                graph.setEndpoint(a, b, Endpoint.ARROW);
+                graph.setEndpoint(c, b, Endpoint.ARROW);
+            }
+        }
+    }
+
+    private void orientColliders2(Graph graph, SepsetMap sepsets) {
+
+        graph.reorientAllWith(Endpoint.CIRCLE);
+        fciOrientbk(knowledge, graph, graph.getNodes());
+
+        List<Node> nodes = graph.getNodes();
+
+        for (Node b : nodes) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+
+            List<Node> adjacentNodes = graph.getAdjacentNodes(b);
+
+            if (adjacentNodes.size() < 2) {
+                continue;
+            }
+
+            ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
+            int[] combination;
+
+            while ((combination = cg.next()) != null) {
+                if (Thread.currentThread().isInterrupted()) {
+                    break;
+                }
+
+                Node a = adjacentNodes.get(combination[0]);
+                Node c = adjacentNodes.get(combination[1]);
+
+                List<String> subNames = new ArrayList<>();
+                subNames.add(a.getName());
+                subNames.add(b.getName());
+                subNames.add(c.getName());
+
+                if (graph.isAdjacentTo(a, c)) continue;
+
+                List<Node> sepset = sepsets.get(a, c);
+
+                for (Node n : sepset) {
+                    if (!subNames.contains(n.getName())) {
+                        subNames.add(n.getName());
+                    }
+                }
+
+                CovarianceMatrix cov = new CovarianceMatrix((DataSet) independenceTest.getData());
+
+                SemBicScore score = new SemBicScore(cov.getSubmatrix(subNames));
+                score.setPenaltyDiscount(1);
+
+                // Skip of a and c are adjacent.
+
+                Fges fges = new Fges(score);
+                Graph g = fges.search();
+
+                System.out.println("g = " + g);
+
+                if (!g.isAdjacentTo(a, c) && g.isDefCollider(a, b, c)) {
+
+                    System.out.println("Copy collider from FAS graph not shielded in the FGES graph: " + a + "->" + b + "<-" + c);
+                    graph.setEndpoint(a, b, Endpoint.ARROW);
+                    graph.setEndpoint(c, b, Endpoint.ARROW);
+                }
+
+                if (g.isAdjacentTo(a, c)) {
+
+                    System.out.println("Estimate collider from triple shielded in the FGES graph: " + a + "->" + b + "<-" + c);
+                    graph.setEndpoint(a, b, Endpoint.ARROW);
+                    graph.setEndpoint(c, b, Endpoint.ARROW);
+                }
+
+
+//                System.out.println("Orient collider from sepset: " + a + "->" + b + "<-" + c);
+//                graph.setEndpoint(a, b, Endpoint.ARROW);
+//                graph.setEndpoint(c, b, Endpoint.ARROW);
+            }
+        }
+    }
+
+    private int[] append(List<Node> parents, Node extra) {
+        parents = new ArrayList<>(parents);
+        parents.add(extra);
+
+        int[] indices = new int[parents.size()];
+        for (int i = 0; i < parents.size(); i++) indices[i] = variables.indexOf(parents.get(i));
+        return indices;
     }
 
     public SepsetMap getSepsets() {

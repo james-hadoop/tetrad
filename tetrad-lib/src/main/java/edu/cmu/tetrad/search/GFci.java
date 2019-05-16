@@ -81,6 +81,7 @@ public final class GFci implements GraphSearch {
 
     private SepsetProducer sepsets;
     private long elapsedTime;
+    private int depth;
 
     //============================CONSTRUCTORS============================//
     public GFci(IndependenceTest test, Score score) {
@@ -104,7 +105,12 @@ public final class GFci implements GraphSearch {
         Fas fas = new Fas(independenceTest);
         this.graph = fas.search();
 
-        SepsetProducer sepsets = new SepsetsPossibleDsep(graph, independenceTest, knowledge, 5, 10);
+        orientColliders(nodes);
+
+        if (true) return graph;
+
+
+        SepsetProducer sepsets = new SepsetsPossibleDsep(graph, independenceTest, knowledge, getDepth(), 10);
 
         for (Edge edge : new ArrayList<>(graph.getEdges())) {
             if (Thread.currentThread().isInterrupted()) {
@@ -181,14 +187,9 @@ public final class GFci implements GraphSearch {
                 Node a = adjacentNodes.get(combination[0]);
                 Node c = adjacentNodes.get(combination[1]);
 
-                if (graph.isAdjacentTo(a, c)) continue;
+                if (!graph.isAdjacentTo(a, c) && !fgesGraph.isAdjacentTo(a, c) && fgesGraph.isDefCollider(a, b, c)) {
 
-                if (fgesGraph.isDefCollider(a, b, c)) {
-                    if (b.getName() .equalsIgnoreCase("X5")) {
-                        System.out.println();
-                    }
-
-                    System.out.println("Copy collider from R3 graph not shielded in the FGES graph: " + a + "->" + b + "<-" + c);
+                    System.out.println("Copy collider from FAS graph not shielded in the FGES graph: " + a + "->" + b + "<-" + c);
                     graph.setEndpoint(a, b, Endpoint.ARROW);
                     graph.setEndpoint(c, b, Endpoint.ARROW);
                 }
@@ -238,7 +239,7 @@ public final class GFci implements GraphSearch {
 
                     sepset.add(b);
 
-                    if (!independenceTest.isDependent(a, c, sepset)) {
+                    if (independenceTest.isDependent(a, c, sepset)) {
                         continue;
                     }
 
@@ -462,4 +463,11 @@ public final class GFci implements GraphSearch {
         logger.log("info", "Finishing BK Orientation.");
     }
 
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
 }

@@ -274,7 +274,7 @@ public final class FciOrient {
 
             // R4 requires an arrow orientation.
             if (changeFlag || (firstTime && !knowledge.isEmpty())) {
-//                ruleR4B(graph);
+                ruleR4B(graph);
                 firstTime = false;
             }
 
@@ -1485,22 +1485,22 @@ public final class FciOrient {
             return false;
         }
 
-        if (graph.getEndpoint(y, x) == Endpoint.ARROW) {
-//            return true;
-//            if (knowledge.isRequired(x.getName(), y.getName())) {
-//                return false;
-//            }
-//
-//            if (knowledge.isRequired(y.getName(), x.getName())) {
-//                return false;
-//            }
-        }
-
         if (graph.getEndpoint(y, x) == Endpoint.TAIL) {
             if (knowledge.isForbidden(x.getName(), y.getName())) {
                 return false;
             }
         }
+
+//        if (graph.getEndpoint(y, x) == Endpoint.ARROW) {
+////            return true;
+////            if (knowledge.isRequired(x.getName(), y.getName())) {
+////                return false;
+////            }
+////
+////            if (knowledge.isRequired(y.getName(), x.getName())) {
+////                return false;
+////            }
+//        }
 
         return graph.getEndpoint(x, y) == Endpoint.CIRCLE;
     }

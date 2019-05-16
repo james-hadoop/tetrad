@@ -32,10 +32,6 @@ import edu.cmu.tetrad.util.TetradMatrix;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static edu.cmu.tetrad.util.MathUtils.logChoose;
-import static java.lang.Math.exp;
-import static java.lang.Math.log;
-
 /**
  * Checks conditional independence of variable in a continuous data set using a conditional correlation test
  * for the nonlinear nonGaussian case.
@@ -73,11 +69,6 @@ public final class IndTestConditionalCorrelationLinear implements IndependenceTe
      * Map from nodes to the indices.
      */
     private final Map<Node, Integer> indices;
-
-    /**
-     * True iff the fast FDR adjustment should be made.
-     */
-    private boolean fastFDR = false;
 
     /**
      * True if verbose output should be printed.
@@ -172,13 +163,14 @@ public final class IndTestConditionalCorrelationLinear implements IndependenceTe
                 if (p > alpha) {
                     final String s = fact + " INDEPENDENT p = " + p;
                     System.out.println(s);
-                    TetradLogger.getInstance().log("info", s);
+                    TetradLogger.getInstance().forceLogMessage(s);
 
-                } else {
-                    final String s = fact + " dependent p = " + p;
-                    System.out.println(s);
-                    TetradLogger.getInstance().log("info", s);
                 }
+//                else {
+//                    final String s = fact + " dependent p = " + p;
+//                    System.out.println(s);
+//                    TetradLogger.getInstance().log("info", s);
+//                }
             }
 
             return p > alpha;
@@ -357,10 +349,6 @@ public final class IndTestConditionalCorrelationLinear implements IndependenceTe
 
     public void setBasis(ConditionalCorrelationLinear.Basis basis) {
         cci.setBasis(basis);
-    }
-
-    public void setFastFDR(boolean fastFDR) {
-        this.fastFDR = fastFDR;
     }
 
     public void setKernelRegressionSampleSize(int i) {

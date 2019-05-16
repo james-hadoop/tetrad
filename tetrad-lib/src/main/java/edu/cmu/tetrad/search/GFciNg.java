@@ -81,6 +81,7 @@ public final class GFciNg implements GraphSearch {
     private Score score;
 
     private long elapsedTime;
+    private int depth;
 
     //============================CONSTRUCTORS============================//
     public GFciNg(DataSet dataSet, IndependenceTest test, Score score) {
@@ -103,19 +104,22 @@ public final class GFciNg implements GraphSearch {
         logger.log("info", "Independence test = " + getIndependenceTest() + ".");
 
         Fas fas = new Fas(independenceTest);
+        fas.setKnowledge(knowledge);
+        fas.setDepth(getDepth());
         this.graph = fas.search();
 
         List<DataSet> dataSet1 = new ArrayList<>();
         dataSet1.add(this.dataSet);
 
         Lofs2 lofs1 = new Lofs2(graph, dataSet1);
-        lofs1.setRule(Lofs2.Rule.Skew);
+        lofs1.setRule(Lofs2.Rule.R3);
+        lofs1.setKnowledge(knowledge);
         Graph r3Graph = lofs1.orient();
 
         IKnowledge forbidden = createForbiddenKnowledge(r3Graph);
         orientColliders(nodes, r3Graph, forbidden);
 
-        SepsetProducer sepsets = new SepsetsPossibleDsep(graph, independenceTest, knowledge, 5, 10);
+        SepsetProducer sepsets = new SepsetsPossibleDsep(graph, independenceTest, forbidden, depth, 10);
 
         for (Edge edge : new ArrayList<>(graph.getEdges())) {
             if (Thread.currentThread().isInterrupted()) {
@@ -136,17 +140,16 @@ public final class GFciNg implements GraphSearch {
             }
         }
 
+
         orientColliders(nodes, r3Graph, forbidden);
 
-        FciOrient fciOrient = new FciOrient(new SepsetsGreedy(graph, independenceTest, null, 5));
+        FciOrient fciOrient = new FciOrient(new SepsetsGreedy(graph, independenceTest, null, depth));
         fciOrient.setVerbose(verbose);
         fciOrient.setOut(out);
-        fciOrient.setKnowledge(getKnowledge());
+        fciOrient.setKnowledge(forbidden);
         fciOrient.setCompleteRuleSetUsed(completeRuleSetUsed);
         fciOrient.setMaxPathLength(maxPathLength);
         fciOrient.doFinalOrientation(graph);
-
-        GraphUtils.replaceNodes(graph, independenceTest.getVariables());
 
         long time2 = System.currentTimeMillis();
 
@@ -157,12 +160,12 @@ public final class GFciNg implements GraphSearch {
         return graph;
     }
 
-    private void orientColliders(List<Node> nodes, Graph r3Graph, IKnowledge required) {
+    private void orientColliders(List<Node> nodes, Graph r3Graph, IKnowledge forbidden) {
 
         // This only allows unshielded triples to be shielded.
         FgesGfciNgSpecial fges = new FgesGfciNgSpecial(score);
         fges.setInitialGraph(new EdgeListGraph(r3Graph));
-        fges.setKnowledge(required);
+        fges.setKnowledge(forbidden);
         fges.setVerbose(verbose);
         fges.setNumPatternsToStore(0);
         fges.setFaithfulnessAssumed(faithfulnessAssumed);
@@ -171,7 +174,7 @@ public final class GFciNg implements GraphSearch {
         Graph fgesGraph = fges.search();
 
         graph.reorientAllWith(Endpoint.CIRCLE);
-        fciOrientbk(knowledge, graph, graph.getNodes());
+//        fciOrientbk(knowledge, graph, graph.getNodes());
 
         for (Node b : nodes) {
             if (Thread.currentThread().isInterrupted()) {
@@ -195,12 +198,9 @@ public final class GFciNg implements GraphSearch {
                 Node a = adjacentNodes.get(combination[0]);
                 Node c = adjacentNodes.get(combination[1]);
 
-                if (graph.isAdjacentTo(a, c)) continue;
+                if (forbidden.isForbidden(a.getName(), b.getName()) || forbidden.isForbidden(c.getName(), b.getName())) continue;;
 
-                if (r3Graph.isDefCollider(a, b, c)) {
-                    if (b.getName() .equalsIgnoreCase("X5")) {
-                        System.out.println();
-                    }
+                if (r3Graph.isDefCollider(a, b, c) && !r3Graph.isAdjacentTo(a, c) && !fgesGraph.isAdjacentTo(a, c)) {
 
                     System.out.println("Copy collider from R3 graph not shielded in the FGES graph: " + a + "->" + b + "<-" + c);
                     graph.setEndpoint(a, b, Endpoint.ARROW);
@@ -209,7 +209,7 @@ public final class GFciNg implements GraphSearch {
             }
         }
 
-        SepsetProducer sepsets = new SepsetsGreedy(graph, independenceTest, null, maxDegree);
+//        SepsetProducer sepsets = new SepsetsGreedy(graph, independenceTest, null, maxDegree);
 
         for (Node b : nodes) {
             if (Thread.currentThread().isInterrupted()) {
@@ -234,31 +234,34 @@ public final class GFciNg implements GraphSearch {
                 Node c = adjacentNodes.get(combination[1]);
 
                 if (fgesGraph.isAdjacentTo(a, c) && !graph.isAdjacentTo(a, c)) {
-                    final List<Node> sepset = sepsets.getSepset(a, c);
+//                    final List<Node> sepset = sepsets.getSepset(a, c);
+//
+//                    if (sepset == null) {
+//                        continue;
+//                    }
+//
+//                    if (independenceTest.isIndependent(a, c, sepset)) {
+//                        continue;
+//                    }
+//
+//                    System.out.println(SearchLogUtils.independenceFact(a, c, sepset));
+//
+//                    if (sepset.contains(b)) {
+//                        continue;
+//                    }
+//
+//                    sepset.add(b);
+//
+//                    if (independenceTest.isDependent(a, c, sepset)) {
+//                        continue;
+//                    }
 
-                    if (sepset == null) {
-                        continue;
-                    }
+                    if (forbidden.isForbidden(a.getName(), b.getName()) || forbidden.isForbidden(c.getName(), b.getName())) continue;;
 
-                    if (independenceTest.isIndependent(a, c, sepset)) {
-                        continue;
-                    }
+//                    System.out.println(SearchLogUtils.dependenceFactMsg(a, c, sepset, independenceTest.getPValue()));
 
-                    System.out.println(SearchLogUtils.independenceFact(a, c, sepset));
+                    System.out.println("Infer collider from triple shielded in the FGES graph: " + a + "->" + b + "<-" + c);
 
-                    if (sepset.contains(b)) {
-                        continue;
-                    }
-
-                    sepset.add(b);
-
-                    if (independenceTest.isDependent(a, c, sepset)) {
-                        continue;
-                    }
-
-                    System.out.println(SearchLogUtils.dependenceFactMsg(a, c, sepset, independenceTest.getPValue()));
-
-                    System.out.println("Estimate collider from triple shielded in the FGES graph: " + a + "->" + b + "<-" + c);
                     graph.setEndpoint(a, b, Endpoint.ARROW);
                     graph.setEndpoint(c, b, Endpoint.ARROW);
                 }
@@ -534,5 +537,13 @@ public final class GFciNg implements GraphSearch {
         }
 
         return knwl;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
     }
 }

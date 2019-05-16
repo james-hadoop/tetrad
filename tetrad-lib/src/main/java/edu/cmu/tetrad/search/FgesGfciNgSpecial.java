@@ -1241,6 +1241,11 @@ public final class FgesGfciNgSpecial implements GraphSearch, GraphScorer {
             }
         }
 
+//        List<Node> q = graph.getAdjacentNodes(a);
+//        q.retainAll(graph.getAdjacentNodes(b));
+//
+//        if (q.isEmpty()) return;
+
         Set<Node> naYX = getNaYX(a, b);
         if (!isClique(naYX)) {
             return;

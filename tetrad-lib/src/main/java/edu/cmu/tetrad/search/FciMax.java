@@ -27,12 +27,10 @@ import edu.cmu.tetrad.data.KnowledgeEdge;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
-import edu.cmu.tetrad.util.ForkJoinPoolInstance;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.RecursiveTask;
 
 
 /**
@@ -169,15 +167,13 @@ public final class FciMax implements GraphSearch {
         fas.setDepth(depth);
         fas.setVerbose(verbose);
         this.graph = fas.search();
-//        this.sepsets = fas.getSepsets();
-
-        graph.reorientAllWith(Endpoint.CIRCLE);
-
-        SepsetProducer sp = new SepsetsMaxPValuePossDsep(graph, independenceTest, null, depth, maxPathLength);
 
         // The original FCI, with or without JiJi Zhang's orientation rules
         if (isPossibleDsepSearchDone()) {
+            graph.reorientAllWith(Endpoint.CIRCLE);
             addColliders(graph);
+
+            SepsetProducer sp = new SepsetsMaxPValuePossDsep(graph, independenceTest, null, depth, maxPathLength);
 
             for (Edge edge : new ArrayList<>(graph.getEdges())) {
                 Node x = edge.getNode1();

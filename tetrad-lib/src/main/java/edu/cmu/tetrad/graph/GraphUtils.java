@@ -55,6 +55,8 @@ import nu.xom.ParsingException;
 import nu.xom.Serializer;
 import nu.xom.Text;
 
+import static java.lang.Double.min;
+
 /**
  * Basic graph utilities.
  *
@@ -701,7 +703,7 @@ public final class GraphUtils {
         List<Node> commonCausesAndEffects = getCommonCausesAndEffects(graph);
         Collections.shuffle(commonCausesAndEffects);
 
-        for (int i = 0; i < numLatentConfounders; i++) {
+        for (int i = 0; i < min(commonCausesAndEffects.size(), numLatentConfounders); i++) {
             Node node = commonCausesAndEffects.get(i);
             node.setNodeType(NodeType.LATENT);
         }

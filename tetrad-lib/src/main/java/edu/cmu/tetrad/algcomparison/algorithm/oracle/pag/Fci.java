@@ -60,8 +60,6 @@ public class Fci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInd
                 initialGraph = algorithm.search(dataSet, parameters);
             }
 
-//            IKnowledge knowledge = DataUtils.getPairwiseKnowledge((DataSet) dataSet);
-
             edu.cmu.tetrad.search.Fci search = new edu.cmu.tetrad.search.Fci(test.getTest(dataSet, parameters));
             search.setDepth(parameters.getInt("depth"));
             search.setKnowledge(knowledge);
@@ -69,9 +67,6 @@ public class Fci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInd
             search.setCompleteRuleSetUsed(parameters.getBoolean("completeRuleSetUsed"));
             search.setVerbose(parameters.getBoolean("verbose"));
 
-//            if (initialGraph != null) {
-//                search.setInitialGraph(initialGraph);
-//            }
             return search.search();
         } else {
             Fci algorithm = new Fci(test);
@@ -83,10 +78,10 @@ public class Fci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInd
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
-            
+
             search.setPercentResampleSize(parameters.getDouble("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
-            
+
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt("resamplingEnsemble", 1)) {
                 case 0:
@@ -100,7 +95,7 @@ public class Fci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInd
             }
             search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean("addOriginalDataset"));
-            
+
             search.setParameters(parameters);
             search.setVerbose(parameters.getBoolean("verbose"));
             return search.search();

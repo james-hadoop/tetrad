@@ -5,8 +5,11 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.ConditionalCorrelationLinear;
+import edu.cmu.tetrad.search.IndTestConditionalCorrelationLinear;
+import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +25,7 @@ import java.util.List;
         command = "cci-test-linear",
         dataType = DataType.Continuous
 )
-public class CciLinearTest implements IndependenceWrapper {
+public class CciLinearTest2 implements IndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private Graph initialGraph = null;
@@ -75,8 +78,6 @@ public class CciLinearTest implements IndependenceWrapper {
         params.add("kernelType");
         params.add("kernelMultiplier");
         params.add("basisType");
-        params.add("kernelRegressionSampleSize");
-        params.add("numDependenceSpotChecks");
         return params;
     }
 }

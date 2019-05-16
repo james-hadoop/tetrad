@@ -290,8 +290,10 @@ public final class ConditionalCorrelationLinear {
         return getPValue(score);
     }
 
+    private final NormalDistribution normalDistribution = new NormalDistribution(0, 1);
+
     public double getPValue(double score) {
-        return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(score)));
+        return 2.0 * (1.0 - normalDistribution.cumulativeProbability(abs(score)));
     }
 
     /**
@@ -347,7 +349,7 @@ public final class ConditionalCorrelationLinear {
 
                 final double score = abs(nonparametricFisherZ(_x, _y, z));
 
-//                if (score < cutoff) return 1;
+                if (score > cutoff) return score;
 
 //                if (Double.isNaN(score)) continue;
 //
@@ -375,16 +377,16 @@ public final class ConditionalCorrelationLinear {
 
         // Testing the hypothesis that _x and _y are uncorrelated and assuming that 4th moments of _x and _y
         // are finite and that the sample is large.
-//        double[] __x = standardize(_x);
-//        double[] __y = standardize(_y);
+        double[] __x = standardize(_x);
+        double[] __y = standardize(_y);
 
-        double r = StatUtils.correlation(_x, _y); // correlation
+        double r = StatUtils.correlation(__x, __y); // correlation
         int N = _x.length;
 
         // Non-parametric Fisher Z test.
         double z = 0.5 * sqrt(N - 3 - zz.size()) * (log(1.0 + r) - log(1.0 - r));
 
-        return z;// / (sqrt((moment22(__x, __y))));
+        return z / (sqrt((moment22(__x, __y))));
     }
 
     private double[] logColumn(double[] f) {

@@ -23,6 +23,7 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.stat.correlation.Covariance;
 import edu.cmu.tetrad.util.*;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
@@ -51,10 +52,7 @@ public final class IndTestFisherZ implements IndependenceTest {
      */
     private final ICovarianceMatrix covMatrix;
 
-//    /**
-//     * The matrix out of the cov matrix.
-//     */
-//    private final TetradMatrix _covMatrix;
+    private final ICovarianceMatrix corr;
 
     /**
      * The variables of the covariance matrix, in order. (Unmodifiable list.)
@@ -81,13 +79,11 @@ public final class IndTestFisherZ implements IndependenceTest {
      */
     private DataSet dataSet;
 
-    private PrintStream pValueLogger;
     private Map<Node, Integer> indexMap;
     private Map<String, Node> nameMap;
     private boolean verbose = true;
     private double fisherZ = Double.NaN;
     private double cutoff = Double.NaN;
-    private double rho;
     private NormalDistribution normal = new NormalDistribution(0, 1);
 
     //==========================CONSTRUCTORS=============================//
@@ -109,6 +105,7 @@ public final class IndTestFisherZ implements IndependenceTest {
         }
 
         this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
+        this.corr = new CorrelationMatrixOnTheFly(covMatrix);
         List<Node> nodes = covMatrix.getVariables();
 
         this.variables = Collections.unmodifiableList(nodes);
@@ -129,6 +126,7 @@ public final class IndTestFisherZ implements IndependenceTest {
     public IndTestFisherZ(TetradMatrix data, List<Node> variables, double alpha) {
         this.dataSet = ColtDataSet.makeContinuousData(variables, data);
         this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
+        this.corr = new CorrelationMatrix(covMatrix);
         this.variables = Collections.unmodifiableList(variables);
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);
@@ -141,6 +139,7 @@ public final class IndTestFisherZ implements IndependenceTest {
      */
     public IndTestFisherZ(ICovarianceMatrix covMatrix, double alpha) {
         this.covMatrix = covMatrix;
+        this.corr = new CorrelationMatrix(covMatrix);
         this.variables = covMatrix.getVariables();
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);
@@ -197,31 +196,19 @@ public final class IndTestFisherZ implements IndependenceTest {
             return false;
         }
 
-        double q =  0.5 * (log(1.0 + r) - Math.log(1.0 - r));
+        double q = 0.5 * (log(1.0 + r) - Math.log(1.0 - r));
         double fisherZ = sqrt(n - 3 - z.size()) * abs(q);
         this.fisherZ = fisherZ;
-        this.rho = r;
-
-        return Math.abs(fisherZ) < cutoff;
+        return abs(fisherZ) < cutoff;
     }
 
     private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {
-        if (z.isEmpty()) {
-            double a = covMatrix.getValue(indexMap.get(x), indexMap.get(y));
-            double b = covMatrix.getValue(indexMap.get(x), indexMap.get(x));
-            double c = covMatrix.getValue(indexMap.get(y), indexMap.get(y));
-
-            if (b * c == 0) throw new SingularMatrixException();
-
-            return -a / sqrt(b * c);
-        } else {
-            int[] indices = new int[z.size() + 2];
-            indices[0] = indexMap.get(x);
-            indices[1] = indexMap.get(y);
-            for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i));
-            TetradMatrix submatrix = covMatrix.getSubmatrix(indices).getMatrix();
-            return StatUtils.partialCorrelation(submatrix);
-        }
+        int[] indices = new int[z.size() + 2];
+        indices[0] = indexMap.get(x);
+        indices[1] = indexMap.get(y);
+        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i));
+        TetradMatrix submatrix = corr.getSubmatrix(indices).getMatrix();
+        return StatUtils.partialCorrelation(submatrix);
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {
@@ -325,21 +312,11 @@ public final class IndTestFisherZ implements IndependenceTest {
         return dataSet;
     }
 
-    public void shuffleVariables() {
-        ArrayList<Node> nodes = new ArrayList<>(this.variables);
-        Collections.shuffle(nodes);
-        this.variables = Collections.unmodifiableList(nodes);
-    }
-
     /**
      * @return a string representation of this test.
      */
     public String toString() {
         return "Fisher Z, alpha = " + new DecimalFormat("0.0E0").format(getAlpha());
-    }
-
-    public void setPValueLogger(PrintStream pValueLogger) {
-        this.pValueLogger = pValueLogger;
     }
 
     //==========================PRIVATE METHODS============================//
@@ -384,11 +361,8 @@ public final class IndTestFisherZ implements IndependenceTest {
 
     @Override
     public List<DataSet> getDataSets() {
-
         List<DataSet> dataSets = new ArrayList<>();
-
         dataSets.add(dataSet);
-
         return dataSets;
     }
 
@@ -413,10 +387,6 @@ public final class IndTestFisherZ implements IndependenceTest {
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
-    }
-
-    public double getRho() {
-        return rho;
     }
 }
 

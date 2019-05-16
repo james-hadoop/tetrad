@@ -22,28 +22,16 @@
 package edu.cmu.tetrad.study;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
-import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.FAS;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
-import edu.cmu.tetrad.algcomparison.algorithm.pairwise.R3;
-import edu.cmu.tetrad.algcomparison.algorithm.pairwise.Skew;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
-import edu.cmu.tetrad.algcomparison.score.FisherZScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
-
-import static edu.cmu.tetrad.performance.ComparisonParameters.Algorithm.GFCI;
 
 /**
  * An example script to simulate data and run a comparison analysis on it.
@@ -56,9 +44,9 @@ public class ExampleCompareSimulationContinuousPag {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         int sampleSize = 1000;
-        int numMeasures = 20;
+        int numMeasures = 40;
         int numLatents = 0;
-        int avgDegree = 6;
+        int avgDegree = 8;
         int maxDegree = 10;
         ExampleCompareSimulationContinuousPag.Type type = Type.LinearNongaussian;
 
@@ -70,28 +58,30 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("differentGraphs", true);
 
         parameters.set("alpha", 0.001);
-        parameters.set("penaltyDiscount", 4); // tookout 1
+        parameters.set("penaltyDiscount", 2); // tookout 1
 
         parameters.set("coefLow", 0.3);
-        parameters.set("coefHigh", 1.0);
+        parameters.set("coefHigh", .8);
 
-        parameters.set("varLow", 1.0);
-        parameters.set("varHigh", 3.0);
+        parameters.set("varLow", .3);
+        parameters.set("varHigh", 1.0);
 
         parameters.set("maxDegree", maxDegree);
+//        parameters.set("maxIndegree", 3);
 
-        parameters.set("depth", 4);
+        parameters.set("completeRuleSetUsed", true);
+
+        parameters.set("depth", 8);
 
         Statistics statistics = new Statistics();
 
-        statistics.add(new ParameterColumn("numMeasures"));
+//        statistics.add(new ParameterColumn("numMeasures"));
         statistics.add(new ParameterColumn("avgDegree"));
-        statistics.add(new ParameterColumn("sampleSize"));
-        statistics.add(new ParameterColumn("colliderDiscoveryRule"));
-        statistics.add(new ParameterColumn("conflictRule"));
+//        statistics.add(new ParameterColumn("maxDegree"));
+//        statistics.add(new ParameterColumn("sampleSize"));
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
-        statistics.add(new ParameterColumn("maxDegree"));
+//        statistics.add(new ParameterColumn("maxDegree"));
 
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
@@ -138,8 +128,8 @@ public class ExampleCompareSimulationContinuousPag {
 
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
-        comparison.setSortByUtility(true);
-        comparison.setShowUtilities(true);
+//        comparison.setSortByUtility(true);
+//        comparison.setShowUtilities(true);
 //        comparison.setParallelized(true);
 
         comparison.setSaveGraphs(true);

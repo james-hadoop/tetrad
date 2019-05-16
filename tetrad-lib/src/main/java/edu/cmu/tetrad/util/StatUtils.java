@@ -1763,8 +1763,11 @@ public final class StatUtils {
 //
 //        return cov / Math.sqrt(var1 * var2);
 
+//        System.out.println("submatrix" + submatrix);
+
         TetradMatrix inverse = submatrix.inverse();
-        return (-inverse.get(0, 1)) / Math.sqrt(inverse.get(0, 0) * inverse.get(1, 1));
+//        System.out.println(inverse.times(inverse));
+        return (-inverse.get(0, 1)) / sqrt(inverse.get(0, 0) * inverse.get(1, 1));
     }
 
     /**

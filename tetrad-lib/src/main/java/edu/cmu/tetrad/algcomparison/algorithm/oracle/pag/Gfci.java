@@ -63,6 +63,7 @@ public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             search.setFaithfulnessAssumed(parameters.getBoolean("faithfulnessAssumed"));
             search.setMaxPathLength(parameters.getInt("maxPathLength"));
             search.setCompleteRuleSetUsed(parameters.getBoolean("completeRuleSetUsed"));
+            search.setDepth(parameters.getInt("depth"));
 
             Object obj = parameters.get("printStream");
 
@@ -127,6 +128,7 @@ public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
         parameters.addAll(score.getParameters());
         parameters.add("faithfulnessAssumed");
         parameters.add("maxDegree");
+        parameters.add("depth");
 //        parameters.add("printStream");
         parameters.add("maxPathLength");
         parameters.add("completeRuleSetUsed");
