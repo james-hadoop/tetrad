@@ -26,6 +26,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
+import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
@@ -71,7 +72,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("completeRuleSetUsed", true);
 
-        parameters.set("depth", 8);
+        parameters.set("depth", 4);
 
         Statistics statistics = new Statistics();
 
@@ -107,6 +108,7 @@ public class ExampleCompareSimulationContinuousPag {
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new R3(new FAS(new FisherZ())));
 
+        algorithms.add(new Fci(new SemBicTest()));
         algorithms.add(new Fci(new FisherZ()));
         algorithms.add(new Rfci(new FisherZ()));
         algorithms.add(new FciMax(new FisherZ()));

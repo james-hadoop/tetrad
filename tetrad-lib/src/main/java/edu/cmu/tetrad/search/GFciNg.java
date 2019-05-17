@@ -198,6 +198,8 @@ public final class GFciNg implements GraphSearch {
                 Node a = adjacentNodes.get(combination[0]);
                 Node c = adjacentNodes.get(combination[1]);
 
+                if (!fgesGraph.isAdjacentTo(a, b) || !fgesGraph.isAdjacentTo(c, b)) continue;
+
                 if (forbidden.isForbidden(a.getName(), b.getName()) || forbidden.isForbidden(c.getName(), b.getName())) continue;;
 
                 if (r3Graph.isDefCollider(a, b, c) && !r3Graph.isAdjacentTo(a, c) && !fgesGraph.isAdjacentTo(a, c)) {
@@ -255,6 +257,8 @@ public final class GFciNg implements GraphSearch {
 //                    if (independenceTest.isDependent(a, c, sepset)) {
 //                        continue;
 //                    }
+
+                    if (!fgesGraph.isAdjacentTo(a, b) || !fgesGraph.isAdjacentTo(c, b)) continue;
 
                     if (forbidden.isForbidden(a.getName(), b.getName()) || forbidden.isForbidden(c.getName(), b.getName())) continue;;
 
