@@ -202,7 +202,7 @@ public final class GFciNg implements GraphSearch {
 
                 if (forbidden.isForbidden(a.getName(), b.getName()) || forbidden.isForbidden(c.getName(), b.getName())) continue;;
 
-                if (r3Graph.isDefCollider(a, b, c) && !r3Graph.isAdjacentTo(a, c) && !fgesGraph.isAdjacentTo(a, c)) {
+                if (fgesGraph.isDefCollider(a, b, c) && !r3Graph.isAdjacentTo(a, c) && !fgesGraph.isAdjacentTo(a, c)) {
 
                     System.out.println("Copy collider from R3 graph not shielded in the FGES graph: " + a + "->" + b + "<-" + c);
                     graph.setEndpoint(a, b, Endpoint.ARROW);

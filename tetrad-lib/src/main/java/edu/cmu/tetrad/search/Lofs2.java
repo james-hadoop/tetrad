@@ -28,7 +28,6 @@ import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.util.*;
 import org.apache.commons.math3.analysis.MultivariateFunction;
-import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.optim.InitialGuess;
 import org.apache.commons.math3.optim.MaxEval;
 import org.apache.commons.math3.optim.PointValuePair;
@@ -79,6 +78,10 @@ public class Lofs2 {
     private boolean edgeCorrected = false;
     private double selfLoopStrength;
 
+    private DataSet dataSet;
+
+
+
     //===============================CONSTRUCTOR============================//
 
     public Lofs2(Graph pattern, List<DataSet> dataSets)
@@ -104,6 +107,13 @@ public class Lofs2 {
         }
 
         this.dataSets = dataSets2;
+    }
+
+    public Lofs2(DataSet dataSet) {
+        this.variables = dataSet.getVariables();
+        this.varnames = dataSet.getVariableNames();
+        dataSets = new ArrayList<>();
+        dataSets.add(dataSet);
     }
 
     //==========================PUBLIC=========================================//
@@ -742,14 +752,14 @@ public class Lofs2 {
             Node x = adj.getNode1();
             Node y = adj.getNode2();
 
-            resolveOneEdgeMaxR3(graph, x, y);
+            leftRightR3(graph, x, y);
         }
 
         return graph;
 
     }
 
-    private void resolveOneEdgeMaxR3(Graph graph, Node x, Node y) {
+    private void leftRightR3(Graph graph, Node x, Node y) {
         String xname = x.getName();
         String yname = y.getName();
 
@@ -762,20 +772,20 @@ public class Lofs2 {
             graph.addDirectedEdge(y, x);
             return;
         }
+        graph.removeEdges(x, y);
 
-//        TetradLogger.getInstance().log("info", "\nEDGE " + x + " --- " + y);
+        if (leftRightR3(x, y)) {
+            graph.addDirectedEdge(x, y);
+        } else {
+            graph.addDirectedEdge(y, x);
+        }
+    }
 
+    public boolean leftRightR3(Node x, Node y) {
         List<Node> condxMinus = Collections.emptyList();
         List<Node> condxPlus = Collections.singletonList(y);
         List<Node> condyMinus = Collections.emptyList();
         List<Node> condyPlus = Collections.singletonList(x);
-
-//        double px = pValue(x, condxMinus);
-//        double py = pValue(y, condyMinus);
-
-//        if (px > alpha || py > alpha) {
-//            return;
-//        }
 
         double xPlus = score(x, condxPlus);
         double xMinus = score(x, condxMinus);
@@ -783,19 +793,38 @@ public class Lofs2 {
         double yPlus = score(y, condyPlus);
         double yMinus = score(y, condyMinus);
 
-//        if (!(xPlus > 0.8 && xMinus > 0.8 && yPlus > 0.8 && yMinus > 0.8)) return;
+        double deltaX = xPlus - xMinus;
+        double deltaY = yPlus - yMinus;
+
+        return deltaY > deltaX;
+    }
+
+
+    public double leftRightR3(double[] x, double[] y) {
+        x = standardizeData(x);
+        y = standardizeData(y);
+
+        OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();
+        double[][] _x = new double[1][];
+        _x[0] = x;
+        double[][] _y = new double[1][];
+        _y[0] = y;
+
+        regression.newSampleData(x, transpose(_y));
+        double[] rXY = regression.estimateResiduals();
+
+        regression.newSampleData(y, transpose(_x));
+        double[] rYX = regression.estimateResiduals();
+
+        double xPlus = new AndersonDarlingTest(rXY).getASquared();
+        double xMinus = new AndersonDarlingTest(x).getASquared();
+        double yPlus = new AndersonDarlingTest(rYX).getASquared();
+        double yMinus = new AndersonDarlingTest(y).getASquared();
 
         double deltaX = xPlus - xMinus;
         double deltaY = yPlus - yMinus;
 
-        graph.removeEdges(x, y);
-//        double epsilon = 0;
-
-        if (deltaY > deltaX) {
-            graph.addDirectedEdge(x, y);
-        } else {
-            graph.addDirectedEdge(y, x);
-        }
+        return deltaX - deltaY;
     }
 
     public Graph ruleR4(Graph graph) {
@@ -1857,7 +1886,7 @@ public class Lofs2 {
             } else if (f > epsilon) {
                 _graph.addDirectedEdge(y, x);
             } else {
-                if (resolveOneEdgeMaxR3(xCol, yCol) < 0) {
+                if (leftRightR3(xCol, yCol) < 0) {
                     _graph.addDirectedEdge(x, y);
                 } else {
                     _graph.addDirectedEdge(y, x);
@@ -2596,32 +2625,6 @@ public class Lofs2 {
         return sqrt(sum);
     }
 
-
-    private double resolveOneEdgeMaxR3(double[] x, double[] y) {
-        TetradLogger.getInstance().log("info", "\nEDGE " + x + " --- " + y);
-
-        OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();
-        double[][] _x = new double[1][];
-        _x[0] = x;
-        double[][] _y = new double[1][];
-        _y[0] = y;
-
-        regression.newSampleData(x, transpose(_y));
-        double[] rXY = regression.estimateResiduals();
-
-        regression.newSampleData(y, transpose(_x));
-        double[] rYX = regression.estimateResiduals();
-
-        double xPlus = new AndersonDarlingTest(rXY).getASquared();
-        double xMinus = new AndersonDarlingTest(x).getASquared();
-        double yPlus = new AndersonDarlingTest(rYX).getASquared();
-        double yMinus = new AndersonDarlingTest(y).getASquared();
-
-        double deltaX = xPlus - xMinus;
-        double deltaY = yPlus - yMinus;
-
-        return deltaX - deltaY;
-    }
 
     private double resolveOneEdgeMaxR3b(double[] x, double[] y) {
         TetradLogger.getInstance().log("info", "\nEDGE " + x + " --- " + y);

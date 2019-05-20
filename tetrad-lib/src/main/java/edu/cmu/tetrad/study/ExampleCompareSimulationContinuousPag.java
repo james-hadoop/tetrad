@@ -47,7 +47,7 @@ public class ExampleCompareSimulationContinuousPag {
         int sampleSize = 1000;
         int numMeasures = 40;
         int numLatents = 0;
-        int avgDegree = 8;
+        int avgDegree = 6;
         int maxDegree = 10;
         ExampleCompareSimulationContinuousPag.Type type = Type.LinearNongaussian;
 
@@ -72,7 +72,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("completeRuleSetUsed", true);
 
-        parameters.set("depth", 4);
+        parameters.set("depth", 8);
 
         Statistics statistics = new Statistics();
 
