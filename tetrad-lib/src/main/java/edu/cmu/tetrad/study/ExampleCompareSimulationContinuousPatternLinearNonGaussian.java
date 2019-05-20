@@ -144,7 +144,7 @@ public class ExampleCompareSimulationContinuousPatternLinearNonGaussian {
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
-        comparison.compareFromSimulations("comparison.continuous.pattern.new", simulations,
+        comparison. compareFromSimulations("comparison.continuous.pattern.new", simulations,
                 "comparison_all_" + sampleSize + "_" +
                 numMeasures + "_" + avgDegree + "_ " + type, algorithms, statistics, parameters);
     }
