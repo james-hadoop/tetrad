@@ -108,7 +108,7 @@ public class ExampleCompareSimulationContinuousPag {
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new R3(new FAS(new FisherZ())));
 
-        algorithms.add(new Fci(new SemBicTest()));
+//        algorithms.add(new Fci(new SemBicTest()));
         algorithms.add(new Fci(new FisherZ()));
         algorithms.add(new Rfci(new FisherZ()));
         algorithms.add(new FciMax(new FisherZ()));

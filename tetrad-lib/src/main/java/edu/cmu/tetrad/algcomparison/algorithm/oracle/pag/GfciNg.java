@@ -26,8 +26,8 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GFCING",
-        command = "gfcing",
+        name = "GFCI-NG",
+        command = "gfci-ng",
         algoType = AlgType.allow_latent_common_causes
 )
 public class GfciNg implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper {

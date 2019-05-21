@@ -217,11 +217,11 @@ public class TetradMatrix implements TetradSerializable {
         if (rows() == 0) {
             return new TetradMatrix(0, 0);
         }
-        else if (rows() == 1) {
-            TetradMatrix m = new TetradMatrix(1, 1);
-            m.set(0, 0, 1.0 / apacheData.getEntry(0, 0));
-            return m;
-        }
+//        else if (rows() == 1) {
+//            TetradMatrix m = new TetradMatrix(1, 1);
+//            m.set(0, 0, 1.0 / apacheData.getEntry(0, 0));
+//            return m;
+//        }
 //        else if (rows() == 2) {
 //            double a = apacheData.getEntry(0, 0);
 //            double b = apacheData.getEntry(0, 1);

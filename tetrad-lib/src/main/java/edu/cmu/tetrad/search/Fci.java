@@ -220,8 +220,11 @@ public final class Fci implements GraphSearch {
                     graph.removeEdge(x, y);
                     sepsets.set(x, y, sepset);
 
+                    independenceTest.isIndependent(x, y, sepset);
+                    double p = independenceTest.getPValue();
+
                     if (verbose) {
-                        System.out.println("Possible DSEP Removed " + x + "--- " + y + " sepset = " + sepset);
+                        System.out.println("Possible DSEP Removed " + x + "--- " + y + " sepset = " + sepset + " p = " + p);
                     }
                 }
             }
@@ -274,29 +277,26 @@ public final class Fci implements GraphSearch {
                 Node a = adjacentNodes.get(combination[0]);
                 Node c = adjacentNodes.get(combination[1]);
 
-                if (graph.isAdjacentTo(a, c)) continue;;
+                if (graph.isAdjacentTo(a, c)) continue;
+
                 List<Node> sepset = sepsets.get(a, c);
-
-                if (sepset.contains(b)) continue;;
-
-                sepset = new ArrayList<>(sepset);
-                sepset.remove(b);
-
-                if (independenceTest.isDependent(a, c, sepset)) continue;
-//                double s1 = independenceTest.getScore();
-
-                sepset.add(b);
-                if (independenceTest.isIndependent(a, c, sepset)) continue;
-//                double s2 = independenceTest.getScore();
-
-//                if (s1 > s2) continue;
 
                 if (knowledge.isForbidden(a.getName(), b.getName()) || knowledge.isForbidden(c.getName(), b.getName()))
                     continue;
 
-                System.out.println("Orient collider from sepset: " + a + "->" + b + "<-" + c);
-                graph.setEndpoint(a, b, Endpoint.ARROW);
-                graph.setEndpoint(c, b, Endpoint.ARROW);
+                if (!sepset.contains(b)) {
+                    List<Node> _sepset = new ArrayList<>(sepset);
+                    _sepset.add(b);
+                    if (!independenceTest.isDependent(a, c, _sepset)) continue;
+
+                    independenceTest.isIndependent(a, c, sepset);
+                    double p = independenceTest.getPValue();
+
+                    System.out.println("Orient collider from sepset: " + a + "->" + b + "<-" + c + ": sepset = " + sepset
+                        + " p = " + p);
+                    graph.setEndpoint(a, b, Endpoint.ARROW);
+                    graph.setEndpoint(c, b, Endpoint.ARROW);
+                }
             }
         }
     }

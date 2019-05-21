@@ -1766,7 +1766,6 @@ public final class StatUtils {
 //        System.out.println("submatrix" + submatrix);
 
         TetradMatrix inverse = submatrix.inverse();
-//        System.out.println(inverse.times(inverse));
         return (-inverse.get(0, 1)) / sqrt(inverse.get(0, 0) * inverse.get(1, 1));
     }
 

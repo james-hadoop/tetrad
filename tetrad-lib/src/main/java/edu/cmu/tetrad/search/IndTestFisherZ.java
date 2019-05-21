@@ -126,7 +126,7 @@ public final class IndTestFisherZ implements IndependenceTest {
     public IndTestFisherZ(TetradMatrix data, List<Node> variables, double alpha) {
         this.dataSet = ColtDataSet.makeContinuousData(variables, data);
         this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
-        this.corr = new CorrelationMatrix(covMatrix);
+        this.corr = new CorrelationMatrixOnTheFly(covMatrix);
         this.variables = Collections.unmodifiableList(variables);
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);
@@ -139,7 +139,7 @@ public final class IndTestFisherZ implements IndependenceTest {
      */
     public IndTestFisherZ(ICovarianceMatrix covMatrix, double alpha) {
         this.covMatrix = covMatrix;
-        this.corr = new CorrelationMatrix(covMatrix);
+        this.corr = new CorrelationMatrixOnTheFly(covMatrix);
         this.variables = covMatrix.getVariables();
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);
@@ -197,15 +197,18 @@ public final class IndTestFisherZ implements IndependenceTest {
         }
 
         double q = 0.5 * (log(1.0 + r) - Math.log(1.0 - r));
-        double fisherZ = sqrt(n - 3 - z.size()) * abs(q);
+        double fisherZ = sqrt((double)(n - 3 - z.size())) * abs(q);
         this.fisherZ = fisherZ;
-        return abs(fisherZ) < cutoff;
+        return fisherZ < cutoff;
     }
 
     private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {
         int[] indices = new int[z.size() + 2];
         indices[0] = indexMap.get(x);
         indices[1] = indexMap.get(y);
+
+        if (z.isEmpty()) return corr.getValue(indices[0], indices[1]);
+
         for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i));
         TetradMatrix submatrix = corr.getSubmatrix(indices).getMatrix();
         return StatUtils.partialCorrelation(submatrix);

@@ -318,11 +318,9 @@ public class Fas implements IFas {
                     }
 
                     if (verbose) {
-                        TetradLogger.getInstance().forceLogMessage(
-                                SearchLogUtils.independenceFact(x, y, empty) + " score = " +
-                                nf.format(test.getScore()));
-                        out.println(SearchLogUtils.independenceFact(x, y, empty) + " score = " +
-                                nf.format(test.getScore()));
+                        TetradLogger.getInstance().forceLogMessage(SearchLogUtils.independenceFact(x, y, empty) +
+                                " score = " + nf.format(test.getScore()));
+                        out.println(SearchLogUtils.independenceFactMsg(x, y, empty, test.getScore()));
                     }
 
                 } else if (!forbiddenEdge(x, y)) {
