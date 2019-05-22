@@ -47,9 +47,9 @@ public class ExampleCompareSimulationContinuousPag {
         int sampleSize = 1000;
         int numMeasures = 40;
         int numLatents = 0;
-        int avgDegree = 6;
+        int avgDegree = 4;
         int maxDegree = 10;
-        ExampleCompareSimulationContinuousPag.Type type = Type.LinearNongaussian;
+        ExampleCompareSimulationContinuousPag.Type type = Type.LinearGaussian;
 
         parameters.set("numRuns", 5);
         parameters.set("numMeasures", numMeasures);
@@ -58,21 +58,21 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("sampleSize", sampleSize); // This varies.
         parameters.set("differentGraphs", true);
 
-        parameters.set("alpha", 0.001);
+        parameters.set("alpha", 0.01);
         parameters.set("penaltyDiscount", 2); // tookout 1
 
         parameters.set("coefLow", 0.3);
-        parameters.set("coefHigh", .8);
+        parameters.set("coefHigh", .9);
 
-        parameters.set("varLow", .3);
-        parameters.set("varHigh", 1.0);
+        parameters.set("varLow", .2);
+        parameters.set("varHigh", .9);
 
         parameters.set("maxDegree", maxDegree);
 //        parameters.set("maxIndegree", 3);
 
         parameters.set("completeRuleSetUsed", true);
 
-        parameters.set("depth", 8);
+        parameters.set("depth", -1);
 
         Statistics statistics = new Statistics();
 

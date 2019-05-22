@@ -23,6 +23,7 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.graph.Node;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -55,8 +56,8 @@ public class SepsetsSet implements SepsetProducer {
     @Override
     public boolean isNoncollider(Node i, Node j, Node k) {
         List<Node> sepset = sepsets.get(i, k);
-        isIndependent(i, k, sepsets.get(i, k));
-        return sepset != null && sepset.contains(j);
+        if (sepset == null) sepset = new ArrayList<>();
+        return sepset.contains(j);
     }
 
     @Override

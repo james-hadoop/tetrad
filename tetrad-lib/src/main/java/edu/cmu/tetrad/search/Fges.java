@@ -307,6 +307,36 @@ public final class Fges implements GraphSearch, GraphScorer {
         return graph;
     }
 
+    public Graph fesGraph() {
+        topGraphs.clear();
+
+        lookupArrows = new ConcurrentHashMap<>();
+        final List<Node> nodes = new ArrayList<>(variables);
+        graph = new EdgeListGraphSingleConnections(nodes);
+
+        if (adjacencies != null) {
+            adjacencies = GraphUtils.replaceNodes(adjacencies, nodes);
+        }
+
+        if (initialGraph != null) {
+            graph = new EdgeListGraphSingleConnections(initialGraph);
+            graph = GraphUtils.replaceNodes(graph, nodes);
+        }
+
+        try {
+            totalScore = scoreDag(SearchGraphUtils.dagFromPattern(graph));
+        } catch (Exception e) {
+            totalScore = 0.0;
+        }
+
+        addRequiredEdges(graph);
+
+        initializeForwardEdgesFromEmptyGraph(getVariables());
+        fes();
+
+        return graph;
+    }
+
     /**
      * @return the background knowledge.
      */

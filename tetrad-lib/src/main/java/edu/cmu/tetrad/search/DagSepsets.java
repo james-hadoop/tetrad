@@ -54,9 +54,11 @@ public class DagSepsets implements SepsetProducer {
 
     @Override
     public boolean isNoncollider(Node i, Node j, Node k) {
+        return !dag.isDefCollider(i, j, k);
+
 //        return true;
-        List<Node> sepset = dag.getSepset(i, k);
-        return sepset != null && sepset.contains(j);
+//        List<Node> sepset = dag.getSepset(i, k);
+//        return sepset != null && sepset.contains(j);
     }
 
     @Override
