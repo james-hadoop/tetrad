@@ -85,6 +85,8 @@ public final class IndTestConditionalCorrelation implements IndependenceTest, Sc
     private boolean verbose = false;
     private double score = Double.NaN;
 
+    IndTestFisherZ fisher;
+
     //==========================CONSTRUCTORS=============================//
 
     /**
@@ -117,6 +119,8 @@ public final class IndTestConditionalCorrelation implements IndependenceTest, Sc
         }
 
         this.dataSet = dataSet;
+
+        this.fisher = new IndTestFisherZ(dataSet, alpha);
     }
 
     //==========================PUBLIC METHODS=============================//
@@ -129,6 +133,10 @@ public final class IndTestConditionalCorrelation implements IndependenceTest, Sc
     }
 
     public boolean isIndependent(Node x, Node y, List<Node> z) {
+        if (!fisher.isIndependent(x, y, z)) {
+            return false;
+        }
+
         String _x = x.getName();
         String _y = y.getName();
         List<String> _z = new ArrayList<>();
@@ -153,11 +161,12 @@ public final class IndTestConditionalCorrelation implements IndependenceTest, Sc
                     System.out.println(s);
                     TetradLogger.getInstance().log("info", s);
 
-                } else {
-                    final String s = fact + " dependent p = " + p;
-                    System.out.println(s);
-                    TetradLogger.getInstance().log("info", s);
                 }
+//                else {
+//                    final String s = fact + " dependent p = " + p;
+//                    System.out.println(s);
+//                    TetradLogger.getInstance().log("info", s);
+//                }
             }
 
             return p > alpha2;
@@ -174,11 +183,12 @@ public final class IndTestConditionalCorrelation implements IndependenceTest, Sc
                     System.out.println(s);
                     TetradLogger.getInstance().log("info", s);
 
-                } else {
-                    final String s = fact + " dependent p = " + p;
-                    System.out.println(s);
-                    TetradLogger.getInstance().log("info", s);
                 }
+//                else {
+//                    final String s = fact + " dependent p = " + p;
+//                    System.out.println(s);
+//                    TetradLogger.getInstance().log("info", s);
+//                }
             }
 
             return p > alpha;

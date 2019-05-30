@@ -16,8 +16,6 @@ import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
 import java.util.List;
 
-import static edu.cmu.tetrad.util.StatUtils.correlation;
-
 /**
  * FCI.
  *
@@ -168,5 +166,4 @@ public class Fci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInd
     public IndependenceWrapper getIndependenceWrapper() {
         return test;
     }
-
 }

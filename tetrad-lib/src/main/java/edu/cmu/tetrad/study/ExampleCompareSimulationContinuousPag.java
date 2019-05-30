@@ -23,16 +23,18 @@ package edu.cmu.tetrad.study;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
+import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
+import edu.cmu.tetrad.algcomparison.simulation.LoadContinuousDataAndSingleGraph;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
+import org.junit.Test;
 
 /**
  * An example script to simulate data and run a comparison analysis on it.
@@ -42,14 +44,14 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationContinuousPag {
     enum Type {LinearGaussian, LinearNongaussian}
 
-    public static void main(String... args) {
+    public static void main1(String... args) {
         Parameters parameters = new Parameters();
         int sampleSize = 1000;
-        int numMeasures = 40;
-        int numLatents = 0;
-        int avgDegree = 4;
-        int maxDegree = 10;
-        ExampleCompareSimulationContinuousPag.Type type = Type.LinearGaussian;
+        int numMeasures = 50;
+        int numLatents = 5;
+        int avgDegree = 6;
+        int maxDegree = 12;
+        ExampleCompareSimulationContinuousPag.Type type = Type.LinearNongaussian;
 
         parameters.set("numRuns", 5);
         parameters.set("numMeasures", numMeasures);
@@ -62,17 +64,17 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("penaltyDiscount", 2); // tookout 1
 
         parameters.set("coefLow", 0.3);
-        parameters.set("coefHigh", .9);
+        parameters.set("coefHigh", 0.9);
 
-        parameters.set("varLow", .2);
-        parameters.set("varHigh", .9);
+        parameters.set("varLow", 0.3);
+        parameters.set("varHigh", 0.9);
 
         parameters.set("maxDegree", maxDegree);
 //        parameters.set("maxIndegree", 3);
 
         parameters.set("completeRuleSetUsed", true);
 
-        parameters.set("depth", -1);
+        parameters.set("depth", 8);
 
         Statistics statistics = new Statistics();
 
@@ -114,6 +116,7 @@ public class ExampleCompareSimulationContinuousPag {
         algorithms.add(new FciMax(new FisherZ()));
         algorithms.add(new CFCI(new FisherZ()));
         algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+//        algorithms.add(new FciNg(new FisherZ()));
         algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
 
 
@@ -142,6 +145,90 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.setComparisonGraph(Comparison.ComparisonGraph.PAG_of_the_true_DAG);
 
         comparison.compareFromSimulations("comparison.continuous.pag", simulations, "comparison_continuous_pag_" + sampleSize, algorithms, statistics, parameters);
+    }
+
+    public static void main(String... args) {
+        Parameters parameters = new Parameters();
+        int sampleSize = 1000;
+        int maxDegree = 12;
+        ExampleCompareSimulationContinuousPag.Type type = Type.LinearNongaussian;
+
+        parameters.set("numRuns", 1);
+//        parameters.set("sampleSize", sampleSize); // This varies.
+        parameters.set("differentGraphs", true);
+
+        parameters.set("penaltyDiscount", 2); // tookout 1
+
+        parameters.set("coefLow", 0.3);
+        parameters.set("coefHigh", 0.9);
+
+        parameters.set("varLow", 0.3);
+        parameters.set("varHigh", 0.9);
+
+        parameters.set("maxDegree", -1);
+//        parameters.set("maxIndegree", 3);
+
+        parameters.set("completeRuleSetUsed", false);
+
+        parameters.set("alpha", 0.1, 0.2, 0.3, 0.4, 0.5);
+
+        parameters.set("depth", 3);
+        parameters.set("twoCycleAlpha", 0.0);
+        parameters.set("extraEdgeThreshold", 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
+
+        parameters.set("useFasAdjacencies", true);
+        parameters.set("useCorrDiffAdjacencies", true);
+
+        Statistics statistics = new Statistics();
+
+        statistics.add(new ParameterColumn("avgDegree"));
+        statistics.add(new ParameterColumn("alpha"));
+        statistics.add(new ParameterColumn("extraEdgeThreshold"));
+
+        statistics.add(new NumEdgeTrueGraph());
+        statistics.add(new NumEdgeEstGraph());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new AncestorPrecision());
+        statistics.add(new AncestorRecall());
+
+        statistics.setWeight("AncP", 1.0);
+        statistics.setWeight("AncR", 1.0);
+
+        Algorithms algorithms = new Algorithms();
+
+//        algorithms.add(new Fci(new FisherZ()));
+//        algorithms.add(new Rfci(new FisherZ()));
+//        algorithms.add(new FciMax(new FisherZ()));
+//        algorithms.add(new CFCI(new FisherZ()));
+//        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+        algorithms.add(new Fask(new FisherZ()));
+//        algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
+
+
+        Simulations simulations = new Simulations();
+
+        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Downloads/sachs-A"));
+
+        Comparison comparison = new Comparison();
+
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setShowSimulationIndices(true);
+        comparison.setSortByUtility(true);
+        comparison.setShowUtilities(true);
+
+        comparison.setSaveGraphs(false);
+        comparison.setSavePags(false);
+        comparison.setSavePatterns(false);
+
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
+
+        comparison.compareFromSimulations("comparison.sachs-A", simulations, "comparison_continuous_pag_" + sampleSize, algorithms, statistics, parameters);
+
     }
 }
 

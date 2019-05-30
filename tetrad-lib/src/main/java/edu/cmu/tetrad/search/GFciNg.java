@@ -83,6 +83,10 @@ public final class GFciNg implements GraphSearch {
     private long elapsedTime;
     private int depth;
 
+    private List<Node> variables;
+
+    double[][] data;
+
     //============================CONSTRUCTORS============================//
     public GFciNg(DataSet dataSet, IndependenceTest test, Score score) {
         if (score == null) {
@@ -92,6 +96,9 @@ public final class GFciNg implements GraphSearch {
         this.sampleSize = score.getSampleSize();
         this.score = score;
         this.independenceTest = test;
+
+        this.variables = dataSet.getVariables();
+        this.data = dataSet.getDoubleData().transpose().toArray();
     }
 
     //========================PUBLIC METHODS==========================//
@@ -199,8 +206,11 @@ public final class GFciNg implements GraphSearch {
                 Node c = adjacentNodes.get(combination[1]);
 
                 if (!fgesGraph.isAdjacentTo(a, b) || !fgesGraph.isAdjacentTo(c, b)) continue;
+//
+//                if (forbidden.isForbidden(a.getName(), b.getName()) || forbidden.isForbidden(c.getName(), b.getName())) continue;;
 
-                if (forbidden.isForbidden(a.getName(), b.getName()) || forbidden.isForbidden(c.getName(), b.getName())) continue;;
+                if (!isArrowpointAllowed(a, b, graph, forbidden) || !isArrowpointAllowed(c, b, graph, forbidden))
+                    continue;
 
                 if (fgesGraph.isDefCollider(a, b, c) && !r3Graph.isAdjacentTo(a, c) && !fgesGraph.isAdjacentTo(a, c)) {
 
@@ -260,7 +270,10 @@ public final class GFciNg implements GraphSearch {
 
                     if (!fgesGraph.isAdjacentTo(a, b) || !fgesGraph.isAdjacentTo(c, b)) continue;
 
-                    if (forbidden.isForbidden(a.getName(), b.getName()) || forbidden.isForbidden(c.getName(), b.getName())) continue;;
+//                    if (forbidden.isForbidden(a.getName(), b.getName()) || forbidden.isForbidden(c.getName(), b.getName())) continue;;
+
+                    if (!isArrowpointAllowed(a, b, graph, forbidden) || !isArrowpointAllowed(c, b, graph, forbidden))
+                        continue;
 
 //                    System.out.println(SearchLogUtils.dependenceFactMsg(a, c, sepset, independenceTest.getPValue()));
 
@@ -549,5 +562,28 @@ public final class GFciNg implements GraphSearch {
 
     public void setDepth(int depth) {
         this.depth = depth;
+    }
+
+    private boolean isArrowpointAllowed(Node x, Node y, Graph graph, IKnowledge knowledge) {
+        if (graph.getEndpoint(x, y) == Endpoint.ARROW) {
+            return true;
+        }
+
+        if (graph.getEndpoint(x, y) == Endpoint.TAIL) {
+            return false;
+        }
+
+        double ngCutoff = 0.4;
+
+        boolean xNg = new AndersonDarlingTest(data[variables.indexOf(x)]).getASquaredStar() > ngCutoff;
+        boolean yNg = new AndersonDarlingTest(data[variables.indexOf(y)]).getASquaredStar() > ngCutoff;
+
+        if (xNg || yNg) {
+            if (knowledge.isForbidden(x.getName(), y.getName())) {
+                return false;
+            }
+        }
+
+        return graph.getEndpoint(x, y) == Endpoint.CIRCLE;
     }
 }

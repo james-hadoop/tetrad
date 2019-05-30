@@ -234,8 +234,9 @@ public final class ConditionalCorrelationIndependence {
      * @return true iff x is independent of y conditional on z.
      */
     public double isIndependent(String x, String y, List<String> z) {
-        double[] rx = residuals(x, z);
-        double[] ry = residuals(y, z);
+        final double[][] residuals = residuals(x, y, z);
+        double[] rx = residuals[0];
+        double[] ry = residuals[1];
 
         double score = independent(rx, ry);
         this.score = score;
@@ -296,20 +297,24 @@ public final class ConditionalCorrelationIndependence {
      * @return a double[2][] array. The first double[] array contains the residuals for x
      * and the second double[] array contains the resituls for y.
      */
-    public double[] residuals(String x, List<String> z) {
+    public double[][] residuals(String x, String y, List<String> z) {
         if (z.isEmpty()) {
-            return depth0Residuals[indices.get(x)];
+            return new double[][]{depth0Residuals[indices.get(x)], depth0Residuals[indices.get(x)]};
         }
 
         int N = data[0].length;
 
         int _x = indices.get(x);
+        int _y = indices.get(y);
 
         double[] residualsx = new double[N];
+        double[] residualsy = new double[N];
 
         double[] xdata = Arrays.copyOf(data[_x], data[_x].length);
+        double[] ydata = Arrays.copyOf(data[_y], data[_y].length);
 
         double[] sumx = new double[N];
+        double[] sumy = new double[N];
 
         double[] totalWeightx = new double[N];
 
@@ -326,6 +331,7 @@ public final class ConditionalCorrelationIndependence {
 
             for (int j : js) {
                 double xj = xdata[j];
+                double yj = ydata[j];
                 double d = distance(data, _z, i, j);
 
                 double k;
@@ -339,6 +345,7 @@ public final class ConditionalCorrelationIndependence {
                 }
 
                 sumx[i] += k * xj;
+                sumy[i] += k * yj;
                 totalWeightx[i] += k;
             }
         }
@@ -347,13 +354,14 @@ public final class ConditionalCorrelationIndependence {
             if (totalWeightx[i] == 0) totalWeightx[i] = 1;
 
             residualsx[i] = xdata[i] - sumx[i] / totalWeightx[i];
+            residualsy[i] = ydata[i] - sumx[i] / totalWeightx[i];
 
             if (Double.isNaN(residualsx[i])) {
                 residualsx[i] = 0;
             }
         }
 
-        return residualsx;
+        return new double[][]{residualsx, residualsy};
     }
 
     /**

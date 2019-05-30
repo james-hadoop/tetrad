@@ -5,9 +5,17 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataReader;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
+import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.Parameters;
+import edu.pitt.dbmi.data.reader.Data;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
+import edu.pitt.dbmi.data.reader.tabular.MixedTabularDatasetFileReader;
+import edu.pitt.dbmi.data.reader.tabular.MixedTabularDatasetReader;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,22 +42,26 @@ public class LoadContinuousDataAndSingleGraph implements Simulation, HasParamete
     public void createData(Parameters parameters) {
         this.dataSets = new ArrayList<>();
 
-        File dir = new File(path + "/data_noise");
+        File dir = new File(path + "/data");
 
         if (dir.exists()) {
             File[] files = dir.listFiles();
 
-            for (File file : files) {
-                if (!file.getName().endsWith(".txt")) continue;
-                System.out.println("Loading data from " + file.getAbsolutePath());
-                DataReader reader = new DataReader();
-                reader.setVariablesSupplied(true);
-                try {
-                    DataSet dataSet = reader.parseTabular(file);
-                    dataSets.add(dataSet);
-                } catch (Exception e) {
-                    System.out.println("Couldn't parse " + file.getAbsolutePath());
-                }
+            File file = files[0];
+
+            for (File _file : files) {
+                if (_file.getName().startsWith(".")) continue;
+                file = _file;
+                break;
+            }
+
+            System.out.println("Loading data from " + file.getAbsolutePath());
+            try {
+                DataSet dataSet = (DataSet) DataConvertUtils.toDataModel(
+                        new ContinuousTabularDatasetFileReader(file.toPath(), Delimiter.TAB).readInData());
+                dataSets.add(dataSet);
+            } catch (Exception e) {
+                System.out.println("Couldn't parse " + file.getAbsolutePath());
             }
         }
 
@@ -58,21 +70,31 @@ public class LoadContinuousDataAndSingleGraph implements Simulation, HasParamete
         if (dir2.exists()) {
             File[] files = dir2.listFiles();
 
-            if (files.length != 1) {
-                throw new IllegalArgumentException("Expecting exactly one graph file.");
-            }
-
             File file = files[0];
+
+            for (File _file : files) {
+                if (_file.getName().startsWith(".")) continue;
+                file = _file;
+                break;
+            }
 
             System.out.println("Loading graph from " + file.getAbsolutePath());
             this.graph = GraphUtils.loadGraphTxt(file);
 
-//            if (!graph.isAdjacentTo(graph.getNode("X3"), graph.getNode("X4"))) {
-//                graph.addUndirectedEdge(graph.getNode("X3"), graph.getNode("X4"));
-//            }
-
             GraphUtils.circleLayout(this.graph, 225, 200, 150);
         }
+
+//        for (Node node : dataSets.get(0).getVariables()) {
+//            if (graph.getNode(node.getName()) == null) {
+//                graph.removeNode(graph.getNode(node.getName()));
+//            }
+//        }
+//
+//        for (Node node : graph.getNodes()) {
+//            if (dataSets.get(0).getVariable(node.getName()) == null) {
+//                dataSets.get(0).removeColumn(dataSets.get(0).getVariable(node.getName()));
+//            }
+//        }
 
         if (parameters.get("numRuns") != null) {
             parameters.set("numRuns", parameters.get("numRuns"));

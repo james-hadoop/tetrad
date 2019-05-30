@@ -198,9 +198,20 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new TwoCyclePrecision());
-        statistics.add(new TwoCycleRecall());
-        statistics.add(new TwoCycleFalsePositive());
+        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+//        statistics.add(new TailPrecision());
+//        statistics.add(new TailRecall());
+        statistics.add(new AncestorPrecision());
+        statistics.add(new AncestorRecall());
+//        statistics.add(new AncestorTailPrecision());
+//        statistics.add(new TrekPrecision());
+//        statistics.add(new PercentNonancestor());
+//        statistics.add(new PercentTrek());
+
+//        statistics.add(new TwoCyclePrecision());
+//        statistics.add(new TwoCycleRecall());
+//        statistics.add(new TwoCycleFalsePositive());
 //        statistics.add(new ElapsedTime());
 //        statistics.add(new F1Adj());
 //        statistics.add(new F1Arrow());

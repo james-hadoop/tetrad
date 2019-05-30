@@ -531,7 +531,7 @@ public final class GraphEditor extends JPanel
         randomGraph.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 final GraphParamsEditor editor = new GraphParamsEditor();
-                editor.setParams(parameters);
+                editor. setParams(parameters);
 
                 EditorWindow editorWindow = new EditorWindow(editor, "Edit Random Graph Parameters",
                         "Done", false, GraphEditor.this);

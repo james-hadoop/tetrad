@@ -2,86 +2,86 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
+import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.DagToPag2;
-import edu.cmu.tetrad.search.GFci;
-import edu.cmu.tetrad.search.GFciNg;
+import edu.cmu.tetrad.search.Fas;
+import edu.cmu.tetrad.search.Lofs2;
 import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
-import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * GFCI.
+ * FCI.
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GFCI-NG",
-        command = "gfci-ng",
+        name = "FCI-NG",
+        command = "fci-NG",
         algoType = AlgType.allow_latent_common_causes
 )
-public class GfciNg implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper {
+public class FciNg implements Algorithm, TakesInitialGraph, HasKnowledge, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
-    private ScoreWrapper score;
+    private Algorithm algorithm = null;
+    private Graph initialGraph = null;
     private IKnowledge knowledge = new Knowledge2();
 
-    public GfciNg() {
+    public FciNg() {
     }
 
-    public GfciNg(IndependenceWrapper test, ScoreWrapper score) {
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    public FciNg(IndependenceWrapper test) {
         this.test = test;
-        this.score = score;
+    }
+
+    public FciNg(IndependenceWrapper test, Algorithm algorithm) {
+        this.test = test;
+        this.algorithm = algorithm;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
     	if (parameters.getInt("numberResampling") < 1) {
-//            knowledge = DataUtils.getPairwiseKnowledge((DataSet) dataSet);
+            if (algorithm != null) {
+                initialGraph = algorithm.search(dataSet, parameters);
+            }
 
-            DataSet np = DataUtils.getNonparanormalTransformed((DataSet) dataSet);
-
-            GFciNg search = new GFciNg((DataSet) dataSet, test.getTest(np, parameters), score.getScore(np, parameters));
-            search.setMaxDegree(parameters.getInt("maxDegree"));
+            edu.cmu.tetrad.search.FciNg search = new edu.cmu.tetrad.search.FciNg(test.getTest(dataSet, parameters));
+            search.setDepth(parameters.getInt("depth"));
             search.setKnowledge(knowledge);
-            search.setVerbose(parameters.getBoolean("verbose"));
-            search.setFaithfulnessAssumed(parameters.getBoolean("faithfulnessAssumed"));
             search.setMaxPathLength(parameters.getInt("maxPathLength"));
             search.setCompleteRuleSetUsed(parameters.getBoolean("completeRuleSetUsed"));
-            search.setDepth(parameters.getInt("depth"));
-
-            Object obj = parameters.get("printStream");
-
-            if (obj instanceof PrintStream) {
-                search.setOut((PrintStream) obj);
-            }
+            search.setVerbose(parameters.getBoolean("verbose"));
 
             return search.search();
         } else {
-            GfciNg algorithm = new GfciNg(test, score);
-
+            FciNg algorithm = new FciNg(test);
             //algorithm.setKnowledge(knowledge);
 //          if (initialGraph != null) {
 //      		algorithm.setInitialGraph(initialGraph);
 //  		}
+
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
 
             search.setPercentResampleSize(parameters.getDouble("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
-            
+
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt("resamplingEnsemble", 1)) {
                 case 0:
@@ -95,7 +95,7 @@ public class GfciNg implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesI
             }
             search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean("addOriginalDataset"));
-            
+
             search.setParameters(parameters);
             search.setVerbose(parameters.getBoolean("verbose"));
             return search.search();
@@ -104,13 +104,13 @@ public class GfciNg implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesI
 
     @Override
     public Graph getComparisonGraph(Graph graph) {
-        return new DagToPag2(graph).convert();
+        return new DagToPag2(new EdgeListGraph(graph)).convert();
     }
 
-    @Override
     public String getDescription() {
-        return "GFCI-NG (Greedy Fast Causal Inference, using entropy-based knowledge) using " + test.getDescription()
-                + " and " + score.getDescription();
+        return "FCI-NG (Fast Causal Inference, using entropy-based knowledge) using " + test.getDescription()
+                + (algorithm != null ? " with initial graph from "
+                        + algorithm.getDescription() : "");
     }
 
     @Override
@@ -121,11 +121,7 @@ public class GfciNg implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesI
     @Override
     public List<String> getParameters() {
         List<String> parameters = test.getParameters();
-        parameters.addAll(score.getParameters());
-        parameters.add("faithfulnessAssumed");
-        parameters.add("maxDegree");
         parameters.add("depth");
-//        parameters.add("printStream");
         parameters.add("maxPathLength");
         parameters.add("completeRuleSetUsed");
         // Resampling
@@ -149,8 +145,18 @@ public class GfciNg implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesI
     }
 
     @Override
-    public void setScoreWrapper(ScoreWrapper score) {
-        this.score = score;
+    public Graph getInitialGraph() {
+        return initialGraph;
+    }
+
+    @Override
+    public void setInitialGraph(Graph initialGraph) {
+        this.initialGraph = initialGraph;
+    }
+
+    @Override
+    public void setInitialGraph(Algorithm algorithm) {
+        this.algorithm = algorithm;
     }
 
     @Override
@@ -163,10 +169,64 @@ public class GfciNg implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesI
         return test;
     }
 
-    public ScoreWrapper getScoreWarpper() {
-        return score;
+    private IKnowledge createRequiredKnowledge(Graph graph) {
+        IKnowledge knwl = new Knowledge2(graph.getNodeNames());
+
+        List<Node> nodes = graph.getNodes();
+
+        int numOfNodes = nodes.size();
+        for (int i = 0; i < numOfNodes; i++) {
+            for (int j = i + 1; j < numOfNodes; j++) {
+                Node n1 = nodes.get(i);
+                Node n2 = nodes.get(j);
+
+                if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
+                    continue;
+                }
+
+                Edge edge = graph.getEdge(n1, n2);
+                if (edge == null) {
+                    continue;
+                } else if (edge.isDirected()) {
+                    knwl.setRequired(edge.getNode1().getName(), edge.getNode2().getName());
+                } else if (Edges.isUndirectedEdge(edge)) {
+                    knwl.setRequired(n1.getName(), n2.getName());
+                    knwl.setRequired(n2.getName(), n1.getName());
+                }
+            }
+        }
+
+        return knwl;
     }
 
+    private IKnowledge createForbiddenKnowledge(Graph graph) {
+        IKnowledge knwl = new Knowledge2(graph.getNodeNames());
 
+        List<Node> nodes = graph.getNodes();
+
+        int numOfNodes = nodes.size();
+        for (int i = 0; i < numOfNodes; i++) {
+            for (int j = i + 1; j < numOfNodes; j++) {
+                Node n1 = nodes.get(i);
+                Node n2 = nodes.get(j);
+
+                if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
+                    continue;
+                }
+
+                Edge edge = graph.getEdge(n1, n2);
+                if (edge == null) {
+                    continue;
+                } else if (edge.isDirected()) {
+                    knwl.setForbidden(edge.getNode2().getName(), edge.getNode1().getName());
+                } else if (Edges.isUndirectedEdge(edge)) {
+                    knwl.setRequired(n1.getName(), n2.getName());
+                    knwl.setRequired(n2.getName(), n1.getName());
+                }
+            }
+        }
+
+        return knwl;
+    }
 
 }

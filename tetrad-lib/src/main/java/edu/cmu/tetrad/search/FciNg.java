@@ -21,7 +21,6 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
@@ -46,7 +45,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author Joseph Ramsey
  * @author Choh-Man Teng
  */
-public final class Fci implements GraphSearch {
+public final class FciNg implements GraphSearch {
 
     /**
      * The PAG being constructed.
@@ -61,7 +60,10 @@ public final class Fci implements GraphSearch {
     /**
      * The background knowledge.
      */
+    private IKnowledge knowledge0 = new Knowledge2();
+
     private IKnowledge knowledge = new Knowledge2();
+
 
     /**
      * The variables to search over (optional)
@@ -109,13 +111,15 @@ public final class Fci implements GraphSearch {
     private Graph initialGraph;
     private int possibleDsepDepth = -1;
 
+    private double[][] data;
+
 
     //============================CONSTRUCTORS============================//
 
     /**
      * Constructs a new FCI search for the given independence test and background knowledge.
      */
-    public Fci(IndependenceTest independenceTest) {
+    public FciNg(IndependenceTest independenceTest) {
         if (independenceTest == null || knowledge == null) {
             throw new NullPointerException();
         }
@@ -129,7 +133,7 @@ public final class Fci implements GraphSearch {
      * Constructs a new FCI search for the given independence test and background knowledge and a list of variables to
      * search over.
      */
-    public Fci(IndependenceTest independenceTest, List<Node> searchVars) {
+    public FciNg(IndependenceTest independenceTest, List<Node> searchVars) {
         if (independenceTest == null || knowledge == null) {
             throw new NullPointerException();
         }
@@ -153,6 +157,7 @@ public final class Fci implements GraphSearch {
                 remVars.add(node1);
             }
         }
+
         this.variables.removeAll(remVars);
     }
 
@@ -187,11 +192,27 @@ public final class Fci implements GraphSearch {
         logger.log("info", "Starting FCI algorithm.");
         logger.log("info", "Independence test = " + getIndependenceTest() + ".");
 
-        fas.setKnowledge(getKnowledge());
+        fas.setKnowledge(knowledge0);
         fas.setDepth(depth);
         fas.setVerbose(verbose);
         this.graph = fas.search();
         this.sepsets = fas.getSepsets();
+
+        Graph graph = fas.search();
+
+        List<DataSet> dataSet1 = new ArrayList<>();
+
+        this.data = ((DataSet) independenceTest.getData()).getDoubleData().transpose().toArray();
+
+        dataSet1.add((DataSet) independenceTest.getData());
+
+        Lofs2 lofs1 = new Lofs2(graph, dataSet1);
+        lofs1.setRule(Lofs2.Rule.R3);
+        lofs1.setKnowledge(knowledge);
+        Graph r3Graph = lofs1.orient();
+
+        IKnowledge forbidden = createForbiddenKnowledge(r3Graph, knowledge);
+        knowledge = forbidden;
 
         // The original FCI, with or without JiJi Zhang's orientation rules
         if (isPossibleDsepSearchDone()) {
@@ -276,7 +297,7 @@ public final class Fci implements GraphSearch {
 
                 List<Node> sepset = sepsets.get(a, c);
 
-                if (!isArrowpointAllowed(a, b, graph) || !isArrowpointAllowed(c, b, graph)) {
+                if (!isArrowpointAllowed(a, b, graph, knowledge) || !isArrowpointAllowed(c, b, graph, knowledge)) {
                     continue;
                 }
 
@@ -310,7 +331,7 @@ public final class Fci implements GraphSearch {
             throw new NullPointerException();
         }
 
-        this.knowledge = knowledge;
+        this.knowledge0 = knowledge;
     }
 
     /**
@@ -451,7 +472,23 @@ public final class Fci implements GraphSearch {
         logger.log("info", "Finishing BK Orientation.");
     }
 
-    private boolean isArrowpointAllowed(Node x, Node y, Graph graph) {
+//    private boolean isArrowpointAllowed(Node x, Node y, Graph graph) {
+//        if (graph.getEndpoint(x, y) == Endpoint.ARROW) {
+//            return true;
+//        }
+//
+//        if (graph.getEndpoint(x, y) == Endpoint.TAIL) {
+//            return false;
+//        }
+//
+//        if (knowledge.isForbidden(x.getName(), y.getName())) {
+//            return false;
+//        }
+//
+//        return graph.getEndpoint(x, y) == Endpoint.CIRCLE;
+//    }
+
+    private boolean isArrowpointAllowed(Node x, Node y, Graph graph, IKnowledge knowledge) {
         if (graph.getEndpoint(x, y) == Endpoint.ARROW) {
             return true;
         }
@@ -460,11 +497,48 @@ public final class Fci implements GraphSearch {
             return false;
         }
 
-        if (knowledge.isForbidden(x.getName(), y.getName())) {
-            return false;
+        double ngCutoff = 0.2;
+
+        boolean xNg = new AndersonDarlingTest(data[variables.indexOf(x)]).getASquaredStar() > ngCutoff;
+        boolean yNg = new AndersonDarlingTest(data[variables.indexOf(y)]).getASquaredStar() > ngCutoff;
+
+        if (xNg || yNg) {
+            if (knowledge.isForbidden(x.getName(), y.getName())) {
+                return false;
+            }
         }
 
         return graph.getEndpoint(x, y) == Endpoint.CIRCLE;
+    }
+
+    private IKnowledge createForbiddenKnowledge(Graph graph, IKnowledge knwl) {
+//        IKnowledge knwl = new Knowledge2(graph.getNodeNames());
+
+        List<Node> nodes = graph.getNodes();
+
+        int numOfNodes = nodes.size();
+        for (int i = 0; i < numOfNodes; i++) {
+            for (int j = i + 1; j < numOfNodes; j++) {
+                Node n1 = nodes.get(i);
+                Node n2 = nodes.get(j);
+
+                if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
+                    continue;
+                }
+
+                Edge edge = graph.getEdge(n1, n2);
+                if (edge == null) {
+                    continue;
+                } else if (edge.isDirected()) {
+                    knwl.setForbidden(edge.getNode2().getName(), edge.getNode1().getName());
+                } else if (Edges.isUndirectedEdge(edge)) {
+                    knwl.setRequired(n1.getName(), n2.getName());
+                    knwl.setRequired(n2.getName(), n1.getName());
+                }
+            }
+        }
+
+        return knwl;
     }
 }
 

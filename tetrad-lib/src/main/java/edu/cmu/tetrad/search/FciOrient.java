@@ -373,6 +373,8 @@ public final class FciOrient {
                 return;
             }
 
+            if (!isNoncollider(a, b, c)) return;
+
             graph.setEndpoint(c, b, Endpoint.TAIL);
             graph.setEndpoint(b, c, Endpoint.ARROW);
             changeFlag = true;
