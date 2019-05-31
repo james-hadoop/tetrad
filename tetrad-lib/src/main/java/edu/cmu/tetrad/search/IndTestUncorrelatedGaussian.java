@@ -171,12 +171,12 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
     public boolean isIndependent(Node x, Node y, List<Node> z) {
         int n = dataSet.getNumRows();
 
-        if (fisher.isDependent(x, y, z)) {
+        if (z.isEmpty() && !zeroCorr(x, y, allRows(n))) {
             return false;
         } else {
 
             if (z.isEmpty()) {
-                return bivariateGaussian(x, y, allRows(n));
+                return bivariateGaussian(x, y, allRows(n), alpha);
             } else {
 
                 int[] _z = new int[z.size()];
@@ -188,7 +188,11 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
                 for (int i = 0; i < n; i+=10) {
                     Set<Integer> js = getCloseZs(data, _z, i, getKernelRegressionSampleSize());
 
-                    if (!bivariateGaussian(x, y, js)) {
+                    if (!zeroCorr(x,  y, js)) {
+                        return false;
+                    }
+
+                    if (!bivariateGaussian(x, y, js, alpha)) {
                         return false;
                     }
                 }
@@ -201,18 +205,18 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
     private boolean zeroCorr(Node x, Node y, Set<Integer> rows) {
         List<Integer> _rows = new ArrayList<>(rows);
 
-        double[] x1 = subset(x, _rows);
-        double[] x2 = subset(y, _rows);
+        double[] x1 = subset(data[indices.get(x)], _rows);
+        double[] x2 = subset(data[indices.get(y)], _rows);
 
         double r = StatUtils.correlation(x1, x2);
 
         double z1 = 0.5 * sqrt(_rows.size() - 3) * (log(1 + r) - log(1 - r));
         double p2 = 2.0 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z1)));
 
-        return p2 > alpha;
+        return p2 > 4 * alpha;
     }
 
-    private boolean bivariateGaussian(Node x, Node y, Set<Integer> rows) {
+    public static boolean bivariateGaussian(Node x, Node y, Set<Integer> rows, double alpha) {
         List<Integer> _rows = new ArrayList<>(rows);
 
         double[] x1 = subset(x, _rows);
@@ -269,23 +273,21 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
 
 //        System.out.println("u3 = " + u3);
 
-        return p > alpha;
+        return p > 4 * alpha;
 
     }
 
-    private double[] subset(Node x, List<Integer> rows) {
-        double[] d = data[indices.get(x)];
-
+    private static double[] subset(double[] x, List<Integer> rows) {
         double[] d2 = new double[rows.size()];
 
         for (int i = 0; i < rows.size(); i++) {
-            d2[i] = d[rows.get(i)];
+            d2[i] = x[rows.get(i)];
         }
 
         return d2;
     }
 
-    private double moment(double[] x, double[] y, int m, int n) {
+    private static double moment(double[] x, double[] y, int m, int n) {
         int N = x.length;
         double sum = 0.0;
 
