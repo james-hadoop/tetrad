@@ -4034,7 +4034,7 @@ public final class GraphUtils {
         }
 
         Formatter fmt = new Formatter();
-        fmt.format("%s%n%n", graphNodesToText(graph, "Graph Nodes:", ';'));
+        fmt.format("%s%n%n", graphNodesToText(graph, "Graph Nodes:", ','));
         fmt.format("%s%n", graphEdgesToText(graph, "Graph Edges:"));
         
         // Graph Attributes

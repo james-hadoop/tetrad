@@ -35,6 +35,7 @@ import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
 import org.junit.Test;
+import org.omg.CORBA.TRANSACTION_UNAVAILABLE;
 
 /**
  * An example script to simulate data and run a comparison analysis on it.
@@ -170,9 +171,9 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("completeRuleSetUsed", false);
 
-        parameters.set("alpha", 0.1, 0.2, 0.3, 0.4, 0.5);
+        parameters.set("alpha", 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3);
 
-        parameters.set("depth", 3);
+        parameters.set("depth", -1);
         parameters.set("twoCycleAlpha", 0.0);
         parameters.set("extraEdgeThreshold", 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
 
@@ -197,7 +198,7 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new AncestorRecall());
 
         statistics.setWeight("AncP", 1.0);
-        statistics.setWeight("AncR", 1.0);
+//        statistics.setWeight("AncR", 1.0);
 
         Algorithms algorithms = new Algorithms();
 
@@ -221,13 +222,13 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.setSortByUtility(true);
         comparison.setShowUtilities(true);
 
-        comparison.setSaveGraphs(false);
+        comparison.setSaveGraphs(true);
         comparison.setSavePags(false);
         comparison.setSavePatterns(false);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
-        comparison.compareFromSimulations("comparison.sachs-A", simulations, "comparison_continuous_pag_" + sampleSize, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparison.jinling.pag3", simulations, "comparison_continuous_pag_" + sampleSize, algorithms, statistics, parameters);
 
     }
 }
