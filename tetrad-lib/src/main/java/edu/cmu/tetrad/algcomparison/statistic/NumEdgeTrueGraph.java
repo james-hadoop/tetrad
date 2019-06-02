@@ -6,6 +6,8 @@ import edu.cmu.tetrad.graph.Node;
 
 import java.util.List;
 
+import static java.lang.Math.tanh;
+
 /**
  * The arrow precision. This counts arrowheads maniacally, wherever they occur in the graphs.
  * The true positives are the number of arrowheads in both the true and estimated graphs.
@@ -35,6 +37,6 @@ public class NumEdgeTrueGraph implements Statistic {
 
     @Override
     public double getNormValue(double value) {
-        return value;
+        return 1.0 - tanh(value);
     }
 }

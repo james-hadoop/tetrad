@@ -47,7 +47,8 @@ public class GraphSelectionWrapper implements SessionModel, GraphSource, Knowled
     private List<Graph> graphs = new ArrayList<>();
 
     public enum Type {
-        Subgraph, Adjacents, Adjacents_of_Adjacents, Adjacents_of_Adjacents_of_Adjacents, Markov_Blankets, Treks, Trek_Edges,
+        Subgraph, Adjacents, Adjacents_of_Adjacents, Adjacents_of_Adjacents_of_Adjacents, Parents, Children, Ancestors, Descendants,
+        Markov_Blankets, Treks, Trek_Edges,
         Paths, Path_Edges, Directed_Paths, Directed_Path_Edges, Y_Structures,
         Pag_Y_Structures, Indegree, Out_Degree, Degree
     }
@@ -211,7 +212,57 @@ public class GraphSelectionWrapper implements SessionModel, GraphSource, Knowled
 
             selectedGraph = (getSelectedGraph(k).subgraph(new ArrayList<>(adj)));
             params.set("highlightInEditor", selectedVariables);
-        } else if (params.getString("graphSelectionType", "Subgraph").equals(Type.Y_Structures.toString())) {
+        } else if (params.getString("graphSelectionType", "subgraph").equals(Type.Adjacents.toString())) {
+            Set<Node> adj = new HashSet<>(selectedVariables);
+
+            for (Node node : selectedVariables) {
+                adj.addAll((getSelectedGraph(k).getAdjacentNodes(node)));
+            }
+
+            selectedGraph = (getSelectedGraph(k).subgraph(new ArrayList<>(adj)));
+            params.set("highlightInEditor", selectedVariables);
+        }
+        else if (params.getString("graphSelectionType", "parents").equals(Type.Parents.toString())) {
+            Set<Node> adj = new HashSet<>(selectedVariables);
+
+            for (Node node : selectedVariables) {
+                adj.addAll((getSelectedGraph(k).getParents(node)));
+            }
+
+            selectedGraph = (getSelectedGraph(k).subgraph(new ArrayList<>(adj)));
+            params.set("highlightInEditor", selectedVariables);
+        }
+        else if (params.getString("graphSelectionType", "children").equals(Type.Children.toString())) {
+            Set<Node> adj = new HashSet<>(selectedVariables);
+
+            for (Node node : selectedVariables) {
+                adj.addAll((getSelectedGraph(k).getChildren(node)));
+            }
+
+            selectedGraph = (getSelectedGraph(k).subgraph(new ArrayList<>(adj)));
+            params.set("highlightInEditor", selectedVariables);
+        }
+        else if (params.getString("graphSelectionType", "ancestors").equals(Type.Ancestors.toString())) {
+            Set<Node> adj = new HashSet<>(selectedVariables);
+
+            for (Node node : selectedVariables) {
+                adj.addAll((getSelectedGraph(k).getAncestors(Collections.singletonList(node))));
+            }
+
+            selectedGraph = (getSelectedGraph(k).subgraph(new ArrayList<>(adj)));
+            params.set("highlightInEditor", selectedVariables);
+        }
+        else if (params.getString("graphSelectionType", "descendants").equals(Type.Descendants.toString())) {
+            Set<Node> adj = new HashSet<>(selectedVariables);
+
+            for (Node node : selectedVariables) {
+                adj.addAll((getSelectedGraph(k).getDescendants(Collections.singletonList(node))));
+            }
+
+            selectedGraph = (getSelectedGraph(k).subgraph(new ArrayList<>(adj)));
+            params.set("highlightInEditor", selectedVariables);
+        }
+        else if (params.getString("graphSelectionType", "Subgraph").equals(Type.Descendants.toString())) {
             Set<Edge> edges = new HashSet<>();
 
             for (Node node : selectedVariables) {

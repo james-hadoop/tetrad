@@ -27,14 +27,17 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.NumberFormatUtil;
+import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.exception.NotStrictlyPositiveException;
 
 import java.text.NumberFormat;
 import java.util.*;
 
+import static edu.cmu.tetrad.util.StatUtils.covariance;
 import static java.lang.Math.*;
 
 /**
@@ -120,6 +123,9 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
             throw new IllegalArgumentException("Q mut be in [0, 1]");
         }
 
+        this.alpha = alpha;
+
+//        this.dataSet = dataSet;
         this.dataSet = DataUtils.getNonparanormalTransformed(dataSet);
 
         this.data = dataSet.getDoubleData().transpose().toArray();
@@ -171,76 +177,81 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
     public boolean isIndependent(Node x, Node y, List<Node> z) {
         int n = dataSet.getNumRows();
 
-        if (z.isEmpty() && !zeroCorr(x, y, allRows(n))) {
-            return false;
+        double[] _x = Arrays.copyOf(data[indices.get(x)], data[0].length);
+        double[] _y = Arrays.copyOf(data[indices.get(y)], data[0].length);
+
+        if (z.isEmpty()) {
+            _x = nonparanormal(_x);
+            _y = nonparanormal(_y);
+            return bivariateIndependent(_x, _y, alpha);
         } else {
 
-            if (z.isEmpty()) {
-                return bivariateGaussian(x, y, allRows(n), alpha);
-            } else {
+            int[] _z = new int[z.size()];
 
-                int[] _z = new int[z.size()];
-
-                for (int m = 0; m < z.size(); m++) {
-                    _z[m] = indices.get(z.get(m));
-                }
-
-                for (int i = 0; i < n; i+=10) {
-                    Set<Integer> js = getCloseZs(data, _z, i, getKernelRegressionSampleSize());
-
-                    if (!zeroCorr(x,  y, js)) {
-                        return false;
-                    }
-
-                    if (!bivariateGaussian(x, y, js, alpha)) {
-                        return false;
-                    }
-                }
-
-                return true;
+            for (int m = 0; m < z.size(); m++) {
+                _z[m] = indices.get(z.get(m));
             }
+
+            for (int i = 0; i < n; i += 20) {
+                int j = RandomUtil.getInstance().nextInt(n);
+                List<Integer> js = getCloseZs(data, _z, j, getKernelRegressionSampleSize());
+                List<Double> distances = new ArrayList<>();
+
+                for (int k = 0; k < js.size(); k++) {
+                    double d = distance(data, _z, j, js.get(k));
+                    distances.add(d);
+                }
+
+                if (!(bivariateIndependent(subset(_x, js, distances), subset(_y, js, distances), alpha))) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+    }
+
+    private boolean bivariateIndependent(double[] x, double[] y, double alpha) {
+        double[] _x = nonparanormal(x);
+        double[] _y = nonparanormal(y);
+
+        return zeroCorr(_x, _y, alpha / 1000.) && bivariateGaussian(_x, _y, alpha);
+    }
+
+    private boolean zeroCorr(double[] x, double[] y, double alpha) {
+        try {
+            final int n = x.length;
+            double r = StatUtils.correlation(x, y);
+
+            double z = 0.5 * sqrt(n - 3) * (log(1 + r) - log(1 - r));
+//        double z = nonparametricFisherZ(x, y);
+            double p = 2.0 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
+
+            System.out.println("p = " + p);
+            return p > alpha;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 
-    private boolean zeroCorr(Node x, Node y, Set<Integer> rows) {
-        List<Integer> _rows = new ArrayList<>(rows);
+    public static boolean bivariateGaussian(double[] x, double[] y, double alpha) {
+        final int n = x.length;
 
-        double[] x1 = subset(data[indices.get(x)], _rows);
-        double[] x2 = subset(data[indices.get(y)], _rows);
-
-        double r = StatUtils.correlation(x1, x2);
-
-        double z1 = 0.5 * sqrt(_rows.size() - 3) * (log(1 + r) - log(1 - r));
-        double p2 = 2.0 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z1)));
-
-        return p2 > 4 * alpha;
-    }
-
-    public static boolean bivariateGaussian(Node x, Node y, Set<Integer> rows, double alpha) {
-        List<Integer> _rows = new ArrayList<>(rows);
-
-        double[] x1 = subset(x, _rows);
-        double[] x2 = subset(y, _rows);
-
-        x1 = DataUtils.standardizeData(x1);
-        x2 = DataUtils.standardizeData(x2);
-
-        final int n = _rows.size();
-
+        double[] x1 = DataUtils.center(x);
+        double[] x2 = DataUtils.center(y);
 
         double s1 = StatUtils.sd(x1);
         double s2 = StatUtils.sd(x2);
 
         double r = StatUtils.correlation(x1, x2);
 
-        double[] x1c = DataUtils.center(x1);
-        double[] x2c = DataUtils.center(x2);
-
         TetradMatrix X = new TetradMatrix(2, n);
 
         for (int i = 0; i < n; i++) {
-            X.set(0, i, x1c[i]);
-            X.set(1, i, x2c[i]);
+            X.set(0, i, x1[i]);
+            X.set(1, i, x2[i]);
         }
 
         TetradMatrix A = new TetradMatrix(2, 2);
@@ -259,7 +270,9 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
         final double m30 = moment(y1, y2, 3, 0);
         final double m03 = moment(y1, y2, 0, 3);
 
-        double u3 = n * ((pow(m21, 2) + pow(m12, 2)) / 2.0 + ((pow(m30, 2) + pow(m03, 2)) / 6.0));
+        int m = n;
+
+        double u3 = m * ((pow(m21, 2) + pow(m12, 2)) / 2.0 + ((pow(m30, 2) + pow(m03, 2)) / 6.0));
 
         final double m22 = moment(y1, y2, 2, 2);
         final double m31 = moment(y1, y2, 3, 1);
@@ -267,21 +280,21 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
         final double m04 = moment(y1, y2, 0, 4);
         final double m40 = moment(y1, y2, 4, 0);
 
-        double u4 = n * (pow(m22 - 1, 2) / 4.0 + (pow(m31, 2) + pow(m13, 2)) / 6.0 + (pow(m04 - 1, 2) + pow(m40 - 1, 2)) / 24.0);
+        double u4 = m * (pow(m22 - 1, 2) / 4.0 + (pow(m31, 2) + pow(m13, 2)) / 6.0 + (pow(m04 - 1, 2) + pow(m40 - 1, 2)) / 24.0);
 
-        double p = 1.0 - new ChiSquaredDistribution(4 * n).cumulativeProbability(u3);
+        double p = 1.0 - new ChiSquaredDistribution(n).cumulativeProbability(u3 + u4);
 
-//        System.out.println("u3 = " + u3);
+        System.out.println("u3 + u4 = " + (u3 + u4) + " p = " + p);
 
-        return p > 4 * alpha;
+        return p > alpha;
 
     }
 
-    private static double[] subset(double[] x, List<Integer> rows) {
+    private static double[] subset(double[] x, List<Integer> rows, List<Double> distances) {
         double[] d2 = new double[rows.size()];
 
         for (int i = 0; i < rows.size(); i++) {
-            d2[i] = x[rows.get(i)];
+            d2[i] = x[rows.get(i)] * kernelEpinechnikov(distances.get(i), 1.0);
         }
 
         return d2;
@@ -298,21 +311,21 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
         return sum / N;
     }
 
-    private Set<Integer> allRows(int n) {
-        Set<Integer> rows = new HashSet<>();
+    private List<Integer> allRows() {
+        List<Integer> rows = new ArrayList<>();
 
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < dataSet.getNumRows(); i++) {
             rows.add(i);
         }
 
         return rows;
     }
 
-    private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int sampleSize) {
-        Set<Integer> js = new HashSet<>();
+    private List<Integer> getCloseZs(double[][] data, int[] _z, int i, int sampleSize) {
+        List<Integer> js = new ArrayList<>();
 
-        if (sampleSize > data[0].length) sampleSize = (int) ceil(0.8 * data.length);
-        if (_z.length == 0) return new HashSet<>();
+        if (sampleSize > data[0].length) sampleSize = data.length;
+        if (_z.length == 0) return allRows();
 
         int radius = 0;
 
@@ -475,6 +488,132 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
     public void setKernelRegressionSampleSize(int kernelRegressionSampleSize) {
         this.kernelRegressionSampleSize = kernelRegressionSampleSize;
     }
+
+    public static double[] nonparanormal(double[] x1) {
+        double std1 = StatUtils.sd(x1);
+        double mu1 = StatUtils.mean(x1);
+        double[] x = ranks(x1);
+        int n = x1.length;
+        final double delta = 1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
+        final NormalDistribution normalDistribution = new NormalDistribution();
+
+        for (int i = 0; i < x.length; i++) {
+            x[i] /= n;
+            if (x[i] < delta) x[i] = delta;
+            if (x[i] > (1. - delta)) x[i] = 1. - delta;
+            x[i] = normalDistribution.inverseCumulativeProbability(x[i]);
+        }
+
+        double std = StatUtils.sd(x);
+
+        for (int i = 0; i < x.length; i++) {
+            x[i] /= std;
+            x[i] *= std1;
+            x[i] += mu1;
+        }
+
+        return x;
+    }
+
+    private static double[] ranks(double[] x) {
+        double[] ranks = new double[x.length];
+
+        for (int i = 0; i < x.length; i++) {
+            double d = x[i];
+            int count = 0;
+
+            for (int k = 0; k < x.length; k++) {
+                if (x[k] <= d) {
+                    count++;
+                }
+            }
+
+            ranks[i] = count;
+        }
+
+        return ranks;
+    }
+
+    private static double width = 0.5;
+
+    private static double kernelEpinechnikov(double z, double h) {
+        z /= width * h;
+        if (abs(z) > 1) return 0.0;
+        else return (/*0.75 **/ (1.0 - z * z));
+    }
+
+    // Euclidean distance.
+    private static double distance(double[][] data, int[] z, int i, int j) {
+        double sum = 0.0;
+
+        for (int _z : z) {
+            double d = (data[_z][i] - data[_z][j]) / 2.0;
+
+            if (!Double.isNaN(d)) {
+                sum += d * d;
+            }
+        }
+
+        return sqrt(sum);
+    }
+
+    private static double nonparametricFisherZ(double[] _x, double[] _y) {
+
+        // Testing the hypothesis that _x and _y are uncorrelated and assuming that 4th moments of _x and _y
+        // are finite and that the sample is large.
+        double[] __x = standardize(_x);
+        double[] __y = standardize(_y);
+
+        double r = covariance(__x, __y); // correlation
+        int N = __x.length;
+
+        // Non-parametric Fisher Z test.
+        double z = 0.5 * sqrt(N) * (log(1.0 + r) - log(1.0 - r));
+
+        return z / (sqrt((moment22(__x, __y))));
+    }
+
+    private static double moment22(double[] x, double[] y) {
+        int N = x.length;
+        double sum = 0.0;
+
+        for (int j = 0; j < x.length; j++) {
+            sum += x[j] * x[j] * y[j] * y[j];
+        }
+
+        return sum / N;
+    }
+
+    // Standardizes the given data array. No need to make a copy here.
+    private static double[] standardize(double[] data) {
+        double sum = 0.0;
+
+        for (double d : data) {
+            sum += d;
+        }
+
+        double mean = sum / data.length;
+
+        for (int i = 0; i < data.length; i++) {
+            data[i] = data[i] - mean;
+        }
+
+        double var = 0.0;
+
+        for (double d : data) {
+            var += d * d;
+        }
+
+        var /= (data.length);
+        double sd = sqrt(var);
+
+        for (int i = 0; i < data.length; i++) {
+            data[i] /= sd;
+        }
+
+        return data;
+    }
+
 }
 
 

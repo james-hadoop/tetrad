@@ -53,7 +53,8 @@ public class AncestorRecall implements Statistic {
                     continue;
                 }
 
-                if (!trueGraph.isAncestorOf(x, y) && !trueGraph.isAncestorOf(y, x)) continue;
+                if (!estGraph.existsTrek(x, y) && !estGraph.existsTrek(y, x)) continue;
+                if (!trueGraph.existsTrek(x, y) && !trueGraph.existsTrek(y, x)) continue;
 
                 if (trueGraph.isAncestorOf(x, y)) {
                     if (estGraph.isAncestorOf(x, y)) {

@@ -22,9 +22,7 @@
 package edu.cmu.tetrad.data;
 
 import cern.colt.list.DoubleArrayList;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.IndTestFisherZ;
 import edu.cmu.tetrad.util.*;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.BlockRealMatrix;
@@ -285,7 +283,6 @@ public final class DataUtils {
     }
 
     /**
-     *
      * Log or unlog data
      *
      * @param data
@@ -303,9 +300,9 @@ public final class DataUtils {
                     if (base == 0) {
                         copy.set(i, j, Math.exp(copy.get(i, j)) - a);
                     } else {
-                        copy.set(i, j, Math.pow(base,(copy.get(i, j))) - a);
+                        copy.set(i, j, Math.pow(base, (copy.get(i, j))) - a);
                     }
-                }  else {
+                } else {
                     if (base == 0) {
                         copy.set(i, j, Math.log(a + copy.get(i, j)));
                     } else {
@@ -1434,27 +1431,27 @@ public final class DataUtils {
      * given dataset.
      */
     public static DataSet getResamplingDataset(DataSet data, int sampleSize) {
-    	int actualSampleSize = data.getNumRows();
-    	int _size = sampleSize;
-    	if(actualSampleSize < _size) {
-    		_size = actualSampleSize;
-    	}
-    	
-    	List<Integer> availRows = new ArrayList<>();
-    	for (int i = 0; i < actualSampleSize; i++) {
-    		availRows.add(i);
-    	}
-    	
-    	Collections.shuffle(availRows);
-    	
-    	List<Integer> addedRows = new ArrayList<>();
+        int actualSampleSize = data.getNumRows();
+        int _size = sampleSize;
+        if (actualSampleSize < _size) {
+            _size = actualSampleSize;
+        }
+
+        List<Integer> availRows = new ArrayList<>();
+        for (int i = 0; i < actualSampleSize; i++) {
+            availRows.add(i);
+        }
+
+        Collections.shuffle(availRows);
+
+        List<Integer> addedRows = new ArrayList<>();
         int[] rows = new int[_size];
-    	for (int i = 0; i < _size; i++) {
+        for (int i = 0; i < _size; i++) {
             int row = -1;
             int index = -1;
-            while(row == -1 || addedRows.contains(row)) {
-            	index = RandomUtil.getInstance().nextInt(availRows.size());
-            	row = availRows.get(index);
+            while (row == -1 || addedRows.contains(row)) {
+                index = RandomUtil.getInstance().nextInt(availRows.size());
+                row = availRows.get(index);
             }
             rows[i] = row;
             addedRows.add(row);
@@ -1799,7 +1796,7 @@ public final class DataUtils {
             final double[] x1 = data.getColumn(j).toArray();
             double std1 = StatUtils.sd(x1);
             double mu1 = StatUtils.mean(x1);
-            double[] x = ranks(data, x1);
+            double[] x = ranks(x1);
 
             for (int i = 0; i < x.length; i++) {
                 x[i] /= n;
@@ -1824,14 +1821,14 @@ public final class DataUtils {
         return ColtDataSet.makeContinuousData(dataSet.getVariables(), X);
     }
 
-    private static double[] ranks(TetradMatrix data, double[] x) {
+    private static double[] ranks(double[] x) {
         double[] ranks = new double[x.length];
 
-        for (int i = 0; i < data.rows(); i++) {
+        for (int i = 0; i < x.length; i++) {
             double d = x[i];
             int count = 0;
 
-            for (int k = 0; k < data.rows(); k++) {
+            for (int k = 0; k < x.length; k++) {
                 if (x[k] <= d) {
                     count++;
                 }
@@ -1945,7 +1942,6 @@ public final class DataUtils {
 
         return knwl;
     }
-
 
 
     private static double[] correctSkewness(double[] data) {

@@ -3,6 +3,8 @@ package edu.cmu.tetrad.algcomparison.statistic;
 import edu.cmu.tetrad.algcomparison.statistic.utils.AdjacencyConfusion;
 import edu.cmu.tetrad.graph.Graph;
 
+import static java.lang.Math.tanh;
+
 /**
  * Prints the number of edges in the true graph.
  *
@@ -28,6 +30,6 @@ public class NumberOfEdgesTrue implements Statistic {
 
     @Override
     public double getNormValue(double value) {
-        return Math.tanh(value);
+        return 1.0 - tanh(value);
     }
 }

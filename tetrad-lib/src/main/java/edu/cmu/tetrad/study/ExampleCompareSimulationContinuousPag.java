@@ -174,7 +174,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("alpha", 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3);
 
         parameters.set("depth", -1);
-        parameters.set("twoCycleAlpha", 0.0);
+        parameters.set("twoCycleAlpha", 0.0000001);
         parameters.set("extraEdgeThreshold", 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
 
         parameters.set("useFasAdjacencies", true);
@@ -198,7 +198,8 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new AncestorRecall());
 
         statistics.setWeight("AncP", 1.0);
-//        statistics.setWeight("AncR", 1.0);
+        statistics.setWeight("AncR", 1.0);
+        statistics.setWeight("NumEdgesEst", 1.0);
 
         Algorithms algorithms = new Algorithms();
 
@@ -213,7 +214,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Downloads/sachs-A"));
+        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Downloads/jinlingdata3"));
 
         Comparison comparison = new Comparison();
 
