@@ -214,7 +214,11 @@ public class ExampleCompareSimulationContinuousPag {
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Downloads/jinlingdata3"));
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.all.cyclic.ground.truth"));
+        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt20.cyclic.ground.truth"));
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.mcf7.cyclic.ground.truth"));
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.uaac812.cyclic.ground.truth"));
 
         Comparison comparison = new Comparison();
 
@@ -229,7 +233,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
-        comparison.compareFromSimulations("comparison.jinling.pag3", simulations, "comparison_continuous_pag_" + sampleSize, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparison.hill", simulations, "comparison_continuous_pag", algorithms, statistics, parameters);
 
     }
 }
