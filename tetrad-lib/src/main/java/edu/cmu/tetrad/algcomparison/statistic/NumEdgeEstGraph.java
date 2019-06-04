@@ -33,6 +33,6 @@ public class NumEdgeEstGraph implements Statistic {
 
     @Override
     public double getNormValue(double value) {
-        return 1.0 - tanh(value);
+        return 1.0 / value;
     }
 }

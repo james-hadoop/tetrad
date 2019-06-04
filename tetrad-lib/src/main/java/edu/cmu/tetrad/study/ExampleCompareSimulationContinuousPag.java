@@ -34,8 +34,6 @@ import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
-import org.junit.Test;
-import org.omg.CORBA.TRANSACTION_UNAVAILABLE;
 
 /**
  * An example script to simulate data and run a comparison analysis on it.
@@ -175,7 +173,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("depth", -1);
         parameters.set("twoCycleAlpha", 0.0000001);
-        parameters.set("extraEdgeThreshold", 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
+        parameters.set("extraEdgeThreshold", 0.1, 0.2, 0.3, 0.4, 0.5, .6, .7);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useCorrDiffAdjacencies", true);
@@ -196,6 +194,8 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new AncestorPrecision());
         statistics.add(new AncestorRecall());
+        statistics.add(new DescentantsOfMTorFp());
+        statistics.add(new DescentantsOfMTorFn());
 
         statistics.setWeight("AncP", 1.0);
         statistics.setWeight("AncR", 1.0);
@@ -215,10 +215,12 @@ public class ExampleCompareSimulationContinuousPag {
         Simulations simulations = new Simulations();
 
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.all.cyclic.ground.truth"));
-        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt20.cyclic.ground.truth"));
-//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt20.cyclic.ground.truth"));
+        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.mcf7.cyclic.ground.truth"));
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.uaac812.cyclic.ground.truth"));
+
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/sachs"));
 
         Comparison comparison = new Comparison();
 
