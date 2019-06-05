@@ -199,7 +199,7 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new DescentantsOfMTorFpr());
         statistics.add(new DescentantsOfMTorTpr());
 
-        statistics.setWeight("mtorDescFpr", .5);
+        statistics.setWeight("mtorDescFpr", 1.0);
         statistics.setWeight("mtorDescTpr", 1.0);
 //        statistics.setWeight("NumEdgesEst", 1.0);
 
