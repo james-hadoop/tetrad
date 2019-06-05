@@ -173,7 +173,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("depth", -1);
         parameters.set("twoCycleAlpha", 0.0000001);
-        parameters.set("extraEdgeThreshold", 0.1, 0.2, 0.3, 0.4, 0.5, .6, .7);
+        parameters.set("extraEdgeThreshold", 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, .6, .7, 0.8, 0.9, 1.0);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useCorrDiffAdjacencies", true);
@@ -196,10 +196,12 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new AncestorRecall());
         statistics.add(new DescentantsOfMTorFp());
         statistics.add(new DescentantsOfMTorFn());
+        statistics.add(new DescentantsOfMTorFpr());
+        statistics.add(new DescentantsOfMTorTpr());
 
-        statistics.setWeight("AncP", 1.0);
-        statistics.setWeight("AncR", 1.0);
-        statistics.setWeight("NumEdgesEst", 1.0);
+        statistics.setWeight("mtorDescFpr", .5);
+        statistics.setWeight("mtorDescTpr", 1.0);
+//        statistics.setWeight("NumEdgesEst", 1.0);
 
         Algorithms algorithms = new Algorithms();
 
@@ -227,7 +229,7 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
         comparison.setSortByUtility(true);
-        comparison.setShowUtilities(true);
+        comparison.setShowUtilities(false);
 
         comparison.setSaveGraphs(true);
         comparison.setSavePags(false);

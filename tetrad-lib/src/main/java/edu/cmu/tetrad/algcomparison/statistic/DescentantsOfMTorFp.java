@@ -53,6 +53,8 @@ public class DescentantsOfMTorFp implements Statistic {
                 "Chk2_pT68", "p27_pT198", "MEK1_pS217_S221", "p90RSK_pT359_S363", "YB_1_PS102", "p38_pT180_Y182",
                 "JNK_pT183_pT185", "STAT3_pY705", "Src_pY416", "EGFR_pY1068", "HER2_pY1248", "EGFR_pY1173, NF_kB_p65_pS536",
                 "Src_pY527"
+                , "Rb_pS807_S811", "MAPK_pT202_Y204"
+
         };
 
         List<Node> truthbt549 = new ArrayList<>();

@@ -17,17 +17,17 @@ import java.util.List;
  *
  * @author jdramsey
  */
-public class DescentantsOfMTorFn implements Statistic {
+public class DescentantsOfMTorFpr implements Statistic {
     static final long serialVersionUID = 23L;
 
     @Override
     public String getAbbreviation() {
-        return "mtorDescFn";
+        return "mtorDescFpr";
     }
 
     @Override
     public String getDescription() {
-        return "Descendants of mTor FN";
+        return "Descendants of mTor FPR";
     }
 
     @Override
@@ -48,35 +48,47 @@ public class DescentantsOfMTorFn implements Statistic {
         for (int i = 0; i < tokens.length; i++) allVars.add(_estGraph.getNode(tokens[i]));
 
         String[] bt549s = new String[]{"YAP_pS127", "PDK1_pS241", "PKC_alpha_pS657", "GSK3_alpha_beta_pS21_S9",
-                "PRAS40_pT246", "4EBP1_pS65", "p70S6K_pT389", "S6_pS235_S236", "mTOR_pS2448", "Akt_pS473", "Akt_pS473",
+                "PRAS40_pT246", "4EBP1_pS65", "p70S6K_pT389", "S6_pS235_S236", "mTOR_pS2448", "Akt_pS473", "Akt_pT308",
                 "Bad_pS112", "AMPK_pT172", "ACC_pS79", "Src_pY416", "c_Met_pY1235", "ER_alpha_pS118", "Chk1_pS345",
                 "Chk2_pT68", "p27_pT198", "MEK1_pS217_S221", "p90RSK_pT359_S363", "YB_1_PS102", "p38_pT180_Y182",
-                "JNK_pT183_pT185", "STAT3_pY705", "Src_pY416", "EGFR_pY1068", "HER2_pY1248", "EGFR_pY1173"
+                "JNK_pT183_pT185", "STAT3_pY705", "Src_pY416", "EGFR_pY1068", "HER2_pY1248", "EGFR_pY1173, NF_kB_p65_pS536",
+                "Src_pY527"
                 , "Rb_pS807_S811", "MAPK_pT202_Y204"
-
         };
 
-        List<Node> truthbt549 = new ArrayList<>();
+        List<Node> trues_bt549 = new ArrayList<>();
 
-        for (int i = 0; i < bt549s.length; i++) truthbt549.add(_estGraph.getNode(bt549s[i]));
+        for (int i = 0; i < bt549s.length; i++) trues_bt549.add(_estGraph.getNode(bt549s[i]));
 
         Node mTor = _estGraph.getNode("mTOR_pS2448");
-        List<Node> est = _estGraph.getDescendants(Collections.singletonList(mTor));
+        List<Node> positives = _estGraph.getDescendants(Collections.singletonList(mTor));
 
+        List<Node> tp = new ArrayList<>();
+        List<Node> tn = new ArrayList<>();
+        List<Node> fp = new ArrayList<>();
         List<Node> fn = new ArrayList<>();
 
-        for (Node d : truthbt549) {
-            if (!est.contains(d)) {
-                fn.add(d);
-                System.out.println("FN: " + d);
+        for (Node d : positives) {
+            if (trues_bt549.contains(d)) {
+                tp.add(d);
+            } else {
+                fp.add(d);
             }
         }
 
-        return fn.size();
+        for (Node d : trues_bt549) {
+            if (!positives.contains(d)) {
+                tn.add(d);
+            } else {
+                fn.add(d);
+            }
+        }
+
+        return fp.size() / (double) (fp.size() + tn.size());
     }
 
     @Override
     public double getNormValue(double value) {
-        return value;
+        return 1.0 - value;
     }
 }
