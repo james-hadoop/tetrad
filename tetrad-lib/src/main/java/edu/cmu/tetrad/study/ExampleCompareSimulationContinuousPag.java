@@ -169,14 +169,15 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("completeRuleSetUsed", false);
 
-        parameters.set("alpha", 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3);
+        parameters.set("alpha", 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
 
         parameters.set("depth", -1);
-        parameters.set("twoCycleAlpha", 0.0000001);
-        parameters.set("extraEdgeThreshold", 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, .6, .7, 0.8, 0.9, 1.0);
+        parameters.set("twoCycleAlpha", 0.000000);
+//        parameters.set("extraEdgeThreshold", 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, .6, .7, 0.8, 0.9, 1.0);
+        parameters.set("extraEdgeThreshold", 1.0);
 
         parameters.set("useFasAdjacencies", true);
-        parameters.set("useCorrDiffAdjacencies", true);
+        parameters.set("useCorrDiffAdjacencies", false);
 
         Statistics statistics = new Statistics();
 
@@ -221,6 +222,8 @@ public class ExampleCompareSimulationContinuousPag {
         simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.mcf7.cyclic.ground.truth"));
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.uaac812.cyclic.ground.truth"));
+
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.egf.cyclic.ground.truth"));
 
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/sachs"));
 

@@ -36,6 +36,27 @@ public class DescentantsOfMTorFpr implements Statistic {
         List<Node> fp = hillStats.getFp();
         List<Node> tn = hillStats.getTn();
 
+        List<Node> positives = hillStats.getPositives();
+        List<Node> negatives = hillStats.getNegatives();
+
+        System.out.println();
+        System.out.println("Descendants of mTor:");
+
+        for (int i = 0; i < positives.size(); i++) {
+            System.out.println((i + 1) + ". " + positives.get(i));
+        }
+
+        System.out.println();
+
+        System.out.println("Negatives:");
+
+        for (int i = 0; i < negatives.size(); i++) {
+            System.out.println((i + 1) + ". " + negatives.get(i));
+        }
+
+        System.out.println();
+
+
         return fp.size() / (double) (fp.size() + tn.size());
     }
 

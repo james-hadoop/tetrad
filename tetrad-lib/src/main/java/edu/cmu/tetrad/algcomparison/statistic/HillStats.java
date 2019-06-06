@@ -31,6 +31,9 @@ public class HillStats {
     private List<Node> tn;
     private List<Node> fp;
     private List<Node> fn;
+    private List<Node> all;
+    private List<Node> positives;
+    private List<Node> negatives;
 
     public HillStats(Graph trueGraph, Graph estGraph) {
         this.trueGraph = trueGraph;
@@ -53,6 +56,19 @@ public class HillStats {
         return fn;
     }
 
+    public List<Node> getPositives() {
+        return positives;
+    }
+
+    public List<Node> getAll() {
+        return all;
+    }
+
+    public List<Node> getNegatives() {
+        return negatives;
+    }
+
+
     public HillStats invoke() {
         Graph _trueGraph = GraphUtils.replaceNodes(trueGraph, estGraph.getNodes());
         Graph _estGraph = GraphUtils.replaceNodes(estGraph, _trueGraph.getNodes());
@@ -68,7 +84,11 @@ public class HillStats {
         for (int i = 0; i < bt549s.length; i++) trues.add(_estGraph.getNode(bt549s[i]));
 
         Node mTor = _estGraph.getNode("mTOR_pS2448");
-        List<Node> positives = _estGraph.getDescendants(Collections.singletonList(mTor));
+        this.all = allVars;
+        this.positives = _estGraph.getDescendants(Collections.singletonList(mTor));
+        List<Node> temp = new ArrayList<>(getAll());
+        temp.removeAll(positives);
+        this.negatives = temp;
 
         tp = new ArrayList<>();
         tn = new ArrayList<>();
@@ -76,13 +96,13 @@ public class HillStats {
         fn = new ArrayList<>();
 
         for (Node d : allVars) {
-            if (trues.contains(d) && positives.contains(d)) {
+            if (trues.contains(d) && getPositives().contains(d)) {
                 tp.add(d);
-            } else if (trues.contains(d) && !positives.contains(d)) {
+            } else if (trues.contains(d) && !getPositives().contains(d)) {
                 tn.add(d);
-            } else if (!trues.contains(d) && positives.contains(d)) {
+            } else if (!trues.contains(d) && getPositives().contains(d)) {
                 fp.add(d);
-            } else if (!trues.contains(d) && !positives.contains(d)) {
+            } else if (!trues.contains(d) && !getPositives().contains(d)) {
                 fn.add(d);
             }
         }
