@@ -23,6 +23,7 @@ package edu.cmu.tetrad.util;
 
 import cern.colt.list.DoubleArrayList;
 import cern.jet.stat.Descriptive;
+import edu.cmu.tetrad.data.DataUtils;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
@@ -918,6 +919,9 @@ public final class StatUtils {
      * array2.
      */
     public static double correlation(double array1[], double array2[], int N) {
+//        array1 = DataUtils.center(array1);
+//        array2 = DataUtils.center(array2);
+
         double covXY = sxy(array1, array2, N);
         double covXX = sxy(array1, array1, N);
         double covYY = sxy(array2, array2, N);

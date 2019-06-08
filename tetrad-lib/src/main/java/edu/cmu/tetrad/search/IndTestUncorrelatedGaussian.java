@@ -33,6 +33,7 @@ import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.exception.NotStrictlyPositiveException;
+import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -175,14 +176,16 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
     }
 
     public boolean isIndependent(Node x, Node y, List<Node> z) {
+//        if (fisher.isDependent(x, y, z)) return false;
+
         int n = dataSet.getNumRows();
 
         double[] _x = Arrays.copyOf(data[indices.get(x)], data[0].length);
         double[] _y = Arrays.copyOf(data[indices.get(y)], data[0].length);
 
         if (z.isEmpty()) {
-            _x = nonparanormal(_x);
-            _y = nonparanormal(_y);
+//            _x = nonparanormal(_x);
+//            _y = nonparanormal(_y);
             return bivariateIndependent(_x, _y, alpha);
         } else {
 
@@ -193,7 +196,7 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
             }
 
             for (int i = 0; i < n; i += 20) {
-                int j = RandomUtil.getInstance().nextInt(n);
+                int j = i;//RandomUtil.getInstance().nextInt(n);
                 List<Integer> js = getCloseZs(data, _z, j, getKernelRegressionSampleSize());
                 List<Double> distances = new ArrayList<>();
 
@@ -216,19 +219,26 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
         double[] _x = nonparanormal(x);
         double[] _y = nonparanormal(y);
 
-        return zeroCorr(_x, _y, alpha / 1000.) && bivariateGaussian(_x, _y, alpha);
+        return zeroCorr(_x, _y, alpha) && bivariateGaussian(_x, _y, alpha);
     }
+
+    final static NormalDistribution normalDistribution = new NormalDistribution(0, 1);
 
     private boolean zeroCorr(double[] x, double[] y, double alpha) {
         try {
             final int n = x.length;
             double r = StatUtils.correlation(x, y);
 
-            double z = 0.5 * sqrt(n - 3) * (log(1 + r) - log(1 - r));
-//        double z = nonparametricFisherZ(x, y);
-            double p = 2.0 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
+            r += 0.1;
 
-            System.out.println("p = " + p);
+            if (r >= 1.0) r = 0.999999999;
+            if (r <= -1.0) r = -0.999999999;
+
+            double z = 0.5 * sqrt(n) * (log(1 + r) - log(1 - r));
+            double p = 2.0 * (1 - normalDistribution.cumulativeProbability(abs(z)));
+
+//            System.out.println("p = " + p + " z = " + z);
+            if (abs(z) > 8) return true;
             return p > alpha;
         } catch (Exception e) {
             e.printStackTrace();
@@ -236,7 +246,8 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
         }
     }
 
-    public static boolean bivariateGaussian(double[] x, double[] y, double alpha) {
+    private static boolean bivariateGaussian(double[] x, double[] y, double alpha) {
+
         final int n = x.length;
 
         double[] x1 = DataUtils.center(x);
@@ -245,7 +256,13 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
         double s1 = StatUtils.sd(x1);
         double s2 = StatUtils.sd(x2);
 
+        if (s1 == 0) s1 = 1e-20;
+        if (s2 == 0) s2 = 1e-20;
+
         double r = StatUtils.correlation(x1, x2);
+
+        if (r >= 1.0) r = 0.999999999;
+        if (r <= -1.0) r = -0.999999999;
 
         TetradMatrix X = new TetradMatrix(2, n);
 
@@ -260,7 +277,13 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
         A.set(1, 0, r * s1 * s2);
         A.set(1, 1, s2 * s2);
 
-        TetradMatrix Y = A.inverse().times(X);
+        TetradMatrix Y;
+
+        try {
+            Y = A.inverse().times(X);
+        } catch (SingularMatrixException e) {
+            return true;
+        }
 
         double[] y1 = Y.getRow(0).toArray();
         double[] y2 = Y.getRow(1).toArray();
@@ -270,24 +293,23 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
         final double m30 = moment(y1, y2, 3, 0);
         final double m03 = moment(y1, y2, 0, 3);
 
-        int m = n;
+        double m = 500;
 
         double u3 = m * ((pow(m21, 2) + pow(m12, 2)) / 2.0 + ((pow(m30, 2) + pow(m03, 2)) / 6.0));
 
-        final double m22 = moment(y1, y2, 2, 2);
-        final double m31 = moment(y1, y2, 3, 1);
-        final double m13 = moment(y1, y2, 1, 3);
-        final double m04 = moment(y1, y2, 0, 4);
-        final double m40 = moment(y1, y2, 4, 0);
+//        final double m22 = moment(y1, y2, 2, 2);
+//        final double m31 = moment(y1, y2, 3, 1);
+//        final double m13 = moment(y1, y2, 1, 3);
+//        final double m04 = moment(y1, y2, 0, 4);
+//        final double m40 = moment(y1, y2, 4, 0);
+//
+//        double u4 = m * (pow(m22 - 1, 2) / 4.0 + (pow(m31, 2) + pow(m13, 2)) / 6.0 + (pow(m04 - 1, 2) + pow(m40 - 1, 2)) / 24.0);
 
-        double u4 = m * (pow(m22 - 1, 2) / 4.0 + (pow(m31, 2) + pow(m13, 2)) / 6.0 + (pow(m04 - 1, 2) + pow(m40 - 1, 2)) / 24.0);
+//        System.out.println("u3 = " + u3);
 
-        double p = 1.0 - new ChiSquaredDistribution(n).cumulativeProbability(u3 + u4);
-
-        System.out.println("u3 + u4 = " + (u3 + u4) + " p = " + p);
+        double p = 1.0 - new ChiSquaredDistribution(6).cumulativeProbability(u3);
 
         return p > alpha;
-
     }
 
     private static double[] subset(double[] x, List<Integer> rows, List<Double> distances) {
@@ -490,27 +512,31 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
     }
 
     public static double[] nonparanormal(double[] x1) {
-        double std1 = StatUtils.sd(x1);
-        double mu1 = StatUtils.mean(x1);
+//        double std1 = StatUtils.sd(x1);
+//        double mu1 = StatUtils.mean(x1);
+        x1 = DataUtils.standardizeData(x1);
+
         double[] x = ranks(x1);
         int n = x1.length;
-        final double delta = 1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
-        final NormalDistribution normalDistribution = new NormalDistribution();
+        double delta = 1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
+
+
+        delta = .999;
 
         for (int i = 0; i < x.length; i++) {
             x[i] /= n;
-            if (x[i] < delta) x[i] = delta;
-            if (x[i] > (1. - delta)) x[i] = 1. - delta;
+            if (x[i] > delta) x[i] = delta;
+            if (x[i] < (1. - delta)) x[i] = 1. - delta;
             x[i] = normalDistribution.inverseCumulativeProbability(x[i]);
         }
 
-        double std = StatUtils.sd(x);
-
-        for (int i = 0; i < x.length; i++) {
-            x[i] /= std;
-            x[i] *= std1;
-            x[i] += mu1;
-        }
+//        double std = StatUtils.sd(x);
+//
+//        for (int i = 0; i < x.length; i++) {
+//            x[i] /= std;
+//            x[i] *= std1;
+//            x[i] += mu1;
+//        }
 
         return x;
     }

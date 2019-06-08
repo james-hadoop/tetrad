@@ -1,9 +1,20 @@
 package edu.cmu.tetrad.algcomparison.statistic;
 
+import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.DataConvertUtils;
+import edu.pitt.dbmi.data.reader.Data;
+import edu.pitt.dbmi.data.reader.DataColumn;
+import edu.pitt.dbmi.data.reader.DataColumns;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -70,6 +81,18 @@ public class HillStats {
 
 
     public HillStats invoke() {
+        DataSet dataSet = null;
+        try {
+            dataSet = getDiscreteData(
+                    "/Users/user/Box/data/4cellLineData/ground.truth/gold_descendants_AZD8055_mTOR.csv",
+                    Delimiter.COMMA, '\"');
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(dataSet);
+
+
         Graph _trueGraph = GraphUtils.replaceNodes(trueGraph, estGraph.getNodes());
         Graph _estGraph = GraphUtils.replaceNodes(estGraph, _trueGraph.getNodes());
 
@@ -108,6 +131,28 @@ public class HillStats {
         }
 
         return this;
+    }
+
+    private DataSet getDiscreteData(String path, Delimiter delimiter, char quoteChar) throws IOException {
+        TabularColumnFileReader colReader = new TabularColumnFileReader(
+                new File(path).toPath(),
+                delimiter
+        );
+
+        colReader.setQuoteCharacter(quoteChar);
+
+        DataColumn[] cols = colReader.generateColumns(new int[0], true);
+
+        TabularDataReader reader = new TabularDataFileReader(
+                new File(path).toPath(),
+                Delimiter.COMMA
+        );
+
+        Data data = reader.read(cols, true);
+
+        reader.setQuoteCharacter('\"');
+
+        return (DataSet) DataConvertUtils.toDataModel(data);
     }
 
 }
