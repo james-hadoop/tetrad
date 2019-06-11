@@ -214,7 +214,10 @@ public final class GFciNg implements GraphSearch {
 
                 if (fgesGraph.isDefCollider(a, b, c) && !r3Graph.isAdjacentTo(a, c) && !fgesGraph.isAdjacentTo(a, c)) {
 
-                    System.out.println("Copy collider from R3 graph not shielded in the FGES graph: " + a + "->" + b + "<-" + c);
+                    if (verbose) {
+                        System.out.println("Copy collider from R3 graph not shielded in the FGES graph: " + a + "->" + b + "<-" + c);
+                    }
+
                     graph.setEndpoint(a, b, Endpoint.ARROW);
                     graph.setEndpoint(c, b, Endpoint.ARROW);
                 }
@@ -277,7 +280,9 @@ public final class GFciNg implements GraphSearch {
 
 //                    System.out.println(SearchLogUtils.dependenceFactMsg(a, c, sepset, independenceTest.getPValue()));
 
-                    System.out.println("Infer collider from triple shielded in the FGES graph: " + a + "->" + b + "<-" + c);
+                    if (verbose) {
+                        System.out.println("Infer collider from triple shielded in the FGES graph: " + a + "->" + b + "<-" + c);
+                    }
 
                     graph.setEndpoint(a, b, Endpoint.ARROW);
                     graph.setEndpoint(c, b, Endpoint.ARROW);

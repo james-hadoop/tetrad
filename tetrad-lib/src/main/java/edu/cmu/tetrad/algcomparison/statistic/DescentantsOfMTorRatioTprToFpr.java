@@ -1,14 +1,8 @@
 package edu.cmu.tetrad.algcomparison.statistic;
 
-import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.pitt.dbmi.data.reader.Delimiter;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -20,25 +14,35 @@ import java.util.List;
  *
  * @author jdramsey
  */
-public class DescentantsOfMTorFp implements Statistic {
+public class DescentantsOfMTorRatioTprToFpr implements Statistic {
     static final long serialVersionUID = 23L;
 
     @Override
     public String getAbbreviation() {
-        return "mtorDescFp";
+        return "mtorDescRatioTprToFpr";
     }
 
     @Override
     public String getDescription() {
-        return "Descendants of mTor FP";
+        return "Descendants of mTor TPR / FPR";
     }
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
         HillStats hillStats = new HillStats(trueGraph, estGraph);
+        List<Node> tp = hillStats.getTp();
+        List<Node> tn = hillStats.getTn();
         List<Node> fp = hillStats.getFp();
+        List<Node> fn = hillStats.getFn();
 
-        return fp.size();
+
+        double tpr = tp.size() / (double) (tp.size() + fn.size());
+        double fpr = fp.size() / (double) (fp.size() + tn.size());
+
+//        return tpr / fpr;
+
+        if (fp.size() <= 2 && tp.size() > 1) return tp.size() - 1;
+        else return 0.0;
     }
 
     @Override

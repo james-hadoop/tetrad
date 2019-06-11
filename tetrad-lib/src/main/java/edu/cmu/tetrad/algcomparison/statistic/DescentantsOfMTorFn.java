@@ -1,9 +1,12 @@
 package edu.cmu.tetrad.algcomparison.statistic;
 
+import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
+import edu.pitt.dbmi.data.reader.Delimiter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +37,7 @@ public class DescentantsOfMTorFn implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
-        HillStats hillStats = new HillStats(trueGraph, estGraph).invoke();
+        HillStats hillStats = new HillStats(trueGraph, estGraph);
         List<Node> fn = hillStats.getFn();
 
         return fn.size();

@@ -157,6 +157,8 @@ public final class Cfci implements GraphSearch {
             logger.log("info", "Independence test = " + independenceTest + ".");
         }
 
+        this.independenceTest.setVerbose(verbose);
+
         setMaxReachablePathLength(maxReachablePathLength);
 
         //List<Node> variables = independenceTest.getVariable();       - Robert Tillman 2008
@@ -223,8 +225,11 @@ public final class Cfci implements GraphSearch {
 
         // Step CI D. (Zhang's step F4.)
 
-        final FciOrient fciOrient = new FciOrient(new SepsetsConservative(graph, independenceTest,
-                new SepsetMap(), depth));
+        final SepsetsConservative sepsets = new SepsetsConservative(graph, independenceTest,
+                new SepsetMap(), depth);
+        sepsets.setVerbose(verbose);
+        final FciOrient fciOrient = new FciOrient(sepsets);
+        fciOrient.setVerbose(verbose);
 
         fciOrient.setCompleteRuleSetUsed(completeRuleSetUsed);
         fciOrient.setMaxPathLength(-1);

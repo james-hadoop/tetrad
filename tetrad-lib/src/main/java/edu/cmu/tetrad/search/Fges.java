@@ -280,12 +280,16 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         this.modelScore = totalScore;
 
-        this.out.println("Model Score = " + modelScore);
+        if (verbose) {
+            this.out.println("Model Score = " + modelScore);
+        }
 
         for (Node _node : nodeAttributes.keySet()) {
             Object value = nodeAttributes.get(_node);
 
-            this.out.println(_node.getName() + " Score = " + value);
+            if (verbose) {
+                this.out.println(_node.getName() + " Score = " + value);
+            }
 
             Node node = graph.getNode(_node.getName());
             node.addAttribute("BIC", value);

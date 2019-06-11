@@ -141,7 +141,7 @@ public class SepsetsConservativeMajority implements SepsetProducer {
 
                 if (test.isIndependent(x, z, cond)) {
                     if (verbose) {
-                        System.out.println("Indep: " + x + " _||_ " + z + " | " + cond);
+//                        System.out.println("Indep: " + x + " _||_ " + z + " | " + cond);
                     }
 
                     if (cond.contains(y)) {

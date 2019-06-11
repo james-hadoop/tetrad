@@ -1,9 +1,12 @@
 package edu.cmu.tetrad.algcomparison.statistic;
 
+import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
+import edu.pitt.dbmi.data.reader.Delimiter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,15 +35,26 @@ public class DescentantsOfMTorFpr implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
-        HillStats hillStats = new HillStats(trueGraph, estGraph).invoke();
-        List<Node> fp = hillStats.getFp();
-        List<Node> tn = hillStats.getTn();
+        HillStats hillStats = new HillStats(trueGraph, estGraph);
 
+        List<Node> all = hillStats.getAll();
         List<Node> positives = hillStats.getPositives();
         List<Node> negatives = hillStats.getNegatives();
+        List<Node> tn = hillStats.getTn();
+        List<Node> fn = hillStats.getFn();
+        List<Node> fp = hillStats.getFp();
+
 
         System.out.println();
-        System.out.println("Descendants of mTor:");
+        System.out.println("All:");
+
+        for (int i = 0; i < all.size(); i++) {
+            System.out.println((i + 1) + ". " + all.get(i));
+        }
+
+        System.out.println();
+
+        System.out.println("Positives:");
 
         for (int i = 0; i < positives.size(); i++) {
             System.out.println((i + 1) + ". " + positives.get(i));
@@ -52,6 +66,22 @@ public class DescentantsOfMTorFpr implements Statistic {
 
         for (int i = 0; i < negatives.size(); i++) {
             System.out.println((i + 1) + ". " + negatives.get(i));
+        }
+
+        System.out.println();
+
+        System.out.println("False Negatives:");
+
+        for (int i = 0; i < fn.size(); i++) {
+            System.out.println((i + 1) + ". " + fn.get(i));
+        }
+
+        System.out.println();
+
+        System.out.println("False Positives:");
+
+        for (int i = 0; i < fp.size(); i++) {
+            System.out.println((i + 1) + ". " + fp.get(i));
         }
 
         System.out.println();

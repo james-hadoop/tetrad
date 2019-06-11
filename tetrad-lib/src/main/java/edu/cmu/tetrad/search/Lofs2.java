@@ -78,8 +78,6 @@ public class Lofs2 {
     private boolean edgeCorrected = false;
     private double selfLoopStrength;
 
-    private DataSet dataSet;
-
 
 
     //===============================CONSTRUCTOR============================//
@@ -141,7 +139,7 @@ public class Lofs2 {
     // orientStrongerDirection list of past and present rules.
     public enum Rule {
         IGCI, R1TimeLag, R1, R2, R3, R4, Tanh, EB, Skew, SkewE, RSkew, RSkewE,
-        Patel, Patel25, Patel50, Patel75, Patel90, FastICA, RC
+        Patel, Patel25, Patel50, Patel75, Patel90, FastICA, RC, FASK
     }
 
     public Graph orient() {
@@ -209,7 +207,11 @@ public class Lofs2 {
             FastIca.IcaResult result = fastIca.findComponents();
             System.out.println(result.getW());
             return new EdgeListGraph();
+        } else if (this.rule == Rule.FASK) {
+            graph = GraphUtils.undirectedGraph(skeleton);
+            return fask(graph, DataUtils.concatenate(dataSets));
         }
+
 
         return graph;
     }
@@ -1535,6 +1537,16 @@ public class Lofs2 {
         }
 
         return graph;
+    }
+
+    private Graph fask(Graph graph, DataSet dataSet) {
+        Fask fask = new Fask(dataSet, new IndTestFisherZ(new CovarianceMatrixOnTheFly(dataSet, false), 0.05));
+        fask.setInitialGraph(graph);
+        fask.setExtraEdgeThreshold(1.0);
+        fask.setUseFasAdjacencies(true);
+        fask.setUseSkewAdjacencies(false);
+        fask.setKnowledge(knowledge);
+        return fask.search();
     }
 
     private double g(double x) {

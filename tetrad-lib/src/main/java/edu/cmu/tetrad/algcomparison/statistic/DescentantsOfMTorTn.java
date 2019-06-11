@@ -1,14 +1,8 @@
 package edu.cmu.tetrad.algcomparison.statistic;
 
-import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.pitt.dbmi.data.reader.Delimiter;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -20,25 +14,27 @@ import java.util.List;
  *
  * @author jdramsey
  */
-public class DescentantsOfMTorFp implements Statistic {
+public class DescentantsOfMTorTn implements Statistic {
     static final long serialVersionUID = 23L;
+
+
 
     @Override
     public String getAbbreviation() {
-        return "mtorDescFp";
+        return "mtorDescTn";
     }
 
     @Override
     public String getDescription() {
-        return "Descendants of mTor FP";
+        return "Descendants of mTor TN";
     }
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
         HillStats hillStats = new HillStats(trueGraph, estGraph);
-        List<Node> fp = hillStats.getFp();
+        List<Node> tn = hillStats.getTn();
 
-        return fp.size();
+        return tn.size();
     }
 
     @Override

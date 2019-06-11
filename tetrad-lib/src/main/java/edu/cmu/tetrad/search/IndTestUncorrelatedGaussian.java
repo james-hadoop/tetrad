@@ -238,7 +238,7 @@ public final class IndTestUncorrelatedGaussian implements IndependenceTest, Scor
             double p = 2.0 * (1 - normalDistribution.cumulativeProbability(abs(z)));
 
 //            System.out.println("p = " + p + " z = " + z);
-            if (abs(z) > 8) return true;
+            if (abs(z) > 6) return true;
             return p > alpha;
         } catch (Exception e) {
             e.printStackTrace();

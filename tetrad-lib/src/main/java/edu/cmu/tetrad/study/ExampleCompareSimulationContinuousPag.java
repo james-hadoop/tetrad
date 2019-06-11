@@ -25,6 +25,8 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Cpc;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
@@ -114,7 +116,7 @@ public class ExampleCompareSimulationContinuousPag {
         algorithms.add(new Rfci(new FisherZ()));
         algorithms.add(new FciMax(new FisherZ()));
         algorithms.add(new CFCI(new FisherZ()));
-        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+//        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
 //        algorithms.add(new FciNg(new FisherZ()));
         algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
 
@@ -156,7 +158,7 @@ public class ExampleCompareSimulationContinuousPag {
 //        parameters.set("sampleSize", sampleSize); // This varies.
         parameters.set("differentGraphs", true);
 
-        parameters.set("penaltyDiscount", 2); // tookout 1
+        parameters.set("penaltyDiscount", 1, 2, 4, 6); // tookout 1
 
         parameters.set("coefLow", 0.3);
         parameters.set("coefHigh", 0.9);
@@ -169,7 +171,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("completeRuleSetUsed", false);
 
-        parameters.set("alpha", 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
+        parameters.set("alpha", 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3/*, 0.4, 0.5*/);//, 0.6, 0.7, 0.8, 0.9, 1.0);
 
         parameters.set("depth", -1);
         parameters.set("twoCycleAlpha", 0.000000);
@@ -177,13 +179,23 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("extraEdgeThreshold", 1.0);
 
         parameters.set("useFasAdjacencies", true);
-        parameters.set("useCorrDiffAdjacencies", false);
+        parameters.set("useCorrDiffAdjacencies", true);
+
+//        parameters.set("alpha");
+        parameters.set("kernelRegressionSampleSize", 50, 100, 200);
+
+        parameters.set("verbose", false);
+
 
         Statistics statistics = new Statistics();
 
         statistics.add(new ParameterColumn("avgDegree"));
         statistics.add(new ParameterColumn("alpha"));
+        statistics.add(new ParameterColumn("penaltyDiscount"));
         statistics.add(new ParameterColumn("extraEdgeThreshold"));
+        statistics.add(new ParameterColumn("kernelRegressionSampleSize"));
+
+
 
         statistics.add(new NumEdgeTrueGraph());
         statistics.add(new NumEdgeEstGraph());
@@ -195,33 +207,42 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new AncestorPrecision());
         statistics.add(new AncestorRecall());
+        statistics.add(new DescentantsOfMTorTp());
         statistics.add(new DescentantsOfMTorFp());
+        statistics.add(new DescentantsOfMTorTn());
         statistics.add(new DescentantsOfMTorFn());
         statistics.add(new DescentantsOfMTorFpr());
         statistics.add(new DescentantsOfMTorTpr());
+        statistics.add(new DescentantsOfMTorRatioTprToFpr());
 
-        statistics.setWeight("mtorDescFpr", 1.0);
-        statistics.setWeight("mtorDescTpr", 1.0);
+//        statistics.setWeight("mtorDescFpr", 1.0);
+//        statistics.setWeight("mtorDescTpr", 1.0);
+        statistics.setWeight("mtorDescRatioTprToFpr", 1.0);
 //        statistics.setWeight("NumEdgesEst", 1.0);
 
         Algorithms algorithms = new Algorithms();
 
-//        algorithms.add(new Fci(new FisherZ()));
-//        algorithms.add(new Rfci(new FisherZ()));
+////        algorithms.add(new Pc(new FisherZ()));
+//        algorithms.add(new Cpc(new FisherZ()));
+//        algorithms.add(new Fges(new SemBicScore()));
+////        algorithms.add(new Fci(new FisherZ()));
+////        algorithms.add(new Rfci(new FisherZ()));
 //        algorithms.add(new FciMax(new FisherZ()));
-//        algorithms.add(new CFCI(new FisherZ()));
+        algorithms.add(new CFCI(new FisherZ()));
 //        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
-        algorithms.add(new Fask(new FisherZ()));
+//        algorithms.add(new Fask(new FisherZ()));
+////        algorithms.add(new FciNg(new FisherZ()));
 //        algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
 
 
         Simulations simulations = new Simulations();
 
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.all.cyclic.ground.truth"));
-//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt20.cyclic.ground.truth"));
-        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
-//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.mcf7.cyclic.ground.truth"));
+
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.uaac812.cyclic.ground.truth"));
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.mcf7.cyclic.ground.truth"));
+        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt20.cyclic.ground.truth"));
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
 
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.egf.cyclic.ground.truth"));
 
@@ -231,7 +252,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
-        comparison.setSortByUtility(true);
+        comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
 
         comparison.setSaveGraphs(true);
