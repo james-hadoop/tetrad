@@ -1543,6 +1543,7 @@ public class Lofs2 {
         Fask fask = new Fask(dataSet, new IndTestFisherZ(new CovarianceMatrixOnTheFly(dataSet, false), 0.05));
         fask.setInitialGraph(graph);
         fask.setExtraEdgeThreshold(1.0);
+        fask.setAlpha(0.0);
         fask.setUseFasAdjacencies(true);
         fask.setUseSkewAdjacencies(false);
         fask.setKnowledge(knowledge);

@@ -26,9 +26,13 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Cpc;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.FAS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
+import edu.cmu.tetrad.algcomparison.algorithm.pairwise.R3;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
+import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.LoadContinuousDataAndSingleGraph;
@@ -50,7 +54,7 @@ public class ExampleCompareSimulationContinuousPag {
         int sampleSize = 1000;
         int numMeasures = 50;
         int numLatents = 5;
-        int avgDegree = 6;
+        int avgDegree = 4;
         int maxDegree = 12;
         ExampleCompareSimulationContinuousPag.Type type = Type.LinearNongaussian;
 
@@ -61,7 +65,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("sampleSize", sampleSize); // This varies.
         parameters.set("differentGraphs", true);
 
-        parameters.set("alpha", 0.01);
+        parameters.set("alpha", 0.001);
         parameters.set("penaltyDiscount", 2); // tookout 1
 
         parameters.set("coefLow", 0.3);
@@ -110,14 +114,14 @@ public class ExampleCompareSimulationContinuousPag {
 //        algorithms.add(new Fges(new SemBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new R3(new FAS(new FisherZ())));
-
-//        algorithms.add(new Fci(new SemBicTest()));
+//
+        algorithms.add(new Fci(new SemBicTest()));
         algorithms.add(new Fci(new FisherZ()));
         algorithms.add(new Rfci(new FisherZ()));
         algorithms.add(new FciMax(new FisherZ()));
         algorithms.add(new CFCI(new FisherZ()));
-//        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
-//        algorithms.add(new FciNg(new FisherZ()));
+        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+        algorithms.add(new FciNg(new FisherZ()));
         algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
 
 
@@ -171,7 +175,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("completeRuleSetUsed", false);
 
-        parameters.set("alpha", 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3/*, 0.4, 0.5*/);//, 0.6, 0.7, 0.8, 0.9, 1.0);
+        parameters.set("alpha", 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4/*, 0.5*/);//, 0.6, 0.7, 0.8, 0.9, 1.0);
 
         parameters.set("depth", -1);
         parameters.set("twoCycleAlpha", 0.000000);
@@ -222,17 +226,17 @@ public class ExampleCompareSimulationContinuousPag {
 
         Algorithms algorithms = new Algorithms();
 
-////        algorithms.add(new Pc(new FisherZ()));
-//        algorithms.add(new Cpc(new FisherZ()));
-//        algorithms.add(new Fges(new SemBicScore()));
-////        algorithms.add(new Fci(new FisherZ()));
-////        algorithms.add(new Rfci(new FisherZ()));
-//        algorithms.add(new FciMax(new FisherZ()));
+//        algorithms.add(new Pc(new FisherZ()));
+        algorithms.add(new Cpc(new FisherZ()));
+        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new Fci(new FisherZ()));
+//        algorithms.add(new Rfci(new FisherZ()));
+        algorithms.add(new FciMax(new FisherZ()));
         algorithms.add(new CFCI(new FisherZ()));
 //        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
-//        algorithms.add(new Fask(new FisherZ()));
-////        algorithms.add(new FciNg(new FisherZ()));
-//        algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
+        algorithms.add(new Fask(new FisherZ()));
+//        algorithms.add(new FciNg(new FisherZ()));
+        algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
 
 
         Simulations simulations = new Simulations();
@@ -241,8 +245,8 @@ public class ExampleCompareSimulationContinuousPag {
 
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.uaac812.cyclic.ground.truth"));
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.mcf7.cyclic.ground.truth"));
-        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt20.cyclic.ground.truth"));
-//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt20.cyclic.ground.truth"));
+        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
 
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.egf.cyclic.ground.truth"));
 

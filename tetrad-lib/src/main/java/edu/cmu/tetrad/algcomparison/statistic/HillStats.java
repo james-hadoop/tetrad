@@ -57,13 +57,17 @@ public class HillStats {
         if (mTorGold == null) {
             try {
                 mTorGold = getDiscreteData(
-                        "/Users/user/Box/data/4cellLineData/ground.truth/gold_descendants_AZD8055_mTOR.txt",
+                        "/Users/user/Box/data/4cellLineData/ground.truth/gold_descendants_AZD8055_mTOR2.txt",
                         Delimiter.TAB, '\"');
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             System.out.println(mTorGold);
+
+            for (int i = 0; i < 35; i++) {
+                System.out.println(i + ". " + mTorGold.getInt(i, 27));
+            }
         }
 
         Graph _trueGraph = GraphUtils.replaceNodes(this.getTrueGraph(), this.getEstGraph().getNodes());
@@ -76,18 +80,16 @@ public class HillStats {
         DiscreteVariable vars = (DiscreteVariable) mTorGold.getVariable(0);
 
         for (int i = 0; i < mTorGold.getNumRows(); i++) {
-            final String category = vars.getCategory(i);
+            final String category = vars.getCategory(mTorGold.getInt(i, 0));
             allVars.add(estGraph.getNode(category));
         }
-
-        System.out.println(mTorGold.getVariables());
 
         List<Node> trues = new ArrayList<>();
 
 //        final String[] trueGuys = HillStats.bt549;
 //        for (int i = 0; i < trueGuys.length; i++) trues.add(_estGraph.getNode(trueGuys[i]));
 
-        List<String> trueGuys = new ArrayList<>();
+//        List<String> trueGuys = new ArrayList<>();
 
 //        for (int i = 0; i < allVars.size(); i++) {
 //            for (int j = 1; j <= 8; j++) {
@@ -118,20 +120,29 @@ public class HillStats {
 //        }
 
         for (int i = 0; i < allVars.size(); i++) {
+//            if (mTorGold.getInt(i, 27) == 1) {
+//                final String category = vars.getCategory(mTorGold.getInt(i, 0));
+////                System.out.println("True " + i + ". " + category);
+//                trues.add(estGraph.getNode(category));
+//            }
+
+
             int count = 0;
 
-            for (int j = 17; j <= 24; j++) {
+            for (int j = 25; j <= 32; j++) {
                 if (mTorGold.getInt(i, j) == 1) {
                     count++;
 
                     if (count == 1) {
-                        final String category = vars.getCategory(i);
+                        final String category = vars.getCategory(mTorGold.getInt(i, 0));
                         trues.add(estGraph.getNode(category));
                         break;
                     }
                 }
             }
         }
+
+        System.out.println("Trues = " + trues);
 
 
         Node mTor = _estGraph.getNode("mTOR_pS2448");
@@ -248,7 +259,7 @@ public class HillStats {
      * closure under the child relation
      */
     private void doChildClosureVisit(Graph graph, Node node, Set<Node> closure, int depth) {
-        if (depth > 4) return;
+        if (depth > 3) return;
 
         if (!closure.contains(node)) {
             closure.add(node);
