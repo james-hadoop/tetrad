@@ -22,7 +22,6 @@ public class SemBicScore implements ScoreWrapper {
 
     static final long serialVersionUID = 23L;
     private DataModel dataSet;
-    private double penaltyDiscount = 2.0;
 
     @Override
     public Score getScore(DataModel dataSet, Parameters parameters) {
@@ -33,9 +32,8 @@ public class SemBicScore implements ScoreWrapper {
 
         edu.cmu.tetrad.search.SemBicScore semBicScore
                 = new edu.cmu.tetrad.search.SemBicScore(cov);
-        double penaltyDiscount = parameters.getDouble("penaltyDiscount");
-        this.penaltyDiscount = penaltyDiscount;
-        semBicScore.setPenaltyDiscount(penaltyDiscount);
+        semBicScore.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
+        semBicScore.setStructurePrior(parameters.getDouble("structurePrior"));
         return semBicScore;
     }
 
@@ -53,6 +51,7 @@ public class SemBicScore implements ScoreWrapper {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add("penaltyDiscount");
+        parameters.add("structurePrior");
         return parameters;
     }
 

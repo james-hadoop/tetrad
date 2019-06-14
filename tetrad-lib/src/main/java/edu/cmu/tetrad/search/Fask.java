@@ -367,7 +367,7 @@ public final class Fask implements GraphSearch {
             lr *= -1;
         }
 
-        final double a = correlation(x, y);
+        final double a = StatUtils.covariance(x, y);
 
         if (a < 0) {// && sk_ey > 0) {
             lr *= -1;

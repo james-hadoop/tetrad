@@ -4,39 +4,16 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DiscreteVariable;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.DataConvertUtils;
-import edu.pitt.dbmi.data.reader.Data;
-import edu.pitt.dbmi.data.reader.DataColumn;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.*;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 
 public class HillStats {
-//    public static String vars = "4EBP1_pS65,ACC_pS79,Akt_pS473,Akt_pT308,AMPK_pT172,Bad_pS112,c_Met_pY1235," +
-//            "c_Raf_pS338,Chk1_pS345,Chk2_pT68,EGFR_pY1068,EGFR_pY1173,ER_alpha_pS118,GSK3_alpha_beta_pS21_S9," +
-//            "HER2_pY1248,JNK_pT183_pT185,MAPK_pT202_Y204,MEK1_pS217_S221,mTOR_pS2448,NF_kB_p65_pS536,p27_pT157," +
-//            "p27_pT198,p38_pT180_Y182,p70S6K_pT389,p90RSK_pT359_S363,PDK1_pS241,PKC_alpha_pS657,PRAS40_pT246," +
-//            "Rb_pS807_S811,S6_pS235_S236,Src_pY416,Src_pY527,STAT3_pY705,YAP_pS127,YB_1_PS102";
-
-//    public static String[] bt549 = new String[]{"YAP_pS127", "PDK1_pS241", "PKC_alpha_pS657", "GSK3_alpha_beta_pS21_S9",
-//            "PRAS40_pT246", "4EBP1_pS65", "p70S6K_pT389", "S6_pS235_S236", "mTOR_pS2448", "Akt_pT308", "Akt_pS473",
-//            "Bad_pS112", "AMPK_pT172", "ACC_pS79", "Src_pY416", "c_Met_pY1235", "ER_alpha_pS118", "Chk1_pS345",
-//            "Chk2_pT68", "p27_pT198", "MEK1_pS217_S221", "p90RSK_pT359_S363", "YB_1_PS102", "p38_pT180_Y182",
-//            "JNK_pT183_pT185", "STAT3_pY705", "Src_pY416", "EGFR_pY1068", "HER2_pY1248", "EGFR_pY1173"
-////            , "Rb_pS807_S811", "MAPK_pT202_Y204"
-//
-//    };
-//
-//    public static String[] canonical = new String[]{
-//            "YAP_pS127", "PDK1_pS241", "PKC_alpha_pS657", "GSK3_alpha_beta_pS21_S9",
-//            "PRAS40_pT246", "4EBP1_pS65", "p70S6K_pT389", "S6_pS235_S236", "mTOR_pS2448", "Akt_pT308", "Akt_pS473",
-//            "Bad_pS112"
-//
-//    };
-
     private Graph trueGraph;
     private Graph estGraph;
     private List<Node> tp;
@@ -58,7 +35,7 @@ public class HillStats {
             try {
                 mTorGold = getDiscreteData(
                         "/Users/user/Box/data/4cellLineData/ground.truth/gold_descendants_AZD8055_mTOR2.txt",
-                        Delimiter.TAB, '\"');
+                        Delimiter.TAB);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -73,8 +50,6 @@ public class HillStats {
         Graph _trueGraph = GraphUtils.replaceNodes(this.getTrueGraph(), this.getEstGraph().getNodes());
         Graph _estGraph = GraphUtils.replaceNodes(this.getEstGraph(), _trueGraph.getNodes());
 
-//        String[] tokens = vars.split(",");
-
         List<Node> allVars = new ArrayList<>();
 
         DiscreteVariable vars = (DiscreteVariable) mTorGold.getVariable(0);
@@ -86,47 +61,7 @@ public class HillStats {
 
         List<Node> trues = new ArrayList<>();
 
-//        final String[] trueGuys = HillStats.bt549;
-//        for (int i = 0; i < trueGuys.length; i++) trues.add(_estGraph.getNode(trueGuys[i]));
-
-//        List<String> trueGuys = new ArrayList<>();
-
-//        for (int i = 0; i < allVars.size(); i++) {
-//            for (int j = 1; j <= 8; j++) {
-//                if (mTorGold.getInt(i, j) == 1) {
-//                    final String category = vars.getCategory(i);
-//                    trues.add(estGraph.getNode(category));
-//                    break;
-//                }
-//            }
-//        }
-//
-//        for (int i = 0; i < allVars.size(); i++) {
-//            for (int j = 9; j <= 16; j++) {
-//                if (mTorGold.getInt(i, j) == 1) {
-//                    final String category = vars.getCategory(i);
-//                    trues.add(estGraph.getNode(category));
-//                }
-//            }
-//        }
-//
-//        for (int i = 0; i < allVars.size(); i++) {
-//            for (int j = 17; j <= 24; j++) {
-//                if (mTorGold.getInt(i, j) == 1) {
-//                    final String category = vars.getCategory(i);
-//                    trues.add(estGraph.getNode(category));
-//                }
-//            }
-//        }
-
         for (int i = 0; i < allVars.size(); i++) {
-//            if (mTorGold.getInt(i, 27) == 1) {
-//                final String category = vars.getCategory(mTorGold.getInt(i, 0));
-////                System.out.println("True " + i + ". " + category);
-//                trues.add(estGraph.getNode(category));
-//            }
-
-
             int count = 0;
 
             for (int j = 25; j <= 32; j++) {
@@ -206,33 +141,10 @@ public class HillStats {
     }
 
 
-    public static DataSet getDiscreteData(String path, Delimiter delimiter, char quoteChar) throws IOException {
-        TabularColumnFileReader colReader = new TabularColumnFileReader(
-                new File(path).toPath(),
-                delimiter
-        );
-
-        colReader.setQuoteCharacter(quoteChar);
-
-        DataColumn[] cols = colReader.generateColumns(new int[0], true);
-
-        TabularDataReader reader = new TabularDataFileReader(
-                new File(path).toPath(),
-                delimiter
-        );
-
-//        MixedTabularDatasetReader reader = new MixedTabularDatasetFileReader(
-//                new File(path).toPath(),
-//                delimiter,
-//                100
-//        );
-
-
-        Data data = reader.read(cols, true);
-
-        final DataSet dataSet = (DataSet) DataConvertUtils.toDataModel(data);
-
-        return dataSet;
+    public static DataSet getDiscreteData(String path, Delimiter delimiter) throws IOException {
+        Path dataFile = Paths.get(path);
+        VerticalDiscreteTabularDatasetReader dataReader = new VerticalDiscreteTabularDatasetFileReader(dataFile, delimiter);
+        return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
     }
 
     public Graph getEstGraph() {

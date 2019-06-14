@@ -23,12 +23,12 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.stat.correlation.Covariance;
-import edu.cmu.tetrad.util.*;
+import edu.cmu.tetrad.util.NumberFormatUtil;
+import edu.cmu.tetrad.util.StatUtils;
+import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
-import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -45,7 +45,7 @@ import static java.lang.StrictMath.log;
  * @author Joseph Ramsey
  * @author Frank Wimberly adapted IndTestCramerT for Fisher's Z
  */
-public final class IndTestFisherZ implements IndependenceTest {
+public final class IndTestFisherZWhittaker implements IndependenceTest {
 
     /**
      * The covariance matrix.
@@ -85,8 +85,6 @@ public final class IndTestFisherZ implements IndependenceTest {
     private double fisherZ = Double.NaN;
     private double cutoff = Double.NaN;
     private NormalDistribution normal = new NormalDistribution(0, 1);
-    private final RecursivePartialCorrelation recursivePartialCorrelation;
-
 
     //==========================CONSTRUCTORS=============================//
 
@@ -97,7 +95,7 @@ public final class IndTestFisherZ implements IndependenceTest {
      * @param dataSet A data set containing only continuous columns.
      * @param alpha   The alpha level of the test.
      */
-    public IndTestFisherZ(DataSet dataSet, double alpha) {
+    public IndTestFisherZWhittaker(DataSet dataSet, double alpha) {
         if (!(dataSet.isContinuous())) {
             throw new IllegalArgumentException("Data set must be continuous.");
         }
@@ -116,8 +114,6 @@ public final class IndTestFisherZ implements IndependenceTest {
         setAlpha(alpha);
 
         this.dataSet = dataSet;
-
-        this.recursivePartialCorrelation = new RecursivePartialCorrelation(variables, this.covMatrix.getMatrix());
     }
 
     /**
@@ -127,7 +123,7 @@ public final class IndTestFisherZ implements IndependenceTest {
      * @param variables A list of variables, a subset of the variables of <code>data</code>.
      * @param alpha     The significance cutoff level. p values less than alpha will be reported as dependent.
      */
-    public IndTestFisherZ(TetradMatrix data, List<Node> variables, double alpha) {
+    public IndTestFisherZWhittaker(TetradMatrix data, List<Node> variables, double alpha) {
         this.dataSet = ColtDataSet.makeContinuousData(variables, data);
         this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
         this.corr = new CorrelationMatrixOnTheFly(covMatrix);
@@ -135,25 +131,19 @@ public final class IndTestFisherZ implements IndependenceTest {
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);
         setAlpha(alpha);
-
-        this.recursivePartialCorrelation = new RecursivePartialCorrelation(variables, this.covMatrix.getMatrix());
-
     }
 
     /**
      * Constructs a new independence test that will determine conditional independence facts using the given correlation
      * matrix and the given significance level.
      */
-    public IndTestFisherZ(ICovarianceMatrix covMatrix, double alpha) {
+    public IndTestFisherZWhittaker(ICovarianceMatrix covMatrix, double alpha) {
         this.covMatrix = covMatrix;
         this.corr = new CorrelationMatrixOnTheFly(covMatrix);
         this.variables = covMatrix.getVariables();
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);
         setAlpha(alpha);
-
-        this.recursivePartialCorrelation = new RecursivePartialCorrelation(variables, this.covMatrix.getMatrix());
-
     }
 
     //==========================PUBLIC METHODS=============================//
@@ -182,7 +172,7 @@ public final class IndTestFisherZ implements IndependenceTest {
         ICovarianceMatrix newCovMatrix = covMatrix.getSubmatrix(indices);
 
         double alphaNew = getAlpha();
-        return new IndTestFisherZ(newCovMatrix, alphaNew);
+        return new IndTestFisherZWhittaker(newCovMatrix, alphaNew);
     }
 
     /**
@@ -213,17 +203,15 @@ public final class IndTestFisherZ implements IndependenceTest {
     }
 
     private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {
-        return recursivePartialCorrelation.corr(x, y, z);
+        int[] indices = new int[z.size() + 2];
+        indices[0] = indexMap.get(x);
+        indices[1] = indexMap.get(y);
 
-//        int[] indices = new int[z.size() + 2];
-//        indices[0] = indexMap.get(x);
-//        indices[1] = indexMap.get(y);
-//
-//        if (z.isEmpty()) return corr.getValue(indices[0], indices[1]);
-//
-//        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i));
-//        TetradMatrix submatrix = corr.getSubmatrix(indices).getMatrix();
-//        return StatUtils.partialCorrelationPrecisionMatrix(submatrix);
+        if (z.isEmpty()) return corr.getValue(indices[0], indices[1]);
+
+        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i));
+        TetradMatrix submatrix = corr.getSubmatrix(indices).getMatrix();
+        return StatUtils.partialCorrelationPrecisionMatrix(submatrix);
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {

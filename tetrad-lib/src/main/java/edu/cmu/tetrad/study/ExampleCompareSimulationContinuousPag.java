@@ -26,13 +26,12 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Cpc;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.FAS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
-import edu.cmu.tetrad.algcomparison.algorithm.pairwise.R3;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.score.DSeparationScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.LoadContinuousDataAndSingleGraph;
@@ -51,22 +50,16 @@ public class ExampleCompareSimulationContinuousPag {
 
     public static void main1(String... args) {
         Parameters parameters = new Parameters();
-        int sampleSize = 1000;
-        int numMeasures = 50;
-        int numLatents = 5;
-        int avgDegree = 4;
-        int maxDegree = 12;
         ExampleCompareSimulationContinuousPag.Type type = Type.LinearNongaussian;
 
         parameters.set("numRuns", 5);
-        parameters.set("numMeasures", numMeasures);
-        parameters.set("numLatents", numLatents);
-        parameters.set("avgDegree", avgDegree);
-        parameters.set("sampleSize", sampleSize); // This varies.
+        parameters.set("numMeasures", 10);
+        parameters.set("numLatents", 0);
+        parameters.set("avgDegree", 4);
+        parameters.set("sampleSize", 1000); // This varies.
         parameters.set("differentGraphs", true);
 
-        parameters.set("alpha", 0.001);
-        parameters.set("penaltyDiscount", 2); // tookout 1
+        parameters.set("alpha", 0.01);
 
         parameters.set("coefLow", 0.3);
         parameters.set("coefHigh", 0.9);
@@ -74,12 +67,22 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("varLow", 0.3);
         parameters.set("varHigh", 0.9);
 
-        parameters.set("maxDegree", maxDegree);
+        parameters.set("maxDegree", 12);
 //        parameters.set("maxIndegree", 3);
 
         parameters.set("completeRuleSetUsed", true);
 
         parameters.set("depth", 8);
+
+        parameters.set("penaltyDiscount", 2, 4, 6);
+        parameters.set("faithfulnessAssumed", true, false);
+        parameters.set("symmetricFirstStep", true, false);
+
+        parameters.set("twoCycleAlpha", 0);
+        parameters.set("extraEdgeThreshold", 1.0);
+
+        parameters.set("useFasAdjacencies", true);
+        parameters.set("useCorrDiffAdjacencies", false);
 
         Statistics statistics = new Statistics();
 
@@ -90,6 +93,11 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
 //        statistics.add(new ParameterColumn("maxDegree"));
+
+        statistics.add(new ParameterColumn("faithfulnessAssumed"));
+        statistics.add(new ParameterColumn("symmetricFirstStep"));
+        statistics.add(new ParameterColumn("maxDegree"));
+
 
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
@@ -114,7 +122,8 @@ public class ExampleCompareSimulationContinuousPag {
 //        algorithms.add(new Fges(new SemBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new R3(new FAS(new FisherZ())));
-//
+//        algorithms.add(new Fask(new FAS(new FisherZ())));
+////
         algorithms.add(new Fci(new SemBicTest()));
         algorithms.add(new Fci(new FisherZ()));
         algorithms.add(new Rfci(new FisherZ()));
@@ -149,10 +158,10 @@ public class ExampleCompareSimulationContinuousPag {
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.PAG_of_the_true_DAG);
 
-        comparison.compareFromSimulations("comparison.continuous.pag", simulations, "comparison_continuous_pag_" + sampleSize, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparison.pag.simulations", simulations, "comparison", algorithms, statistics, parameters);
     }
 
-    public static void main(String... args) {
+    public static void main3(String... args) {
         Parameters parameters = new Parameters();
         int sampleSize = 1000;
         int maxDegree = 12;
@@ -200,7 +209,6 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("kernelRegressionSampleSize"));
 
 
-
         statistics.add(new NumEdgeTrueGraph());
         statistics.add(new NumEdgeEstGraph());
         statistics.add(new AdjacencyPrecision());
@@ -243,10 +251,10 @@ public class ExampleCompareSimulationContinuousPag {
 
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.all.cyclic.ground.truth"));
 
-//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.uaac812.cyclic.ground.truth"));
+        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.uaac812.cyclic.ground.truth"));
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.mcf7.cyclic.ground.truth"));
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt20.cyclic.ground.truth"));
-        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
 
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.egf.cyclic.ground.truth"));
 
@@ -265,8 +273,94 @@ public class ExampleCompareSimulationContinuousPag {
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
-        comparison.compareFromSimulations("comparison.hill", simulations, "comparison_continuous_pag", algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparison.hill", simulations, "comparison.hill", algorithms, statistics, parameters);
 
+    }
+    public static void main(String... args) {
+        Parameters parameters = new Parameters();
+
+        parameters.set("numRuns", 1);
+        parameters.set("numMeasures", 20);
+        parameters.set("avgDegree", 4);
+        parameters.set("sampleSize", 5000);
+        parameters.set("differentGraphs", true);
+        parameters.set("coefLow", 0.3);
+        parameters.set("coefHigh", 0.9);
+        parameters.set("varLow", 0.3);
+        parameters.set("varHigh", 0.9);
+        parameters.set("includePositiveCoefs", true);
+        parameters.set("includeNegativeCoefs", false);
+        parameters.set("depth", -1);
+        parameters.set("penaltyDiscount", 2);
+//        parameters.set("faithfulnessAssumed", true, false);
+//        parameters.set("symmetricFirstStep", true, false);
+        parameters.set("maxDegree", 100);
+
+        // False for non-Gausian.
+        parameters.set("errorsNormal", true);
+        parameters.set("twoCycleAlpha", 0);
+        parameters.set("extraEdgeThreshold", 1.0);
+
+        parameters.set("useFasAdjacencies", true);
+        parameters.set("useCorrDiffAdjacencies", false);
+
+        parameters.set("stableFAS", true);
+        parameters.set("concurrentFAS", false);
+        parameters.set("colliderDiscoveryRule", 3);
+        parameters.set("conflictRule", 3);
+        parameters.set("depth", -1);
+        parameters.set("useMaxPOrientationHeuristic", true);
+//        parameters.set("maxPOrientationMaxPathLength");
+
+        parameters.set("structurePrior", 0.01, 0.1, 1, 2, 3, 5, 10);
+
+
+        Statistics statistics = new Statistics();
+
+        parameters.set("alpha", 0.00001);
+
+        statistics.add(new ParameterColumn("avgDegree"));
+        statistics.add(new ParameterColumn("alpha"));
+        statistics.add(new ParameterColumn("penaltyDiscount"));
+        statistics.add(new ParameterColumn("structurePrior"));
+//
+//        statistics.add(new ParameterColumn("faithfulnessAssumed"));
+//        statistics.add(new ParameterColumn("symmetricFirstStep"));
+//        statistics.add(new ParameterColumn("maxDegree"));
+
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new ElapsedTime());
+
+        Algorithms algorithms = new Algorithms();
+
+//        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new Fask(new FisherZ()));
+        algorithms.add(new PcAll(new FisherZ()));
+        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new Fask(new FAS(new FisherZ())));
+//        algorithms.add(new R3(new FAS(new FisherZ())));
+
+        Simulations simulations = new Simulations();
+
+        simulations.add(new LinearFisherModel(new RandomForward()));
+
+        Comparison comparison = new Comparison();
+
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setShowSimulationIndices(true);
+
+        comparison.setSaveGraphs(false);
+        comparison.setSavePags(false);
+        comparison.setSavePatterns(false);
+
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+
+        comparison.compareFromSimulations("comparison.fges", simulations, "comparison", algorithms, statistics, parameters);
     }
 }
 
