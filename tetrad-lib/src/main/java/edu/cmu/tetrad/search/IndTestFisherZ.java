@@ -192,7 +192,7 @@ public final class IndTestFisherZ implements IndependenceTest {
      * @param y the second variable being compared.
      * @param z the list of conditioning variables.
      * @return true iff x _||_ y | z.
-     * @throws RuntimeException if a matrix singularity is encountered.
+     * @throws RuntimeException if a matrix singularity is encountered.s
      */
     public boolean isIndependent(Node x, Node y, List<Node> z) {
         int n = sampleSize();
