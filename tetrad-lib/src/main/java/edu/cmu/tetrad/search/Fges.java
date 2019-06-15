@@ -260,10 +260,10 @@ public final class Fges implements GraphSearch, GraphScorer {
             fes();
             bes();
 
-            this.mode = Mode.coverNoncolliders;
-            initializeTwoStepEdges(getVariables());
-            fes();
-            bes();
+//            this.mode = Mode.coverNoncolliders;
+//            initializeTwoStepEdges(getVariables());
+//            fes();
+//            bes();
         } else {
             initializeForwardEdgesFromEmptyGraph(getVariables());
 
@@ -272,24 +272,20 @@ public final class Fges implements GraphSearch, GraphScorer {
             fes();
             bes();
 
-            this.mode = Mode.allowUnfaithfulness;
-            initializeForwardEdgesFromExistingGraph(getVariables());
-            fes();
-            bes();
+//            this.mode = Mode.allowUnfaithfulness;
+//            initializeForwardEdgesFromExistingGraph(getVariables());
+//            fes();
+//            bes();
         }
 
         this.modelScore = totalScore;
 
-        if (verbose) {
-            this.out.println("Model Score = " + modelScore);
-        }
+        this.out.println("Model Score = " + modelScore);
 
         for (Node _node : nodeAttributes.keySet()) {
             Object value = nodeAttributes.get(_node);
 
-            if (verbose) {
-                this.out.println(_node.getName() + " Score = " + value);
-            }
+            this.out.println(_node.getName() + " Score = " + value);
 
             Node node = graph.getNode(_node.getName());
             node.addAttribute("BIC", value);
@@ -307,36 +303,6 @@ public final class Fges implements GraphSearch, GraphScorer {
             this.logger.flush();
         }
 
-
-        return graph;
-    }
-
-    public Graph fesGraph() {
-        topGraphs.clear();
-
-        lookupArrows = new ConcurrentHashMap<>();
-        final List<Node> nodes = new ArrayList<>(variables);
-        graph = new EdgeListGraphSingleConnections(nodes);
-
-        if (adjacencies != null) {
-            adjacencies = GraphUtils.replaceNodes(adjacencies, nodes);
-        }
-
-        if (initialGraph != null) {
-            graph = new EdgeListGraphSingleConnections(initialGraph);
-            graph = GraphUtils.replaceNodes(graph, nodes);
-        }
-
-        try {
-            totalScore = scoreDag(SearchGraphUtils.dagFromPattern(graph));
-        } catch (Exception e) {
-            totalScore = 0.0;
-        }
-
-        addRequiredEdges(graph);
-
-        initializeForwardEdgesFromEmptyGraph(getVariables());
-        fes();
 
         return graph;
     }

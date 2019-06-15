@@ -43,7 +43,7 @@ public class RecursivePartialCorrelation {
     private final Map<Node, Integer> nodesMap = new HashMap<>();
 
     public RecursivePartialCorrelation(List<Node> nodes, TetradMatrix cov) {
-        this.corr = new CorrelationMatrixOnTheFly(new CovarianceMatrix(nodes, cov, 1000));
+        this.corr = new CorrelationMatrix(new CovarianceMatrix(nodes, cov, 1000));
         for (int i = 0; i < nodes.size(); i++) nodesMap.put(nodes.get(i), i);
     }
 

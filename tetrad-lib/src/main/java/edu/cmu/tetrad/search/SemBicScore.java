@@ -21,14 +21,14 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.CovarianceMatrix;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.ICovarianceMatrix;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
+import org.apache.commons.math3.util.FastMath;
 
 import java.io.PrintStream;
 import java.util.*;
@@ -82,12 +82,12 @@ public class SemBicScore implements Score {
             throw new NullPointerException();
         }
 
-        this.setCovariances(covariances);
+        setCovariances(covariances);
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
 
-        this.recursivePartialCorrelation = new RecursivePartialCorrelation(variables, this.covariances.getMatrix());
+        this.recursivePartialCorrelation = new RecursivePartialCorrelation(variables, covariances.getMatrix());
     }
 
     /**
@@ -98,11 +98,11 @@ public class SemBicScore implements Score {
 
         try {
             double s2 = getCovariances().getValue(i, i);
-            int p = parents.length + 1;
+            int k = 2 * parents.length + 1;
 
-            TetradMatrix covxx = getSelection(getCovariances(), parents, parents);
-            TetradVector covxy = getSelection(getCovariances(), parents, new int[]{i}).getColumn(0);
-            s2 -= covxx.inverse().times(covxy).dotProduct(covxy);
+            TetradMatrix covxx = getCovariances().getSelection(parents, parents);
+            TetradVector covxy = (getCovariances().getSelection(parents, new int[]{i})).getColumn(0);
+            s2 -= ((covxx.inverse()).times(covxy)).dotProduct(covxy);
 
             if (s2 <= 0) {
                 if (isVerbose()) {
@@ -113,9 +113,15 @@ public class SemBicScore implements Score {
             }
 
             int n = getSampleSize();
-            return -n * log(s2) - getPenaltyDiscount() * p * log(n)
-                    + n * getStructurePrior(parents.length);
+
+//            final double v = gaussianLikelihood(k, getCovariances().getSelection(parents, parents));
+//
+//            return -v - k * log(n);
+//
+            return -n * log(s2) - getPenaltyDiscount() * k * log(n)
+                    + getStructurePrior(parents.length);
         } catch (Exception e) {
+            e.printStackTrace();
             boolean removedOne = true;
 
             while (removedOne) {
@@ -129,6 +135,31 @@ public class SemBicScore implements Score {
 
             return Double.NaN;
         }
+    }
+
+    private static double LOG2PI = log(2.0 * Math.PI);
+
+    // One record.
+    private double gaussianLikelihood(int k, TetradMatrix sigma) {
+        return -0.5 * logdet(sigma) - 0.5 * k * (1 + LOG2PI);
+    }
+
+    private double logdet(TetradMatrix m) {
+        if (m.columns() == 0) {
+            return 1;
+        }
+
+        RealMatrix M = m.getRealMatrix();
+        final double tol = 1e-9;
+        RealMatrix LT = new org.apache.commons.math3.linear.CholeskyDecomposition(M, tol, tol).getLT();
+
+        double sum = 0.0;
+
+        for (int i = 0; i < LT.getRowDimension(); i++) {
+            sum += FastMath.log(LT.getEntry(i, i));
+        }
+
+        return 2.0 * sum;
     }
 
     private double getStructurePrior(int parents) {
@@ -157,7 +188,18 @@ public class SemBicScore implements Score {
 //        int n = covariances.getSampleSize();
 //        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n) + sp1 - sp2;
 
+//        if (localScore(y, append(z, x)) > 0 && localScore(y, z) > 0) {
+//            return +1;
+//        } else if (localScore(y, append(z, x)) > 0 && localScore(y, z) < 0) {
+//            return +1;
+//        } else if (localScore(y, append(z, x)) < 0 && localScore(y, z) > 0) {
+//            return -1;
+//        } else {
+//            return +1;
+//        }
+
         return localScore(y, append(z, x)) - localScore(y, z);
+//        return localScore(y, append(z, x));
     }
 
     private List<Node> getVariableList(int[] indices) {
@@ -195,8 +237,8 @@ public class SemBicScore implements Score {
 
     private int[] append(int[] parents, int extra) {
         int[] all = new int[parents.length + 1];
-        System.arraycopy(parents, 0, all, 1, parents.length);
-        all[0] = extra;
+        System.arraycopy(parents, 0, all, 0, parents.length);
+        all[parents.length] = extra;
         return all;
     }
 
@@ -282,7 +324,7 @@ public class SemBicScore implements Score {
 
     @Override
     public boolean isEffectEdge(double bump) {
-        return bump > 0;//-0.25 * getPenaltyDiscount() * Math.log(sampleSize);
+        return bump > 0;// -.1 * getPenaltyDiscount() * Math.log(sampleSize);
     }
 
     public DataSet getDataSet() {
@@ -304,10 +346,6 @@ public class SemBicScore implements Score {
     @Override
     public List<Node> getVariables() {
         return variables;
-    }
-
-    private TetradMatrix getSelection(ICovarianceMatrix cov, int[] rows, int[] cols) {
-        return cov.getSelection(rows, cols);
     }
 
     // Prints a smallest subset of parents that causes a singular matrix exception.
@@ -342,7 +380,7 @@ public class SemBicScore implements Score {
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {
-        this.covariances = new CovarianceMatrix(covariances);
+        this.covariances = covariances;
     }
 
     public void setVariables(List<Node> variables) {

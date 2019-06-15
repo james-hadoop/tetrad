@@ -671,22 +671,22 @@ public class CovarianceMatrixOnTheFly implements ICovarianceMatrix {
     public TetradMatrix getSelection(int[] rows, int[] cols) {
         TetradMatrix m = new TetradMatrix(rows.length, cols.length);
 
-        if (Arrays.equals(rows, cols)) {
-            for (int i = 0; i < rows.length; i++) {
-                for (int j = i; j < cols.length; j++) {
-                    double value = getValue(rows[i], cols[j]);
-                    m.set(i, j, value);
-                    m.set(j, i, value);
-                }
-            }
-        } else {
+//        if (Arrays.equals(rows, cols)) {
+//            for (int i = 0; i < rows.length; i++) {
+//                for (int j = i; j < cols.length; j++) {
+//                    double value = getValue(rows[i], cols[j]);
+//                    m.set(i, j, value);
+//                    m.set(j, i, value);
+//                }
+//            }
+//        } else {
             for (int i = 0; i < rows.length; i++) {
                 for (int j = 0; j < cols.length; j++) {
                     double value = getValue(rows[i], cols[j]);
                     m.set(i, j, value);
                 }
             }
-        }
+//        }
 
         return m;
     }

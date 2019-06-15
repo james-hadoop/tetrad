@@ -276,22 +276,22 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.compareFromSimulations("comparison.hill", simulations, "comparison.hill", algorithms, statistics, parameters);
 
     }
+
     public static void main(String... args) {
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 4);
-        parameters.set("sampleSize", 5000);
+        parameters.set("sampleSize", 50000);
         parameters.set("differentGraphs", true);
         parameters.set("coefLow", 0.3);
         parameters.set("coefHigh", 0.9);
-        parameters.set("varLow", 0.3);
-        parameters.set("varHigh", 0.9);
+        parameters.set("varLow", 1);
+        parameters.set("varHigh", 3);
         parameters.set("includePositiveCoefs", true);
         parameters.set("includeNegativeCoefs", false);
         parameters.set("depth", -1);
-        parameters.set("penaltyDiscount", 2);
 //        parameters.set("faithfulnessAssumed", true, false);
 //        parameters.set("symmetricFirstStep", true, false);
         parameters.set("maxDegree", 100);
@@ -306,28 +306,30 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("stableFAS", true);
         parameters.set("concurrentFAS", false);
-        parameters.set("colliderDiscoveryRule", 3);
+        parameters.set("colliderDiscoveryRule", 2);
         parameters.set("conflictRule", 3);
         parameters.set("depth", -1);
         parameters.set("useMaxPOrientationHeuristic", true);
 //        parameters.set("maxPOrientationMaxPathLength");
 
-        parameters.set("structurePrior", 0.01, 0.1, 1, 2, 3, 5, 10);
+        parameters.set("structurePrior", 0);
 
 
         Statistics statistics = new Statistics();
 
+        parameters.set("penaltyDiscount", 1);
         parameters.set("alpha", 0.00001);
 
         statistics.add(new ParameterColumn("avgDegree"));
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
-        statistics.add(new ParameterColumn("structurePrior"));
+//        statistics.add(new ParameterColumn("structurePrior"));
 //
 //        statistics.add(new ParameterColumn("faithfulnessAssumed"));
 //        statistics.add(new ParameterColumn("symmetricFirstStep"));
 //        statistics.add(new ParameterColumn("maxDegree"));
 
+        statistics.add(new NumEdgeEstGraph());
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
@@ -339,7 +341,7 @@ public class ExampleCompareSimulationContinuousPag {
 
 //        algorithms.add(new Fges(new SemBicScore()));
 //        algorithms.add(new Fask(new FisherZ()));
-        algorithms.add(new PcAll(new FisherZ()));
+//        algorithms.add(new PcAll(new FisherZ()));
         algorithms.add(new Fges(new SemBicScore()));
 //        algorithms.add(new Fges(new SemBicScore()));
 //        algorithms.add(new Fask(new FAS(new FisherZ())));
@@ -351,8 +353,8 @@ public class ExampleCompareSimulationContinuousPag {
 
         Comparison comparison = new Comparison();
 
-        comparison.setShowAlgorithmIndices(true);
-        comparison.setShowSimulationIndices(true);
+        comparison.setShowAlgorithmIndices(false);
+        comparison.setShowSimulationIndices(false);
 
         comparison.setSaveGraphs(false);
         comparison.setSavePags(false);
