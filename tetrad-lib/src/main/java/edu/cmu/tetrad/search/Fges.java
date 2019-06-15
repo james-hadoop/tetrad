@@ -260,10 +260,10 @@ public final class Fges implements GraphSearch, GraphScorer {
             fes();
             bes();
 
-//            this.mode = Mode.coverNoncolliders;
-//            initializeTwoStepEdges(getVariables());
-//            fes();
-//            bes();
+            this.mode = Mode.coverNoncolliders;
+            initializeTwoStepEdges(getVariables());
+            fes();
+            bes();
         } else {
             initializeForwardEdgesFromEmptyGraph(getVariables());
 
@@ -272,10 +272,10 @@ public final class Fges implements GraphSearch, GraphScorer {
             fes();
             bes();
 
-//            this.mode = Mode.allowUnfaithfulness;
-//            initializeForwardEdgesFromExistingGraph(getVariables());
-//            fes();
-//            bes();
+            this.mode = Mode.allowUnfaithfulness;
+            initializeForwardEdgesFromExistingGraph(getVariables());
+            fes();
+            bes();
         }
 
         this.modelScore = totalScore;
