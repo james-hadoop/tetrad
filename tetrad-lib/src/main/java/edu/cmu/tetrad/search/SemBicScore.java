@@ -188,18 +188,7 @@ public class SemBicScore implements Score {
 //        int n = covariances.getSampleSize();
 //        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n) + sp1 - sp2;
 
-//        if (localScore(y, append(z, x)) > 0 && localScore(y, z) > 0) {
-//            return +1;
-//        } else if (localScore(y, append(z, x)) > 0 && localScore(y, z) < 0) {
-//            return +1;
-//        } else if (localScore(y, append(z, x)) < 0 && localScore(y, z) > 0) {
-//            return -1;
-//        } else {
-//            return +1;
-//        }
-
         return localScore(y, append(z, x)) - localScore(y, z);
-//        return localScore(y, append(z, x));
     }
 
     private List<Node> getVariableList(int[] indices) {

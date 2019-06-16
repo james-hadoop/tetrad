@@ -280,24 +280,21 @@ public class ExampleCompareSimulationContinuousPag {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
 
-        parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 20);
-        parameters.set("avgDegree", 4);
-        parameters.set("sampleSize", 50000);
         parameters.set("differentGraphs", true);
         parameters.set("coefLow", 0.3);
         parameters.set("coefHigh", 0.9);
         parameters.set("varLow", 1);
         parameters.set("varHigh", 3);
         parameters.set("includePositiveCoefs", true);
-        parameters.set("includeNegativeCoefs", false);
+        parameters.set("includeNegativeCoefs", true);
         parameters.set("depth", -1);
 //        parameters.set("faithfulnessAssumed", true, false);
 //        parameters.set("symmetricFirstStep", true, false);
-        parameters.set("maxDegree", 100);
+
+
 
         // False for non-Gausian.
-        parameters.set("errorsNormal", true);
+        parameters.set("errorsNormal", false);
         parameters.set("twoCycleAlpha", 0);
         parameters.set("extraEdgeThreshold", 1.0);
 
@@ -312,12 +309,17 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("useMaxPOrientationHeuristic", true);
 //        parameters.set("maxPOrientationMaxPathLength");
 
+        parameters.set("numRuns", 5);
+        parameters.set("numMeasures", 20);
+        parameters.set("avgDegree", 4);
+        parameters.set("sampleSize", 5000);
+        parameters.set("penaltyDiscount", 1);
         parameters.set("structurePrior", 0);
+        parameters.set("maxDegree", 20);
 
 
         Statistics statistics = new Statistics();
 
-        parameters.set("penaltyDiscount", 1);
         parameters.set("alpha", 0.00001);
 
         statistics.add(new ParameterColumn("avgDegree"));

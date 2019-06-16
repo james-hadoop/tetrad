@@ -402,6 +402,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
      * @return true if the edge was removed, false if not.
      */
     public synchronized boolean removeEdge(Edge edge) {
+        if (edge == null) return false;
         List<Edge> edgeList1 = edgeLists.get(edge.getNode1());
         List<Edge> edgeList2 = edgeLists.get(edge.getNode2());
 
