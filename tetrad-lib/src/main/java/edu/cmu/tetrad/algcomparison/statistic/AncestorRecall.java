@@ -36,7 +36,7 @@ public class AncestorRecall implements Statistic {
         int tp = 0;
         int fp = 0;
 
-        List<Node> nodes = trueGraph.getNodes();
+        List<Node> nodes = _trueGraph.getNodes();
 
         for (int i = 0; i < nodes.size(); i++) {
             for (int j = 0; j < nodes.size(); j++) {
@@ -45,19 +45,19 @@ public class AncestorRecall implements Statistic {
                 Node x = nodes.get(i);
                 Node y = nodes.get(j);
 
-                if (trueGraph.getNode(x.getName()) == null || trueGraph.getNode(y.getName()) == null) {
-                    continue;
-                }
-
-                if (estGraph.getNode(x.getName()) == null || estGraph.getNode(y.getName()) == null) {
-                    continue;
-                }
+//                if (_trueGraph.getNode(x.getName()) == null || _trueGraph.getNode(y.getName()) == null) {
+//                    continue;
+//                }
+//
+//                if (_estGraph.getNode(x.getName()) == null || _estGraph.getNode(y.getName()) == null) {
+//                    continue;
+//                }
 
 //                if (!estGraph.existsTrek(x, y) && !estGraph.existsTrek(y, x)) continue;
 //                if (!trueGraph.existsTrek(x, y) && !trueGraph.existsTrek(y, x)) continue;
 
-                if (trueGraph.isAncestorOf(x, y)) {
-                    if (estGraph.isAncestorOf(x, y)) {
+                if (_trueGraph.isAncestorOf(x, y)) {
+                    if (_estGraph.isAncestorOf(x, y)) {
                         tp++;
                     } else {
                         fp++;

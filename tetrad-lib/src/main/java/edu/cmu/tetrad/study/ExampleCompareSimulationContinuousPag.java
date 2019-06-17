@@ -161,7 +161,7 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.compareFromSimulations("comparison.pag.simulations", simulations, "comparison", algorithms, statistics, parameters);
     }
 
-    public static void main3(String... args) {
+    public static void main2(String... args) {
         Parameters parameters = new Parameters();
         int sampleSize = 1000;
         int maxDegree = 12;
@@ -241,7 +241,7 @@ public class ExampleCompareSimulationContinuousPag {
 //        algorithms.add(new Rfci(new FisherZ()));
         algorithms.add(new FciMax(new FisherZ()));
         algorithms.add(new CFCI(new FisherZ()));
-//        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
         algorithms.add(new Fask(new FisherZ()));
 //        algorithms.add(new FciNg(new FisherZ()));
         algorithms.add(new GfciNg(new FisherZ(), new SemBicScore()));
@@ -251,10 +251,10 @@ public class ExampleCompareSimulationContinuousPag {
 
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.all.cyclic.ground.truth"));
 
-        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.uaac812.cyclic.ground.truth"));
+//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.uaac812.cyclic.ground.truth"));
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.mcf7.cyclic.ground.truth"));
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt20.cyclic.ground.truth"));
-//        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
+        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.bt549.cyclic.ground.truth"));
 
 //        simulations.add(new LoadContinuousDataAndSingleGraph("/Users/user/Box/data/4cellLineData/sessions.for.algcomparison/hill.egf.cyclic.ground.truth"));
 
@@ -303,19 +303,27 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("stableFAS", true);
         parameters.set("concurrentFAS", false);
-        parameters.set("colliderDiscoveryRule", 2);
+        parameters.set("colliderDiscoveryRule", 1, 2);
         parameters.set("conflictRule", 3);
         parameters.set("depth", -1);
         parameters.set("useMaxPOrientationHeuristic", true);
 //        parameters.set("maxPOrientationMaxPathLength");
 
-        parameters.set("numRuns", 5);
+        parameters.set("numRuns", 1);
         parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 4);
-        parameters.set("sampleSize", 5000);
-        parameters.set("penaltyDiscount", 1);
-        parameters.set("structurePrior", 0);
+        parameters.set("sampleSize", 1000);
+        parameters.set("penaltyDiscount", 1, 2, 3, 4, 5, 6, 7, 8);
         parameters.set("maxDegree", 20);
+        parameters.set("faithfulnessAssumed", true);
+        parameters.set("symmetricFirstStep", true);
+        parameters.set("colliderDiscoveryRule", 1, 2);
+
+//        parameters.set("numberResampling", 10);
+//        parameters.set("percentResampleSize", 90);
+//        parameters.set("resamplingWithReplacement", true);
+//        parameters.set("resamplingEnsemble", 1);
+//        parameters.set("addOriginalDataset", true);
 
 
         Statistics statistics = new Statistics();
@@ -326,6 +334,7 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
 //        statistics.add(new ParameterColumn("structurePrior"));
+        statistics.add(new ParameterColumn("colliderDiscoveryRule"));
 //
 //        statistics.add(new ParameterColumn("faithfulnessAssumed"));
 //        statistics.add(new ParameterColumn("symmetricFirstStep"));
@@ -343,9 +352,8 @@ public class ExampleCompareSimulationContinuousPag {
 
 //        algorithms.add(new Fges(new SemBicScore()));
 //        algorithms.add(new Fask(new FisherZ()));
-//        algorithms.add(new PcAll(new FisherZ()));
+        algorithms.add(new PcAll(new FisherZ()));
         algorithms.add(new Fges(new SemBicScore()));
-//        algorithms.add(new Fges(new SemBicScore()));
 //        algorithms.add(new Fask(new FAS(new FisherZ())));
 //        algorithms.add(new R3(new FAS(new FisherZ())));
 
