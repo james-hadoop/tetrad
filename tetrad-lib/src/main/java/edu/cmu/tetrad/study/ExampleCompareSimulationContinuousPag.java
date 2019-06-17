@@ -312,7 +312,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 4);
-        parameters.set("sampleSize", 1000);
+        parameters.set("sampleSize", 1000000);
         parameters.set("penaltyDiscount", 1, 2, 3, 4, 5, 6, 7, 8);
         parameters.set("maxDegree", 20);
         parameters.set("faithfulnessAssumed", true);
