@@ -23,8 +23,10 @@ package edu.cmu.tetrad.algcomparison.examples;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
+import edu.cmu.tetrad.algcomparison.algorithm.cluster.Fofc;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
+import edu.cmu.tetrad.algcomparison.graph.RandomSingleFactorMim;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.MVPBicScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
@@ -43,37 +45,51 @@ public class ExampleCompareSimulation {
         Parameters parameters = new Parameters();
         https://arxiv.org/abs/1607.08110
         parameters.set("numRuns", 10);
-        parameters.set("numMeasures", 100);
-        parameters.set("avgDegree", 4, 6);
+//        parameters.set("numMeasures", 100);
+//        parameters.set("avgDegree", 4, 6);
         parameters.set("sampleSize", 500);
-        parameters.set("alpha", 1e-4, 1e-3, 1e-2);
+//        parameters.set("alpha", 1e-4, 1e-3, 1e-2);
+
+        parameters.set("alpha", 0.001);
+        parameters.set("useWishart", false);
+        parameters.set("useGap", true);
+        parameters.set("verbose", true);
+
+        parameters.set("numStructuralNodes", 1);
+        parameters.set("numStructuralEdges", 0);
+        parameters.set("measurementModelDegree", 4);
+        parameters.set("latentMeasuredImpureParents", 0);
+        parameters.set("measuredMeasuredImpureParents", 0);
+        parameters.set("measuredMeasuredImpureAssociations", 0);
 
         Statistics statistics = new Statistics();
 
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
-        statistics.add(new MathewsCorrAdj());
-        statistics.add(new MathewsCorrArrow());
-        statistics.add(new F1Adj());
-        statistics.add(new F1Arrow());
-        statistics.add(new SHD());
-        statistics.add(new ElapsedTime());
+//        statistics.add(new AdjacencyPrecision());
+//        statistics.add(new AdjacencyRecall());
+//        statistics.add(new ArrowheadPrecision());
+//        statistics.add(new ArrowheadRecall());
+//        statistics.add(new MathewsCorrAdj());
+//        statistics.add(new MathewsCorrArrow());
+//        statistics.add(new F1Adj());
+//        statistics.add(new F1Arrow());
+//        statistics.add(new SHD());
+//        statistics.add(new ElapsedTime());
+        statistics.add(new MySuperDooperStatistic());
 
-        statistics.setWeight("AP", 1.0);
-        statistics.setWeight("AR", 0.5);
+//        statistics.setWeight("AP", 1.0);
+//        statistics.setWeight("AR", 0.5);
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new Pc(new FisherZ()));
-        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
-        algorithms.add(new PcStable(new FisherZ()));
-        algorithms.add(new CpcStable(new FisherZ()));
+        algorithms.add(new Fofc(false));
+        algorithms.add(new Fofc(true));
+//        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
+//        algorithms.add(new PcStable(new FisherZ()));
+//        algorithms.add(new CpcStable(new FisherZ()));
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new SemSimulation(new RandomSingleFactorMim()));
 
         Comparison comparison = new Comparison();
 
@@ -82,6 +98,8 @@ public class ExampleCompareSimulation {
         comparison.setSortByUtility(true);
         comparison.setShowUtilities(true);
         comparison.setParallelized(true);
+
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
         comparison.compareFromSimulations("comparison", simulations, algorithms, statistics, parameters);
     }

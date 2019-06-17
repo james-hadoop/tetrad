@@ -7,6 +7,7 @@ import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.FindOneFactorClusters;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.search.TestType;
@@ -14,7 +15,9 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.bootstrap.BootstrapEdgeEnsemble;
 import edu.pitt.dbmi.algo.bootstrap.GeneralBootstrapTest;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * FOFC.
@@ -29,15 +32,43 @@ import java.util.List;
 public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, ClusterAlgorithm {
 
     static final long serialVersionUID = 23L;
+    private boolean discretize = false;
     private Graph initialGraph = null;
     private Algorithm algorithm = null;
     private IKnowledge knowledge = new Knowledge2();
 
     public Fofc() {
+        this(false);
+    }
+
+    public Fofc(boolean disretize) {
+        this.discretize = disretize;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
+        if (discretize) {
+            dataSet = dataSet.copy();
+
+            Map<Node, DiscretizationSpec> map = new HashMap<>();
+            List<String> categories = new ArrayList<>();
+            categories.add("0");
+            categories.add("1");
+            double[] cutoffList = new double[]{0, 0, 0, 0};
+
+            for (int i = 0; i < dataSet.getVariables().size(); i++) {
+                Node node = dataSet.getVariables().get(i);
+                map.put(node, new ContinuousDiscretizationSpec(new double[]{cutoffList[i]}, categories));
+            }
+
+            Discretizer discretizer = new Discretizer((DataSet) dataSet, map);
+            dataSet = discretizer.discretize();
+
+            dataSet = DataUtils.convertNumericalDiscreteToContinuous((DataSet) dataSet);
+
+            System.out.println(dataSet);
+        }
+
     	if (parameters.getInt("bootstrapSampleSize") < 1) {
             ICovarianceMatrix cov = DataUtils.getCovMatrix(dataSet);
             double alpha = parameters.getDouble("alpha");
