@@ -44,10 +44,10 @@ public class ExampleCompareSimulation {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         https://arxiv.org/abs/1607.08110
-        parameters.set("numRuns", 10);
+        parameters.set("numRuns", 100);
 //        parameters.set("numMeasures", 100);
 //        parameters.set("avgDegree", 4, 6);
-        parameters.set("sampleSize", 500);
+        parameters.set("sampleSize", 1000);
 //        parameters.set("alpha", 1e-4, 1e-3, 1e-2);
 
         parameters.set("alpha", 0.001);
@@ -81,8 +81,9 @@ public class ExampleCompareSimulation {
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new Fofc(false));
-        algorithms.add(new Fofc(true));
+        algorithms.add(new Fofc(true,true,Math.random()));
+        algorithms.add(new Fofc(true,true,1.52));
+        algorithms.add(new Fofc(true,true,2.2));
 //        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
 //        algorithms.add(new PcStable(new FisherZ()));
 //        algorithms.add(new CpcStable(new FisherZ()));

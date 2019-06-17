@@ -41,6 +41,7 @@ public class Discretizer {
     private final DataSet sourceDataSet;
     private final Map<Node, DiscretizationSpec> specs;
     private boolean variablesCopied = true;
+    //private boolean square = false;
 
     /**
      * Constructs a new discretizer that discretizes every variable as binary,
@@ -55,6 +56,7 @@ public class Discretizer {
     public Discretizer(DataSet dataSet, Map<Node, DiscretizationSpec> specs) {
         this.sourceDataSet = dataSet;
         this.specs = specs;
+        //this.square = square;
     }
 
     /**
@@ -364,16 +366,26 @@ public class Discretizer {
                 continue;
             }
 
+//*********** Might be doubled to test the absolute value ************//
+
             for (int j = 0; j < cutoffs.length; j++) {
                 if (_data[i] > Double.NEGATIVE_INFINITY
                         && _data[i] < Double.POSITIVE_INFINITY
-                        && _data[i] < cutoffs[j]) {
+                        && _data[i]< cutoffs[j]) {
                     discreteData[i] = j;
+                    //if (i%50 ==0 )
+                    //{
+                    //    System.out.println(_data[i]+" is smaller than "+cutoffs[j]+" so it is set to "+ j);
+                    //}
                     continue loop;
                 }
             }
 
             discreteData[i] = cutoffs.length;
+            //if (i%50 == 0 )
+            //{
+            //    System.out.println(_data[i]+" is larger than "+cutoffs[cutoffs.length-1]+" so it is set to "+ cutoffs.length);
+            //}
         }
 
         return new Discretization(variable, discreteData);

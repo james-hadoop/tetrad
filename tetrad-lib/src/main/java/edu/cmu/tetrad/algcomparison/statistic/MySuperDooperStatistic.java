@@ -7,6 +7,8 @@ import edu.cmu.tetrad.graph.Graph;
  * The adjacency precision. The true positives are the number of adjacencies in both
  * the true and estimated graphs.
  *
+ *
+ *
  * @author jdramsey
  */
 public class MySuperDooperStatistic implements Statistic {
@@ -24,7 +26,7 @@ public class MySuperDooperStatistic implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
-        System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
+//        System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
 
 //        AdjacencyConfusion adjConfusion = new AdjacencyConfusion(trueGraph, estGraph);
 //        int adjTp = adjConfusion.getAdjTp();

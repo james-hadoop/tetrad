@@ -14,10 +14,12 @@ import edu.cmu.tetrad.search.TestType;
 import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.bootstrap.BootstrapEdgeEnsemble;
 import edu.pitt.dbmi.algo.bootstrap.GeneralBootstrapTest;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 /**
  * FOFC.
@@ -33,16 +35,22 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
 
     static final long serialVersionUID = 23L;
     private boolean discretize = false;
+    private boolean randomCutoff = false;
+    private double scale = 1;
     private Graph initialGraph = null;
     private Algorithm algorithm = null;
     private IKnowledge knowledge = new Knowledge2();
 
     public Fofc() {
-        this(false);
+
+        this(false,false,1);
     }
 
-    public Fofc(boolean disretize) {
+    public Fofc(boolean disretize, boolean randomCutoff, double scale) {
+
         this.discretize = disretize;
+        this.randomCutoff = randomCutoff;
+        this.scale = scale;
     }
 
     @Override
@@ -54,7 +62,13 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
             List<String> categories = new ArrayList<>();
             categories.add("0");
             categories.add("1");
-            double[] cutoffList = new double[]{0, 0, 0, 0};
+            double[] cutoffList = new double[]{};
+            if (randomCutoff) {
+                cutoffList = new double[]{scale*Math.random(), scale*Math.random(), scale*Math.random(), scale*Math.random()};
+                System.out.println("scale: "+scale+" "+Arrays.toString(cutoffList));
+            }else{
+                cutoffList = new double[]{0.5, 0.8, 1.0, 0.2};
+            }
 
             for (int i = 0; i < dataSet.getVariables().size(); i++) {
                 Node node = dataSet.getVariables().get(i);
@@ -66,7 +80,7 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
 
             dataSet = DataUtils.convertNumericalDiscreteToContinuous((DataSet) dataSet);
 
-            System.out.println(dataSet);
+            //System.out.println(dataSet);
         }
 
     	if (parameters.getInt("bootstrapSampleSize") < 1) {
