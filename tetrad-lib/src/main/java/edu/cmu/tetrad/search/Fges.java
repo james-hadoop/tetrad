@@ -1330,7 +1330,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 //                final double cutoff = factor * score.getSampleSize();
                 double n = score.getSampleSize();
 
-                final double cutoff = n * getFactor();
+                final double cutoff = getFactor() * log(score.getSampleSize());
 
 
                 if (bump > cutoff) {

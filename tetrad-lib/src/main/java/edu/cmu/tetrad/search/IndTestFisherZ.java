@@ -104,8 +104,8 @@ public final class IndTestFisherZ implements IndependenceTest {
             throw new IllegalArgumentException("Alpha mut be in [0, 1]");
         }
 
-        this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
-        this.corr = new CorrelationMatrixOnTheFly(covMatrix);
+        this.covMatrix = new CovarianceMatrix(dataSet);
+        this.corr = new CorrelationMatrix(covMatrix);
         List<Node> nodes = covMatrix.getVariables();
 
         this.variables = Collections.unmodifiableList(nodes);

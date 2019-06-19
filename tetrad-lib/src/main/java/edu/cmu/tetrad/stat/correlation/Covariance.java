@@ -27,8 +27,8 @@ package edu.cmu.tetrad.stat.correlation;
  */
 public interface Covariance {
 
-    public float[] computeLowerTriangle(boolean biasCorrected);
+    public double[] computeLowerTriangle(boolean biasCorrected);
 
-    public float[][] compute(boolean biasCorrected);
+    public double[][] compute(boolean biasCorrected);
 
 }

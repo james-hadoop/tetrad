@@ -26,66 +26,64 @@ package edu.cmu.tetrad.stat.correlation;
  *
  * @author Kevin V. Bui (kvb2@pitt.edu)
  */
-public class CovarianceMatrixOnTheFly implements Covariance {
+public class CovariancesDouble {
 
-    private final float[][] data;
+    private final double[][] data;
 
     private final int numOfRows;
 
     private final int numOfCols;
 
-    public CovarianceMatrixOnTheFly(float[][] data) {
+    public CovariancesDouble(double[][] data) {
         this.data = data;
         this.numOfRows = data.length;
         this.numOfCols = data[0].length;
     }
 
-    @Override
-    public float[] computeLowerTriangle(boolean biasCorrected) {
-        float[] covarianceMatrix = new float[(numOfCols * (numOfCols + 1)) / 2];
+    public double[] computeLowerTriangle(boolean biasCorrected) {
+        double[] covarianceMatrix = new double[(numOfCols * (numOfCols + 1)) / 2];
 
         computeMeans();
 
         int index = 0;
         for (int col = 0; col < numOfCols; col++) {
             for (int col2 = 0; col2 < col; col2++) {
-                float variance = 0;
+                double variance = 0;
                 for (int row = 0; row < numOfRows; row++) {
                     variance += ((data[row][col]) * (data[row][col2]) - variance) / (row + 1);
                 }
-                covarianceMatrix[index++] = biasCorrected ? variance * ((float) numOfRows / (float) (numOfRows - 1)) : variance;
+                covarianceMatrix[index++] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
             }
-            float variance = 0;
+            double variance = 0;
             for (int row = 0; row < numOfRows; row++) {
                 variance += ((data[row][col]) * (data[row][col]) - variance) / (row + 1);
             }
-            covarianceMatrix[index++] = biasCorrected ? variance * ((float) numOfRows / (float) (numOfRows - 1)) : variance;
+            covarianceMatrix[index++] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
 
         return covarianceMatrix;
     }
 
-    @Override
-    public float[][] compute(boolean biasCorrected) {
-        float[][] covarianceMatrix = new float[numOfCols][numOfCols];
+    public double[][] compute(boolean biasCorrected) {
+        double[][] covarianceMatrix = new double[numOfCols][numOfCols];
 
         computeMeans();
 
         for (int col = 0; col < numOfCols; col++) {
             for (int col2 = 0; col2 < col; col2++) {
-                float variance = 0;
+                double variance = 0;
                 for (int row = 0; row < numOfRows; row++) {
                     variance += ((data[row][col]) * (data[row][col2]) - variance) / (row + 1);
                 }
-                variance = biasCorrected ? variance * ((float) numOfRows / (float) (numOfRows - 1)) : variance;
+                variance = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
                 covarianceMatrix[col][col2] = variance;
                 covarianceMatrix[col2][col] = variance;
             }
-            float variance = 0;
+            double variance = 0;
             for (int row = 0; row < numOfRows; row++) {
                 variance += ((data[row][col]) * (data[row][col]) - variance) / (row + 1);
             }
-            covarianceMatrix[col][col] = biasCorrected ? variance * ((float) numOfRows / (float) (numOfRows - 1)) : variance;
+            covarianceMatrix[col][col] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
 
         return covarianceMatrix;
@@ -93,7 +91,7 @@ public class CovarianceMatrixOnTheFly implements Covariance {
 
     private void computeMeans() {
         for (int col = 0; col < numOfCols; col++) {
-            float mean = 0;
+            double mean = 0;
             for (int row = 0; row < numOfRows; row++) {
                 mean += data[row][col];
             }

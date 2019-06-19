@@ -21,17 +21,17 @@
 
 package edu.cmu.tetrad.data;
 
-import EDU.oswego.cs.dl.util.concurrent.SyncMap;
 import cern.colt.matrix.DoubleMatrix2D;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.*;
-import org.apache.commons.math3.linear.RealMatrix;
+import edu.cmu.tetrad.stat.correlation.CovariancesDouble;
+import edu.cmu.tetrad.util.NumberFormatUtil;
+import edu.cmu.tetrad.util.TetradAlgebra;
+import edu.cmu.tetrad.util.TetradMatrix;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.concurrent.RecursiveTask;
 
 /**
  * Stores a covariance matrix together with variable names and sample size,
@@ -47,10 +47,8 @@ import java.util.concurrent.RecursiveTask;
  */
 public class CovarianceMatrixOnTheFly implements ICovarianceMatrix {
     static final long serialVersionUID = 23L;
-    private float[][] kevinsCovs;
+    private double[][] kevinsCovs;
     private boolean verbose = false;
-
-    private edu.cmu.tetrad.stat.correlation.CovarianceMatrixOnTheFly kevinsCov;
 
     /**
      * The name of the covariance matrix.
@@ -100,9 +98,9 @@ public class CovarianceMatrixOnTheFly implements ICovarianceMatrix {
      */
     private IKnowledge knowledge = new Knowledge2();
 
-    private double[][] vectors = null;
+//    private double[][] vectors = null;
 
-    private double[] variances;
+//    private double[] variances;
 
 
     //=============================CONSTRUCTORS=========================//
@@ -125,17 +123,8 @@ public class CovarianceMatrixOnTheFly implements ICovarianceMatrix {
         }
 
         final double[][] doubles = dataSet.getDoubleData().toArray();
-
-        final float[][] floats = new float[doubles.length][doubles[0].length];
-
-        for (int i = 0; i < doubles.length; i++) {
-            for (int j = 0; j < doubles[0].length; j++) {
-                floats[i][j] = (float) doubles[i][j];
-            }
-        }
-
-        this.kevinsCov = new edu.cmu.tetrad.stat.correlation.CovarianceMatrixOnTheFly(floats);
-        this.kevinsCovs = this.kevinsCov.compute(true);
+        CovariancesDouble k = new CovariancesDouble(doubles);
+        this.kevinsCovs = k.compute(true);
 
         this.variables = Collections.unmodifiableList(dataSet.getVariables());
         this.sampleSize = dataSet.getNumRows();
@@ -144,163 +133,163 @@ public class CovarianceMatrixOnTheFly implements ICovarianceMatrix {
             System.out.println("Calculating variable vectors");
         }
 
-        if (dataSet instanceof BoxDataSet) {
+//        if (dataSet instanceof BoxDataSet) {
+//
+//            DataBox box = ((BoxDataSet) dataSet).getDataBox();
+//
+//            if (box instanceof VerticalDoubleDataBox) {
+//                if (verbose) {
+//                    System.out.println("Getting vectors from VerticalDoubleDataBox");
+//                }
+////                box = box.copy();
+//
+//                if (!dataSet.getVariables().equals(variables)) throw new IllegalArgumentException();
+//
+//                vectors = ((VerticalDoubleDataBox) box).getVariableVectors();
+//
+//                if (verbose) {
+//                    System.out.println("Calculating means");
+//                }
+//
+//                TetradVector means = DataUtils.means(vectors);
+//                DataUtils.demean(vectors, means);
+//            } else if (box instanceof DoubleDataBox) {
+//                if (verbose) {
+//                    System.out.println("Getting vectors from DoubleDataBox");
+//                }
+//                if (!dataSet.getVariables().equals(variables)) throw new IllegalArgumentException();
+//                double[][] horizData = ((DoubleDataBox) box).getData();
+//
+//                if (verbose) {
+//                    System.out.println("Transposing data");
+//                }
+//
+//                vectors = new double[horizData[0].length][horizData.length];
+//
+//                for (int i = 0; i < horizData.length; i++) {
+//                    for (int j = 0; j < horizData[0].length; j++) {
+//                        vectors[j][i] = horizData[i][j];
+//                    }
+//                }
+//
+//                if (verbose) {
+//                    System.out.println("Calculating means");
+//                }
+//
+//                TetradVector means = DataUtils.means(vectors);
+//                DataUtils.demean(vectors, means);
+//            }
+//
+//
+//        }
 
-            DataBox box = ((BoxDataSet) dataSet).getDataBox();
-
-            if (box instanceof VerticalDoubleDataBox) {
-                if (verbose) {
-                    System.out.println("Getting vectors from VerticalDoubleDataBox");
-                }
-//                box = box.copy();
-
-                if (!dataSet.getVariables().equals(variables)) throw new IllegalArgumentException();
-
-                vectors = ((VerticalDoubleDataBox) box).getVariableVectors();
-
-                if (verbose) {
-                    System.out.println("Calculating means");
-                }
-
-                TetradVector means = DataUtils.means(vectors);
-                DataUtils.demean(vectors, means);
-            } else if (box instanceof DoubleDataBox) {
-                if (verbose) {
-                    System.out.println("Getting vectors from DoubleDataBox");
-                }
-                if (!dataSet.getVariables().equals(variables)) throw new IllegalArgumentException();
-                double[][] horizData = ((DoubleDataBox) box).getData();
-
-                if (verbose) {
-                    System.out.println("Transposing data");
-                }
-
-                vectors = new double[horizData[0].length][horizData.length];
-
-                for (int i = 0; i < horizData.length; i++) {
-                    for (int j = 0; j < horizData[0].length; j++) {
-                        vectors[j][i] = horizData[i][j];
-                    }
-                }
-
-                if (verbose) {
-                    System.out.println("Calculating means");
-                }
-
-                TetradVector means = DataUtils.means(vectors);
-                DataUtils.demean(vectors, means);
-            }
-
-
-        }
-
-        if (vectors == null) {
-            if (verbose) {
-                System.out.println("Copying data");
-            }
-
-            final TetradMatrix doubleData = dataSet.getDoubleData().copy();
-
-            if (verbose) {
-                System.out.println("Calculating means");
-            }
-
-            TetradVector means = DataUtils.means(doubleData);
-
-            if (verbose) {
-                System.out.println("Demeaning");
-            }
-
-            DataUtils.demean(doubleData, means);
-
-            if (verbose) {
-                System.out.println("Getting vectors from data");
-            }
-
-            final RealMatrix realMatrix = doubleData.getRealMatrix();
-
-            vectors = new double[variables.size()][];
-
-            for (int i = 0; i < variables.size(); i++) {
-                vectors[i] = realMatrix.getColumnVector(i).toArray();
-            }
-        }
+//        if (vectors == null) {
+//            if (verbose) {
+//                System.out.println("Copying data");
+//            }
+//
+//            final TetradMatrix doubleData = dataSet.getDoubleData().copy();
+//
+//            if (verbose) {
+//                System.out.println("Calculating means");
+//            }
+//
+//            TetradVector means = DataUtils.means(doubleData);
+//
+//            if (verbose) {
+//                System.out.println("Demeaning");
+//            }
+//
+//            DataUtils.demean(doubleData, means);
+//
+//            if (verbose) {
+//                System.out.println("Getting vectors from data");
+//            }
+//
+//            final RealMatrix realMatrix = doubleData.getRealMatrix();
+//
+//            vectors = new double[variables.size()][];
+//
+//            for (int i = 0; i < variables.size(); i++) {
+//                vectors[i] = realMatrix.getColumnVector(i).toArray();
+//            }
+//        }
 
         if (verbose) {
             System.out.println("Calculating variances");
         }
 
-        this.variances = new double[variables.size()];
+//        this.variances = new double[variables.size()];
 
-        class VarianceTask extends RecursiveTask<Boolean> {
-            private int chunk;
-            private int from;
-            private int to;
+//        class VarianceTask extends RecursiveTask<Boolean> {
+//            private int chunk;
+//            private int from;
+//            private int to;
+//
+//            public VarianceTask(int chunk, int from, int to) {
+//                this.chunk = chunk;
+//                this.from = from;
+//                this.to = to;
+//            }
+//
+//            @Override
+//            protected Boolean compute() {
+//                if (to - from <= chunk) {
+//                    for (int i = from; i < to; i++) {
+//                        double d = 0.0D;
+//
+//                        int count = 0;
+//
+//                        double[] v1 = vectors[i];
+//
+//                        for (int k = 0; k < sampleSize; ++k) {
+//                            if (Double.isNaN(v1[k])) {
+//                                continue;
+//                            }
+//
+//                            d += v1[k] * v1[k];
+//                            count++;
+//                        }
+//
+//                        double v = d;
+////                        v /= (sampleSize - 1);
+//                        v /= (count - 1);
+////                        v /= count;
+//
+//                        variances[i] = v;
+//
+//                        if (v == 0) {
+//                            System.out.println("Zero variance! " + variables.get(i));
+//                        }
+//                    }
+//
+//                    return true;
+//                } else {
+//                    final int numIntervals = 4;
+//
+//                    int step = (to - from) / numIntervals + 1;
+//
+//                    List<VarianceTask> tasks = new ArrayList<>();
+//
+//                    for (int i = 0; i < numIntervals; i++) {
+//                        VarianceTask task = new VarianceTask(chunk, from + i * step, Math.min(from + (i + 1) * step, to));
+//                        tasks.add(task);
+//                    }
+//
+//                    invokeAll(tasks);
+//
+//                    return true;
+//                }
+//            }
+//        }
 
-            public VarianceTask(int chunk, int from, int to) {
-                this.chunk = chunk;
-                this.from = from;
-                this.to = to;
-            }
+//        int NTHREADS = Runtime.getRuntime().availableProcessors() * 10;
+//        int _chunk = variables.size() / NTHREADS + 1;
+//        int minChunk = 100;
+//        final int chunk = _chunk < minChunk ? minChunk : _chunk;
 
-            @Override
-            protected Boolean compute() {
-                if (to - from <= chunk) {
-                    for (int i = from; i < to; i++) {
-                        double d = 0.0D;
-
-                        int count = 0;
-
-                        double[] v1 = vectors[i];
-
-                        for (int k = 0; k < sampleSize; ++k) {
-                            if (Double.isNaN(v1[k])) {
-                                continue;
-                            }
-
-                            d += v1[k] * v1[k];
-                            count++;
-                        }
-
-                        double v = d;
-//                        v /= (sampleSize - 1);
-                        v /= (count - 1);
-//                        v /= count;
-
-                        variances[i] = v;
-
-                        if (v == 0) {
-                            System.out.println("Zero variance! " + variables.get(i));
-                        }
-                    }
-
-                    return true;
-                } else {
-                    final int numIntervals = 4;
-
-                    int step = (to - from) / numIntervals + 1;
-
-                    List<VarianceTask> tasks = new ArrayList<>();
-
-                    for (int i = 0; i < numIntervals; i++) {
-                        VarianceTask task = new VarianceTask(chunk, from + i * step, Math.min(from + (i + 1) * step, to));
-                        tasks.add(task);
-                    }
-
-                    invokeAll(tasks);
-
-                    return true;
-                }
-            }
-        }
-
-        int NTHREADS = Runtime.getRuntime().availableProcessors() * 10;
-        int _chunk = variables.size() / NTHREADS + 1;
-        int minChunk = 100;
-        final int chunk = _chunk < minChunk ? minChunk : _chunk;
-
-        VarianceTask task = new VarianceTask(chunk, 0, variables.size());
-        ForkJoinPoolInstance.getInstance().getPool().invoke(task);
+//        VarianceTask task = new VarianceTask(chunk, 0, variables.size());
+//        ForkJoinPoolInstance.getInstance().getPool().invoke(task);
 
         if (verbose) {
             System.out.println("Done with variances.");
@@ -496,25 +485,26 @@ public class CovarianceMatrixOnTheFly implements ICovarianceMatrix {
 //            return variances[i];
 //        }
 
-        double d = 0.0D;
-
-        double[] v1 = vectors[i];
-        double[] v2 = vectors[j];
-        int count = 0;
-
-        for (int k : rows) {
-            if (Double.isNaN(v1[k])) continue;
-            if (Double.isNaN(v2[k])) continue;
-
-            d += v1[k] * v2[k];
-            count++;
-        }
-
-        double v = d;
-//        v /= (sampleSize - 1);
-        v /= (count - 1);
-//        v /= count;
-        return v;
+//        double d = 0.0D;
+//
+//        double[] v1 = vectors[i];
+//        double[] v2 = vectors[j];
+//        int count = 0;
+//
+//        for (int k : rows) {
+//            if (Double.isNaN(v1[k])) continue;
+//            if (Double.isNaN(v2[k])) continue;
+//
+//            d += v1[k] * v2[k];
+//            count++;
+//        }
+//
+//        double v = d;
+////        v /= (sampleSize - 1);
+//        v /= (count - 1);
+////        v /= count;
+//        return v;
+        throw new IllegalStateException();
     }
 
     public void setMatrix(TetradMatrix matrix) {
