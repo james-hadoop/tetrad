@@ -47,7 +47,10 @@ import java.util.concurrent.RecursiveTask;
  */
 public class CovarianceMatrixOnTheFly implements ICovarianceMatrix {
     static final long serialVersionUID = 23L;
+    private float[][] kevinsCovs;
     private boolean verbose = false;
+
+    private edu.cmu.tetrad.stat.correlation.CovarianceMatrixOnTheFly kevinsCov;
 
     /**
      * The name of the covariance matrix.
@@ -120,6 +123,19 @@ public class CovarianceMatrixOnTheFly implements ICovarianceMatrix {
         if (!dataSet.isContinuous()) {
             throw new IllegalArgumentException("Not a continuous data set.");
         }
+
+        final double[][] doubles = dataSet.getDoubleData().toArray();
+
+        final float[][] floats = new float[doubles.length][doubles[0].length];
+
+        for (int i = 0; i < doubles.length; i++) {
+            for (int j = 0; j < doubles[0].length; j++) {
+                floats[i][j] = (float) doubles[i][j];
+            }
+        }
+
+        this.kevinsCov = new edu.cmu.tetrad.stat.correlation.CovarianceMatrixOnTheFly(floats);
+        this.kevinsCovs = this.kevinsCov.compute(true);
 
         this.variables = Collections.unmodifiableList(dataSet.getVariables());
         this.sampleSize = dataSet.getNumRows();
@@ -249,6 +265,7 @@ public class CovarianceMatrixOnTheFly implements ICovarianceMatrix {
                         double v = d;
 //                        v /= (sampleSize - 1);
                         v /= (count - 1);
+//                        v /= count;
 
                         variances[i] = v;
 
@@ -446,28 +463,32 @@ public class CovarianceMatrixOnTheFly implements ICovarianceMatrix {
      * @return the value of element (i,j) in the matrix
      */
     public final double getValue(int i, int j) {
-        if (i == j) {
-            return variances[i];
-        }
+        return kevinsCovs[i][j];
 
-        double d = 0.0D;
-
-        double[] v1 = vectors[i];
-        double[] v2 = vectors[j];
-        int count = 0;
-
-        for (int k = 0; k < sampleSize; k++) {
-            if (Double.isNaN(v1[k])) continue;
-            if (Double.isNaN(v2[k])) continue;
-
-            d += v1[k] * v2[k];
-            count++;
-        }
-
-        double v = d;
-//        v /= (sampleSize - 1);
-        v /= (count - 1);
-        return v;
+//        if (i == j) {
+//            return variances[i];
+//        }
+//
+//        double d = 0.0D;
+//
+//        double[] v1 = vectors[i];
+//        double[] v2 = vectors[j];
+//        int count = 0;
+//
+//        for (int k = 0; k < sampleSize; k++) {
+//            if (Double.isNaN(v1[k])) continue;
+//            if (Double.isNaN(v2[k])) continue;
+//
+//            d += v1[k] * v2[k];
+//            count++;
+//        }
+//
+//        double v = d;
+////        v /= (sampleSize);
+////        v /= (sampleSize - 1);
+////        v /= count;
+//        v /= (count - 1);
+//        return v;
     }
 
     public final double getValue(int i, int j, int[] rows) {

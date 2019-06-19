@@ -303,7 +303,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("stableFAS", true);
         parameters.set("concurrentFAS", false);
-        parameters.set("colliderDiscoveryRule", 1, 2);
+//        parameters.set("colliderDiscoveryRule", 1, 2);
         parameters.set("conflictRule", 3);
         parameters.set("depth", -1);
         parameters.set("useMaxPOrientationHeuristic", true);
@@ -312,12 +312,15 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 4);
-        parameters.set("sampleSize", 1000000);
-        parameters.set("penaltyDiscount", 1, 2, 3, 4, 5, 6, 7, 8);
-        parameters.set("maxDegree", 20);
+        parameters.set("sampleSize", 100000);
+        parameters.set("penaltyDiscount", 1, 2, 3, 4, 5);//, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20);
+        parameters.set("structurePrior", 0, 1, 2, 3, 4, 5, 6);
+        parameters.set("maxDegree", 100000);
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", true);
         parameters.set("colliderDiscoveryRule", 1, 2);
+        parameters.set("cutoffFactor", 0, 0.002, 0.005, 0.01);//0.02, 0.03, 0.04, .05, 0.1);//, 0.15, 0.20);//, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5);
+//                , 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0);
 
 //        parameters.set("numberResampling", 10);
 //        parameters.set("percentResampleSize", 90);
@@ -333,7 +336,8 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("avgDegree"));
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
-//        statistics.add(new ParameterColumn("structurePrior"));
+        statistics.add(new ParameterColumn("structurePrior"));
+        statistics.add(new ParameterColumn("cutoffFactor"));
         statistics.add(new ParameterColumn("colliderDiscoveryRule"));
 //
 //        statistics.add(new ParameterColumn("faithfulnessAssumed"));
@@ -347,6 +351,11 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecall());
         statistics.add(new ElapsedTime());
+
+        statistics.setWeight("AP", 1.0);
+        statistics.setWeight("AR", 1.0);
+        statistics.setWeight("AHP", .5);
+        statistics.setWeight("AHR", .2);
 
         Algorithms algorithms = new Algorithms();
 
@@ -370,7 +379,9 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.setSavePags(false);
         comparison.setSavePatterns(false);
 
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setSortByUtility(true);
+
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
         comparison.compareFromSimulations("comparison.fges", simulations, "comparison", algorithms, statistics, parameters);
     }

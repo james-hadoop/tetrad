@@ -61,7 +61,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
-    	if (parameters.getInt("numberResampling") < 1) {
+        if (parameters.getInt("numberResampling") < 1) {
             if (algorithm != null) {
 //                initialGraph = algorithm.search(dataSet, parameters);
             }
@@ -73,6 +73,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setMaxDegree(parameters.getInt("maxDegree"));
             search.setSymmetricFirstStep(parameters.getBoolean("symmetricFirstStep"));
+            search.setFactor(parameters.getDouble("cutoffFactor"));
 
             Object obj = parameters.get("printStream");
             if (obj instanceof PrintStream) {
@@ -91,10 +92,10 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
-            
+
             search.setPercentResampleSize(parameters.getDouble("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
-            
+
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt("resamplingEnsemble", 1)) {
                 case 0:
@@ -108,7 +109,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
             }
             search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean("addOriginalDataset"));
-            
+
             search.setParameters(parameters);
             search.setVerbose(parameters.getBoolean("verbose"));
             return search.search();
@@ -141,6 +142,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
         parameters.add("faithfulnessAssumed");
         parameters.add("symmetricFirstStep");
         parameters.add("maxDegree");
+        parameters.add("cutoffFactor");
         parameters.add("verbose");
         // Resampling
         parameters.add("numberResampling");
@@ -185,7 +187,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
     public void setScoreWrapper(ScoreWrapper score) {
         this.score = score;
     }
-    
+
     @Override
     public ScoreWrapper getScoreWarpper() {
         return score;

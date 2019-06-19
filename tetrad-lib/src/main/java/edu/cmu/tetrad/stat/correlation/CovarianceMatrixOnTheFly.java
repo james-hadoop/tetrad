@@ -103,5 +103,4 @@ public class CovarianceMatrixOnTheFly implements Covariance {
             }
         }
     }
-
 }

@@ -25,9 +25,7 @@ import edu.cmu.tetrad.data.CorrelationMatrix;
 import edu.cmu.tetrad.data.CorrelationMatrixOnTheFly;
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
-import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.MatrixUtils;
 import edu.cmu.tetrad.util.TetradMatrix;
 
 import java.util.*;
@@ -42,8 +40,14 @@ public class RecursivePartialCorrelation {
     private ICovarianceMatrix corr;
     private final Map<Node, Integer> nodesMap = new HashMap<>();
 
-    public RecursivePartialCorrelation(List<Node> nodes, TetradMatrix cov) {
-        this.corr = new CorrelationMatrix(new CovarianceMatrix(nodes, cov, 1000));
+    public RecursivePartialCorrelation(List<Node> nodes, TetradMatrix cov, int sampleSize) {
+        this.corr = new CorrelationMatrix(new CovarianceMatrix(nodes, cov, sampleSize));
+        for (int i = 0; i < nodes.size(); i++) nodesMap.put(nodes.get(i), i);
+    }
+
+    public RecursivePartialCorrelation(ICovarianceMatrix cov) {
+        this.corr = new CorrelationMatrixOnTheFly(cov);
+        List<Node> nodes = corr.getVariables();
         for (int i = 0; i < nodes.size(); i++) nodesMap.put(nodes.get(i), i);
     }
 

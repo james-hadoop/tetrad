@@ -23,12 +23,10 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.stat.correlation.Covariance;
 import edu.cmu.tetrad.util.*;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
-import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -117,7 +115,7 @@ public final class IndTestFisherZ implements IndependenceTest {
 
         this.dataSet = dataSet;
 
-        this.recursivePartialCorrelation = new RecursivePartialCorrelation(variables, this.covMatrix.getMatrix());
+        this.recursivePartialCorrelation = new RecursivePartialCorrelation(this.covMatrix);
     }
 
     /**
@@ -136,7 +134,7 @@ public final class IndTestFisherZ implements IndependenceTest {
         this.nameMap = nameMap(variables);
         setAlpha(alpha);
 
-        this.recursivePartialCorrelation = new RecursivePartialCorrelation(variables, this.covMatrix.getMatrix());
+        this.recursivePartialCorrelation = new RecursivePartialCorrelation(this.covMatrix);
 
     }
 
@@ -152,7 +150,7 @@ public final class IndTestFisherZ implements IndependenceTest {
         this.nameMap = nameMap(variables);
         setAlpha(alpha);
 
-        this.recursivePartialCorrelation = new RecursivePartialCorrelation(variables, this.covMatrix.getMatrix());
+        this.recursivePartialCorrelation = new RecursivePartialCorrelation(this.covMatrix);
 
     }
 

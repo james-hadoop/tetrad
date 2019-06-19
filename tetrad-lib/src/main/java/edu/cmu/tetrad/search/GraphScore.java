@@ -99,7 +99,7 @@ public class GraphScore implements Score {
 //            System.out.println("\t NOT " + SearchLogUtils.independenceFact(_x, _y, _z));
 //        }
 
-        return dSeparatedFrom ? -1.0 : 1.0;
+        return dSeparatedFrom ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
     }
 
     private double aBetterScore(int x, int y, int[] z) {
