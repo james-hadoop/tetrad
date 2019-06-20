@@ -8,6 +8,8 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.search.IndTestFisherZ;
+import edu.cmu.tetrad.search.IndTestFisherZInverseCorrelation;
+import edu.cmu.tetrad.search.IndTestFisherZInverseCovariance;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
 
@@ -20,13 +22,13 @@ import java.util.List;
  * @author jdramsey
  */
 @TestOfIndependence(
-        name = "Fisher Z Test, Inverse Covariance",
-        command = "fisher-z-precision-inverse-covariance",
+        name = "Fisher Z Test, Inverse Correlation",
+        command = "fisher-z-precision-inverse-correlation",
         dataType = {DataType.Continuous, DataType.Covariance}
 )
 @Gaussian
 @Linear
-public class FisherZPrecisionMatrixInverseCovarariance implements IndependenceWrapper {
+public class FisherZInverseCorrelation implements IndependenceWrapper {
 
     static final long serialVersionUID = 23L;
 
@@ -35,9 +37,9 @@ public class FisherZPrecisionMatrixInverseCovarariance implements IndependenceWr
         double alpha = parameters.getDouble("alpha");
 
         if (dataSet instanceof ICovarianceMatrix) {
-            return new IndTestFisherZ((ICovarianceMatrix) dataSet, alpha);
+            return new IndTestFisherZInverseCorrelation((ICovarianceMatrix) dataSet, alpha);
         } else if (dataSet instanceof DataSet) {
-            return new IndTestFisherZ((DataSet) dataSet, alpha);
+            return new IndTestFisherZInverseCorrelation((DataSet) dataSet, alpha);
         }
 
         throw new IllegalArgumentException("Expecting eithet a data set or a covariance matrix.");
@@ -45,7 +47,7 @@ public class FisherZPrecisionMatrixInverseCovarariance implements IndependenceWr
 
     @Override
     public String getDescription() {
-        return "Fisher Z test, Inverse Covariance";
+        return "Fisher Z test, Inverse Correlation";
     }
 
     @Override

@@ -23,7 +23,9 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.*;
+import edu.cmu.tetrad.util.NumberFormatUtil;
+import edu.cmu.tetrad.util.StatUtils;
+import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
@@ -43,12 +45,9 @@ import static java.lang.StrictMath.log;
  * @author Joseph Ramsey
  * @author Frank Wimberly adapted IndTestCramerT for Fisher's Z
  */
-public final class IndTestFisherZRecursive implements IndependenceTest {
+public final class IndTestFisherZInverseCorrelation implements IndependenceTest {
 
-    /**
-     * The covariance matrix.
-     */
-    private final ICovarianceMatrix covMatrix;
+    private final ICovarianceMatrix corr;
 
     /**
      * The variables of the covariance matrix, in order. (Unmodifiable list.)
@@ -81,8 +80,6 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
     private double fisherZ = Double.NaN;
     private double cutoff = Double.NaN;
     private NormalDistribution normal = new NormalDistribution(0, 1);
-    private final RecursivePartialCorrelation recursivePartialCorrelation;
-
 
     //==========================CONSTRUCTORS=============================//
 
@@ -93,7 +90,7 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
      * @param dataSet A data set containing only continuous columns.
      * @param alpha   The alpha level of the test.
      */
-    public IndTestFisherZRecursive(DataSet dataSet, double alpha) {
+    public IndTestFisherZInverseCorrelation(DataSet dataSet, double alpha) {
         if (!(dataSet.isContinuous())) {
             throw new IllegalArgumentException("Data set must be continuous.");
         }
@@ -102,8 +99,8 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
             throw new IllegalArgumentException("Alpha mut be in [0, 1]");
         }
 
-        this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
-        List<Node> nodes = covMatrix.getVariables();
+        this.corr = new CorrelationMatrix(new CovarianceMatrix(dataSet));
+        List<Node> nodes = corr.getVariables();
 
         this.variables = Collections.unmodifiableList(nodes);
         this.indexMap = indexMap(variables);
@@ -111,8 +108,6 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
         setAlpha(alpha);
 
         this.dataSet = dataSet;
-
-        this.recursivePartialCorrelation = new RecursivePartialCorrelation(this.covMatrix);
     }
 
     /**
@@ -122,31 +117,25 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
      * @param variables A list of variables, a subset of the variables of <code>data</code>.
      * @param alpha     The significance cutoff level. p values less than alpha will be reported as dependent.
      */
-    public IndTestFisherZRecursive(TetradMatrix data, List<Node> variables, double alpha) {
+    public IndTestFisherZInverseCorrelation(TetradMatrix data, List<Node> variables, double alpha) {
         this.dataSet = ColtDataSet.makeContinuousData(variables, data);
-        this.covMatrix = new CovarianceMatrix(dataSet);
+        this.corr = new CorrelationMatrix(new CovarianceMatrix(dataSet));
         this.variables = Collections.unmodifiableList(variables);
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);
         setAlpha(alpha);
-
-        this.recursivePartialCorrelation = new RecursivePartialCorrelation(this.covMatrix);
-
     }
 
     /**
      * Constructs a new independence test that will determine conditional independence facts using the given correlation
      * matrix and the given significance level.
      */
-    public IndTestFisherZRecursive(ICovarianceMatrix covMatrix, double alpha) {
-        this.covMatrix = covMatrix;
+    public IndTestFisherZInverseCorrelation(ICovarianceMatrix covMatrix, double alpha) {
+        this.corr = new CorrelationMatrix(covMatrix);
         this.variables = covMatrix.getVariables();
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);
         setAlpha(alpha);
-
-        this.recursivePartialCorrelation = new RecursivePartialCorrelation(this.covMatrix);
-
     }
 
     //==========================PUBLIC METHODS=============================//
@@ -172,10 +161,10 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
             indices[i] = indexMap.get(vars.get(i));
         }
 
-        ICovarianceMatrix newCovMatrix = covMatrix.getSubmatrix(indices);
+        ICovarianceMatrix newCovMatrix = corr.getSubmatrix(indices);
 
         double alphaNew = getAlpha();
-        return new IndTestFisherZ(newCovMatrix, alphaNew);
+        return new IndTestFisherZInverseCorrelation(newCovMatrix, alphaNew);
     }
 
     /**
@@ -206,17 +195,15 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
     }
 
     private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {
-        return recursivePartialCorrelation.corr(x, y, z);
+        int[] indices = new int[z.size() + 2];
+        indices[0] = indexMap.get(x);
+        indices[1] = indexMap.get(y);
 
-//        int[] indices = new int[z.size() + 2];
-//        indices[0] = indexMap.get(x);
-//        indices[1] = indexMap.get(y);
-//
-//        if (z.isEmpty()) return corr.getValue(indices[0], indices[1]);
-//
-//        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i));
-//        TetradMatrix submatrix = corr.getSubmatrix(indices).getMatrix();
-//        return StatUtils.partialCorrelationPrecisionMatrix(submatrix);
+        if (z.isEmpty()) return corr.getValue(indices[0], indices[1]);
+
+        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i));
+        TetradMatrix submatrix = corr.getSubmatrix(indices).getMatrix();
+        return StatUtils.partialCorrelationPrecisionMatrix(submatrix);
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {
@@ -294,13 +281,13 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
         int[] parents = new int[z.size()];
 
         for (int j = 0; j < parents.length; j++) {
-            parents[j] = covMatrix.getVariables().indexOf(z.get(j));
+            parents[j] = corr.getVariables().indexOf(z.get(j));
         }
 
         if (parents.length > 0) {
 
             // Regress z onto i, yielding regression coefficients b.
-            TetradMatrix Czz = covMatrix.getSelection(parents, parents);
+            TetradMatrix Czz = corr.getSelection(parents, parents);
 
             try {
                 Czz.inverse();
@@ -334,7 +321,7 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
     }
 
     private ICovarianceMatrix covMatrix() {
-        return covMatrix;
+        return corr;
     }
 
     private Map<String, Node> nameMap(List<Node> variables) {
@@ -360,11 +347,11 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
     public void setVariables(List<Node> variables) {
         if (variables.size() != this.variables.size()) throw new IllegalArgumentException("Wrong # of variables.");
         this.variables = new ArrayList<>(variables);
-        covMatrix.setVariables(variables);
+        corr.setVariables(variables);
     }
 
     public ICovarianceMatrix getCov() {
-        return covMatrix;
+        return corr;
     }
 
     @Override
@@ -376,7 +363,7 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
 
     @Override
     public int getSampleSize() {
-        return covMatrix.getSampleSize();
+        return corr.getSampleSize();
     }
 
     @Override

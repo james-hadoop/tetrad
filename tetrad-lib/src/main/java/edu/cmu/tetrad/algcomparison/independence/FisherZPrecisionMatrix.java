@@ -20,8 +20,8 @@ import java.util.List;
  * @author jdramsey
  */
 @TestOfIndependence(
-        name = "Fisher Z Test, Inverse Correlation",
-        command = "fisher-z-inverse-corralation",
+        name = "Fisher Z Test, Precision Matrix",
+        command = "fisher-z-precision",
         dataType = {DataType.Continuous, DataType.Covariance}
 )
 @Gaussian
@@ -45,7 +45,7 @@ public class FisherZPrecisionMatrix implements IndependenceWrapper {
 
     @Override
     public String getDescription() {
-        return "Fisher Z test, Inverse Correlation";
+        return "Fisher Z test, Precision Matrix";
     }
 
     @Override

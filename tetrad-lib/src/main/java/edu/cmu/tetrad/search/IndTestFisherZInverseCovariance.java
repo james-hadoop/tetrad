@@ -52,8 +52,6 @@ public final class IndTestFisherZInverseCovariance implements IndependenceTest {
      */
     private final ICovarianceMatrix covMatrix;
 
-    private final ICovarianceMatrix corr;
-
     /**
      * The variables of the covariance matrix, in order. (Unmodifiable list.)
      */
@@ -104,8 +102,7 @@ public final class IndTestFisherZInverseCovariance implements IndependenceTest {
             throw new IllegalArgumentException("Alpha mut be in [0, 1]");
         }
 
-        this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
-        this.corr = new CorrelationMatrixOnTheFly(covMatrix);
+        this.covMatrix = new CovarianceMatrix(dataSet);
         List<Node> nodes = covMatrix.getVariables();
 
         this.variables = Collections.unmodifiableList(nodes);
@@ -125,8 +122,7 @@ public final class IndTestFisherZInverseCovariance implements IndependenceTest {
      */
     public IndTestFisherZInverseCovariance(TetradMatrix data, List<Node> variables, double alpha) {
         this.dataSet = ColtDataSet.makeContinuousData(variables, data);
-        this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
-        this.corr = new CorrelationMatrixOnTheFly(covMatrix);
+        this.covMatrix = new CovarianceMatrix(dataSet);
         this.variables = Collections.unmodifiableList(variables);
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);
@@ -139,7 +135,6 @@ public final class IndTestFisherZInverseCovariance implements IndependenceTest {
      */
     public IndTestFisherZInverseCovariance(ICovarianceMatrix covMatrix, double alpha) {
         this.covMatrix = covMatrix;
-        this.corr = new CorrelationMatrixOnTheFly(covMatrix);
         this.variables = covMatrix.getVariables();
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);
@@ -207,7 +202,7 @@ public final class IndTestFisherZInverseCovariance implements IndependenceTest {
         indices[0] = indexMap.get(x);
         indices[1] = indexMap.get(y);
 
-        if (z.isEmpty()) return corr.getValue(indices[0], indices[1]);
+        if (z.isEmpty()) return covMatrix.getValue(indices[0], indices[1]);
 
         for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i));
         TetradMatrix submatrix = covMatrix.getSubmatrix(indices).getMatrix();

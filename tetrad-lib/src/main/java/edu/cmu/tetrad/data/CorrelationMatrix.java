@@ -47,7 +47,7 @@ public final class CorrelationMatrix extends CovarianceMatrix
      * covariance matrix.
      */
     public CorrelationMatrix(ICovarianceMatrix matrix) {
-        this(matrix.getVariables(), matrix.getMatrix().copy(), matrix.getSampleSize());
+        this(matrix.getVariables(), matrix.getMatrix(), matrix.getSampleSize());
     }
 
     /**
