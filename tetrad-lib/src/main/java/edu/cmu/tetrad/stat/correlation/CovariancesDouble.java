@@ -120,7 +120,7 @@ public class CovariancesDouble implements Covariances {
             covarianceMatrix[col1][col1] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
 
-        System.out.println("kevin = " + new TetradMatrix(covarianceMatrix));
+//        System.out.println("kevin = " + new TetradMatrix(covarianceMatrix));
 
         return covarianceMatrix;
     }

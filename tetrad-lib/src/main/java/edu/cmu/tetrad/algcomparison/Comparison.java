@@ -80,7 +80,7 @@ public class Comparison {
     private boolean parallelized = true;
     private boolean savePatterns = false;
     private boolean savePags = false;
-//    private boolean saveTrueDags = false;
+    //    private boolean saveTrueDags = false;
     private ArrayList<String> dirs = null;
     private ComparisonGraph comparisonGraph = ComparisonGraph.true_DAG;
 
@@ -427,13 +427,18 @@ public class Comparison {
             statTables = calcStatTables(allStats, Mode.StandardDeviation, numTables,
                     algorithmSimulationWrappers, numStats, statistics);
 
+            for (int u = 0; u < numTables; u++) {
+                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                    statTables[u][t][numStats] = utilities[t];
+                }
+            }
+
             printStats(statTables, statistics, Mode.StandardDeviation, newOrder, algorithmSimulationWrappers, algorithmWrappers,
                     simulationWrappers, utilities, parameters);
 
             statTables = calcStatTables(allStats, Mode.WorstCase, numTables, algorithmSimulationWrappers,
                     numStats, statistics);
 
-            // Add utilities to table as the last column.
             for (int u = 0; u < numTables; u++) {
                 for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
                     statTables[u][t][numStats] = utilities[t];
@@ -442,6 +447,25 @@ public class Comparison {
 
             printStats(statTables, statistics, Mode.WorstCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
                     simulationWrappers, utilities, parameters);
+
+            statTables = calcStatTables(allStats, Mode.MedianCase, numTables, algorithmSimulationWrappers,
+                    numStats, statistics);
+
+            for (int u = 0; u < numTables; u++) {
+                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                    statTables[u][t][numStats] = utilities[t];
+                }
+            }
+
+             printStats(statTables, statistics, Mode.MedianCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
+                    simulationWrappers, utilities, parameters);
+
+            // Add utilities to table as the last column.
+            for (int u = 0; u < numTables; u++) {
+                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                    statTables[u][t][numStats] = utilities[t];
+                }
+            }
         }
 
 
@@ -1443,7 +1467,7 @@ public class Comparison {
     }
 
     private enum Mode {
-        Average, StandardDeviation, WorstCase
+        Average, StandardDeviation, WorstCase, MedianCase
     }
 
     private String getHeader(int u) {
@@ -1523,6 +1547,8 @@ public class Comparison {
                         statTables[u][i][j] = StatUtils.min(allStats[u][i][j]);
                     } else if (mode == Mode.StandardDeviation) {
                         statTables[u][i][j] = StatUtils.sd(allStats[u][i][j]);
+                    } else if (mode == Mode.MedianCase) {
+                        statTables[u][i][j] = StatUtils.median(allStats[u][i][j]);
                     } else {
                         throw new IllegalStateException();
                     }
@@ -1545,6 +1571,8 @@ public class Comparison {
             out.println("STANDARD DEVIATIONS");
         } else if (mode == Mode.WorstCase) {
             out.println("WORST CASE");
+        } else if (mode == Mode.MedianCase) {
+            out.println("MEDIAN CASE");
         } else {
             throw new IllegalStateException();
         }

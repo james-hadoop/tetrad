@@ -415,17 +415,18 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("cutoffFactor", 0);//, 0.02, 0.002, 0.005, 0.01, 0.02, 0.03, 0.04, .05, 0.1, 0.15, 0.20);
         parameters.set("structurePrior", 0);
-        parameters.set("penaltyDiscount", 1, 2, 3);//, 1.02, 1.002, 1.001, 1.01);
+        parameters.set("penaltyDiscount", 1, 1.5);//, 1.02, 1.002, 1.001, 1.01);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", true);
 
-        parameters.set("penaltyDiscount", 1, 2, 3);//, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20);
         parameters.set("structurePrior", 0);
-        parameters.set("faithfulnessAssumed", true);
+        parameters.set("faithfulnessAssumed", false);
         parameters.set("symmetricFirstStep", true);
-        parameters.set("cutoffFactor", 0, 0.002, 0.005, 0.01);//0.02, 0.03, 0.04, .05, 0.1);//, 0.15, 0.20);//, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5);
+        parameters.set("cutoffFactor", 0, 0.5);//, 0.002, 0.005, 0.01);//0.02, 0.03, 0.04, .05, 0.1);//, 0.15, 0.20);//, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5);
 //                , 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0);
+
+        parameters.set("verbose", false);
 
         Statistics statistics = new Statistics();
 
@@ -466,7 +467,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
 
-        comparison.compareFromSimulations("comparison.comparspcs", simulations, "comparison", algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparison.compares.pc", simulations, "comparison", algorithms, statistics, parameters);
 
 
     }
