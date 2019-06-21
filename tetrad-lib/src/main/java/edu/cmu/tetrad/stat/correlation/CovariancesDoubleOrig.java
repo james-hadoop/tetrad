@@ -18,43 +18,30 @@
  */
 package edu.cmu.tetrad.stat.correlation;
 
+import edu.cmu.tetrad.util.TetradMatrix;
+
 /**
  * Compute covariance on the fly. Warning! This class will overwrite the values
- * in the input _data.
+ * in the input data.
  *
  * Jan 27, 2016 4:37:44 PM
  *
  * @author Kevin V. Bui (kvb2@pitt.edu)
  */
-public class CovariancesFloat implements Covariances {
+public class CovariancesDoubleOrig implements Covariances {
 
-    private final float[][] _data;
+    private final double[][] _data;
 
     private final int numOfRows;
 
     private final int numOfCols;
+    private final double[][] covariances;
 
-    private float[][] covariances;
+    public CovariancesDoubleOrig(double[][] data, boolean biasCorrected) {
+        _data = new double[data.length][data[0].length];
 
-    public CovariancesFloat(double[][] data, boolean biasCorrected) {
-        _data = new float[data.length][data[0].length];
-
-        for (int i = 0; i < _data.length; i++) {
-            for (int j = 0; j < _data[0].length; j++) {
-                this._data[i][j] = (float) data[i][j];
-            }
-        }
-
-        this.numOfRows = data.length;
-        this.numOfCols = data[0].length;
-        this.covariances = compute(biasCorrected);
-    }
-
-    public CovariancesFloat(float[][] data, boolean biasCorrected) {
-        _data = new float[data.length][data[0].length];
-
-        for (int i = 0; i < _data.length; i++) {
-            for (int j = 0; j < _data[0].length; j++) {
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length; j++) {
                 this._data[i][j] = data[i][j];
             }
         }
@@ -64,51 +51,76 @@ public class CovariancesFloat implements Covariances {
         this.covariances = compute(biasCorrected);
     }
 
-    public float[] computeLowerTriangle(boolean biasCorrected) {
-        float[] covarianceMatrix = new float[(numOfCols * (numOfCols + 1)) / 2];
+    public CovariancesDoubleOrig(float[][] data, boolean biasCorrected) {
+        _data = new double[data.length][data[0].length];
+
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length; j++) {
+                this._data[i][j] = data[i][j];
+            }
+        }
+
+        this.numOfRows = data.length;
+        this.numOfCols = data[0].length;
+        this.covariances = compute(biasCorrected);
+    }
+
+    public CovariancesDoubleOrig(double[][] matrix, int sampleSize) {
+        this.covariances = matrix;
+        this.numOfCols = matrix.length;
+        this.numOfRows = sampleSize;
+        this._data = null;
+    }
+
+    public double[] computeLowerTriangle(boolean biasCorrected) {
+        double[] covarianceMatrix = new double[(numOfCols * (numOfCols + 1)) / 2];
 
         center();
 
         int index = 0;
-        for (int col = 0; col < numOfCols; col++) {
-            for (int col2 = 0; col2 < col; col2++) {
-                float variance = 0;
+        for (int col1 = 0; col1 < numOfCols; col1++) {
+            for (int col2 = 0; col2 < col1; col2++) {
+                double cov = 0;
                 for (int row = 0; row < numOfRows; row++) {
-                    variance += ((_data[row][col]) * (_data[row][col2]) - variance) / (row + 1);
+                    cov += ((_data[row][col1]) * (_data[row][col2])) ;
                 }
-                covarianceMatrix[index++] = biasCorrected ? variance * ((float) numOfRows / (float) (numOfRows - 1)) : variance;
+                cov /= numOfRows - 1;
+                covarianceMatrix[index++] = biasCorrected ? cov * ((double) numOfRows / (double) (numOfRows - 1)) : cov;
             }
-            float variance = 0;
+            double variance = 0;
             for (int row = 0; row < numOfRows; row++) {
-                variance += ((_data[row][col]) * (_data[row][col]) - variance) / (row + 1);
+                variance += ((_data[row][col1]) * (_data[row][col1]));
             }
-            covarianceMatrix[index++] = biasCorrected ? variance * ((float) numOfRows / (float) (numOfRows - 1)) : variance;
+            variance /= numOfRows - 1;
+            covarianceMatrix[index++] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
 
         return covarianceMatrix;
     }
 
-    public float[][] compute(boolean biasCorrected) {
-        float[][] covarianceMatrix = new float[numOfCols][numOfCols];
+    public double[][] compute(boolean biasCorrected) {
+        double[][] covarianceMatrix = new double[numOfCols][numOfCols];
 
         center();
 
         for (int col1 = 0; col1 < numOfCols; col1++) {
             for (int col2 = 0; col2 < col1; col2++) {
-                float cov = 0;
+                double cov = 0;
                 for (int row = 0; row < numOfRows; row++) {
                     cov += ((_data[row][col1]) * (_data[row][col2]) - cov) / (row + 1);
                 }
-                cov = biasCorrected ? cov * ((float) numOfRows / (float) (numOfRows - 1)) : cov;
+                cov = biasCorrected ? cov * ((double) numOfRows / (double) (numOfRows - 1)) : cov;
                 covarianceMatrix[col1][col2] = cov;
                 covarianceMatrix[col2][col1] = cov;
             }
-            float variance = 0;
+            double variance = 0;
             for (int row = 0; row < numOfRows; row++) {
                 variance += ((_data[row][col1]) * (_data[row][col1]) - variance) / (row + 1);
             }
-            covarianceMatrix[col1][col1] = biasCorrected ? variance * ((float) numOfRows / (float) (numOfRows - 1)) : variance;
+            covarianceMatrix[col1][col1] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
+
+        System.out.println("orig = " + new TetradMatrix(covarianceMatrix));
 
         return covarianceMatrix;
     }
@@ -131,13 +143,15 @@ public class CovariancesFloat implements Covariances {
         return covariances[i][j];
     }
 
+    @Override
     public int size() {
         return numOfCols;
     }
 
+    @Override
     public void setCovariance(int i, int j, double v) {
-        covariances[i][j] = (float) v;
-        covariances[j][i] = (float) v;
+        covariances[i][j] = v;
+        covariances[j][i] = v;
     }
 
     @Override
@@ -160,4 +174,3 @@ public class CovariancesFloat implements Covariances {
         return submatrix;
     }
 }
-

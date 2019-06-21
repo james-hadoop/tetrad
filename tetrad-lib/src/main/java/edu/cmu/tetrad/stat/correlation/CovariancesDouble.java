@@ -30,7 +30,7 @@ import edu.cmu.tetrad.util.TetradMatrix;
  */
 public class CovariancesDouble implements Covariances {
 
-    private final double[][] doubleData;
+    private final double[][] _data;
 
     private final int numOfRows;
 
@@ -38,11 +38,11 @@ public class CovariancesDouble implements Covariances {
     private final double[][] covariances;
 
     public CovariancesDouble(double[][] data, boolean biasCorrected) {
-        doubleData = new double[data.length][data[0].length];
+        _data = new double[data.length][data[0].length];
 
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < data[0].length; j++) {
-                this.doubleData[i][j] = data[i][j];
+                this._data[i][j] = data[i][j];
             }
         }
 
@@ -52,11 +52,11 @@ public class CovariancesDouble implements Covariances {
     }
 
     public CovariancesDouble(float[][] data, boolean biasCorrected) {
-        doubleData = new double[data.length][data[0].length];
+        _data = new double[data.length][data[0].length];
 
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < data[0].length; j++) {
-                this.doubleData[i][j] = data[i][j];
+                this._data[i][j] = data[i][j];
             }
         }
 
@@ -69,29 +69,31 @@ public class CovariancesDouble implements Covariances {
         this.covariances = matrix;
         this.numOfCols = matrix.length;
         this.numOfRows = sampleSize;
-        this.doubleData = null;
+        this._data = null;
     }
 
     public double[] computeLowerTriangle(boolean biasCorrected) {
         double[] covarianceMatrix = new double[(numOfCols * (numOfCols + 1)) / 2];
 
-        computeMeans();
+        center();
 
         int index = 0;
-        for (int col = 0; col < numOfCols; col++) {
-            for (int col2 = 0; col2 < col; col2++) {
+        for (int col1 = 0; col1 < numOfCols; col1++) {
+            for (int col2 = 0; col2 < col1; col2++) {
                 double variance = 0;
                 for (int row = 0; row < numOfRows; row++) {
-                    variance += ((doubleData[row][col]) * (doubleData[row][col2]) - variance) / (row + 1);
+                    variance += ((_data[row][col1]) * (_data[row][col2]) - variance) / (row + 1);
                 }
                 covarianceMatrix[index++] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
             }
             double variance = 0;
             for (int row = 0; row < numOfRows; row++) {
-                variance += ((doubleData[row][col]) * (doubleData[row][col]) - variance) / (row + 1);
+                variance += ((_data[row][col1]) * (_data[row][col1]) - variance) / (row + 1);
             }
             covarianceMatrix[index++] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
+
+
 
         return covarianceMatrix;
     }
@@ -99,37 +101,39 @@ public class CovariancesDouble implements Covariances {
     public double[][] compute(boolean biasCorrected) {
         double[][] covarianceMatrix = new double[numOfCols][numOfCols];
 
-        computeMeans();
+        center();
 
-        for (int col = 0; col < numOfCols; col++) {
-            for (int col2 = 0; col2 < col; col2++) {
+        for (int col1 = 0; col1 < numOfCols; col1++) {
+            for (int col2 = 0; col2 < col1; col2++) {
                 double cov = 0;
                 for (int row = 0; row < numOfRows; row++) {
-                    cov += ((doubleData[row][col]) * (doubleData[row][col2]) - cov) / (row + 1);
+                    cov += ((_data[row][col1]) * (_data[row][col2]) - cov) / (row + 1);
                 }
                 cov = biasCorrected ? cov * ((double) numOfRows / (double) (numOfRows - 1)) : cov;
-                covarianceMatrix[col][col2] = cov;
-                covarianceMatrix[col2][col] = cov;
+                covarianceMatrix[col1][col2] = cov;
+                covarianceMatrix[col2][col1] = cov;
             }
             double variance = 0;
             for (int row = 0; row < numOfRows; row++) {
-                variance += ((doubleData[row][col]) * (doubleData[row][col]) - variance) / (row + 1);
+                variance += ((_data[row][col1]) * (_data[row][col1]) - variance) / (row + 1);
             }
-            covarianceMatrix[col][col] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
+            covarianceMatrix[col1][col1] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
+
+        System.out.println("kevin = " + new TetradMatrix(covarianceMatrix));
 
         return covarianceMatrix;
     }
 
-    private void computeMeans() {
+    private void center() {
         for (int col = 0; col < numOfCols; col++) {
             double mean = 0;
             for (int row = 0; row < numOfRows; row++) {
-                mean += doubleData[row][col];
+                mean += _data[row][col];
             }
             mean /= numOfRows;
             for (int row = 0; row < numOfRows; row++) {
-                doubleData[row][col] -= mean;
+                _data[row][col] -= mean;
             }
         }
     }

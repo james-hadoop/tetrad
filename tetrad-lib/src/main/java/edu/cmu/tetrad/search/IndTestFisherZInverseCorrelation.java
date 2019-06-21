@@ -99,7 +99,7 @@ public final class IndTestFisherZInverseCorrelation implements IndependenceTest 
             throw new IllegalArgumentException("Alpha mut be in [0, 1]");
         }
 
-        this.corr = new CorrelationMatrix(new CovarianceMatrix(dataSet));
+        this.corr = new CorrelationMatrixOnTheFly(new CovarianceMatrix(dataSet));
         List<Node> nodes = corr.getVariables();
 
         this.variables = Collections.unmodifiableList(nodes);
@@ -119,7 +119,7 @@ public final class IndTestFisherZInverseCorrelation implements IndependenceTest 
      */
     public IndTestFisherZInverseCorrelation(TetradMatrix data, List<Node> variables, double alpha) {
         this.dataSet = ColtDataSet.makeContinuousData(variables, data);
-        this.corr = new CorrelationMatrix(new CovarianceMatrix(dataSet));
+        this.corr = new CorrelationMatrixOnTheFly(new CovarianceMatrix(dataSet));
         this.variables = Collections.unmodifiableList(variables);
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);
@@ -131,7 +131,7 @@ public final class IndTestFisherZInverseCorrelation implements IndependenceTest 
      * matrix and the given significance level.
      */
     public IndTestFisherZInverseCorrelation(ICovarianceMatrix covMatrix, double alpha) {
-        this.corr = new CorrelationMatrix(covMatrix);
+        this.corr = new CorrelationMatrixOnTheFly(covMatrix);
         this.variables = covMatrix.getVariables();
         this.indexMap = indexMap(variables);
         this.nameMap = nameMap(variables);

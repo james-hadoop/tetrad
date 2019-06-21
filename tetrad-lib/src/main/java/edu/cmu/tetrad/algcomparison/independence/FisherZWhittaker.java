@@ -8,6 +8,7 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.search.IndTestFisherZ;
+import edu.cmu.tetrad.search.IndTestFisherZWhittaker;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
 
@@ -35,9 +36,9 @@ public class FisherZWhittaker implements IndependenceWrapper {
         double alpha = parameters.getDouble("alpha");
 
         if (dataSet instanceof ICovarianceMatrix) {
-            return new IndTestFisherZ((ICovarianceMatrix) dataSet, alpha);
+            return new IndTestFisherZWhittaker((ICovarianceMatrix) dataSet, alpha);
         } else if (dataSet instanceof DataSet) {
-            return new IndTestFisherZ((DataSet) dataSet, alpha);
+            return new IndTestFisherZWhittaker((DataSet) dataSet, alpha);
         }
 
         throw new IllegalArgumentException("Expecting eithet a data set or a covariance matrix.");

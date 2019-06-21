@@ -104,7 +104,7 @@ public final class IndTestFisherZWhittaker implements IndependenceTest {
             throw new IllegalArgumentException("Alpha mut be in [0, 1]");
         }
 
-        this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
+        this.covMatrix = new CovarianceMatrix(dataSet);
         this.corr = new CorrelationMatrixOnTheFly(covMatrix);
         List<Node> nodes = covMatrix.getVariables();
 
@@ -125,7 +125,7 @@ public final class IndTestFisherZWhittaker implements IndependenceTest {
      */
     public IndTestFisherZWhittaker(TetradMatrix data, List<Node> variables, double alpha) {
         this.dataSet = ColtDataSet.makeContinuousData(variables, data);
-        this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
+        this.covMatrix = new CovarianceMatrix(dataSet);
         this.corr = new CorrelationMatrixOnTheFly(covMatrix);
         this.variables = Collections.unmodifiableList(variables);
         this.indexMap = indexMap(variables);
@@ -211,7 +211,7 @@ public final class IndTestFisherZWhittaker implements IndependenceTest {
 
         for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i));
         TetradMatrix submatrix = corr.getSubmatrix(indices).getMatrix();
-        return StatUtils.partialCorrelationPrecisionMatrix(submatrix);
+        return StatUtils.partialCorrelationWhittaker(submatrix);
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {

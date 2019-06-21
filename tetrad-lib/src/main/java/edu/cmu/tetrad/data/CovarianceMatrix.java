@@ -124,8 +124,8 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
         this.variables = Collections.unmodifiableList(variables);
         this.sampleSize = sampleSize;
+        this.covariances = new CovariancesDouble(matrix.toArray(), sampleSize);
 
-        this.covariances = new CovariancesFloat(matrix.transpose().toArray(), true);
         checkMatrix();
     }
 
