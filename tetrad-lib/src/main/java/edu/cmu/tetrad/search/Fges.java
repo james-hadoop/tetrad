@@ -1466,7 +1466,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 //
 //                System.out.println("cutoff = " + cutoff);
 
-                if (bump < cutoff) {
+                if (bump > cutoff) {
                     addArrow(a, b, naYX, h, bump);
                 }
             }
@@ -1598,6 +1598,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         Set<Node> set = new HashSet<>(naYX);
         set.addAll(t);
         set.addAll(graph.getParents(y));
+        set.remove(x);
         return scoreGraphChange(x, y, set, hashIndices);
     }
 
@@ -1607,7 +1608,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         Set<Node> set = new HashSet<>(diff);
         set.addAll(graph.getParents(y));
         set.remove(x);
-        return scoreGraphChange(x, y, set, hashIndices);
+        return -scoreGraphChange(x, y, set, hashIndices);
     }
 
     // Do an actual insertion. (Definition 12 from Chickering, 2002).

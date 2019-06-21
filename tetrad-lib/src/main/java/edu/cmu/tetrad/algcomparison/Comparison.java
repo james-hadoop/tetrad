@@ -217,8 +217,7 @@ public class Comparison {
 
         int numRuns = parameters.getInt("numRuns");
 
-        for (
-                Simulation simulation : simulations.getSimulations()) {
+        for (Simulation simulation : simulations.getSimulations()) {
             List<SimulationWrapper> wrappers = getSimulationWrappers(simulation, parameters);
 
             for (SimulationWrapper wrapper : wrappers) {
@@ -457,7 +456,7 @@ public class Comparison {
                 }
             }
 
-             printStats(statTables, statistics, Mode.MedianCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
+            printStats(statTables, statistics, Mode.MedianCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
                     simulationWrappers, utilities, parameters);
 
             // Add utilities to table as the last column.
@@ -511,22 +510,22 @@ public class Comparison {
         //}
 
         try {
-            int numDataSets = simulation.getNumDataModels();
-            if (numDataSets <= 0) {
-
-                File dir1 = new File(dir, "graph");
-                File dir2 = new File(dir, "data");
-
-                dir1.mkdirs();
-                dir2.mkdirs();
-
-                PrintStream out = new PrintStream(new FileOutputStream(new File(dir, "parameters.txt")));
-                out.println(simulation.getDescription());
-                out.println(parameters);
-                out.close();
-
-                return;
-            }
+//            int numDataSets = simulation.getNumDataModels();
+//            if (numDataSets <= 0) {
+//
+//                File dir1 = new File(dir, "graph");
+//                File dir2 = new File(dir, "data");
+//
+//                dir1.mkdirs();
+//                dir2.mkdirs();
+//
+//                PrintStream out = new PrintStream(new FileOutputStream(new File(dir, "parameters.txt")));
+//                out.println(simulation.getDescription());
+//                out.println(parameters);
+//                out.close();
+//
+//                return;
+//            }
             List<SimulationWrapper> simulationWrappers = getSimulationWrappers(simulation, parameters);
 
             int index = 0;
@@ -536,7 +535,9 @@ public class Comparison {
                     parameters.set(param, simulationWrapper.getValue(param));
                 }
 
-                simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters());
+                if (simulationWrapper.getSimulation().getNumDataModels() == 0) {
+                    simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters());
+                }
 
                 File subdir = dir;
                 if (simulationWrappers.size() > 1) {
@@ -995,56 +996,56 @@ public class Comparison {
                 AlgorithmTask task = new AlgorithmTask(algorithmSimulationWrappers,
                         algorithmWrappers, simulationWrappers,
                         statistics, numGraphTypes, allStats, run);
-                task.compute();
-//                tasks.add(task);
+//                task.compute();
+                tasks.add(task);
             }
         }
 
-//        if (!isParallelized()) {
-//            for (AlgorithmTask task : tasks) {
-//                task.compute();
-//            }
-//        } else {
-//            class Task extends RecursiveTask<Boolean> {
-//                List<AlgorithmTask> tasks;
-//
-//                public Task(List<AlgorithmTask> tasks) {
-//                    this.tasks = tasks;
-//                }
-//
-//                @Override
-//                protected Boolean compute() {
-//                    Queue<AlgorithmTask> tasks = new ArrayDeque<>();
-//
-//                    for (AlgorithmTask task : this.tasks) {
-//                        tasks.add(task);
-//                        task.fork();
-//
-//                        for (AlgorithmTask _task : new ArrayList<>(tasks)) {
-//                            if (_task.isDone()) {
-//                                _task.join();
-//                                tasks.remove(_task);
-//                            }
-//                        }
-//
-//                        while (tasks.size() > Runtime.getRuntime().availableProcessors()) {
-//                            AlgorithmTask _task = tasks.poll();
-//                            _task.join();
-//                        }
-//                    }
-//
-//                    for (AlgorithmTask task : tasks) {
-//                        task.join();
-//                    }
-//
-//                    return true;
-//                }
-//            }
+        if (!isParallelized()) {
+            for (AlgorithmTask task : tasks) {
+                task.compute();
+            }
+        } else {
+            class Task extends RecursiveTask<Boolean> {
+                List<AlgorithmTask> tasks;
 
-//            Task task = new Task(tasks);
-//
-//            ForkJoinPoolInstance.getInstance().getPool().invoke(task);
-//        }
+                public Task(List<AlgorithmTask> tasks) {
+                    this.tasks = tasks;
+                }
+
+                @Override
+                protected Boolean compute() {
+                    Queue<AlgorithmTask> tasks = new ArrayDeque<>();
+
+                    for (AlgorithmTask task : this.tasks) {
+                        tasks.add(task);
+                        task.fork();
+
+                        for (AlgorithmTask _task : new ArrayList<>(tasks)) {
+                            if (_task.isDone()) {
+                                _task.join();
+                                tasks.remove(_task);
+                            }
+                        }
+
+                        while (tasks.size() > Runtime.getRuntime().availableProcessors()) {
+                            AlgorithmTask _task = tasks.poll();
+                            _task.join();
+                        }
+                    }
+
+                    for (AlgorithmTask task : tasks) {
+                        task.join();
+                    }
+
+                    return true;
+                }
+            }
+
+            Task task = new Task(tasks);
+
+            ForkJoinPoolInstance.getInstance().getPool().invoke(task);
+        }
 
         return allStats;
     }
@@ -1934,6 +1935,7 @@ public class Comparison {
 
         @Override
         public int getNumDataModels() {
+            if (dataModels == null) return 0;
             return dataModels.size();
         }
 

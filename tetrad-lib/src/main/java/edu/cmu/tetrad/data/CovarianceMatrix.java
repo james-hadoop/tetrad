@@ -20,11 +20,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetrad.data;
 
-//import cern.colt.matrix.DoubleMatrix2D;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.stat.correlation.Covariances;
-import edu.cmu.tetrad.stat.correlation.CovariancesDouble;
-import edu.cmu.tetrad.stat.correlation.CovariancesFloat;
+import edu.cmu.tetrad.stat.correlation.CovariancesDoubleOrig;
 import edu.cmu.tetrad.util.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -97,7 +95,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
             throw new IllegalArgumentException("Not a continuous data set.");
         }
 
-        this.covariances = new CovariancesDouble(dataSet.getDoubleData().toArray(), true);
+        this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), true);
         this.variables = Collections.unmodifiableList(dataSet.getVariables());
         this.sampleSize = dataSet.getNumRows();
     }
@@ -124,7 +122,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
         this.variables = Collections.unmodifiableList(variables);
         this.sampleSize = sampleSize;
-        this.covariances = new CovariancesDouble(matrix.toArray(), sampleSize);
+        this.covariances = new CovariancesDoubleOrig(matrix.toArray(), sampleSize);
 
         checkMatrix();
     }
@@ -135,14 +133,14 @@ public class CovarianceMatrix implements ICovarianceMatrix {
             throw new IllegalArgumentException("# variables not equal to matrix dimension.");
         }
 
-        this.covariances = new CovariancesDouble(matrix, sampleSize);
+        this.covariances = new CovariancesDoubleOrig(matrix, sampleSize);
     }
 
     /**
      * Copy constructor.
      */
     public CovarianceMatrix(CovarianceMatrix covMatrix) {
-        this.covariances = new CovariancesDouble(covMatrix.getMatrix().toArray(), sampleSize);
+        this.covariances = new CovariancesDoubleOrig(covMatrix.getMatrix().toArray(), sampleSize);
     }
 
     public CovarianceMatrix(ICovarianceMatrix covMatrix) {

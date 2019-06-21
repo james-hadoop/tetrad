@@ -388,10 +388,10 @@ public class ExampleCompareSimulationContinuousPag {
     public static void main(String...args) {
         Parameters parameters = new Parameters();
 
-        parameters.set("numRuns", 20);
+        parameters.set("numRuns", 50);
         parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 2, 4, 6);
-        parameters.set("sampleSize", 2000);
+        parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", true);
         parameters.set("coefLow", 0.3);
         parameters.set("coefHigh", 0.9);
@@ -400,12 +400,12 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("includePositiveCoefs", true);
         parameters.set("includeNegativeCoefs", true);
         parameters.set("depth", -1);
-        parameters.set("alpha", 0.01);
+        parameters.set("alpha", 0.01, 0.001, 0.0001);
         parameters.set("maxDegree", 1000);
         parameters.set("errorsNormal", false);
         parameters.set("stableFAS", true);
         parameters.set("concurrentFAS", false);
-        parameters.set("colliderDiscoveryRule", 3);
+        parameters.set("colliderDiscoveryRule", 1, 2, 3);
         parameters.set("conflictRule", 3);
         parameters.set("depth", 6);
         parameters.set("useMaxPOrientationHeuristic", true);
@@ -415,15 +415,15 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("cutoffFactor", 0);//, 0.02, 0.002, 0.005, 0.01, 0.02, 0.03, 0.04, .05, 0.1, 0.15, 0.20);
         parameters.set("structurePrior", 0);
-        parameters.set("penaltyDiscount", 1, 1.5);//, 1.02, 1.002, 1.001, 1.01);
+        parameters.set("penaltyDiscount", 1, 2, 3, 4, 5, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", true);
 
         parameters.set("structurePrior", 0);
-        parameters.set("faithfulnessAssumed", false);
+        parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", true);
-        parameters.set("cutoffFactor", 0, 0.5);//, 0.002, 0.005, 0.01);//0.02, 0.03, 0.04, .05, 0.1);//, 0.15, 0.20);//, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5);
+        parameters.set("cutoffFactor", 0);//, 0.002, 0.005, 0.01);//0.02, 0.03, 0.04, .05, 0.1);//, 0.15, 0.20);//, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5);
 //                , 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0);
 
         parameters.set("verbose", false);
@@ -433,7 +433,7 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("avgDegree"));
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
-        statistics.add(new ParameterColumn("cutoffFactor"));
+//        statistics.add(new ParameterColumn("cutoffFactor"));
         statistics.add(new ParameterColumn("colliderDiscoveryRule"));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
@@ -456,12 +456,14 @@ public class ExampleCompareSimulationContinuousPag {
 
         Comparison comparison = new Comparison();
 
-        comparison.setShowAlgorithmIndices(false);
+        comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(false);
 
         comparison.setSaveGraphs(false);
         comparison.setSavePags(false);
         comparison.setSavePatterns(false);
+
+        comparison.setParallelized(true);
 
         comparison.setSortByUtility(true);
 

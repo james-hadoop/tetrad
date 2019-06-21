@@ -488,7 +488,10 @@ public class TimeoutComparison {
                     parameters.set(param, simulationWrapper.getValue(param));
                 }
 
-                simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters());
+                if (simulation.getNumDataModels() == 0) {
+                    simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters());
+                }
+
                 index++;
 
                 File subdir = new File(dir, "" + index);
