@@ -57,7 +57,7 @@ public class InvertCovMatrixWrapper extends DataWrapper {
             throw new IllegalArgumentException("Must be a covariance matrix");
         }
 
-        LogDataUtils.logDataModelList("Inverts a parent covaraince matrix.", getDataModelList());
+        LogDataUtils.logDataModelList("Inverts a parent covarariance matrix.", getDataModelList());
 
     }
 

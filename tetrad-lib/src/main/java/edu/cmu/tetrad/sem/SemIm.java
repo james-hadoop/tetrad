@@ -2266,7 +2266,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         buf.append(this.sampleSize);
 
         if (sampleCovarC == null) {
-            buf.append("\n\nSample covaraince matrix not specified**");
+            buf.append("\n\nSample covariance matrix not specified**");
         } else {
             buf.append("\n\nsample cov:\n");
             buf.append(MatrixUtils.toString(sampleCovarC.toArray()));

@@ -1093,8 +1093,8 @@ public final class Fges implements GraphSearch, GraphScorer {
                 continue;
             }
 
-            orientNodeAway(x);
-            orientNodeAway(y);
+//            orientNodeAway(x);
+//            orientNodeAway(y);
 
             totalScore += bump;
 
