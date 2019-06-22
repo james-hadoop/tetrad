@@ -145,7 +145,7 @@ public final class DepthChoiceGenerator {
      * finished.
      */
     public synchronized int[] next() {
-//        if (getB() == this.choiceLocal.length) return null;
+//        if (getY() == this.choiceLocal.length) return null;
 
         int i = getB();
 

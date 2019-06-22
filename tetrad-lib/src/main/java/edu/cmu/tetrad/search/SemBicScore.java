@@ -113,8 +113,8 @@ public class SemBicScore implements Score {
             }
 
             double n = getSampleSize();
-            return -n * log(s2) - getPenaltyDiscount() * k * log(n);
-//                    + getStructurePrior(parents.length) * log(n);
+            return -n * log(s2) - getPenaltyDiscount() * k * log(n)
+                    + getStructurePrior(parents.length) * log(n);
         } catch (Exception e) {
             boolean removedOne = true;
 
