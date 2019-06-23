@@ -64,6 +64,21 @@ public class CovariancesFloat implements Covariances {
         this.covariances = compute(biasCorrected);
     }
 
+    public CovariancesFloat(double[][] matrix, int sampleSize) {
+        float[][] _matrix = new float[matrix.length][matrix[0].length];
+
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[0].length; j++) {
+                _matrix[i][j] = (float) matrix[i][j];
+            }
+        }
+
+        this.covariances = _matrix;
+        this.numOfCols = matrix.length;
+        this.numOfRows = sampleSize;
+        this._data = null;
+    }
+
     public float[] computeLowerTriangle(boolean biasCorrected) {
         float[] covarianceMatrix = new float[(numOfCols * (numOfCols + 1)) / 2];
 

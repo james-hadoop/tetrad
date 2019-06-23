@@ -105,8 +105,7 @@ public class SemBicScore implements Score {
             TetradVector covxy = (getCovariances().getSelection(parents, new int[]{i})).getColumn(0);
             s2 -= ((covxx.inverse()).times(covxy)).dotProduct(covxy);
             s2 += getDelta() * parents.length;
-
-            s2 += getDelta() * s2 * parents.length;
+//            s2 *= (1 + getDelta() * parents.length);
 
             if (s2 <= 0) {
                 if (isVerbose()) {
@@ -117,10 +116,7 @@ public class SemBicScore implements Score {
             }
 
             double n = getSampleSize();
-//            return -n * log(pow(s2, (2. / getDelta()))) - k * log(n);
-//            return -n * log(pow(s2, (1. / getDelta()))) - k * log(n);
-            return -n * log(s2) - getPenaltyDiscount() * k * log(n)
-                    + getStructurePrior(parents.length) * log(n);
+            return -n * log(s2) - k * log(n);
         } catch (Exception e) {
             boolean removedOne = true;
 

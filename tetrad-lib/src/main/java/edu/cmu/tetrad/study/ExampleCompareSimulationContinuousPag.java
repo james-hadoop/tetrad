@@ -387,7 +387,7 @@ public class ExampleCompareSimulationContinuousPag {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
 
-        parameters.set("numRuns", 1);
+        parameters.set("numRuns", 5);
         parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 2, 4, 6);
         parameters.set("sampleSize", 5000);
@@ -401,7 +401,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("depth", -1);
         parameters.set("alpha", 0.01);//, 0.001, 0.0001);
         parameters.set("maxDegree", 1000);
-        parameters.set("errorsNormal", false);
+        parameters.set("errorsNormal", true);
         parameters.set("stableFAS", true);
         parameters.set("concurrentFAS", false);
         parameters.set("colliderDiscoveryRule", 2);
@@ -414,7 +414,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("structurePrior", 0);
         parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
-        parameters.set("semBicDelta", 0, 0.01, 0.05, 0.08, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.0, 2.0, 3.0, 4.09, 5.0);
+        parameters.set("semBicDelta", 0, 0.01, 0.05, 0.08, .1, .2, .3, .4, .5);//, .6, .7, .8, .9, 1.0, 2.0, 3.0, 4.09, 5.0);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", true);
