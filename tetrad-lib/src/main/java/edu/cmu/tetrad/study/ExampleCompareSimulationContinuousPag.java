@@ -391,7 +391,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 2, 4, 6);
-        parameters.set("sampleSize", 50000);
+        parameters.set("sampleSize", 5000);
         parameters.set("differentGraphs", true);
         parameters.set("coefLow", 0.3);
         parameters.set("coefHigh", 0.9);
@@ -413,9 +413,9 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("maxDegree", 1000);
 
-        parameters.set("cutoffFactor", 0);//, 0.02, 0.002, 0.005, 0.01, 0.02, 0.03, 0.04, .05, 0.1, 0.15, 0.20);
         parameters.set("structurePrior", 0);
         parameters.set("penaltyDiscount", 1, 2, 3, 4, 5);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
+        parameters.set("semBicDelta", 1);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", true);

@@ -18,6 +18,8 @@
  */
 package edu.cmu.tetrad.stat.correlation;
 
+import static java.lang.Math.round;
+
 /**
  * Compute covariance on the fly. Warning! This class will overwrite the values
  * in the input _data.
@@ -41,7 +43,7 @@ public class CovariancesFloatOrig implements Covariances {
 
         for (int i = 0; i < _data.length; i++) {
             for (int j = 0; j < _data[0].length; j++) {
-                this._data[i][j] = (float) data[i][j];
+                this._data[i][j] = (float) (round(data[i][j] * 100.0) / 100.0);
             }
         }
 

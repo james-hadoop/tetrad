@@ -24,7 +24,6 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
-import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -73,6 +72,7 @@ public class SemBicScore implements Score {
     private final RecursivePartialCorrelation recursivePartialCorrelation;
 
     private double structurePrior = 0.0;
+    private double delta = 0.0;
 
 
     /**
@@ -103,6 +103,7 @@ public class SemBicScore implements Score {
             TetradMatrix covxx = getCovariances().getSelection(parents, parents);
             TetradVector covxy = (getCovariances().getSelection(parents, new int[]{i})).getColumn(0);
             s2 -= ((covxx.inverse()).times(covxy)).dotProduct(covxy);
+            s2 += getDelta() * parents.length;
 
             if (s2 <= 0) {
                 if (isVerbose()) {
@@ -408,6 +409,14 @@ public class SemBicScore implements Score {
 
     public void setStructurePrior(double structurePrior) {
         this.structurePrior = structurePrior;
+    }
+
+    public double getDelta() {
+        return delta;
+    }
+
+    public void setDelta(double delta) {
+        this.delta = delta;
     }
 }
 
