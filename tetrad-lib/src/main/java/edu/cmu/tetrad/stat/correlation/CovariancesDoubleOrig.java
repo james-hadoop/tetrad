@@ -38,17 +38,19 @@ public class CovariancesDoubleOrig implements Covariances {
     private final double[][] covariances;
 
     public CovariancesDoubleOrig(double[][] data, boolean biasCorrected) {
-        _data = new double[data.length][data[0].length];
+        _data = data;//new double[data.length][data[0].length];
 
-        for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < data[0].length; j++) {
-                this._data[i][j] = data[i][j];
-            }
-        }
+//        for (int i = 0; i < data.length; i++) {
+//            for (int j = 0; j < data[0].length; j++) {
+//                this._data[i][j] = data[i][j];
+//            }
+//        }
 
         this.numOfRows = data.length;
         this.numOfCols = data[0].length;
         this.covariances = compute(biasCorrected);
+
+//        System.out.println("Original" + new TetradMatrix(covariances));
     }
 
     public CovariancesDoubleOrig(float[][] data, boolean biasCorrected) {
@@ -107,20 +109,20 @@ public class CovariancesDoubleOrig implements Covariances {
             for (int col2 = 0; col2 < col1; col2++) {
                 double cov = 0;
                 for (int row = 0; row < numOfRows; row++) {
-                    cov += ((_data[row][col1]) * (_data[row][col2]) - cov) / (row + 1);
+                    cov += ((_data[row][col1]) * (_data[row][col2]));
                 }
+                cov /= numOfRows - 1;
                 cov = biasCorrected ? cov * ((double) numOfRows / (double) (numOfRows - 1)) : cov;
                 covarianceMatrix[col1][col2] = cov;
                 covarianceMatrix[col2][col1] = cov;
             }
             double variance = 0;
             for (int row = 0; row < numOfRows; row++) {
-                variance += ((_data[row][col1]) * (_data[row][col1]) - variance) / (row + 1);
+                variance += ((_data[row][col1]) * (_data[row][col1]));
             }
+            variance /= numOfRows - 1;
             covarianceMatrix[col1][col1] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
-
-//        System.out.println("orig = " + new TetradMatrix(covarianceMatrix));
 
         return covarianceMatrix;
     }

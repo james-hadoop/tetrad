@@ -38,17 +38,19 @@ public class CovariancesDouble implements Covariances {
     private final double[][] covariances;
 
     public CovariancesDouble(double[][] data, boolean biasCorrected) {
-        _data = new double[data.length][data[0].length];
-
-        for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < data[0].length; j++) {
-                this._data[i][j] = data[i][j];
-            }
-        }
+        _data = data;// new double[data.length][data[0].length];
+//
+//        for (int i = 0; i < data.length; i++) {
+//            for (int j = 0; j < data[0].length; j++) {
+//                this._data[i][j] = data[i][j];
+//            }
+//        }
 
         this.numOfRows = data.length;
         this.numOfCols = data[0].length;
         this.covariances = compute(biasCorrected);
+
+//        System.out.println("Kevin " + new TetradMatrix(covariances));
     }
 
     public CovariancesDouble(float[][] data, boolean biasCorrected) {

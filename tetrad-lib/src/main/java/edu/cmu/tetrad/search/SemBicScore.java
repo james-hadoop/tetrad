@@ -105,7 +105,6 @@ public class SemBicScore implements Score {
             TetradVector covxy = (getCovariances().getSelection(parents, new int[]{i})).getColumn(0);
             s2 -= ((covxx.inverse()).times(covxy)).dotProduct(covxy);
             s2 += getDelta() * parents.length;
-//            s2 *= (1 + getDelta() * parents.length);
 
             if (s2 <= 0) {
                 if (isVerbose()) {
