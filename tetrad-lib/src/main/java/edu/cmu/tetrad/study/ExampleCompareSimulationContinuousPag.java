@@ -289,7 +289,6 @@ public class ExampleCompareSimulationContinuousPag {
 //        parameters.set("symmetricFirstStep", true, false);
 
 
-
         // False for non-Gausian.
         parameters.set("errorsNormal", false);
         parameters.set("twoCycleAlpha", 0);
@@ -385,7 +384,7 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.compareFromSimulations("comparison.fges", simulations, "comparison", algorithms, statistics, parameters);
     }
 
-    public static void main(String...args) {
+    public static void main(String... args) {
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 1);
@@ -414,8 +413,8 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("maxDegree", 1000);
 
         parameters.set("structurePrior", 0);
-        parameters.set("penaltyDiscount", 1, 2, 3, 4, 5);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
-        parameters.set("semBicDelta", 1);
+        parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
+        parameters.set("semBicDelta", 0, 0.01, 0.05, 0.08, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.0, 2.0, 3.0, 4.09, 5.0);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", true);
@@ -427,7 +426,8 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("avgDegree"));
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
-        statistics.add(new ParameterColumn("cutoffFactor"));
+        statistics.add(new ParameterColumn("semBicDelta"));
+        statistics.add(new ParameterColumn("structurePrior"));
         statistics.add(new ParameterColumn("colliderDiscoveryRule"));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
@@ -459,9 +459,9 @@ public class ExampleCompareSimulationContinuousPag {
 
         comparison.setParallelized(true);
 
-        comparison.setSortByUtility(true);
+        comparison.setSortByUtility(false);
 
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
         comparison.compareFromSimulations("comparison.compares.pc", simulations, "comparison", algorithms, statistics, parameters);
 

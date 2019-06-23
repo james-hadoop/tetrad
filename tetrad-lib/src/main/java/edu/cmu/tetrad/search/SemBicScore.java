@@ -34,6 +34,7 @@ import java.io.PrintStream;
 import java.util.*;
 
 import static java.lang.Math.log;
+import static java.lang.Math.pow;
 
 /**
  * Implements the continuous BIC score for FGES.
@@ -105,6 +106,8 @@ public class SemBicScore implements Score {
             s2 -= ((covxx.inverse()).times(covxy)).dotProduct(covxy);
             s2 += getDelta() * parents.length;
 
+            s2 += getDelta() * s2 * parents.length;
+
             if (s2 <= 0) {
                 if (isVerbose()) {
                     out.println("Nonpositive residual varianceY: resVar / varianceY = " + (s2 / getCovariances().getValue(i, i)));
@@ -114,6 +117,8 @@ public class SemBicScore implements Score {
             }
 
             double n = getSampleSize();
+//            return -n * log(pow(s2, (2. / getDelta()))) - k * log(n);
+//            return -n * log(pow(s2, (1. / getDelta()))) - k * log(n);
             return -n * log(s2) - getPenaltyDiscount() * k * log(n)
                     + getStructurePrior(parents.length) * log(n);
         } catch (Exception e) {
