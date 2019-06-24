@@ -33,8 +33,8 @@ import org.apache.commons.math3.util.FastMath;
 import java.io.PrintStream;
 import java.util.*;
 
-import static java.lang.Math.log;
-import static java.lang.Math.pow;
+import static edu.cmu.tetrad.util.StatUtils.*;
+import static java.lang.Math.*;
 
 /**
  * Implements the continuous BIC score for FGES.
@@ -43,6 +43,9 @@ import static java.lang.Math.pow;
  */
 public class SemBicScore implements Score {
 
+    private double[] k1s;
+    private double[] k2s;
+    private double[] k3s = null;
     // The covariance matrix.
     private ICovarianceMatrix covariances;
 
@@ -70,7 +73,7 @@ public class SemBicScore implements Score {
 
     private Map<String, Integer> indexMap;
 
-    private final RecursivePartialCorrelation recursivePartialCorrelation;
+    private RecursivePartialCorrelation recursivePartialCorrelation;
 
     private double structurePrior = 0.0;
     private double delta = 0.0;
@@ -92,6 +95,68 @@ public class SemBicScore implements Score {
     }
 
     /**
+     * Constructs the score using a covariance matrix.
+     */
+    public SemBicScore(DataSet dataSet) {
+        if (dataSet == null) {
+            throw new NullPointerException();
+        }
+
+        ICovarianceMatrix cov = dataSet instanceof ICovarianceMatrix ? (ICovarianceMatrix) dataSet
+                : new CovarianceMatrix((DataSet) dataSet);
+
+        setCovariances(cov);
+
+        setCovariances(covariances);
+        this.variables = covariances.getVariables();
+        this.sampleSize = covariances.getSampleSize();
+        this.indexMap = indexMap(this.variables);
+        this.recursivePartialCorrelation = new RecursivePartialCorrelation(covariances);
+
+
+        DataSet _d = dataSet;
+//
+        double[][] __d = _d.getDoubleData().transpose().toArray();
+//        for (int i = 0; i < __d.length; i++) __d[i] = DataUtils.center(__d[i]);
+
+//        for (int i = 0; i < __d.length; i++) {
+//            System.out.println("skewness " + (i + 1) + " = " + skewness(__d[i]));
+//        }\
+
+        this.k1s = new double[__d.length];
+        for (int i = 0; i < __d.length; i++) k1s[i] = k1(__d[i]);
+
+        this.k2s = new double[__d.length];
+        for (int i = 0; i < __d.length; i++) k2s[i] = k2(__d[i]);
+
+        this.k3s = new double[__d.length];
+        for (int i = 0; i < __d.length; i++) k3s[i] = k3(__d[i]);
+
+    }
+
+    private double k1(double[] x) {
+        return mu(1, x);
+    }
+
+    private double k2(double[] x) {
+        return mu(2, x) - pow(mu(1, x), 2.0);
+    }
+
+    private double k3(double[] x) {
+        return mu(3, x) - 3.0 * mu(2, x) * mu(1, x) + 2.0 * pow(mu(1, x), 3.0);
+    }
+
+    private double mu(int p, double[] x) {
+        double sum = 0;
+
+        for (double v : x) {
+            sum += pow(v, p);
+        }
+
+        return sum / x.length;
+    }
+
+    /**
      * Calculates the sample likelihood and BIC score for i given its parents in a simple SEM model
      */
     public double localScore(int i, int... parents) {
@@ -103,8 +168,10 @@ public class SemBicScore implements Score {
 
             TetradMatrix covxx = getCovariances().getSelection(parents, parents);
             TetradVector covxy = (getCovariances().getSelection(parents, new int[]{i})).getColumn(0);
-            s2 -= ((covxx.inverse()).times(covxy)).dotProduct(covxy);
-            s2 += getDelta() * parents.length;
+            TetradVector coefs = (covxx.inverse()).times(covxy);
+
+            s2 -= coefs.dotProduct(covxy);
+
 
             if (s2 <= 0) {
                 if (isVerbose()) {
@@ -114,8 +181,34 @@ public class SemBicScore implements Score {
                 return Double.NaN;
             }
 
+            double _k1 = k1s[i];
+
+            for (int t = 0; t < coefs.size(); t++) {
+                _k1 -= pow(coefs.get(t), 1) * k1s[parents[t]];
+            }
+
+            double _k2 = k2s[i];
+
+            for (int t = 0; t < coefs.size(); t++) {
+                _k2 -= pow(coefs.get(t), 2) * k2s[parents[t]];
+            }
+
+            double _k3 = k3s[i];
+
+            for (int t = 0; t < coefs.size(); t++) {
+                _k3 -= pow(coefs.get(t), 3) * k3s[parents[t]];
+            }
+
+            double sk = abs(_k3 / pow(_k2, 1.5));
+
+//            System.out.println("sk = " + sk);
+
+//            s2 = _k2;
+
+            s2 += getDelta() * (parents.length) + sk * sk;// * parents.length * parents.length;
+
             double n = getSampleSize();
-            return -n * log(s2) - k * log(n);
+            return -n * 0.5 * log(s2) - k * log(n);
         } catch (Exception e) {
             boolean removedOne = true;
 

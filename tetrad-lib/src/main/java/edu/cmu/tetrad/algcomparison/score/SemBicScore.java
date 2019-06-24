@@ -4,9 +4,12 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.StatUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static edu.cmu.tetrad.util.StatUtils.skewness;
 
 /**
  * Wrapper for Fisher Z test.
@@ -27,11 +30,12 @@ public class SemBicScore implements ScoreWrapper {
     public Score getScore(DataModel dataSet, Parameters parameters) {
         this.dataSet = dataSet;
 
-        ICovarianceMatrix cov = dataSet instanceof ICovarianceMatrix ? (ICovarianceMatrix) dataSet
-                : new CovarianceMatrix((DataSet) dataSet);
+
+//        ICovarianceMatrix cov = dataSet instanceof ICovarianceMatrix ? (ICovarianceMatrix) dataSet
+//                : new CovarianceMatrix((DataSet) dataSet);
 
         edu.cmu.tetrad.search.SemBicScore semBicScore
-                = new edu.cmu.tetrad.search.SemBicScore(cov);
+                = new edu.cmu.tetrad.search.SemBicScore((DataSet) this.dataSet);
         semBicScore.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
         semBicScore.setStructurePrior(parameters.getDouble("structurePrior"));
         semBicScore.setDelta(parameters.getDouble("semBicDelta"));
