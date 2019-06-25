@@ -244,7 +244,7 @@ public class SemBicScore implements Score {
             double n = getSampleSize();
 
 //            s2 += .01 * p * p * tanh(pow(stk3, 2) + pow(stk4, 2) + pow(stk5, 2));
-            int q = (p * (p + 1 )) / 2;
+            int q = (p * (p + 1 ));
             s2 +=   getDelta() * (1.0 / sqrt(n)) * q * tanh(pow((abs(stk3) + abs(stk4) + abs(stk5)), 2));
 
             return -n * log(s2) - k * log(n);
