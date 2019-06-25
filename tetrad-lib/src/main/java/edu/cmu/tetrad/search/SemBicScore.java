@@ -46,6 +46,8 @@ public class SemBicScore implements Score {
     private double[] k1s;
     private double[] k2s;
     private double[] k3s = null;
+    private double[] k4s = null;
+    private double[] k5s = null;
     // The covariance matrix.
     private ICovarianceMatrix covariances;
 
@@ -117,11 +119,6 @@ public class SemBicScore implements Score {
         DataSet _d = dataSet;
 //
         double[][] __d = _d.getDoubleData().transpose().toArray();
-//        for (int i = 0; i < __d.length; i++) __d[i] = DataUtils.center(__d[i]);
-
-//        for (int i = 0; i < __d.length; i++) {
-//            System.out.println("skewness " + (i + 1) + " = " + skewness(__d[i]));
-//        }\
 
         this.k1s = new double[__d.length];
         for (int i = 0; i < __d.length; i++) k1s[i] = k1(__d[i]);
@@ -132,25 +129,47 @@ public class SemBicScore implements Score {
         this.k3s = new double[__d.length];
         for (int i = 0; i < __d.length; i++) k3s[i] = k3(__d[i]);
 
+        this.k4s = new double[__d.length];
+        for (int i = 0; i < __d.length; i++) k4s[i] = k4(__d[i]);
+
+        this.k5s = new double[__d.length];
+        for (int i = 0; i < __d.length; i++) k5s[i] = k5(__d[i]);
+
     }
 
     private double k1(double[] x) {
-        return mu(1, x);
+        return 0;//mu(1, x);
     }
 
     private double k2(double[] x) {
-        return mu(2, x) - pow(mu(1, x), 2.0);
+        return mu(2, x);// - pow(mu(1, x), 2.0);
     }
 
     private double k3(double[] x) {
-        return mu(3, x) - 3.0 * mu(2, x) * mu(1, x) + 2.0 * pow(mu(1, x), 3.0);
+        return mu(3, x);// - 3.0 * mu(2, x) * mu(1, x) + 2.0 * pow(mu(1, x), 3.0);
+    }
+
+    private double k4(double[] x) {
+        return mu(4, x) - 3 * pow(k2(x), 2);
+    }
+
+    private double k5(double[] x) {
+        return mu(10, x) - 10 * mu(3, x) * mu(2, x);
     }
 
     private double mu(int p, double[] x) {
+        double avg = 0;
+
+        for (double v : x) {
+            avg += v;
+        }
+
+        avg /= x.length;
+
         double sum = 0;
 
         for (double v : x) {
-            sum += pow(v, p);
+            sum += pow(v - avg, p);
         }
 
         return sum / x.length;
@@ -164,7 +183,8 @@ public class SemBicScore implements Score {
 
         try {
             double s2 = getCovariances().getValue(i, i);
-            int k = parents.length + 1;
+            final int p = parents.length;
+            int k = p + 1;
 
             TetradMatrix covxx = getCovariances().getSelection(parents, parents);
             TetradVector covxy = (getCovariances().getSelection(parents, new int[]{i})).getColumn(0);
@@ -199,16 +219,35 @@ public class SemBicScore implements Score {
                 _k3 -= pow(coefs.get(t), 3) * k3s[parents[t]];
             }
 
-            double sk = abs(_k3 / pow(_k2, 1.5));
+            double _k4 = k4s[i];
 
-//            System.out.println("sk = " + sk);
+            for (int t = 0; t < coefs.size(); t++) {
+                _k4 -= pow(coefs.get(t), 4) * k4s[parents[t]];
+            }
+
+            double _k5 = k4s[i];
+
+            for (int t = 0; t < coefs.size(); t++) {
+                _k5 -= pow(coefs.get(t), 5) * k5s[parents[t]];
+            }
+
+            double stk3 = abs(_k3 / pow(_k2, 1.5));
+
+//            System.out.println("stk3 = " + stk3);
+
+            double stk4 = _k4 / pow(_k2, 2);
 
 //            s2 = _k2;
 
-            s2 += getDelta() * (parents.length) + sk * sk;// * parents.length * parents.length;
+            double stk5 = _k5 / pow(_k2, 2.5);
 
             double n = getSampleSize();
-            return -n * 0.5 * log(s2) - k * log(n);
+
+//            s2 += .01 * p * p * tanh(pow(stk3, 2) + pow(stk4, 2) + pow(stk5, 2));
+            int q = (p * (p + 1 )) / 2;
+            s2 +=   getDelta() * (1.0 / sqrt(n)) * q * tanh(pow((abs(stk3) + abs(stk4) + abs(stk5)), 2));
+
+            return -n * log(s2) - k * log(n);
         } catch (Exception e) {
             boolean removedOne = true;
 
