@@ -402,7 +402,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("alpha", 0.01);//, 0.001, 0.0001);
         parameters.set("maxDegree", 5000);
 
-        parameters.set("errorsNormal", true);
+        parameters.set("errorsNormal", false);
 
         parameters.set("stableFAS", true);
         parameters.set("concurrentFAS", false);
@@ -416,10 +416,10 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("structurePrior", 0);
         parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
-        parameters.set("semBicDelta", 0.1, 0.5, 1, 2, 3, 3.14, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50);
+        parameters.set("semBicDelta", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
         parameters.set("faithfulnessAssumed", true);
-        parameters.set("symmetricFirstStep", true);
+        parameters.set("symmetricFirstStep", false);
 
         parameters.set("intervalBetweenRecordings", 100);
 

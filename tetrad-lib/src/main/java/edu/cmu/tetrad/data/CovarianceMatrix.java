@@ -100,7 +100,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
 //        dataSet = DataUtils.getNonparanormalTransformed(dataSet);
 
-        this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), false);
+        this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), true);
         this.variables = Collections.unmodifiableList(dataSet.getVariables());
         this.sampleSize = dataSet.getNumRows();
     }

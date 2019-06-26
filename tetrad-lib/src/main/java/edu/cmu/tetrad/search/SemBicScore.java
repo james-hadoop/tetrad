@@ -149,7 +149,7 @@ public class SemBicScore implements Score {
     }
 
     private double k3(double[] x) {
-        return mu(3, x);// - 3.0 * mu(2, x) * mu(1, x) + 2.0 * pow(mu(1, x), 3.0);
+        return mu(3, x) - 3.0 * mu(2, x) * mu(1, x) + 2.0 * pow(mu(1, x), 3.0);
     }
 
     private double k4(double[] x) {
@@ -259,10 +259,11 @@ public class SemBicScore implements Score {
             double n = getSampleSize();
 
 //            s2 += .01 * p * p * tanh(pow(stk3, 2) + pow(stk4, 2) + pow(stk5, 2));
-            double q = p * (p + 1) / 2;
-            s2 += PI * PI * getDelta() * (1. / n) * q * tanh(pow( (abs(stk3) + abs(stk4) + abs(stk5)), 2));;
+            double q = p * (p + 1);// / 2;
+//            s2 += .1 * p * getDelta() * (1. / n) * tanh(abs(stk3) -stk4 + abs(stk5));
 
-            return -n * log(s2) - k * log(n);
+//            return -n * log(s2) - k * log(n) - log((abs(stk3) * abs(stk4) * abs(stk5)));
+            return -n * log(s2) - 8 * k * log(n);// - p * log((abs(stk3) - stk4 + abs(stk5)));
         } catch (Exception e) {
             boolean removedOne = true;
 
