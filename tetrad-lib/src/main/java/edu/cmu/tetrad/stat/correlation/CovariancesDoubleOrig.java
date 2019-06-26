@@ -84,16 +84,16 @@ public class CovariancesDoubleOrig implements Covariances {
             for (int col2 = 0; col2 < col1; col2++) {
                 double cov = 0;
                 for (int row = 0; row < numOfRows; row++) {
-                    cov += ((_data[row][col1]) * (_data[row][col2])) ;
+                    cov += ((_data[row][col1]) * (_data[row][col2])) / (numOfRows - 1);
                 }
-                cov /= numOfRows - 1;
+//                cov /= numOfRows - 1;
                 covarianceMatrix[index++] = biasCorrected ? cov * ((double) numOfRows / (double) (numOfRows - 1)) : cov;
             }
             double variance = 0;
             for (int row = 0; row < numOfRows; row++) {
-                variance += ((_data[row][col1]) * (_data[row][col1]));
+                variance += ((_data[row][col1]) * (_data[row][col1])) / (numOfRows - 1);
             }
-            variance /= numOfRows - 1;
+//            variance /= numOfRows - 1;
             covarianceMatrix[index++] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
 

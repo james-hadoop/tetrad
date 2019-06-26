@@ -48,6 +48,7 @@ public class SemBicScore implements Score {
     private double[] k3s = null;
     private double[] k4s = null;
     private double[] k5s = null;
+    private double[] k6s = null;
     // The covariance matrix.
     private ICovarianceMatrix covariances;
 
@@ -135,6 +136,8 @@ public class SemBicScore implements Score {
         this.k5s = new double[__d.length];
         for (int i = 0; i < __d.length; i++) k5s[i] = k5(__d[i]);
 
+        this.k6s = new double[__d.length];
+        for (int i = 0; i < __d.length; i++) k6s[i] = k6(__d[i]);
     }
 
     private double k1(double[] x) {
@@ -154,7 +157,11 @@ public class SemBicScore implements Score {
     }
 
     private double k5(double[] x) {
-        return mu(10, x) - 10 * mu(3, x) * mu(2, x);
+        return mu(5, x) - 10 * mu(3, x) * mu(2, x);
+    }
+
+    private double k6(double[] x) {
+        return mu(6, x) - 15 * mu(4, x) * mu(2, x) - 10 * pow(mu(3, x), 2) + 30 * pow(mu(2, x), 3);
     }
 
     private double mu(int p, double[] x) {
@@ -231,6 +238,12 @@ public class SemBicScore implements Score {
                 _k5 -= pow(coefs.get(t), 5) * k5s[parents[t]];
             }
 
+            double _k6 = k4s[i];
+
+            for (int t = 0; t < coefs.size(); t++) {
+                _k6 -= pow(coefs.get(t), 6) * k6s[parents[t]];
+            }
+
             double stk3 = abs(_k3 / pow(_k2, 1.5));
 
 //            System.out.println("stk3 = " + stk3);
@@ -241,11 +254,13 @@ public class SemBicScore implements Score {
 
             double stk5 = _k5 / pow(_k2, 2.5);
 
+            double stk6 = _k6 / pow(_k2, 3);
+
             double n = getSampleSize();
 
 //            s2 += .01 * p * p * tanh(pow(stk3, 2) + pow(stk4, 2) + pow(stk5, 2));
-            int q = (p * (p + 1 ));
-            s2 +=   getDelta() * (1.0 / sqrt(n)) * q * tanh(pow((abs(stk3) + abs(stk4) + abs(stk5)), 2));
+            double q = p * (p + 1) / 2;
+            s2 += PI * PI * getDelta() * (1. / n) * q * tanh(pow( (abs(stk3) + abs(stk4) + abs(stk5)), 2));;
 
             return -n * log(s2) - k * log(n);
         } catch (Exception e) {

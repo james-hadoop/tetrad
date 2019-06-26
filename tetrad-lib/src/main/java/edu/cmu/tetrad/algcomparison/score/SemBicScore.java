@@ -36,8 +36,8 @@ public class SemBicScore implements ScoreWrapper {
 
         edu.cmu.tetrad.search.SemBicScore semBicScore
                 = new edu.cmu.tetrad.search.SemBicScore((DataSet) this.dataSet);
-        semBicScore.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
-        semBicScore.setStructurePrior(parameters.getDouble("structurePrior"));
+//        semBicScore.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
+//        semBicScore.setStructurePrior(parameters.getDouble("structurePrior"));
         semBicScore.setDelta(parameters.getDouble("semBicDelta"));
         return semBicScore;
     }
@@ -55,8 +55,8 @@ public class SemBicScore implements ScoreWrapper {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.add("penaltyDiscount");
-        parameters.add("structurePrior");
+//        parameters.add("penaltyDiscount");
+//        parameters.add("structurePrior");
         parameters.add("semBicDelta");
         return parameters;
     }

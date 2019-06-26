@@ -22,7 +22,7 @@ package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.stat.correlation.Covariances;
-import edu.cmu.tetrad.stat.correlation.CovariancesDouble;
+import edu.cmu.tetrad.stat.correlation.CovariancesDoubleOrig;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradAlgebra;
 import edu.cmu.tetrad.util.TetradMatrix;
@@ -100,7 +100,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
 //        dataSet = DataUtils.getNonparanormalTransformed(dataSet);
 
-        this.covariances = new CovariancesDouble(dataSet.getDoubleData().toArray(), false);
+        this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), false);
         this.variables = Collections.unmodifiableList(dataSet.getVariables());
         this.sampleSize = dataSet.getNumRows();
     }
@@ -127,7 +127,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
         this.variables = Collections.unmodifiableList(variables);
         this.sampleSize = sampleSize;
-        this.covariances = new CovariancesDouble(matrix.toArray(), sampleSize);
+        this.covariances = new CovariancesDoubleOrig(matrix.toArray(), sampleSize);
 
         checkMatrix();
     }
@@ -138,14 +138,14 @@ public class CovarianceMatrix implements ICovarianceMatrix {
             throw new IllegalArgumentException("# variables not equal to matrix dimension.");
         }
 
-        this.covariances = new CovariancesDouble(matrix, sampleSize);
+        this.covariances = new CovariancesDoubleOrig(matrix, sampleSize);
     }
 
     /**
      * Copy constructor.
      */
     public CovarianceMatrix(CovarianceMatrix covMatrix) {
-        this.covariances = new CovariancesDouble(covMatrix.getMatrix().toArray(), sampleSize);
+        this.covariances = new CovariancesDoubleOrig(covMatrix.getMatrix().toArray(), sampleSize);
     }
 
     public CovarianceMatrix(ICovarianceMatrix covMatrix) {
