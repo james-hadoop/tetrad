@@ -26,7 +26,7 @@ public class MySuperDooperStatistic implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
-//        System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
+        System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
 
 //        AdjacencyConfusion adjConfusion = new AdjacencyConfusion(trueGraph, estGraph);
 //        int adjTp = adjConfusion.getAdjTp();
@@ -34,8 +34,12 @@ public class MySuperDooperStatistic implements Statistic {
 ////        int adjFn = adjConfusion.getAdjFn();
 ////        int adjTn = adjConfusion.getAdjTn();
 //        return adjTp / (double) (adjTp + adjFp);
+        if (estGraph.getNumEdges()==trueGraph.getNumEdges()){
+            return 1;
+        }else {
+            return 0;
+        }
 
-        return estGraph.getNumEdges();
     }
 
     @Override

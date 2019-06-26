@@ -779,6 +779,51 @@ public final class DataUtils {
         return continuousData;
     }
 
+    public static DataSet convertToSquareValue(
+            DataSet dataSet) throws NumberFormatException {
+        List<Node> variables = new ArrayList<>();
+
+        for (Node variable : dataSet.getVariables()) {
+            if (variable instanceof ContinuousVariable) {
+                variables.add(variable);
+            } else {
+                variables.add(new ContinuousVariable(variable.getName()));
+            }
+        }
+
+        DataSet squareData = new ColtDataSet(dataSet.getNumRows(),
+                variables);
+
+        for (int j = 0; j < dataSet.getNumColumns(); j++) {
+            Node variable = dataSet.getVariable(j);
+
+            if (variable instanceof ContinuousVariable) {
+                for (int i = 0; i < dataSet.getNumRows(); i++) {
+                    squareData.setDouble(i, j, dataSet.getDouble(i, j)*dataSet.getDouble(i, j));
+                }
+            } else {
+                //DiscreteVariable discreteVariable = (DiscreteVariable) variable;
+
+                for (int i = 0; i < dataSet.getNumRows(); i++) {
+                //    int index = dataSet.getInt(i, j);
+                //    String catName = discreteVariable.getCategory(index);
+                //    double value;
+
+                //    if (catName.equals("*")) {
+                //        value = Double.NaN;
+                //   } else {
+                //        value = Double.parseDouble(catName);
+                //    }
+
+                //    continuousData.setDouble(i, j, value);
+                squareData.setInt(i, j, dataSet.getInt(i,j)*dataSet.getInt(i,j));
+                }
+            }
+        }
+
+        return squareData;
+    }
+
     public static DataSet concatenate(DataSet dataSet1, DataSet dataSet2) {
         List<Node> vars1 = dataSet1.getVariables();
         List<Node> vars2 = dataSet2.getVariables();

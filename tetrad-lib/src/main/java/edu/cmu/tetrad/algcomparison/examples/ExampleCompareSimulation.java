@@ -44,7 +44,8 @@ public class ExampleCompareSimulation {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         https://arxiv.org/abs/1607.08110
-        parameters.set("numRuns", 100);
+        parameters.set("numRuns", 400);
+        parameters.set("standardize", true);
 //        parameters.set("numMeasures", 100);
 //        parameters.set("avgDegree", 4, 6);
         parameters.set("sampleSize", 1000);
@@ -64,7 +65,7 @@ public class ExampleCompareSimulation {
 
         Statistics statistics = new Statistics();
 
-//        statistics.add(new AdjacencyPrecision());
+ //       statistics.add(new AdjacencyPrecision());
 //        statistics.add(new AdjacencyRecall());
 //        statistics.add(new ArrowheadPrecision());
 //        statistics.add(new ArrowheadRecall());
@@ -81,9 +82,23 @@ public class ExampleCompareSimulation {
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new Fofc(true,true,Math.random()));
-        algorithms.add(new Fofc(true,true,1.52));
-        algorithms.add(new Fofc(true,true,2.2));
+        //double i=1.0;
+
+        algorithms.add(new Fofc(false,true,2,true));
+        algorithms.add(new Fofc(true,false,1,false));
+        algorithms.add(new Fofc(true,true,1,false));
+        algorithms.add(new Fofc(true,true,1.2,false));
+        algorithms.add(new Fofc(true,true,1.2,true));
+        algorithms.add(new Fofc(true,true,1.4,false));
+        algorithms.add(new Fofc(true,true,1.4,true));
+        algorithms.add(new Fofc(true,true,1.6,false));
+        algorithms.add(new Fofc(true,true,1.6,true));
+        algorithms.add(new Fofc(true,true,1.8,false));
+        algorithms.add(new Fofc(true,true,1.8,true));
+        algorithms.add(new Fofc(true,true,2.2,false));
+        algorithms.add(new Fofc(true,true,2.2,true));
+       // algorithms.add(new Fofc(true,true,2.6,true));
+        //algorithms.add(new Fofc(true,false,1));
 //        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
 //        algorithms.add(new PcStable(new FisherZ()));
 //        algorithms.add(new CpcStable(new FisherZ()));

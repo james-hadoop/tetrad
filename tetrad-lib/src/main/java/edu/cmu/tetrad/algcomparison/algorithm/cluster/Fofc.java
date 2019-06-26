@@ -14,6 +14,8 @@ import edu.cmu.tetrad.search.TestType;
 import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.bootstrap.BootstrapEdgeEnsemble;
 import edu.pitt.dbmi.algo.bootstrap.GeneralBootstrapTest;
+import edu.pitt.dbmi.data.Dataset;
+
 import java.util.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,20 +39,22 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
     private boolean discretize = false;
     private boolean randomCutoff = false;
     private double scale = 1;
+    private boolean square = false;
     private Graph initialGraph = null;
     private Algorithm algorithm = null;
     private IKnowledge knowledge = new Knowledge2();
 
     public Fofc() {
 
-        this(false,false,1);
+        this(false,false,1,false);
     }
 
-    public Fofc(boolean disretize, boolean randomCutoff, double scale) {
+    public Fofc(boolean disretize, boolean randomCutoff, double scale, boolean square) {
 
         this.discretize = disretize;
         this.randomCutoff = randomCutoff;
         this.scale = scale;
+        this.square = square;
     }
 
     @Override
@@ -62,12 +66,23 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
             List<String> categories = new ArrayList<>();
             categories.add("0");
             categories.add("1");
+            //categories.add("0");
+            if(square){
+                //System.out.println(dataSet);
+                dataSet = DataUtils.convertToSquareValue((DataSet)dataSet);
+                //System.out.println("Square: "+ dataSet);
+            }
             double[] cutoffList = new double[]{};
             if (randomCutoff) {
                 cutoffList = new double[]{scale*Math.random(), scale*Math.random(), scale*Math.random(), scale*Math.random()};
                 System.out.println("scale: "+scale+" "+Arrays.toString(cutoffList));
             }else{
-                cutoffList = new double[]{0.5, 0.8, 1.0, 0.2};
+                if(square){
+
+                    cutoffList = new double[]{0.5, 0.8, 1.0, 1.40};
+
+                }
+                else {cutoffList = new double[]{0, 0, 0, 0};}
             }
 
             for (int i = 0; i < dataSet.getVariables().size(); i++) {
@@ -151,9 +166,17 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
         return "FOFC (Find One Factor Clusters)";
     }
 
+
+    public double getScale(){return scale;}
+
+    public boolean ifDiscrete(){
+        return discretize;
+    }
+
     @Override
     public DataType getDataType() {
-        return DataType.Continuous;
+        if (discretize) {return DataType.Discrete;}
+        else {return DataType.Continuous;}
     }
 
     @Override
