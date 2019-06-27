@@ -416,8 +416,8 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("maxDegree", 1000);
 
         parameters.set("structurePrior", 0);//, 1, 2, 4, 5, 6, 8, 8);
-        parameters.set("penaltyDiscount", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
-        parameters.set("semBicDelta", 1);//1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5, 6, 7, 8, 9, 10);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
+        parameters.set("semBicDelta", 0, 1);//1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", true);
@@ -440,7 +440,7 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("avgDegree"));
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
-//        statistics.add(new ParameterColumn("semBicDelta"));
+        statistics.add(new ParameterColumn("semBicDelta"));
         statistics.add(new ParameterColumn("structurePrior"));
         statistics.add(new ParameterColumn("colliderDiscoveryRule"));
         statistics.add(new AdjacencyPrecision());
@@ -458,13 +458,13 @@ public class ExampleCompareSimulationContinuousPag {
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new PcAll(new FisherZInverseCovariance()));
-        algorithms.add(new R3(new PcAll(new FisherZInverseCovariance())));
+//        algorithms.add(new R3(new PcAll(new FisherZInverseCovariance())));
 //        algorithms.add(new Fask(new PcAll(new FisherZInverseCovariance())));
 //        algorithms.add(new PcAll(new FisherZPrecisionMatrix()));
 //        algorithms.add(new PcAll(new FisherZWhittaker()));
 //        algorithms.add(new PcAll(new FisherZRecursive()));
         algorithms.add(new Fges(new SemBicScore()));
-        algorithms.add(new R3(new Fges(new SemBicScore())));
+//        algorithms.add(new R3(new Fges(new SemBicScore())));
 //        algorithms.add(new Fask(new Fges(new SemBicScore())));
 
         Simulations simulations = new Simulations();
