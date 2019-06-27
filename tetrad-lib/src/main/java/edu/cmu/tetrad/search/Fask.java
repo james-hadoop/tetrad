@@ -363,13 +363,13 @@ public final class Fask implements GraphSearch {
 
         final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
-        if (sk_ey < 0) {
-            lr *= -1;
-        }
+//        if (sk_ey < 0) {
+//            lr *= -1;
+//        }
 
         final double a = StatUtils.covariance(x, y);
 
-        if (a < 0) {// && sk_ey > 0) {
+        if (a < -.5) { // && sk_ey > 0) {
             lr *= -1;
         }
 

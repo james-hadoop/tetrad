@@ -26,6 +26,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
+import edu.cmu.tetrad.algcomparison.algorithm.pairwise.R3;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.*;
 import edu.cmu.tetrad.algcomparison.score.DSeparationScore;
@@ -394,8 +395,8 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("differentGraphs", true);
         parameters.set("coefLow", 0.2);
         parameters.set("coefHigh", 0.9);
-        parameters.set("varLow", .5);
-        parameters.set("varHigh", 1);
+        parameters.set("varLow", 1);
+        parameters.set("varHigh", 3);
         parameters.set("includePositiveCoefs", true);
         parameters.set("includeNegativeCoefs", true);
         parameters.set("depth", -1);
@@ -414,15 +415,23 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("maxDegree", 1000);
 
-        parameters.set("structurePrior", 0);
-        parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
-        parameters.set("semBicDelta", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        parameters.set("structurePrior", 0);//, 1, 2, 4, 5, 6, 8, 8);
+        parameters.set("penaltyDiscount", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
+        parameters.set("semBicDelta", 1);//1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
         parameters.set("faithfulnessAssumed", true);
-        parameters.set("symmetricFirstStep", false);
+        parameters.set("symmetricFirstStep", true);
 
         parameters.set("intervalBetweenRecordings", 100);
 
+        parameters.set("depth", -1);
+        parameters.set("twoCycleAlpha", 0.0);
+        parameters.set("extraEdgeThreshold", 1.0);
+
+        parameters.set("useFasAdjacencies", true);
+        parameters.set("useCorrDiffAdjacencies", false);
+
+        parameters.set("randomizeColumns", false);
 
         parameters.set("verbose", false);
 
@@ -430,9 +439,9 @@ public class ExampleCompareSimulationContinuousPag {
 
         statistics.add(new ParameterColumn("avgDegree"));
         statistics.add(new ParameterColumn("alpha"));
-//        statistics.add(new ParameterColumn("penaltyDiscount"));
-        statistics.add(new ParameterColumn("semBicDelta"));
-//        statistics.add(new ParameterColumn("structurePrior"));
+        statistics.add(new ParameterColumn("penaltyDiscount"));
+//        statistics.add(new ParameterColumn("semBicDelta"));
+        statistics.add(new ParameterColumn("structurePrior"));
         statistics.add(new ParameterColumn("colliderDiscoveryRule"));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
@@ -449,10 +458,14 @@ public class ExampleCompareSimulationContinuousPag {
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new PcAll(new FisherZInverseCovariance()));
+        algorithms.add(new R3(new PcAll(new FisherZInverseCovariance())));
+//        algorithms.add(new Fask(new PcAll(new FisherZInverseCovariance())));
 //        algorithms.add(new PcAll(new FisherZPrecisionMatrix()));
 //        algorithms.add(new PcAll(new FisherZWhittaker()));
 //        algorithms.add(new PcAll(new FisherZRecursive()));
         algorithms.add(new Fges(new SemBicScore()));
+        algorithms.add(new R3(new Fges(new SemBicScore())));
+//        algorithms.add(new Fask(new Fges(new SemBicScore())));
 
         Simulations simulations = new Simulations();
 

@@ -259,11 +259,11 @@ public class SemBicScore implements Score {
             double n = getSampleSize();
 
 //            s2 += .01 * p * p * tanh(pow(stk3, 2) + pow(stk4, 2) + pow(stk5, 2));
-            double q = p * (p + 1);// / 2;
-//            s2 += .1 * p * getDelta() * (1. / n) * tanh(abs(stk3) -stk4 + abs(stk5));
+//            double q = p * (p + 1);// / 2;
+            s2 += p * getDelta() * (1.  / n) * tanh(abs(stk3) -stk4 + abs(stk5));
 
 //            return -n * log(s2) - k * log(n) - log((abs(stk3) * abs(stk4) * abs(stk5)));
-            return -n * log(s2) - 8 * k * log(n);// - p * log((abs(stk3) - stk4 + abs(stk5)));
+            return -n * log(s2) - getPenaltyDiscount() * k * log(n);/// + log((abs(stk3) - stk4 + abs(stk5)));
         } catch (Exception e) {
             boolean removedOne = true;
 
