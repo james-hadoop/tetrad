@@ -100,13 +100,15 @@ public class SemBicScore implements Score {
     /**
      * Constructs the score using a covariance matrix.
      */
-    public SemBicScore(DataSet dataSet) {
+    public SemBicScore(DataSet dataSet, boolean kevin) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
 
+        dataSet = DataUtils.center(dataSet);
+
         ICovarianceMatrix cov = dataSet instanceof ICovarianceMatrix ? (ICovarianceMatrix) dataSet
-                : new CovarianceMatrix((DataSet) dataSet);
+                : new CovarianceMatrix(dataSet, kevin);
 
         setCovariances(cov);
 
@@ -141,7 +143,7 @@ public class SemBicScore implements Score {
     }
 
     private double k1(double[] x) {
-        return 0;//mu(1, x);
+        return 0;// mu(1, x);
     }
 
     private double k2(double[] x) {
@@ -149,11 +151,12 @@ public class SemBicScore implements Score {
     }
 
     private double k3(double[] x) {
-        return mu(3, x) - 3.0 * mu(2, x) * mu(1, x) + 2.0 * pow(mu(1, x), 3.0);
+        return mu(3, x);// - 3.0 * mu(2, x) * mu(1, x) + 2.0 * pow(mu(1, x), 3.0);
     }
 
     private double k4(double[] x) {
-        return mu(4, x) - 3 * pow(k2(x), 2);
+        return mu(4, x)/* - 4 * mu(3, x) * mu(1, x)*/ - 3 * pow(mu(2, x), 2)/* + 12* (mu(2, x) * pow(mu(1, x), 2))
+                - 6 * pow(mu(1, x), 4)*/;
     }
 
     private double k5(double[] x) {
@@ -165,20 +168,23 @@ public class SemBicScore implements Score {
     }
 
     private double mu(int p, double[] x) {
-        double avg = 0;
+//        double avg = 0;
+//
+//        for (double v : x) {
+//            avg += v;
+//        }
+//
+//        avg /= x.length;
 
-        for (double v : x) {
-            avg += v;
-        }
-
-        avg /= x.length;
+        if (p == 0) return 0;
+        if (p == 1) return 1;
 
         double sum = 0;
 
         for (double v : x) {
-            sum += pow(v - avg, p);
+            sum += pow(v, p);// - avg, p);
         }
-
+;
         return sum / x.length;
     }
 
@@ -232,13 +238,13 @@ public class SemBicScore implements Score {
                 _k4 -= pow(coefs.get(t), 4) * k4s[parents[t]];
             }
 
-            double _k5 = k4s[i];
+            double _k5 = k5s[i];
 
             for (int t = 0; t < coefs.size(); t++) {
                 _k5 -= pow(coefs.get(t), 5) * k5s[parents[t]];
             }
 
-            double _k6 = k4s[i];
+            double _k6 = k6s[i];
 
             for (int t = 0; t < coefs.size(); t++) {
                 _k6 -= pow(coefs.get(t), 6) * k6s[parents[t]];
@@ -258,12 +264,12 @@ public class SemBicScore implements Score {
 
             double n = getSampleSize();
 
-            s2 += 0.5 * getDelta() * tanh(pow(stk3, 2) + pow(stk4, 2) + pow(stk5, 2));
+            s2 += getDelta() * tanh(pow(stk3, 2) + pow((1.0 / 4) * stk4, 2));// + (1.0 / 20) * pow(stk5, 2));
 //            double q = p * (p + 1);// / 2;
-//            s2 +=  getDelta() * (1.  / n) * tanh(abs(stk3) -stk4 + abs(stk5));
+//            s2 +=  getDelta()  * (abs(stk3) + abs(stk4));// -stk4 + abs(stk5));
 
-//            return -n * log(s2) - k * log(n) - log((abs(stk3) * abs(stk4) * abs(stk5)));
-            return -n * log(s2) - getPenaltyDiscount() * k * log(n);/// + log((abs(stk3) - stk4 + abs(stk5)));
+//            return -n * log(s2) - k * log(n);// - log((abs(stk3) * abs(stk4)));// * abs(stk5)));
+            return -n * log(s2) - getPenaltyDiscount() * k * log(n) + getStructurePrior(parents.length);
         } catch (Exception e) {
             boolean removedOne = true;
 

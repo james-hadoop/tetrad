@@ -28,7 +28,7 @@ import edu.cmu.tetrad.util.TetradMatrix;
  *
  * @author Kevin V. Bui (kvb2@pitt.edu)
  */
-public class CovariancesDouble implements Covariances {
+public class CovariancesDoubleKevin implements Covariances {
 
     private final double[][] _data;
 
@@ -37,7 +37,7 @@ public class CovariancesDouble implements Covariances {
     private final int numOfCols;
     private final double[][] covariances;
 
-    public CovariancesDouble(double[][] data, boolean biasCorrected) {
+    public CovariancesDoubleKevin(double[][] data, boolean biasCorrected) {
         _data = data;// new double[data.length][data[0].length];
 //
 //        for (int i = 0; i < data.length; i++) {
@@ -53,7 +53,7 @@ public class CovariancesDouble implements Covariances {
 //        System.out.println("Kevin " + new TetradMatrix(covariances));
     }
 
-    public CovariancesDouble(float[][] data, boolean biasCorrected) {
+    public CovariancesDoubleKevin(float[][] data, boolean biasCorrected) {
         _data = new double[data.length][data[0].length];
 
         for (int i = 0; i < data.length; i++) {
@@ -67,7 +67,7 @@ public class CovariancesDouble implements Covariances {
         this.covariances = compute(biasCorrected);
     }
 
-    public CovariancesDouble(double[][] matrix, int sampleSize) {
+    public CovariancesDoubleKevin(double[][] matrix, int sampleSize) {
         this.covariances = matrix;
         this.numOfCols = matrix.length;
         this.numOfRows = sampleSize;

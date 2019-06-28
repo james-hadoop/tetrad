@@ -22,6 +22,7 @@ package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.stat.correlation.Covariances;
+import edu.cmu.tetrad.stat.correlation.CovariancesDoubleKevin;
 import edu.cmu.tetrad.stat.correlation.CovariancesDoubleOrig;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradAlgebra;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 public class CovarianceMatrix implements ICovarianceMatrix {
 
     static final long serialVersionUID = 23L;
+    private boolean kevin = false;
 
     /**
      * The name of the covariance matrix.
@@ -88,6 +90,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
 
     //=============================CONSTRUCTORS=========================//
+
     /**
      * Constructs a new covariance matrix from the given data set.
      *
@@ -98,9 +101,34 @@ public class CovarianceMatrix implements ICovarianceMatrix {
             throw new IllegalArgumentException("Not a continuous data set.");
         }
 
+
+        if (kevin) {
+//            dataSet = DataUtils.getNonparanormalTransformed(dataSet);
+            this.covariances = new CovariancesDoubleKevin(dataSet.getDoubleData().toArray(), true);
+        } else {
+            this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), true);
+        }
+
+        this.variables = Collections.unmodifiableList(dataSet.getVariables());
+        this.sampleSize = dataSet.getNumRows();
+    }
+
+    public CovarianceMatrix(DataSet dataSet, boolean kevin) {
+        if (!dataSet.isContinuous()) {
+            throw new IllegalArgumentException("Not a continuous data set.");
+        }
+
+        this.kevin = kevin;
+
 //        dataSet = DataUtils.getNonparanormalTransformed(dataSet);
 
-        this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), true);
+        if (kevin) {
+            this.covariances = new CovariancesDoubleKevin(dataSet.getDoubleData().toArray(), true);
+        } else {
+            this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), true);
+        }
+        ;
+
         this.variables = Collections.unmodifiableList(dataSet.getVariables());
         this.sampleSize = dataSet.getNumRows();
     }
@@ -111,23 +139,23 @@ public class CovarianceMatrix implements ICovarianceMatrix {
      * definite matrix and sample size. The number of variables must equal the
      * dimension of the array.
      *
-     * @param variables the list of variables (in order) for the covariance
-     * matrix.
-     * @param matrix an square array of containing covariances.
+     * @param variables  the list of variables (in order) for the covariance
+     *                   matrix.
+     * @param matrix     an square array of containing covariances.
      * @param sampleSize the sample size of the data for these covariances.
      * @throws IllegalArgumentException if the given matrix is not symmetric (to
-     * a tolerance of 1.e-5) and positive definite, if the number of variables
-     * does not equal the dimension of m, or if the sample size is not positive.
+     *                                  a tolerance of 1.e-5) and positive definite, if the number of variables
+     *                                  does not equal the dimension of m, or if the sample size is not positive.
      */
     public CovarianceMatrix(List<Node> variables, TetradMatrix matrix,
-            int sampleSize) {
+                            int sampleSize) {
         if (variables.size() != matrix.rows() && variables.size() != matrix.columns()) {
             throw new IllegalArgumentException("# variables not equal to matrix dimension.");
         }
 
         this.variables = Collections.unmodifiableList(variables);
         this.sampleSize = sampleSize;
-        this.covariances = new CovariancesDoubleOrig(matrix.toArray(), sampleSize);
+        this.covariances = new CovariancesDoubleKevin(matrix.toArray(), sampleSize);
 
         checkMatrix();
     }
@@ -138,14 +166,22 @@ public class CovarianceMatrix implements ICovarianceMatrix {
             throw new IllegalArgumentException("# variables not equal to matrix dimension.");
         }
 
-        this.covariances = new CovariancesDoubleOrig(matrix, sampleSize);
+        if (kevin) {
+            this.covariances = new CovariancesDoubleKevin(matrix, sampleSize);
+        } else {
+            this.covariances = new CovariancesDoubleOrig(matrix, sampleSize);
+        }
     }
 
     /**
      * Copy constructor.
      */
     public CovarianceMatrix(CovarianceMatrix covMatrix) {
-        this.covariances = new CovariancesDoubleOrig(covMatrix.getMatrix().toArray(), sampleSize);
+        if (kevin) {
+            this.covariances = new CovariancesDoubleKevin(covMatrix.getMatrix().toArray(), sampleSize);
+        } else {
+            this.covariances = new CovariancesDoubleOrig(covMatrix.getMatrix().toArray(), sampleSize);
+        }
     }
 
     public CovarianceMatrix(ICovarianceMatrix covMatrix) {
@@ -165,6 +201,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
     }
 
     //============================PUBLIC METHODS=========================//
+
     /**
      * @return the list of variables (unmodifiable).
      */
@@ -284,8 +321,8 @@ public class CovarianceMatrix implements ICovarianceMatrix {
         if (!getVariables().containsAll(submatrixVars)) {
             throw new IllegalArgumentException(
                     "The variables in the submatrix "
-                    + "must be in the original matrix: original=="
-                    + getVariables() + ", sub==" + submatrixVars);
+                            + "must be in the original matrix: original=="
+                            + getVariables() + ", sub==" + submatrixVars);
         }
 
         for (int i = 0; i < submatrixVars.size(); i++) {

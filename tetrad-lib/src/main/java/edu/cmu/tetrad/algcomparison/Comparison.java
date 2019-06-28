@@ -1928,7 +1928,7 @@ public class Comparison {
             this.graphs = new ArrayList<>();
             this.dataModels = new ArrayList<>();
             for (int i = 0; i < simulation.getNumDataModels(); i++) {
-                this.graphs.add(simulation.getTrueGraph(i));
+                this.graphs.add(new EdgeListGraph(simulation.getTrueGraph(i)));
                 this.dataModels.add(simulation.getDataModel(i));
             }
         }

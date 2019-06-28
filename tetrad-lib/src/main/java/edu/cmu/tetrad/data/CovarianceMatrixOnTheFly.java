@@ -21,17 +21,13 @@
 
 package edu.cmu.tetrad.data;
 
-import cern.colt.matrix.DoubleMatrix2D;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.stat.correlation.Covariances;
-import edu.cmu.tetrad.stat.correlation.CovariancesDouble;
-import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradAlgebra;
 import edu.cmu.tetrad.util.TetradMatrix;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.text.NumberFormat;
 import java.util.*;
 
 /**
@@ -127,8 +123,8 @@ public class CovarianceMatrixOnTheFly implements ICovarianceMatrix {
 //            throw new IllegalArgumentException("Not a continuous data set.");
 //        }
 //
-//        CovariancesDouble k = new CovariancesDouble(dataSet.getDoubleData().toArray(), true);
-//        this.covariances = new CovariancesDouble(dataSet.getDoubleData().toArray(), true);
+//        CovariancesDoubleKevin k = new CovariancesDoubleKevin(dataSet.getDoubleData().toArray(), true);
+//        this.covariances = new CovariancesDoubleKevin(dataSet.getDoubleData().toArray(), true);
 //
 //        this.variables = Collections.unmodifiableList(dataSet.getVariables());
 //        this.sampleSize = dataSet.getNumRows();
