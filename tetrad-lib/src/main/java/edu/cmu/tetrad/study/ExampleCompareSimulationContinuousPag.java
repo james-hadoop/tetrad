@@ -26,7 +26,6 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
-import edu.cmu.tetrad.algcomparison.algorithm.pairwise.R3;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.*;
 import edu.cmu.tetrad.algcomparison.score.DSeparationScore;
@@ -388,54 +387,44 @@ public class ExampleCompareSimulationContinuousPag {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
 
-        parameters.set("numRuns", 20);
+        parameters.set("numRuns", 10);
         parameters.set("numMeasures", 20);
-        parameters.set("avgDegree", 4);
-        parameters.set("sampleSize", 2000);
+        parameters.set("avgDegree", 2, 4);
+        parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", true);
         parameters.set("coefLow", 0.2);
         parameters.set("coefHigh", 0.9);
-        parameters.set("varLow", .2);
-        parameters.set("varHigh", .9);
+        parameters.set("varLow", .5);
+        parameters.set("varHigh", 1);
         parameters.set("includePositiveCoefs", true);
         parameters.set("includeNegativeCoefs", true);
         parameters.set("depth", -1);
-        parameters.set("alpha", 0.01, 0.001, 0.0001);
+        parameters.set("alpha", 0.01);//, 0.001, 0.0001);
         parameters.set("maxDegree", 5000);
 
         parameters.set("errorsNormal", false);
 
         parameters.set("stableFAS", true);
         parameters.set("concurrentFAS", false);
-        parameters.set("colliderDiscoveryRule", 1, 2, 3);
+        parameters.set("colliderDiscoveryRule", 2);
         parameters.set("conflictRule", 3);
         parameters.set("depth", 6);
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("maxDegree", 300);
+        parameters.set("maxDegree", 1000);
 
-        parameters.set("structurePrior", 0);//, 1, 2, 3);//, 4, 5, 6, 7, 8);//, 1, 2, 4, 5, 6, 8, 8);
-        parameters.set("penaltyDiscount", 1, 2, 3);//, 2, 3, 4, 5, 6, 7, 8, 9, 10);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
-        parameters.set("semBicDelta", 0, 1, 2, 3, 4);//1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        parameters.set("structurePrior", 0);
+        parameters.set("penaltyDiscount", 1, 2, 3);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
+        parameters.set("semBicDelta", 0, 1);//, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
 
         parameters.set("intervalBetweenRecordings", 100);
 
-        parameters.set("depth", -1);
-        parameters.set("twoCycleAlpha", 0.0);
-        parameters.set("extraEdgeThreshold", 1.0);
-
-        parameters.set("useFasAdjacencies", true);
-        parameters.set("useCorrDiffAdjacencies", false);
-
-        parameters.set("randomizeColumns", false);
 
         parameters.set("verbose", false);
-
-        parameters.set("kevin", false);
 
         Statistics statistics = new Statistics();
 
@@ -445,7 +434,6 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("semBicDelta"));
         statistics.add(new ParameterColumn("structurePrior"));
         statistics.add(new ParameterColumn("colliderDiscoveryRule"));
-        statistics.add(new ParameterColumn("kevin"));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
@@ -460,15 +448,11 @@ public class ExampleCompareSimulationContinuousPag {
 
         Algorithms algorithms = new Algorithms();
 
-//        algorithms.add(new PcAll(new FisherZInverseCovariance()));
-//        algorithms.add(new R3(new PcAll(new FisherZInverseCovariance())));
-//        algorithms.add(new Fask(new PcAll(new FisherZInverseCovariance())));
+        algorithms.add(new PcAll(new FisherZInverseCovariance()));
 //        algorithms.add(new PcAll(new FisherZPrecisionMatrix()));
 //        algorithms.add(new PcAll(new FisherZWhittaker()));
 //        algorithms.add(new PcAll(new FisherZRecursive()));
         algorithms.add(new Fges(new SemBicScore()));
-//        algorithms.add(new R3(new Fges(new SemBicScore())));
-//        algorithms.add(new Fask(new Fges(new SemBicScore())));
 
         Simulations simulations = new Simulations();
 
@@ -483,7 +467,7 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.setSavePags(false);
         comparison.setSavePatterns(false);
 
-        comparison.setParallelized(false);
+        comparison.setParallelized(true);
 
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);

@@ -184,7 +184,7 @@ public class SemBicScore implements Score {
         for (double v : x) {
             sum += pow(v, p);// - avg, p);
         }
-;
+        ;
         return sum / x.length;
     }
 
@@ -264,12 +264,15 @@ public class SemBicScore implements Score {
 
             double n = getSampleSize();
 
-            s2 += getDelta() * tanh(pow(stk3, 2) + pow((1.0 / 4) * stk4, 2));// + (1.0 / 20) * pow(stk5, 2));
-//            double q = p * (p + 1);// / 2;
-//            s2 +=  getDelta()  * (abs(stk3) + abs(stk4));// -stk4 + abs(stk5));
+//            s2 += .01 * p * p * tanh(pow(stk3, 2) + pow(stk4, 2) + pow(stk5, 2));
+            double q = p * (p + 1);// / 2;
+            s2 += p * getDelta() * (1. / n) * (stk4 / 6);// -stk4 + abs(stk5));
+
+
+//            s2 += 3 * p * getDelta() * (1. / n) * (abs(stk3));// -stk4 + abs(stk5));
 
 //            return -n * log(s2) - k * log(n);// - log((abs(stk3) * abs(stk4)));// * abs(stk5)));
-            return -n * log(s2) - getPenaltyDiscount() * k * log(n) + getStructurePrior(parents.length);
+            return -n * log(s2) /*- getDelta() * (3 * abs(stk4))*/ - getPenaltyDiscount() * k * log(n) + getStructurePrior(parents.length);
         } catch (Exception e) {
             boolean removedOne = true;
 

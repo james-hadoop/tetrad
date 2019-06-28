@@ -106,7 +106,7 @@ public class CovariancesDoubleOrig implements Covariances {
         center();
 
         for (int col1 = 0; col1 < numOfCols; col1++) {
-            for (int col2 = 0; col2 < col1; col2++) {
+            for (int col2 = 0; col2 <= col1; col2++) {
                 double cov = 0;
                 for (int row = 0; row < numOfRows; row++) {
                     cov += ((_data[row][col1]) * (_data[row][col2]));
@@ -116,12 +116,12 @@ public class CovariancesDoubleOrig implements Covariances {
                 covarianceMatrix[col1][col2] = cov;
                 covarianceMatrix[col2][col1] = cov;
             }
-            double variance = 0;
-            for (int row = 0; row < numOfRows; row++) {
-                variance += ((_data[row][col1]) * (_data[row][col1]));
-            }
-            variance /= numOfRows - 1;
-            covarianceMatrix[col1][col1] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
+//            double variance = 0;
+//            for (int row = 0; row < numOfRows; row++) {
+//                variance += ((_data[row][col1]) * (_data[row][col1]));
+//            }
+//            variance /= numOfRows - 1;
+//            covarianceMatrix[col1][col1] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
 
         return covarianceMatrix;
