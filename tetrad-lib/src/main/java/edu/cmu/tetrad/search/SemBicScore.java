@@ -198,12 +198,13 @@ public class SemBicScore implements Score {
             double s2 = getCovariances().getValue(i, i);
             final int p = parents.length;
             int k = p + 1;
+            double n = getSampleSize();
 
             TetradMatrix covxx = getCovariances().getSelection(parents, parents);
             TetradVector covxy = (getCovariances().getSelection(parents, new int[]{i})).getColumn(0);
             TetradVector coefs = (covxx.inverse()).times(covxy);
 
-            s2 -= coefs.dotProduct(covxy);
+            s2 -= coefs.dotProduct(covxy) * 1.001 - getDelta() * p;
 
 
             if (s2 <= 0) {
@@ -262,17 +263,21 @@ public class SemBicScore implements Score {
 
             double stk6 = _k6 / pow(_k2, 3);
 
-            double n = getSampleSize();
+
 
 //            s2 += .01 * p * p * tanh(pow(stk3, 2) + pow(stk4, 2) + pow(stk5, 2));
             double q = p * (p + 1);// / 2;
-            s2 += p * getDelta() * (1. / n) * (stk4 / 6);// -stk4 + abs(stk5));
+//            s2 += 10 * p * getDelta() * (1. / n) * (abs(stk3) / 6);// -stk4 + abs(stk5));
+
+//            s2 += (1. / n) * p * getDelta();
+
+//            s2 += 0.01 * p;// * getDelta();
 
 
 //            s2 += 3 * p * getDelta() * (1. / n) * (abs(stk3));// -stk4 + abs(stk5));
 
 //            return -n * log(s2) - k * log(n);// - log((abs(stk3) * abs(stk4)));// * abs(stk5)));
-            return -n * log(s2) /*- getDelta() * (3 * abs(stk4))*/ - getPenaltyDiscount() * k * log(n) + getStructurePrior(parents.length);
+            return -(n) * log(s2) /*- getDelta() * (3 * abs(stk4))*/ - getPenaltyDiscount() * k * log(n) + getStructurePrior(parents.length);
         } catch (Exception e) {
             boolean removedOne = true;
 

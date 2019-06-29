@@ -1744,7 +1744,7 @@ public class Comparison {
         return newOrder;
     }
 
-    private Graph getSubgraph(Graph graph, boolean discrete1, boolean discrete2, DataModel DataModel) {
+    private synchronized Graph getSubgraph(Graph graph, boolean discrete1, boolean discrete2, DataModel DataModel) {
         if (discrete1 && discrete2) {
             Graph newGraph = new EdgeListGraph(graph.getNodes());
 
