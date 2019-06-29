@@ -392,9 +392,9 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("avgDegree", 2, 4, 6);
         parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", true);
-        parameters.set("coefLow", 0.2);
-        parameters.set("coefHigh", 0.9);
-        parameters.set("varLow", .5);
+        parameters.set("coefLow", 0.5);
+        parameters.set("coefHigh", 1.5);
+        parameters.set("varLow", .2);
         parameters.set("varHigh", 1);
         parameters.set("includePositiveCoefs", true);
         parameters.set("includeNegativeCoefs", true);
@@ -402,11 +402,17 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("alpha", 0.01);//, 0.001, 0.0001);
         parameters.set("maxDegree", 5000);
 
-        parameters.set("errorsNormal", false);
+        parameters.set("intervalBetweenShocks", 100);
+        parameters.set("intervalBetweenRecordings", 100);
+//        parameters.set("selfLoopCoef");
+        parameters.set("fisherEpsilon", 1e-10);
+
+
+        parameters.set("errorsNormal", true);
 
         parameters.set("stableFAS", true);
         parameters.set("concurrentFAS", false);
-        parameters.set("colliderDiscoveryRule", 2);
+        parameters.set("colliderDiscoveryRule", 1, 2, 3);
         parameters.set("conflictRule", 3);
         parameters.set("depth", 6);
         parameters.set("useMaxPOrientationHeuristic", true);
@@ -416,7 +422,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("structurePrior", 0);
         parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5, 6, 7, 8, 9, 10);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
-        parameters.set("semBicDelta", 0, .01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1);
+        parameters.set("semBicDelta", 0, .1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
@@ -426,7 +432,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("verbose", false);
 
-        parameters.set("kevin", true);
+        parameters.set("kevin", false);
 
         Statistics statistics = new Statistics();
 

@@ -204,7 +204,8 @@ public class SemBicScore implements Score {
             TetradVector covxy = (getCovariances().getSelection(parents, new int[]{i})).getColumn(0);
             TetradVector coefs = (covxx.inverse()).times(covxy);
 
-            s2 -= coefs.dotProduct(covxy) * 1.001 - getDelta() * p;
+            final double delta = getDelta();
+            s2 -= (coefs.dotProduct(covxy) - delta * delta * p);
 
 
             if (s2 <= 0) {
@@ -215,69 +216,69 @@ public class SemBicScore implements Score {
                 return Double.NaN;
             }
 
-            double _k1 = k1s[i];
-
-            for (int t = 0; t < coefs.size(); t++) {
-                _k1 -= pow(coefs.get(t), 1) * k1s[parents[t]];
-            }
-
-            double _k2 = k2s[i];
-
-            for (int t = 0; t < coefs.size(); t++) {
-                _k2 -= pow(coefs.get(t), 2) * k2s[parents[t]];
-            }
-
-            double _k3 = k3s[i];
-
-            for (int t = 0; t < coefs.size(); t++) {
-                _k3 -= pow(coefs.get(t), 3) * k3s[parents[t]];
-            }
-
-            double _k4 = k4s[i];
-
-            for (int t = 0; t < coefs.size(); t++) {
-                _k4 -= pow(coefs.get(t), 4) * k4s[parents[t]];
-            }
-
-            double _k5 = k5s[i];
-
-            for (int t = 0; t < coefs.size(); t++) {
-                _k5 -= pow(coefs.get(t), 5) * k5s[parents[t]];
-            }
-
-            double _k6 = k6s[i];
-
-            for (int t = 0; t < coefs.size(); t++) {
-                _k6 -= pow(coefs.get(t), 6) * k6s[parents[t]];
-            }
-
-            double stk3 = abs(_k3 / pow(_k2, 1.5));
-
-//            System.out.println("stk3 = " + stk3);
-
-            double stk4 = _k4 / pow(_k2, 2);
-
-//            s2 = _k2;
-
-            double stk5 = _k5 / pow(_k2, 2.5);
-
-            double stk6 = _k6 / pow(_k2, 3);
-
-
-
-//            s2 += .01 * p * p * tanh(pow(stk3, 2) + pow(stk4, 2) + pow(stk5, 2));
-            double q = p * (p + 1);// / 2;
-//            s2 += 10 * p * getDelta() * (1. / n) * (abs(stk3) / 6);// -stk4 + abs(stk5));
-
-//            s2 += (1. / n) * p * getDelta();
-
-//            s2 += 0.01 * p;// * getDelta();
-
-
-//            s2 += 3 * p * getDelta() * (1. / n) * (abs(stk3));// -stk4 + abs(stk5));
-
-//            return -n * log(s2) - k * log(n);// - log((abs(stk3) * abs(stk4)));// * abs(stk5)));
-            return -(n) * log(s2) /*- getDelta() * (3 * abs(stk4))*/ - getPenaltyDiscount() * k * log(n) + getStructurePrior(parents.length);
+//            double _k1 = k1s[i];
+//
+//            for (int t = 0; t < coefs.size(); t++) {
+//                _k1 -= pow(coefs.get(t), 1) * k1s[parents[t]];
+//            }
+//
+//            double _k2 = k2s[i];
+//
+//            for (int t = 0; t < coefs.size(); t++) {
+//                _k2 -= pow(coefs.get(t), 2) * k2s[parents[t]];
+//            }
+//
+//            double _k3 = k3s[i];
+//
+//            for (int t = 0; t < coefs.size(); t++) {
+//                _k3 -= pow(coefs.get(t), 3) * k3s[parents[t]];
+//            }
+//
+//            double _k4 = k4s[i];
+//
+//            for (int t = 0; t < coefs.size(); t++) {
+//                _k4 -= pow(coefs.get(t), 4) * k4s[parents[t]];
+//            }
+//
+//            double _k5 = k5s[i];
+//
+//            for (int t = 0; t < coefs.size(); t++) {
+//                _k5 -= pow(coefs.get(t), 5) * k5s[parents[t]];
+//            }
+//
+//            double _k6 = k6s[i];
+//
+//            for (int t = 0; t < coefs.size(); t++) {
+//                _k6 -= pow(coefs.get(t), 6) * k6s[parents[t]];
+//            }
+//
+//            double stk3 = abs(_k3 / pow(_k2, 1.5));
+//
+////            System.out.println("stk3 = " + stk3);
+//
+//            double stk4 = _k4 / pow(_k2, 2);
+//
+////            s2 = _k2;
+//
+//            double stk5 = _k5 / pow(_k2, 2.5);
+//
+//            double stk6 = _k6 / pow(_k2, 3);
+//
+//
+//
+////            s2 += .01 * p * p * tanh(pow(stk3, 2) + pow(stk4, 2) + pow(stk5, 2));
+//            double q = p * (p + 1);// / 2;
+////            s2 += 10 * p * getDelta() * (1. / n) * (abs(stk3) / 6);// -stk4 + abs(stk5));
+//
+////            s2 += (1. / n) * p * getDelta();
+//
+////            s2 += 0.01 * p;// * getDelta();
+//
+//
+////            s2 += 3 * p * getDelta() * (1. / n) * (abs(stk3));// -stk4 + abs(stk5));
+//
+////            return -n * log(s2) - k * log(n);// - log((abs(stk3) * abs(stk4)));// * abs(stk5)));
+            return -(n) * log(s2) - getPenaltyDiscount() * k * log(n) + getStructurePrior(parents.length);
         } catch (Exception e) {
             boolean removedOne = true;
 
