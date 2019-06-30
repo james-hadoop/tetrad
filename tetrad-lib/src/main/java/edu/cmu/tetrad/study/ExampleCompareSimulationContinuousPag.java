@@ -387,15 +387,15 @@ public class ExampleCompareSimulationContinuousPag {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
 
-        parameters.set("numRuns", 10);
+        parameters.set("numRuns", 1);
         parameters.set("numMeasures", 20);
-        parameters.set("avgDegree", 2, 4, 6);
-        parameters.set("sampleSize", 1000);
+        parameters.set("avgDegree", 4);//, 6);
+        parameters.set("sampleSize", 100000);
         parameters.set("differentGraphs", true);
-        parameters.set("coefLow", 0.5);
-        parameters.set("coefHigh", 1.5);
-        parameters.set("varLow", .2);
-        parameters.set("varHigh", 1);
+        parameters.set("coefLow", 0.3);
+        parameters.set("coefHigh", .9);
+        parameters.set("varLow", 1);
+        parameters.set("varHigh", 3);
         parameters.set("includePositiveCoefs", true);
         parameters.set("includeNegativeCoefs", true);
         parameters.set("depth", -1);
@@ -422,7 +422,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("structurePrior", 0);
         parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5, 6, 7, 8, 9, 10);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
-        parameters.set("semBicDelta", 0, .1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2);
+        parameters.set("semBicDelta", 0);//', .1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
@@ -456,7 +456,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new PcAll(new FisherZInverseCovariance()));
+//        algorithms.add(new PcAll(new FisherZInverseCovariance()));
 //        algorithms.add(new PcAll(new FisherZPrecisionMatrix()));
 //        algorithms.add(new PcAll(new FisherZWhittaker()));
 //        algorithms.add(new PcAll(new FisherZRecursive()));

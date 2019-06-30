@@ -584,7 +584,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         }
 
         @Override
-        protected Boolean compute() {
+        protected synchronized Boolean compute() {
             for (int i = from; i < to; i++) {
                 if ((i + 1) % 1000 == 0) {
                     count[0] += 1000;
@@ -659,7 +659,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             }
 
             @Override
-            protected Boolean compute() {
+            protected synchronized Boolean compute() {
                 Queue<NodeTaskEmptyGraph> tasks = new ArrayDeque<>();
 
                 int numNodesPerTask = Math.max(100, nodes.size() / maxThreads);
@@ -738,7 +738,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             }
 
             @Override
-            protected Boolean compute() {
+            protected synchronized Boolean compute() {
                 if (TaskManager.getInstance().isCanceled()) {
                     return false;
                 }
@@ -868,7 +868,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             }
 
             @Override
-            protected Boolean compute() {
+            protected synchronized Boolean compute() {
                 if (TaskManager.getInstance().isCanceled()) {
                     return false;
                 }
@@ -1147,7 +1147,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             }
 
             @Override
-            protected Boolean compute() {
+            protected synchronized Boolean compute() {
                 if (to - from <= chunk) {
                     for (int _w = from; _w < to; _w++) {
                         Node x = nodes.get(_w);
@@ -1220,7 +1220,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     // Calculates the new arrows for an a->b edge.
-    private void calculateArrowsForward(Node a, Node b) {
+    private synchronized void calculateArrowsForward(Node a, Node b) {
         if (mode == Mode.heuristicSpeedup && !effectEdgesGraph.isAdjacentTo(a, b)) {
             return;
         }
@@ -1324,7 +1324,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             }
 
             @Override
-            protected Boolean compute() {
+            protected synchronized Boolean compute() {
                 if (to - from <= chunk) {
                     for (int _w = from; _w < to; _w++) {
                         final Node w = adj.get(_w);
@@ -1371,7 +1371,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     // Calculates the arrows for the removal in the backward direction.
-    private void calculateArrowsBackward(Node a, Node b) {
+    private synchronized void calculateArrowsBackward(Node a, Node b) {
         if (existsKnowledge()) {
             if (!getKnowledge().noEdgeRequired(a.getName(), b.getName())) {
                 return;

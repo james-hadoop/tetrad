@@ -104,9 +104,9 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
         if (kevin) {
 //            dataSet = DataUtils.getNonparanormalTransformed(dataSet);
-            this.covariances = new CovariancesDoubleKevin(dataSet.getDoubleData().toArray(), true);
+            this.covariances = new CovariancesDoubleKevin(dataSet.getDoubleData().toArray(), false);
         } else {
-            this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), true);
+            this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), false);
         }
 
         this.variables = Collections.unmodifiableList(dataSet.getVariables());

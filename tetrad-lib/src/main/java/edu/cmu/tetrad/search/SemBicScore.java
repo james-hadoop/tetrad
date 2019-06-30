@@ -205,7 +205,7 @@ public class SemBicScore implements Score {
             TetradVector coefs = (covxx.inverse()).times(covxy);
 
             final double delta = getDelta();
-            s2 -= (coefs.dotProduct(covxy) - delta * delta * p);
+            s2 -= (coefs.dotProduct(covxy) * (n / (n - 1)) - delta * delta * p);
 
 
             if (s2 <= 0) {
