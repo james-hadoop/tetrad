@@ -387,10 +387,10 @@ public class ExampleCompareSimulationContinuousPag {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
 
-        parameters.set("numRuns", 1);
+        parameters.set("numRuns", 5);
         parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 4);//, 6);
-        parameters.set("sampleSize", 100000);
+        parameters.set("sampleSize", 10000);
         parameters.set("differentGraphs", true);
         parameters.set("coefLow", 0.3);
         parameters.set("coefHigh", .9);
@@ -420,9 +420,9 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("maxDegree", 1000);
 
-        parameters.set("structurePrior", 0);
-        parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5, 6, 7, 8, 9, 10);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
-        parameters.set("semBicDelta", 0);//', .1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2);
+        parameters.set("structurePrior", 0, 1, 2);
+        parameters.set("penaltyDiscount", 1, 2);//, 3);//, 2, 3, 4, 5, 6, 7, 8, 9, 10);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
+        parameters.set("semBicDelta", 0, .1, 0.2, 0.3, 0.4);//, 0.5, 0.6, 0.7, 0.8);//, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
@@ -433,9 +433,11 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("verbose", false);
 
         parameters.set("kevin", false);
+//        parameters.set("biasCorrected", true, false);
 
         Statistics statistics = new Statistics();
 
+//        statistics.add(new ParameterColumn("biasCorrected"));
         statistics.add(new ParameterColumn("avgDegree"));
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
@@ -447,12 +449,13 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecall());
+        statistics.add(new F1All());
         statistics.add(new ElapsedTime());
 
-        statistics.setWeight("AP", 1.0);
-        statistics.setWeight("AR", 1.0);
-        statistics.setWeight("AHP", 1.0);
-        statistics.setWeight("AHR", 1.0);
+        statistics.setWeight("F1All", 1.0);
+//        statistics.setWeight("AR", 1.0);
+//        statistics.setWeight("AHP", 1.0);
+//        statistics.setWeight("AHR", 1.0);
 
         Algorithms algorithms = new Algorithms();
 
@@ -477,7 +480,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         comparison.setParallelized(false);
 
-        comparison.setSortByUtility(false);
+        comparison.setSortByUtility(true);
         comparison.setShowUtilities(false);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);

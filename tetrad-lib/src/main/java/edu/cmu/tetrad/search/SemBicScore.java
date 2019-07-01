@@ -24,6 +24,7 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
+import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -100,7 +101,7 @@ public class SemBicScore implements Score {
     /**
      * Constructs the score using a covariance matrix.
      */
-    public SemBicScore(DataSet dataSet, boolean kevin) {
+    public SemBicScore(DataSet dataSet, boolean kevin, boolean biasCorrected) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
@@ -108,7 +109,7 @@ public class SemBicScore implements Score {
         dataSet = DataUtils.center(dataSet);
 
         ICovarianceMatrix cov = dataSet instanceof ICovarianceMatrix ? (ICovarianceMatrix) dataSet
-                : new CovarianceMatrix(dataSet, kevin);
+                : new CovarianceMatrix(dataSet, kevin, biasCorrected);
 
         setCovariances(cov);
 
@@ -192,7 +193,7 @@ public class SemBicScore implements Score {
      * Calculates the sample likelihood and BIC score for i given its parents in a simple SEM model
      */
     public double localScore(int i, int... parents) {
-        for (int p : parents) if (forbidden.contains(p)) return Double.NaN;
+//        for (int p : parents) if (forbidden.contains(p)) return Double.NaN;
 
         try {
             double s2 = getCovariances().getValue(i, i);
@@ -205,7 +206,7 @@ public class SemBicScore implements Score {
             TetradVector coefs = (covxx.inverse()).times(covxy);
 
             final double delta = getDelta();
-            s2 -= (coefs.dotProduct(covxy) * (n / (n - 1)) - delta * delta * p);
+            s2 -= coefs.dotProduct(covxy) - delta * delta * p;
 
 
             if (s2 <= 0) {
@@ -332,11 +333,11 @@ public class SemBicScore implements Score {
 
     @Override
     public double localScoreDiff(int x, int y, int[] z) {
-
+//
 //        Node _x = variables.get(x);
 //        Node _y = variables.get(y);
 //        List<Node> _z = getVariableList(z);
-//
+
 //        double r = partialCorrelation(_x, _y, _z);
 //
 ////        double sp1 = getStructurePrior(z.length + 1);
@@ -358,19 +359,19 @@ public class SemBicScore implements Score {
     }
 
     private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {
-        return this.recursivePartialCorrelation.corr(x, y, z);
-//        int[] indices = new int[z.size() + 2];
-//        indices[0] = indexMap.get(x.getName());
-//        indices[1] = indexMap.get(y.getName());
-//        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i).getName());
-//        TetradMatrix submatrix = covariances.getSubmatrix(indices).getMatrix();
-//        return StatUtils.partialCorrelationWhittaker(submatrix);
+//        return this.recursivePartialCorrelation.corr(x, y, z);
+        int[] indices = new int[z.size() + 2];
+        indices[0] = indexMap.get(x.getName());
+        indices[1] = indexMap.get(y.getName());
+        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i).getName());
+        TetradMatrix submatrix = covariances.getSubmatrix(indices).getMatrix();
+        return StatUtils.partialCorrelationPrecisionMatrix(submatrix);
     }
 
     private Map<String, Integer> indexMap(List<Node> variables) {
         Map<String, Integer> indexMap = new HashMap<>();
 
-        for (int i = 0; i < variables.size(); i++) {
+        for (int i = 0; variables.size() > i; i++) {
             indexMap.put(variables.get(i).getName(), i);
         }
 

@@ -35,7 +35,7 @@ public class SemBicScore implements ScoreWrapper {
 //                : new CovarianceMatrix((DataSet) dataSet);
 
         edu.cmu.tetrad.search.SemBicScore semBicScore
-                = new edu.cmu.tetrad.search.SemBicScore((DataSet) this.dataSet, false);
+                = new edu.cmu.tetrad.search.SemBicScore((DataSet) this.dataSet, false, true);//parameters.getBoolean("biasCorrected"));
         semBicScore.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
         semBicScore.setStructurePrior(parameters.getDouble("structurePrior"));
         semBicScore.setDelta(parameters.getDouble("semBicDelta"));
@@ -58,6 +58,8 @@ public class SemBicScore implements ScoreWrapper {
         parameters.add("penaltyDiscount");
         parameters.add("structurePrior");
         parameters.add("semBicDelta");
+//        parameters.add("biasCorrected");
+//        parameters.add("kevin");
         return parameters;
     }
 

@@ -104,16 +104,16 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
         if (kevin) {
 //            dataSet = DataUtils.getNonparanormalTransformed(dataSet);
-            this.covariances = new CovariancesDoubleKevin(dataSet.getDoubleData().toArray(), false);
+            this.covariances = new CovariancesDoubleKevin(dataSet.getDoubleData().toArray(), true);
         } else {
-            this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), false);
+            this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), true);
         }
 
         this.variables = Collections.unmodifiableList(dataSet.getVariables());
         this.sampleSize = dataSet.getNumRows();
     }
 
-    public CovarianceMatrix(DataSet dataSet, boolean kevin) {
+    public CovarianceMatrix(DataSet dataSet, boolean kevin, boolean biasCorrected) {
         if (!dataSet.isContinuous()) {
             throw new IllegalArgumentException("Not a continuous data set.");
         }
@@ -123,9 +123,9 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 //        dataSet = DataUtils.getNonparanormalTransformed(dataSet);
 
         if (kevin) {
-            this.covariances = new CovariancesDoubleKevin(dataSet.getDoubleData().toArray(), true);
+            this.covariances = new CovariancesDoubleKevin(dataSet.getDoubleData().toArray(), biasCorrected);
         } else {
-            this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), true);
+            this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), biasCorrected);
         }
         ;
 

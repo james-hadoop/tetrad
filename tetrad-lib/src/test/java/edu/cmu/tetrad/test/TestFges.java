@@ -308,12 +308,12 @@ public class TestFges {
     public void testFgesMbFromGraph() {
         RandomUtil.getInstance().setSeed(1450184147770L);
 
-        int numNodes = 20;
+        int numNodes = 10;
         int numIterations = 1;
 
         for (int i = 0; i < numIterations; i++) {
 //            System.out.println("Iteration " + (i + 1));
-            Graph dag = GraphUtils.randomDag(numNodes, 0, numNodes, 10, 10, 10, false);
+            Graph dag = GraphUtils.randomDag(numNodes, 0, 2 * numNodes, 10, 10, 10, false);
             GraphScore fgesScore = new GraphScore(dag);
 
             Fges fges = new Fges(fgesScore);
