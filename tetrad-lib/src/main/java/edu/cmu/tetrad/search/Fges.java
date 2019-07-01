@@ -992,7 +992,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             }
 
             storeGraph();
-            reevaluateForward(toProcess, arrow);
+            reevaluateForward(new HashSet<>(toProcess), arrow);
         }
     }
 
@@ -1054,7 +1054,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             }
 
             storeGraph();
-            reevaluateBackward(toProcess);
+            reevaluateBackward(new HashSet<>(toProcess));
         }
     }
 

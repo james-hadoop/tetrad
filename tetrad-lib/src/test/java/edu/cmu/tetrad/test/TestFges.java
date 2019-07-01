@@ -305,6 +305,27 @@ public class TestFges {
     }
 
     @Test
+    public void testFgesFromGraph() {
+        RandomUtil.getInstance().setSeed(1450184147770L);
+
+        int numNodes = 20;
+        int numIterations = 1;
+
+        for (int i = 0; i < numIterations; i++) {
+//            System.out.println("Iteration " + (i + 1));
+            Graph dag = GraphUtils.randomDag(numNodes, 0, 3 * numNodes, 10, 10, 10, false);
+            GraphScore fgesScore = new GraphScore(dag);
+
+            Fges fges = new Fges(fgesScore);
+            Graph pattern1 = fges.search();
+
+            Graph pattern2 = SearchGraphUtils.patternFromDag(dag);
+
+            assertEquals(pattern1, pattern2);
+        }
+    }
+
+    @Test
     public void testFgesMbFromGraph() {
         RandomUtil.getInstance().setSeed(1450184147770L);
 

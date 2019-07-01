@@ -420,8 +420,8 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("maxDegree", 1000);
 
-        parameters.set("structurePrior", 0, 1, 2);
-        parameters.set("penaltyDiscount", 1, 2);//, 3);//, 2, 3, 4, 5, 6, 7, 8, 9, 10);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
+        parameters.set("structurePrior", 0);//, 1, 2);
+        parameters.set("penaltyDiscount", 1, 2, 3, 4);//, 3);//, 2, 3, 4, 5, 6, 7, 8, 9, 10);//, 10, 20, 30, 40, 50);//, 1.02, 1.002, 1.001, 1.01);
         parameters.set("semBicDelta", 0, .1, 0.2, 0.3, 0.4);//, 0.5, 0.6, 0.7, 0.8);//, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2);
 
         parameters.set("faithfulnessAssumed", true);
