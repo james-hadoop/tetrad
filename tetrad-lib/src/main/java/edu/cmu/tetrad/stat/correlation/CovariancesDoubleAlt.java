@@ -29,28 +29,16 @@ import edu.cmu.tetrad.util.TetradMatrix;
  * @author Kevin V. Bui (kvb2@pitt.edu)
  */
 public class CovariancesDoubleAlt implements Covariances {
-
     private final double[][] _data;
-
     private final int numOfRows;
-
     private final int numOfCols;
     private final double[][] covariances;
 
     public CovariancesDoubleAlt(double[][] data, boolean biasCorrected) {
-        _data = data;// new double[data.length][data[0].length];
-//
-//        for (int i = 0; i < data.length; i++) {
-//            for (int j = 0; j < data[0].length; j++) {
-//                this._data[i][j] = data[i][j];
-//            }
-//        }
-
+        _data = data;
         this.numOfRows = data.length;
         this.numOfCols = data[0].length;
         this.covariances = compute(biasCorrected);
-
-//        System.out.println("Kevin " + new TetradMatrix(covariances));
     }
 
     public CovariancesDoubleAlt(float[][] data, boolean biasCorrected) {
@@ -119,8 +107,6 @@ public class CovariancesDoubleAlt implements Covariances {
             }
             covarianceMatrix[col1][col1] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
-
-//        System.out.println("kevin = " + new TetradMatrix(covarianceMatrix));
 
         return covarianceMatrix;
     }

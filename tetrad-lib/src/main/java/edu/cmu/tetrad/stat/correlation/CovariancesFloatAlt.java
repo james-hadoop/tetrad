@@ -27,13 +27,9 @@ package edu.cmu.tetrad.stat.correlation;
  * @author Kevin V. Bui (kvb2@pitt.edu)
  */
 public class CovariancesFloatAlt implements Covariances {
-
     private final float[][] _data;
-
     private final int numOfRows;
-
     private final int numOfCols;
-
     private float[][] covariances;
 
     public CovariancesFloatAlt(double[][] data, boolean biasCorrected) {

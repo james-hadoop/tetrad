@@ -21,21 +21,16 @@ package edu.cmu.tetrad.stat.correlation;
 import static java.lang.Math.round;
 
 /**
- * Compute covariance on the fly. Warning! This class will overwrite the values
- * in the input _data.
+ * Compute covariance using the standard calculation.
  *
  * Jan 27, 2016 4:37:44 PM
  *
  * @author Kevin V. Bui (kvb2@pitt.edu)
  */
 public class CovariancesFloatStandard implements Covariances {
-
     private final float[][] _data;
-
     private final int numOfRows;
-
     private final int numOfCols;
-
     private float[][] covariances;
 
     public CovariancesFloatStandard(double[][] data, boolean biasCorrected) {
@@ -124,9 +119,8 @@ public class CovariancesFloatStandard implements Covariances {
             }
             float variance = 0;
             for (int row = 0; row < numOfRows; row++) {
-                variance += ((_data[row][col1]) * (_data[row][col1]));
+                variance += ((_data[row][col1]) * (_data[row][col1])) / (numOfRows - 1);
             }
-            variance /= numOfRows - 1;
             covarianceMatrix[col1][col1] = biasCorrected ? variance * ((float) numOfRows / (float) (numOfRows - 1)) : variance;
         }
 

@@ -18,39 +18,23 @@
  */
 package edu.cmu.tetrad.stat.correlation;
 
-import edu.cmu.tetrad.util.TetradMatrix;
-
 /**
- * Compute covariance on the fly. Warning! This class will overwrite the values
- * in the input data.
- *
- * Jan 27, 2016 4:37:44 PM
+ * Computes covariances using the standard calculation.
  *
  * @author Kevin V. Bui (kvb2@pitt.edu)
+ * @author Joseph D. Ramsey
  */
 public class CovariancesDoubleStandard implements Covariances {
-
     private final double[][] _data;
-
     private final int numOfRows;
-
     private final int numOfCols;
     private final double[][] covariances;
 
     public CovariancesDoubleStandard(double[][] data, boolean biasCorrected) {
-        _data = data;//new double[data.length][data[0].length];
-
-//        for (int i = 0; i < data.length; i++) {
-//            for (int j = 0; j < data[0].length; j++) {
-//                this._data[i][j] = data[i][j];
-//            }
-//        }
-
+        _data = data;
         this.numOfRows = data.length;
         this.numOfCols = data[0].length;
         this.covariances = compute(biasCorrected);
-
-//        System.out.println("Original" + new TetradMatrix(covariances));
     }
 
     public CovariancesDoubleStandard(float[][] data, boolean biasCorrected) {
@@ -86,14 +70,12 @@ public class CovariancesDoubleStandard implements Covariances {
                 for (int row = 0; row < numOfRows; row++) {
                     cov += ((_data[row][col1]) * (_data[row][col2])) / (numOfRows - 1);
                 }
-//                cov /= numOfRows - 1;
                 covarianceMatrix[index++] = biasCorrected ? cov * ((double) numOfRows / (double) (numOfRows - 1)) : cov;
             }
             double variance = 0;
             for (int row = 0; row < numOfRows; row++) {
                 variance += ((_data[row][col1]) * (_data[row][col1])) / (numOfRows - 1);
             }
-//            variance /= numOfRows - 1;
             covarianceMatrix[index++] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
 
@@ -116,12 +98,12 @@ public class CovariancesDoubleStandard implements Covariances {
                 covarianceMatrix[col1][col2] = cov;
                 covarianceMatrix[col2][col1] = cov;
             }
-//            double variance = 0;
-//            for (int row = 0; row < numOfRows; row++) {
-//                variance += ((_data[row][col1]) * (_data[row][col1]));
-//            }
-//            variance /= numOfRows - 1;
-//            covarianceMatrix[col1][col1] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
+            double variance = 0;
+            for (int row = 0; row < numOfRows; row++) {
+                variance += ((_data[row][col1]) * (_data[row][col1]));
+            }
+            variance /= numOfRows - 1;
+            covarianceMatrix[col1][col1] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
 
         return covarianceMatrix;
