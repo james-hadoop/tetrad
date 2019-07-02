@@ -34,7 +34,7 @@ import static java.lang.StrictMath.abs;
 /**
  * Implements the LiNGAM algorithm in Shimizu, Hoyer, Hyvarinen, and Kerminen, A linear nongaussian acyclic model for
  * causal discovery, JMLR 7 (2006). Largely follows the Matlab code.
- *
+ * <p>
  * We use FGES with knowledge of causal order for the pruning step.
  *
  * @author Joseph Ramsey
@@ -54,15 +54,19 @@ public class Lingam {
         data = DataUtils.center(data);
 
         TetradMatrix X = data.getDoubleData();
-        FastIca fastIca = new FastIca(X, 30);
+        FastIca fastIca = new FastIca(X, data.getNumColumns());
+//        fastIca.setFunction(FastIca.LOGCOSH);
+//        fastIca.setAlgorithmType(FastIca.DEFLATION);
+        fastIca.setMaxIterations(100);
         fastIca.setVerbose(false);
         FastIca.IcaResult result11 = fastIca.findComponents();
-        TetradMatrix W = result11.getW();
+        TetradMatrix A = result11.getA().transpose();
+        TetradMatrix W = A.inverse();
 
         System.out.println("W = " + W);
 
         PermutationGenerator gen1 = new PermutationGenerator(W.columns());
-        int[] perm1 = new int[0];
+        int[] perm1 = null;
         double sum1 = Double.POSITIVE_INFINITY;
         int[] choice1;
 
@@ -70,7 +74,7 @@ public class Lingam {
             double sum = 0.0;
 
             for (int i = 0; i < W.columns(); i++) {
-                final double wij = W.get(i, choice1[i]);
+                final double wij = W.get(choice1[i], i);
                 sum += 1.0 / abs(wij);
             }
 
@@ -80,13 +84,15 @@ public class Lingam {
             }
         }
 
+        assert (perm1 != null);
+
         TetradMatrix WTilde = W.getSelection(perm1, perm1);
 
         System.out.println("WTilde before normalization = " + WTilde);
 
         for (int i = 0; i < WTilde.rows(); i++) {
             for (int j = 0; j < WTilde.columns(); j++) {
-                WTilde.set(i, j, WTilde.get(j, i) / WTilde.get(i, i));
+                WTilde.set(i, j, WTilde.get(i, j) / WTilde.get(j, j));
             }
         }
 
@@ -98,7 +104,7 @@ public class Lingam {
         System.out.println("B = " + B);
 
         PermutationGenerator gen2 = new PermutationGenerator(B.rows());
-        int[] perm2 = new int[0];
+        int[] perm2 = null;
         double sum2 = Double.POSITIVE_INFINITY;
         int[] choice2;
 
@@ -130,7 +136,9 @@ public class Lingam {
         final List<Node> variables = data.getVariables();
 
         for (int i = 0; i < variables.size(); i++) {
-            knowledge.addToTier(i + 1, variables.get(perm2[i]).getName());
+            final int index = perm2[i];
+            System.out.println(variables.get(i) + " " + " " + variables.get(index));
+            knowledge.addToTier(i, variables.get(index).getName());
         }
 
         fges.setKnowledge(knowledge);
