@@ -1280,7 +1280,7 @@ public class Comparison {
         dir.delete();
     }
 
-    private void doRun(List<AlgorithmSimulationWrapper> algorithmSimulationWrappers,
+    private synchronized void doRun(List<AlgorithmSimulationWrapper> algorithmSimulationWrappers,
                        List<AlgorithmWrapper> algorithmWrappers, List<SimulationWrapper> simulationWrappers,
                        Statistics statistics,
                        int numGraphTypes, double[][][][] allStats, Run run) {
@@ -1379,13 +1379,13 @@ public class Comparison {
 
 //        Graph comparisonGraph = trueGraph == null ? null : algorithmSimulationWrapper.getComparisonGraph(trueGraph);
 
-        est[0] = out;
+        est[0] =  new EdgeListGraph(out);
         graphTypeUsed[0] = true;
 
         if (data.isMixed()) {
-            est[1] = getSubgraph(out, true, true, data);
-            est[2] = getSubgraph(out, true, false, data);
-            est[3] = getSubgraph(out, false, false, data);
+            est[1] = getSubgraph(est[0], true, true, simulationWrapper.getDataModel(run.getRunIndex()));
+            est[2] = getSubgraph(est[0], true, false, simulationWrapper.getDataModel(run.getRunIndex()));
+            est[3] = getSubgraph(est[0], false, false, simulationWrapper.getDataModel(run.getRunIndex()));
 
             graphTypeUsed[1] = true;
             graphTypeUsed[2] = true;
@@ -1397,9 +1397,9 @@ public class Comparison {
         truth[0] = comparisonGraph;
 
         if (data.isMixed() && comparisonGraph != null) {
-            truth[1] = getSubgraph(comparisonGraph, true, true, data);
-            truth[2] = getSubgraph(comparisonGraph, true, false, data);
-            truth[3] = getSubgraph(comparisonGraph, false, false, data);
+            truth[1] = getSubgraph(comparisonGraph, true, true, simulationWrapper.getDataModel(run.getRunIndex()));
+            truth[2] = getSubgraph(comparisonGraph, true, false, simulationWrapper.getDataModel(run.getRunIndex()));
+            truth[3] = getSubgraph(comparisonGraph, false, false, simulationWrapper.getDataModel(run.getRunIndex()));
         }
 
         if (comparisonGraph != null) {
@@ -1946,7 +1946,7 @@ public class Comparison {
         }
 
         @Override
-        public DataModel getDataModel(int index) {
+        public synchronized DataModel getDataModel(int index) {
             return dataModels.get(index);
         }
 

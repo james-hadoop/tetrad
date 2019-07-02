@@ -282,7 +282,10 @@ public class SemBicScore implements Score {
 ////            s2 += 3 * p * getDelta() * (1. / n) * (abs(stk3));// -stk4 + abs(stk5));
 //
 ////            return -n * log(s2) - k * log(n);// - log((abs(stk3) * abs(stk4)));// * abs(stk5)));
-            return -(n) * log(s2) - getPenaltyDiscount() * k * log(n) + getStructurePrior(parents.length);
+
+//            s2 += 0.00001 * p;
+
+            return -(n) * log(s2) - k * log(n) + 4 * p;
         } catch (Exception e) {
             boolean removedOne = true;
 

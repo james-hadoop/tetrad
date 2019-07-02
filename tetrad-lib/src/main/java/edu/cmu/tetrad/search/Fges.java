@@ -622,12 +622,9 @@ public final class Fges implements GraphSearch, GraphScorer {
                         continue;
                     }
 
-                    if (bump > 0) {
+                    if (bump > threshold) {
                         final Edge edge = Edges.undirectedEdge(x, y);
                         effectEdgesGraph.addEdge(edge);
-                    }
-
-                    if (bump > 0) {
                         addArrow(x, y, emptySet, emptySet, bump);
                         addArrow(y, x, emptySet, emptySet, bump);
                     }
@@ -1258,7 +1255,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
                 double bump = insertEval(a, b, T, naYX, hashIndices);
 
-                if (bump > -threshold) {
+                if (bump > threshold) {
                     addArrow(a, b, T, naYX, bump);
                 }
             }
@@ -1366,7 +1363,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
             double bump = deleteEval(a, b, h, naYX, hashIndices);
 
-            if (bump <= 0) {
+            if (bump <= threshold) {
                 addArrow(a, b, h, naYX, bump);
             }
         }
