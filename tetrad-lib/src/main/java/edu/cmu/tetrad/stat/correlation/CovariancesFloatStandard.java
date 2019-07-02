@@ -18,6 +18,8 @@
  */
 package edu.cmu.tetrad.stat.correlation;
 
+import static java.lang.Math.round;
+
 /**
  * Compute covariance on the fly. Warning! This class will overwrite the values
  * in the input _data.
@@ -26,7 +28,7 @@ package edu.cmu.tetrad.stat.correlation;
  *
  * @author Kevin V. Bui (kvb2@pitt.edu)
  */
-public class CovariancesFloat implements Covariances {
+public class CovariancesFloatStandard implements Covariances {
 
     private final float[][] _data;
 
@@ -36,12 +38,12 @@ public class CovariancesFloat implements Covariances {
 
     private float[][] covariances;
 
-    public CovariancesFloat(double[][] data, boolean biasCorrected) {
+    public CovariancesFloatStandard(double[][] data, boolean biasCorrected) {
         _data = new float[data.length][data[0].length];
 
         for (int i = 0; i < _data.length; i++) {
             for (int j = 0; j < _data[0].length; j++) {
-                this._data[i][j] = (float) data[i][j];
+                this._data[i][j] = (float) (round(data[i][j] * 100.0) / 100.0);
             }
         }
 
@@ -50,7 +52,7 @@ public class CovariancesFloat implements Covariances {
         this.covariances = compute(biasCorrected);
     }
 
-    public CovariancesFloat(float[][] data, boolean biasCorrected) {
+    public CovariancesFloatStandard(float[][] data, boolean biasCorrected) {
         _data = new float[data.length][data[0].length];
 
         for (int i = 0; i < _data.length; i++) {
@@ -64,16 +66,15 @@ public class CovariancesFloat implements Covariances {
         this.covariances = compute(biasCorrected);
     }
 
-    public CovariancesFloat(double[][] matrix, int sampleSize) {
-        float[][] _matrix = new float[matrix.length][matrix[0].length];
+    public CovariancesFloatStandard(double[][] matrix, int sampleSize) {
+        this.covariances = new float[matrix.length][matrix[0].length];
 
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[0].length; j++) {
-                _matrix[i][j] = (float) matrix[i][j];
+                covariances[i][j] = (float) matrix[i][j];
             }
         }
 
-        this.covariances = _matrix;
         this.numOfCols = matrix.length;
         this.numOfRows = sampleSize;
         this._data = null;
@@ -89,14 +90,16 @@ public class CovariancesFloat implements Covariances {
             for (int col2 = 0; col2 < col; col2++) {
                 float variance = 0;
                 for (int row = 0; row < numOfRows; row++) {
-                    variance += ((_data[row][col]) * (_data[row][col2]) - variance) / (row + 1);
+                    variance += ((_data[row][col]) * (_data[row][col2]));
                 }
+                variance /= numOfRows - 1;
                 covarianceMatrix[index++] = biasCorrected ? variance * ((float) numOfRows / (float) (numOfRows - 1)) : variance;
             }
             float variance = 0;
             for (int row = 0; row < numOfRows; row++) {
-                variance += ((_data[row][col]) * (_data[row][col]) - variance) / (row + 1);
+                variance += ((_data[row][col]) * (_data[row][col]));
             }
+            variance /= numOfRows - 1;
             covarianceMatrix[index++] = biasCorrected ? variance * ((float) numOfRows / (float) (numOfRows - 1)) : variance;
         }
 
@@ -112,16 +115,18 @@ public class CovariancesFloat implements Covariances {
             for (int col2 = 0; col2 < col1; col2++) {
                 float cov = 0;
                 for (int row = 0; row < numOfRows; row++) {
-                    cov += ((_data[row][col1]) * (_data[row][col2]) - cov) / (row + 1);
+                    cov += ((_data[row][col1]) * (_data[row][col2]));
                 }
+                cov /= numOfRows - 1;
                 cov = biasCorrected ? cov * ((float) numOfRows / (float) (numOfRows - 1)) : cov;
                 covarianceMatrix[col1][col2] = cov;
                 covarianceMatrix[col2][col1] = cov;
             }
             float variance = 0;
             for (int row = 0; row < numOfRows; row++) {
-                variance += ((_data[row][col1]) * (_data[row][col1]) - variance) / (row + 1);
+                variance += ((_data[row][col1]) * (_data[row][col1]));
             }
+            variance /= numOfRows - 1;
             covarianceMatrix[col1][col1] = biasCorrected ? variance * ((float) numOfRows / (float) (numOfRows - 1)) : variance;
         }
 

@@ -1540,7 +1540,7 @@ public class Lofs2 {
     }
 
     private Graph fask(Graph graph, DataSet dataSet) {
-        Fask fask = new Fask(dataSet, new IndTestFisherZ(new CovarianceMatrixOnTheFly(dataSet, false), 0.05));
+        Fask fask = new Fask(dataSet, new IndTestFisherZ(new CovarianceMatrix(dataSet), 0.05));
         fask.setInitialGraph(graph);
         fask.setExtraEdgeThreshold(1.0);
         fask.setAlpha(0.0);

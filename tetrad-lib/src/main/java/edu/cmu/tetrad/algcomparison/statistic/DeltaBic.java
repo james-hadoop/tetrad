@@ -40,6 +40,6 @@ public class DeltaBic implements Statistic {
 
     @Override
     public double getNormValue(double value) {
-        return tanh(value);
+        return 1.0 - tanh(value);
     }
 }
