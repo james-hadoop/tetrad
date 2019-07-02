@@ -1,8 +1,7 @@
 package edu.cmu.tetrad.algcomparison.statistic;
 
+import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
-
-import static java.lang.Math.tanh;
 
 /**
  * The arrow precision. This counts arrowheads maniacally, wherever they occur in the graphs.
@@ -27,7 +26,7 @@ public class NumEdgeEstGraph implements Statistic {
     }
 
     @Override
-    public double getValue(Graph trueGraph, Graph estGraph) {
+    public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
         return estGraph.getNumEdges();
     }
 

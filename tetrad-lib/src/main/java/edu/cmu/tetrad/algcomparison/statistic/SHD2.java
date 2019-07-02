@@ -2,13 +2,8 @@ package edu.cmu.tetrad.algcomparison.statistic;
 
 import edu.cmu.tetrad.algcomparison.statistic.utils.AdjacencyConfusion;
 import edu.cmu.tetrad.algcomparison.statistic.utils.ArrowConfusion;
-import edu.cmu.tetrad.graph.Endpoint;
+import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.SearchGraphUtils;
-
-import java.util.List;
 
 /**
  * Calculates the structural Hamming distance (SHD) between the estimated graph and
@@ -30,7 +25,7 @@ public class SHD2 implements Statistic {
     }
 
     @Override
-    public double getValue(Graph trueGraph, Graph estGraph) {
+    public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
 
 //        List<Node> nodes = trueGraph.getNodes();
 //        estGraph = GraphUtils.replaceNodes(estGraph, nodes);

@@ -95,8 +95,6 @@ public class CovariancesDoubleKevin implements Covariances {
             covarianceMatrix[index++] = biasCorrected ? variance * ((double) numOfRows / (double) (numOfRows - 1)) : variance;
         }
 
-
-
         return covarianceMatrix;
     }
 

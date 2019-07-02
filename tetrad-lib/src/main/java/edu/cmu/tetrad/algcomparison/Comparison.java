@@ -1418,7 +1418,7 @@ public class Comparison {
                     if (_stat instanceof ElapsedTime) {
                         stat = elapsed / 1000.0;
                     } else {
-                        stat = _stat.getValue(truth[u], est[u]);
+                        stat = _stat.getValue(truth[u], est[u], data);
                     }
 
                     allStats[u][run.getAlgSimIndex()][statIndex][run.getRunIndex()] = stat;

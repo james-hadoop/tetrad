@@ -1,7 +1,7 @@
 package edu.cmu.tetrad.algcomparison.statistic;
 
+import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.Endpoint;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 
@@ -28,7 +28,7 @@ public class TrekPrecision implements Statistic {
     }
 
     @Override
-    public double getValue(Graph trueGraph, Graph estGraph) {
+    public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
         Graph _trueGraph = GraphUtils.replaceNodes(trueGraph, estGraph.getNodes());
         Graph _estGraph = GraphUtils.replaceNodes(estGraph, _trueGraph.getNodes());
 

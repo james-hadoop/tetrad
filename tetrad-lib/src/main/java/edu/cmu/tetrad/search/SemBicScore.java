@@ -44,6 +44,7 @@ import static java.lang.Math.*;
  */
 public class SemBicScore implements Score {
 
+    private DataSet dataSet;
     private double[] k1s;
     private double[] k2s;
     private double[] k3s = null;
@@ -105,6 +106,8 @@ public class SemBicScore implements Score {
         if (dataSet == null) {
             throw new NullPointerException();
         }
+
+        this.dataSet = dataSet;
 
         dataSet = DataUtils.center(dataSet);
 
@@ -476,7 +479,11 @@ public class SemBicScore implements Score {
     }
 
     public DataSet getDataSet() {
-        throw new UnsupportedOperationException();
+        if (dataSet == null) {
+            throw new NullPointerException("Data set not provided.");
+        }
+
+        return dataSet;
     }
 
     public void setPenaltyDiscount(double penaltyDiscount) {

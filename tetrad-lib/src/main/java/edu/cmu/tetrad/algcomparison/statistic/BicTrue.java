@@ -2,7 +2,11 @@ package edu.cmu.tetrad.algcomparison.statistic;
 
 import edu.cmu.tetrad.algcomparison.statistic.utils.AdjacencyConfusion;
 import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
+
+import static java.lang.Math.tanh;
 
 /**
  * The adjacency precision. The true positives are the number of adjacencies in both
@@ -10,27 +14,27 @@ import edu.cmu.tetrad.graph.Graph;
  *
  * @author jdramsey
  */
-public class AdjacencyTP implements Statistic {
+public class BicTrue implements Statistic {
     static final long serialVersionUID = 23L;
 
     @Override
     public String getAbbreviation() {
-        return "ATP";
+        return "BicTrue";
     }
 
     @Override
     public String getDescription() {
-        return "Adjacency True Positives";
+        return "BIC of the true model";
     }
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        AdjacencyConfusion adjConfusion = new AdjacencyConfusion(trueGraph, estGraph);
-        return adjConfusion.getAdjTp();
+        return new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search
+                .SemBicScore((DataSet) dataModel, false, false)).scoreDag(trueGraph);
     }
 
     @Override
     public double getNormValue(double value) {
-        return value;
+        return tanh(value);
     }
 }
