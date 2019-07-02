@@ -55,17 +55,17 @@ public class Lingam {
 
         TetradMatrix X = data.getDoubleData();
         FastIca fastIca = new FastIca(X, data.getNumColumns());
-        fastIca.setFunction(FastIca.LOGCOSH);
-        fastIca.setAlgorithmType(FastIca.DEFLATION);
-        fastIca.setMaxIterations(1000);
+//        fastIca.setFunction(FastIca.LOGCOSH);
+//        fastIca.setAlgorithmType(FastIca.DEFLATION);
+        fastIca.setMaxIterations(100);
         fastIca.setVerbose(false);
         FastIca.IcaResult result11 = fastIca.findComponents();
-        TetradMatrix W = result11.getW().transpose();
+        TetradMatrix W = result11.getW();//.transpose();
 
         System.out.println("W = " + W);
 
         PermutationGenerator gen1 = new PermutationGenerator(W.columns());
-        int[] perm1 = new int[0];
+        int[] perm1 = null;
         double sum1 = Double.POSITIVE_INFINITY;
         int[] choice1;
 
@@ -83,13 +83,15 @@ public class Lingam {
             }
         }
 
+        assert(perm1 != null);
+
         TetradMatrix WTilde = W.getSelection(perm1, perm1);
 
         System.out.println("WTilde before normalization = " + WTilde);
 
         for (int i = 0; i < WTilde.rows(); i++) {
             for (int j = 0; j < WTilde.columns(); j++) {
-                WTilde.set(i, j, WTilde.get(j, i) / WTilde.get(i, i));
+                WTilde.set(i, j, WTilde.get(i, j) / WTilde.get(i, i));
             }
         }
 
@@ -134,7 +136,7 @@ public class Lingam {
         final List<Node> variables = data.getVariables();
 
         for (int i = 0; i < variables.size(); i++) {
-            knowledge.addToTier(perm2[i], variables.get(i).getName());
+            knowledge.addToTier(perm2[i], variables.get(perm2[i]).getName());
         }
 
         fges.setKnowledge(knowledge);

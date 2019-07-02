@@ -102,7 +102,7 @@ public class SemBicScore implements Score {
     /**
      * Constructs the score using a covariance matrix.
      */
-    public SemBicScore(DataSet dataSet, boolean kevin, boolean biasCorrected) {
+    public SemBicScore(DataSet dataSet) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
@@ -112,7 +112,7 @@ public class SemBicScore implements Score {
         dataSet = DataUtils.center(dataSet);
 
         ICovarianceMatrix cov = dataSet instanceof ICovarianceMatrix ? (ICovarianceMatrix) dataSet
-                : new CovarianceMatrix(dataSet, kevin, biasCorrected);
+                : new CovarianceMatrix(dataSet);
 
         setCovariances(cov);
 
@@ -285,7 +285,7 @@ public class SemBicScore implements Score {
 
 //            s2 += 0.00001 * p;
 
-            return -(n) * log(s2) - k * log(n) + 4 * p;
+            return -(n) * log(s2) - k * log(n) + 3 * k;
         } catch (Exception e) {
             boolean removedOne = true;
 
@@ -482,10 +482,6 @@ public class SemBicScore implements Score {
     }
 
     public DataSet getDataSet() {
-        if (dataSet == null) {
-            throw new NullPointerException("Data set not provided.");
-        }
-
         return dataSet;
     }
 

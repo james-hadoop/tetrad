@@ -31,7 +31,7 @@ public class BicEst implements Statistic {
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
         Graph g = SearchGraphUtils.dagFromPattern(estGraph);
         return new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search
-                .SemBicScore((DataSet) dataModel, false, false)).scoreDag(g);
+                .SemBicScore((DataSet) dataModel)).scoreDag(g);
     }
 
     @Override

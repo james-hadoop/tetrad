@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 public class CovarianceMatrix implements ICovarianceMatrix {
 
     static final long serialVersionUID = 23L;
-    private boolean kevin = false;
+    private boolean kevin = true;
 
     /**
      * The name of the covariance matrix.
@@ -108,26 +108,6 @@ public class CovarianceMatrix implements ICovarianceMatrix {
         } else {
             this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), true);
         }
-
-        this.variables = Collections.unmodifiableList(dataSet.getVariables());
-        this.sampleSize = dataSet.getNumRows();
-    }
-
-    public CovarianceMatrix(DataSet dataSet, boolean kevin, boolean biasCorrected) {
-        if (!dataSet.isContinuous()) {
-            throw new IllegalArgumentException("Not a continuous data set.");
-        }
-
-        this.kevin = kevin;
-
-//        dataSet = DataUtils.getNonparanormalTransformed(dataSet);
-
-        if (kevin) {
-            this.covariances = new CovariancesDoubleKevin(dataSet.getDoubleData().toArray(), biasCorrected);
-        } else {
-            this.covariances = new CovariancesDoubleOrig(dataSet.getDoubleData().toArray(), biasCorrected);
-        }
-        ;
 
         this.variables = Collections.unmodifiableList(dataSet.getVariables());
         this.sampleSize = dataSet.getNumRows();

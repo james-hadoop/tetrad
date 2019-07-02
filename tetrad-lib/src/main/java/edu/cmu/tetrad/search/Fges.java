@@ -275,11 +275,6 @@ public final class Fges implements GraphSearch, GraphScorer {
             bes();
         }
 
-        if (!(score instanceof GraphScore)) {
-            this.modelScore = getScore(SearchGraphUtils.dagFromPattern(graph));
-            this.out.println("Model Score = " + modelScore);
-        }
-
         for (Node _node : nodeAttributes.keySet()) {
             Object value = nodeAttributes.get(_node);
 
@@ -624,7 +619,11 @@ public final class Fges implements GraphSearch, GraphScorer {
 
                     if (bump > threshold) {
                         final Edge edge = Edges.undirectedEdge(x, y);
-                        effectEdgesGraph.addEdge(edge);
+
+                        if (!effectEdgesGraph.isAdjacentTo(x, y)) {
+                            effectEdgesGraph.addEdge(edge);
+                        }
+
                         addArrow(x, y, emptySet, emptySet, bump);
                         addArrow(y, x, emptySet, emptySet, bump);
                     }
@@ -1967,7 +1966,9 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         if ((score instanceof SemBicScore)) {
             DataSet dataSet = ((SemBicScore) score).getDataSet();
-            score0 = new SemBicScore(dataSet, false, false);
+            if (dataSet != null) {
+                score0 = new SemBicScore(dataSet);
+            }
         }
 
         dag = GraphUtils.replaceNodes(dag, score.getVariables());

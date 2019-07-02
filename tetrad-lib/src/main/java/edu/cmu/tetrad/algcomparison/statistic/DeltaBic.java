@@ -1,10 +1,9 @@
 package edu.cmu.tetrad.algcomparison.statistic;
 
-import edu.cmu.tetrad.algcomparison.statistic.utils.AdjacencyConfusion;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.search.SearchGraphUtils;
 
 import static java.lang.Math.tanh;
 
@@ -14,23 +13,29 @@ import static java.lang.Math.tanh;
  *
  * @author jdramsey
  */
-public class BicTrue implements Statistic {
+public class DeltaBic implements Statistic {
     static final long serialVersionUID = 23L;
 
     @Override
     public String getAbbreviation() {
-        return "BicTrue";
+        return "DeltaBic";
     }
 
     @Override
     public String getDescription() {
-        return "BIC of the true model";
+        return "True BIC - Estimated BIC";
     }
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        return new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search
+        Graph g = SearchGraphUtils.dagFromPattern(estGraph);
+        double bicEst = new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search
+                .SemBicScore((DataSet) dataModel)).scoreDag(g);
+
+        double bicTrue = new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search
                 .SemBicScore((DataSet) dataModel)).scoreDag(trueGraph);
+
+        return bicTrue - bicEst;
     }
 
     @Override
