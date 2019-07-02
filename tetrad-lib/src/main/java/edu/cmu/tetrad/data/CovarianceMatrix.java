@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 public class CovarianceMatrix implements ICovarianceMatrix {
 
     static final long serialVersionUID = 23L;
-    private boolean kevin = true;
+    private boolean kevin = false;
 
     /**
      * The name of the covariance matrix.

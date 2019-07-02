@@ -285,7 +285,7 @@ public class SemBicScore implements Score {
 
 //            s2 += 0.00001 * p;
 
-            return -(n) * log(s2) - k * log(n) + 3 * k;
+            return -(n) * log(s2) - k * log(n) + 2 * p;
         } catch (Exception e) {
             boolean removedOne = true;
 

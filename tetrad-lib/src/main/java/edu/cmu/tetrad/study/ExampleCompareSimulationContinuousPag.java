@@ -389,7 +389,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 10);
-        parameters.set("avgDegree", 4);
+        parameters.set("avgDegree", 6           );
         parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
@@ -448,7 +448,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new LinearFisherModel(new RandomForward()));
+        simulations.add(new SemSimulation(new RandomForward()));
 
         Comparison comparison = new Comparison();
 
