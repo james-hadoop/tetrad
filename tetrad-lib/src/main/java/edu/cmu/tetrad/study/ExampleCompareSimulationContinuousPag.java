@@ -389,7 +389,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 10);
-        parameters.set("avgDegree", 4);
+        parameters.set("avgDegree", 6);
         parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
@@ -400,7 +400,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("includeNegativeCoefs", false);
         parameters.set("depth", -1);
         parameters.set("alpha", 0.01);//, 0.001, 0.0001);
-        parameters.set("maxDegree", 1000);
+        parameters.set("maxDegree", 500);
         parameters.set("intervalBetweenShocks", 100);
         parameters.set("intervalBetweenRecordings", 100);
         parameters.set("fisherEpsilon", 1e-10);
@@ -412,7 +412,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("depth", 10);
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
-        parameters.set("structurePrior", 0, 1, 2, 3);
+        parameters.set("structurePrior", 0, 1, 2, 3, -1, -2, -3);
         parameters.set("penaltyDiscount", -.2, -.1, -0.07, -.05, -0.4, -0.03, -0.2, -0.1, 0.7, 0.8, 0.83, 0.87, 0.9, 0.95, 1.);
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);

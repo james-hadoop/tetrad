@@ -191,7 +191,7 @@ public class SemBicScore implements Score {
 
     @Override
     public double localScoreDiff(int x, int y, int[] z) {
-//
+
         Node _x = variables.get(x);
         Node _y = variables.get(y);
         List<Node> _z = getVariableList(z);
@@ -203,8 +203,8 @@ public class SemBicScore implements Score {
 
 
         int n = covariances.getSampleSize();
-        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n) + sp1 - sp2;
-//
+        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n) + signum(getStructurePrior()) *(sp1 - sp2);
+
 //        return localScore(y, append(z, x)) - localScore(y, z);
     }
 

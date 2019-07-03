@@ -30,6 +30,8 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
+import static java.lang.StrictMath.abs;
+
 /**
  * GesSearch is an implementation of the GES algorithm, as specified in
  * Chickering (2002) "Optimal structure identification with greedy search"
@@ -261,6 +263,8 @@ public final class Fges implements GraphSearch, GraphScorer {
             initializeTwoStepEdges(getVariables());
             fes();
             bes();
+
+//            adjustOrientations();
         } else {
             initializeForwardEdgesFromEmptyGraph(getVariables());
 
@@ -279,36 +283,10 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         Graph dag = SearchGraphUtils.dagFromPattern(graph);
 
-        // Make
-        double penalty1 = 1.0;
-        double structure1 = 0.0;
-
-        if (score instanceof SemBicScore) {
-            penalty1 = ((SemBicScore) score).getPenaltyDiscount();
-            structure1 = ((SemBicScore) score).getStructurePrior();
-            ((SemBicScore) score).setPenaltyDiscount(1);
-            ((SemBicScore) score).setStructurePrior(0);
-        }
-
         for (Node node : nodeAttributes.keySet()) {
-            Node y = node;
-            List<Node> x = dag.getParents(y);
-
-            int[] parentIndices = new int[x.size()];
-
-            int count = 0;
-            for (Node parent : x) {
-                parentIndices[count++] = hashIndices.get(parent);
-            }
-
-            final double bic = score.localScore(hashIndices.get(y), parentIndices);
+            final double bic = scoreNode(node, dag);
             node.addAttribute("BIC", bic);
             modelScore += bic;
-        }
-
-        if (score instanceof SemBicScore) {
-            ((SemBicScore) score).setPenaltyDiscount(penalty1);
-            ((SemBicScore) score).setStructurePrior(structure1);
         }
 
         graph.addAttribute("BIC", modelScore);
@@ -325,6 +303,40 @@ public final class Fges implements GraphSearch, GraphScorer {
 
 
         return graph;
+    }
+
+    private double scoreNode(Node node, Graph dag) {
+        List<Node> x = dag.getParents(node);
+        return scoreNode(node, x);
+    }
+
+    private double scoreNode(Node node, List<Node> parents) {
+        double penalty1 = 1.0;
+        double structure1 = 0.0;
+
+        if (score instanceof SemBicScore) {
+            penalty1 = ((SemBicScore) score).getPenaltyDiscount();
+            structure1 = ((SemBicScore) score).getStructurePrior();
+            ((SemBicScore) score).setPenaltyDiscount(1);
+            ((SemBicScore) score).setStructurePrior(0);
+        }
+
+        Node y = node;
+
+        int[] parentIndices = new int[parents.size()];
+
+        int count = 0;
+        for (Node parent : parents) {
+            parentIndices[count++] = hashIndices.get(parent);
+        }
+
+        final double bic = score.localScore(hashIndices.get(y), parentIndices);
+
+        if (score instanceof SemBicScore) {
+            ((SemBicScore) score).setPenaltyDiscount(penalty1);
+            ((SemBicScore) score).setStructurePrior(structure1);
+        }
+        return bic;
     }
 
     /**
@@ -1079,6 +1091,81 @@ public final class Fges implements GraphSearch, GraphScorer {
             storeGraph();
             reevaluateBackward(new HashSet<>(toProcess));
         }
+    }
+
+    private void adjustOrientations() {
+
+
+        Graph dag = SearchGraphUtils.dagFromPattern(graph);
+
+        Map<Node, List<Node>> alladj = new HashMap<>();
+
+        for (Node node : dag.getNodes()) {
+            List<Node> adj = dag.getAdjacentNodes(node);
+
+            double bicMax = Double.NEGATIVE_INFINITY;
+            List<Node> parentsMax = null;
+
+            DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), adj.size());
+            int[] choice;
+
+            while ((choice = gen.next()) != null) {
+                List<Node> parents = GraphUtils.asList(choice, adj);
+
+                double bic = scoreNode(node, parents);
+
+                if (bic > bicMax) {
+                    bicMax = bic;
+                    parentsMax = parents;
+                }
+            }
+
+            alladj.put(node, parentsMax);
+        }
+
+        for (Edge edge : new HashSet<>(graph.getEdges())) {
+            Node x = edge.getNode1();
+            Node y = edge.getNode2();
+
+            if (!(alladj.get(x).contains(y) && alladj.get(y).contains(x))) {
+                graph.removeEdge(x, y);
+            }
+        }
+
+        new MeekRules().orientImplied(graph);
+
+
+//        PermutationGenerator gen1 = new PermutationGenerator(variables.size());
+//
+//        double bic = Double.NEGATIVE_INFINITY;
+//        int[] choice;
+//
+//        while ((choice = gen1.next()) != null) {
+//            Graph dag2 = reorient(dag, choice);
+//            double bic2 = scoreDag(dag2);
+//
+//            if (bic2 > bic) {
+//                dag = dag2;
+//                bic = bic2;
+//            }
+//        }
+//
+//        graph = SearchGraphUtils.patternForDag(dag);
+    }
+
+    private Graph reorient(Graph graph, int[] choice) {
+        Graph graph1 = new EdgeListGraph(graph);
+        for (Edge edge : new HashSet<>(graph1.getEdges())) {
+            Node n1 = edge.getNode1();
+            Node n2 = edge.getNode2();
+
+            if (choice[hashIndices.get(n2)] > choice[hashIndices.get(n1)]) {
+                graph1.removeEdge(n1, n2);
+                graph1.addDirectedEdge(n1, n2);
+            }
+        }
+
+        return graph1;
     }
 
 //    private Set<Node> getCommonAdjacents(Node x, Node y) {
