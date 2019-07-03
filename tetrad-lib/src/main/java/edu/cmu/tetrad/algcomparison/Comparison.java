@@ -1280,7 +1280,7 @@ public class Comparison {
         dir.delete();
     }
 
-    private synchronized void doRun(List<AlgorithmSimulationWrapper> algorithmSimulationWrappers,
+    private void doRun(List<AlgorithmSimulationWrapper> algorithmSimulationWrappers,
                        List<AlgorithmWrapper> algorithmWrappers, List<SimulationWrapper> simulationWrappers,
                        Statistics statistics,
                        int numGraphTypes, double[][][][] allStats, Run run) {
@@ -1363,67 +1363,71 @@ public class Comparison {
             elapsed = extAlg.getElapsedTime(data, simulationWrapper.getSimulationSpecificParameters());
         }
 
-        Graph[] est = new Graph[numGraphTypes];
+        synchronized (this) {
 
-        Graph comparisonGraph;
+            Graph[] est = new Graph[numGraphTypes];
 
-        if (this.comparisonGraph == ComparisonGraph.true_DAG) {
-            comparisonGraph = new EdgeListGraph(trueGraph);
-        } else if (this.comparisonGraph == ComparisonGraph.Pattern_of_the_true_DAG) {
-            comparisonGraph = SearchGraphUtils.patternForDag(new EdgeListGraph(trueGraph));
-        } else if (this.comparisonGraph == ComparisonGraph.PAG_of_the_true_DAG) {
-            comparisonGraph = new DagToPag2(new EdgeListGraph(trueGraph)).convert();
-        } else {
-            throw new IllegalArgumentException("Unrecognized graph type.");
-        }
+            Graph comparisonGraph;
+
+            if (this.comparisonGraph == ComparisonGraph.true_DAG) {
+                comparisonGraph = new EdgeListGraph(trueGraph);
+            } else if (this.comparisonGraph == ComparisonGraph.Pattern_of_the_true_DAG) {
+                comparisonGraph = SearchGraphUtils.patternForDag(new EdgeListGraph(trueGraph));
+            } else if (this.comparisonGraph == ComparisonGraph.PAG_of_the_true_DAG) {
+                comparisonGraph = new DagToPag2(new EdgeListGraph(trueGraph)).convert();
+            } else {
+                throw new IllegalArgumentException("Unrecognized graph type.");
+            }
 
 //        Graph comparisonGraph = trueGraph == null ? null : algorithmSimulationWrapper.getComparisonGraph(trueGraph);
 
-        est[0] =  new EdgeListGraph(out);
-        graphTypeUsed[0] = true;
+            est[0] = new EdgeListGraph(out);
+            graphTypeUsed[0] = true;
 
-        if (data.isMixed()) {
-            est[1] = getSubgraph(est[0], true, true, simulationWrapper.getDataModel(run.getRunIndex()));
-            est[2] = getSubgraph(est[0], true, false, simulationWrapper.getDataModel(run.getRunIndex()));
-            est[3] = getSubgraph(est[0], false, false, simulationWrapper.getDataModel(run.getRunIndex()));
+            if (data.isMixed()) {
+                est[1] = getSubgraph(est[0], true, true, simulationWrapper.getDataModel(run.getRunIndex()));
+                est[2] = getSubgraph(est[0], true, false, simulationWrapper.getDataModel(run.getRunIndex()));
+                est[3] = getSubgraph(est[0], false, false, simulationWrapper.getDataModel(run.getRunIndex()));
 
-            graphTypeUsed[1] = true;
-            graphTypeUsed[2] = true;
-            graphTypeUsed[3] = true;
-        }
+                graphTypeUsed[1] = true;
+                graphTypeUsed[2] = true;
+                graphTypeUsed[3] = true;
+            }
 
-        Graph[] truth = new Graph[numGraphTypes];
+            Graph[] truth = new Graph[numGraphTypes];
 
-        truth[0] = comparisonGraph;
+            truth[0] = new EdgeListGraph(comparisonGraph);
 
-        if (data.isMixed() && comparisonGraph != null) {
-            truth[1] = getSubgraph(comparisonGraph, true, true, simulationWrapper.getDataModel(run.getRunIndex()));
-            truth[2] = getSubgraph(comparisonGraph, true, false, simulationWrapper.getDataModel(run.getRunIndex()));
-            truth[3] = getSubgraph(comparisonGraph, false, false, simulationWrapper.getDataModel(run.getRunIndex()));
-        }
+            if (data.isMixed() && comparisonGraph != null) {
+                truth[1] = getSubgraph(comparisonGraph, true, true, simulationWrapper.getDataModel(run.getRunIndex()));
+                truth[2] = getSubgraph(comparisonGraph, true, false, simulationWrapper.getDataModel(run.getRunIndex()));
+                truth[3] = getSubgraph(comparisonGraph, false, false, simulationWrapper.getDataModel(run.getRunIndex()));
+            }
 
-        if (comparisonGraph != null) {
-            for (int u = 0; u < numGraphTypes; u++) {
-                if (!graphTypeUsed[u]) continue;
+            if (comparisonGraph != null) {
+                for (int u = 0; u < numGraphTypes; u++) {
+                    if (!graphTypeUsed[u]) continue;
 
-                int statIndex = -1;
+                    int statIndex = -1;
 
-                for (Statistic _stat : statistics.getStatistics()) {
-                    statIndex++;
+                    for (Statistic _stat : statistics.getStatistics()) {
+                        statIndex++;
 
-                    if (_stat instanceof ParameterColumn) continue;
+                        if (_stat instanceof ParameterColumn) continue;
 
-                    double stat;
+                        double stat;
 
-                    if (_stat instanceof ElapsedTime) {
-                        stat = elapsed / 1000.0;
-                    } else {
-                        stat = _stat.getValue(truth[u], est[u], data);
+                        if (_stat instanceof ElapsedTime) {
+                            stat = elapsed / 1000.0;
+                        } else {
+                            stat = _stat.getValue(truth[u], est[u], data);
+                        }
+
+                        allStats[u][run.getAlgSimIndex()][statIndex][run.getRunIndex()] = stat;
                     }
-
-                    allStats[u][run.getAlgSimIndex()][statIndex][run.getRunIndex()] = stat;
                 }
             }
+
         }
     }
 

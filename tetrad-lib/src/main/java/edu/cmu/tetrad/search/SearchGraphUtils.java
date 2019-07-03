@@ -42,6 +42,7 @@ import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.CombinationGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
+
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -53,6 +54,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.commons.collections4.map.MultiKeyMap;
 
 /**
@@ -68,7 +70,7 @@ public final class SearchGraphUtils {
      */
     public static void pcOrientbk(IKnowledge bk, Graph graph, List<Node> nodes) {
         TetradLogger.getInstance().log("details", "Staring BK Orientation.");
-        for (Iterator<KnowledgeEdge> it = bk.forbiddenEdgesIterator(); it.hasNext();) {
+        for (Iterator<KnowledgeEdge> it = bk.forbiddenEdgesIterator(); it.hasNext(); ) {
             KnowledgeEdge edge = it.next();
 
             //match strings to variables in the graph.
@@ -92,7 +94,7 @@ public final class SearchGraphUtils {
             TetradLogger.getInstance().log("knowledgeOrientations", SearchLogUtils.edgeOrientedMsg("IKnowledge", graph.getEdge(to, from)));
         }
 
-        for (Iterator<KnowledgeEdge> it = bk.requiredEdgesIterator(); it.hasNext();) {
+        for (Iterator<KnowledgeEdge> it = bk.requiredEdgesIterator(); it.hasNext(); ) {
             KnowledgeEdge edge = it.next();
 
             //match strings to variables in this graph
@@ -126,7 +128,7 @@ public final class SearchGraphUtils {
      * sepset of (X, Y).
      */
     public static void pcdOrientC(SepsetMap set, IndependenceTest test,
-            IKnowledge knowledge, Graph graph) {
+                                  IKnowledge knowledge, Graph graph) {
         TetradLogger.getInstance().log("info", "Starting Collider Orientation:");
 
         List<Node> nodes = graph.getNodes();
@@ -205,7 +207,7 @@ public final class SearchGraphUtils {
     }
 
     private static List<Node> sepset(Graph graph, Node a, Node c, Set<Node> containing, Set<Node> notContaining, int depth,
-            IndependenceTest independenceTest) {
+                                     IndependenceTest independenceTest) {
         List<Node> adj = graph.getAdjacentNodes(a);
         adj.addAll(graph.getAdjacentNodes(c));
         adj.remove(c);
@@ -262,11 +264,12 @@ public final class SearchGraphUtils {
 //
 //        LogUtils.getInstance().info("Finishing Orientation Step D.");
 //    }
+
     /**
      * Orients using Meek rules, double checking noncolliders locally.
      */
     public static void orientUsingMeekRulesLocally(IKnowledge knowledge,
-            Graph graph, IndependenceTest test, int depth) {
+                                                   Graph graph, IndependenceTest test, int depth) {
         TetradLogger.getInstance().log("info", "Starting Orientation Step D.");
         boolean changed;
 
@@ -280,7 +283,7 @@ public final class SearchGraphUtils {
     }
 
     public static void orientUsingMeekRulesLocally2(IKnowledge knowledge,
-            Graph graph, IndependenceTest test, int depth) {
+                                                    Graph graph, IndependenceTest test, int depth) {
         TetradLogger.getInstance().log("info", "Starting Orientation Step D.");
         boolean changed;
 
@@ -298,7 +301,7 @@ public final class SearchGraphUtils {
      * x *-* y *-* z as x *-> y <-* z just in case y is in Sepset({x, z}).
      */
     public static List<Triple> orientCollidersUsingSepsets(SepsetMap set, IKnowledge knowledge, Graph graph, boolean verbose,
-            boolean enforcePattern) {
+                                                           boolean enforcePattern) {
         TetradLogger.getInstance().log("details", "Starting Collider Orientation:");
         List<Triple> colliders = new ArrayList<>();
 
@@ -481,8 +484,8 @@ public final class SearchGraphUtils {
 
     // Tests whether adding a for b--a--c to the sepset (if it's not there) yields independence. Poor man's CPC.
     public static void orientCollidersUsingSepsets(SepsetMap set,
-            IKnowledge knowledge, Graph graph,
-            IndependenceTest test) {
+                                                   IKnowledge knowledge, Graph graph,
+                                                   IndependenceTest test) {
 
         TetradLogger.getInstance().log("details", "Starting Collider Orientation:");
 
@@ -541,14 +544,14 @@ public final class SearchGraphUtils {
     }
 
     public static void orientCollidersLocally(IKnowledge knowledge, Graph graph,
-            IndependenceTest test,
-            int depth) {
+                                              IndependenceTest test,
+                                              int depth) {
         orientCollidersLocally(knowledge, graph, test, depth, null);
     }
 
     public static void orientCollidersLocally(IKnowledge knowledge, Graph graph,
-            IndependenceTest test,
-            int depth, Set<Node> nodesToVisit) {
+                                              IndependenceTest test,
+                                              int depth, Set<Node> nodesToVisit) {
         TetradLogger.getInstance().log("details", "Starting Collider Orientation:");
 
         if (nodesToVisit == null) {
@@ -589,7 +592,7 @@ public final class SearchGraphUtils {
     }
 
     public static boolean existsLocalSepsetWith(Node x, Node y, Node z,
-            IndependenceTest test, Graph graph, int depth) {
+                                                IndependenceTest test, Graph graph, int depth) {
         Set<Node> __nodes = new HashSet<>(graph.getAdjacentNodes(x));
         __nodes.addAll(graph.getAdjacentNodes(z));
         __nodes.remove(x);
@@ -628,7 +631,7 @@ public final class SearchGraphUtils {
     }
 
     public static boolean existsLocalSepsetWithout(Node x, Node y, Node z,
-            IndependenceTest test, Graph graph, int depth) {
+                                                   IndependenceTest test, Graph graph, int depth) {
         Set<Node> __nodes = new HashSet<>(graph.getAdjacentNodes(x));
         __nodes.addAll(graph.getAdjacentNodes(z));
         __nodes.remove(x);
@@ -667,7 +670,7 @@ public final class SearchGraphUtils {
     }
 
     public static boolean existsLocalSepsetWithoutDet(Node x, Node y, Node z,
-            IndependenceTest test, Graph graph, int depth) {
+                                                      IndependenceTest test, Graph graph, int depth) {
         Set<Node> __nodes = new HashSet<>(graph.getAdjacentNodes(x));
         __nodes.addAll(graph.getAdjacentNodes(z));
         __nodes.remove(x);
@@ -760,11 +763,12 @@ public final class SearchGraphUtils {
 //
 //        return changed;
 //    }
+
     /**
      * Orient away from collider.
      */
     public static boolean meekR1Locally(Graph graph, IKnowledge knowledge,
-            IndependenceTest test, int depth) {
+                                        IndependenceTest test, int depth) {
         List<Node> nodes = graph.getNodes();
         boolean changed = true;
 
@@ -824,7 +828,7 @@ public final class SearchGraphUtils {
     }
 
     public static boolean meekR1Locally2(Graph graph, IKnowledge knowledge,
-            IndependenceTest test, int depth) {
+                                         IndependenceTest test, int depth) {
         List<Node> nodes = graph.getNodes();
         boolean changed = true;
 
@@ -1128,11 +1132,12 @@ public final class SearchGraphUtils {
 //
 //        return changed;
 //    }
+
     /**
      * Checks if an arrowpoint is allowed by background knowledge.
      */
     public static boolean isArrowpointAllowed(Object from, Object to,
-            IKnowledge knowledge) {
+                                              IKnowledge knowledge) {
         if (knowledge == null) {
             return true;
         }
@@ -1467,30 +1472,31 @@ public final class SearchGraphUtils {
         MeekRules rules = new MeekRules();
         rules.orientImplied(graph);
 
-        WHILE:
-        while (true) {
-            Set<Edge> edges = dag.getEdges();
+//        WHILE:
+//        while (true) {
+        Set<Edge> edges = dag.getEdges();
 
-            for (Edge edge : edges) {
-                if (Edges.isUndirectedEdge(edge)) {
-                    Node node1 = edge.getNode1();
-                    Node node2 = edge.getNode2();
+        for (Edge edge : edges) {
+            Edge edge1 = graph.getEdge(edge.getNode1(), edge.getNode2());
+            if (Edges.isUndirectedEdge(edge)) {
+                Node node1 = edge1.getNode1();
+                Node node2 = edge1.getNode2();
 
-                    if (!(dag.isAncestorOf(node2, node1))) {
-                        edge.setEndpoint2(Endpoint.ARROW);
-                    } else if (!dag.getParents(node1).isEmpty()) {
-                        edge.setEndpoint1(Endpoint.ARROW);
-                    } else {
-                        throw new IllegalArgumentException("Can't orient " + edge);
-                    }
-
-                    rules.orientImplied(dag);
-                    continue WHILE;
+                if (!(dag.isAncestorOf(node2, node1))) {
+                    edge.setEndpoint2(Endpoint.ARROW);
+                } else if (!dag.getParents(node1).isEmpty()) {
+                    edge.setEndpoint1(Endpoint.ARROW);
+                } else {
+                    throw new IllegalArgumentException("Can't orient " + edge);
                 }
-            }
 
-            break;
+                rules.orientImplied(dag);
+//                    continue WHILE;
+            }
         }
+//
+//            break;
+//        }
 
         return dag;
 
@@ -1576,7 +1582,7 @@ public final class SearchGraphUtils {
     }
 
     public static void arrangeByKnowledgeTiers(Graph graph,
-            IKnowledge knowledge) {
+                                               IKnowledge knowledge) {
         if (knowledge.getNumTiers() == 0) {
             throw new IllegalArgumentException("There are no Tiers to arrange.");
         }
@@ -1628,7 +1634,7 @@ public final class SearchGraphUtils {
      * adjacent to Y in the pattern iff {X, Y} is not in the domain of the
      * sepset map.
      *
-     * @param sepset a sepset map, over variables v.
+     * @param sepset  a sepset map, over variables v.
      * @param pattern a pattern over variables W, v subset of W.
      * @return true if the sepset map is consistent with the pattern.
      */
@@ -1651,14 +1657,14 @@ public final class SearchGraphUtils {
 
     /**
      * @param initialNodes The nodes that reachability undirectedPaths start
-     * from.
-     * @param legalPairs Specifies initial edges (given initial nodes) and legal
-     * edge pairs.
-     * @param c a set of vertices (intuitively, the set of variables to be
-     * conditioned on.
-     * @param d a set of vertices (intuitively to be used in tests of legality,
-     * for example, the set of ancestors of c).
-     * @param graph the graph with respect to which reachability is
+     *                     from.
+     * @param legalPairs   Specifies initial edges (given initial nodes) and legal
+     *                     edge pairs.
+     * @param c            a set of vertices (intuitively, the set of variables to be
+     *                     conditioned on.
+     * @param d            a set of vertices (intuitively to be used in tests of legality,
+     *                     for example, the set of ancestors of c).
+     * @param graph        the graph with respect to which reachability is
      * @return the set of nodes reachable from the given set of initial nodes in
      * the given graph according to the criteria in the given legal pairs
      * object.
@@ -1672,7 +1678,7 @@ public final class SearchGraphUtils {
      * Pearl (1990).
      */
     public static Set<Node> getReachableNodes(List<Node> initialNodes,
-            LegalPairs legalPairs, List<Node> c, List<Node> d, Graph graph, int maxPathLength) {
+                                              LegalPairs legalPairs, List<Node> c, List<Node> d, Graph graph, int maxPathLength) {
         HashSet<Node> reachable = new HashSet<>();
         MultiKeyMap visited = new MultiKeyMap();
         List<ReachabilityEdge> nextEdges = new LinkedList<>();
@@ -1756,7 +1762,7 @@ public final class SearchGraphUtils {
      * Checks if an arrowpoint is allowed by background knowledge.
      */
     public static boolean isArrowpointAllowed1(Node from, Node to,
-            IKnowledge knowledge) {
+                                               IKnowledge knowledge) {
         if (knowledge == null) {
             return true;
         }
@@ -1766,7 +1772,7 @@ public final class SearchGraphUtils {
     }
 
     public static boolean isArrowpointAllowed2(Node from, Node to,
-            IKnowledge knowledge, Graph graph) {
+                                               IKnowledge knowledge, Graph graph) {
         if (knowledge == null) {
             return true;
         }
@@ -1951,8 +1957,8 @@ public final class SearchGraphUtils {
 
     // The published version.
     public static CpcTripleType getCpcTripleType(Node x, Node y, Node z,
-            IndependenceTest test, int depth,
-            Graph graph, boolean verbose) {
+                                                 IndependenceTest test, int depth,
+                                                 Graph graph, boolean verbose) {
         int numSepsetsContainingY = 0;
         int numSepsetsNotContainingY = 0;
 
@@ -2031,8 +2037,8 @@ public final class SearchGraphUtils {
 
     // Using a heuristic cutoff for determining independence, dependence, and ambiguity
     public static CpcTripleType getCpcTripleType2(Node x, Node y, Node z,
-            IndependenceTest test, int depth,
-            Graph graph) {
+                                                  IndependenceTest test, int depth,
+                                                  Graph graph) {
         int numSepsetsContainingY = 0;
         int numSepsetsNotContainingY = 0;
 
@@ -2113,8 +2119,8 @@ public final class SearchGraphUtils {
     }
 
     public static CpcTripleType getCpcTripleType3(Node x, Node y, Node z,
-            IndependenceTest test, int depth,
-            Graph graph) {
+                                                  IndependenceTest test, int depth,
+                                                  Graph graph) {
         int numSepsetsContainingY = 0;
         int numSepsetsNotContainingY = 0;
 
@@ -2200,8 +2206,8 @@ public final class SearchGraphUtils {
 
     // Just a strong collider check. Not conservative.
     public static CpcTripleType getCpcTripleType4(Node x, Node y, Node z,
-            IndependenceTest test, int depth,
-            Graph graph) {
+                                                  IndependenceTest test, int depth,
+                                                  Graph graph) {
         List<Double> p = new ArrayList<>();
 
         List<Node> _nodes = graph.getAdjacentNodes(x);
@@ -2346,7 +2352,7 @@ public final class SearchGraphUtils {
 
     public static void orientRequired(IKnowledge bk, Graph graph, List<Node> nodes) {
         TetradLogger.getInstance().log("details", "Staring BK Orientation.");
-        for (Iterator<KnowledgeEdge> it = bk.forbiddenEdgesIterator(); it.hasNext();) {
+        for (Iterator<KnowledgeEdge> it = bk.forbiddenEdgesIterator(); it.hasNext(); ) {
             KnowledgeEdge edge = it.next();
 
             //match strings to variables in the graph.
@@ -2370,7 +2376,7 @@ public final class SearchGraphUtils {
             TetradLogger.getInstance().log("knowledgeOrientations", SearchLogUtils.edgeOrientedMsg("IKnowledge", graph.getEdge(to, from)));
         }
 
-        for (Iterator<KnowledgeEdge> it = bk.requiredEdgesIterator(); it.hasNext();) {
+        for (Iterator<KnowledgeEdge> it = bk.requiredEdgesIterator(); it.hasNext(); ) {
             KnowledgeEdge edge = it.next();
 
             //match strings to variables in this graph
@@ -2397,7 +2403,7 @@ public final class SearchGraphUtils {
         TetradLogger.getInstance().log("details", "Finishing BK Orientation.");
     }
 
-//    /**
+    //    /**
 //     * The recursive method used to list the MB DAGS consistent with an
 //     * Pattern (i.e. with the independence information available to the search.
 //     */

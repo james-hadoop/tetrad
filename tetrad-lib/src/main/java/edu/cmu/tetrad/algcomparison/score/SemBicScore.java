@@ -38,7 +38,6 @@ public class SemBicScore implements ScoreWrapper {
                 = new edu.cmu.tetrad.search.SemBicScore((DataSet) this.dataSet);//parameters.getBoolean("biasCorrected"));
         semBicScore.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
         semBicScore.setStructurePrior(parameters.getDouble("structurePrior"));
-        semBicScore.setDelta(parameters.getDouble("semBicDelta"));
         return semBicScore;
     }
 

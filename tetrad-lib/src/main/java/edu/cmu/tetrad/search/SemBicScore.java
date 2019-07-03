@@ -71,9 +71,6 @@ public class SemBicScore implements Score {
     // The structure prior, 0 for standard BIC.
     private double structurePrior = 0.0;
 
-    // The delta prior, 0 for standard BIC.
-    private double delta = 0.0;
-
     /**
      * Constructs the score using a covariance matrix.
      */
@@ -123,9 +120,7 @@ public class SemBicScore implements Score {
             TetradMatrix covxx = getCovariances().getSelection(parents, parents);
             TetradVector covxy = (getCovariances().getSelection(parents, new int[]{i})).getColumn(0);
             TetradVector coefs = (covxx.inverse()).times(covxy);
-
             s2 -= coefs.dotProduct(covxy);
-//            s2 -= signum(getDelta()) * getDelta() * getDelta() * k;
 
             if (s2 <= 0) {
                 if (isVerbose()) {
@@ -390,14 +385,6 @@ public class SemBicScore implements Score {
 
     public void setStructurePrior(double structurePrior) {
         this.structurePrior = structurePrior;
-    }
-
-    public double getDelta() {
-        return delta;
-    }
-
-    public void setDelta(double delta) {
-        this.delta = delta;
     }
 }
 

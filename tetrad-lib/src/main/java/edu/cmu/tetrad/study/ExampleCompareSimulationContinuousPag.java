@@ -389,8 +389,8 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 10);
-        parameters.set("avgDegree", 6);
-        parameters.set("sampleSize", 1000);
+        parameters.set("avgDegree", 4);
+        parameters.set("sampleSize", 10000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
         parameters.set("coefHigh", .9);
@@ -413,24 +413,20 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
         parameters.set("structurePrior", 0, 1, 2, 3);
-        parameters.set("penaltyDiscount",.8, 0.87, 0.83, -.05, -.1, -.2, -0.03, -0.07, -.3, -.4);
-        parameters.set("semBicDelta", 0);//, 1, 2, 3, -1, -2, -3);
+        parameters.set("penaltyDiscount", -.2, -.1, -0.07, -.05, -0.4, -0.03, -0.2, -0.1, 0.7, 0.8, 0.83, 0.87, 0.9, 0.95, 1.);
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
         parameters.set("intervalBetweenRecordings", 100);
         parameters.set("verbose", false);
         parameters.set("kevin", false);
-//        parameters.set("biasCorrected", true, false);
 
         Statistics statistics = new Statistics();
 
-//        statistics.add(new ParameterColumn("biasCorrected"));
+        statistics.add(new ParameterColumn("colliderDiscoveryRule"));
         statistics.add(new ParameterColumn("avgDegree"));
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
-        statistics.add(new ParameterColumn("semBicDelta"));
         statistics.add(new ParameterColumn("structurePrior"));
-        statistics.add(new ParameterColumn("colliderDiscoveryRule"));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
@@ -460,7 +456,7 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.setSavePags(false);
         comparison.setSavePatterns(false);
 
-        comparison.setParallelized(false);
+        comparison.setParallelized(true);
 
         comparison.setSortByUtility(true);
         comparison.setShowUtilities(true);
