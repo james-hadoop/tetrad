@@ -27,9 +27,11 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
+import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.SingularMatrixException;
 import org.apache.commons.math3.util.FastMath;
 
 import java.io.PrintStream;
@@ -65,6 +67,9 @@ public class SemBicScore implements Score {
     // Variables that caused computational problems and so are to be avoided.
     private Set<Integer> forbidden = new HashSet<>();
 
+    // A  map from variable names to their indices.
+    private Map<String, Integer> indexMap;
+
     // The penalty penaltyDiscount, 1 for standard BIC.
     private double penaltyDiscount = 1.0;
 
@@ -82,6 +87,7 @@ public class SemBicScore implements Score {
         setCovariances(covariances);
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
+        this.indexMap = indexMap(this.variables);
     }
 
     /**
@@ -104,6 +110,7 @@ public class SemBicScore implements Score {
         setCovariances(covariances);
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
+        this.indexMap = indexMap(this.variables);
     }
 
     /**
@@ -130,7 +137,7 @@ public class SemBicScore implements Score {
                 return Double.NaN;
             }
 
-            return -(n) * log(s2) - getPenaltyDiscount() * k * log(n) + signum(getStructurePrior()) * getStructurePrior(parents.length);
+            return -n * log(s2) - getPenaltyDiscount() * k * log(n) + signum(getStructurePrior()) * getStructurePrior(parents.length);
         } catch (Exception e) {
             boolean removedOne = true;
 
@@ -185,20 +192,20 @@ public class SemBicScore implements Score {
     @Override
     public double localScoreDiff(int x, int y, int[] z) {
 //
-//        Node _x = variables.get(x);
-//        Node _y = variables.get(y);
-//        List<Node> _z = getVariableList(z);
+        Node _x = variables.get(x);
+        Node _y = variables.get(y);
+        List<Node> _z = getVariableList(z);
 
-//        double r = partialCorrelation(_x, _y, _z);
+        double r = partialCorrelation(_x, _y, _z);
+
+        double sp1 = getStructurePrior(z.length + 1);
+        double sp2 = getStructurePrior(z.length);
+
+
+        int n = covariances.getSampleSize();
+        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n) + sp1 - sp2;
 //
-////        double sp1 = getStructurePrior(z.length + 1);
-////        double sp2 = getStructurePrior(z.length);
-//
-//
-//        int n = covariances.getSampleSize();
-//        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n);// + sp1 - sp2;
-//
-        return localScore(y, append(z, x)) - localScore(y, z);
+//        return localScore(y, append(z, x)) - localScore(y, z);
     }
 
     private List<Node> getVariableList(int[] indices) {
@@ -209,15 +216,15 @@ public class SemBicScore implements Score {
         return variables;
     }
 
-//    private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {
-////        return this.recursivePartialCorrelation.corr(x, y, z);
-//        int[] indices = new int[z.size() + 2];
-//        indices[0] = indexMap.get(x.getName());
-//        indices[1] = indexMap.get(y.getName());
-//        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i).getName());
-//        TetradMatrix submatrix = covariances.getSubmatrix(indices).getMatrix();
-//        return StatUtils.partialCorrelationPrecisionMatrix(submatrix);
-//    }
+    private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {
+//        return this.recursivePartialCorrelation.corr(x, y, z);
+        int[] indices = new int[z.size() + 2];
+        indices[0] = indexMap.get(x.getName());
+        indices[1] = indexMap.get(y.getName());
+        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i).getName());
+        TetradMatrix submatrix = covariances.getSubmatrix(indices).getMatrix();
+        return StatUtils.partialCorrelationPrecisionMatrix(submatrix);
+    }
 
     private Map<String, Integer> indexMap(List<Node> variables) {
         Map<String, Integer> indexMap = new HashMap<>();

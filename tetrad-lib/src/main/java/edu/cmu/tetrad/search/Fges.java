@@ -275,13 +275,40 @@ public final class Fges implements GraphSearch, GraphScorer {
             bes();
         }
 
-        for (Node _node : nodeAttributes.keySet()) {
-            Object value = nodeAttributes.get(_node);
+        modelScore = 0.0;
 
-//            this.out.println(_node.getName() + " Score = " + value);
+        Graph dag = SearchGraphUtils.dagFromPattern(graph);
 
-            Node node = graph.getNode(_node.getName());
-            node.addAttribute("BIC", value);
+        // Make
+        double penalty1 = 1.0;
+        double structure1 = 0.0;
+
+        if (score instanceof SemBicScore) {
+            penalty1 = ((SemBicScore) score).getPenaltyDiscount();
+            structure1 = ((SemBicScore) score).getStructurePrior();
+            ((SemBicScore) score).setPenaltyDiscount(1);
+            ((SemBicScore) score).setStructurePrior(0);
+        }
+
+        for (Node node : nodeAttributes.keySet()) {
+            Node y = node;
+            List<Node> x = dag.getParents(y);
+
+            int[] parentIndices = new int[x.size()];
+
+            int count = 0;
+            for (Node parent : x) {
+                parentIndices[count++] = hashIndices.get(parent);
+            }
+
+            final double bic = score.localScore(hashIndices.get(y), parentIndices);
+            node.addAttribute("BIC", bic);
+            modelScore += bic;
+        }
+
+        if (score instanceof SemBicScore) {
+            ((SemBicScore) score).setPenaltyDiscount(penalty1);
+            ((SemBicScore) score).setStructurePrior(structure1);
         }
 
         graph.addAttribute("BIC", modelScore);

@@ -5,6 +5,7 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 
+import static java.lang.Math.abs;
 import static java.lang.Math.tanh;
 
 /**
@@ -40,6 +41,6 @@ public class DeltaBic implements Statistic {
 
     @Override
     public double getNormValue(double value) {
-        return 1.0 - tanh(value / 1000000);
+        return 1.0 - tanh(abs(value) / 1000000);
     }
 }

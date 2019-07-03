@@ -12,7 +12,7 @@ import java.util.List;
 import static edu.cmu.tetrad.util.StatUtils.skewness;
 
 /**
- * Wrapper for Fisher Z test.
+ * Wrapper for linear, Gaussian SEM BIC score.
  *
  * @author jdramsey
  */
@@ -30,12 +30,8 @@ public class SemBicScore implements ScoreWrapper {
     public Score getScore(DataModel dataSet, Parameters parameters) {
         this.dataSet = dataSet;
 
-
-//        ICovarianceMatrix cov = dataSet instanceof ICovarianceMatrix ? (ICovarianceMatrix) dataSet
-//                : new CovarianceMatrix((DataSet) dataSet);
-
         edu.cmu.tetrad.search.SemBicScore semBicScore
-                = new edu.cmu.tetrad.search.SemBicScore((DataSet) this.dataSet);//parameters.getBoolean("biasCorrected"));
+                = new edu.cmu.tetrad.search.SemBicScore((DataSet) this.dataSet);
         semBicScore.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
         semBicScore.setStructurePrior(parameters.getDouble("structurePrior"));
         return semBicScore;
@@ -56,9 +52,6 @@ public class SemBicScore implements ScoreWrapper {
         List<String> parameters = new ArrayList<>();
         parameters.add("penaltyDiscount");
         parameters.add("structurePrior");
-        parameters.add("semBicDelta");
-//        parameters.add("biasCorrected");
-//        parameters.add("kevin");
         return parameters;
     }
 
