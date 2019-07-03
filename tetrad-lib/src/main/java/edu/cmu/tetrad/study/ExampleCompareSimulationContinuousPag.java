@@ -389,7 +389,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 10);
-        parameters.set("avgDegree", 6           );
+        parameters.set("avgDegree", 6);
         parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
@@ -412,9 +412,9 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("depth", 10);
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
-        parameters.set("structurePrior", 0);
-        parameters.set("penaltyDiscount", 1);
-        parameters.set("semBicDelta", 0);
+        parameters.set("structurePrior", 0, 1, 2, 3);
+        parameters.set("penaltyDiscount",.8, 0.87, 0.83, -.05, -.1, -.2, -0.03, -0.07, -.3, -.4);
+        parameters.set("semBicDelta", 0);//, 1, 2, 3, -1, -2, -3);
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
         parameters.set("intervalBetweenRecordings", 100);
@@ -437,10 +437,11 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecall());
         statistics.add(new F1All());
+        statistics.add(new BicEst());
         statistics.add(new DeltaBic());
         statistics.add(new ElapsedTime());
 
-        statistics.setWeight("DeltaBic", 1.0);
+        statistics.setWeight("BicEst", 1.0);
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new PcAll(new FisherZInverseCovariance()));
@@ -462,7 +463,7 @@ public class ExampleCompareSimulationContinuousPag {
         comparison.setParallelized(false);
 
         comparison.setSortByUtility(true);
-        comparison.setShowUtilities(false);
+        comparison.setShowUtilities(true);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 

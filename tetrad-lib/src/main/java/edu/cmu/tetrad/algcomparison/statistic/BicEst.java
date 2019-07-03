@@ -36,6 +36,6 @@ public class BicEst implements Statistic {
 
     @Override
     public double getNormValue(double value) {
-        return tanh(value);
+        return tanh(value / 1e6);
     }
 }
