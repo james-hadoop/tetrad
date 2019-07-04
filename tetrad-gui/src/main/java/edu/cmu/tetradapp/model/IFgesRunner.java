@@ -13,7 +13,7 @@ import java.util.List;
 public interface IFgesRunner {
     FgesRunner.Type getType();
 
-    List<ScoredGraph> getTopGraphs();
+//    List<ScoredGraph> getTopGraphs();
 
     Parameters getParams();
 

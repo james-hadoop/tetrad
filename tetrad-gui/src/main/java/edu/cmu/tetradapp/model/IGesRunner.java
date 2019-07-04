@@ -62,7 +62,7 @@ public interface IGesRunner {
 
     void addPropertyChangeListener(PropertyChangeListener l);
 
-    List<ScoredGraph> getTopGraphs();
+//    List<ScoredGraph> getTopGraphs();
 
     Graph getResultGraph();
 

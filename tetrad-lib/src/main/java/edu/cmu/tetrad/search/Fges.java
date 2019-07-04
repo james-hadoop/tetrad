@@ -20,7 +20,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.data.KnowledgeEdge;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.*;
 
@@ -29,8 +32,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.*;
-
-import static java.lang.StrictMath.abs;
 
 /**
  * GesSearch is an implementation of the GES algorithm, as specified in
@@ -111,10 +112,10 @@ public final class Fges implements GraphSearch, GraphScorer {
      */
     private TetradLogger logger = TetradLogger.getInstance();
 
-    /**
-     * The top n graphs found by the algorithm, where n is numPatternsToStore.
-     */
-    private LinkedList<ScoredGraph> topGraphs = new LinkedList<>();
+//    /**
+//     * The top n graphs found by the algorithm, where n is numPatternsToStore.
+//     */
+//    private LinkedList<ScoredGraph> topGraphs = new LinkedList<>();
 
     /**
      * The number of top patterns to store.
@@ -228,7 +229,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         long start = System.currentTimeMillis();
         totalScore = 0.0;
 
-        topGraphs.clear();
+//        topGraphs.clear();
 
         lookupArrows = new ConcurrentHashMap<>();
         final List<Node> nodes = new ArrayList<>(variables);
@@ -376,11 +377,11 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     /**
-     * @return the list of top scoring graphs.
-     */
-    public LinkedList<ScoredGraph> getTopGraphs() {
-        return topGraphs;
-    }
+//     * @return the list of top scoring graphs.
+//     */
+//    public LinkedList<ScoredGraph> getTopGraphs() {
+//        return topGraphs;
+//    }
 
     /**
      * @return the number of patterns to store.
@@ -1021,7 +1022,7 @@ public final class Fges implements GraphSearch, GraphScorer {
                 }
             }
 
-            storeGraph();
+//            storeGraph();
             reevaluateForward(new HashSet<>(toProcess), arrow);
         }
     }
@@ -1085,7 +1086,7 @@ public final class Fges implements GraphSearch, GraphScorer {
                 }
             }
 
-            storeGraph();
+//            storeGraph();
             reevaluateBackward(new HashSet<>(toProcess));
         }
     }
@@ -2062,17 +2063,17 @@ public final class Fges implements GraphSearch, GraphScorer {
         return variables;
     }
 
-    // Stores the graph, if its totalScore knocks out one of the top ones.
-    private void storeGraph() {
-        if (getNumPatternsToStore() > 0) {
-            Graph graphCopy = new EdgeListGraphSingleConnections(graph);
-            topGraphs.addLast(new ScoredGraph(graphCopy, totalScore));
-        }
-
-        if (topGraphs.size() == getNumPatternsToStore() + 1) {
-            topGraphs.removeFirst();
-        }
-    }
+//    // Stores the graph, if its totalScore knocks out one of the top ones.
+//    private void storeGraph() {
+//        if (getNumPatternsToStore() > 0) {
+//            Graph graphCopy = new EdgeListGraphSingleConnections(graph);
+//            topGraphs.addLast(new ScoredGraph(graphCopy, totalScore));
+//        }
+//
+//        if (topGraphs.size() == getNumPatternsToStore() + 1) {
+//            topGraphs.removeFirst();
+//        }
+//    }
 
     public String logEdgeBayesFactorsString(Graph dag) {
         Map<Edge, Double> factors = logEdgeBayesFactors(dag);
