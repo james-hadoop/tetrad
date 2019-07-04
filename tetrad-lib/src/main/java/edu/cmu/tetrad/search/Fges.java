@@ -263,10 +263,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             initializeTwoStepEdges(getVariables());
             fes();
             bes();
-
-//            adjustOrientations();
         } else {
-            initializeForwardEdgesFromEmptyGraph(getVariables());
 
             // Do forward search.
             this.mode = Mode.heuristicSpeedup;
@@ -1093,80 +1090,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         }
     }
 
-    private void adjustOrientations() {
-
-
-        Graph dag = SearchGraphUtils.dagFromPattern(graph);
-
-        Map<Node, List<Node>> alladj = new HashMap<>();
-
-        for (Node node : dag.getNodes()) {
-            List<Node> adj = dag.getAdjacentNodes(node);
-
-            double bicMax = Double.NEGATIVE_INFINITY;
-            List<Node> parentsMax = null;
-
-            DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), adj.size());
-            int[] choice;
-
-            while ((choice = gen.next()) != null) {
-                List<Node> parents = GraphUtils.asList(choice, adj);
-
-                double bic = scoreNode(node, parents);
-
-                if (bic > bicMax) {
-                    bicMax = bic;
-                    parentsMax = parents;
-                }
-            }
-
-            alladj.put(node, parentsMax);
-        }
-
-        for (Edge edge : new HashSet<>(graph.getEdges())) {
-            Node x = edge.getNode1();
-            Node y = edge.getNode2();
-
-            if (!(alladj.get(x).contains(y) && alladj.get(y).contains(x))) {
-                graph.removeEdge(x, y);
-            }
-        }
-
-        new MeekRules().orientImplied(graph);
-
-
-//        PermutationGenerator gen1 = new PermutationGenerator(variables.size());
-//
-//        double bic = Double.NEGATIVE_INFINITY;
-//        int[] choice;
-//
-//        while ((choice = gen1.next()) != null) {
-//            Graph dag2 = reorient(dag, choice);
-//            double bic2 = scoreDag(dag2);
-//
-//            if (bic2 > bic) {
-//                dag = dag2;
-//                bic = bic2;
-//            }
-//        }
-//
-//        graph = SearchGraphUtils.patternForDag(dag);
-    }
-
-    private Graph reorient(Graph graph, int[] choice) {
-        Graph graph1 = new EdgeListGraph(graph);
-        for (Edge edge : new HashSet<>(graph1.getEdges())) {
-            Node n1 = edge.getNode1();
-            Node n2 = edge.getNode2();
-
-            if (choice[hashIndices.get(n2)] > choice[hashIndices.get(n1)]) {
-                graph1.removeEdge(n1, n2);
-                graph1.addDirectedEdge(n1, n2);
-            }
-        }
-
-        return graph1;
-    }
 
 //    private Set<Node> getCommonAdjacents(Node x, Node y) {
 //        Set<Node> commonChildren = new HashSet<>(graph.getAdjacentNodes(x));
