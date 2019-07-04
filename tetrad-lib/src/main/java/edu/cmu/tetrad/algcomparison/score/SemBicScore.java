@@ -34,6 +34,7 @@ public class SemBicScore implements ScoreWrapper {
                 = new edu.cmu.tetrad.search.SemBicScore((DataSet) this.dataSet);
         semBicScore.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
         semBicScore.setStructurePrior(parameters.getDouble("structurePrior"));
+        semBicScore.setThreshold(60);
         return semBicScore;
     }
 

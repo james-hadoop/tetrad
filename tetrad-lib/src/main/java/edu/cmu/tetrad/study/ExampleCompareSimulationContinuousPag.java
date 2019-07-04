@@ -389,7 +389,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 50);
-        parameters.set("avgDegree", 6);
+        parameters.set("avgDegree", 8);
         parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
@@ -439,8 +439,8 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new DeltaBic());
         statistics.add(new ElapsedTime());
 
-        statistics.setWeight("F1All", 1.0);
-//        statistics.setWeight("BicEst", 1.0);
+//        statistics.setWeight("F1All", 1.0);
+        statistics.setWeight("BicEst", 1.0);
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new PcAll(new FisherZInverseCovariance()));

@@ -75,6 +75,7 @@ public class SemBicScore implements Score {
 
     // The structure prior, 0 for standard BIC.
     private double structurePrior = 0.0;
+    private double threshold = 0;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -203,7 +204,7 @@ public class SemBicScore implements Score {
 
 
         int n = covariances.getSampleSize();
-        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n) + signum(getStructurePrior()) * (sp1 - sp2) - 50;//  * (z.length + 1);
+        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n) + signum(getStructurePrior()) * (sp1 - sp2) - getThreshold();//  * (z.length + 1);
 
 //        return localScore(y, append(z, x)) - localScore(y, z);
     }
@@ -392,6 +393,14 @@ public class SemBicScore implements Score {
 
     public void setStructurePrior(double structurePrior) {
         this.structurePrior = structurePrior;
+    }
+
+    public double getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(double threshold) {
+        this.threshold = threshold;
     }
 }
 
