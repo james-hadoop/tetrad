@@ -208,13 +208,13 @@ public class ImagesRunner extends AbstractAlgorithmRunner implements IFgesRunner
 
         setResultGraph(graph);
 
-        this.topGraphs = new ArrayList<>(fges.getTopGraphs());
+        this.topGraphs = new ArrayList<>();//fges.getTopGraphs());
 
         if (topGraphs.isEmpty()) {
             topGraphs.add(new ScoredGraph(getResultGraph(), Double.NaN));
         }
 
-        this.topGraphs = new ArrayList<>(fges.getTopGraphs());
+        this.topGraphs = new ArrayList<>();//fges.getTopGraphs());
 
         if (this.topGraphs.isEmpty()) {
             this.topGraphs.add(new ScoredGraph(getResultGraph(), Double.NaN));

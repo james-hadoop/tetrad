@@ -474,7 +474,6 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
         return type;
     }
 
-    @Override
     public List<ScoredGraph> getTopGraphs() {
         return topGraphs;
     }

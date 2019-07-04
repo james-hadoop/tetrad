@@ -159,7 +159,7 @@ public class FgesSearchEditor extends AbstractSearchEditor
                     getAlgorithmRunner().execute();
                     IFgesRunner runner = (IFgesRunner) getAlgorithmRunner();
                     arrangeGraphs();
-                    gesDisplay.resetGraphs(runner.getTopGraphs());
+                    gesDisplay.resetGraphs(new ArrayList<>());
                 } catch (Exception e) {
                     CharArrayWriter writer1 = new CharArrayWriter();
                     PrintWriter writer2 = new PrintWriter(writer1);
@@ -433,7 +433,7 @@ public class FgesSearchEditor extends AbstractSearchEditor
 
                         if (runner instanceof FgesRunner) {
                             GraphScorer scorer = ((FgesRunner) runner).getGraphScorer();
-                            Graph _graph = ((FgesRunner) runner).getTopGraphs().get(getIndex()).getGraph();
+                            Graph _graph = new EdgeListGraph();//(FgesRunner) runner).getTopGraphs().get(getIndex()).getGraph();
 
                             ScoredGraphsDisplay display = new ScoredGraphsDisplay(_graph, scorer);
                             GraphWorkbench workbench = getWorkbench();
@@ -557,7 +557,7 @@ public class FgesSearchEditor extends AbstractSearchEditor
     private List<ScoredGraph> arrangeGraphs() {
         IFgesRunner runner = (IFgesRunner) getAlgorithmRunner();
 
-        List<ScoredGraph> topGraphs = runner.getTopGraphs();
+        List<ScoredGraph> topGraphs = new ArrayList<>();// runner.getTopGraphs();
 
         if (topGraphs == null) topGraphs = new ArrayList<>();
 
@@ -600,12 +600,12 @@ public class FgesSearchEditor extends AbstractSearchEditor
     private void calcStats() {
         FgesRunner runner = (FgesRunner) getAlgorithmRunner();
 
-        if (runner.getTopGraphs().isEmpty()) {
-            throw new IllegalArgumentException("No patterns were recorded. Please adjust the number of " +
-                    "patterns to store.");
-        }
-
-        Graph resultGraph = runner.getTopGraphs().get(runner.getIndex()).getGraph();
+//        if (runner.getTopGraphs().isEmpty()) {
+//            throw new IllegalArgumentException("No patterns were recorded. Please adjust the number of " +
+//                    "patterns to store.");
+//        }
+//
+        Graph resultGraph = new EdgeListGraph();// runner.getTopGraphs().get(runner.getIndex()).getGraph();
 
         if (!(getAlgorithmRunner().getDataModel() instanceof ICovarianceMatrix)) {
 

@@ -99,7 +99,7 @@ public class ScoredGraphsWrapper implements SessionModel, GraphSource, Unmarshal
     }
 
     public ScoredGraphsWrapper(FgesRunner runner, Parameters parameters) {
-        this(runner.getTopGraphs().get(runner.getIndex()).getGraph(), runner.getGraphScorer());
+        this(new EdgeListGraph() /*runner.getTopGraphs().get(runner.getIndex()).getGraph()*/, runner.getGraphScorer());
     }
 
     public ScoredGraphsWrapper(DagWrapper wrapper, Parameters parameters) {
