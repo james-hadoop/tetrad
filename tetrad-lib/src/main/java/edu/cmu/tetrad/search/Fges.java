@@ -20,10 +20,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.data.KnowledgeEdge;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.*;
 
@@ -103,7 +100,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     private int cycleBound = -1;
 
     /**
-     * The score for discrete searches.
+     * The totalScore for discrete searches.
      */
     private Score score;
 
@@ -112,10 +109,10 @@ public final class Fges implements GraphSearch, GraphScorer {
      */
     private TetradLogger logger = TetradLogger.getInstance();
 
-//    /**
-//     * The top n graphs found by the algorithm, where n is numPatternsToStore.
-//     */
-//    private LinkedList<ScoredGraph> topGraphs = new LinkedList<>();
+    /**
+     * The top n graphs found by the algorithm, where n is numPatternsToStore.
+     */
+    private LinkedList<ScoredGraph> topGraphs = new LinkedList<>();
 
     /**
      * The number of top patterns to store.
@@ -142,6 +139,9 @@ public final class Fges implements GraphSearch, GraphScorer {
     // The static ForkJoinPool instance.
     private ForkJoinPool pool = ForkJoinPoolInstance.getInstance().getPool();
 
+    // A running tally of the total BIC totalScore.
+    private double totalScore;
+
     // A graph where X--Y means that X and Y have non-zero total effect on one another.
     private Graph effectEdgesGraph;
 
@@ -157,11 +157,11 @@ public final class Fges implements GraphSearch, GraphScorer {
     // The graph being constructed.
     private Graph graph;
 
-    // Arrows with the same score are stored in this list to distinguish their order in sortedArrows.
+    // Arrows with the same totalScore are stored in this list to distinguish their order in sortedArrows.
     // The ordering doesn't matter; it just have to be transitive.
     int arrowIndex = 0;
 
-    // The final score after search.
+    // The final totalScore after search.
     private double modelScore;
 
     // Internal.
@@ -184,7 +184,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     //===========================CONSTRUCTORS=============================//
 
     /**
-     * Construct a Score and pass it in here. The score should return a
+     * Construct a Score and pass it in here. The totalScore should return a
      * positive value in case of conditional dependence and a negative values in
      * case of conditional independence. See Chickering (2002), locally
      * consistent scoring criterion.
@@ -224,6 +224,9 @@ public final class Fges implements GraphSearch, GraphScorer {
      */
     public Graph search() {
         long start = System.currentTimeMillis();
+        totalScore = 0.0;
+
+        topGraphs.clear();
 
         lookupArrows = new ConcurrentHashMap<>();
         final List<Node> nodes = new ArrayList<>(variables);
@@ -236,6 +239,12 @@ public final class Fges implements GraphSearch, GraphScorer {
         if (initialGraph != null) {
             graph = new EdgeListGraphSingleConnections(initialGraph);
             graph = GraphUtils.replaceNodes(graph, nodes);
+        }
+
+        try {
+            totalScore = scoreDag(SearchGraphUtils.dagFromPattern(graph));
+        } catch (Exception e) {
+            totalScore = 0.0;
         }
 
         addRequiredEdges(graph);
@@ -253,6 +262,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             fes();
             bes();
         } else {
+            initializeForwardEdgesFromEmptyGraph(getVariables());
 
             // Do forward search.
             this.mode = Mode.heuristicSpeedup;
@@ -269,10 +279,36 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         Graph dag = SearchGraphUtils.dagFromPattern(graph);
 
+        // Make
+        double penalty1 = 1.0;
+        double structure1 = 0.0;
+
+        if (score instanceof SemBicScore) {
+            penalty1 = ((SemBicScore) score).getPenaltyDiscount();
+            structure1 = ((SemBicScore) score).getStructurePrior();
+            ((SemBicScore) score).setPenaltyDiscount(1);
+            ((SemBicScore) score).setStructurePrior(0);
+        }
+
         for (Node node : nodeAttributes.keySet()) {
-            final double bic = scoreNode(node, dag);
+            Node y = node;
+            List<Node> x = dag.getParents(y);
+
+            int[] parentIndices = new int[x.size()];
+
+            int count = 0;
+            for (Node parent : x) {
+                parentIndices[count++] = hashIndices.get(parent);
+            }
+
+            final double bic = score.localScore(hashIndices.get(y), parentIndices);
             node.addAttribute("BIC", bic);
             modelScore += bic;
+        }
+
+        if (score instanceof SemBicScore) {
+            ((SemBicScore) score).setPenaltyDiscount(penalty1);
+            ((SemBicScore) score).setStructurePrior(structure1);
         }
 
         graph.addAttribute("BIC", modelScore);
@@ -289,40 +325,6 @@ public final class Fges implements GraphSearch, GraphScorer {
 
 
         return graph;
-    }
-
-    private double scoreNode(Node node, Graph dag) {
-        List<Node> x = dag.getParents(node);
-        return scoreNode(node, x);
-    }
-
-    private double scoreNode(Node node, List<Node> parents) {
-        double penalty1 = 1.0;
-        double structure1 = 0.0;
-
-        if (score instanceof SemBicScore) {
-            penalty1 = ((SemBicScore) score).getPenaltyDiscount();
-            structure1 = ((SemBicScore) score).getStructurePrior();
-            ((SemBicScore) score).setPenaltyDiscount(1);
-            ((SemBicScore) score).setStructurePrior(0);
-        }
-
-        Node y = node;
-
-        int[] parentIndices = new int[parents.size()];
-
-        int count = 0;
-        for (Node parent : parents) {
-            parentIndices[count++] = hashIndices.get(parent);
-        }
-
-        final double bic = score.localScore(hashIndices.get(y), parentIndices);
-
-        if (score instanceof SemBicScore) {
-            ((SemBicScore) score).setPenaltyDiscount(penalty1);
-            ((SemBicScore) score).setStructurePrior(structure1);
-        }
-        return bic;
     }
 
     /**
@@ -358,10 +360,17 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     /**
-     * @return the score of the given DAG, up to a constant.
+     * @return the totalScore of the given DAG, up to a constant.
      */
     public double getScore(Graph dag) {
         return scoreDag(dag);
+    }
+
+    /**
+     * @return the list of top scoring graphs.
+     */
+    public LinkedList<ScoredGraph> getTopGraphs() {
+        return topGraphs;
     }
 
     /**
@@ -484,7 +493,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     /**
-     * For BIC score, a multiplier on the penalty term. For continuous
+     * For BIC totalScore, a multiplier on the penalty term. For continuous
      * searches.
      *
      * @deprecated Use the getters on the individual scores instead.
@@ -516,7 +525,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     /**
-     * For BIC score, a multiplier on the penalty term. For continuous
+     * For BIC totalScore, a multiplier on the penalty term. For continuous
      * searches.
      *
      * @deprecated Use the setters on the individual scores instead.
@@ -558,20 +567,20 @@ public final class Fges implements GraphSearch, GraphScorer {
 
     //===========================PRIVATE METHODS========================//
     //Sets the discrete scoring function to use.
-    private void setScore(Score score) {
-        this.score = score;
+    private void setScore(Score totalScore) {
+        this.score = totalScore;
 
         this.variables = new ArrayList<>();
 
-        for (Node node : score.getVariables()) {
+        for (Node node : totalScore.getVariables()) {
             if (node.getNodeType() == NodeType.MEASURED) {
                 this.variables.add(node);
             }
         }
 
-        buildIndexing(score.getVariables());
+        buildIndexing(totalScore.getVariables());
 
-        this.maxDegree = this.score.getMaxDegree();
+        this.maxDegree = score.getMaxDegree();
     }
 
     final int[] count = new int[1];
@@ -989,6 +998,8 @@ public final class Fges implements GraphSearch, GraphScorer {
                 continue;
             }
 
+            totalScore += arrow.getBump();
+
             Set<Node> visited = reapplyOrientation(x, y, null);
             Set<Node> toProcess = new HashSet<>();
 
@@ -1001,7 +1012,7 @@ public final class Fges implements GraphSearch, GraphScorer {
                 }
             }
 
-//            storeGraph();
+            storeGraph();
             reevaluateForward(new HashSet<>(toProcess), arrow);
         }
     }
@@ -1050,6 +1061,8 @@ public final class Fges implements GraphSearch, GraphScorer {
                 continue;
             }
 
+            totalScore += arrow.getBump();
+
             Set<Node> visited = reapplyOrientation(x, y, arrow.getHOrT());
 
             Set<Node> toProcess = new HashSet<>();
@@ -1063,17 +1076,18 @@ public final class Fges implements GraphSearch, GraphScorer {
                 }
             }
 
-//            storeGraph();
+            toProcess.addAll(getCommonAdjacents(x, y));
+
+            storeGraph();
             reevaluateBackward(new HashSet<>(toProcess));
         }
     }
 
-
-//    private Set<Node> getCommonAdjacents(Node x, Node y) {
-//        Set<Node> commonChildren = new HashSet<>(graph.getAdjacentNodes(x));
-//        commonChildren.retainAll(graph.getAdjacentNodes(y));
-//        return commonChildren;
-//    }
+    private Set<Node> getCommonAdjacents(Node x, Node y) {
+        Set<Node> commonChildren = new HashSet<>(graph.getAdjacentNodes(x));
+        commonChildren.retainAll(graph.getAdjacentNodes(y));
+        return commonChildren;
+    }
 
     private Set<Node> reapplyOrientation(Node x, Node y, Set<Node> newArrows) {
         Set<Node> toProcess = new HashSet<>();
@@ -1390,7 +1404,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     // Basic data structure for an arrow a->b considered for addition or removal from the graph, together with
     // associated sets needed to make this determination. For both forward and backward direction, NaYX is needed.
     // For the forward direction, T neighbors are needed; for the backward direction, H neighbors are needed.
-    // See Chickering (2002). The score difference resulting from added in the edge (hypothetically) is recorded
+    // See Chickering (2002). The totalScore difference resulting from added in the edge (hypothetically) is recorded
     // as the "bump".
     private static class Arrow implements Comparable<Arrow> {
 
@@ -2040,6 +2054,18 @@ public final class Fges implements GraphSearch, GraphScorer {
         return variables;
     }
 
+    // Stores the graph, if its totalScore knocks out one of the top ones.
+    private void storeGraph() {
+        if (getNumPatternsToStore() > 0) {
+            Graph graphCopy = new EdgeListGraphSingleConnections(graph);
+            topGraphs.addLast(new ScoredGraph(graphCopy, totalScore));
+        }
+
+        if (topGraphs.size() == getNumPatternsToStore() + 1) {
+            topGraphs.removeFirst();
+        }
+    }
+
     public String logEdgeBayesFactorsString(Graph dag) {
         Map<Edge, Double> factors = logEdgeBayesFactors(dag);
         return logBayesPosteriorFactorsString(factors, scoreDag(dag));
@@ -2075,12 +2101,12 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         builder.append("Edge Posterior Log Bayes Factors:\n\n");
 
-        builder.append("For a DAG in the IMaGES pattern with model score m, for each edge e in the "
-                + "DAG, the model score that would result from removing each edge, calculating "
-                + "the resulting model score m(e), and then reporting m - m(e). The score used is "
+        builder.append("For a DAG in the IMaGES pattern with model totalScore m, for each edge e in the "
+                + "DAG, the model totalScore that would result from removing each edge, calculating "
+                + "the resulting model totalScore m(e), and then reporting m - m(e). The totalScore used is "
                 + "the IMScore, L - SUM_i{kc ln n(i)}, L is the maximum likelihood of the model, "
                 + "k isthe number of parameters of the model, n(i) is the sample size of the ith "
-                + "data set, and c is the penalty penaltyDiscount. Note that the more negative the score, "
+                + "data set, and c is the penalty penaltyDiscount. Note that the more negative the totalScore, "
                 + "the more important the edge is to the posterior probability of the IMaGES model. "
                 + "Edges are given in order of their importance so measured.\n\n");
 
