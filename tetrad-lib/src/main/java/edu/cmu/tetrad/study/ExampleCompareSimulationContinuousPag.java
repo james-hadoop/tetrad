@@ -412,10 +412,10 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("depth", 10);
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
-        parameters.set("structurePrior", 1, 2, 3, 0, -1, -2, -3);
+        parameters.set("structurePrior", 0 );//, -1, -2, -3);
         parameters.set("penaltyDiscount", /*-.2, -.1, -0.07, -.05, -0.4, -0.03,*//* -0.2,*//* -0.1*/
 //                0.5, .6, 0.7, 0.8, 0.83, 0.87, 0.9, 0.95, 1.);
-                .9);//, 1.5, 2, 3, 4, 5, 6);
+                1., 2, 3, 4, 5, 6);
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
         parameters.set("intervalBetweenRecordings", 100);
@@ -439,10 +439,11 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new DeltaBic());
         statistics.add(new ElapsedTime());
 
-        statistics.setWeight("BicEst", 1.0);
+        statistics.setWeight("F1All", 1.0);
+//        statistics.setWeight("BicEst", 1.0);
         Algorithms algorithms = new Algorithms();
 
-//        algorithms.add(new PcAll(new FisherZInverseCovariance()));
+        algorithms.add(new PcAll(new FisherZInverseCovariance()));
         algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();

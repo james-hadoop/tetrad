@@ -203,7 +203,7 @@ public class SemBicScore implements Score {
 
 
         int n = covariances.getSampleSize();
-        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n) + signum(getStructurePrior()) *(sp1 - sp2);
+        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n) + signum(getStructurePrior()) * (sp1 - sp2) - 50;//  * (z.length + 1);
 
 //        return localScore(y, append(z, x)) - localScore(y, z);
     }

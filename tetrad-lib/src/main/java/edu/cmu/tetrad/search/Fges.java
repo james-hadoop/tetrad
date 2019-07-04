@@ -103,7 +103,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     private int cycleBound = -1;
 
     /**
-     * The totalScore for discrete searches.
+     * The score for discrete searches.
      */
     private Score score;
 
@@ -142,9 +142,6 @@ public final class Fges implements GraphSearch, GraphScorer {
     // The static ForkJoinPool instance.
     private ForkJoinPool pool = ForkJoinPoolInstance.getInstance().getPool();
 
-    // A running tally of the total BIC totalScore.
-    private double totalScore;
-
     // A graph where X--Y means that X and Y have non-zero total effect on one another.
     private Graph effectEdgesGraph;
 
@@ -160,11 +157,11 @@ public final class Fges implements GraphSearch, GraphScorer {
     // The graph being constructed.
     private Graph graph;
 
-    // Arrows with the same totalScore are stored in this list to distinguish their order in sortedArrows.
+    // Arrows with the same score are stored in this list to distinguish their order in sortedArrows.
     // The ordering doesn't matter; it just have to be transitive.
     int arrowIndex = 0;
 
-    // The final totalScore after search.
+    // The final score after search.
     private double modelScore;
 
     // Internal.
@@ -187,7 +184,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     //===========================CONSTRUCTORS=============================//
 
     /**
-     * Construct a Score and pass it in here. The totalScore should return a
+     * Construct a Score and pass it in here. The score should return a
      * positive value in case of conditional dependence and a negative values in
      * case of conditional independence. See Chickering (2002), locally
      * consistent scoring criterion.
@@ -227,9 +224,6 @@ public final class Fges implements GraphSearch, GraphScorer {
      */
     public Graph search() {
         long start = System.currentTimeMillis();
-        totalScore = 0.0;
-
-//        topGraphs.clear();
 
         lookupArrows = new ConcurrentHashMap<>();
         final List<Node> nodes = new ArrayList<>(variables);
@@ -242,12 +236,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         if (initialGraph != null) {
             graph = new EdgeListGraphSingleConnections(initialGraph);
             graph = GraphUtils.replaceNodes(graph, nodes);
-        }
-
-        try {
-            totalScore = scoreDag(SearchGraphUtils.dagFromPattern(graph));
-        } catch (Exception e) {
-            totalScore = 0.0;
         }
 
         addRequiredEdges(graph);
@@ -370,18 +358,11 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     /**
-     * @return the totalScore of the given DAG, up to a constant.
+     * @return the score of the given DAG, up to a constant.
      */
     public double getScore(Graph dag) {
         return scoreDag(dag);
     }
-
-    /**
-//     * @return the list of top scoring graphs.
-//     */
-//    public LinkedList<ScoredGraph> getTopGraphs() {
-//        return topGraphs;
-//    }
 
     /**
      * @return the number of patterns to store.
@@ -503,7 +484,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     /**
-     * For BIC totalScore, a multiplier on the penalty term. For continuous
+     * For BIC score, a multiplier on the penalty term. For continuous
      * searches.
      *
      * @deprecated Use the getters on the individual scores instead.
@@ -535,7 +516,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     /**
-     * For BIC totalScore, a multiplier on the penalty term. For continuous
+     * For BIC score, a multiplier on the penalty term. For continuous
      * searches.
      *
      * @deprecated Use the setters on the individual scores instead.
@@ -577,20 +558,20 @@ public final class Fges implements GraphSearch, GraphScorer {
 
     //===========================PRIVATE METHODS========================//
     //Sets the discrete scoring function to use.
-    private void setScore(Score totalScore) {
-        this.score = totalScore;
+    private void setScore(Score score) {
+        this.score = score;
 
         this.variables = new ArrayList<>();
 
-        for (Node node : totalScore.getVariables()) {
+        for (Node node : score.getVariables()) {
             if (node.getNodeType() == NodeType.MEASURED) {
                 this.variables.add(node);
             }
         }
 
-        buildIndexing(totalScore.getVariables());
+        buildIndexing(score.getVariables());
 
-        this.maxDegree = score.getMaxDegree();
+        this.maxDegree = this.score.getMaxDegree();
     }
 
     final int[] count = new int[1];
@@ -1008,8 +989,6 @@ public final class Fges implements GraphSearch, GraphScorer {
                 continue;
             }
 
-            totalScore += arrow.getBump();
-
             Set<Node> visited = reapplyOrientation(x, y, null);
             Set<Node> toProcess = new HashSet<>();
 
@@ -1070,8 +1049,6 @@ public final class Fges implements GraphSearch, GraphScorer {
             if (!deleted) {
                 continue;
             }
-
-            totalScore += arrow.getBump();
 
             Set<Node> visited = reapplyOrientation(x, y, arrow.getHOrT());
 
@@ -1413,7 +1390,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     // Basic data structure for an arrow a->b considered for addition or removal from the graph, together with
     // associated sets needed to make this determination. For both forward and backward direction, NaYX is needed.
     // For the forward direction, T neighbors are needed; for the backward direction, H neighbors are needed.
-    // See Chickering (2002). The totalScore difference resulting from added in the edge (hypothetically) is recorded
+    // See Chickering (2002). The score difference resulting from added in the edge (hypothetically) is recorded
     // as the "bump".
     private static class Arrow implements Comparable<Arrow> {
 
@@ -2063,18 +2040,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         return variables;
     }
 
-//    // Stores the graph, if its totalScore knocks out one of the top ones.
-//    private void storeGraph() {
-//        if (getNumPatternsToStore() > 0) {
-//            Graph graphCopy = new EdgeListGraphSingleConnections(graph);
-//            topGraphs.addLast(new ScoredGraph(graphCopy, totalScore));
-//        }
-//
-//        if (topGraphs.size() == getNumPatternsToStore() + 1) {
-//            topGraphs.removeFirst();
-//        }
-//    }
-
     public String logEdgeBayesFactorsString(Graph dag) {
         Map<Edge, Double> factors = logEdgeBayesFactors(dag);
         return logBayesPosteriorFactorsString(factors, scoreDag(dag));
@@ -2110,12 +2075,12 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         builder.append("Edge Posterior Log Bayes Factors:\n\n");
 
-        builder.append("For a DAG in the IMaGES pattern with model totalScore m, for each edge e in the "
-                + "DAG, the model totalScore that would result from removing each edge, calculating "
-                + "the resulting model totalScore m(e), and then reporting m - m(e). The totalScore used is "
+        builder.append("For a DAG in the IMaGES pattern with model score m, for each edge e in the "
+                + "DAG, the model score that would result from removing each edge, calculating "
+                + "the resulting model score m(e), and then reporting m - m(e). The score used is "
                 + "the IMScore, L - SUM_i{kc ln n(i)}, L is the maximum likelihood of the model, "
                 + "k isthe number of parameters of the model, n(i) is the sample size of the ith "
-                + "data set, and c is the penalty penaltyDiscount. Note that the more negative the totalScore, "
+                + "data set, and c is the penalty penaltyDiscount. Note that the more negative the score, "
                 + "the more important the edge is to the posterior probability of the IMaGES model. "
                 + "Edges are given in order of their importance so measured.\n\n");
 

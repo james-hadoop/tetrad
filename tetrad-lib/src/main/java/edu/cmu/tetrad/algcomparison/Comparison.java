@@ -70,7 +70,7 @@ public class Comparison {
     private PrintStream out;
     private boolean tabDelimitedTables = false;
     private boolean saveGraphs = false;
-    private boolean copyData = false;
+    private boolean copyData = true;
     private boolean showSimulationIndices = false;
     private boolean showAlgorithmIndices = false;
     private boolean showUtilities = false;
