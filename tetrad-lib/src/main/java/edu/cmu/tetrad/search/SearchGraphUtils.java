@@ -1469,6 +1469,13 @@ public final class SearchGraphUtils {
     public static Graph dagFromPattern(Graph graph) {
         Graph dag = new EdgeListGraph(graph);
 
+        for (Edge edge : graph.getEdges()) {
+            if (Edges.isBidirectedEdge(edge)) {
+                graph.removeEdge(edge);
+                graph.addUndirectedEdge(edge.getNode1(), edge.getNode2());
+            }
+        }
+
         MeekRules rules = new MeekRules();
         rules.orientImplied(graph);
 

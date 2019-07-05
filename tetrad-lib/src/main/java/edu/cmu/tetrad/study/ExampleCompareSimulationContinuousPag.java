@@ -389,8 +389,8 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 50);
-        parameters.set("avgDegree", 8);
-        parameters.set("sampleSize", 1000);
+        parameters.set("avgDegree", 2, 4, 6, 8);
+        parameters.set("sampleSize", 5000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
         parameters.set("coefHigh", .9);
@@ -413,9 +413,8 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
         parameters.set("structurePrior", 0 );//, -1, -2, -3);
-        parameters.set("penaltyDiscount", /*-.2, -.1, -0.07, -.05, -0.4, -0.03,*//* -0.2,*//* -0.1*/
-//                0.5, .6, 0.7, 0.8, 0.83, 0.87, 0.9, 0.95, 1.);
-                1., 2, 3, 4, 5, 6);
+        parameters.set("penaltyDiscount", 1);
+        parameters.set("semBicThreshold", 50, 70, 90, -30, -50, -70, -90);
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
         parameters.set("intervalBetweenRecordings", 100);
@@ -429,6 +428,7 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
         statistics.add(new ParameterColumn("structurePrior"));
+        statistics.add(new ParameterColumn("semBicThreshold"));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
@@ -437,10 +437,12 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new F1All());
         statistics.add(new BicEst());
         statistics.add(new DeltaBic());
+        statistics.add(new MathewsCorrAdj());
+        statistics.add(new MathewsCorrArrow());
         statistics.add(new ElapsedTime());
 
-//        statistics.setWeight("F1All", 1.0);
-        statistics.setWeight("BicEst", 1.0);
+        statistics.setWeight("F1All", 1.0);
+//        statistics.setWeight("BicEst", 1.0);
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new PcAll(new FisherZInverseCovariance()));

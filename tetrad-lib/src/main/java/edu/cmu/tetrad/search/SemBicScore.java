@@ -75,6 +75,8 @@ public class SemBicScore implements Score {
 
     // The structure prior, 0 for standard BIC.
     private double structurePrior = 0.0;
+
+    // A number subtracted from score differences.
     private double threshold = 0;
 
     /**
@@ -204,7 +206,8 @@ public class SemBicScore implements Score {
 
 
         int n = covariances.getSampleSize();
-        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n) + signum(getStructurePrior()) * (sp1 - sp2) - getThreshold();//  * (z.length + 1);
+        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(n) + signum(getStructurePrior()) * (sp1 - sp2)
+                - (getThreshold() > 0 ? (getThreshold()) : -getThreshold() * ((z.length + 1) * (z.length + 1)));
 
 //        return localScore(y, append(z, x)) - localScore(y, z);
     }

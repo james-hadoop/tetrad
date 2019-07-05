@@ -73,7 +73,7 @@ public final class Fges implements GraphSearch, GraphScorer {
      */
     private List<Node> variables;
 
-    private Map<Node, Object> nodeAttributes = new HashMap<>();
+//    private Map<Node, Object> nodeAttributes = new HashMap<>();
 
     /**
      * The true graph, if known. If this is provided, asterisks will be printed
@@ -278,20 +278,22 @@ public final class Fges implements GraphSearch, GraphScorer {
             bes();
         }
 
-        this.modelScore = totalScore;
+        this.modelScore = scoreDag(SearchGraphUtils.dagFromPattern(graph), true);
 
-        this.out.println("Model Score = " + modelScore);
-
-        for (Node _node : nodeAttributes.keySet()) {
-            Object value = nodeAttributes.get(_node);
-
-            this.out.println(_node.getName() + " Score = " + value);
-
-            Node node = graph.getNode(_node.getName());
-            node.addAttribute("BIC", value);
-        }
-
-        graph.addAttribute("BIC", modelScore);
+//        this.modelScore = totalScore;
+//
+//        this.out.println("Model Score = " + modelScore);
+//
+//        for (Node _node : nodeAttributes.keySet()) {
+//            Object value = nodeAttributes.get(_node);
+//
+//            this.out.println(_node.getName() + " Score = " + value);
+//
+//            Node node = graph.getNode(_node.getName());
+//            node.addAttribute("BIC", value);
+//        }
+//
+//        graph.addAttribute("BIC", modelScore);
 
         long endTime = System.currentTimeMillis();
         this.elapsedTime = endTime - start;
@@ -342,8 +344,8 @@ public final class Fges implements GraphSearch, GraphScorer {
     /**
      * @return the totalScore of the given DAG, up to a constant.
      */
-    public double getScore(Graph dag) {
-        return scoreDag(dag);
+    public double scoreDag(Graph dag) {
+        return scoreDag(dag, false);
     }
 
     /**
@@ -1623,7 +1625,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             graph.addEdge(Edges.directedEdge(y, h));
 
             if (verbose) {
-                TetradLogger.getInstance().forceLogMessage( "--- Directing " + oldyh + " to "
+                TetradLogger.getInstance().forceLogMessage("--- Directing " + oldyh + " to "
                         + graph.getEdge(y, h));
                 out.println("--- Directing " + oldyh + " to " + graph.getEdge(y, h));
             }
@@ -1966,31 +1968,81 @@ public final class Fges implements GraphSearch, GraphScorer {
     /**
      * Scores the given DAG, up to a constant.
      */
-    public double scoreDag(Graph dag) {
-        buildIndexing(dag.getNodes());
+//    {
+//        buildIndexing(dag.getNodes());
+//
+//        double _score = 0.0;
+//
+//        for (Node y : dag.getNodes()) {
+//            Set<Node> parents = new HashSet<>(dag.getParents(y));
+//            int parentIndices[] = new int[parents.size()];
+//            Iterator<Node> pi = parents.iterator();
+//            int count = 0;
+//
+//            while (pi.hasNext()) {
+//                Node nextParent = pi.next();
+//                parentIndices[count++] = hashIndices.get(nextParent);
+//            }
+//
+//            // Calculate BIC score for this node
+//            int yIndex = hashIndices.get(y);
+//            double node_score = score.localScore(yIndex, parentIndices);
+//
+//            nodeAttributes.put(y, node_score);
+//
+//            _score += node_score;
+//        }
+//
+//        return _score;
+//    }
 
-        double _score = 0.0;
+    private double scoreDag(Graph dag, boolean recordScores) {
+        dag = GraphUtils.replaceNodes(dag, getVariables());
 
-        for (Node y : dag.getNodes()) {
-            Set<Node> parents = new HashSet<>(dag.getParents(y));
-            int parentIndices[] = new int[parents.size()];
-            Iterator<Node> pi = parents.iterator();
-            int count = 0;
+        // Make
+        double penalty1 = 1.0;
+        double structure1 = 0.0;
+        double theshold1 = 0.0;
+        double _score = 0;
 
-            while (pi.hasNext()) {
-                Node nextParent = pi.next();
-                parentIndices[count++] = hashIndices.get(nextParent);
-            }
-
-            // Calculate BIC score for this node
-            int yIndex = hashIndices.get(y);
-            double node_score = score.localScore(yIndex, parentIndices);
-
-            nodeAttributes.put(y, node_score);
-
-            _score += node_score;
+        if (score instanceof SemBicScore) {
+            penalty1 = ((SemBicScore) score).getPenaltyDiscount();
+            structure1 = ((SemBicScore) score).getStructurePrior();
+            theshold1 = ((SemBicScore) score).getThreshold();
+            ((SemBicScore) score).setPenaltyDiscount(1);
+            ((SemBicScore) score).setStructurePrior(0);
+            ((SemBicScore) score).setThreshold(0);
         }
 
+        for (Node node : getVariables()) {
+            Node y = node;
+            List<Node> x = dag.getParents(y);
+
+            int[] parentIndices = new int[x.size()];
+
+            int count = 0;
+            for (Node parent : x) {
+                parentIndices[count++] = hashIndices.get(parent);
+            }
+
+            final double bic = score.localScore(hashIndices.get(y), parentIndices);
+
+            if (recordScores) {
+                node.addAttribute("BIC", bic);
+            }
+
+            _score += bic;
+        }
+
+        if (score instanceof SemBicScore) {
+            ((SemBicScore) score).setPenaltyDiscount(penalty1);
+            ((SemBicScore) score).setStructurePrior(structure1);
+            ((SemBicScore) score).setThreshold(theshold1);
+        }
+
+        if (recordScores) {
+            graph.addAttribute("BIC", _score);
+        }
         return _score;
     }
 
