@@ -390,7 +390,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 50);
         parameters.set("avgDegree", 2, 4, 6, 8);
-        parameters.set("sampleSize", 5000);
+        parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
         parameters.set("coefHigh", .9);
@@ -413,8 +413,8 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
         parameters.set("structurePrior", 0 );//, -1, -2, -3);
-        parameters.set("penaltyDiscount", 1);
-        parameters.set("semBicThreshold", 50, 70, 90, -30, -50, -70, -90);
+        parameters.set("penaltyDiscount", 1);// 2, 3, 4, 5, 7, 8, 9, 10);
+        parameters.set("semBicThreshold", 80);//, 50, 70, 90, -30, -50, -70, -90);
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
         parameters.set("intervalBetweenRecordings", 100);
@@ -425,9 +425,9 @@ public class ExampleCompareSimulationContinuousPag {
 
         statistics.add(new ParameterColumn("colliderDiscoveryRule"));
         statistics.add(new ParameterColumn("avgDegree"));
-        statistics.add(new ParameterColumn("alpha"));
-        statistics.add(new ParameterColumn("penaltyDiscount"));
-        statistics.add(new ParameterColumn("structurePrior"));
+//        statistics.add(new ParameterColumn("alpha"));
+//        statistics.add(new ParameterColumn("penaltyDiscount"));
+//        statistics.add(new ParameterColumn("structurePrior"));
         statistics.add(new ParameterColumn("semBicThreshold"));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
@@ -435,11 +435,11 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecall());
         statistics.add(new F1All());
-        statistics.add(new BicEst());
+//        statistics.add(new BicEst());
         statistics.add(new DeltaBic());
-        statistics.add(new MathewsCorrAdj());
-        statistics.add(new MathewsCorrArrow());
-        statistics.add(new ElapsedTime());
+//        statistics.add(new MathewsCorrAdj());
+//        statistics.add(new MathewsCorrArrow());
+//        statistics.add(new ElapsedTime());
 
         statistics.setWeight("F1All", 1.0);
 //        statistics.setWeight("BicEst", 1.0);
@@ -463,8 +463,8 @@ public class ExampleCompareSimulationContinuousPag {
 
         comparison.setParallelized(false);
 
-        comparison.setSortByUtility(true);
-        comparison.setShowUtilities(true);
+        comparison.setSortByUtility(false);
+        comparison.setShowUtilities(false);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 

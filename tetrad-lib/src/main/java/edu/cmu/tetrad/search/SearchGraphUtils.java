@@ -1469,41 +1469,37 @@ public final class SearchGraphUtils {
     public static Graph dagFromPattern(Graph graph) {
         Graph dag = new EdgeListGraph(graph);
 
-        for (Edge edge : graph.getEdges()) {
+        for (Edge edge : dag.getEdges()) {
             if (Edges.isBidirectedEdge(edge)) {
-                graph.removeEdge(edge);
-                graph.addUndirectedEdge(edge.getNode1(), edge.getNode2());
+                dag.removeEdge(edge);
+                dag.addUndirectedEdge(edge.getNode1(), edge.getNode2());
             }
         }
 
         MeekRules rules = new MeekRules();
-        rules.orientImplied(graph);
+        rules.orientImplied(dag);
 
-//        WHILE:
-//        while (true) {
         Set<Edge> edges = dag.getEdges();
 
         for (Edge edge : edges) {
-            Edge edge1 = graph.getEdge(edge.getNode1(), edge.getNode2());
+            Edge edge1 = dag.getEdge(edge.getNode1(), edge.getNode2());
             if (Edges.isUndirectedEdge(edge)) {
                 Node node1 = edge1.getNode1();
                 Node node2 = edge1.getNode2();
 
                 if (!(dag.isAncestorOf(node2, node1))) {
-                    edge.setEndpoint2(Endpoint.ARROW);
-                } else if (!dag.getParents(node1).isEmpty()) {
-                    edge.setEndpoint1(Endpoint.ARROW);
+                    direct(node1, node2, dag);
+                } else if (!dag.isAncestorOf(node1, node2)) {
+                    direct(node2, node1, dag);
                 } else {
-                    throw new IllegalArgumentException("Can't orient " + edge);
+                    System.out.println("Leaving edge unoriented to avoid cycle: " + edge);
+//                    dag.removeEdge(edge);
+//                    throw new IllegalArgumentException("Can't orient " + edge);
                 }
 
                 rules.orientImplied(dag);
-//                    continue WHILE;
             }
         }
-//
-//            break;
-//        }
 
         return dag;
 
@@ -1551,6 +1547,13 @@ public final class SearchGraphUtils {
 ////        Graph graph = new EdgeListGraph(pattern);
 ////        pdagToDag(graph);
 ////        return graph;
+    }
+
+    private static void direct(Node a, Node c, Graph graph) {
+        Edge before = graph.getEdge(a, c);
+        Edge after = Edges.directedEdge(a, c);
+        graph.removeEdge(before);
+        graph.addEdge(after);
     }
 
     public static Graph pagToMag(Graph pag) {
