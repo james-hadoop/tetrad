@@ -908,8 +908,6 @@ public final class Fges implements GraphSearch, GraphScorer {
             out.println("** FORWARD EQUIVALENCE SEARCH");
         }
 
-        ((SemBicScore) score).setForward(true);
-
         int maxDegree = this.maxDegree == -1 ? 1000 : this.maxDegree;
 
         while (!sortedArrows.isEmpty()) {
@@ -980,8 +978,6 @@ public final class Fges implements GraphSearch, GraphScorer {
             TetradLogger.getInstance().forceLogMessage("** BACKWARD EQUIVALENCE SEARCH");
             out.println("** BACKWARD EQUIVALENCE SEARCH");
         }
-
-        ((SemBicScore) score).setForward(false);
 
         sortedArrows = new ConcurrentSkipListSet<>();
         lookupArrows = new ConcurrentHashMap<>();

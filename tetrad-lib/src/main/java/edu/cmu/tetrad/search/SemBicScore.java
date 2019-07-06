@@ -30,6 +30,7 @@ import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
+import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 import org.apache.commons.math3.util.FastMath;
@@ -45,6 +46,7 @@ import static java.lang.Math.*;
  * @author Joseph Ramsey
  */
 public class SemBicScore implements Score {
+    private double exp = 0.0;
     private DataSet dataSet;
     private ICovarianceMatrix covariances;
 
@@ -94,6 +96,8 @@ public class SemBicScore implements Score {
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
+
+        setExp();
     }
 
     /**
@@ -106,17 +110,34 @@ public class SemBicScore implements Score {
 
         this.dataSet = dataSet;
 
-        dataSet = DataUtils.center(dataSet);
+//        dataSet = DataUtils.center(dataSet);
 
         ICovarianceMatrix cov = dataSet instanceof ICovarianceMatrix ? (ICovarianceMatrix) dataSet
                 : new CovarianceMatrix(dataSet);
 
         setCovariances(cov);
 
-        setCovariances(covariances);
+//        setCovariances(covariances);
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
+
+        setExp();
+
+    }
+
+    private void setExp() {
+        int n = covariances.getSampleSize();
+
+        ChiSquaredDistribution ch = new ChiSquaredDistribution(n - 1);
+
+        exp = 0.0;
+
+        for (int i = 0;i < 10000; i++) {
+            exp += -log(ch.sample() / (n - 1));
+        }
+
+        exp /= n;
     }
 
     /**
@@ -182,7 +203,7 @@ public class SemBicScore implements Score {
             sum += FastMath.log(LT.getEntry(i, i));
         }
 
-        return 2.0 * sum;
+        return sum;
     }
 
     private double getStructurePrior(int parents) {
@@ -207,14 +228,12 @@ public class SemBicScore implements Score {
         double sp1 = getStructurePrior(z.length + 1);
         double sp2 = getStructurePrior(z.length);
 
-
         int n = covariances.getSampleSize();
 
-        if (forward) {
-            return  -(n) * Math.log(1.0 - r * r) - log(n)  - getThreshold() * n + (z.length + 1);// * 0.05;
-        } else {
-            return  -(n) * Math.log(1.0 - r * r) - log(n) - getThreshold() * n * (z.length + 1);
-        }
+        System.out.println("EXP = " + exp + " time n = " + exp * n + " time threshold = " + exp * n + " times |z| + 1 = " + getThreshold() * n * (z.length + 1));
+
+        return -(n) * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getThreshold() * 2.0 * n * exp;
+//                + signum(getStructurePrior()) * (sp1 - sp2);
 
 //        return -(n) * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) + signum(getStructurePrior()) * (sp1 - sp2)
 //                - (getThreshold() > 0 ? (getThreshold()) : -getThreshold() * ((z.length + 1) * (z.length + 1)));
@@ -418,14 +437,14 @@ public class SemBicScore implements Score {
     public void setThreshold(double threshold) {
         this.threshold = threshold;
     }
-
-    public boolean isForward() {
-        return forward;
-    }
-
-    public void setForward(boolean forward) {
-        this.forward = forward;
-    }
+//
+//    public boolean isForward() {
+//        return forward;
+//    }
+//
+//    public void setForward(boolean forward) {
+//        this.forward = forward;
+//    }
 }
 
 

@@ -4083,23 +4083,12 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="penaltyDiscount_value_type">Double</span></li>
         </ul>
 
-        <h3 id="semBicDelta" class="parameter_description">semBicDelta</h3>
+        <h3 id="semBicThreshold" class="parameter_description">semBicThreshold</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="semBicDelta_short_desc">Delta</span></li>
-            <li>Long Description: <span id="semBicDelta_long_desc">Boosts residual variances by this much per parent for a test of y conditioning on parents X.</span>
+            <li>Short Description: <span id="semBicThreshold_short_desc">Threshold for SEM BIC score</span></li>
+            <li>Long Description: <span id="semBicThreshold_long_desc">Adjusts the threshold for judging conditional dependence.</span>
             </li>
-            <li>Default Value: <span id="semBicDelta_default_value">0.0</span></li>
-            <li>Lower Bound: <span id="semBicDelta_lower_bound">-1000.0</span></li>
-            <li>Upper Bound: <span id="semBicDelta_upper_bound">1000.0</span></li>
-            <li>Value Type: <span id="semBicDelta_value_type">Double</span></li>
-        </ul>
-
-        <h3 id="semBicThreshold" class="parameter_description">semBicDelta</h3>
-        <ul class="parameter_description_list">
-            <li>Short Description: <span id="semBicThreshold_short_desc">Threshold</span></li>
-            <li>Long Description: <span id="semBicThreshold_long_desc">Adjusts the threshold for judging independence in the backward step.</span>
-            </li>
-            <li>Default Value: <span id="semBicThreshold_default_value">0.0</span></li>
+            <li>Default Value: <span id="semBicThreshold_default_value">1.0</span></li>
             <li>Lower Bound: <span id="semBicThreshold_lower_bound">0.0</span></li>
             <li>Upper Bound: <span id="semBicThreshold_upper_bound">1.0</span></li>
             <li>Value Type: <span id="semBicThreshold_value_type">Double</span></li>

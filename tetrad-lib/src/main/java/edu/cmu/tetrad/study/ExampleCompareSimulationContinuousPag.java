@@ -412,9 +412,9 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("depth", 10);
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
-        parameters.set("structurePrior", 0 );//, -1, -2, -3);
+        parameters.set("structurePrior", 0);//, -1, -2, -3);
 //        parameters.set("semBicThreshold", 0.0);// 2, 3, 4, 5, 7, 8, 9, 10);
-        parameters.set("semBicThreshold", 0.1);//, 0.1, 0.15, 0.2, 0.25, 0.3);//, 10, 15, 20, 25, 30, 35, 40, 50, 70, 90, -5, -10, -15, -20, -25, -30, -50, -70, -90);
+        parameters.set("semBicThreshold", 1);//, 0.1, 0.15, 0.2, 0.25, 0.3);//, 10, 15, 20, 25, 30, 35, 40, 50, 70, 90, -5, -10, -15, -20, -25, -30, -50, -70, -90);
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
         parameters.set("intervalBetweenRecordings", 100);
