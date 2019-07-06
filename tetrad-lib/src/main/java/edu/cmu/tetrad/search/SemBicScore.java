@@ -211,7 +211,7 @@ public class SemBicScore implements Score {
         int n = covariances.getSampleSize();
 
         if (forward) {
-            return  -(n) * Math.log(1.0 - r * r) - log(n)  - getThreshold() * n * (z.length + 1) * 0.05;
+            return  -(n) * Math.log(1.0 - r * r) - log(n)  - getThreshold() * n + (z.length + 1);// * 0.05;
         } else {
             return  -(n) * Math.log(1.0 - r * r) - log(n) - getThreshold() * n * (z.length + 1);
         }
