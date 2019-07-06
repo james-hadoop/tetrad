@@ -110,14 +110,11 @@ public class SemBicScore implements Score {
 
         this.dataSet = dataSet;
 
-//        dataSet = DataUtils.center(dataSet);
-
         ICovarianceMatrix cov = dataSet instanceof ICovarianceMatrix ? (ICovarianceMatrix) dataSet
                 : new CovarianceMatrix(dataSet);
 
         setCovariances(cov);
 
-//        setCovariances(covariances);
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
@@ -126,18 +123,22 @@ public class SemBicScore implements Score {
 
     }
 
-    private void setExp() {
+    @Override
+    public double localScoreDiff(int x, int y, int[] z) {
+        Node _x = variables.get(x);
+        Node _y = variables.get(y);
+        List<Node> _z = getVariableList(z);
+        double r = partialCorrelation(_x, _y, _z);
+        double sp1 = getStructurePrior(z.length + 1);
+        double sp2 = getStructurePrior(z.length);
         int n = covariances.getSampleSize();
+        return -(n) * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getThreshold() * 2.0 * n * exp
+                + signum(getStructurePrior()) * (sp1 - sp2);
+    }
 
-        ChiSquaredDistribution ch = new ChiSquaredDistribution(n - 1);
-
-        exp = 0.0;
-
-        for (int i = 0;i < 10000; i++) {
-            exp += -log(ch.sample() / (n - 1));
-        }
-
-        exp /= n;
+    @Override
+    public double localScoreDiff(int x, int y) {
+        return localScoreDiff(x, y, new int[0]);
     }
 
     /**
@@ -179,109 +180,6 @@ public class SemBicScore implements Score {
 
             return Double.NaN;
         }
-    }
-
-    private static double LOG2PI = log(2.0 * Math.PI);
-
-    // One record.
-    private double gaussianLikelihood(int k, TetradMatrix sigma) {
-        return -0.5 * logdet(sigma) - 0.5 * k * (1 + LOG2PI);
-    }
-
-    private double logdet(TetradMatrix m) {
-        if (m.columns() == 0) {
-            return 1;
-        }
-
-        RealMatrix M = m.getRealMatrix();
-        final double tol = 1e-9;
-        RealMatrix LT = new org.apache.commons.math3.linear.CholeskyDecomposition(M, tol, tol).getLT();
-
-        double sum = 0.0;
-
-        for (int i = 0; i < LT.getRowDimension(); i++) {
-            sum += FastMath.log(LT.getEntry(i, i));
-        }
-
-        return sum;
-    }
-
-    private double getStructurePrior(int parents) {
-        if (abs(getStructurePrior()) <= 0) {
-            return 0;
-        } else {
-            int c = covariances.getDimension();
-            double p = abs(getStructurePrior()) / (double) c;
-            return (parents * Math.log(p) + (c - parents) * Math.log(1.0 - p));
-        }
-    }
-
-    @Override
-    public double localScoreDiff(int x, int y, int[] z) {
-
-        Node _x = variables.get(x);
-        Node _y = variables.get(y);
-        List<Node> _z = getVariableList(z);
-
-        double r = partialCorrelation(_x, _y, _z);
-
-        double sp1 = getStructurePrior(z.length + 1);
-        double sp2 = getStructurePrior(z.length);
-
-        int n = covariances.getSampleSize();
-
-        System.out.println("EXP = " + exp + " time n = " + exp * n + " time threshold = " + exp * n + " times |z| + 1 = " + getThreshold() * n * (z.length + 1));
-
-        return -(n) * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getThreshold() * 2.0 * n * exp;
-//                + signum(getStructurePrior()) * (sp1 - sp2);
-
-//        return -(n) * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) + signum(getStructurePrior()) * (sp1 - sp2)
-//                - (getThreshold() > 0 ? (getThreshold()) : -getThreshold() * ((z.length + 1) * (z.length + 1)));
-//
-//        return localScore(y, append(z, x)) - localScore(y, z) - getPenaltyDiscount() * Math.log(n) + signum(getStructurePrior()) * (sp1 - sp2)
-//                - (getThreshold() > 0 ? (getThreshold()) : -getThreshold() * ((z.length + 1) * (z.length + 1)));
-
-//        return localScore(y, append(z, x)) - localScore(y, z);
-    }
-
-    private List<Node> getVariableList(int[] indices) {
-        List<Node> variables = new ArrayList<>();
-        for (int i : indices) {
-            variables.add(this.variables.get(i));
-        }
-        return variables;
-    }
-
-    private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {
-//        return this.recursivePartialCorrelation.corr(x, y, z);
-        int[] indices = new int[z.size() + 2];
-        indices[0] = indexMap.get(x.getName());
-        indices[1] = indexMap.get(y.getName());
-        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i).getName());
-        TetradMatrix submatrix = covariances.getSubmatrix(indices).getMatrix();
-        return StatUtils.partialCorrelationPrecisionMatrix(submatrix);
-    }
-
-    private Map<String, Integer> indexMap(List<Node> variables) {
-        Map<String, Integer> indexMap = new HashMap<>();
-
-        for (int i = 0; variables.size() > i; i++) {
-            indexMap.put(variables.get(i).getName(), i);
-        }
-
-        return indexMap;
-    }
-
-    @Override
-    public double localScoreDiff(int x, int y) {
-        return localScoreDiff(x, y, new int[0]);
-    }
-
-    private int[] append(int[] parents, int extra) {
-        int[] all = new int[parents.length + 1];
-        System.arraycopy(parents, 0, all, 0, parents.length);
-        all[parents.length] = extra;
-        return all;
     }
 
     /**
@@ -351,42 +249,7 @@ public class SemBicScore implements Score {
         return variables;
     }
 
-    // Prints a smallest subset of parents that causes a singular matrix exception.
-    private boolean printMinimalLinearlyDependentSet(int[] parents, ICovarianceMatrix cov) {
-        List<Node> _parents = new ArrayList<>();
-        for (int p : parents) _parents.add(variables.get(p));
-
-        DepthChoiceGenerator gen = new DepthChoiceGenerator(_parents.size(), _parents.size());
-        int[] choice;
-
-        while ((choice = gen.next()) != null) {
-            int[] sel = new int[choice.length];
-            List<Node> _sel = new ArrayList<>();
-            for (int m = 0; m < choice.length; m++) {
-                sel[m] = parents[m];
-                _sel.add(variables.get(sel[m]));
-            }
-
-            TetradMatrix m = cov.getSelection(sel, sel);
-
-            try {
-                m.inverse();
-            } catch (Exception e2) {
-                forbidden.add(sel[0]);
-                out.println("### Linear dependence among variables: " + _sel);
-                out.println("### Removing " + _sel.get(0));
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void setCovariances(ICovarianceMatrix covariances) {
-        this.covariances = covariances;
-    }
-
-    public void setVariables(List<Node> variables) {
+     public void setVariables(List<Node> variables) {
         covariances.setVariables(variables);
         this.variables = variables;
     }
@@ -437,14 +300,125 @@ public class SemBicScore implements Score {
     public void setThreshold(double threshold) {
         this.threshold = threshold;
     }
-//
-//    public boolean isForward() {
-//        return forward;
-//    }
-//
-//    public void setForward(boolean forward) {
-//        this.forward = forward;
-//    }
+
+    private void setExp() {
+        int n = covariances.getSampleSize();
+
+        ChiSquaredDistribution ch = new ChiSquaredDistribution(n - 1);
+
+        exp = 0.0;
+
+        for (int i = 0;i < 10000; i++) {
+            exp += -log(ch.sample() / (n - 1));
+        }
+
+        exp /= n;
+    }
+
+    private void setCovariances(ICovarianceMatrix covariances) {
+        this.covariances = covariances;
+    }
+
+
+    private static double LOG2PI = log(2.0 * Math.PI);
+
+    // One record.
+    private double gaussianLikelihood(int k, TetradMatrix sigma) {
+        return -0.5 * logdet(sigma) - 0.5 * k * (1 + LOG2PI);
+    }
+
+    private double logdet(TetradMatrix m) {
+        if (m.columns() == 0) {
+            return 1;
+        }
+
+        RealMatrix M = m.getRealMatrix();
+        final double tol = 1e-9;
+        RealMatrix LT = new org.apache.commons.math3.linear.CholeskyDecomposition(M, tol, tol).getLT();
+
+        double sum = 0.0;
+
+        for (int i = 0; i < LT.getRowDimension(); i++) {
+            sum += FastMath.log(LT.getEntry(i, i));
+        }
+
+        return sum;
+    }
+
+    private double getStructurePrior(int parents) {
+        if (abs(getStructurePrior()) <= 0) {
+            return 0;
+        } else {
+            int c = covariances.getDimension();
+            double p = abs(getStructurePrior()) / (double) c;
+            return (parents * Math.log(p) + (c - parents) * Math.log(1.0 - p));
+        }
+    }
+
+    private List<Node> getVariableList(int[] indices) {
+        List<Node> variables = new ArrayList<>();
+        for (int i : indices) {
+            variables.add(this.variables.get(i));
+        }
+        return variables;
+    }
+
+    private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {
+        int[] indices = new int[z.size() + 2];
+        indices[0] = indexMap.get(x.getName());
+        indices[1] = indexMap.get(y.getName());
+        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i).getName());
+        TetradMatrix submatrix = covariances.getSubmatrix(indices).getMatrix();
+        return StatUtils.partialCorrelationPrecisionMatrix(submatrix);
+    }
+
+    private Map<String, Integer> indexMap(List<Node> variables) {
+        Map<String, Integer> indexMap = new HashMap<>();
+
+        for (int i = 0; variables.size() > i; i++) {
+            indexMap.put(variables.get(i).getName(), i);
+        }
+
+        return indexMap;
+    }
+
+    // Prints a smallest subset of parents that causes a singular matrix exception.
+    private boolean printMinimalLinearlyDependentSet(int[] parents, ICovarianceMatrix cov) {
+        List<Node> _parents = new ArrayList<>();
+        for (int p : parents) _parents.add(variables.get(p));
+
+        DepthChoiceGenerator gen = new DepthChoiceGenerator(_parents.size(), _parents.size());
+        int[] choice;
+
+        while ((choice = gen.next()) != null) {
+            int[] sel = new int[choice.length];
+            List<Node> _sel = new ArrayList<>();
+            for (int m = 0; m < choice.length; m++) {
+                sel[m] = parents[m];
+                _sel.add(variables.get(sel[m]));
+            }
+
+            TetradMatrix m = cov.getSelection(sel, sel);
+
+            try {
+                m.inverse();
+            } catch (Exception e2) {
+                forbidden.add(sel[0]);
+                out.println("### Linear dependence among variables: " + _sel);
+                out.println("### Removing " + _sel.get(0));
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private int[] append(int[] parents, int extra) {
+        int[] all = new int[parents.length + 1];
+        System.arraycopy(parents, 0, all, 0, parents.length);
+        all[parents.length] = extra;
+        return all;
+    }
 }
 
 
