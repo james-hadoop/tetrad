@@ -194,18 +194,28 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
 
     private void newExecution() {
         statistics = new ArrayList<>();
+
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadTP());
-        statistics.add(new ArrowheadFP());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new ArrowheadPrecisionCommonEdges());
-//        statistics.add(new TailPrecision());
-//        statistics.add(new TailRecall());
-        statistics.add(new AncestorPrecision());
-        statistics.add(new AncestorRecall());
+        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new F1All());
+//        statistics.add(new DeltaBic());
+
+//        statistics.add(new AdjacencyPrecision());
+//        statistics.add(new AdjacencyRecall());
+//        statistics.add(new ArrowheadTP());
+//        statistics.add(new ArrowheadFP());
+//        statistics.add(new ArrowheadPrecision());
+//        statistics.add(new ArrowheadRecall());
+//        statistics.add(new ArrowheadRecallCommonEdges());
+//        statistics.add(new ArrowheadPrecisionCommonEdges());
+////        statistics.add(new TailPrecision());
+////        statistics.add(new TailRecall());
+//        statistics.add(new AncestorPrecision());
+//        statistics.add(new AncestorRecall());
 //        statistics.add(new AncestorTailPrecision());
 //        statistics.add(new TrekPrecision());
 //        statistics.add(new PercentNonancestor());

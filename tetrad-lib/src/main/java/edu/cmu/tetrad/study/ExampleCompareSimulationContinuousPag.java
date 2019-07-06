@@ -389,8 +389,8 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 50);
-        parameters.set("avgDegree", 2, 4, 6, 8);
-        parameters.set("sampleSize", 1000);
+        parameters.set("avgDegree", 2, 4, 6, 8, 10);//, 12, 14, 16, 18, 20);
+        parameters.set("sampleSize", 5000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
         parameters.set("coefHigh", .9);
@@ -400,7 +400,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("includeNegativeCoefs", false);
         parameters.set("depth", -1);
         parameters.set("alpha", 0.01);//, 0.001, 0.0001);
-        parameters.set("maxDegree", 500);
+        parameters.set("maxDegree", 1000);
         parameters.set("intervalBetweenShocks", 100);
         parameters.set("intervalBetweenRecordings", 100);
         parameters.set("fisherEpsilon", 1e-10);
@@ -413,8 +413,8 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
         parameters.set("structurePrior", 0 );//, -1, -2, -3);
-        parameters.set("penaltyDiscount", 1);// 2, 3, 4, 5, 7, 8, 9, 10);
-        parameters.set("semBicThreshold", 80);//, 50, 70, 90, -30, -50, -70, -90);
+//        parameters.set("semBicThreshold", 0.0);// 2, 3, 4, 5, 7, 8, 9, 10);
+        parameters.set("semBicThreshold", 0.1);//, 0.1, 0.15, 0.2, 0.25, 0.3);//, 10, 15, 20, 25, 30, 35, 40, 50, 70, 90, -5, -10, -15, -20, -25, -30, -50, -70, -90);
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
         parameters.set("intervalBetweenRecordings", 100);
@@ -432,20 +432,21 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecall());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new F1All());
-//        statistics.add(new BicEst());
         statistics.add(new DeltaBic());
-//        statistics.add(new MathewsCorrAdj());
-//        statistics.add(new MathewsCorrArrow());
 //        statistics.add(new ElapsedTime());
 
         statistics.setWeight("F1All", 1.0);
+//        statistics.setWeight("AP", .1);
+//        statistics.setWeight("AHPC", 1.0);
+//        statistics.setWeight("AHRC", 1.0);
 //        statistics.setWeight("BicEst", 1.0);
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new PcAll(new FisherZInverseCovariance()));
+//        algorithms.add(new PcAll(new FisherZInverseCovariance()));
         algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
