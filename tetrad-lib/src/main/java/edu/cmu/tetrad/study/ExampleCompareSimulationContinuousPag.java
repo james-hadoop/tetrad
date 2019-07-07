@@ -400,7 +400,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("includePositiveCoefs", true);
         parameters.set("includeNegativeCoefs", false);
         parameters.set("depth", -1);
-        parameters.set("alpha", 0.2, 0.1, 0.01, 0.001, 0.0001, 1e-9);
+        parameters.set("alpha", .1);
         parameters.set("maxDegree", 500);
         parameters.set("intervalBetweenShocks", 100);
         parameters.set("intervalBetweenRecordings", 100);
@@ -408,13 +408,13 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("errorsNormal", true);
         parameters.set("stableFAS", true);
         parameters.set("concurrentFAS", false);
-        parameters.set("colliderDiscoveryRule", 2, 3, 4, 5);
+        parameters.set("colliderDiscoveryRule", 2, 3);
         parameters.set("conflictRule", 3);
         parameters.set("depth", 10);
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("structurePrior", 0, 1, 2, 3);
+        parameters.set("structurePrior", 0);//, 1, 2, 3);
         parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5, 6);
         parameters.set("semBicThreshold", 0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.);//0.01, 0.05, 0.1);//, 2, 3, 4);
 
@@ -450,7 +450,7 @@ public class ExampleCompareSimulationContinuousPag {
         Algorithms algorithms = new Algorithms();
 
 //        algorithms.add(new PcAll(new FisherZInverseCovariance()));
-        algorithms.add(new Fges(new FisherZScore()));
+//        algorithms.add(new Fges(new FisherZScore()));
         algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
