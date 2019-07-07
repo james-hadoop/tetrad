@@ -88,7 +88,7 @@ public class SemBicScore implements Score {
     private boolean forward = true;
 
     // The amount by which the score should be adjusted due to error about the true bump scores.
-    private double exp = Double.NaN;
+    private double bias = Double.NaN;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -135,10 +135,10 @@ public class SemBicScore implements Score {
         int n = covariances.getSampleSize();
 
         if (false) {
-            return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getExp()
+            return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getBias()
                     + signum(getStructurePrior()) * (sp1 - sp2);
         } else {
-            return (localScore(x, append(z, y)) - localScore(x, z)) - getPenaltyDiscount() * log(n) - getExp()
+            return (localScore(x, append(z, y)) - localScore(x, z)) - getPenaltyDiscount() * log(n) - getBias()
                     + signum(getStructurePrior()) * (sp1 - sp2);
         }
     }
@@ -413,11 +413,11 @@ public class SemBicScore implements Score {
         return all;
     }
 
-    public double getExp() {
+    public double getBias() {
         if (getThreshold() == 0.0) {
-            exp = 0.0;
-            System.out.println("Exp = " + exp);
-        } else if (Double.isNaN(exp)) {
+            bias = 0.0;
+            System.out.println("Exp = " + bias);
+        } else if (Double.isNaN(bias)) {
             int n = covariances.getSampleSize();
 
             ChiSquaredDistribution ch = new ChiSquaredDistribution(n - 1);
@@ -435,12 +435,12 @@ public class SemBicScore implements Score {
             percentile = percentile < 50.0 ? 50.0 : percentile;
             percentile = percentile > 100.0 ? 100.0 : percentile;
 
-            this.exp = percentile(e, percentile);
+            this.bias = percentile(e, percentile);
 
-            System.out.println("Exp = " + exp);
+            System.out.println("Bias = " + bias);
         }
 
-        return exp;
+        return bias;
     }
 
     public boolean isForward() {
