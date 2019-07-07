@@ -52,7 +52,7 @@ public class FgesRunner extends AbstractAlgorithmRunner implements IFgesRunner, 
     public enum Type {CONTINUOUS, DISCRETE, MIXED, GRAPH}
 
     private transient List<PropertyChangeListener> listeners;
-    //    private List<ScoredGraph> topGraphs;
+        private List<ScoredGraph> topGraphs;
     private int index;
     private transient Fges fges;
     private transient Graph initialGraph;
@@ -387,9 +387,9 @@ public class FgesRunner extends AbstractAlgorithmRunner implements IFgesRunner, 
         if (!getListeners().contains(l)) getListeners().add(l);
     }
 
-//    public List<ScoredGraph> getTopGraphs() {
-//        return this.topGraphs;
-//    }
+    public List<ScoredGraph> getTopGraphs() {
+        return this.topGraphs;
+    }
 
     public String getBayesFactorsReport(Graph dag) {
         if (fges == null) {
