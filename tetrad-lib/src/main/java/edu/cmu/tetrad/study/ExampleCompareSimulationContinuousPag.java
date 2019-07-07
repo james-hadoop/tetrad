@@ -29,6 +29,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.*;
 import edu.cmu.tetrad.algcomparison.score.DSeparationScore;
+import edu.cmu.tetrad.algcomparison.score.FisherZScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.LoadContinuousDataAndSingleGraph;
@@ -399,8 +400,8 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("includePositiveCoefs", true);
         parameters.set("includeNegativeCoefs", false);
         parameters.set("depth", -1);
-        parameters.set("alpha", 0.01);//, 0.001, 0.0001);
-        parameters.set("maxDegree", 50000);
+        parameters.set("alpha", 0.2, 0.1, 0.01, 0.001, 0.0001, 1e-9);
+        parameters.set("maxDegree", 500);
         parameters.set("intervalBetweenShocks", 100);
         parameters.set("intervalBetweenRecordings", 100);
         parameters.set("fisherEpsilon", 1e-10);
@@ -427,7 +428,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         statistics.add(new ParameterColumn("colliderDiscoveryRule"));
         statistics.add(new ParameterColumn("avgDegree"));
-//        statistics.add(new ParameterColumn("alpha"));
+        statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
         statistics.add(new ParameterColumn("structurePrior"));
         statistics.add(new ParameterColumn("semBicThreshold"));
@@ -449,6 +450,7 @@ public class ExampleCompareSimulationContinuousPag {
         Algorithms algorithms = new Algorithms();
 
 //        algorithms.add(new PcAll(new FisherZInverseCovariance()));
+        algorithms.add(new Fges(new FisherZScore()));
         algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();

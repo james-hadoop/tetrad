@@ -1979,23 +1979,26 @@ public final class Fges implements GraphSearch, GraphScorer {
             ((SemBicScore) score).setThreshold(0);
         }
         for (Node node : getVariables()) {
-            Node y = node;
-            List<Node> x = dag.getParents(y);
 
-            int[] parentIndices = new int[x.size()];
+            if (score instanceof SemBicScore) {
+                Node y = node;
+                List<Node> x = dag.getParents(y);
 
-            int count = 0;
-            for (Node parent : x) {
-                parentIndices[count++] = hashIndices.get(parent);
+                int[] parentIndices = new int[x.size()];
+
+                int count = 0;
+                for (Node parent : x) {
+                    parentIndices[count++] = hashIndices.get(parent);
+                }
+
+                final double bic = score.localScore(hashIndices.get(y), parentIndices);
+
+                if (recordScores) {
+                    node.addAttribute("BIC", bic);
+                }
+
+                _score += bic;
             }
-
-            final double bic = score.localScore(hashIndices.get(y), parentIndices);
-
-            if (recordScores) {
-                node.addAttribute("BIC", bic);
-            }
-
-            _score += bic;
         }
 
         if (score instanceof SemBicScore) {

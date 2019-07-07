@@ -214,7 +214,6 @@ public class SemBicScore implements Score {
     }
 
     public double getPenaltyDiscount() {
-        System.out.println("discount = " + penaltyDiscount);
         return penaltyDiscount;
     }
 
