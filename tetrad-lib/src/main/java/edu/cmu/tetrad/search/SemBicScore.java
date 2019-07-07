@@ -23,7 +23,6 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
@@ -39,6 +38,7 @@ import java.io.PrintStream;
 import java.util.*;
 
 import static java.lang.Math.*;
+import static org.apache.commons.math3.stat.StatUtils.percentile;
 
 /**
  * Implements the continuous BIC score for FGES.
@@ -46,8 +46,11 @@ import static java.lang.Math.*;
  * @author Joseph Ramsey
  */
 public class SemBicScore implements Score {
-    private double exp = 0.0;
+
+    // The dataset.
     private DataSet dataSet;
+
+    // The covariances.
     private ICovarianceMatrix covariances;
 
     // The variables of the covariance matrix.
@@ -79,10 +82,13 @@ public class SemBicScore implements Score {
     private double structurePrior = 0.0;
 
     // A number subtracted from score differences.
-    private double threshold = 0;
+    private double threshold = 0.0;
 
     // True if forward search, false if backward search.
     private boolean forward = true;
+
+    // The amount by which the score should be adjusted due to error about the true bump scores.
+    private double exp = Double.NaN;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -96,8 +102,6 @@ public class SemBicScore implements Score {
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
-
-        setExp();
     }
 
     /**
@@ -118,9 +122,6 @@ public class SemBicScore implements Score {
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
-
-        setExp();
-
     }
 
     @Override
@@ -132,8 +133,14 @@ public class SemBicScore implements Score {
         double sp1 = getStructurePrior(z.length + 1);
         double sp2 = getStructurePrior(z.length);
         int n = covariances.getSampleSize();
-        return -(n) * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getThreshold() * 2.0 * n * exp
-                + signum(getStructurePrior()) * (sp1 - sp2);
+
+        if (forward) {
+            return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getExp()
+                    + signum(getStructurePrior()) * (sp1 - sp2);
+        } else {
+            return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getExp()
+                    + signum(getStructurePrior()) * (sp1 - sp2);
+        }
     }
 
     @Override
@@ -249,7 +256,7 @@ public class SemBicScore implements Score {
         return variables;
     }
 
-     public void setVariables(List<Node> variables) {
+    public void setVariables(List<Node> variables) {
         covariances.setVariables(variables);
         this.variables = variables;
     }
@@ -299,20 +306,6 @@ public class SemBicScore implements Score {
 
     public void setThreshold(double threshold) {
         this.threshold = threshold;
-    }
-
-    private void setExp() {
-        int n = covariances.getSampleSize();
-
-        ChiSquaredDistribution ch = new ChiSquaredDistribution(n - 1);
-
-        exp = 0.0;
-
-        for (int i = 0;i < 10000; i++) {
-            exp += -log(ch.sample() / (n - 1));
-        }
-
-        exp /= n;
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {
@@ -418,6 +411,43 @@ public class SemBicScore implements Score {
         System.arraycopy(parents, 0, all, 0, parents.length);
         all[parents.length] = extra;
         return all;
+    }
+
+    public double getExp() {
+        if (getThreshold() == 0) {
+            exp = 0;
+        } else if (Double.isNaN(exp)) {
+            int n = covariances.getSampleSize();
+
+            ChiSquaredDistribution ch = new ChiSquaredDistribution(n - 1);
+
+            int numSamples = 100000;
+
+            double[] e = new double[numSamples];
+
+            for (int i = 0; i < numSamples; i++) {
+                e[i] = -n * log(ch.sample() / (n - 1)) + n * log(ch.sample() / (n - 1));
+            }
+
+
+            double percentile = 100.0 * (getThreshold() / 2.0 + 0.5);
+            percentile = percentile < 0.0 ? 50.0 : percentile;
+            percentile = percentile > 100.0 ? 100.0 : percentile;
+
+            this.exp = percentile(e, percentile);
+
+            System.out.println(getExp());
+        }
+
+        return exp;
+    }
+
+    public boolean isForward() {
+        return forward;
+    }
+
+    public void setForward(boolean forward) {
+        this.forward = forward;
     }
 }
 

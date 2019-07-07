@@ -390,7 +390,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 50);
         parameters.set("avgDegree", 2, 4, 6, 8, 10);//, 12, 14, 16, 18, 20);
-        parameters.set("sampleSize", 1000);
+        parameters.set("sampleSize", 5000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
         parameters.set("coefHigh", .9);
@@ -400,7 +400,7 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("includeNegativeCoefs", false);
         parameters.set("depth", -1);
         parameters.set("alpha", 0.01);//, 0.001, 0.0001);
-        parameters.set("maxDegree", 1000);
+        parameters.set("maxDegree", 50000);
         parameters.set("intervalBetweenShocks", 100);
         parameters.set("intervalBetweenRecordings", 100);
         parameters.set("fisherEpsilon", 1e-10);
@@ -412,9 +412,11 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("depth", 10);
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
+
         parameters.set("structurePrior", 0);//, -1, -2, -3);
-//        parameters.set("semBicThreshold", 0.0);// 2, 3, 4, 5, 7, 8, 9, 10);
-        parameters.set("semBicThreshold", 1);//, 0.1, 0.15, 0.2, 0.25, 0.3);//, 10, 15, 20, 25, 30, 35, 40, 50, 70, 90, -5, -10, -15, -20, -25, -30, -50, -70, -90);
+        parameters.set("penaltyDiscount", 1);//, 2, 4, 6);
+        parameters.set("semBicThreshold", 1.0);//0.01, 0.05, 0.1);//, 2, 3, 4);
+
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
         parameters.set("intervalBetweenRecordings", 100);
@@ -426,7 +428,7 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("colliderDiscoveryRule"));
         statistics.add(new ParameterColumn("avgDegree"));
 //        statistics.add(new ParameterColumn("alpha"));
-//        statistics.add(new ParameterColumn("penaltyDiscount"));
+        statistics.add(new ParameterColumn("penaltyDiscount"));
 //        statistics.add(new ParameterColumn("structurePrior"));
         statistics.add(new ParameterColumn("semBicThreshold"));
         statistics.add(new AdjacencyPrecision());
@@ -446,7 +448,7 @@ public class ExampleCompareSimulationContinuousPag {
 //        statistics.setWeight("BicEst", 1.0);
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new PcAll(new FisherZInverseCovariance()));
+//        algorithms.add(new PcAll(new FisherZInverseCovariance()));
         algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
