@@ -134,8 +134,13 @@ public class SemBicScore implements Score {
         double sp2 = getStructurePrior(z.length);
         int n = covariances.getSampleSize();
 
-        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getExp()
-                + signum(getStructurePrior()) * (sp1 - sp2);
+        if (false) {
+            return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getExp()
+                    + signum(getStructurePrior()) * (sp1 - sp2);
+        } else {
+            return (localScore(x, append(z, y)) - localScore(x, z)) - getPenaltyDiscount() * log(n) - getExp()
+                    + signum(getStructurePrior()) * (sp1 - sp2);
+        }
     }
 
     @Override

@@ -389,7 +389,7 @@ public class ExampleCompareSimulationContinuousPag {
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 10);
+        parameters.set("numMeasures", 50);
         parameters.set("avgDegree", 4);//, 12, 14, 16, 18, 20);
         parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", false);
@@ -468,7 +468,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         comparison.setParallelized(false);
 
-        comparison.setSortByUtility(true);
+        comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
