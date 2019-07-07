@@ -259,8 +259,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             initializeTwoStepEdges(getVariables());
             fes();
             bes();
-        }
-        else {
+        } else {
             initializeForwardEdgesFromEmptyGraph(getVariables());
 
             // Do forward search.
@@ -908,7 +907,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             out.println("** FORWARD EQUIVALENCE SEARCH");
         }
 
-        if (score instanceof  SemBicScore) {
+        if (score instanceof SemBicScore) {
             ((SemBicScore) score).setForward(true);
         }
 
@@ -983,7 +982,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             out.println("** BACKWARD EQUIVALENCE SEARCH");
         }
 
-        if (score instanceof  SemBicScore) {
+        if (score instanceof SemBicScore) {
             ((SemBicScore) score).setForward(false);
         }
 
@@ -1042,6 +1041,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             reevaluateBackward(toProcess);
         }
     }
+
     private Set<Node> reapplyOrientation(Node x, Node y, Set<Node> newArrows) {
         Set<Node> toProcess = new HashSet<>();
         toProcess.add(x);
@@ -1958,7 +1958,6 @@ public final class Fges implements GraphSearch, GraphScorer {
 //
 //        return _score;
 //    }
-
     private double scoreDag(Graph dag, boolean recordScores) {
         if (score instanceof GraphScore) return 0.0;
         NumberFormat nf = NumberFormatUtil.getInstance().getNumberFormat();
@@ -2031,6 +2030,31 @@ public final class Fges implements GraphSearch, GraphScorer {
         }
 
         return score.localScoreDiff(hashIndices.get(x), yIndex, parentIndices);
+    }
+
+    private boolean independent(Node x, Node y, List<Node> z, Map<Node, Integer> hashIndices) {
+        int yIndex = hashIndices.get(y);
+
+        if (x == y) {
+            throw new IllegalArgumentException();
+        }
+
+        if (z.contains(x)) {
+            throw new IllegalArgumentException();
+        }
+
+        if (z.contains(y)) {
+            throw new IllegalArgumentException();
+        }
+
+        int[] _z = new int[z.size()];
+
+        int count = 0;
+        for (Node parent : z) {
+            _z[count++] = hashIndices.get(parent);
+        }
+
+        return score.localScoreDiff(hashIndices.get(x), yIndex, _z) < 0;
     }
 
     private List<Node> getVariables() {

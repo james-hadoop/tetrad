@@ -388,9 +388,9 @@ public class ExampleCompareSimulationContinuousPag {
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 50);
-        parameters.set("avgDegree", 2, 4, 6, 8, 10);//, 12, 14, 16, 18, 20);
-        parameters.set("sampleSize", 5000);
+        parameters.set("numMeasures", 10);
+        parameters.set("avgDegree", 4);//, 12, 14, 16, 18, 20);
+        parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
         parameters.set("coefHigh", .9);
@@ -407,15 +407,15 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("errorsNormal", true);
         parameters.set("stableFAS", true);
         parameters.set("concurrentFAS", false);
-        parameters.set("colliderDiscoveryRule", 2, 3);
+        parameters.set("colliderDiscoveryRule", 2, 3, 4, 5);
         parameters.set("conflictRule", 3);
         parameters.set("depth", 10);
         parameters.set("useMaxPOrientationHeuristic", true);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("structurePrior", 0);//, -1, -2, -3);
-        parameters.set("penaltyDiscount", 1);//, 2, 4, 6);
-        parameters.set("semBicThreshold", 1.0);//0.01, 0.05, 0.1);//, 2, 3, 4);
+        parameters.set("structurePrior", 0, 1, 2, 3);
+        parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5, 6);
+        parameters.set("semBicThreshold", 0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.);//0.01, 0.05, 0.1);//, 2, 3, 4);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
@@ -429,7 +429,7 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ParameterColumn("avgDegree"));
 //        statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("penaltyDiscount"));
-//        statistics.add(new ParameterColumn("structurePrior"));
+        statistics.add(new ParameterColumn("structurePrior"));
         statistics.add(new ParameterColumn("semBicThreshold"));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
@@ -466,7 +466,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         comparison.setParallelized(false);
 
-        comparison.setSortByUtility(false);
+        comparison.setSortByUtility(true);
         comparison.setShowUtilities(false);
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);

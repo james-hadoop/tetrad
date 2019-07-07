@@ -52,7 +52,7 @@ public class SemBicScore implements ScoreWrapper {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add("penaltyDiscount");
-//        parameters.add("structurePrior");
+        parameters.add("structurePrior");
         parameters.add("semBicThreshold");
         return parameters;
     }

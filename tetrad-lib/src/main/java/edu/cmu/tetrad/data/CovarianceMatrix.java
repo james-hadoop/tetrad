@@ -48,7 +48,9 @@ public class CovarianceMatrix implements ICovarianceMatrix {
     static final long serialVersionUID = 23L;
 
     public enum BIAS_CORRECTED {Yes, No}
+
     public enum COVARIANCE_CALCULATION_TYPE {Standard, Alternate}
+
     public enum DATA_TYPE {Float, Double}
 
     /**
@@ -100,7 +102,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
      * @throws IllegalArgumentException if this is not a continuous data set.
      */
     public CovarianceMatrix(DataSet dataSet) {
-        this(dataSet, BIAS_CORRECTED.Yes, COVARIANCE_CALCULATION_TYPE.Alternate, DATA_TYPE.Double);
+        this(dataSet, BIAS_CORRECTED.Yes, COVARIANCE_CALCULATION_TYPE.Standard, DATA_TYPE.Double);
     }
 
     public CovarianceMatrix(DataSet dataSet, BIAS_CORRECTED corrected, COVARIANCE_CALCULATION_TYPE covType, DATA_TYPE dataType) {

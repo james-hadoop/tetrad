@@ -134,13 +134,8 @@ public class SemBicScore implements Score {
         double sp2 = getStructurePrior(z.length);
         int n = covariances.getSampleSize();
 
-        if (forward) {
-            return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getExp()
-                    + signum(getStructurePrior()) * (sp1 - sp2);
-        } else {
-            return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getExp()
-                    + signum(getStructurePrior()) * (sp1 - sp2);
-        }
+        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n) - getExp()
+                + signum(getStructurePrior()) * (sp1 - sp2);
     }
 
     @Override
@@ -219,6 +214,7 @@ public class SemBicScore implements Score {
     }
 
     public double getPenaltyDiscount() {
+        System.out.println("discount = " + penaltyDiscount);
         return penaltyDiscount;
     }
 
@@ -232,7 +228,7 @@ public class SemBicScore implements Score {
 
     @Override
     public boolean isEffectEdge(double bump) {
-        return bump > 0;// -.1 * getPenaltyDiscount() * Math.log(sampleSize);
+        return bump > 0;
     }
 
     public DataSet getDataSet() {
@@ -414,14 +410,15 @@ public class SemBicScore implements Score {
     }
 
     public double getExp() {
-        if (getThreshold() == 0) {
-            exp = 0;
+        if (getThreshold() == 0.0) {
+            exp = 0.0;
+            System.out.println("Exp = " + exp);
         } else if (Double.isNaN(exp)) {
             int n = covariances.getSampleSize();
 
             ChiSquaredDistribution ch = new ChiSquaredDistribution(n - 1);
 
-            int numSamples = 100000;
+            int numSamples = 1000;
 
             double[] e = new double[numSamples];
 
@@ -431,12 +428,12 @@ public class SemBicScore implements Score {
 
 
             double percentile = 100.0 * (getThreshold() / 2.0 + 0.5);
-            percentile = percentile < 0.0 ? 50.0 : percentile;
+            percentile = percentile < 50.0 ? 50.0 : percentile;
             percentile = percentile > 100.0 ? 100.0 : percentile;
 
             this.exp = percentile(e, percentile);
 
-            System.out.println(getExp());
+            System.out.println("Exp = " + exp);
         }
 
         return exp;
