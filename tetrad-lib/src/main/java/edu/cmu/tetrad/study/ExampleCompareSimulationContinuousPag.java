@@ -389,11 +389,9 @@ public class ExampleCompareSimulationContinuousPag {
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 40);
-        parameters.set("avgDegree", 2);//, 12, 14, 16, 18, 20);
-        parameters.set("numMeasures", 1000);
+        parameters.set("numMeasures", 500);
         parameters.set("avgDegree", 6);//, 12, 14, 16, 18, 20);
-        parameters.set("sampleSize", 500);
+        parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
         parameters.set("coefHigh", .9);
@@ -404,8 +402,8 @@ public class ExampleCompareSimulationContinuousPag {
         parameters.set("depth", -1);
         parameters.set("alpha", .1);
         parameters.set("maxDegree", 500);
-        parameters.set("intervalBetweenShocks", 100);
-        parameters.set("intervalBetweenRecordings", 100);
+        parameters.set("intervalBetweenShocks", 200);
+        parameters.set("intervalBetweenRecordings", 200);
         parameters.set("fisherEpsilon", 1e-10);
         parameters.set("errorsNormal", true);
         parameters.set("stableFAS", true);
@@ -418,7 +416,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("structurePrior", 0);//, 1, 2, 3);
         parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5, 6);
-        parameters.set("semBicThreshold", .8);//0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.);//0.01, 0.05, 0.1);//, 2, 3, 4);
+        parameters.set("semBicThreshold", .7);//0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.);//0.01, 0.05, 0.1);//, 2, 3, 4);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
@@ -451,13 +449,13 @@ public class ExampleCompareSimulationContinuousPag {
 //        statistics.setWeight("BicEst", 1.0);
         Algorithms algorithms = new Algorithms();
 
-//        algorithms.add(new PcAll(new FisherZInverseCovariance()));
+        algorithms.add(new PcAll(new FisherZInverseCovariance()));
 //        algorithms.add(new Fges(new FisherZScore()));
         algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearFisherModel(new RandomForward()));
 
         Comparison comparison = new Comparison();
 

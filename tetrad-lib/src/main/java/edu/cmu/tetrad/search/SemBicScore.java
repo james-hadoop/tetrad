@@ -426,7 +426,7 @@ public class SemBicScore implements Score {
 
             ChiSquaredDistribution ch = new ChiSquaredDistribution(n - 1);
 
-            int numSamples = 500;
+            int numSamples = 5000;
 
             double[] e = new double[numSamples];
 
