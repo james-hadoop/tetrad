@@ -416,13 +416,12 @@ public class SemBicScore implements Score {
     public double getBias() {
         if (getThreshold() == 0.0) {
             bias = 0.0;
-            System.out.println("Exp = " + bias);
         } else if (Double.isNaN(bias)) {
             int n = covariances.getSampleSize();
 
             ChiSquaredDistribution ch = new ChiSquaredDistribution(n - 1);
 
-            int numSamples = 1000;
+            int numSamples = 500;
 
             double[] e = new double[numSamples];
 
@@ -436,7 +435,6 @@ public class SemBicScore implements Score {
             percentile = percentile > 100.0 ? 100.0 : percentile;
 
             this.bias = percentile(e, percentile);
-
             System.out.println("Bias = " + bias);
         }
 
