@@ -25,16 +25,15 @@ import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.DepthChoiceGenerator;
-import edu.cmu.tetrad.util.StatUtils;
-import edu.cmu.tetrad.util.TetradMatrix;
-import edu.cmu.tetrad.util.TetradVector;
+import edu.cmu.tetrad.util.*;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 import org.apache.commons.math3.util.FastMath;
 
 import java.io.PrintStream;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 
 import static java.lang.Math.*;
@@ -102,6 +101,8 @@ public class SemBicScore implements Score {
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
+
+//        printBiases();
     }
 
     /**
@@ -122,6 +123,9 @@ public class SemBicScore implements Score {
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
+
+//        printBiases();
+
     }
 
     @Override
@@ -141,6 +145,7 @@ public class SemBicScore implements Score {
             return (localScore(x, append(z, y)) - localScore(x, z)) - getPenaltyDiscount() * log(n) - getBias()
                     + signum(getStructurePrior()) * (sp1 - sp2);
         }
+
     }
 
     @Override
@@ -435,11 +440,41 @@ public class SemBicScore implements Score {
             percentile = percentile > 100.0 ? 100.0 : percentile;
 
             this.bias = percentile(e, percentile);
+
             System.out.println("Bias = " + bias);
         }
 
         return bias;
     }
+
+    public void printBiases() {
+        NumberFormat nf = new DecimalFormat("0.00");
+
+        for (double threshold = 0.0; threshold <= 1.00; threshold += 0.1) {
+            int n = covariances.getSampleSize();
+
+            ChiSquaredDistribution ch = new ChiSquaredDistribution(n - 1);
+
+            int numSamples = 5000;
+
+            double[] e = new double[numSamples];
+
+            for (int i = 0; i < numSamples; i++) {
+                e[i] = -n * log(ch.sample() / (n - 1)) + n * log(ch.sample() / (n - 1));
+            }
+
+
+            double percentile = 100.0 * (threshold / 2.0 + 0.5);
+            percentile = percentile < 50.0 ? 50.0 : percentile;
+            percentile = percentile > 100.0 ? 100.0 : percentile;
+
+            double bias = percentile(e, percentile);
+
+            System.out.println("Threshold = " + nf.format(threshold) + " Bias = " + nf.format(bias) + "; corresponding penalty discount = 1 + bias / ln n = " + (1.0 + bias / log(n)));
+
+        }
+    }
+
 
     public boolean isForward() {
         return forward;
