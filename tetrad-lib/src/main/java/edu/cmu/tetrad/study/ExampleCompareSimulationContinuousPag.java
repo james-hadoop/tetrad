@@ -389,8 +389,8 @@ public class ExampleCompareSimulationContinuousPag {
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 400);
-        parameters.set("avgDegree", 2);//, 12, 14, 16, 18, 20);
+        parameters.set("numMeasures", 10);
+        parameters.set("avgDegree", 2, 4, 6);//, 12, 14, 16, 18, 20);
         parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", false);
         parameters.set("coefLow", 0.1);
@@ -416,7 +416,7 @@ public class ExampleCompareSimulationContinuousPag {
 
         parameters.set("structurePrior", 0);//, 1, 2, 3);
         parameters.set("penaltyDiscount", 1);//, 2, 3, 4, 5, 6);
-        parameters.set("semBicThreshold", 1);//0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.);//0.01, 0.05, 0.1);//, 2, 3, 4);
+        parameters.set("semBicThreshold", .5);//0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.);//0.01, 0.05, 0.1);//, 2, 3, 4);
 
         parameters.set("faithfulnessAssumed", true);
         parameters.set("symmetricFirstStep", false);
@@ -439,8 +439,8 @@ public class ExampleCompareSimulationContinuousPag {
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new F1All());
-        statistics.add(new DeltaBic());
-//        statistics.add(new ElapsedTime());
+//        statistics.add(new DeltaBic());
+        statistics.add(new ElapsedTime());
 
         statistics.setWeight("F1All", 1.0);
 //        statistics.setWeight("AP", .1);

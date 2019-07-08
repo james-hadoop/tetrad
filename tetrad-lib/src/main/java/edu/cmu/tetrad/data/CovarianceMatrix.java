@@ -93,6 +93,8 @@ public class CovarianceMatrix implements ICovarianceMatrix {
      */
     private Covariances covariances;
 
+    private final TetradMatrix _covariancesMatrix;
+
 
     //=============================CONSTRUCTORS=========================//
 
@@ -142,6 +144,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
         this.variables = Collections.unmodifiableList(dataSet.getVariables());
         this.sampleSize = dataSet.getNumRows();
+        this._covariancesMatrix = new TetradMatrix(covariances.getMatrix());
     }
 
     /**
@@ -170,6 +173,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
         // This is not calculating covariances, just storing them.
         this.covariances = new CovariancesDoubleStandard(matrix, sampleSize);
+        this._covariancesMatrix = new TetradMatrix(covariances.getMatrix());
     }
 
     /**
@@ -179,6 +183,8 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
         // This is not calculating covariances, just storing them.
         this.covariances = new CovariancesDoubleStandard(covMatrix.getMatrix().toArray(), sampleSize);
+        this._covariancesMatrix = new TetradMatrix(covariances.getMatrix());
+
     }
 
     public CovarianceMatrix(ICovarianceMatrix covMatrix) {
@@ -367,7 +373,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
      * @return a the covariance matrix (not a copy).
      */
     public final TetradMatrix getMatrix() {
-        return new TetradMatrix(covariances.getMatrix());
+        return _covariancesMatrix;
     }
 
     public final void select(Node variable) {
