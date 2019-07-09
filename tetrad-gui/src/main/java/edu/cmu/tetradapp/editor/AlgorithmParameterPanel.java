@@ -99,8 +99,8 @@ public class AlgorithmParameterPanel extends JPanel {
         	mainPanel.add(createSubPanel(title, params, parameters));
             mainPanel.add(Box.createVerticalStrut(10));
             
-        	// Phase one: PAG and constraints candidates Searching
-        	title = "Phase One: PAG and constraints candidates Searching";
+        	// Stage one: PAG and constraints candidates Searching
+        	title = "Stage One: PAG and constraints candidates Searching";
         	params = new LinkedHashSet<>();
         	// Thresholds
         	params.add(Params.NUM_RANDOMIZED_SEARCH_MODELS);
@@ -109,8 +109,8 @@ public class AlgorithmParameterPanel extends JPanel {
         	mainPanel.add(createSubPanel(title, params, parameters));
             mainPanel.add(Box.createVerticalStrut(10));
             
-        	// Phase two: Bayesian Scoring of Constraints
-        	title = "Phase Two: Bayesian Scoring of Constraints";
+        	// Stage two: Bayesian Scoring of Constraints
+        	title = "Stage Two: Bayesian Scoring of Constraints";
         	params = new LinkedHashSet<>();
         	params.add(Params.NUM_BSC_BOOTSTRAP_SAMPLES);
         	params.add(Params.THRESHOLD_NO_RANDOM_CONSTRAIN_SEARCH);
