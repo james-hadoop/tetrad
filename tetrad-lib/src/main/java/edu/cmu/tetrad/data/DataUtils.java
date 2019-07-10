@@ -824,6 +824,110 @@ public final class DataUtils {
         return squareData;
     }
 
+
+    public static DataSet ColumnMontage(
+            DataSet dataSet1, DataSet dataSet2, int[] column2) throws NumberFormatException {
+        /*@param: column2 contains the index of the column in dataset2 which will replace the same column in 1
+        -this function works to create mixed datatype.  */
+
+        List<Node> variables = new ArrayList<>();
+        List<Integer> columInd= new ArrayList<>(column2.length);
+        for (int i : column2){
+            columInd.add(Integer.valueOf(i));
+        }
+
+//        List<Node> variables2 = new ArrayList<>();
+
+//        for (Node variable : dataSet1.getVariables()) {
+//
+//            if (variable instanceof ContinuousVariable) {
+//                variables.add(variable);
+//            } else {
+//                variables.add(new DiscreteVariable(variable.getName()));
+//            }
+//
+//        }
+
+        for (int i=0; i< dataSet1.getNumColumns();i++) {
+            if(!columInd.contains(i)){
+                Node variable = dataSet1.getVariable(i);
+                if (variable instanceof ContinuousVariable) {
+                    variables.add(variable);
+                } else {
+                    variables.add(new DiscreteVariable(variable.getName()));
+                }
+
+            }else {
+
+                Node variable = dataSet2.getVariable(i);
+
+                if (variable instanceof ContinuousVariable) {
+                    variables.add(variable);
+                } else {
+                    variables.add(new DiscreteVariable(variable.getName()));
+                }
+
+            }
+
+        }
+
+        DataSet mixedData = new ColtDataSet(dataSet1.getNumRows(),
+                variables);
+
+        for (int j = 0; j < dataSet1.getNumColumns(); j++) {
+
+            if (columInd.contains(j)) {
+
+                Node variable = dataSet2.getVariable(j);
+
+                DiscreteVariable discreteVariable = (DiscreteVariable) variable;
+
+                for (int i = 0; i < dataSet2.getNumRows(); i++) {
+                    int index = dataSet2.getInt(i, j);
+//                    String catName = discreteVariable.getCategory(index);
+//                    double value;
+//
+//                    if (catName.equals("*")) {
+//                        value = Double.NaN;
+//                    } else {
+//                        value = Double.parseDouble(catName);
+//                    }
+
+                    mixedData.setInt(i, j, index);
+                }
+
+            } else {
+
+                Node variable = dataSet1.getVariable(j);
+
+                if (variable instanceof ContinuousVariable) {
+                    for (int i = 0; i < dataSet1.getNumRows(); i++) {
+                        mixedData.setDouble(i, j, dataSet1.getDouble(i, j));
+                    }
+                } else {
+                    //DiscreteVariable discreteVariable = (DiscreteVariable) variable;
+
+                    for (int i = 0; i < dataSet1.getNumRows(); i++) {
+                        //    int index = dataSet.getInt(i, j);
+                        //    String catName = discreteVariable.getCategory(index);
+                        //    double value;
+
+                        //    if (catName.equals("*")) {
+                        //        value = Double.NaN;
+                        //   } else {
+                        //        value = Double.parseDouble(catName);
+                        //    }
+
+                        //    continuousData.setDouble(i, j, value);
+                        mixedData.setInt(i, j, dataSet1.getInt(i, j));
+                    }
+                }
+            }
+        }
+
+        return mixedData;
+    }
+
     public static DataSet concatenate(DataSet dataSet1, DataSet dataSet2) {
         List<Node> vars1 = dataSet1.getVariables();
         List<Node> vars2 = dataSet2.getVariables();

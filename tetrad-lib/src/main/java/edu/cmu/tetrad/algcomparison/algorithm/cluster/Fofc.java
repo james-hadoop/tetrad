@@ -40,27 +40,33 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
     private boolean randomCutoff = false;
     private double scale = 1;
     private boolean square = false;
+    private boolean mixed = false;
     private Graph initialGraph = null;
     private Algorithm algorithm = null;
     private IKnowledge knowledge = new Knowledge2();
 
     public Fofc() {
 
-        this(false,false,1,false);
+        this(false,false,1,false,false);
     }
 
-    public Fofc(boolean disretize, boolean randomCutoff, double scale, boolean square) {
+    public Fofc(boolean disretize, boolean randomCutoff, double scale, boolean square, boolean mixed) {
 
         this.discretize = disretize;
         this.randomCutoff = randomCutoff;
         this.scale = scale;
         this.square = square;
+        this.mixed = mixed;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (discretize) {
+            System.out.println("discretize!");
+            int measuredNum = dataSet.getVariables().size();
             dataSet = dataSet.copy();
+            DataModel dataSetC = dataSet.copy();
+
 
             Map<Node, DiscretizationSpec> map = new HashMap<>();
             List<String> categories = new ArrayList<>();
@@ -72,17 +78,25 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
                 dataSet = DataUtils.convertToSquareValue((DataSet)dataSet);
                 //System.out.println("Square: "+ dataSet);
             }
-            double[] cutoffList = new double[]{};
+
+            double[] cutoffList = new double[measuredNum];
             if (randomCutoff) {
-                cutoffList = new double[]{scale*Math.random(), scale*Math.random(), scale*Math.random(), scale*Math.random()};
-                System.out.println("scale: "+scale+" "+Arrays.toString(cutoffList));
+                for(int i =0; i<measuredNum;i++){
+                    cutoffList[i] = scale*Math.random();
+                };
+//                System.out.println("scale: "+scale+" "+Arrays.toString(cutoffList));
             }else{
-                if(square){
-
-                    cutoffList = new double[]{0.5, 0.8, 1.0, 1.40};
-
+//                if(square){
+//
+//                    cutoffList = new double[]{0.5, 0.8, 1.0, 1.40};
+//
+//                }
+//                else{
+                for(int i =0; i<measuredNum;i++){
+                    cutoffList[i] = 0;
                 }
-                else {cutoffList = new double[]{0, 0, 0, 0};}
+                 // cutoffList = new double[]{0, 0, 0, 0};
+            //}
             }
 
             for (int i = 0; i < dataSet.getVariables().size(); i++) {
@@ -93,9 +107,20 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
             Discretizer discretizer = new Discretizer((DataSet) dataSet, map);
             dataSet = discretizer.discretize();
 
+            if(mixed) {
+//                System.out.println("binary:"+ dataSet);
+//                System.out.println("Continuous:"+ dataSetC);
+                int[] column = new int[]{0, 2,4, 5};
+                dataSet = DataUtils.ColumnMontage((DataSet) dataSetC, (DataSet) dataSet, column);
+//                System.out.println("Mixed: "+ dataSet);
+            }
+
             dataSet = DataUtils.convertNumericalDiscreteToContinuous((DataSet) dataSet);
 
+
             //System.out.println(dataSet);
+        }else{
+            System.out.println("Continue!");
         }
 
     	if (parameters.getInt("bootstrapSampleSize") < 1) {

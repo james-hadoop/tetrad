@@ -24,6 +24,7 @@ package edu.cmu.tetrad.algcomparison.examples;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.cluster.Fofc;
+import edu.cmu.tetrad.algcomparison.algorithm.mixed.Mgm;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.RandomSingleFactorMim;
@@ -32,8 +33,13 @@ import edu.cmu.tetrad.algcomparison.score.MVPBicScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
+import edu.cmu.tetrad.algcomparison.simulation.StandardizedSemSimulation;
 import edu.cmu.tetrad.algcomparison.statistic.*;
+import edu.cmu.tetrad.data.CovarianceMatrix;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.util.Parameters;
+import edu.pitt.dbmi.data.Dataset;
 
 /**
  * An example script to simulate data and run a comparison analysis on it.
@@ -43,12 +49,14 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulation {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        https://arxiv.org/abs/1607.08110
-        parameters.set("numRuns", 400);
+        //https://arxiv.org/abs/1607.08110
+        parameters.set("numRuns", 10);
         parameters.set("standardize", true);
+//        parameters.set("coefLow",0.2);
+//        parameters.set("coefHigh",1.8);
 //        parameters.set("numMeasures", 100);
 //        parameters.set("avgDegree", 4, 6);
-        parameters.set("sampleSize", 1000);
+        parameters.set("sampleSize", 500);
 //        parameters.set("alpha", 1e-4, 1e-3, 1e-2);
 
         parameters.set("alpha", 0.001);
@@ -56,9 +64,9 @@ public class ExampleCompareSimulation {
         parameters.set("useGap", true);
         parameters.set("verbose", true);
 
-        parameters.set("numStructuralNodes", 1);
-        parameters.set("numStructuralEdges", 0);
-        parameters.set("measurementModelDegree", 4);
+        parameters.set("numStructuralNodes", 2);
+        parameters.set("numStructuralEdges", 1);
+        parameters.set("measurementModelDegree", 4,4);
         parameters.set("latentMeasuredImpureParents", 0);
         parameters.set("measuredMeasuredImpureParents", 0);
         parameters.set("measuredMeasuredImpureAssociations", 0);
@@ -84,20 +92,20 @@ public class ExampleCompareSimulation {
 
         //double i=1.0;
 
-        algorithms.add(new Fofc(false,true,2,true));
-        algorithms.add(new Fofc(true,false,1,false));
-        algorithms.add(new Fofc(true,true,1,false));
-        algorithms.add(new Fofc(true,true,1.2,false));
-        algorithms.add(new Fofc(true,true,1.2,true));
-        algorithms.add(new Fofc(true,true,1.4,false));
-        algorithms.add(new Fofc(true,true,1.4,true));
-        algorithms.add(new Fofc(true,true,1.6,false));
-        algorithms.add(new Fofc(true,true,1.6,true));
-        algorithms.add(new Fofc(true,true,1.8,false));
-        algorithms.add(new Fofc(true,true,1.8,true));
-        algorithms.add(new Fofc(true,true,2.2,false));
-        algorithms.add(new Fofc(true,true,2.2,true));
-       // algorithms.add(new Fofc(true,true,2.6,true));
+        algorithms.add(new Fofc(false,true,2,true,true));
+        algorithms.add(new Fofc(true,false,1,false,true));
+        algorithms.add(new Fofc(true,true,1,false,true));
+        algorithms.add(new Fofc(true,true,1.2,false,true));
+//        algorithms.add(new Fofc(true,true,1.2,true,true));
+//        algorithms.add(new Fofc(true,true,1.4,false));
+//        algorithms.add(new Fofc(true,true,1.4,true));
+//        algorithms.add(new Fofc(true,true,1.6,false));
+//        algorithms.add(new Fofc(true,true,1.6,true));
+//        algorithms.add(new Fofc(true,true,1.8,false));
+//        algorithms.add(new Fofc(true,true,1.8,true));
+//        algorithms.add(new Fofc(true,true,2.2,false));
+//        algorithms.add(new Fofc(true,true,2.2,true));
+//        algorithms.add(new Mgm());
         //algorithms.add(new Fofc(true,false,1));
 //        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
 //        algorithms.add(new PcStable(new FisherZ()));
@@ -105,7 +113,14 @@ public class ExampleCompareSimulation {
 
         Simulations simulations = new Simulations();
 
+//        simulations.add(new StandardizedSemSimulation(new RandomSingleFactorMim()));
         simulations.add(new SemSimulation(new RandomSingleFactorMim()));
+
+
+        simulations.getSimulations().get(0).createData(parameters);
+        DataModel D = simulations.getSimulations().get(0).getDataModel(0);
+
+        CovarianceMatrix C = new CovarianceMatrix((DataSet) D);
 
         Comparison comparison = new Comparison();
 

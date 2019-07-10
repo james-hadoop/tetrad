@@ -27,19 +27,14 @@ import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.jet.math.Functions;
-import edu.cmu.tetrad.data.ContinuousVariable;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DiscreteVariable;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.GraphSearch;
 import edu.cmu.tetrad.sem.GeneralizedSemIm;
 import edu.cmu.tetrad.sem.GeneralizedSemPm;
 import edu.cmu.tetrad.util.StatUtils;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 //import cern.colt.Arrays;
 //import la.matrix.Matrix;
@@ -136,7 +131,55 @@ public class MGM extends ConvexProximal implements GraphSearch{
         }
 
         if (!hasContinuous || !hasDiscrete) {
-            throw new IllegalArgumentException("Please give data with at least one discrete and one continuous variable to run MGM.");
+//            throw new IllegalArgumentException("Please give data with at least one discrete and one continuous variable to run MGM.");
+            if(!hasDiscrete){
+                ds = ds.copy();
+                DataModel dataSetC = ds.copy();
+
+
+                Map<Node, DiscretizationSpec> map = new HashMap<>();
+                List<String> categories = new ArrayList<>();
+                categories.add("0");
+                categories.add("1");
+                //categories.add("0");
+//                if(square){
+//                    //System.out.println(dataSet);
+//                    dataSet = DataUtils.convertToSquareValue((DataSet)dataSet);
+//                    //System.out.println("Square: "+ dataSet);
+//                }
+
+                double[] cutoffList = new double[]{0,0,0,0};
+//                if (randomCutoff) {
+//                    cutoffList = new double[]{scale*Math.random(), scale*Math.random(), scale*Math.random(), scale*Math.random()};
+//                    System.out.println("scale: "+scale+" "+Arrays.toString(cutoffList));
+//                }else{
+//                    if(square){
+//
+//                        cutoffList = new double[]{0.5, 0.8, 1.0, 1.40};
+//
+//                    }
+//                    else{
+//                        cutoffList = new double[]{0, 0, 0, 0};
+//                    }
+//                }
+
+                for (int i = 0; i < dataSetC.getVariables().size(); i++) {
+                    Node node = dataSetC.getVariables().get(i);
+                    map.put(node, new ContinuousDiscretizationSpec(new double[]{cutoffList[i]}, categories));
+                }
+
+                Discretizer discretizer = new Discretizer((DataSet) dataSetC, map);
+                dataSetC = discretizer.discretize();
+
+//                if(mixed) {
+                //System.out.println(dataSet);
+                int[] column = new int[]{0, 2};
+                ds = DataUtils.ColumnMontage((DataSet) ds, (DataSet) dataSetC, column);
+                //System.out.println("Mixed: "+ ds);
+//                }
+
+//                ds = DataUtils.convertNumericalDiscreteToContinuous((DataSet) ds);
+            }
         }
 
         DataSet dsCont = MixedUtils.getContinousData(ds);
@@ -158,6 +201,7 @@ public class MGM extends ConvexProximal implements GraphSearch{
         this.lambda = factory1D.make(lambda);
 
         //Data is checked for 0 or 1 indexing and fore missing levels
+//        System.out.println(ds);
         fixData();
         initParameters();
         calcWeights();
