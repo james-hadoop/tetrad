@@ -2,12 +2,7 @@ package edu.cmu.tetrad.algcomparison.algorithm.mixed;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.annotation.AlgType;
-import edu.cmu.tetrad.data.ContinuousVariable;
-import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.DiscreteVariable;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
@@ -15,8 +10,8 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.csb.mgm.MGM;
 import edu.pitt.dbmi.algo.bootstrap.BootstrapEdgeEnsemble;
 import edu.pitt.dbmi.algo.bootstrap.GeneralBootstrapTest;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 
 /**
  * @author jdramsey
@@ -51,7 +46,55 @@ public class Mgm implements Algorithm {
         }
 
         if (!hasContinuous || !hasDiscrete) {
-            throw new IllegalArgumentException("You need at least one continuous and one discrete variable to run MGM.");
+        //    throw new IllegalArgumentException("You need at least one continuous and one discrete variable to run MGM.");
+            if(!hasDiscrete){
+                ds = ds.copy();
+                DataModel dataSetC = ds.copy();
+
+
+                Map<Node, DiscretizationSpec> map = new HashMap<>();
+                List<String> categories = new ArrayList<>();
+                categories.add("0");
+                categories.add("1");
+                //categories.add("0");
+//                if(square){
+//                    //System.out.println(dataSet);
+//                    dataSet = DataUtils.convertToSquareValue((DataSet)dataSet);
+//                    //System.out.println("Square: "+ dataSet);
+//                }
+
+                double[] cutoffList = new double[]{};
+//                if (randomCutoff) {
+//                    cutoffList = new double[]{scale*Math.random(), scale*Math.random(), scale*Math.random(), scale*Math.random()};
+//                    System.out.println("scale: "+scale+" "+Arrays.toString(cutoffList));
+//                }else{
+//                    if(square){
+//
+//                        cutoffList = new double[]{0.5, 0.8, 1.0, 1.40};
+//
+//                    }
+//                    else{
+                        cutoffList = new double[]{0, 0, 0, 0};
+//                    }
+//                }
+
+                for (int i = 0; i < dataSetC.getVariables().size(); i++) {
+                    Node node = dataSetC.getVariables().get(i);
+                    map.put(node, new ContinuousDiscretizationSpec(new double[]{cutoffList[i]}, categories));
+                }
+
+                Discretizer discretizer = new Discretizer((DataSet) dataSetC, map);
+                dataSetC = discretizer.discretize();
+
+//                if(mixed) {
+                    //System.out.println(dataSet);
+                    int[] column = new int[]{0, 2};
+                    ds = DataUtils.ColumnMontage((DataSet) ds, (DataSet) dataSetC, column);
+                    //System.out.println("Mixed: "+ ds);
+//                }
+
+      //          ds = DataUtils.convertNumericalDiscreteToContinuous((DataSet) ds);
+            }
         }
         
         if (parameters.getInt("bootstrapSampleSize") < 1) {
