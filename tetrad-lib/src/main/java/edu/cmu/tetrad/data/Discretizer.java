@@ -373,9 +373,9 @@ public class Discretizer {
                         && _data[i] < Double.POSITIVE_INFINITY
                         && _data[i]< cutoffs[j]) {
                     discreteData[i] = j;
-                    //if (i%50 ==0 )
+                    //if (i%100 ==0 )
                     //{
-                    //    System.out.println(_data[i]+" is smaller than "+cutoffs[j]+" so it is set to "+ j);
+                    //    System.out.println(_data[i]*_data[i]+" is smaller than "+cutoffs[j]+" so it is set to "+ discreteData[i]);
                     //}
                     continue loop;
                 }
@@ -384,7 +384,7 @@ public class Discretizer {
             discreteData[i] = cutoffs.length;
             //if (i%50 == 0 )
             //{
-            //    System.out.println(_data[i]+" is larger than "+cutoffs[cutoffs.length-1]+" so it is set to "+ cutoffs.length);
+            //    System.out.println(_data[i]*_data[i]+" is larger than "+cutoffs[cutoffs.length-1]+" so it is set to "+ discreteData[i]);
             //}
         }
 

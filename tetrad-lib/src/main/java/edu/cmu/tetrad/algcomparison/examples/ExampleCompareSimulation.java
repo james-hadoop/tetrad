@@ -50,13 +50,13 @@ public class ExampleCompareSimulation {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         //https://arxiv.org/abs/1607.08110
-        parameters.set("numRuns", 10);
+        parameters.set("numRuns", 400);
         parameters.set("standardize", true);
 //        parameters.set("coefLow",0.2);
 //        parameters.set("coefHigh",1.8);
 //        parameters.set("numMeasures", 100);
 //        parameters.set("avgDegree", 4, 6);
-        parameters.set("sampleSize", 500);
+        parameters.set("sampleSize", 1000);
 //        parameters.set("alpha", 1e-4, 1e-3, 1e-2);
 
         parameters.set("alpha", 0.001);
@@ -74,7 +74,7 @@ public class ExampleCompareSimulation {
         Statistics statistics = new Statistics();
 
  //       statistics.add(new AdjacencyPrecision());
-//        statistics.add(new AdjacencyRecall());
+ //       statistics.add(new AdjacencyRecall());
 //        statistics.add(new ArrowheadPrecision());
 //        statistics.add(new ArrowheadRecall());
 //        statistics.add(new MathewsCorrAdj());
@@ -84,6 +84,7 @@ public class ExampleCompareSimulation {
 //        statistics.add(new SHD());
 //        statistics.add(new ElapsedTime());
         statistics.add(new MySuperDooperStatistic());
+        statistics.add(new ClusterCounter());
 
 //        statistics.setWeight("AP", 1.0);
 //        statistics.setWeight("AR", 0.5);
@@ -94,18 +95,28 @@ public class ExampleCompareSimulation {
 
         algorithms.add(new Fofc(false,true,2,true,true));
         algorithms.add(new Fofc(true,false,1,false,true));
-        algorithms.add(new Fofc(true,true,1,false,true));
-        algorithms.add(new Fofc(true,true,1.2,false,true));
-//        algorithms.add(new Fofc(true,true,1.2,true,true));
-//        algorithms.add(new Fofc(true,true,1.4,false));
-//        algorithms.add(new Fofc(true,true,1.4,true));
-//        algorithms.add(new Fofc(true,true,1.6,false));
-//        algorithms.add(new Fofc(true,true,1.6,true));
-//        algorithms.add(new Fofc(true,true,1.8,false));
-//        algorithms.add(new Fofc(true,true,1.8,true));
+//        algorithms.add(new Fofc(true,false,2,false,false));
+//        algorithms.add(new Fofc(true,true,3,false,false));
+//        algorithms.add(new Fofc(true,true,4,false,false));
+//        algorithms.add(new Fofc(true,true,5,false,false ));
+//        algorithms.add(new Fofc(true,true,6,false,false));
+//        algorithms.add(new Fofc(true,true,7,false,false));
+//        algorithms.add(new Fofc(true,true,8,false,false));
+//        algorithms.add(new Fofc(true,true,9,false,false));
+//        algorithms.add(new Fofc(true,true,10,false,false));
+//        algorithms.add(new Fofc(true,false,1,true,false));
+//        algorithms.add(new Fofc(true,true,2,true,false));
+//        algorithms.add(new Fofc(true,true,3,true,false));
+//        algorithms.add(new Fofc(true,true,4,true,false));
+//        algorithms.add(new Fofc(true,true,5,true,false ));
+//        algorithms.add(new Fofc(true,true,6,true,false));
+//        algorithms.add(new Fofc(true,true,7,true,false));
+//        algorithms.add(new Fofc(true,true,8,true,false));
+//        algorithms.add(new Fofc(true,true,9,true,false));
+//        algorithms.add(new Fofc(true,true,10,true,false));
 //        algorithms.add(new Fofc(true,true,2.2,false));
 //        algorithms.add(new Fofc(true,true,2.2,true));
-//        algorithms.add(new Mgm());
+        algorithms.add(new Mgm());
         //algorithms.add(new Fofc(true,false,1));
 //        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
 //        algorithms.add(new PcStable(new FisherZ()));

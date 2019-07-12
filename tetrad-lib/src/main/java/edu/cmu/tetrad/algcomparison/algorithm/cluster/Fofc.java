@@ -69,48 +69,108 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
 
 
             Map<Node, DiscretizationSpec> map = new HashMap<>();
-            List<String> categories = new ArrayList<>();
-            categories.add("0");
-            categories.add("1");
+//            List<String> categories = new ArrayList<>();
+//            categories.add("0");
+//            categories.add("1");
+//            categories.add("2");
+//            categories.add("3");
+//            categories.add("4");
+//            categories.add("5");
+//            categories.add("6");
             //categories.add("0");
-            if(square){
+            if (square) {
                 //System.out.println(dataSet);
-                dataSet = DataUtils.convertToSquareValue((DataSet)dataSet);
+                dataSet = DataUtils.convertToSquareValue((DataSet) dataSet);
                 //System.out.println("Square: "+ dataSet);
             }
 
-            double[] cutoffList = new double[measuredNum];
-            if (randomCutoff) {
-                for(int i =0; i<measuredNum;i++){
-                    cutoffList[i] = scale*Math.random();
-                };
-//                System.out.println("scale: "+scale+" "+Arrays.toString(cutoffList));
-            }else{
-//                if(square){
-//
-//                    cutoffList = new double[]{0.5, 0.8, 1.0, 1.40};
-//
-//                }
-//                else{
-                for(int i =0; i<measuredNum;i++){
-                    cutoffList[i] = 0;
+//            double[] cutoffList = new double[measuredNum];
+            if (scale < 2) {
+
+                List<String> categories = new ArrayList<>();
+                categories.add("0");
+                categories.add("1");
+
+
+                double[] cutoffList = new double[measuredNum];
+
+                if (randomCutoff) {
+                    for (int i = 0; i < measuredNum; i++) {
+                        cutoffList[i] = scale * Math.random();
+                    }
+                    ;
+                    //                System.out.println("scale: "+scale+" "+Arrays.toString(cutoffList));
+                } else {
+                    //                if(square){
+                    //
+                    //                    cutoffList = new double[]{0.5, 0.8, 1.0, 1.40};
+                    //
+                    //                }
+                    //                else{
+                    for (int i = 0; i < measuredNum; i++) {
+                        cutoffList[i] = 0;
+                    }
+                    // cutoffList = new double[]{0, 0, 0, 0};
+                    //}
                 }
-                 // cutoffList = new double[]{0, 0, 0, 0};
-            //}
-            }
 
-            for (int i = 0; i < dataSet.getVariables().size(); i++) {
-                Node node = dataSet.getVariables().get(i);
-                map.put(node, new ContinuousDiscretizationSpec(new double[]{cutoffList[i]}, categories));
-            }
+                for (int i = 0; i < dataSet.getVariables().size(); i++) {
+                    Node node = dataSet.getVariables().get(i);
+                    map.put(node, new ContinuousDiscretizationSpec(new double[]{cutoffList[i]}, categories));
+                }
 
-            Discretizer discretizer = new Discretizer((DataSet) dataSet, map);
-            dataSet = discretizer.discretize();
+                Discretizer discretizer = new Discretizer((DataSet) dataSet, map);
+                dataSet = discretizer.discretize();
+
+            } else {
+
+                List<String> categories = new ArrayList<>();
+                for (int i =0; i < scale +1;i++){
+                    categories.add(Integer.toString(i));
+
+                }
+
+                System.out.println("scale: "+scale +"categories"+ categories.size());
+
+                double[][] cutoffList = new double[measuredNum][categories.size()-1];
+
+                for (int i = 0; i < measuredNum; i++) {
+                    for (int j = 0; j < categories.size()-1; j++) {
+                        if (j == 0) {
+                            cutoffList[i][j] = 0 - Math.random();
+//                            System.out.println("Cutoff["+j+"]"+ cutoffList[i][j]);
+
+                        } else {
+                            cutoffList[i][j] = cutoffList[i][j - 1] + Math.random();
+//                            System.out.println("Cutoff["+j+"]"+ cutoffList[i][j]);
+
+                        }
+                    }
+
+//                    System.out.println("category:"+ categories.size());
+
+//                    cutoffList[i] = scale * Math.random();
+                }
+
+
+                for (int i = 0; i < dataSet.getVariables().size(); i++) {
+                    Node node = dataSet.getVariables().get(i);
+                    map.put(node, new ContinuousDiscretizationSpec(cutoffList[i], categories));
+                }
+
+                Discretizer discretizer = new Discretizer((DataSet) dataSet, map);
+                dataSet = discretizer.discretize();
+
+            }
 
             if(mixed) {
 //                System.out.println("binary:"+ dataSet);
 //                System.out.println("Continuous:"+ dataSetC);
-                int[] column = new int[]{0, 2,4, 5};
+                //int[] column = new int[]{0, 2, 4, 5};
+                int[] column = new int[measuredNum/2];
+                for(int i =0; i<measuredNum/2;i++){
+                    column[i] = i+i;
+                }
                 dataSet = DataUtils.ColumnMontage((DataSet) dataSetC, (DataSet) dataSet, column);
 //                System.out.println("Mixed: "+ dataSet);
             }
@@ -118,7 +178,7 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
             dataSet = DataUtils.convertNumericalDiscreteToContinuous((DataSet) dataSet);
 
 
-            //System.out.println(dataSet);
+//            System.out.println(dataSet);
         }else{
             System.out.println("Continue!");
         }

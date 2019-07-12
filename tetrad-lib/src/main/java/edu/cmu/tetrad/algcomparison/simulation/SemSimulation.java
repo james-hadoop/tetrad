@@ -153,7 +153,7 @@ public class SemSimulation implements Simulation {
                 pm = new SemPm(graph);
                 im = new SemIm(pm, parameters);
 
-                System.out.println(im);
+//                System.out.println(im);
 
                 ims.add(im);
                 return im.simulateData(parameters.getInt("sampleSize"), saveLatentVars);

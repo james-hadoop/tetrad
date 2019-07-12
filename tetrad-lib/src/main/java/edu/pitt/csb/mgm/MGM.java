@@ -131,55 +131,56 @@ public class MGM extends ConvexProximal implements GraphSearch{
         }
 
         if (!hasContinuous || !hasDiscrete) {
-//            throw new IllegalArgumentException("Please give data with at least one discrete and one continuous variable to run MGM.");
-            if(!hasDiscrete){
-                ds = ds.copy();
-                DataModel dataSetC = ds.copy();
-
-
-                Map<Node, DiscretizationSpec> map = new HashMap<>();
-                List<String> categories = new ArrayList<>();
-                categories.add("0");
-                categories.add("1");
-                //categories.add("0");
-//                if(square){
-//                    //System.out.println(dataSet);
-//                    dataSet = DataUtils.convertToSquareValue((DataSet)dataSet);
-//                    //System.out.println("Square: "+ dataSet);
-//                }
-
-                double[] cutoffList = new double[]{0,0,0,0};
-//                if (randomCutoff) {
-//                    cutoffList = new double[]{scale*Math.random(), scale*Math.random(), scale*Math.random(), scale*Math.random()};
-//                    System.out.println("scale: "+scale+" "+Arrays.toString(cutoffList));
-//                }else{
-//                    if(square){
+            throw new IllegalArgumentException("Please give data with at least one discrete and one continuous variable to run MGM.");
+//            if(!hasDiscrete){
 //
-//                        cutoffList = new double[]{0.5, 0.8, 1.0, 1.40};
+//                ds = ds.copy();
+//                DataModel dataSetC = ds.copy();
 //
-//                    }
-//                    else{
-//                        cutoffList = new double[]{0, 0, 0, 0};
-//                    }
+//
+//                Map<Node, DiscretizationSpec> map = new HashMap<>();
+//                List<String> categories = new ArrayList<>();
+//                categories.add("0");
+//                categories.add("1");
+//                //categories.add("0");
+////                if(square){
+////                    //System.out.println(dataSet);
+////                    dataSet = DataUtils.convertToSquareValue((DataSet)dataSet);
+////                    //System.out.println("Square: "+ dataSet);
+////                }
+//
+//                double[] cutoffList = new double[]{0,0,0,0};
+////                if (randomCutoff) {
+////                    cutoffList = new double[]{scale*Math.random(), scale*Math.random(), scale*Math.random(), scale*Math.random()};
+////                    System.out.println("scale: "+scale+" "+Arrays.toString(cutoffList));
+////                }else{
+////                    if(square){
+////
+////                        cutoffList = new double[]{0.5, 0.8, 1.0, 1.40};
+////
+////                    }
+////                    else{
+////                        cutoffList = new double[]{0, 0, 0, 0};
+////                    }
+////                }
+//
+//                for (int i = 0; i < dataSetC.getVariables().size(); i++) {
+//                    Node node = dataSetC.getVariables().get(i);
+//                    map.put(node, new ContinuousDiscretizationSpec(new double[]{cutoffList[i]}, categories));
 //                }
-
-                for (int i = 0; i < dataSetC.getVariables().size(); i++) {
-                    Node node = dataSetC.getVariables().get(i);
-                    map.put(node, new ContinuousDiscretizationSpec(new double[]{cutoffList[i]}, categories));
-                }
-
-                Discretizer discretizer = new Discretizer((DataSet) dataSetC, map);
-                dataSetC = discretizer.discretize();
-
-//                if(mixed) {
-                //System.out.println(dataSet);
-                int[] column = new int[]{0, 2};
-                ds = DataUtils.ColumnMontage((DataSet) ds, (DataSet) dataSetC, column);
-                //System.out.println("Mixed: "+ ds);
-//                }
-
-//                ds = DataUtils.convertNumericalDiscreteToContinuous((DataSet) ds);
-            }
+//
+//                Discretizer discretizer = new Discretizer((DataSet) dataSetC, map);
+//                dataSetC = discretizer.discretize();
+//
+////                if(mixed) {
+//                //System.out.println(dataSet);
+//                int[] column = new int[]{0, 2};
+//                ds = DataUtils.ColumnMontage((DataSet) ds, (DataSet) dataSetC, column);
+//                //System.out.println("Mixed: "+ ds);
+////                }
+//
+////                ds = DataUtils.convertNumericalDiscreteToContinuous((DataSet) ds);
+//            }
         }
 
         DataSet dsCont = MixedUtils.getContinousData(ds);
@@ -1384,6 +1385,7 @@ public class MGM extends ConvexProximal implements GraphSearch{
         long startTime = System.currentTimeMillis();
         learnEdges(1000); //unlikely to hit this limit
         elapsedTime = System.currentTimeMillis() - startTime;
+        System.out.println("the graph: "+graphFromMGM());
         return graphFromMGM();
     }
 

@@ -47,9 +47,15 @@ public class Mgm implements Algorithm {
 
         if (!hasContinuous || !hasDiscrete) {
         //    throw new IllegalArgumentException("You need at least one continuous and one discrete variable to run MGM.");
+        /*
+        *This change is to compare MGM with FOFC on discrete datasets
+        *The simulation generates continuous dataset and the algorithm discretize it
+        */
+
             if(!hasDiscrete){
                 ds = ds.copy();
                 DataModel dataSetC = ds.copy();
+                int measuredNum = dataSetC.getVariables().size();
 
 
                 Map<Node, DiscretizationSpec> map = new HashMap<>();
@@ -63,7 +69,7 @@ public class Mgm implements Algorithm {
 //                    //System.out.println("Square: "+ dataSet);
 //                }
 
-                double[] cutoffList = new double[]{};
+                double[] cutoffList = new double[measuredNum];
 //                if (randomCutoff) {
 //                    cutoffList = new double[]{scale*Math.random(), scale*Math.random(), scale*Math.random(), scale*Math.random()};
 //                    System.out.println("scale: "+scale+" "+Arrays.toString(cutoffList));
@@ -74,9 +80,12 @@ public class Mgm implements Algorithm {
 //
 //                    }
 //                    else{
-                        cutoffList = new double[]{0, 0, 0, 0};
+                      //  cutoffList = new double[]{0, 0, 0, 0};
 //                    }
 //                }
+                for(int i =0; i<measuredNum;i++){
+                    cutoffList[i] = 0;
+                }
 
                 for (int i = 0; i < dataSetC.getVariables().size(); i++) {
                     Node node = dataSetC.getVariables().get(i);
@@ -88,9 +97,12 @@ public class Mgm implements Algorithm {
 
 //                if(mixed) {
                     //System.out.println(dataSet);
-                    int[] column = new int[]{0, 2};
-                    ds = DataUtils.ColumnMontage((DataSet) ds, (DataSet) dataSetC, column);
-                    //System.out.println("Mixed: "+ ds);
+                int[] column = new int[measuredNum/2];
+                for(int i =0; i<measuredNum/2;i++){
+                    column[i] = i+i;
+                }
+                ds = DataUtils.ColumnMontage((DataSet) ds, (DataSet) dataSetC, column);
+ //               System.out.println("Mixed: "+ ds);
 //                }
 
       //          ds = DataUtils.convertNumericalDiscreteToContinuous((DataSet) ds);

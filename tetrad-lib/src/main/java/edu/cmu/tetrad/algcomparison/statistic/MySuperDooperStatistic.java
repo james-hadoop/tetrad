@@ -26,8 +26,8 @@ public class MySuperDooperStatistic implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
-//        System.out.println("Still Working!");
+//        System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
+
 
 //        AdjacencyConfusion adjConfusion = new AdjacencyConfusion(trueGraph, estGraph);
 //        int adjTp = adjConfusion.getAdjTp();
@@ -35,15 +35,21 @@ public class MySuperDooperStatistic implements Statistic {
 ////        int adjFn = adjConfusion.getAdjFn();
 ////        int adjTn = adjConfusion.getAdjTn();
 //        return adjTp / (double) (adjTp + adjFp);
-//        if (estGraph.getNumEdges()==trueGraph.getNumEdges()){
-////        if (estGraph==trueGraph){
-//            System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
-//            return 1;
+
+//            if (estGraph.getChildren(estGraph.getNode("_L1")).size()==trueGraph.getNumEdges()){
+//    //////        if (estGraph==trueGraph){
+//    ////            System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
+//                return 1;
+//    ////
+//            }else {
+//                if(estGraph.getChildren(estGraph.getNode("_L1")).size()>0){
 //
-//        }else {
-//            return 0;
-//        }
-        return estGraph.getNumNodes();
+//                    System.out.println(" est graph cluster Number = " + estGraph.getChildren(estGraph.getNode("_L1")).size());
+//                }
+//                return 0;
+//            }
+          return estGraph.getNumEdges();
+//        return estGraph.getChildren(estGraph.getNode("_L1")).size();
 
     }
 
