@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.lang.Double;
 
 
 /**
@@ -85,7 +86,7 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
             }
 
 //            double[] cutoffList = new double[measuredNum];
-            if (scale < 2) {
+            if (scale < 2) { //binary data
 
                 List<String> categories = new ArrayList<>();
                 categories.add("0");
@@ -125,27 +126,53 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
             } else {
 
                 List<String> categories = new ArrayList<>();
+
                 for (int i =0; i < scale +1;i++){
+
                     categories.add(Integer.toString(i));
 
                 }
 
-                System.out.println("scale: "+scale +"categories"+ categories.size());
+//                System.out.println("scale: "+scale +"categories"+ categories.size());
+
 
                 double[][] cutoffList = new double[measuredNum][categories.size()-1];
 
                 for (int i = 0; i < measuredNum; i++) {
-                    for (int j = 0; j < categories.size()-1; j++) {
+
+
+                    for (int j = 0; j < categories.size() - 1; j++) {
+
                         if (j == 0) {
-                            cutoffList[i][j] = 0 - Math.random();
-//                            System.out.println("Cutoff["+j+"]"+ cutoffList[i][j]);
+                            cutoffList[i][j] = -Math.random();
+
+ //
 
                         } else {
                             cutoffList[i][j] = cutoffList[i][j - 1] + Math.random();
-//                            System.out.println("Cutoff["+j+"]"+ cutoffList[i][j]);
+ //
 
                         }
+
+
                     }
+
+                    for (int w = 0; w < categories.size() - 1; w++) {
+
+                        if (cutoffList[i][w] > 0){
+
+                            //System.out.println("Cutoff[" + w + "]" + cutoffList[i][w]);
+                            cutoffList[i][w] = 1*cutoffList[i][w]/cutoffList[i][categories.size() - 2];
+
+//                            System.out.println("Cutoff["+"largest"+"]"+ cutoffList[i][categories.size() - 2]);
+//                            System.out.println("Cutoff[" + w + "]" + cutoffList[i][w]);
+
+                        }
+
+
+                }
+
+
 
 //                    System.out.println("category:"+ categories.size());
 
@@ -160,6 +187,7 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
 
                 Discretizer discretizer = new Discretizer((DataSet) dataSet, map);
                 dataSet = discretizer.discretize();
+//                System.out.println("Tichotomied: "+ dataSet);
 
             }
 
@@ -172,18 +200,26 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
                     column[i] = i+i;
                 }
                 dataSet = DataUtils.ColumnMontage((DataSet) dataSetC, (DataSet) dataSet, column);
-//                System.out.println("Mixed: "+ dataSet);
+//
             }
 
             dataSet = DataUtils.convertNumericalDiscreteToContinuous((DataSet) dataSet);
 
+//            System.out.println(((DataSet) dataSet).getCorrelationMatrix());
 
-//            System.out.println(dataSet);
+
         }else{
-            System.out.println("Continue!");
+            System.out.println("Continue Matrix!");
+
+//            System.out.println(((DataSet) dataSet).getCorrelationMatrix());
+
+
         }
 
     	if (parameters.getInt("bootstrapSampleSize") < 1) {
+
+//            System.out.println("Mixed: "+ dataSet);
+
             ICovarianceMatrix cov = DataUtils.getCovMatrix(dataSet);
             double alpha = parameters.getDouble("alpha");
 
@@ -218,7 +254,10 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
 //      		algorithm.setInitialGraph(initialGraph);
 //  		}
 
+
+
             DataSet data = (DataSet) dataSet;
+
 
             GeneralBootstrapTest search = new GeneralBootstrapTest(data, algorithm, parameters.getInt("bootstrapSampleSize"));
             search.setKnowledge(knowledge);

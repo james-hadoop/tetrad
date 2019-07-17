@@ -28,6 +28,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.mixed.Mgm;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.RandomSingleFactorMim;
+import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.MVPBicScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
@@ -38,6 +39,7 @@ import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.data.Dataset;
 
@@ -50,13 +52,13 @@ public class ExampleCompareSimulation {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         //https://arxiv.org/abs/1607.08110
-        parameters.set("numRuns", 400);
+        parameters.set("numRuns", 80);
         parameters.set("standardize", true);
 //        parameters.set("coefLow",0.2);
 //        parameters.set("coefHigh",1.8);
 //        parameters.set("numMeasures", 100);
 //        parameters.set("avgDegree", 4, 6);
-        parameters.set("sampleSize", 1000);
+        parameters.set("sampleSize", 2000);
 //        parameters.set("alpha", 1e-4, 1e-3, 1e-2);
 
         parameters.set("alpha", 0.001);
@@ -64,9 +66,9 @@ public class ExampleCompareSimulation {
         parameters.set("useGap", true);
         parameters.set("verbose", true);
 
-        parameters.set("numStructuralNodes", 2);
-        parameters.set("numStructuralEdges", 1);
-        parameters.set("measurementModelDegree", 4,4);
+        parameters.set("numStructuralNodes", 5);
+        parameters.set("numStructuralEdges", 4);
+        parameters.set("measurementModelDegree", 4);
         parameters.set("latentMeasuredImpureParents", 0);
         parameters.set("measuredMeasuredImpureParents", 0);
         parameters.set("measuredMeasuredImpureAssociations", 0);
@@ -84,7 +86,11 @@ public class ExampleCompareSimulation {
 //        statistics.add(new SHD());
 //        statistics.add(new ElapsedTime());
         statistics.add(new MySuperDooperStatistic());
-        statistics.add(new ClusterCounter());
+        statistics.add(new estClusterCounter());
+        statistics.add(new TrueClusterCounter());
+        statistics.add(new ClusterPrecision());
+        statistics.add(new ClusterRecall());
+
 
 //        statistics.setWeight("AP", 1.0);
 //        statistics.setWeight("AR", 0.5);
@@ -94,29 +100,21 @@ public class ExampleCompareSimulation {
         //double i=1.0;
 
         algorithms.add(new Fofc(false,true,2,true,true));
-        algorithms.add(new Fofc(true,false,1,false,true));
-//        algorithms.add(new Fofc(true,false,2,false,false));
-//        algorithms.add(new Fofc(true,true,3,false,false));
-//        algorithms.add(new Fofc(true,true,4,false,false));
-//        algorithms.add(new Fofc(true,true,5,false,false ));
+        algorithms.add(new Fofc(true,false,1,false,false));
+        algorithms.add(new Fofc(true,true,1,false,false));
+//        algorithms.add(new Fofc(true,false,1,false,true));
+        algorithms.add(new Fofc(true,false,2,false,false));
+        algorithms.add(new Fofc(true,true,3,false,false));
+        algorithms.add(new Fofc(true,true,4,false,false));
+        algorithms.add(new Fofc(true,true,5,false,false ));
 //        algorithms.add(new Fofc(true,true,6,false,false));
 //        algorithms.add(new Fofc(true,true,7,false,false));
 //        algorithms.add(new Fofc(true,true,8,false,false));
 //        algorithms.add(new Fofc(true,true,9,false,false));
-//        algorithms.add(new Fofc(true,true,10,false,false));
-//        algorithms.add(new Fofc(true,false,1,true,false));
-//        algorithms.add(new Fofc(true,true,2,true,false));
-//        algorithms.add(new Fofc(true,true,3,true,false));
-//        algorithms.add(new Fofc(true,true,4,true,false));
-//        algorithms.add(new Fofc(true,true,5,true,false ));
-//        algorithms.add(new Fofc(true,true,6,true,false));
-//        algorithms.add(new Fofc(true,true,7,true,false));
-//        algorithms.add(new Fofc(true,true,8,true,false));
-//        algorithms.add(new Fofc(true,true,9,true,false));
 //        algorithms.add(new Fofc(true,true,10,true,false));
 //        algorithms.add(new Fofc(true,true,2.2,false));
 //        algorithms.add(new Fofc(true,true,2.2,true));
-        algorithms.add(new Mgm());
+//        algorithms.add(new Mgm());
         //algorithms.add(new Fofc(true,false,1));
 //        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
 //        algorithms.add(new PcStable(new FisherZ()));
@@ -124,8 +122,32 @@ public class ExampleCompareSimulation {
 
         Simulations simulations = new Simulations();
 
+//        Graph graph = new EdgeListGraph();
+//
+//        Node L1 = new GraphNode("L1");
+//        L1.setNodeType(NodeType.LATENT);
+//
+//        Node L2 = new GraphNode("L2");
+//        L2.setNodeType(NodeType.LATENT);
+//
+//        graph.addNode(L1);
+//        graph.addNode(L2);
+//
+//        addMeasure(graph, L1, "X1");
+//        addMeasure(graph, L1, "X2");
+//        addMeasure(graph, L1, "X3");
+//        addMeasure(graph, L1, "X4");
+//
+//        addMeasure(graph, L2, "X1");
+//        addMeasure(graph, L2, "X2");
+//        addMeasure(graph, L2, "X3");
+//        addMeasure(graph, L2, "X4");
+
+
+
 //        simulations.add(new StandardizedSemSimulation(new RandomSingleFactorMim()));
         simulations.add(new SemSimulation(new RandomSingleFactorMim()));
+//        simulations.add(new SemSimulation(new SingleGraph(graph)));
 
 
         simulations.getSimulations().get(0).createData(parameters);
@@ -145,6 +167,12 @@ public class ExampleCompareSimulation {
 
         comparison.compareFromSimulations("comparison", simulations, algorithms, statistics, parameters);
     }
+
+//    private static void addMeasure(Graph graph, Node l1, String measureName) {
+//        Node X1 = new GraphNode(measureName);
+//        graph.addNode(X1);
+//        graph.addDirectedEdge(l1, X1);
+//    }
 }
 
 

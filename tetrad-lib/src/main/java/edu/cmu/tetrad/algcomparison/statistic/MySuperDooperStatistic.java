@@ -2,6 +2,7 @@ package edu.cmu.tetrad.algcomparison.statistic;
 
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
 
 /**
  * The adjacency precision. The true positives are the number of adjacencies in both
@@ -16,7 +17,7 @@ public class MySuperDooperStatistic implements Statistic {
 
     @Override
     public String getAbbreviation() {
-        return "TrueRate";
+        return "Total Edges";
     }
 
     @Override
@@ -26,7 +27,9 @@ public class MySuperDooperStatistic implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-//        System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
+        System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
+
+
 
 
 //        AdjacencyConfusion adjConfusion = new AdjacencyConfusion(trueGraph, estGraph);
