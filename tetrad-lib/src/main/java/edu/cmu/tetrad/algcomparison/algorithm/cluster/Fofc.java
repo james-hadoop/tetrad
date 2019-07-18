@@ -65,6 +65,7 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
         if (discretize) {
             System.out.println("discretize!");
             int measuredNum = dataSet.getVariables().size();
+            int categories_n = 0;
             dataSet = dataSet.copy();
             DataModel dataSetC = dataSet.copy();
 
@@ -122,8 +123,10 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
 
                 Discretizer discretizer = new Discretizer((DataSet) dataSet, map);
                 dataSet = discretizer.discretize();
+                categories_n=categories.size();
 
             } else {
+                //scale >2 ...discretize data into scale+1 categories
 
                 List<String> categories = new ArrayList<>();
 
@@ -132,8 +135,6 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
                     categories.add(Integer.toString(i));
 
                 }
-
-//                System.out.println("scale: "+scale +"categories"+ categories.size());
 
 
                 double[][] cutoffList = new double[measuredNum][categories.size()-1];
@@ -146,37 +147,26 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
                         if (j == 0) {
                             cutoffList[i][j] = -Math.random();
 
- //
-
                         } else {
                             cutoffList[i][j] = cutoffList[i][j - 1] + Math.random();
- //
 
                         }
 
 
                     }
-
-                    for (int w = 0; w < categories.size() - 1; w++) {
-
-                        if (cutoffList[i][w] > 0){
-
-                            //System.out.println("Cutoff[" + w + "]" + cutoffList[i][w]);
-                            cutoffList[i][w] = 1*cutoffList[i][w]/cutoffList[i][categories.size() - 2];
-
-//                            System.out.println("Cutoff["+"largest"+"]"+ cutoffList[i][categories.size() - 2]);
-//                            System.out.println("Cutoff[" + w + "]" + cutoffList[i][w]);
-
-                        }
-
-
-                }
+//                    for (int w = 0; w < categories.size() - 1; w++) {
+//
+//                        if (cutoffList[i][w] > 0){
+//
+//                            //System.out.println("Cutoff[" + w + "]" + cutoffList[i][w]);
+//                            cutoffList[i][w] = 1*cutoffList[i][w]/cutoffList[i][categories.size() - 2];
+//
+//
+//                        }
+//
+//                    }
 
 
-
-//                    System.out.println("category:"+ categories.size());
-
-//                    cutoffList[i] = scale * Math.random();
                 }
 
 
@@ -187,14 +177,74 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
 
                 Discretizer discretizer = new Discretizer((DataSet) dataSet, map);
                 dataSet = discretizer.discretize();
+                categories_n=categories.size();
 //                System.out.println("Tichotomied: "+ dataSet);
 
             }
 
+
+
             if(mixed) {
-//                System.out.println("binary:"+ dataSet);
-//                System.out.println("Continuous:"+ dataSetC);
-                //int[] column = new int[]{0, 2, 4, 5};
+
+                if (scale >= 2){
+
+                    List<String> categories = new ArrayList<>();
+
+                    for (int i =0; i < scale-2;i++){
+
+                        categories.add(Integer.toString(i));
+
+                    }
+
+
+                    double[][] cutoffList = new double[measuredNum][categories.size()-1];
+
+                    for (int i = 0; i < measuredNum; i++) {
+
+
+                        for (int j = 0; j < categories.size() - 1; j++) {
+
+                            if (j == 0) {
+                                cutoffList[i][j] = -Math.random();
+
+                            } else {
+                                cutoffList[i][j] = cutoffList[i][j - 1] + Math.random();
+
+                            }
+
+                        }
+
+//                        for (int w = 0; w < categories.size() - 1; w++) {
+//
+//                            if (cutoffList[i][w] > 0){
+//
+//                                //System.out.println("Cutoff[" + w + "]" + cutoffList[i][w]);
+//                                cutoffList[i][w] = 1*cutoffList[i][w]/cutoffList[i][categories.size() - 2];
+//
+////                            System.out.println("Cutoff["+"largest"+"]"+ cutoffList[i][categories.size() - 2]);
+////                            System.out.println("Cutoff[" + w + "]" + cutoffList[i][w]);
+//
+//                            }
+//
+//                        }
+
+                    }
+
+                    for (int i = 0; i < dataSet.getVariables().size(); i++) {
+                        Node node = dataSetC.getVariables().get(i);
+                        map.put(node, new ContinuousDiscretizationSpec(cutoffList[i], categories));
+                    }
+
+                    System.out.println("Before mixed, the data has "+ categories_n +" categories");
+                    System.out.println("To make mixed, the new data has "+ categories.size() +" categories");
+
+                    Discretizer discretizer = new Discretizer((DataSet) dataSetC, map);
+                    dataSetC = discretizer.discretize();
+//                System.out.println("Tichotomied: "+ dataSet);
+
+                }
+
+
                 int[] column = new int[measuredNum/2];
                 for(int i =0; i<measuredNum/2;i++){
                     column[i] = i+i;

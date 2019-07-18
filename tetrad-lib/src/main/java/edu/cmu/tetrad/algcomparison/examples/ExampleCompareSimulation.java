@@ -52,7 +52,7 @@ public class ExampleCompareSimulation {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         //https://arxiv.org/abs/1607.08110
-        parameters.set("numRuns", 80);
+        parameters.set("numRuns", 40);
         parameters.set("standardize", true);
 //        parameters.set("coefLow",0.2);
 //        parameters.set("coefHigh",1.8);
@@ -66,8 +66,8 @@ public class ExampleCompareSimulation {
         parameters.set("useGap", true);
         parameters.set("verbose", true);
 
-        parameters.set("numStructuralNodes", 5);
-        parameters.set("numStructuralEdges", 4);
+        parameters.set("numStructuralNodes", 2);
+        parameters.set("numStructuralEdges", 1,0);
         parameters.set("measurementModelDegree", 4);
         parameters.set("latentMeasuredImpureParents", 0);
         parameters.set("measuredMeasuredImpureParents", 0);
@@ -99,14 +99,14 @@ public class ExampleCompareSimulation {
 
         //double i=1.0;
 
-        algorithms.add(new Fofc(false,true,2,true,true));
-        algorithms.add(new Fofc(true,false,1,false,false));
-        algorithms.add(new Fofc(true,true,1,false,false));
-//        algorithms.add(new Fofc(true,false,1,false,true));
-        algorithms.add(new Fofc(true,false,2,false,false));
-        algorithms.add(new Fofc(true,true,3,false,false));
-        algorithms.add(new Fofc(true,true,4,false,false));
-        algorithms.add(new Fofc(true,true,5,false,false ));
+//        algorithms.add(new Fofc(false,true,2,true,true));
+//        algorithms.add(new Fofc(true,false,1,false,false));
+//        algorithms.add(new Fofc(true,true,1,false,false));
+        algorithms.add(new Fofc(true,false,1,false,true));
+//        algorithms.add(new Fofc(true,false,2,false,false));
+//        algorithms.add(new Fofc(true,true,3,false,false));
+//        algorithms.add(new Fofc(true,true,4,false,true));
+//        algorithms.add(new Fofc(true,true,5,false,true));
 //        algorithms.add(new Fofc(true,true,6,false,false));
 //        algorithms.add(new Fofc(true,true,7,false,false));
 //        algorithms.add(new Fofc(true,true,8,false,false));
@@ -114,7 +114,7 @@ public class ExampleCompareSimulation {
 //        algorithms.add(new Fofc(true,true,10,true,false));
 //        algorithms.add(new Fofc(true,true,2.2,false));
 //        algorithms.add(new Fofc(true,true,2.2,true));
-//        algorithms.add(new Mgm());
+        algorithms.add(new Mgm());
         //algorithms.add(new Fofc(true,false,1));
 //        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
 //        algorithms.add(new PcStable(new FisherZ()));
