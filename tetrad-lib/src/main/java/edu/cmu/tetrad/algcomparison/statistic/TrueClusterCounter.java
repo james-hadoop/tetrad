@@ -43,7 +43,7 @@ public class TrueClusterCounter implements Statistic {
 
         for (Node d : graph.getNodes()){
 
-            if (graph.getChildren(d).size() > 0 ){
+            if (d.getName().contains("L")){
 
                 Clusters++;
 

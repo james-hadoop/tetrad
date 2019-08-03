@@ -36,102 +36,82 @@ public class ClusterPrecision implements Statistic {
 
         //Precision = tp/(tp+fp)
 
-        if(trueGraph.getNode("L.X2")!= null){
-
-            if(trueGraph.isAdjacentTo(trueGraph.getNode("L.X1"),trueGraph.getNode("L.X2"))){
-
-                trueGraph.removeEdge(trueGraph.getNode("L.X1"),trueGraph.getNode("L.X2"));
-
-            }
-        }
-
-        if(trueGraph.getNode("L.X3")!= null){
-
-            if(trueGraph.isAdjacentTo(trueGraph.getNode("L.X3"),trueGraph.getNode("L.X2"))){
-
-                trueGraph.removeEdge(trueGraph.getNode("L.X2"),trueGraph.getNode("L.X2"));
-
-            }
-        }
-
-        if(trueGraph.getNode("L.X4")!= null){
-
-            if(trueGraph.isAdjacentTo(trueGraph.getNode("L.X3"),trueGraph.getNode("L.X4"))){
-
-                trueGraph.removeEdge(trueGraph.getNode("L.X3"),trueGraph.getNode("L.X4"));
-
-            }
-        }
-
-        if(trueGraph.getNode("L.X5")!= null){
-
-            if(trueGraph.isAdjacentTo(trueGraph.getNode("L.X4"),trueGraph.getNode("L.X5"))){
-
-                trueGraph.removeEdge(trueGraph.getNode("L.X4"),trueGraph.getNode("L.X5"));
-
-            }
-        }
-
-
         if(estGraph.getNumEdges()>trueGraph.getNumEdges()){//MGMgraph
 
             List<List<Node>> trueClusters = GrabCluster(trueGraph);
 
             List<List<Node>> fakeClusters = new ArrayList<>();
 
-            System.out.println("Children graph: "+ trueGraph.subgraph(dataModel.getVariables()));
+            //System.out.println("Children graph: "+ trueGraph.subgraph(dataModel.getVariables()));
 
             double tp = 0;
             double fp = 0;
 
 
             //build fakeClusters to calculate fp
+            //form as many fake clusters as true clusters, as large as each true cluster
 
-            for (int i=0; i<trueClusters.size();i++){
+            for (int i=0; i<trueClusters.size();i++) {
 
                 List<Node> fakeCluster = new ArrayList<>();
 
-                while (fakeCluster.size() < 4) {
-                    System.out.println("working...fake cluster size: " + fakeCluster.size());
 
-                    double Nodeind = 4 * Math.random();
+                for (int j = 0; j < trueClusters.get(i).size(); j++) {
+
+                    int clusterInd = j % trueClusters.size();
+
+                    double Nodeind = trueClusters.get(clusterInd).size() * Math.random();
                     int Nodeindex = (int) Nodeind;
 
-                    double cluserInd = (trueClusters.size()) * Math.random();
-                    int clusterIndex = (int) cluserInd;
+                    fakeCluster.add(trueClusters.get(clusterInd).get(Nodeindex));
 
-
-                    if (!fakeCluster.contains(trueClusters.get(clusterIndex).get(Nodeindex))) {
-
-                        System.out.println("adding...fake cluster size: " + fakeCluster.size());
-
-                        fakeCluster.add(trueClusters.get(clusterIndex).get(Nodeindex));
-                    } else {
-                        for (Node node : estGraph.getNodes()) {
-                            if ((!fakeCluster.contains(node))&&isMeaningful(node,estGraph)){
-
-                                System.out.println("adding different nodes...fake cluster size: " + fakeCluster.size());
-
-                                fakeCluster.add(node);
-
-                                break;
-                            }
-                        }
-
-                    }
                 }
-
-                System.out.println("fake cluster size: "+fakeCluster.size());
-
 
                 fakeClusters.add(fakeCluster);
 
             }
 
-            if(fakeClusters.size()==trueClusters.size()){
 
-                System.out.println("fake cluster is  as many as true cluster");
-            }
+//                while (fakeCluster.size() < trueClusters.get(i).size()) {
+//                    System.out.println("working...fake cluster size: " + fakeCluster.size());
+//
+//
+//
+//                    double cluserInd = (trueClusters.size()) * Math.random();
+//                    int clusterIndex = (int) cluserInd;
+//
+//
+//                    if (!fakeCluster.contains(trueClusters.get(clusterIndex).get(Nodeindex))) {
+//
+//                        System.out.println("adding...fake cluster size: " + fakeCluster.size());
+//
+//                        fakeCluster.add(trueClusters.get(clusterIndex).get(Nodeindex));
+//                    } else {
+//                        for (Node node : estGraph.getNodes()) {
+//                            if ((!fakeCluster.contains(node))&&isMeaningful(node,estGraph)){
+//
+//                                System.out.println("adding different nodes...fake cluster size: " + fakeCluster.size());
+//
+//                                fakeCluster.add(node);
+//
+//                                break;
+//                            }
+//                        }
+//
+//                    }
+//                }
+//
+//                System.out.println("fake cluster size: "+fakeCluster.size());
+//
+//
+//                fakeClusters.add(fakeCluster);
+//
+//            }
+
+//            if(fakeClusters.size()==trueClusters.size()){
+//
+//                System.out.println("fake cluster is as many as true cluster");
+//            }
 
             for (List<Node> cluster:trueClusters){
 
@@ -143,15 +123,17 @@ public class ClusterPrecision implements Statistic {
 
             for (List<Node> cluster:fakeClusters){
 
+                System.out.println("fakeClusters: "+estGraph.subgraph(cluster));
+
                 if (isComplete(estGraph.subgraph(cluster))){
 
                     fp ++;
                 }
             }
-            System.out.println("tp, fp: "+tp+" "+fp);
+
             double precision = tp/(tp+fp);
 
-            return tp/(tp+fp);
+            return precision;
 
         }
 
@@ -162,12 +144,11 @@ public class ClusterPrecision implements Statistic {
 
         double precision = 0;
 
+        for (List<Node> estcluster : estClusters){
 
-        for (List<Node> truecluster : trueClusters){
+            double sPrecision = 0;
 
-            double sprecision = 0;
-
-            for (List<Node> estcluster : estClusters){
+            for (List<Node> truecluster : trueClusters){
 
                 double nodeCounter = 0;
 
@@ -177,21 +158,21 @@ public class ClusterPrecision implements Statistic {
                         nodeCounter++;
                     }
 
-
                 }
 
                 double trueRatio = nodeCounter/estcluster.size();
 
-                if (sprecision<trueRatio){  sprecision = trueRatio; }
+                if (sPrecision<trueRatio){  sPrecision = trueRatio; } //for each true cluster, pick the highest precision
 
             }
 
-            precision += sprecision;
-
+            precision += sPrecision;
 
         }
 
-        return precision/trueClusters.size();
+
+        return precision/estClusters.size();//for all estimated clusters, how precise they reflex the true cluster
+
 //
 
     }
@@ -203,13 +184,13 @@ public class ClusterPrecision implements Statistic {
 
     private boolean isComplete(Graph graph){
 
-        System.out.println("For Precision: "+ graph);
+        //System.out.println("For Precision: "+ graph);
 
         int numEdges = graph.getNumEdges();
         int numNodes = graph.getNumNodes();
         int fullyNumEdges = numNodes*(numNodes-1)/2;
 
-        System.out.println("cluster edges " +numEdges+" nodes "+numNodes+" connectivity "+ fullyNumEdges);
+        //System.out.println("cluster edges " +numEdges+" nodes "+numNodes+" connectivity "+ fullyNumEdges);
 
         if (numEdges == fullyNumEdges){
             return true;
@@ -226,16 +207,34 @@ public class ClusterPrecision implements Statistic {
 
         for (Node d : graph.getNodes()){
 
-            if (graph.getChildren(d).size() > 0 ){
+            if (d.getName().contains("L") ) {//if it is a latent variable
 
-                Clusters.add(graph.getChildren(d));
+
+                List<Node> legalChildren = new ArrayList<Node>();
+
+
+                for (Node c : graph.getChildren(d)) {
+
+                    //System.out.println("children of "+d.getName()+": "+c.getName());
+
+                    if (!c.getName().contains("L")) {//checking if the child is a measured variable
+
+                        if (graph.getNumEdges(c) == 1) {//if the child forms a pure model
+
+                                legalChildren.add(c);
+
+                        }
+
+                    }
+
+                }
+
+                if (legalChildren.size() > 0) Clusters.add(legalChildren);
 
             }
-
         }
 
         return Clusters;
-
 
     }
 

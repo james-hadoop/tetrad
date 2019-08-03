@@ -27,7 +27,13 @@ public class MySuperDooperStatistic implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
+
+
+        if(estGraph.getNumEdges()>trueGraph.getNumEdges()){
+            System.out.println("True graph = " + trueGraph);
+        }else{
+            System.out.println("True graph = " + trueGraph + " est graph = " + estGraph);
+        }
 
 
 

@@ -337,7 +337,27 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
 
     @Override
     public String getDescription() {
-        return "FOFC (Find One Factor Clusters)";
+        int cat = (int)scale +1;
+
+        String datatype = "contiuous";
+
+        String cutofftype = "random";
+
+        if (discretize){
+            if(mixed) {
+                datatype = "mixed";
+            }
+            if (!mixed){
+                datatype = "discrete";
+            }
+            if(scale ==1){
+                if (!randomCutoff) cutofftype = "zero";
+            }
+
+        }
+
+
+        return "FOFC (Find One Factor Clusters) with " +datatype+ " data with " + cat + " categories; cutoff: "+ cutofftype;
     }
 
 

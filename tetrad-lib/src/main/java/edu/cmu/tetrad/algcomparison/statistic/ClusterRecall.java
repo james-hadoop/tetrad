@@ -31,42 +31,7 @@ public class ClusterRecall implements Statistic {
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
 
-        //Recall = tp/(tp+fn)
-         if(trueGraph.getNode("L.X2")!= null){
-
-                    if(trueGraph.isAdjacentTo(trueGraph.getNode("L.X1"),trueGraph.getNode("L.X2"))){
-
-                        trueGraph.removeEdge(trueGraph.getNode("L.X1"),trueGraph.getNode("L.X2"));
-
-                    }
-                }
-
-                if(trueGraph.getNode("L.X3")!= null){
-
-                    if(trueGraph.isAdjacentTo(trueGraph.getNode("L.X3"),trueGraph.getNode("L.X2"))){
-
-                        trueGraph.removeEdge(trueGraph.getNode("L.X2"),trueGraph.getNode("L.X2"));
-
-                    }
-                }
-
-                if(trueGraph.getNode("L.X4")!= null){
-
-                    if(trueGraph.isAdjacentTo(trueGraph.getNode("L.X3"),trueGraph.getNode("L.X4"))){
-
-                        trueGraph.removeEdge(trueGraph.getNode("L.X3"),trueGraph.getNode("L.X4"));
-
-                    }
-                }
-
-                if(trueGraph.getNode("L.X5")!= null){
-
-                    if(trueGraph.isAdjacentTo(trueGraph.getNode("L.X4"),trueGraph.getNode("L.X5"))){
-
-                        trueGraph.removeEdge(trueGraph.getNode("L.X4"),trueGraph.getNode("L.X5"));
-
-                    }
-                }
+//      Recall = tp/(tp+fn)
 
         if(estGraph.getNumEdges()>trueGraph.getNumEdges()){//MGMgraph
 
@@ -102,12 +67,14 @@ public class ClusterRecall implements Statistic {
 
 
         double recall = 0;
+        double optRecall =1;
 
-        for (List<Node> estcluster : estClusters){
+        for (List<Node> truecluster : trueClusters){
 
             double sRecall = 0;
 
-            for (List<Node> truecluster : trueClusters){
+            for (List<Node> estcluster : estClusters){
+
 
                 double nodeCounter = 0;
 
@@ -122,16 +89,19 @@ public class ClusterRecall implements Statistic {
 
                 double trueRatio = nodeCounter/truecluster.size();
 
-                if (sRecall<trueRatio){  sRecall = trueRatio; }
+                if (sRecall<trueRatio){  sRecall = trueRatio; }//pick the highest accuracy of recovering
 
             }
 
-            recall += sRecall;
+            if (optRecall>sRecall) { optRecall = sRecall; }
 
+            recall += sRecall;//for each estimated cluster, pick the recall as the highest accuracy of recovering a true cluster
 
         }
 
-        return recall/estClusters.size();
+
+        return recall/trueClusters.size();//for all true clusters, how good they are reflected
+
 
     }
 
@@ -141,10 +111,35 @@ public class ClusterRecall implements Statistic {
 
         for (Node d : graph.getNodes()){
 
-            if (graph.getChildren(d).size() > 0 ){
-                Clusters.add(graph.getChildren(d));
+            if ( d.getName().contains("L") ){//if it is a latent variable
+
+                List<Node> legalChildren = new ArrayList<Node>();
+
+
+                for (Node c : graph.getChildren(d)){
+
+                    if(!c.getName().contains("L")){//checking if the child is a measured variable
+
+                         if(graph.getNumEdges(c) ==1 ){//if the child is forms a pure model
+
+                             if(graph.getChildren(c).size() ==0){
+                                 legalChildren.add(c);
+                             }
+
+                         }
+// else{
+//                             System.out.println(c.getName());
+//                         }
+
+                    }
+
+                }
+
+
+                if(legalChildren.size()>0) Clusters.add(legalChildren);
 
             }
+
 
         }
 
@@ -154,13 +149,13 @@ public class ClusterRecall implements Statistic {
 
     private boolean isComplete(Graph graph){
 
-        System.out.println("For recall: "+graph);
+        //System.out.println("For recall: "+graph);
 
         int numEdges = graph.getNumEdges();
         int numNodes = graph.getNumNodes();
         int fullyNumEdges = numNodes*(numNodes-1)/2;
 
-        System.out.println("cluster edges " +numEdges+" nodes "+numNodes+" connectivity "+ fullyNumEdges);
+        //System.out.println("cluster edges " +numEdges+" nodes "+numNodes+" connectivity "+ fullyNumEdges);
 
         if (numEdges == fullyNumEdges){
             return true;

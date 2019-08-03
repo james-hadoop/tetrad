@@ -52,7 +52,7 @@ public class ExampleCompareSimulation {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         //https://arxiv.org/abs/1607.08110
-        parameters.set("numRuns", 40);
+        parameters.set("numRuns", 4);
         parameters.set("standardize", true);
 //        parameters.set("coefLow",0.2);
 //        parameters.set("coefHigh",1.8);
@@ -66,11 +66,11 @@ public class ExampleCompareSimulation {
         parameters.set("useGap", true);
         parameters.set("verbose", true);
 
-        parameters.set("numStructuralNodes", 2);
-        parameters.set("numStructuralEdges", 1,0);
+        parameters.set("numStructuralNodes", 3);
+        parameters.set("numStructuralEdges", 1);
         parameters.set("measurementModelDegree", 4);
         parameters.set("latentMeasuredImpureParents", 0);
-        parameters.set("measuredMeasuredImpureParents", 0);
+        parameters.set("measuredMeasuredImpureParents", 1);
         parameters.set("measuredMeasuredImpureAssociations", 0);
 
         Statistics statistics = new Statistics();
@@ -102,7 +102,7 @@ public class ExampleCompareSimulation {
 //        algorithms.add(new Fofc(false,true,2,true,true));
 //        algorithms.add(new Fofc(true,false,1,false,false));
 //        algorithms.add(new Fofc(true,true,1,false,false));
-        algorithms.add(new Fofc(true,false,1,false,true));
+//        algorithms.add(new Fofc(true,false,1,false,true));
 //        algorithms.add(new Fofc(true,false,2,false,false));
 //        algorithms.add(new Fofc(true,true,3,false,false));
 //        algorithms.add(new Fofc(true,true,4,false,true));

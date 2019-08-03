@@ -44,7 +44,7 @@ public class estClusterCounter implements Statistic {
 
         for (Node d : graph.getNodes()){
 
-            if (graph.getChildren(d).size() > 0 ){
+            if (graph.getChildren(d).size()>0){
 
                 Clusters ++;
 
