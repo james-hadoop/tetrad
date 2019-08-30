@@ -3,14 +3,8 @@ package edu.cmu.tetrad.algcomparison.simulation;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Parameters;
-import edu.pitt.dbmi.data.ContinuousTabularDataset;
-import edu.pitt.dbmi.data.Dataset;
-import edu.pitt.dbmi.data.Delimiter;
-import edu.pitt.dbmi.data.MixedTabularDataset;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
-
+import edu.cmu.tetrad.util.Params;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -107,7 +101,7 @@ public class LoadDataAndGraphs implements Simulation {
                     }
                 }
 
-                parameters.set("numRuns", numDataSets);
+                parameters.set(Params.NUM_RUNS, numDataSets);
             } catch (IOException e) {
                 e.printStackTrace();
             }

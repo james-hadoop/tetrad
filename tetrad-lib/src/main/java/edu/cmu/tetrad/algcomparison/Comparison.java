@@ -36,15 +36,12 @@ import edu.cmu.tetrad.algcomparison.statistic.ElapsedTime;
 import edu.cmu.tetrad.algcomparison.statistic.ParameterColumn;
 import edu.cmu.tetrad.algcomparison.statistic.Statistic;
 import edu.cmu.tetrad.algcomparison.statistic.Statistics;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
-import edu.cmu.tetrad.algcomparison.utils.HasParameterValues;
-import edu.cmu.tetrad.algcomparison.utils.HasParameters;
-import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
+import edu.cmu.tetrad.algcomparison.utils.*;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.DagToPag;
 import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.search.SearchGraphUtils;
+import edu.cmu.tetrad.sem.Parameter;
 import edu.cmu.tetrad.util.*;
 import org.reflections.Reflections;
 
@@ -65,22 +62,23 @@ import java.util.concurrent.RecursiveTask;
 public class Comparison {
 
 
-        public enum ComparisonGraph {true_DAG, Pattern_of_the_true_DAG, PAG_of_the_true_DAG}
+    public enum ComparisonGraph {true_DAG, Pattern_of_the_true_DAG, PAG_of_the_true_DAG}
 
     private boolean[] graphTypeUsed;
     private PrintStream out;
     private boolean tabDelimitedTables = false;
     private boolean saveGraphs = false;
-    private boolean copyData = false;
+    private boolean copyData = true;
     private boolean showSimulationIndices = false;
     private boolean showAlgorithmIndices = false;
     private boolean showUtilities = false;
     private boolean sortByUtility = false;
     private String dataPath = null;
     private String resultsPath = null;
-    private boolean parallelized = true;
+    private boolean parallelized = false;
     private boolean savePatterns = false;
     private boolean savePags = false;
+    //    private boolean saveTrueDags = false;
     private ArrayList<String> dirs = null;
     private ComparisonGraph comparisonGraph = ComparisonGraph.true_DAG;
 
@@ -204,7 +202,8 @@ public class Comparison {
             dir.mkdirs();
             File file = new File(dir, outputFileName);
             this.out = new PrintStream(new FileOutputStream(file));
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -232,7 +231,9 @@ public class Comparison {
             List<Integer> _dims = new ArrayList<>();
             List<String> varyingParameters = new ArrayList<>();
 
-            final List<String> parameters1 = algorithm.getParameters();
+            List<String> parameters1 = new ArrayList<>(Params.getAlgorithmParameters(algorithm));
+            parameters1.addAll(Params.getTestParameters(algorithm));
+            parameters1.addAll(Params.getScoreParameters(algorithm));
 
             for (String name : parameters1) {
                 if (parameters.getNumValues(name) > 1) {
@@ -423,13 +424,18 @@ public class Comparison {
             statTables = calcStatTables(allStats, Mode.StandardDeviation, numTables,
                     algorithmSimulationWrappers, numStats, statistics);
 
+            for (int u = 0; u < numTables; u++) {
+                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                    statTables[u][t][numStats] = utilities[t];
+                }
+            }
+
             printStats(statTables, statistics, Mode.StandardDeviation, newOrder, algorithmSimulationWrappers, algorithmWrappers,
                     simulationWrappers, utilities, parameters);
 
             statTables = calcStatTables(allStats, Mode.WorstCase, numTables, algorithmSimulationWrappers,
                     numStats, statistics);
 
-            // Add utilities to table as the last column.
             for (int u = 0; u < numTables; u++) {
                 for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
                     statTables[u][t][numStats] = utilities[t];
@@ -438,7 +444,32 @@ public class Comparison {
 
             printStats(statTables, statistics, Mode.WorstCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
                     simulationWrappers, utilities, parameters);
+
+            statTables = calcStatTables(allStats, Mode.MedianCase, numTables, algorithmSimulationWrappers,
+                    numStats, statistics);
+
+            for (int u = 0; u < numTables; u++) {
+                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                    statTables[u][t][numStats] = utilities[t];
+                }
+            }
+
+            printStats(statTables, statistics, Mode.MedianCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
+                    simulationWrappers, utilities, parameters);
+
+            // Add utilities to table as the last column.
+            for (int u = 0; u < numTables; u++) {
+                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                    statTables[u][t][numStats] = utilities[t];
+                }
+            }
         }
+
+
+        for (int i = 0; i < simulations.getSimulations().size(); i++) {
+            saveToFiles(resultsPath + "/simulation" + (i + 1), simulations.getSimulations().get(i), parameters);
+        }
+
 
         out.close();
     }
@@ -458,7 +489,7 @@ public class Comparison {
         //int i = 0;
 
         dir = new File(dir0, "save");
-        
+
 //
 //        do {
 //            dir = new File(dir0, "Simulation" + (++i));
@@ -475,25 +506,25 @@ public class Comparison {
         //if(!dir.exists()){
         //	dir.mkdirs();
         //}
-        
+
         try {
-	    	int numDataSets = simulation.getNumDataModels();
-	    	if(numDataSets <= 0){
-	    		
-	    		File dir1 = new File(dir, "graph");
-	            File dir2 = new File(dir, "data");
-	
-	            dir1.mkdirs();
-	            dir2.mkdirs();
-	            
-	    		PrintStream out = new PrintStream(new FileOutputStream(new File(dir, "parameters.txt")));
-	            out.println(simulation.getDescription());
-	            out.println(parameters);
-	            out.close();
-	            
-	    		return;
-	    	}
-	        List<SimulationWrapper> simulationWrappers = getSimulationWrappers(simulation, parameters);
+//            int numDataSets = simulation.getNumDataModels();
+//            if (numDataSets <= 0) {
+//
+//                File dir1 = new File(dir, "graph");
+//                File dir2 = new File(dir, "data");
+//
+//                dir1.mkdirs();
+//                dir2.mkdirs();
+//
+//                PrintStream out = new PrintStream(new FileOutputStream(new File(dir, "parameters.txt")));
+//                out.println(simulation.getDescription());
+//                out.println(parameters);
+//                out.close();
+//
+//                return;
+//            }
+            List<SimulationWrapper> simulationWrappers = getSimulationWrappers(simulation, parameters);
 
             int index = 0;
 
@@ -502,17 +533,19 @@ public class Comparison {
                     parameters.set(param, simulationWrapper.getValue(param));
                 }
 
-                simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters());
+                if (simulationWrapper.getSimulation().getNumDataModels() == 0) {
+                    simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters());
+                }
 
                 File subdir = dir;
-                if(simulationWrappers.size() > 1){
+                if (simulationWrappers.size() > 1) {
                     index++;
 
                     subdir = new File(dir, "" + index);
                     subdir.mkdirs();
                 }
 
-            	File dir1 = new File(subdir, "graph");
+                File dir1 = new File(subdir, "graph");
                 File dir2 = new File(subdir, "data");
 
                 dir1.mkdirs();
@@ -531,6 +564,13 @@ public class Comparison {
                     dir4 = new File(subdir, "pags");
                     dir4.mkdirs();
                 }
+
+//                File dir5 = null;
+//
+//                if (isSaveTrueDags()) {
+//                    dir5 = new File(subdir, "truedags");
+//                    dir5.mkdirs();
+//                }
 
 
                 for (int j = 0; j < simulationWrapper.getNumDataModels(); j++) {
@@ -554,12 +594,100 @@ public class Comparison {
                         File file4 = new File(dir4, "pag." + (j + 1) + ".txt");
                         GraphUtils.saveGraph(new DagToPag2(graph).convert(), file4, false);
                     }
+
+//                    if (isSaveTrueDags()) {
+//                        File file5 = new File(dir5, "truedag." + (j + 1) + ".txt");
+//                        GraphUtils.saveGraph(graph, file5, false);
+//
+//                    }
                 }
 
                 PrintStream out = new PrintStream(new FileOutputStream(new File(subdir, "parameters.txt")));
                 out.println(simulationWrapper.getDescription());
                 out.println(simulationWrapper.getSimulationSpecificParameters());
                 out.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Saves simulationWrapper data.
+     *
+     * @param dataPath   The path to the directory where the simulationWrapper data should be saved.
+     * @param simulation The simulate used to generate the graphs and data.
+     * @param parameters The parameters to be used in the simulationWrapper.
+     */
+    public void saveToFilesSingleSimulation(String dataPath, Simulation simulation, Parameters parameters) {
+        File dir0 = new File(dataPath);
+        File dir = new File(dir0, "save");
+
+        deleteFilesThenDirectory(dir);
+        dir.mkdirs();
+
+        try {
+            PrintStream _out = new PrintStream(new FileOutputStream(new File(dir, "parameters.txt")));
+            _out.println(simulation.getDescription());
+            _out.println(parameters);
+            _out.close();
+
+            int numDataSets = simulation.getNumDataModels();
+            if (numDataSets <= 0) {
+
+                File dir1 = new File(dir, "graph");
+                File dir2 = new File(dir, "data");
+
+                dir1.mkdirs();
+                dir2.mkdirs();
+
+                return;
+            }
+
+            File subdir = dir;
+
+            File dir1 = new File(subdir, "graph");
+            File dir2 = new File(subdir, "data");
+
+            dir1.mkdirs();
+            dir2.mkdirs();
+
+            File dir3 = null;
+
+            if (isSavePatterns()) {
+                dir3 = new File(subdir, "patterns");
+                dir3.mkdirs();
+            }
+
+            File dir4 = null;
+
+            if (isSavePags()) {
+                dir4 = new File(subdir, "pags");
+                dir4.mkdirs();
+            }
+
+
+            for (int j = 0; j < simulation.getNumDataModels(); j++) {
+                File file2 = new File(dir1, "graph." + (j + 1) + ".txt");
+                Graph graph = simulation.getTrueGraph(j);
+
+                GraphUtils.saveGraph(graph, file2, false);
+
+                File file = new File(dir2, "data." + (j + 1) + ".txt");
+                Writer out = new FileWriter(file);
+                DataModel dataModel = simulation.getDataModel(j);
+                DataWriter.writeRectangularData((DataSet) dataModel, out, '\t');
+                out.close();
+
+                if (isSavePatterns()) {
+                    File file3 = new File(dir3, "pattern." + (j + 1) + ".txt");
+                    GraphUtils.saveGraph(SearchGraphUtils.patternForDag(graph), file3, false);
+                }
+
+                if (isSavePags()) {
+                    File file4 = new File(dir4, "pag." + (j + 1) + ".txt");
+                    GraphUtils.saveGraph(new DagToPag2(graph).convert(), file4, false);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -866,56 +994,56 @@ public class Comparison {
                 AlgorithmTask task = new AlgorithmTask(algorithmSimulationWrappers,
                         algorithmWrappers, simulationWrappers,
                         statistics, numGraphTypes, allStats, run);
-                task.compute();
-//                tasks.add(task);
+//                task.compute();
+                tasks.add(task);
             }
         }
 
-//        if (!isParallelized()) {
-//            for (AlgorithmTask task : tasks) {
-//                task.compute();
-//            }
-//        } else {
-//            class Task extends RecursiveTask<Boolean> {
-//                List<AlgorithmTask> tasks;
-//
-//                public Task(List<AlgorithmTask> tasks) {
-//                    this.tasks = tasks;
-//                }
-//
-//                @Override
-//                protected Boolean compute() {
-//                    Queue<AlgorithmTask> tasks = new ArrayDeque<>();
-//
-//                    for (AlgorithmTask task : this.tasks) {
-//                        tasks.add(task);
-//                        task.fork();
-//
-//                        for (AlgorithmTask _task : new ArrayList<>(tasks)) {
-//                            if (_task.isDone()) {
-//                                _task.join();
-//                                tasks.remove(_task);
-//                            }
-//                        }
-//
-//                        while (tasks.size() > Runtime.getRuntime().availableProcessors()) {
-//                            AlgorithmTask _task = tasks.poll();
-//                            _task.join();
-//                        }
-//                    }
-//
-//                    for (AlgorithmTask task : tasks) {
-//                        task.join();
-//                    }
-//
-//                    return true;
-//                }
-//            }
+        if (!isParallelized()) {
+            for (AlgorithmTask task : tasks) {
+                task.compute();
+            }
+        } else {
+            class Task extends RecursiveTask<Boolean> {
+                List<AlgorithmTask> tasks;
 
-//            Task task = new Task(tasks);
-//
-//            ForkJoinPoolInstance.getInstance().getPool().invoke(task);
-//        }
+                public Task(List<AlgorithmTask> tasks) {
+                    this.tasks = tasks;
+                }
+
+                @Override
+                protected Boolean compute() {
+                    Queue<AlgorithmTask> tasks = new ArrayDeque<>();
+
+                    for (AlgorithmTask task : this.tasks) {
+                        tasks.add(task);
+                        task.fork();
+
+                        for (AlgorithmTask _task : new ArrayList<>(tasks)) {
+                            if (_task.isDone()) {
+                                _task.join();
+                                tasks.remove(_task);
+                            }
+                        }
+
+                        while (tasks.size() > Runtime.getRuntime().availableProcessors()) {
+                            AlgorithmTask _task = tasks.poll();
+                            _task.join();
+                        }
+                    }
+
+                    for (AlgorithmTask task : tasks) {
+                        task.join();
+                    }
+
+                    return true;
+                }
+            }
+
+            Task task = new Task(tasks);
+
+            ForkJoinPoolInstance.getInstance().getPool().invoke(task);
+        }
 
         return allStats;
     }
@@ -972,9 +1100,9 @@ public class Comparison {
         return parallelized;
     }
 
-    public void setParallelized(boolean parallelized) {
-        this.parallelized = parallelized;
-    }
+//    public void setParallelized(boolean parallelized) {
+//        this.parallelized = parallelized;
+//    }
 
     /**
      * @return True if patterns should be saved out.
@@ -998,12 +1126,25 @@ public class Comparison {
     }
 
     /**
-     * @param savePags True if patterns should be saved out.
+     * @return True if patterns should be saved out.
      */
     public void setSavePags(boolean savePags) {
         this.savePags = savePags;
     }
 
+//    /**
+//     * @return True if patterns should be saved out.
+//     */
+//    public boolean isSaveTrueDags() {
+//        return saveTrueDags;
+//    }
+//
+//    /**
+//     * @param savePags True if patterns should be saved out.
+//     */
+//    public void setSaveTrueDags(boolean saveTrueDags) {
+//        this.saveTrueDags = saveTrueDags;
+//    }
 
     /**
      * @return True iff tables should be tab delimited (e.g. for easy pasting into Excel).
@@ -1095,7 +1236,7 @@ public class Comparison {
     }
 
     private void printParameters(List<String> names, Parameters parameters, PrintStream out) {
-    	out.println("Comparison.printParameters");
+        out.println("Comparison.printParameters");
         ParamDescriptions descriptions = ParamDescriptions.getInstance();
 
         for (String name : names) {
@@ -1104,14 +1245,14 @@ public class Comparison {
             Object value = parameters.get(name);
 
             if (defaultValue instanceof Double) {
-                out.println(description.getDescription() + " = " + value.toString());
+                out.println(description.getShortDescription() + " = " + value.toString());
             } else if (defaultValue instanceof Integer) {
-                out.println(description.getDescription() + " = " + value.toString());
+                out.println(description.getShortDescription() + " = " + value.toString());
             } else if (defaultValue instanceof Boolean) {
                 boolean b = (Boolean) value;
-                out.println(description.getDescription() + " = " + (b ? "Yes" : "No"));
+                out.println(description.getShortDescription() + " = " + (b ? "Yes" : "No"));
             } else if (defaultValue instanceof String) {
-                out.println(description.getDescription() + " = " + value);
+                out.println(description.getShortDescription() + " = " + value);
             }
         }
     }
@@ -1220,67 +1361,71 @@ public class Comparison {
             elapsed = extAlg.getElapsedTime(data, simulationWrapper.getSimulationSpecificParameters());
         }
 
-        Graph[] est = new Graph[numGraphTypes];
+        synchronized (this) {
 
-        Graph comparisonGraph;
+            Graph[] est = new Graph[numGraphTypes];
 
-        if (this.comparisonGraph == ComparisonGraph.true_DAG) {
-            comparisonGraph = new EdgeListGraph(trueGraph);
-        } else if (this.comparisonGraph == ComparisonGraph.Pattern_of_the_true_DAG) {
-            comparisonGraph = SearchGraphUtils.patternForDag(new EdgeListGraph(trueGraph));
-        } else if (this.comparisonGraph == ComparisonGraph.PAG_of_the_true_DAG) {
-            comparisonGraph = new DagToPag(new EdgeListGraph(trueGraph)).convert();
-        } else {
-            throw new IllegalArgumentException("Unrecognized graph type.");
-        }
+            Graph comparisonGraph;
+
+            if (this.comparisonGraph == ComparisonGraph.true_DAG) {
+                comparisonGraph = new EdgeListGraph(trueGraph);
+            } else if (this.comparisonGraph == ComparisonGraph.Pattern_of_the_true_DAG) {
+                comparisonGraph = SearchGraphUtils.patternForDag(new EdgeListGraph(trueGraph));
+            } else if (this.comparisonGraph == ComparisonGraph.PAG_of_the_true_DAG) {
+                comparisonGraph = new DagToPag2(new EdgeListGraph(trueGraph)).convert();
+            } else {
+                throw new IllegalArgumentException("Unrecognized graph type.");
+            }
 
 //        Graph comparisonGraph = trueGraph == null ? null : algorithmSimulationWrapper.getComparisonGraph(trueGraph);
 
-        est[0] = out;
-        graphTypeUsed[0] = true;
+            est[0] = new EdgeListGraph(out);
+            graphTypeUsed[0] = true;
 
-        if (data.isMixed()) {
-            est[1] = getSubgraph(out, true, true, data);
-            est[2] = getSubgraph(out, true, false, data);
-            est[3] = getSubgraph(out, false, false, data);
+            if (data.isMixed()) {
+                est[1] = getSubgraph(est[0], true, true, simulationWrapper.getDataModel(run.getRunIndex()));
+                est[2] = getSubgraph(est[0], true, false, simulationWrapper.getDataModel(run.getRunIndex()));
+                est[3] = getSubgraph(est[0], false, false, simulationWrapper.getDataModel(run.getRunIndex()));
 
-            graphTypeUsed[1] = true;
-            graphTypeUsed[2] = true;
-            graphTypeUsed[3] = true;
-        }
+                graphTypeUsed[1] = true;
+                graphTypeUsed[2] = true;
+                graphTypeUsed[3] = true;
+            }
 
-        Graph[] truth = new Graph[numGraphTypes];
+            Graph[] truth = new Graph[numGraphTypes];
 
-        truth[0] = comparisonGraph;
+            truth[0] = new EdgeListGraph(comparisonGraph);
 
-        if (data.isMixed() && comparisonGraph != null) {
-            truth[1] = getSubgraph(comparisonGraph, true, true, data);
-            truth[2] = getSubgraph(comparisonGraph, true, false, data);
-            truth[3] = getSubgraph(comparisonGraph, false, false, data);
-        }
+            if (data.isMixed() && comparisonGraph != null) {
+                truth[1] = getSubgraph(comparisonGraph, true, true, simulationWrapper.getDataModel(run.getRunIndex()));
+                truth[2] = getSubgraph(comparisonGraph, true, false, simulationWrapper.getDataModel(run.getRunIndex()));
+                truth[3] = getSubgraph(comparisonGraph, false, false, simulationWrapper.getDataModel(run.getRunIndex()));
+            }
 
-        if (comparisonGraph != null) {
-            for (int u = 0; u < numGraphTypes; u++) {
-                if (!graphTypeUsed[u]) continue;
+            if (comparisonGraph != null) {
+                for (int u = 0; u < numGraphTypes; u++) {
+                    if (!graphTypeUsed[u]) continue;
 
-                int statIndex = -1;
+                    int statIndex = -1;
 
-                for (Statistic _stat : statistics.getStatistics()) {
-                    statIndex++;
+                    for (Statistic _stat : statistics.getStatistics()) {
+                        statIndex++;
 
-                    if (_stat instanceof ParameterColumn) continue;
+                        if (_stat instanceof ParameterColumn) continue;
 
-                    double stat;
+                        double stat;
 
-                    if (_stat instanceof ElapsedTime) {
-                        stat = elapsed / 1000.0;
-                    } else {
-                        stat = _stat.getValue(truth[u], est[u]);
+                        if (_stat instanceof ElapsedTime) {
+                            stat = elapsed / 1000.0;
+                        } else {
+                            stat = _stat.getValue(truth[u], est[u], data);
+                        }
+
+                        allStats[u][run.getAlgSimIndex()][statIndex][run.getRunIndex()] = stat;
                     }
-
-                    allStats[u][run.getAlgSimIndex()][statIndex][run.getRunIndex()] = stat;
                 }
             }
+
         }
     }
 
@@ -1325,7 +1470,7 @@ public class Comparison {
     }
 
     private enum Mode {
-        Average, StandardDeviation, WorstCase
+        Average, StandardDeviation, WorstCase, MedianCase
     }
 
     private String getHeader(int u) {
@@ -1363,7 +1508,7 @@ public class Comparison {
                         AlgorithmWrapper algorithmWrapper = wrappers.get(i).getAlgorithmWrapper();
                         double stat = Double.NaN;
 
-                        List<String> parameterNames = simulationWrapper.getParameters();
+                        List<String > parameterNames = simulationWrapper.getParameters();
                         Parameters parameters = simulationWrapper.getSimulationSpecificParameters();
 
                         for (String name : parameterNames) {
@@ -1380,7 +1525,10 @@ public class Comparison {
                         }
 
                         if (Double.isNaN(stat)) {
-                            List<String> _parameterNames = algorithmWrapper.getParameters();
+                            List<String> _parameterNames = new ArrayList<>(Params.getAlgorithmParameters(algorithmWrapper.getAlgorithm()));
+                            _parameterNames.addAll(Params.getScoreParameters(algorithmWrapper.getAlgorithm()));
+                            _parameterNames.addAll(Params.getTestParameters(algorithmWrapper.getAlgorithm()));
+
                             Parameters _parameters = algorithmWrapper.parameters;
 
                             for (String name : _parameterNames) {
@@ -1399,11 +1547,14 @@ public class Comparison {
 
                         statTables[u][i][j] = stat;
                     } else if (mode == Mode.Average) {
-                        statTables[u][i][j] = StatUtils.mean(allStats[u][i][j]);
+                        final double mean = StatUtils.mean(allStats[u][i][j]);
+                        statTables[u][i][j] = mean;
                     } else if (mode == Mode.WorstCase) {
                         statTables[u][i][j] = StatUtils.min(allStats[u][i][j]);
                     } else if (mode == Mode.StandardDeviation) {
                         statTables[u][i][j] = StatUtils.sd(allStats[u][i][j]);
+                    } else if (mode == Mode.MedianCase) {
+                        statTables[u][i][j] = StatUtils.median(allStats[u][i][j]);
                     } else {
                         throw new IllegalStateException();
                     }
@@ -1426,6 +1577,8 @@ public class Comparison {
             out.println("STANDARD DEVIATIONS");
         } else if (mode == Mode.WorstCase) {
             out.println("WORST CASE");
+        } else if (mode == Mode.MedianCase) {
+            out.println("MEDIAN CASE");
         } else {
             throw new IllegalStateException();
         }
@@ -1582,7 +1735,11 @@ public class Comparison {
         Collections.sort(order, new Comparator<Integer>() {
             @Override
             public int compare(Integer o1, Integer o2) {
-                return -Double.compare(_utilities[o1], _utilities[o2]);
+                double u1 = _utilities[o1];
+                double u2 = _utilities[o2];
+                if (Double.isNaN(u1)) u1 = 0.0;
+                if (Double.isNaN(u2)) u2 = 0.0;
+                return -Double.compare(u1, u2);
             }
         });
 
@@ -1592,7 +1749,7 @@ public class Comparison {
         return newOrder;
     }
 
-    private Graph getSubgraph(Graph graph, boolean discrete1, boolean discrete2, DataModel DataModel) {
+    private synchronized Graph getSubgraph(Graph graph, boolean discrete1, boolean discrete2, DataModel DataModel) {
         if (discrete1 && discrete2) {
             Graph newGraph = new EdgeListGraph(graph.getNodes());
 
@@ -1776,13 +1933,14 @@ public class Comparison {
             this.graphs = new ArrayList<>();
             this.dataModels = new ArrayList<>();
             for (int i = 0; i < simulation.getNumDataModels(); i++) {
-                this.graphs.add(simulation.getTrueGraph(i));
+                this.graphs.add(new EdgeListGraph(simulation.getTrueGraph(i)));
                 this.dataModels.add(simulation.getDataModel(i));
             }
         }
 
         @Override
         public int getNumDataModels() {
+            if (dataModels == null) return 0;
             return dataModels.size();
         }
 
@@ -1793,7 +1951,7 @@ public class Comparison {
         }
 
         @Override
-        public DataModel getDataModel(int index) {
+        public synchronized DataModel getDataModel(int index) {
             return dataModels.get(index);
         }
 

@@ -31,9 +31,8 @@ import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.RandomUtil;
-import edu.pitt.dbmi.data.Delimiter;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
-import edu.pitt.dbmi.data.reader.tabular.TabularDataReader;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -250,29 +249,29 @@ public class TestDM {
         trueGraph.addDirectedEdge(new ContinuousVariable("X0"), new ContinuousVariable("L1"));
         trueGraph.addDirectedEdge(new ContinuousVariable("X1"), new ContinuousVariable("L1"));
 
-        trueGraph.addDirectedEdge(new ContinuousVariable("L1"), new ContinuousVariable("X2"));
-        trueGraph.addDirectedEdge(new ContinuousVariable("L1"), new ContinuousVariable("X3"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("L0"), new ContinuousVariable("X2"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("L0"), new ContinuousVariable("X3"));
 
         trueGraph.addDirectedEdge(new ContinuousVariable("X0"), new ContinuousVariable("L2"));
         trueGraph.addDirectedEdge(new ContinuousVariable("X1"), new ContinuousVariable("L2"));
-        trueGraph.addDirectedEdge(new ContinuousVariable("X4"), new ContinuousVariable("L2"));
-        trueGraph.addDirectedEdge(new ContinuousVariable("X5"), new ContinuousVariable("L2"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("X4"), new ContinuousVariable("L1"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("X5"), new ContinuousVariable("L1"));
 
-        trueGraph.addDirectedEdge(new ContinuousVariable("L2"), new ContinuousVariable("X6"));
-        trueGraph.addDirectedEdge(new ContinuousVariable("L2"), new ContinuousVariable("X7"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("L1"), new ContinuousVariable("X6"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("L1"), new ContinuousVariable("X7"));
 
         trueGraph.addDirectedEdge(new ContinuousVariable("X0"), new ContinuousVariable("L0"));
         trueGraph.addDirectedEdge(new ContinuousVariable("X1"), new ContinuousVariable("L0"));
-        trueGraph.addDirectedEdge(new ContinuousVariable("X4"), new ContinuousVariable("L0"));
-        trueGraph.addDirectedEdge(new ContinuousVariable("X5"), new ContinuousVariable("L0"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("X4"), new ContinuousVariable("L2"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("X5"), new ContinuousVariable("L2"));
 
-        trueGraph.addDirectedEdge(new ContinuousVariable("X8"), new ContinuousVariable("L0"));
-        trueGraph.addDirectedEdge(new ContinuousVariable("X9"), new ContinuousVariable("L0"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("X8"), new ContinuousVariable("L2"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("X9"), new ContinuousVariable("L2"));
 
-        trueGraph.addDirectedEdge(new ContinuousVariable("L0"), new ContinuousVariable("X10"));
-        trueGraph.addDirectedEdge(new ContinuousVariable("L0"), new ContinuousVariable("X11"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("L2"), new ContinuousVariable("X10"));
+        trueGraph.addDirectedEdge(new ContinuousVariable("L2"), new ContinuousVariable("X11"));
 
-        assertTrue(foundGraph.equals(trueGraph));
+        assertEquals(foundGraph, trueGraph);
     }
 
     //Three latent fork case
@@ -1120,7 +1119,7 @@ public class TestDM {
         DataSet data = null;
 
         try {
-            TabularDataReader dataReader = new ContinuousTabularDataFileReader(file, Delimiter.SPACE);
+            ContinuousTabularDatasetFileReader dataReader = new ContinuousTabularDatasetFileReader(file.toPath(), Delimiter.SPACE);
             data = (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
         } catch (IOException e) {
             print("Failed to read in data.");
