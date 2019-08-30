@@ -3,7 +3,6 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.TetradMatrix;
-import edu.pitt.dbmi.data.Dataset;
 
 import java.util.ArrayList;
 import java.util.List;

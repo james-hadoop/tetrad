@@ -1,12 +1,11 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.DataWriter;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.*;
-import edu.pitt.dbmi.data.Delimiter;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -82,10 +81,10 @@ public class DemixerNongaussian {
     }
 
     private MixtureModelNongaussian demix() {
-        FastIca ica = new FastIca(X, numVars);
+        FastIca ica = new FastIca(X.transpose(), numVars);
         FastIca.IcaResult result = ica.findComponents();
 
-        TetradMatrix _W = result.getW();
+        TetradMatrix _W = result.getW().transpose();
 
         for (int k = 0; k < numComponents; k++) {
 //            W[k] = _W;
@@ -408,9 +407,8 @@ public class DemixerNongaussian {
 
     private static DataSet loadData(String path) {
         try {
-            ContinuousTabularDataFileReader dataReader = new ContinuousTabularDataFileReader(
-                    new File(path), Delimiter.COMMA);
-            dataReader.setHasHeader(false);
+            ContinuousTabularDatasetFileReader dataReader = new ContinuousTabularDatasetFileReader(
+                    new File(path).toPath(), Delimiter.COMMA);
             return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
         } catch (IOException e) {
             throw new RuntimeException(e);
