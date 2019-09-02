@@ -6,6 +6,7 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
+import org.apache.commons.math3.linear.SingularValueDecomposition;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -357,15 +358,29 @@ public class DemixerNongaussian {
 
 
     private TetradMatrix whiten(TetradMatrix w, double v) {
-        w = new TetradMatrix(w);
+        TetradMatrix cov = w;// X.times(X.transpose()).scalarMult(1.0 / n);
 
-        for (int r = 0; r < w.rows(); r++) {
-            for (int c = 0; c < w.columns(); c++) {
-                w.set(r, c, w.get(r, c) + RandomUtil.getInstance().nextNormal(0, v));
-            }
+        SingularValueDecomposition s = new SingularValueDecomposition(cov.getRealMatrix());
+        TetradMatrix D = new TetradMatrix(s.getS());
+        TetradMatrix U = new TetradMatrix(s.getU());
+
+        for (int i = 0; i < D.rows(); i++) {
+            D.set(i, i, 1.0 / Math.sqrt(D.get(i, i)));
         }
 
-        return w;
+        TetradMatrix K = D.times(U.transpose());
+//        K = K.scalarMult(-1); // This SVD gives -U from R's SVD.
+//        K = K.getPart(0, numComponents - 1, 0, p - 1);
+
+//        w = new TetradMatrix(w);
+//
+//        for (int r = 0; r < w.rows(); r++) {
+//            for (int c = 0; c < w.columns(); c++) {
+//                w.set(r, c, w.get(r, c) + RandomUtil.getInstance().nextNormal(0, v));
+//            }
+//        }
+
+        return K;
     }
 
     private TetradMatrix repmat(TetradVector _bias, int rows) {
