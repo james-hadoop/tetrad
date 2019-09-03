@@ -83,13 +83,18 @@ public class DemixerNongaussian {
 
     private MixtureModelNongaussian demix() {
         FastIca ica = new FastIca(X.transpose(), numVars);
+        ica.setMaxIterations(1000);
+        ica.setAlgorithmType(FastIca.PARALLEL);
+        ica.setFunction(FastIca.EXP);
+        ica.setAlpha(1.1);
+        ica.setTolerance(1-6);
         FastIca.IcaResult result = ica.findComponents();
 
         TetradMatrix _W = result.getW().transpose();
 
         for (int k = 0; k < numComponents; k++) {
 //            W[k] = _W;
-            W[k] = whiten(_W, .5);
+            W[k] = addNoise(_W, 1);
         }
 
         for (int k = 0; k < numComponents; k++) {
@@ -107,9 +112,9 @@ public class DemixerNongaussian {
         initializeKurtosisMatrices();
 
         double _l = Double.NaN;
+        double l = calculateLikelihoods();
 
         while (true) {
-            double l = calculateLikelihoods();
 
             printLikelihood();
 
@@ -119,7 +124,7 @@ public class DemixerNongaussian {
 
             _l = l;
 
-            calculatePosteriors();
+            l = calculatePosteriors();
             maximization();
         }
 
@@ -296,7 +301,7 @@ public class DemixerNongaussian {
             }
         }
 
-//        System.out.println(posteriorProbs);
+        System.out.println("Posterior probs = " + posteriorProbs);
 //
         return likelihood;
     }
@@ -318,7 +323,7 @@ public class DemixerNongaussian {
         List<Node> vars = new ArrayList<>();
         vars.add(dataSet.getVariable(0));
         vars.add(dataSet.getVariable(1));
-        dataSet =  dataSet.subsetColumns(vars);
+        dataSet = dataSet.subsetColumns(vars);
 
         long startTime = System.currentTimeMillis();
 
@@ -356,9 +361,21 @@ public class DemixerNongaussian {
         }
     }
 
+    private TetradMatrix addNoise(TetradMatrix w, double v) {
+        w = new TetradMatrix(w);
 
-    private TetradMatrix whiten(TetradMatrix w, double v) {
-        TetradMatrix cov = w;// X.times(X.transpose()).scalarMult(1.0 / n);
+        for (int r = 0; r < w.rows(); r++) {
+            for (int c = 0; c < w.columns(); c++) {
+                w.set(r, c, w.get(r, c) + RandomUtil.getInstance().nextNormal(0, v));
+            }
+        }
+
+        return w;
+    }
+
+
+    private TetradMatrix addNoise(TetradMatrix X) {
+        TetradMatrix cov = X.times(X.transpose()).scalarMult(1.0 / X.columns());
 
         SingularValueDecomposition s = new SingularValueDecomposition(cov.getRealMatrix());
         TetradMatrix D = new TetradMatrix(s.getS());
