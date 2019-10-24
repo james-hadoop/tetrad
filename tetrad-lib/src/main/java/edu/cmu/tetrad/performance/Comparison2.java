@@ -1,5 +1,6 @@
 package edu.cmu.tetrad.performance;
 
+import cern.colt.list.adapter.DoubleListAdapter;
 import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.bayes.MlBayesIm;
 import edu.cmu.tetrad.data.*;
@@ -13,10 +14,9 @@ import edu.cmu.tetrad.sem.ScoreType;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TextTable;
-import edu.pitt.dbmi.data.Delimiter;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
-import edu.pitt.dbmi.data.reader.tabular.TabularDataReader;
-import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDataReader;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
+import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDatasetFileReader;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -84,7 +84,7 @@ public class Comparison2 {
 
                     if (params.getDataType() == ComparisonParameters.DataType.Continuous) {
                         try {
-                            TabularDataReader dataReader = new ContinuousTabularDataFileReader(dataFile.toFile(), delimiter);
+                            ContinuousTabularDatasetFileReader dataReader = new ContinuousTabularDatasetFileReader(dataFile, delimiter);
                             dataSet = (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -95,7 +95,7 @@ public class Comparison2 {
 
                     } else {
                         try {
-                            TabularDataReader dataReader = new VerticalDiscreteTabularDataReader(dataFile.toFile(), delimiter);
+                            VerticalDiscreteTabularDatasetFileReader dataReader = new VerticalDiscreteTabularDatasetFileReader(dataFile, delimiter);
                             dataSet = (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -185,14 +185,14 @@ public class Comparison2 {
                 }
                 Fci search = new Fci(test);
                 result.setResultGraph(search.search());
-                result.setCorrectResult(new DagToPag(trueDag).convert());
+                result.setCorrectResult(new DagToPag2(trueDag).convert());
             } else if (params.getAlgorithm() == ComparisonParameters.Algorithm.GFCI) {
                 if (test == null) {
                     throw new IllegalArgumentException("Test not set.");
                 }
                 GFci search = new GFci(test, score);
                 result.setResultGraph(search.search());
-                result.setCorrectResult(new DagToPag(trueDag).convert());
+                result.setCorrectResult(new DagToPag2(trueDag).convert());
             } else if (params.getAlgorithm() == ComparisonParameters.Algorithm.TsFCI) {
                 if (test == null) {
                     throw new IllegalArgumentException("Test not set.");
@@ -407,7 +407,7 @@ public class Comparison2 {
                 throw new IllegalArgumentException("Penalty discount not set.");
             }
 
-            SemBicScore semBicScore = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
+            SemBicScore semBicScore = new SemBicScore(new CovarianceMatrix(dataSet));
             semBicScore.setPenaltyDiscount(params.getPenaltyDiscount());
             score = semBicScore;
 
@@ -482,14 +482,14 @@ public class Comparison2 {
             }
             Fci search = new Fci(test);
             result.setResultGraph(search.search());
-            result.setCorrectResult(new DagToPag(trueDag).convert());
+            result.setCorrectResult(new DagToPag2(trueDag).convert());
         } else if (params.getAlgorithm() == ComparisonParameters.Algorithm.GFCI) {
             if (test == null) {
                 throw new IllegalArgumentException("Test not set.");
             }
             GFci search = new GFci(test, score);
             result.setResultGraph(search.search());
-            result.setCorrectResult(new DagToPag(trueDag).convert());
+            result.setCorrectResult(new DagToPag2(trueDag).convert());
         } else if (params.getAlgorithm() == ComparisonParameters.Algorithm.TsFCI) {
             if (test == null) {
                 throw new IllegalArgumentException("Test not set.");
@@ -533,7 +533,7 @@ public class Comparison2 {
             variables.add(new ContinuousVariable(column.toString()));
         }
 
-        DataSet dataSet = new ColtDataSet(0, variables);
+        DataSet dataSet = new BoxDataSet(new DoubleDataBox(0, variables.size()), variables);
         dataSet.setNumberFormat(new DecimalFormat("0"));
 
         for (int i = 0; i < results.size(); i++) {

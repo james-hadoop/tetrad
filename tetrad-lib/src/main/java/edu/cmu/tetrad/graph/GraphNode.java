@@ -18,16 +18,15 @@
 // along with this program; if not, write to the Free Software               //
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA //
 ///////////////////////////////////////////////////////////////////////////////
-
 package edu.cmu.tetrad.graph;
 
-
 import edu.cmu.tetrad.util.TetradSerializable;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Implements a basic node in a graph--that is, a node that is not itself a
@@ -37,6 +36,7 @@ import java.io.ObjectInputStream;
  * @author Willie Wheeler
  */
 public class GraphNode implements Node, TetradSerializable {
+
     static final long serialVersionUID = 23L;
 
     /**
@@ -53,6 +53,12 @@ public class GraphNode implements Node, TetradSerializable {
      * @see edu.cmu.tetrad.graph.NodeType
      */
     private NodeType nodeType = NodeType.MEASURED;
+
+    /**
+     * Node variable type (domain, interventional status, interventional
+     * value..) of this node variable
+     */
+    private NodeVariableType nodeVariableType = NodeVariableType.DOMAIN;
 
     /**
      * The x coordinate of the center of the node.
@@ -73,8 +79,9 @@ public class GraphNode implements Node, TetradSerializable {
      */
     private transient PropertyChangeSupport pcs;
 
-    //============================CONSTRUCTORS==========================//
+    private Map<String, Object> attributes = new HashMap<>();
 
+    //============================CONSTRUCTORS==========================//
     /**
      * Constructs a new Tetrad node with the given (non-null) string.
      */
@@ -100,7 +107,6 @@ public class GraphNode implements Node, TetradSerializable {
     }
 
     //============================PUBLIC METHODS========================//
-
     /**
      * @return the name of the variable.
      */
@@ -140,7 +146,6 @@ public class GraphNode implements Node, TetradSerializable {
 //            throw new IllegalArgumentException(
 //                    NamingProtocol.getProtocolDescription() + ": " + name);
 //        }
-
         String oldName = this.name;
         this.name = name;
         getPcs().firePropertyChange("name", oldName, this.name);
@@ -266,33 +271,87 @@ public class GraphNode implements Node, TetradSerializable {
         }
     }
 
-    public int compareTo(Object o) {
-        Node node = (Node) o;
-        final String name = getName();
-        String[] tokens1 = name.split(":");
-        final String _name = node.getName();
-        String[] tokens2 = _name.split(":");
+    @Override
+    public int compareTo(Node node) {
+        String node1 = getName();
+        String node2 = node.getName();
 
-        if (tokens1.length == 1) {
-            tokens1 = new String[]{tokens1[0], "0"};
+        boolean isAlpha1 = ALPHA.matcher(node1).matches();
+        boolean isAlpha2 = ALPHA.matcher(node2).matches();
+        boolean isAlphaNum1 = ALPHA_NUM.matcher(node1).matches();
+        boolean isAlphaNum2 = ALPHA_NUM.matcher(node2).matches();
+        boolean isLag1 = LAG.matcher(node1).matches();
+        boolean isLag2 = LAG.matcher(node2).matches();
+
+        if (isAlpha1) {
+            if (isLag2) {
+                return -1;
+            }
+        } else if (isAlphaNum1) {
+            if (isAlphaNum2) {
+                String s1 = node1.replaceAll("\\d+", "");
+                String s2 = node2.replaceAll("\\d+", "");
+                if (s1.equals(s2)) {
+                    String n1 = node1.replaceAll("\\D+", "");
+                    String n2 = node2.replaceAll("\\D+", "");
+
+                    return Integer.valueOf(n1).compareTo(Integer.valueOf(n2));
+                } else {
+                    return s1.compareTo(s2);
+                }
+            } else if (isLag2) {
+                return -1;
+            }
+        } else if (isLag1) {
+            if (isAlpha2 || isAlphaNum2) {
+                return 1;
+            } else if (isLag2) {
+                String l1 = node1.replaceAll(":", "");
+                String l2 = node2.replaceAll(":", "");
+                String s1 = l1.replaceAll("\\d+", "");
+                String s2 = l2.replaceAll("\\d+", "");
+                if (s1.equals(s2)) {
+                    String n1 = l1.replaceAll("\\D+", "");
+                    String n2 = l2.replaceAll("\\D+", "");
+
+                    return Integer.valueOf(n1).compareTo(Integer.valueOf(n2));
+                } else {
+                    return s1.compareTo(s2);
+                }
+            }
         }
 
-        if (tokens2.length == 1) {
-            tokens2 = new String[]{tokens2[0], "0"};
-        }
-
-        int i1 = tokens1[1].compareTo(tokens2[1]);
-        int i2 = tokens1[0].compareTo(tokens2[0]);
-
-        if (i1 == 0) {
-            return i2;
-        } else {
-            return i1;
-        }
+        return node1.compareTo(node2);
     }
+
+    @Override
+    public NodeVariableType getNodeVariableType() {
+        return this.nodeVariableType;
+    }
+
+    @Override
+    public void setNodeVariableType(NodeVariableType nodeVariableType) {
+        this.nodeVariableType = nodeVariableType;
+    }
+
+    @Override
+    public Map<String, Object> getAllAttributes() {
+        return attributes;
+    }
+
+    @Override
+    public Object getAttribute(String key) {
+        return attributes.get(key);
+    }
+
+    @Override
+    public void removeAttribute(String key) {
+        attributes.remove(key);
+    }
+
+    @Override
+    public void addAttribute(String key, Object value) {
+        attributes.put(key, value);
+    }
+
 }
-
-
-
-
-

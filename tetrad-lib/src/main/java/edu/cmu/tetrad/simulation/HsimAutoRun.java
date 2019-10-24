@@ -7,8 +7,7 @@ import edu.cmu.tetrad.search.Fges;
 import edu.cmu.tetrad.search.PatternToDag;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.DelimiterUtils;
-import edu.pitt.dbmi.data.reader.tabular.TabularDataReader;
-import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDataReader;
+import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDatasetFileReader;
 import java.io.FileWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,7 +43,7 @@ public class HsimAutoRun {
         eVars.add("MULT");
         Path dataFile = Paths.get(readfilename);
 
-        TabularDataReader dataReader = new VerticalDiscreteTabularDataReader(dataFile.toFile(), DelimiterUtils.toDelimiter(delim));
+        VerticalDiscreteTabularDatasetFileReader dataReader = new VerticalDiscreteTabularDatasetFileReader(dataFile, DelimiterUtils.toDelimiter(delim));
         try {
             data = (DataSet) DataConvertUtils.toDataModel(dataReader.readInData(eVars));
         } catch (Exception IOException) {
@@ -74,11 +73,10 @@ public class HsimAutoRun {
             //========first make the Dag for Hsim==========
             BDeuScore score = new BDeuScore(data);
 
-            //ICovarianceMatrix cov = new CovarianceMatrixOnTheFly(dataSet);
+            //ICovarianceMatrix cov = new CovarianceMatrix(dataSet);
             double penaltyDiscount = 2.0;
             Fges fges = new Fges(score);
             fges.setVerbose(false);
-            fges.setNumPatternsToStore(0);
             fges.setPenaltyDiscount(penaltyDiscount);
 
             Graph estGraph = fges.search();
@@ -159,7 +157,6 @@ public class HsimAutoRun {
             BDeuScore newscore = new BDeuScore(newDataSet);
             Fges fgesOut = new Fges(newscore);
             fgesOut.setVerbose(false);
-            fgesOut.setNumPatternsToStore(0);
             fgesOut.setPenaltyDiscount(2.0);
             //fgesOut.setOut(out);
             //fgesOut.setFaithfulnessAssumed(true);

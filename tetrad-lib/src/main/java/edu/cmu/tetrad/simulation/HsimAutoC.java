@@ -5,8 +5,7 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.DelimiterUtils;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
-import edu.pitt.dbmi.data.reader.tabular.TabularDataReader;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 import java.io.FileWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,7 +38,7 @@ public class HsimAutoC {
         eVars.add("MULT");
         Path dataFile = Paths.get(readfilename);
 
-        TabularDataReader dataReader = new ContinuousTabularDataFileReader(dataFile.toFile(), DelimiterUtils.toDelimiter(delim));
+        ContinuousTabularDatasetFileReader dataReader = new ContinuousTabularDatasetFileReader(dataFile, DelimiterUtils.toDelimiter(delim));
         try {
             data = (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
         } catch (Exception IOException) {
@@ -53,13 +52,12 @@ public class HsimAutoC {
         double[] output;
         output = new double[5];
         //========first make the Dag for Hsim==========
-        ICovarianceMatrix cov = new CovarianceMatrixOnTheFly(data);
+        ICovarianceMatrix cov = new CovarianceMatrix(data);
         SemBicScore score = new SemBicScore(cov);
 
         double penaltyDiscount = 2.0;
         Fges fges = new Fges(score);
         fges.setVerbose(false);
-        fges.setNumPatternsToStore(0);
         fges.setPenaltyDiscount(penaltyDiscount);
 
         Graph estGraph = fges.search();
@@ -116,11 +114,10 @@ public class HsimAutoC {
         //=======Run FGS on the output data, and compare it to the original learned graph
         //Path dataFileOut = Paths.get(filenameOut);
         //edu.cmu.tetrad.io.DataReader dataReaderOut = new VerticalTabularDiscreteDataReader(dataFileOut, delimiter);
-        ICovarianceMatrix newcov = new CovarianceMatrixOnTheFly(data);
+        ICovarianceMatrix newcov = new CovarianceMatrix(data);
         SemBicScore newscore = new SemBicScore(newcov);
         Fges fgesOut = new Fges(newscore);
         fgesOut.setVerbose(false);
-        fgesOut.setNumPatternsToStore(0);
         fgesOut.setPenaltyDiscount(2.0);
 
         Graph estGraphOut = fgesOut.search();

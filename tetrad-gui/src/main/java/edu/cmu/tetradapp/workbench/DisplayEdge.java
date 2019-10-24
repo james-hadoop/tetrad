@@ -23,13 +23,12 @@ package edu.cmu.tetradapp.workbench;
 
 import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.Endpoint;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import javax.swing.*;
 
 /**
  * This component has three modes: <ul> <li> UNANCHORED <li> NORMAL <li>
@@ -85,9 +84,9 @@ public class DisplayEdge extends JComponent implements IDisplayEdge {
     public static final int NONDIRECTED = 1;
 
     /**
-     * Represents the fact tha tthis is an undirected edge, A---B
+     * Represents the fact that this is an undirected edge, A---B
      */
-    private static final int UNDIRECTED = 2;
+    public static final int UNDIRECTED = 2;
 
     /**
      * Represents the fact that this is a partially directed edge, Ao-&gt;B.
@@ -98,6 +97,11 @@ public class DisplayEdge extends JComponent implements IDisplayEdge {
      * Represents the fact that this is a bidirected edge, A&lt;-&gt;B.
      */
     public static final int BIDIRECTED = 4;
+
+    /**
+     * Represents a session edge
+     */
+    public static final int SESSION = 5;
 
     /**
      * The model edge that this display is is portraying.
@@ -227,10 +231,8 @@ public class DisplayEdge extends JComponent implements IDisplayEdge {
             throw new NullPointerException("Node2 must not be null.");
         }
 
-        if (type < 0 || type > 4) {
-            throw new IllegalArgumentException("Type must be one of " +
-                    "DIRECTED, NONDIRECTED, " +
-                    "UNDIRECTED, PARTIALLY_ORIENTED, " + " or BIDIRECTED.");
+        if (type < 0 || type > 5) {
+            throw new IllegalArgumentException("Type must be one of DIRECTED, NONDIRECTED, UNDIRECTED, PARTIALLY_ORIENTED, or BIDIRECTED.");
         }
 
         this.node1 = node1;
@@ -323,10 +325,8 @@ public class DisplayEdge extends JComponent implements IDisplayEdge {
                     "Mouse track point must not " + "be null.");
         }
 
-        if (type < 0 || type > 4) {
-            throw new IllegalArgumentException("Type must be one of " +
-                    "DIRECTED, NONDIRECTED, " +
-                    "UNDIRECTED, PARTIALLY_ORIENTED, " + " or BIDIRECTED.");
+        if (type < 0 || type > 5) {
+            throw new IllegalArgumentException("Type must be one of DIRECTED, NONDIRECTED, UNDIRECTED, PARTIALLY_ORIENTED, or BIDIRECTED.");
         }
 
         this.node1 = node1;
@@ -760,6 +760,11 @@ public class DisplayEdge extends JComponent implements IDisplayEdge {
             }
         } else {
             switch (this.type) {
+
+                case SESSION:
+                    drawSessionArrowEndpoint(pp.getFrom(), pp.getTo(), g);
+                    break;
+
                 case DIRECTED:
                     drawArrowEndpoint(pp.getFrom(), pp.getTo(), g);
                     break;
@@ -803,6 +808,21 @@ public class DisplayEdge extends JComponent implements IDisplayEdge {
         g.fillArc(to.x - 18, to.y - 18, 36, 36,
                 itheta - 14 - 3 * (int) getStrokeWidth(), 29 + 6 * (int) getStrokeWidth());
     }
+
+    /**
+     * Draws an session arrowhead at the 'to' end of the edge.
+     */
+    private void drawSessionArrowEndpoint(Point from, Point to, Graphics g) {
+        double a = to.x - from.x;
+        double b = from.y - to.y;
+        double theta = Math.atan2(b, a);
+        int itheta = (int) ((theta * 360.0) / (2.0 * Math.PI) + 180);
+
+//        g.fillArc(to.x - 18, to.y - 18, 36, 36, itheta - 15, 30);
+        g.fillArc(to.x - 18, to.y - 18, 36, 36,
+                itheta - 33 * (int) getStrokeWidth(), 66 * (int) getStrokeWidth());
+    }
+
 
     /**
      * Draws a circle endpoint at the 'to' point angled as if coming from the

@@ -71,7 +71,7 @@ public class TimeSeriesUtils {
             residuals.assignColumn(i, residualsColumn);
         }
 
-        return ColtDataSet.makeContinuousData(timeSeries.getVariables(), residuals);
+        return new BoxDataSet(new DoubleDataBox(residuals.toArray()), timeSeries.getVariables());
     }
 
     public static DataSet ar2(DataSet timeSeries, int numLags) {
@@ -129,7 +129,7 @@ public class TimeSeriesUtils {
             residuals.assignColumn(i, residualsColumn);
         }
 
-        return ColtDataSet.makeContinuousData(timeSeries.getVariables(), residuals);
+        return new BoxDataSet(new DoubleDataBox(residuals.toArray()), timeSeries.getVariables());
     }
 
     private int[] eliminateMissing(int[] parents, int dataIndex, DataSet dataSet, List<Node> missingVariables) {
@@ -163,7 +163,7 @@ public class TimeSeriesUtils {
         if (timeLags.isDiscrete()) {
             score = new BDeuScore(timeLags);
         } else if (timeLags.isContinuous()) {
-            SemBicScore semBicScore = new SemBicScore(new CovarianceMatrixOnTheFly(timeLags));
+            SemBicScore semBicScore = new SemBicScore(new CovarianceMatrix(timeLags));
             semBicScore.setPenaltyDiscount(2.0);
             score = semBicScore;
         } else {
@@ -215,7 +215,7 @@ public class TimeSeriesUtils {
             residuals.assignColumn(i, residualsColumn);
         }
 
-        return new VarResult(ColtDataSet.makeContinuousData(timeSeries.getVariables(), residuals),
+        return new VarResult(new BoxDataSet(new DoubleDataBox(residuals.toArray()), timeSeries.getVariables()),
                 collapsedVarGraph);
     }
 
@@ -255,7 +255,7 @@ public class TimeSeriesUtils {
             }
         }
 
-        return ColtDataSet.makeContinuousData(data.getVariables(), shiftedData);
+        return new BoxDataSet(new DoubleDataBox(shiftedData.toArray()), data.getVariables());
     }
 
     public static class VarResult {
@@ -357,7 +357,7 @@ public class TimeSeriesUtils {
             _data = _data2;
         }
 
-        return ColtDataSet.makeContinuousData(data.getVariables(), _data);
+        return new BoxDataSet(new DoubleDataBox(_data.toArray()), data.getVariables());
     }
 
     /**
@@ -447,7 +447,7 @@ public class TimeSeriesUtils {
             knowledge.addToTier(numLags - lag, node.getName());
         }
 
-        DataSet laggedData = new ColtDataSet(laggedRows, newVariables);
+        DataSet laggedData = new BoxDataSet(new DoubleDataBox(laggedRows, newVariables.size()), newVariables);
         for (int lag = 0; lag <= numLags; lag++) {
             for (int col = 0; col < dataSize; col++) {
                 for (int row = 0; row < laggedRows; row++) {
@@ -604,6 +604,44 @@ public class TimeSeriesUtils {
 //        laggedData.setKnowledge(knowledge);
 //        System.out.println("Knowledge set to : " + knowledge);
 //        return laggedData;
+    }
+
+    /**
+     * Creates dataset of differenced variables from a lagged dataset
+     * Input must have associated knowledge in tiers
+     * Variables must be continuous
+     */
+    public static DataSet createDifferencedData(DataSet data) {
+        IKnowledge knowledge;
+        if(data.getKnowledge().isEmpty()){
+            throw new IllegalStateException("Need to input a lagged dataset with knowledge tiers");
+        } else {
+            knowledge = data.getKnowledge();
+        }
+        List<Node> variables = data.getVariables();
+        int dataSize = variables.size();
+        int numRows = data.getNumRows();
+        // rename variables?
+
+        int numTiers = knowledge.getNumTiers();
+        int numVars = dataSize/numTiers;
+
+        final List<Node> nodes = variables.subList(0, numVars);
+        DataSet differencedData = new BoxDataSet(new VerticalDoubleDataBox(numRows, nodes.size()), nodes);
+//        for (int tier = 1; tier < numTiers; tier++) {
+        int tier = 1;
+        for (int col = 0; col < numVars; col++) {
+            if (!(variables.get(col) instanceof ContinuousVariable)) {
+                throw new IllegalStateException("All variables must be continuous");
+            }
+            for (int row = 0; row < numRows; row++) {
+                double value = data.getDouble(row, (tier-1)*numVars + col);
+                double lagvalue = data.getDouble(row, tier * numVars + col);
+
+                differencedData.setDouble(row, col, value - lagvalue);
+            }
+        }
+        return differencedData;
     }
 
     public static TimeLagGraph graphToLagGraph(Graph _graph, int numLags) {

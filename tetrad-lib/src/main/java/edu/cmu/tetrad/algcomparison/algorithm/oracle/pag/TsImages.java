@@ -8,6 +8,8 @@ import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
+import edu.cmu.tetrad.annotation.Bootstrapping;
+import edu.cmu.tetrad.annotation.TimeSeries;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
@@ -22,8 +24,9 @@ import edu.cmu.tetrad.search.SemBicScoreImages;
 import edu.cmu.tetrad.search.TsDagToPag;
 import edu.cmu.tetrad.search.TsGFci;
 import edu.cmu.tetrad.util.Parameters;
-import edu.pitt.dbmi.algo.bootstrap.BootstrapEdgeEnsemble;
-import edu.pitt.dbmi.algo.bootstrap.GeneralBootstrapTest;
+import edu.cmu.tetrad.util.Params;
+import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
+import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +41,8 @@ import java.util.List;
         command = "ts-imgs",
         algoType = AlgType.forbid_latent_common_causes
 )
+@TimeSeries
+@Bootstrapping
 public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm, UsesScoreWrapper {
 
     static final long serialVersionUID = 23L;
@@ -58,7 +63,7 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
 
     @Override
     public Graph search(DataModel dataModel, Parameters parameters) {
-        if (parameters.getInt("bootstrapSampleSize") < 1) {
+        if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             DataSet dataSet = (DataSet) dataModel;
             TsGFci search;
             if(knowledge != null) {
@@ -68,30 +73,35 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
             IndependenceTest test = new IndTestScore(score1);
             search = new TsGFci(test, score1);
             search.setKnowledge(dataSet.getKnowledge());
-            search.setVerbose(parameters.getBoolean("verbose"));
+            search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             
             return search.search();
         } else {
             TsImages algorithm = new TsImages(score);
 
             DataSet data = (DataSet) dataModel;
-            GeneralBootstrapTest search = new GeneralBootstrapTest(data, algorithm, parameters.getInt("bootstrapSampleSize"));
+            GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(knowledge);
 
-            BootstrapEdgeEnsemble edgeEnsemble = BootstrapEdgeEnsemble.Highest;
-            switch (parameters.getInt("bootstrapEnsemble", 1)) {
+            search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
+            search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
+            
+            ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+            switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
                 case 0:
-                    edgeEnsemble = BootstrapEdgeEnsemble.Preserved;
+                    edgeEnsemble = ResamplingEdgeEnsemble.Preserved;
                     break;
                 case 1:
-                    edgeEnsemble = BootstrapEdgeEnsemble.Highest;
+                    edgeEnsemble = ResamplingEdgeEnsemble.Highest;
                     break;
                 case 2:
-                    edgeEnsemble = BootstrapEdgeEnsemble.Majority;
+                    edgeEnsemble = ResamplingEdgeEnsemble.Majority;
             }
             search.setEdgeEnsemble(edgeEnsemble);
+            search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
+            
             search.setParameters(parameters);
-            search.setVerbose(parameters.getBoolean("verbose"));
+            search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             return search.search();
         }
     }
@@ -114,13 +124,11 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = score.getParameters();
-        parameters.add("numRuns");
-        parameters.add("randomSelectionSize");
-        // Bootstrapping
-        parameters.add("bootstrapSampleSize");
-        parameters.add("bootstrapEnsemble");
-        parameters.add("verbose");
+        List<String> parameters = new ArrayList<>();
+        parameters.add(Params.NUM_RUNS);
+        parameters.add(Params.RANDOM_SELECTION_SIZE);
+
+        parameters.add(Params.VERBOSE);
         return parameters;
     }
 
@@ -146,12 +154,12 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
 
         if (score instanceof SemBicScore) {
             SemBicScoreImages gesScore = new SemBicScoreImages(dataModels);
-            gesScore.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
+            gesScore.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
             IndependenceTest test = new IndTestScore(gesScore);
             search = new TsGFci(test, gesScore);
         } else if (score instanceof BdeuScore) {
-            double samplePrior = parameters.getDouble("samplePrior", 1);
-            double structurePrior = parameters.getDouble("structurePrior", 1);
+            double samplePrior = parameters.getDouble(Params.SAMPLE_PRIOR, 1);
+            double structurePrior = parameters.getDouble(Params.STRUCTURE_PRIOR, 1);
             BdeuScoreImages score = new BdeuScoreImages(dataModels);
             score.setSamplePrior(samplePrior);
             score.setStructurePrior(structurePrior);
@@ -169,6 +177,11 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
     @Override
     public void setScoreWrapper(ScoreWrapper score) {
         this.score = score;
+    }
+    
+    @Override
+    public ScoreWrapper getScoreWrapper() {
+        return score;
     }
 
 }

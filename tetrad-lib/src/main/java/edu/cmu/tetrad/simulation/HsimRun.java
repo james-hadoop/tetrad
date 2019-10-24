@@ -5,8 +5,7 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.DelimiterUtils;
-import edu.pitt.dbmi.data.reader.tabular.TabularDataReader;
-import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDataReader;
+import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDatasetFileReader;
 import java.io.FileWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,7 +25,7 @@ public class HsimRun {
         try {
             Path dataFile = Paths.get(readfilename);
 
-            TabularDataReader dataReader = new VerticalDiscreteTabularDataReader(dataFile.toFile(), DelimiterUtils.toDelimiter(delimiter));
+            VerticalDiscreteTabularDatasetFileReader dataReader = new VerticalDiscreteTabularDatasetFileReader(dataFile, DelimiterUtils.toDelimiter(delimiter));
             DataSet dataSet = (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
             System.out.println("cols: " + dataSet.getNumColumns() + " rows: " + dataSet.getNumRows());
 
@@ -34,13 +33,12 @@ public class HsimRun {
             //DataWriter.writeRectangularData(dataSet, new FileWriter("dataOut2.txt"), '\t');
             //apply Hsim to data, with whatever parameters
             //========first make the Dag for Hsim==========
-            //ICovarianceMatrix cov = new CovarianceMatrixOnTheFly(dataSet);
+            //ICovarianceMatrix cov = new CovarianceMatrix(dataSet);
             double penaltyDiscount = 2.0;
-            SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
+            SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
             score.setPenaltyDiscount(penaltyDiscount);
             Fges fges = new Fges(score);
             fges.setVerbose(false);
-            fges.setNumPatternsToStore(0);
 //            fges.setCorrErrorsAlpha(penaltyDiscount);
             //fges.setOut(out);
             //fges.setFaithfulnessAssumed(true);
@@ -84,7 +82,7 @@ public class HsimRun {
 
             //=======Run FGES on the output data, and compare it to the original learned graph
             Path dataFileOut = Paths.get(filenameOut);
-            TabularDataReader dataReaderOut = new VerticalDiscreteTabularDataReader(dataFileOut.toFile(), DelimiterUtils.toDelimiter(delimiter));
+            VerticalDiscreteTabularDatasetFileReader dataReaderOut = new VerticalDiscreteTabularDatasetFileReader(dataFileOut, DelimiterUtils.toDelimiter(delimiter));
 
             DataSet dataSetOut = (DataSet) DataConvertUtils.toDataModel(dataReaderOut.readInData());
 
@@ -92,7 +90,6 @@ public class HsimRun {
             _score.setPenaltyDiscount(2.0);
             Fges fgesOut = new Fges(_score);
             fgesOut.setVerbose(false);
-            fgesOut.setNumPatternsToStore(0);
 //            fgesOut.setCorrErrorsAlpha(2.0);
             //fgesOut.setOut(out);
             //fgesOut.setFaithfulnessAssumed(true);

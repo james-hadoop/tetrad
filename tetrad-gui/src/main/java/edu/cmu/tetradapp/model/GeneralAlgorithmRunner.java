@@ -23,18 +23,14 @@ package edu.cmu.tetradapp.model;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.cluster.ClusterAlgorithm;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
-import edu.cmu.tetrad.algcomparison.score.BdeuScore;
+import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
+import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.score.DSeparationScore;
+import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
-import edu.cmu.tetrad.data.ColtDataSet;
-import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DataModelList;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.data.ICovarianceMatrix;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.data.KnowledgeBoxInput;
+import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
@@ -68,13 +64,13 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
 
     private DataWrapper dataWrapper;
     private String name;
-    private Algorithm algorithm = new Fges(new BdeuScore(), false);
+    private Algorithm algorithm;
     private Parameters parameters;
     private Graph sourceGraph;
     private Graph initialGraph;
     private List<Graph> graphList = new ArrayList<>();
     private IKnowledge knowledge = new Knowledge2();
-    private final Map<String, Object> models = new HashMap<>();
+    private final Map<String, Object> userAlgoSelections = new HashMap<>();
     private transient List<IndependenceTest> independenceTests = null;
 
     //===========================CONSTRUCTORS===========================//
@@ -232,6 +228,22 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
             if (getSourceGraph() != null) {
                 Algorithm algo = getAlgorithm();
 
+                if (algo instanceof TakesIndependenceWrapper) {
+                    // We inject the graph to the test to satisfy the tests like DSeparationTest - Zhou
+                    IndependenceWrapper indTestWrapper = ((TakesIndependenceWrapper) algo).getIndependenceWrapper();
+                    if (indTestWrapper instanceof DSeparationTest) {
+                        ((DSeparationTest) indTestWrapper).setGraph(getSourceGraph());
+                    }
+                }
+
+                if (algo instanceof UsesScoreWrapper) {
+                    // We inject the graph to the score to satisfy the tests like DSeparationScore - Zhou
+                    ScoreWrapper scoreWrapper = ((UsesScoreWrapper) algo).getScoreWrapper();
+                    if (scoreWrapper instanceof DSeparationScore) {
+                        ((DSeparationScore) scoreWrapper).setGraph(getSourceGraph());
+                    }
+                }
+
                 if (algo instanceof HasKnowledge) {
                     ((HasKnowledge) algo).setKnowledge(getKnowledge());
                 }
@@ -282,30 +294,31 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                     });
                 }
             } else {
-                getDataModelList().forEach(data -> {
-                    IKnowledge knowledgeFromData = data.getKnowledge();
-                    if (!(knowledgeFromData == null || knowledgeFromData.getVariables().isEmpty())) {
-                        this.knowledge = knowledgeFromData;
-                    }
+                Algorithm algo = getAlgorithm();
+                if (algo != null) {
+                    getDataModelList().forEach(data -> {
+                        IKnowledge knowledgeFromData = data.getKnowledge();
+                        if (!(knowledgeFromData == null || knowledgeFromData.getVariables().isEmpty())) {
+                            this.knowledge = knowledgeFromData;
+                        }
 
-                    Algorithm algo = getAlgorithm();
-                    if (algo instanceof HasKnowledge) {
-                        ((HasKnowledge) algo).setKnowledge(getKnowledge());
-                    }
+                        if (algo instanceof HasKnowledge) {
+                            ((HasKnowledge) algo).setKnowledge(getKnowledge());
+                        }
 
-                    DataType algDataType = algo.getDataType();
+                        DataType algDataType = algo.getDataType();
 
-                    if (data.isContinuous() && (algDataType == DataType.Continuous || algDataType == DataType.Mixed)) {
-                        graphList.add(algo.search(data, parameters));
-                    } else if (data.isDiscrete() && (algDataType == DataType.Discrete || algDataType == DataType.Mixed)) {
-                        graphList.add(algo.search(data, parameters));
-                    } else if (data.isMixed() && algDataType == DataType.Mixed) {
-                        graphList.add(algo.search(data, parameters));
-                    } else {
-                        throw new IllegalArgumentException("The type of data changed; try opening up the search editor and "
-                                + "running the algorithm there.");
-                    }
-                });
+                        if (data.isContinuous() && (algDataType == DataType.Continuous || algDataType == DataType.Mixed)) {
+                            graphList.add(algo.search(data, parameters));
+                        } else if (data.isDiscrete() && (algDataType == DataType.Discrete || algDataType == DataType.Mixed)) {
+                            graphList.add(algo.search(data, parameters));
+                        } else if (data.isMixed() && algDataType == DataType.Mixed) {
+                            graphList.add(algo.search(data, parameters));
+                        } else {
+                            throw new IllegalArgumentException("The algorithm was not expecting that type of data.");
+                        }
+                    });
+                }
             }
         }
 
@@ -375,7 +388,7 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
         } else {
 
             // Do not throw an exception here!
-            return new ColtDataSet(0, new ArrayList<Node>());
+            return new BoxDataSet(new VerticalDoubleDataBox(0, 0), new ArrayList<>());
         }
     }
 
@@ -529,8 +542,8 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
         return compareGraphs;
     }
 
-    public Map<String, Object> getModels() {
-        return models;
+    public Map<String, Object> getUserAlgoSelections() {
+        return userAlgoSelections;
     }
 
 }

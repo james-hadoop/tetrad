@@ -1,6 +1,6 @@
 package edu.cmu.tetrad.simulation;
 
-import edu.cmu.tetrad.data.CovarianceMatrixOnTheFly;
+import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Dag;
@@ -13,9 +13,8 @@ import edu.cmu.tetrad.sem.SemEstimator;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.DataConvertUtils;
-import edu.pitt.dbmi.data.Delimiter;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
-import edu.pitt.dbmi.data.reader.tabular.TabularDataReader;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 import java.io.File;
 import java.io.PrintWriter;
 import java.nio.file.Path;
@@ -70,7 +69,7 @@ public class HsimEvalFromData {
                 eVars.add("MULT");
                 Path dataFile = Paths.get("data/data.1.txt");
 
-                TabularDataReader dataReader = new ContinuousTabularDataFileReader(dataFile.toFile(), Delimiter.TAB);
+                ContinuousTabularDatasetFileReader dataReader = new ContinuousTabularDatasetFileReader(dataFile, Delimiter.TAB);
 
                 data1 = (DataSet) DataConvertUtils.toDataModel(dataReader.readInData(eVars));
                 vars = data1.getNumColumns();
@@ -78,11 +77,10 @@ public class HsimEvalFromData {
                 edgeratio = 3;
 
                 //!#@^$@&%^!#$!&@^ CALCULATING TARGET ERRORS $%$#@^@!%!#^$!%$#%
-                ICovarianceMatrix newcov = new CovarianceMatrixOnTheFly(data1);
+                ICovarianceMatrix newcov = new CovarianceMatrix(data1);
                 SemBicScore oscore = new SemBicScore(newcov);
                 Fges ofgs = new Fges(oscore);
                 ofgs.setVerbose(false);
-                ofgs.setNumPatternsToStore(0);
                 Graph oFGSGraph = ofgs.search();//***********This is the original FGS output on the data
                 PRAOerrors oErrors = new PRAOerrors(HsimUtils.errorEval(oFGSGraph, odag), "target errors");
 
@@ -105,11 +103,10 @@ public class HsimEvalFromData {
 
                         DataSet simData = fittedIM.simulateData(data1.getNumRows(), false);
                         //after making the full resim data (simData), run FGS on that
-                        ICovarianceMatrix simcov = new CovarianceMatrixOnTheFly(simData);
+                        ICovarianceMatrix simcov = new CovarianceMatrix(simData);
                         SemBicScore simscore = new SemBicScore(simcov);
                         Fges simfgs = new Fges(simscore);
                         simfgs.setVerbose(false);
-                        simfgs.setNumPatternsToStore(0);
                         Graph simGraphOut = simfgs.search();
                         PRAOerrors simErrors = new PRAOerrors(HsimUtils.errorEval(simGraphOut, fgsdag2), "Fsim errors " + r);
                         errorsList.add(simErrors);

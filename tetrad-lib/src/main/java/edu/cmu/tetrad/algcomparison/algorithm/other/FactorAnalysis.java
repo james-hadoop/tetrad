@@ -1,12 +1,12 @@
 package edu.cmu.tetrad.algcomparison.algorithm.other;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.*;
-import edu.pitt.dbmi.algo.bootstrap.BootstrapEdgeEnsemble;
-import edu.pitt.dbmi.algo.bootstrap.GeneralBootstrapTest;
-
+import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
+import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,11 +15,12 @@ import java.util.Vector;
 /**
  * @author jdramsey
  */
+@Bootstrapping
 public class FactorAnalysis implements Algorithm {
     static final long serialVersionUID = 23L;
 
     public Graph search(DataModel ds, Parameters parameters) {
-    	if (parameters.getInt("bootstrapSampleSize") < 1) {
+    	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 
             DataSet selectedModel = (DataSet) ds;
 
@@ -79,7 +80,7 @@ public class FactorAnalysis implements Algorithm {
                 }
             }
 
-            if (parameters.getBoolean("verbose")) {
+            if (parameters.getBoolean(Params.VERBOSE)) {
                 NumberFormat nf = NumberFormatUtil.getInstance().getNumberFormat();
 
                 String output = "Unrotated Factor Loading Matrix:\n";
@@ -100,23 +101,27 @@ public class FactorAnalysis implements Algorithm {
     		FactorAnalysis algorithm = new FactorAnalysis();
     		
 			DataSet data = (DataSet) ds;
-			GeneralBootstrapTest search = new GeneralBootstrapTest(data, algorithm,
-					parameters.getInt("bootstrapSampleSize"));
+			GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
 
-			BootstrapEdgeEnsemble edgeEnsemble = BootstrapEdgeEnsemble.Highest;
-			switch (parameters.getInt("bootstrapEnsemble", 1)) {
-			case 0:
-				edgeEnsemble = BootstrapEdgeEnsemble.Preserved;
-				break;
-			case 1:
-				edgeEnsemble = BootstrapEdgeEnsemble.Highest;
-				break;
-			case 2:
-				edgeEnsemble = BootstrapEdgeEnsemble.Majority;
-			}
+			search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
+            search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
+            
+            ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+            switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
+                case 0:
+                    edgeEnsemble = ResamplingEdgeEnsemble.Preserved;
+                    break;
+                case 1:
+                    edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+                    break;
+                case 2:
+                    edgeEnsemble = ResamplingEdgeEnsemble.Majority;
+            }
 			search.setEdgeEnsemble(edgeEnsemble);
+			search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
+			
 			search.setParameters(parameters);
-			search.setVerbose(parameters.getBoolean("verbose"));
+			search.setVerbose(parameters.getBoolean(Params.VERBOSE));
 			return search.search();
     	}
     }
@@ -163,10 +168,9 @@ public class FactorAnalysis implements Algorithm {
         params.add("numFactors");
         params.add("useVarimax");
         params.add("convergenceThreshold");
-        params.add("verbose");
-        // Bootstrapping
-        params.add("bootstrapSampleSize");
-        params.add("bootstrapEnsemble");
+
+        params.add(Params.VERBOSE);
+
         return params;
     }
 }

@@ -169,7 +169,7 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
             DataSet dataSet = (DataSet) model;
 
             if (dataSet.isContinuous()) {
-                SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) model));
+                SemBicScore score = new SemBicScore(new CovarianceMatrix((DataSet) model));
                 target = score.getVariable(targetName);
                 score.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
                 fges = new FgesMb(score);
@@ -255,7 +255,7 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
 //                target = dataSet.getVariable(targetName);
 //
 //                if (dataSet.isContinuous()) {
-//                    SemBicScore gesScore = new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataModel),
+//                    SemBicScore gesScore = new SemBicScore(new CovarianceMatrix((DataSet) dataModel),
 //                            getParameters().getDepErrorsAlpha());
 //                    fges = new FgesMb(gesScore, target);
 //                } else if (dataSet.isDiscrete()) {
@@ -310,7 +310,7 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
         fges.setNumPatternsToStore(params.getInt("numPatternsToSave", 1));
         fges.setVerbose(true);
 //        fges.setHeuristicSpeedup(((Parameters) params.getIndTestParams()).isFaithfulnessAssumed());
-        fges.setMaxIndegree(params.getInt("depth", -1));
+        fges.setMaxDegree(params.getInt("depth", -1));
         Graph graph = fges.search(target);
 
         if (getSourceGraph() != null) {

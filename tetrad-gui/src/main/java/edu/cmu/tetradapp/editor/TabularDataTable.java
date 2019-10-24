@@ -25,8 +25,10 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DiscreteVariable;
 import edu.cmu.tetrad.data.Variable;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.NodeVariableType;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
 import javax.swing.table.AbstractTableModel;
 
 /**
@@ -36,6 +38,8 @@ import javax.swing.table.AbstractTableModel;
  * @author Joseph Ramsey
  */
 class TabularDataTable extends AbstractTableModel {
+
+    private static final long serialVersionUID = 8832459230421410126L;
 
     /**
      * The DataSet being displayed.
@@ -52,6 +56,15 @@ class TabularDataTable extends AbstractTableModel {
      */
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
+    /**
+     * Table header notations
+     */
+    private final String columnHeaderNotationDefault = "C";
+    private final String columnHeaderNotationContinuous = "-C";
+    private final String columnHeaderNotationDiscrete = "-D";
+    private final String columnHeaderNotationInterventionStatus = "-I_S";
+    private final String columnHeaderNotationInterventionValue = "-I_V";
+    
     /**
      * Constructs a new DisplayTableModel to wrap the given dataSet.
      *
@@ -113,9 +126,24 @@ class TabularDataTable extends AbstractTableModel {
             Node variable = dataSet.getVariable(columnIndex);
 
             if (row == 0) {
-                boolean discrete = variable instanceof DiscreteVariable;
-                return "C" + Integer.toString(columnIndex + 1)
-                        + (discrete ? "-T" : "");
+                // Append "-D" notation to discrete variables, "-C" for continuous
+                // and append additional "-I" for those added interventional variables - Zhou
+                String columnHeader = columnHeaderNotationDefault + Integer.toString(columnIndex + 1);
+                
+                if (variable instanceof DiscreteVariable) {
+                    columnHeader += columnHeaderNotationDiscrete;
+                } else if (variable instanceof ContinuousVariable) {
+                    columnHeader += columnHeaderNotationContinuous;
+                }
+
+                // Add header notations for interventional status and value
+                if (variable.getNodeVariableType() == NodeVariableType.INTERVENTION_STATUS) {
+                    columnHeader += columnHeaderNotationInterventionStatus;
+                } else  if (variable.getNodeVariableType() == NodeVariableType.INTERVENTION_VALUE) {
+                    columnHeader += columnHeaderNotationInterventionValue;
+                }
+                
+                return columnHeader;
             } else if (row == 1) {
                 return dataSet.getVariable(columnIndex).getName();
             } else if (rowIndex >= dataSet.getNumRows()) {
@@ -156,39 +184,17 @@ class TabularDataTable extends AbstractTableModel {
      * given coordinates is returned.
      */
     public void setValueAt(Object value, int row, int col) {
+        dataSet.ensureColumns(col - getNumLeadingCols() + 1, new ArrayList<>());
+        dataSet.ensureRows(row - getNumLeadingRows() + 1);
+
         if (col == 0) {
             throw new IllegalArgumentException("Bad col index: " + col);
         }
-//        if (col == 1) {
-//            if (row >= 2) {
-//                try {
-//                    int multiplier = new Integer((String) value);
-//                    dataSet.setMultiplier(row - 2, multiplier);
-//                }
-//                catch (Exception e) {
-//                    dataSet.setMultiplier(row - 2, 1);
-//                }
-//            }
-//        }
-//        else
+
         if (col >= getNumLeadingCols()
                 && col < dataSet.getNumColumns() + getNumLeadingCols()) {
             if (row == 1) {
                 setColumnName(col, value);
-            } else if (row > 1) {
-                try {
-                    pasteIntoColumn(row, col, value);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    pcs.firePropertyChange("modelChanged", null, null);
-                    return;
-                }
-            }
-        } else {
-            addColumnsOutTo(col);
-
-            if (row == 1) {
-                setColumnName(col, newColumnName((String) value));
             } else if (row > 1) {
                 try {
                     pasteIntoColumn(row, col, value);
@@ -275,7 +281,6 @@ class TabularDataTable extends AbstractTableModel {
 
         if (variable instanceof ContinuousVariable && value instanceof Number) {
             dataSet.setObject(dataRow, dataCol, value);
-//            dataSet.setDouble(dataRow, dataCol, (Double) value);
             return;
         }
 

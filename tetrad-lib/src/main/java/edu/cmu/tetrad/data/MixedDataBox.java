@@ -21,7 +21,6 @@
 package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Node;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,6 +61,8 @@ public class MixedDataBox implements DataBox {
                 Arrays.fill(discreteData[j], -99);
             }
         }
+
+
     }
 
     /**
@@ -126,7 +127,9 @@ public class MixedDataBox implements DataBox {
      * @return
      */
     public static BoxDataSet serializableInstance() {
-        return new BoxDataSet(new ShortDataBox(4, 4), null);
+        List<Node> vars = new ArrayList<>();
+        for (int i = 0; i < 4; i++) vars.add(new ContinuousVariable("X" + i));
+        return new BoxDataSet(new ShortDataBox(4, 4), vars);
     }
 
     /**
@@ -182,6 +185,10 @@ public class MixedDataBox implements DataBox {
      */
     @Override
     public Number get(int row, int col) {
+        if (col >= continuousData.length || row >= numRows()) {
+            return null;
+        }
+
         if (continuousData[col] != null) {
             double v = continuousData[col][row];
             return v == Double.NaN ? null : v;
@@ -250,15 +257,26 @@ public class MixedDataBox implements DataBox {
             newVars.add(variables.get(c));
         }
 
-        DataBox _dataBox = new MixedDataBox(newVars, numRows);
+        int row_num = rows.length;
+        int col_num = cols.length;
+        
+        DataBox _dataBox = new MixedDataBox(newVars, row_num);
 
-        for (int i = 0; i < rows.length; i++) {
-            for (int j = 0; j < cols.length; j++) {
+        for (int i = 0; i < row_num; i++) {
+            for (int j = 0; j < col_num; j++) {
                 _dataBox.set(i, j, get(rows[i], cols[j]));
             }
         }
 
         return _dataBox;
+    }
+    
+    public double[][] getContinuousData() {
+        return continuousData;
+    }
+
+    public int[][] getDiscreteData() {
+        return discreteData;
     }
 
 }

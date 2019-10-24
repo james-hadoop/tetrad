@@ -30,8 +30,7 @@ import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.DelimiterUtils;
 import edu.cmu.tetrad.util.RandomUtil;
-import edu.pitt.dbmi.data.reader.tabular.TabularDataReader;
-import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDataReader;
+import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDatasetFileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -94,7 +93,7 @@ public class TestGFci {
         gFci.setFaithfulnessAssumed(true);
         Graph outGraph = gFci.search();
 
-        final DagToPag dagToPag = new DagToPag(dag);
+        final DagToPag2 dagToPag = new DagToPag2(dag);
         dagToPag.setCompleteRuleSetUsed(false);
         dagToPag.setMaxPathLength(maxPathLength);
         Graph truePag = dagToPag.convert();
@@ -178,7 +177,7 @@ public class TestGFci {
             gfci.setFaithfulnessAssumed(true);
             Graph pag1 = gfci.search();
 
-            DagToPag dagToPag = new DagToPag(dag);
+            DagToPag2 dagToPag = new DagToPag2(dag);
             dagToPag.setCompleteRuleSetUsed(false);
             Graph pag2 = dagToPag.convert();
 
@@ -207,8 +206,8 @@ public class TestGFci {
 
         data = DataUtils.restrictToMeasured(data);
 
-        IndependenceTest test = new IndTestFisherZ(new CovarianceMatrixOnTheFly(data), 0.001);
-        SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(data));
+        IndependenceTest test = new IndTestFisherZ(new CovarianceMatrix(data), 0.001);
+        SemBicScore score = new SemBicScore(new CovarianceMatrix(data));
         score.setPenaltyDiscount(4);
         GFci gFci = new GFci(test, score);
         gFci.setFaithfulnessAssumed(true);
@@ -221,7 +220,7 @@ public class TestGFci {
 
         System.out.println("Elapsed " + (stop - start) + " ms");
 
-        DagToPag dagToPag = new DagToPag(g);
+        DagToPag2 dagToPag = new DagToPag2(g);
         dagToPag.setVerbose(false);
     }
 
@@ -252,7 +251,7 @@ public class TestGFci {
 
         System.out.println("Elapsed " + (stop - start) + " ms");
 
-        DagToPag dagToPag = new DagToPag(g);
+        DagToPag2 dagToPag = new DagToPag2(g);
         dagToPag.setVerbose(false);
     }
 
@@ -262,7 +261,7 @@ public class TestGFci {
         char delimiter = '\t';
         Path dataFile = Paths.get("./src/test/resources/sim_discrete_data_20vars_100cases.txt");
 
-        TabularDataReader dataReader = new VerticalDiscreteTabularDataReader(dataFile.toFile(), DelimiterUtils.toDelimiter(delimiter));
+        VerticalDiscreteTabularDatasetFileReader dataReader = new VerticalDiscreteTabularDatasetFileReader(dataFile, DelimiterUtils.toDelimiter(delimiter));
         DataSet dataSet = (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
 
         IndependenceTest indTest = new IndTestChiSquare(dataSet, alpha);

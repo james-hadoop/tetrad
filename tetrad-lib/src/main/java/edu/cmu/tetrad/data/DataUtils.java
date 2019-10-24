@@ -216,7 +216,7 @@ public final class DataUtils {
     public static DataSet continuousSerializableInstance() {
         List<Node> variables = new LinkedList<>();
         variables.add(new ContinuousVariable("X"));
-        DataSet dataSet = new ColtDataSet(10, variables);
+        DataSet dataSet = new BoxDataSet(new VerticalDoubleDataBox( 10, variables.size()), variables);
 
         for (int i = 0; i < dataSet.getNumRows(); i++) {
             for (int j = 0; j < dataSet.getNumColumns(); j++) {
@@ -233,7 +233,7 @@ public final class DataUtils {
     public static DataSet discreteSerializableInstance() {
         List<Node> variables = new LinkedList<>();
         variables.add(new DiscreteVariable("X", 2));
-        DataSet dataSet = new ColtDataSet(2, variables);
+        DataSet dataSet = new BoxDataSet(new VerticalDoubleDataBox(2, variables.size()), variables);
         dataSet.setInt(0, 0, 0);
         dataSet.setInt(1, 0, 1);
         return dataSet;
@@ -418,7 +418,7 @@ public final class DataUtils {
 
             TetradMatrix data2 = DataUtils.standardizeData(dataSet.getDoubleData());
 
-            DataSet dataSet2 = ColtDataSet.makeContinuousData(dataSet.getVariables(), data2);
+            DataSet dataSet2 = new BoxDataSet(new VerticalDoubleDataBox(data2.transpose().toArray()), dataSet.getVariables());
             outList.add(dataSet2);
         }
 
@@ -520,7 +520,7 @@ public final class DataUtils {
                 list2.add(node);
             }
 
-            DataSet dataSet2 = ColtDataSet.makeContinuousData(list2, data2);
+            DataSet dataSet2 = new BoxDataSet(new VerticalDoubleDataBox(data2.transpose().toArray()), list2);
             outList.add(dataSet2);
         }
 
@@ -746,8 +746,7 @@ public final class DataUtils {
             }
         }
 
-        DataSet continuousData = new ColtDataSet(dataSet.getNumRows(),
-                variables);
+        DataSet continuousData = new BoxDataSet(new VerticalDoubleDataBox(dataSet.getNumRows(), variables.size()), variables);
 
         for (int j = 0; j < dataSet.getNumColumns(); j++) {
             Node variable = dataSet.getVariable(j);
@@ -803,7 +802,7 @@ public final class DataUtils {
             }
         }
 
-        return ColtDataSet.makeData(vars1, concatMatrix);
+        return new BoxDataSet(new VerticalDoubleDataBox(concatMatrix.transpose().toArray()), vars1);
     }
 
 //    public static TetradMatrix concatenate(TetradMatrix dataSet1, TetradMatrix dataSet2) {
@@ -887,7 +886,7 @@ public final class DataUtils {
             q += r;
         }
 
-        return ColtDataSet.makeContinuousData(dataSets.get(0).getVariables(), allData);
+        return new BoxDataSet(new VerticalDoubleDataBox(allData.transpose().toArray()), dataSets.get(0).getVariables());
     }
 
     public static TetradMatrix concatenateTetradMatrices(List<TetradMatrix> dataSets) {
@@ -948,7 +947,7 @@ public final class DataUtils {
             variables.addAll(dataSet.getVariables());
         }
 
-        return ColtDataSet.makeContinuousData(variables, allData);
+        return new BoxDataSet(new VerticalDoubleDataBox(allData.transpose().toArray()), variables);
     }
 
     public static DataSet concatenateDataNoChecks(List<DataSet> datasets) {
@@ -972,7 +971,7 @@ public final class DataUtils {
             }
         }
 
-        return ColtDataSet.makeData(vars1, concatMatrix);
+        return new BoxDataSet(new VerticalDoubleDataBox(concatMatrix.transpose().toArray()), vars1);
     }
 
 
@@ -980,7 +979,7 @@ public final class DataUtils {
         List<Node> vars = dataSet1.getVariables();
         int rows1 = dataSet1.getNumRows();
         int rows2 = dataSet2.getNumRows();
-        DataSet concatData = new ColtDataSet(rows1 + rows2, vars);
+        DataSet concatData = new BoxDataSet(new VerticalDoubleDataBox(rows1 + rows2, vars.size()), vars);
 
         for (Node var : vars) {
             int var1 = dataSet1.getColumn(dataSet1.getVariable(var.toString()));
@@ -998,7 +997,7 @@ public final class DataUtils {
     }
 
     public static DataSet noisyZeroes(DataSet dataSet) {
-        dataSet = new ColtDataSet((ColtDataSet) dataSet);
+        dataSet = dataSet.copy();
 
         for (int j = 0; j < dataSet.getNumColumns(); j++) {
             boolean allZeroes = true;
@@ -1359,10 +1358,10 @@ public final class DataUtils {
         int sampleSize = cov.getSampleSize();
 
         List<Node> variables = cov.getVariables();
-        DataSet dataSet = new ColtDataSet(sampleSize, variables);
+        DataSet dataSet = new BoxDataSet(new VerticalDoubleDataBox(sampleSize, variables.size()), variables);
         TetradMatrix _cov = cov.getMatrix().copy();
 
-        TetradMatrix cholesky = MatrixUtils.choleskyC(_cov);
+        TetradMatrix cholesky = MatrixUtils.cholesky(_cov);
 
         System.out.println("Cholesky decomposition" + cholesky);
 
@@ -1424,6 +1423,43 @@ public final class DataUtils {
         return data.getSelection(rows, cols);
     }
 
+    /**
+     * @return a sample without replacement with the given sample size from the
+     * given dataset.
+     */
+    public static DataSet getResamplingDataset(DataSet data, int sampleSize) {
+    	int actualSampleSize = data.getNumRows();
+    	int _size = sampleSize;
+    	if(actualSampleSize < _size) {
+    		_size = actualSampleSize;
+    	}
+    	
+    	List<Integer> availRows = new ArrayList<>();
+    	for (int i = 0; i < actualSampleSize; i++) {
+    		availRows.add(i);
+    	}
+    	
+    	Collections.shuffle(availRows);
+    	
+    	List<Integer> addedRows = new ArrayList<>();
+        int[] rows = new int[_size];
+    	for (int i = 0; i < _size; i++) {
+            int row = -1;
+            int index = -1;
+            while(row == -1 || addedRows.contains(row)) {
+            	index = RandomUtil.getInstance().nextInt(availRows.size());
+            	row = availRows.get(index);
+            }
+            rows[i] = row;
+            addedRows.add(row);
+            availRows.remove(index);
+        }
+
+        int[] cols = new int[data.getNumColumns()];
+        for (int i = 0; i < cols.length; i++) cols[i] = i;
+
+        return new BoxDataSet(new VerticalDoubleDataBox(data.getDoubleData().getSelection(rows, cols).transpose().toArray()), data.getVariables());
+    }
 
     /**
      * @return a sample with replacement with the given sample size from the
@@ -1441,7 +1477,8 @@ public final class DataUtils {
         int[] cols = new int[data.getNumColumns()];
         for (int i = 0; i < cols.length; i++) cols[i] = i;
 
-        return ColtDataSet.makeData(data.getVariables(), data.getDoubleData().getSelection(rows, cols));
+        return new BoxDataSet(new VerticalDoubleDataBox(data.getDoubleData().getSelection(rows, cols).transpose().toArray()),
+                data.getVariables());
     }
 
     /**
@@ -1467,7 +1504,8 @@ public final class DataUtils {
         int[] cols = new int[data.getNumColumns()];
         for (int i = 0; i < cols.length; i++) cols[i] = i;
 
-        return ColtDataSet.makeData(data.getVariables(), data.getDoubleData().getSelection(rows, cols));
+        return new BoxDataSet(new VerticalDoubleDataBox(data.getDoubleData().getSelection(rows, cols).transpose().toArray()),
+                data.getVariables());
     }
 
     /**
@@ -1507,7 +1545,7 @@ public final class DataUtils {
      * @return The reduced covariance matrix.
      */
     public static TetradMatrix covMatrixForDefinedRows(DataSet dataSet, int[] vars, int[] n) {
-        DataSet _dataSet = new ColtDataSet((ColtDataSet) dataSet);
+        DataSet _dataSet = dataSet.copy();
         _dataSet = center(_dataSet);
 
         TetradMatrix reduced = new TetradMatrix(vars.length, vars.length);
@@ -1778,7 +1816,8 @@ public final class DataUtils {
 
             X.assignColumn(j, new TetradVector(x));
         }
-        return ColtDataSet.makeContinuousData(dataSet.getVariables(), X);
+
+        return new BoxDataSet(new VerticalDoubleDataBox(X.transpose().toArray()), dataSet.getVariables());
     }
 
     private static double[] ranks(TetradMatrix data, double[] x) {
