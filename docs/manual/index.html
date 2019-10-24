@@ -4244,6 +4244,18 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             </td>
         </ul>
 
+        <h3 id="numSubsamples" class="parameter_description">numSubsamples</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="numSubsamples_short_desc">Number of subsamples to examine</span></li>
+            <li>Long Description: <span id="numSubsamples_long_desc">Number of subsamples to examine</span>
+            </li>
+            <li>Default Value: <span id="numSubsamples_default_value">30</span></li>
+            <li>Lower Bound: <span id="numSubsamples_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="numSubsamples_upper_bound">50000</span></li>
+            <li>Value Type: <span id="numSubsamples_value_type">Integer</span></li>
+            </td>
+        </ul>
+
         <h3 id="numberResampling" class="parameter_description">numberResampling</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="numberResampling_short_desc">The number of bootstraps/resampling iterations (min = 0)</span>
@@ -4290,6 +4302,17 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Lower Bound: <span id="outputRBD_lower_bound"></span></li>
             <li>Upper Bound: <span id="outputRBD_upper_bound"></span></li>
             <li>Value Type: <span id="outputRBD_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="parallelism" class="parameter_description">parallelism</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="parallelism_short_desc">The number of threads to use in the parallel calculation</span></li>
+            <li>Long Description: <span id="parallelism_long_desc">The number of threads to use in the parallel calculation</span>
+            </li>
+            <li>Default Value: <span id="parallelism_default_value">10</span></li>
+            <li>Lower Bound: <span id="parallelism_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="parallelism_upper_bound">50000</span></li>
+            <li>Value Type: <span id="parallelism_value_type">Integer</span></li>
         </ul>
 
         <h3 id="penaltyDiscount" class="parameter_description">penaltyDiscount</h3>
@@ -4374,6 +4397,54 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Lower Bound: <span id="probTwoCycle_lower_bound">0.0</span></li>
             <li>Upper Bound: <span id="probTwoCycle_upper_bound">1.0</span></li>
             <li>Value Type: <span id="probTwoCycle_value_type">Double</span></li>
+        </ul>
+
+        <h3 id="q" class="parameter_description">q</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="q_short_desc">The particular q to examine (CStaS)</span>
+            </li>
+            <li>Long Description: <span id="q_long_desc">The particular q to examine (CStaS)</span>
+            </li>
+            <li>Default Value: <span id="q_default_value">10</span></li>
+            <li>Lower Bound: <span id="q_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="q_upper_bound">50000</span></li>
+            <li>Value Type: <span id="q_value_type">Integer</span></li>
+        </ul>
+
+        <h3 id="qFrom" class="parameter_description">q</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="qFrom_short_desc">Examine qs from this integer (CStaS)</span>
+            </li>
+            <li>Long Description: <span id="qFrom_long_desc">Examine qs from this integer (CStaS)</span>
+            </li>
+            <li>Default Value: <span id="qFrom_default_value">1</span></li>
+            <li>Lower Bound: <span id="qFrom_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="qFrom_upper_bound">50000</span></li>
+            <li>Value Type: <span id="qFrom_value_type">Integer</span></li>
+        </ul>
+
+        <h3 id="qTo" class="parameter_description">qTo</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="qTo_short_desc">Examine qs to this integer (CStaS)</span>
+            </li>
+            <li>Long Description: <span id="qTo_long_desc">Examine qs to this integer (CStaS)</span>
+            </li>
+            <li>Default Value: <span id="qTo_default_value">10</span></li>
+            <li>Lower Bound: <span id="qTo_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="qTo_upper_bound">50000</span></li>
+            <li>Value Type: <span id="qTo_value_type">Integer</span></li>
+        </ul>
+
+        <h3 id="qIncrement" class="parameter_description">qIncrement</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="qIncrement_short_desc">Examine qs, incrementing by this each time (CStaS)</span>
+            </li>
+            <li>Long Description: <span id="qIncrement_long_desc">Examine qs, incrementing by this each time (CStaS)</span>
+            </li>
+            <li>Default Value: <span id="qIncrement_default_value">1</span></li>
+            <li>Lower Bound: <span id="qIncrement_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="qIncrement_upper_bound">50000</span></li>
+            <li>Value Type: <span id="qIncrement_value_type">Integer</span></li>
         </ul>
 
         <h3 id="randomSelectionSize" class="parameter_description">randomSelectionSize</h3>
@@ -4522,6 +4593,18 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             </td>
         </ul>
 
+        <h3 id="selectionAlpha" class="parameter_description">selectionAlpha</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span
+                    id="selectionAlpha_short_desc">The alpha used for a Fisher Z test to select variables associated with the target</span></li>
+            <li>Long Description: <span id="selectionAlpha_long_desc">The alpha used for a Fisher Z test to select variables associated with the target</span>
+            </li>
+            <li>Default Value: <span id="selectionAlpha_default_value">0.05</span></li>
+            <li>Lower Bound: <span id="selectionAlpha_lower_bound">0.0</span></li>
+            <li>Upper Bound: <span id="selectionAlpha_upper_bound">1</span></li>
+            <li>Value Type: <span id="selectionAlpha_value_type">Double</span></li>
+        </ul>
+
         <h3 id="selfLoopCoef" class="parameter_description">selfLoopCoef</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span
@@ -4602,6 +4685,17 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Lower Bound: <span id="targetName_lower_bound"></span></li>
             <li>Upper Bound: <span id="targetName_upper_bound"></span></li>
             <li>Value Type: <span id="targetName_value_type">String</span></li>
+        </ul>
+
+        <h3 id="targetNames" class="parameter_description">targetNames</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="targetNames_short_desc">Target variable names (comnma separated list)</span></li>
+            <li>Long Description: <span id="targetNames_long_desc">Target variable names (comnma separated list)</span>
+            </li>
+            <li>Default Value: <span id="targetNames_default_value"></span></li>
+            <li>Lower Bound: <span id="targetNames_lower_bound"></span></li>
+            <li>Upper Bound: <span id="targetNames_upper_bound"></span></li>
+            <li>Value Type: <span id="targetNames_value_type">String</span></li>
         </ul>
 
         <h3 id="thr" class="parameter_description">thr</h3>

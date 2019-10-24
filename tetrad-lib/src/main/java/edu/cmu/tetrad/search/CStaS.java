@@ -4,9 +4,9 @@ import edu.cmu.tetrad.algcomparison.independence.ChiSquare;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.*;
-import edu.pitt.dbmi.data.Dataset;
-import edu.pitt.dbmi.data.Delimiter;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
+import edu.pitt.dbmi.data.reader.Data;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -323,8 +323,8 @@ public class CStaS {
         int avgEdges = (int) (edgesTotal[0] / (double) edgesCount[0]);
 //        avgEdges /= 2.0;
 
-//        qs.clear();
-//        qs.add(avgEdges);
+        qs.clear();
+        qs.add(avgEdges);
 
 
         List<List<Double>> doubles = new ArrayList<>();
@@ -374,11 +374,11 @@ public class CStaS {
                             int count = 0;
 
                             for (int k = 0; k < getNumSubsamples(); k++) {
-                                if (q >= doubles.get(k).size()) {
+                                if (q > doubles.get(k).size()) {
                                     continue;
                                 }
 
-                                double cutoff = doubles.get(k).get(q);
+                                double cutoff = doubles.get(k).get(q - 1);
 
                                 if (allEffects.get(k)[c][e] >= cutoff) {
                                     count++;
@@ -444,7 +444,7 @@ public class CStaS {
 
     private DataSet readData(File dir, String s) {
         try {
-            Dataset dataset = new ContinuousTabularDataFileReader(new File(dir, s), Delimiter.TAB).readInData();
+            Data dataset = new ContinuousTabularDatasetFileReader(new File(dir, s).toPath(), Delimiter.TAB).readInData();
             final DataSet dataSet = (DataSet) DataConvertUtils.toDataModel(dataset);
 
             System.out.println("Loaded data " + dataSet.getNumRows() + " x " + dataSet.getNumColumns());
@@ -713,25 +713,24 @@ public class CStaS {
     private Graph getPatternFges(DataSet sample) {
         Score score = new ScoredIndTest(getIndependenceTest(sample, this.test));
         Fges fges = new Fges(score);
-        fges.setParallelism(1);
         return fges.search();
     }
 
     private IndependenceTest getIndependenceTest(DataSet sample, IndependenceTest test) {
         if (test instanceof IndTestScore && ((IndTestScore) test).getWrappedScore() instanceof SemBicScore) {
-            SemBicScore score = new SemBicScore(new CorrelationMatrixOnTheFly(sample));
+            SemBicScore score = new SemBicScore(new CorrelationMatrix(sample));
             score.setPenaltyDiscount(((SemBicScore) ((IndTestScore) test).getWrappedScore()).getPenaltyDiscount());
             return new IndTestScore(score);
         } else if (test instanceof IndTestFisherZ) {
             double alpha = test.getAlpha();
-            return new IndTestFisherZ(new CorrelationMatrixOnTheFly(sample), alpha);
+            return new IndTestFisherZ(new CorrelationMatrix(sample), alpha);
         } else if (test instanceof ChiSquare) {
             double alpha = test.getAlpha();
             return new IndTestFisherZ(sample, alpha);
         } else if (test instanceof IndTestScore && ((IndTestScore) test).getWrappedScore() instanceof ConditionalGaussianScore) {
             ConditionalGaussianScore score = (ConditionalGaussianScore) ((IndTestScore) test).getWrappedScore();
             double penaltyDiscount = score.getPenaltyDiscount();
-            ConditionalGaussianScore _score = new ConditionalGaussianScore(sample, 1, false);
+            ConditionalGaussianScore _score = new ConditionalGaussianScore(sample, 1, 0, false);
             _score.setPenaltyDiscount(penaltyDiscount);
             return new IndTestScore(_score);
         } else {
@@ -763,7 +762,7 @@ public class CStaS {
 
     private double[][] loadMatrix(File file) {
         try {
-            Dataset dataset = new ContinuousTabularDataFileReader(file, Delimiter.TAB).readInData();
+            Data dataset = new ContinuousTabularDatasetFileReader(file.toPath(), Delimiter.TAB).readInData();
             final DataSet dataSet = (DataSet) DataConvertUtils.toDataModel(dataset);
 
             System.out.println("Loaded data " + dataSet.getNumRows() + " x " + dataSet.getNumColumns());

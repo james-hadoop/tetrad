@@ -41,10 +41,10 @@ public class CStaS implements Algorithm, TakesIndependenceWrapper {
 
         cStaS.setParallelism(parameters.getInt("parallelism"));
         cStaS.setNumSubsamples(parameters.getInt("numSubsamples"));
-        cStaS.setqFrom(parameters.getInt("q"));
-        cStaS.setqTo(parameters.getInt("q"));
-        cStaS.setqIncrement(1);
-        cStaS.setPatternAlgorithm(edu.cmu.tetrad.search.CStaS.PatternAlgorithm.PC_STABLE);
+        cStaS.setqFrom(parameters.getInt("qFrom"));
+        cStaS.setqTo(parameters.getInt("qTo"));
+        cStaS.setqIncrement(parameters.getInt("qIncrement"));
+        cStaS.setPatternAlgorithm(edu.cmu.tetrad.search.CStaS.PatternAlgorithm.FGES);
         cStaS.setSampleStyle(edu.cmu.tetrad.search.CStaS.SampleStyle.SPLIT);
         cStaS.setVerbose(parameters.getBoolean("verbose"));
 
@@ -94,10 +94,13 @@ public class CStaS implements Algorithm, TakesIndependenceWrapper {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>(test.getParameters());
         parameters.add("selectionAlpha");
-        parameters.add("penaltyDiscount");
+//        parameters.add("penaltyDiscount");
         parameters.add("numSubsamples");
         parameters.add("targetNames");
-        parameters.add("q");
+//        parameters.add("q");
+        parameters.add("qFrom");
+        parameters.add("qTo");
+        parameters.add("qIncrement");
         parameters.add("parallelism");
         return parameters;
     }
@@ -109,5 +112,10 @@ public class CStaS implements Algorithm, TakesIndependenceWrapper {
     @Override
     public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
         this.test = independenceWrapper;
+    }
+
+    @Override
+    public IndependenceWrapper getIndependenceWrapper() {
+        return test;
     }
 }

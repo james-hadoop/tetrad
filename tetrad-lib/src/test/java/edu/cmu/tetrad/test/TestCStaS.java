@@ -24,8 +24,8 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
-import edu.cmu.tetrad.data.CorrelationMatrixOnTheFly;
-import edu.cmu.tetrad.data.CovarianceMatrixOnTheFly;
+import edu.cmu.tetrad.data.CorrelationMatrix;
+import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.Graph;
@@ -37,12 +37,14 @@ import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.RandomUtil;
-import edu.pitt.dbmi.data.Dataset;
-import edu.pitt.dbmi.data.Delimiter;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
-import edu.pitt.dbmi.data.reader.tabular.TabularDataReader;
+import edu.pitt.dbmi.data.reader.Data;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -72,7 +74,7 @@ public class TestCStaS {
 
         Node y = dataSet.getVariable("X10");
 
-        SemBicScore score = new SemBicScore(new CorrelationMatrixOnTheFly(dataSet));
+        SemBicScore score = new SemBicScore(new CorrelationMatrix(dataSet));
         score.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
         IndependenceTest test = new IndTestScore(score);
 
@@ -194,7 +196,7 @@ public class TestCStaS {
         augmented = GraphUtils.replaceNodes(augmented, dataSet.getVariables());
         DataSet augmentedData = dataSet.subsetColumns(augmented);
 
-        SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(augmentedData));
+        SemBicScore score = new SemBicScore(new CovarianceMatrix(augmentedData));
         score.setPenaltyDiscount(penaltyDiscount);
         IndependenceTest test = new IndTestScore(score);
 
@@ -214,7 +216,7 @@ public class TestCStaS {
 
     public void testCStaS2() {
         int numNodes = 300;
-        double avgDegree = 1;
+        double avgDegree = 2;
         int sampleSize = 300;
 
         int numEffects = 10;
@@ -329,7 +331,7 @@ public class TestCStaS {
         augmented = GraphUtils.replaceNodes(augmented, dataSet.getVariables());
         DataSet augmentedData = dataSet.subsetColumns(augmented);
 
-        SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(augmentedData));
+        SemBicScore score = new SemBicScore(new CovarianceMatrix(augmentedData));
         score.setPenaltyDiscount(penaltyDiscount);
         IndependenceTest test = new IndTestScore(score);
 
@@ -361,12 +363,17 @@ public class TestCStaS {
         try {
 
             // Load stand.data.exp, mutant, and z.pos.
-            File file = new File("/Users/user/Downloads/stand.data.exp.csv");
-            File file2 = new File("/Users/user/Downloads/mutant.txt");
-            File file3 = new File("/Users/user/Downloads/z.pos.txt");
+            File file = new File("/Users/user/Box/data/hughes/stand.data.exp.csv");
+            File file2 = new File("/Users/user/Box/data/hughes/mutant.txt");
+            File file3 = new File("/Users/user/Box/data/hughes/z.pos.txt");
 
-            TabularDataReader reader = new ContinuousTabularDataFileReader(file, Delimiter.COMMA);
-            Dataset data = reader.readInData();
+
+            ContinuousTabularDatasetFileReader reader = new ContinuousTabularDatasetFileReader(file.toPath(), Delimiter.COMMA);
+            Data data = reader.readInData();
+
+
+
+
 
             DataSet standDataExp = (DataSet) DataConvertUtils.toDataModel(data);
 
@@ -377,8 +384,11 @@ public class TestCStaS {
                 node.setName(name);
             }
 
-            TabularDataReader reader2 = new ContinuousTabularDataFileReader(file2, Delimiter.TAB);
-            Dataset data2 = reader2.readInData();
+            ContinuousTabularDatasetFileReader reader2 = new ContinuousTabularDatasetFileReader(file2.toPath(), Delimiter.TAB);
+            Data data2 = reader2.readInData();
+
+            System.out.println("here");
+
 
             DataSet mutant = (DataSet) DataConvertUtils.toDataModel(data2);
 
@@ -416,7 +426,7 @@ public class TestCStaS {
             DataSet augmentedData = standDataExp.subsetColumns(augmented);
 
             // Run CStaS.
-            SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(augmentedData));
+            SemBicScore score = new SemBicScore(new CovarianceMatrix(augmentedData));
             score.setPenaltyDiscount(penaltyDiscount);
             IndependenceTest test = new IndTestScore(score);
 
@@ -430,7 +440,7 @@ public class TestCStaS {
             cstas.setVerbose(true);
 
             LinkedList<LinkedList<CStaS.Record>> allRecords
-                    = cstas.getRecords(augmentedData, possibleCauses, possibleEffects, test, "/Users/user/Downloads/hughes.out");
+                    = cstas.getRecords(augmentedData, possibleCauses, possibleEffects, test, "/Users/user/Box/data/hughes/hughes.out");
 
             for (LinkedList<CStaS.Record> records : allRecords) {
                 System.out.println(cstas.makeTable(records, false));
@@ -533,7 +543,7 @@ public class TestCStaS {
         try {
             File dir = new File("//Users/user/Downloads");
 
-            Dataset dataset = new ContinuousTabularDataFileReader(new File(dir, "searchexpv1.csv"), Delimiter.TAB).readInData();
+            Data dataset = new ContinuousTabularDatasetFileReader(new File(dir, "searchexpv1.csv").toPath(), Delimiter.TAB).readInData();
             final DataSet dataSet = (DataSet) DataConvertUtils.toDataModel(dataset);
 
 
@@ -542,7 +552,7 @@ public class TestCStaS {
 
             possibleCauses.add(dataSet.getVariable("G1"));
 
-            SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
+            SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
             score.setPenaltyDiscount(2);
 
             IndependenceTest test = new IndTestScore(score);
@@ -578,7 +588,7 @@ public class TestCStaS {
     }
 
     public static void main(String... args) {
-        new TestCStaS().testCStaS2();
+        new TestCStaS().testHughes();
     }
 }
 

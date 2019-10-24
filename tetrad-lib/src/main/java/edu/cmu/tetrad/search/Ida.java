@@ -1,6 +1,6 @@
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.CovarianceMatrixOnTheFly;
+import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
@@ -37,7 +37,7 @@ public class Ida {
         possibleCauses = GraphUtils.replaceNodes(possibleCauses, dataSet.getVariables());
         this.possibleCauses = possibleCauses;
 
-        allCovariances = new CovarianceMatrixOnTheFly(this.dataSet);
+        allCovariances = new CovarianceMatrix(this.dataSet);
 
         nodeIndices = new HashMap<>();
 
