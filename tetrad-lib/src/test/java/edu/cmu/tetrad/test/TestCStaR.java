@@ -54,7 +54,7 @@ import java.util.*;
  *
  * @author Joseph Ramsey
  */
-public class TestCStaS {
+public class TestCStaR {
 
     public void testIda() {
         Parameters parameters = new Parameters();
@@ -590,7 +590,7 @@ public class TestCStaS {
     }
 
     public static void main(String... args) {
-        new TestCStaS().testCStaS2();
+        new TestCStaR().testCStaS2();
     }
 }
 
