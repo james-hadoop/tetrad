@@ -70,7 +70,9 @@ public class CStaS implements Algorithm, TakesIndependenceWrapper {
                 = cStaS.getRecords((DataSet) dataSet, possibleCauses, possibleEffects, test.getTest(dataSet, parameters));
         this.records = allRecords.getLast();
 
-        System.out.println(cStaS.makeTable(this.getRecords(), false));
+        final LinkedList<edu.cmu.tetrad.search.CStaS.Record> records = edu.cmu.tetrad.search.CStaS.cStar(allRecords);
+
+        System.out.println(cStaS.makeTable(records, true));
 
         return cStaS.makeGraph(getRecords());
     }

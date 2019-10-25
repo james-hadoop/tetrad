@@ -338,15 +338,17 @@ public class TestCStaS {
         final LinkedList<LinkedList<CStaS.Record>> allRecords = cstas.getRecords(
                 augmentedData, potentialCauses, potentialEffects, test);
 
-        for (LinkedList<CStaS.Record> records : allRecords) {
-            System.out.println(cstas.makeTable(records, true));
-        }
+//        System.out.println(CStaS.cStar(allRecords));
 
-//        System.out.println("\n\nCStaR table");
-//
-//        final LinkedList<CStaS.Record> records = CStaS.cStar(allRecords);
-//
-//        System.out.println(cstas.makeTable(records, false));
+//        for (LinkedList<CStaS.Record> records : allRecords) {
+//            System.out.println(cstas.makeTable(records, true));
+//        }
+
+        System.out.println("\n\nCStaR table");
+
+        final LinkedList<CStaS.Record> records = CStaS.cStar(allRecords);
+
+        System.out.println(cstas.makeTable(records, true));
     }
 
     private void testHughes() {
@@ -588,7 +590,7 @@ public class TestCStaS {
     }
 
     public static void main(String... args) {
-        new TestCStaS().testHughes();
+        new TestCStaS().testCStaS2();
     }
 }
 
