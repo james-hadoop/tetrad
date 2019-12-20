@@ -80,6 +80,9 @@ public class ExampleCompareWayne {
 
         Simulation simulation = new SemSimulation(new RandomForward());
 
+        Simulations simulations = new Simulations();
+        simulations.add(simulation);
+
         Comparison comparison = new Comparison();
 
         comparison.setShowAlgorithmIndices(true);
@@ -91,9 +94,9 @@ public class ExampleCompareWayne {
         comparison.setSavePatterns(true);
         comparison.setTabDelimitedTables(true);
 
-        comparison.saveToFiles("comparisonWayne100", simulation, parameters);
+        comparison.saveToFiles("comparisonWayneTiming", simulation, parameters);
 
-        comparison.compareFromFiles("comparisonWayne100", algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparisonWayneTiming", simulations, algorithms, statistics, parameters);
     }
 }
 
