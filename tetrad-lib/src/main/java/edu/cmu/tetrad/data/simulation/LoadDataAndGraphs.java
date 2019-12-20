@@ -48,7 +48,8 @@ public class LoadDataAndGraphs implements Simulation {
                 for (int i = 0; i < numDataSets; i++) {
                     try {
                         File file2 = new File(path + "/graph/graph." + (i + 1) + ".txt");
-                        stdout.println("Loading graph from " + file2.getAbsolutePath());
+                        System.out.println(file2.getAbsolutePath());
+//                        stdout.println("Loading graph from " + file2.getAbsolutePath());
                         this.graphs.add(GraphUtils.loadGraphTxt(file2));
                     } catch (Exception e) {
                         this.graphs.add(null);
@@ -58,7 +59,9 @@ public class LoadDataAndGraphs implements Simulation {
 
                     File file1 = new File(path + "/data/data." + (i + 1) + ".txt");
 
-                    stdout.println("Loading data from " + file1.getAbsolutePath());
+                    System.out.println(file1.getAbsolutePath());
+
+//                    stdout.println("Loading data from " + file1.getAbsolutePath());
 
                     DataReader dataReader = new DataReader();
                     dataReader.setVariablesSupplied(true);
