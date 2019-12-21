@@ -42,8 +42,8 @@ import edu.cmu.tetrad.util.Params;
 public class ExampleCompareWayne {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 100);
-        parameters.set(Params.NUM_MEASURES, 100);//, 100);
+        parameters.set(Params.NUM_RUNS, 20);
+        parameters.set(Params.NUM_MEASURES, 20, 100);//, 100);
         parameters.set(Params.AVG_DEGREE, 6);
         parameters.set(Params.SAMPLE_SIZE, 1000);
         parameters.set(Params.ALPHA, 0.01);
