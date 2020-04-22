@@ -23,10 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
 
@@ -630,7 +627,7 @@ public class CalibrationQuestion {
 
             if (out == null) throw new NullPointerException("out not initialized");
 
-            out.println("AvgDeg\tVars\tDensity\tSparsity\tR2\tAP\tAR\tAHP\tAHPC\tAHR\tAHRC\tA2\tU2\tf2\tS2\tE");
+            out.println("AvgDeg\tVars\tDensity\tSparsity\tR2\tAP\tAR\tAHP\tAHPC\tAHR\tAHRC\tA2\tU2\tf2\tS2\tShared\tE");
 
             for (int _numVars : numVars) {
                 for (int _avgDegree : avgDegree) {
@@ -748,17 +745,40 @@ public class CalibrationQuestion {
 
 
                     int Ut = 0;
+                    Set<Edge> record1 = new HashSet<>();
+                    Map<Edge, Set<Triple>> sharedTriples = new HashMap<>();
 
-                    for (int i = 0; i < nodes.size() - 1; i++) {
-                        List<Node> adj = R.getAdjacentNodes(nodes.get(i));
+                    for (Node node : nodes) {
+                        List<Node> adj = R.getAdjacentNodes(node);
 
                         for (int j = 0; j < adj.size(); j++) {
                             for (int k = j + 1; k < adj.size(); k++) {
                                 if (!R.isAdjacentTo(adj.get(j), adj.get(k))) {
+                                    Edge edge1 = Edges.undirectedEdge(node, adj.get(j));
+                                    Edge edge2 = Edges.undirectedEdge(node, adj.get(k));
+                                    if (record1.contains(edge1) && record1.contains(edge2)) {
+                                        continue;
+                                    }
+
+                                    record1.add(edge1);
+                                    record1.add(edge2);
+
+                                    sharedTriples.computeIfAbsent(edge1, k1 -> new HashSet<>());
+                                    sharedTriples.computeIfAbsent(edge2, k1 -> new HashSet<>());
+
+                                    sharedTriples.get(edge1).add(new Triple(adj.get(j), node, adj.get(k)));
+                                    sharedTriples.get(edge2).add(new Triple(adj.get(j), node, adj.get(k)));
+
                                     Ut++;
                                 }
                             }
                         }
+                    }
+
+                    int shared = 0;
+
+                    for (Edge edge : sharedTriples.keySet()) {
+                        if (sharedTriples.get(edge).size() > 1) shared++;
                     }
 
                     int A = 0;
@@ -770,15 +790,25 @@ public class CalibrationQuestion {
                     }
 
                     int S2 = 0;
+                    Set<Edge> record2 = new HashSet<>();
 
-                    for (int i = 0; i < nodes.size() - 1; i++) {
-                        List<Node> adj = R.getAdjacentNodes(nodes.get(i));
+                    for (Node node : nodes) {
+                        List<Node> adj = R.getAdjacentNodes(node);
 
                         for (int j = 0; j < adj.size(); j++) {
                             for (int k = j + 1; k < adj.size(); k++) {
                                 if (!R.isAdjacentTo(adj.get(j), adj.get(k))) {
-                                    if (G2.isAdjacentTo(nodes.get(i), adj.get(j)) && G2.isAdjacentTo(nodes.get(i), adj.get(k))) {
+                                    if (G2.isAdjacentTo(node, adj.get(j)) && G2.isAdjacentTo(node, adj.get(k))) {
                                         if (G2.isAdjacentTo(adj.get(j), adj.get(k))) {
+                                            Edge edge1 = Edges.undirectedEdge(node, adj.get(j));
+                                            Edge edge2 = Edges.undirectedEdge(node, adj.get(k));
+                                            if (record2.contains(edge1) && record2.contains(edge2)) {
+                                                continue;
+                                            }
+
+                                            record2.add(edge1);
+                                            record2.add(edge2);
+
                                             S2++;
                                         }
                                     }
@@ -821,6 +851,7 @@ public class CalibrationQuestion {
                                     + "\t" + nf.format(Ut)
                                     + "\t" + nf.format(f2)
                                     + "\t" + nf.format(S2)
+                                    + "\t" + nf.format(shared)
                                     + "\t" + elapsed
                     );
                 }
@@ -953,7 +984,7 @@ public class CalibrationQuestion {
                             + " & " + nf.format(A)
                             + " & " + nf.format(Ut)
                             + " & " + getFormat(nf, r2max)
-                    + " \\\\ "
+                            + " \\\\ "
             );
         }
 
