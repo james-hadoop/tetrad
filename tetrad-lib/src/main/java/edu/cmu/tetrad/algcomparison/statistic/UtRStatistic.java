@@ -16,7 +16,7 @@ import java.util.Set;
 public class UtRStatistic implements Statistic {
     static final long serialVersionUID = 23L;
 
-    private int count = 0;
+    private int f = 0;
     private int total = 0;
 
     @Override
@@ -40,7 +40,7 @@ public class UtRStatistic implements Statistic {
 
         Set<NodePair> l = new HashSet<>();
 
-        count = 0;
+        f = 0;
         total = 0;
 
         while ((choice = gen.next()) != null) {
@@ -60,17 +60,17 @@ public class UtRStatistic implements Statistic {
             Node y = t.getSecond();
 
             if (gt.isDirectedFromTo(x, y) && ge.isDirectedFromTo(y, x)) {
-                count = getCount() + 1;
+                f = f + 1;
             }
 
             if (gt.isDirectedFromTo(y, x) && ge.isDirectedFromTo(x, y)) {
-                count = getCount() + 1;
+                f = f + 1;
             }
 
             total = total + 1;
         }
 
-        return count / (double) total;
+        return f / (double) total;
     }
 
     private static void collect(Graph gt, Graph ge, Set<NodePair> l, Node v1, Node v2, Node v3) {
@@ -87,8 +87,8 @@ public class UtRStatistic implements Statistic {
         return value;
     }
 
-    public int getCount() {
-        return count;
+    public int getF() {
+        return f;
     }
 
     public int getTotal() {

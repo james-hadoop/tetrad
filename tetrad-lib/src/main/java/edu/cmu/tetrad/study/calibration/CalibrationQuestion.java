@@ -627,7 +627,7 @@ public class CalibrationQuestion {
 
             if (out == null) throw new NullPointerException("out not initialized");
 
-            out.println("AvgDeg\tVars\tDensity\tSparsity\tR2\tAP\tAR\tAHP\tAHPC\tAHR\tAHRC\tA2\tU2\tf2\tS2\tShared\tE");
+            out.println("AvgDeg\tVars\tDensity\tSparsity\tR2\tAP\tAR\tAHP\tAHPC\tAHR\tAHRC\tA2\tU2\tF2\tf2\tS2\tSh1\tSh2\tE");
 
             for (int _numVars : numVars) {
                 for (int _avgDegree : avgDegree) {
@@ -746,7 +746,9 @@ public class CalibrationQuestion {
 
                     int Ut = 0;
                     Set<Edge> record1 = new HashSet<>();
-                    Map<Edge, Set<Triple>> sharedTriples = new HashMap<>();
+                    Set<Edge> record2 = new HashSet<>();
+                    Map<Edge, Set<Triple>> sharedTriples1 = new HashMap<>();
+                    Map<Edge, Set<Triple>> sharedTriples2 = new HashMap<>();
 
                     for (Node node : nodes) {
                         List<Node> adj = R.getAdjacentNodes(node);
@@ -763,11 +765,21 @@ public class CalibrationQuestion {
                                     record1.add(edge1);
                                     record1.add(edge2);
 
-                                    sharedTriples.computeIfAbsent(edge1, k1 -> new HashSet<>());
-                                    sharedTriples.computeIfAbsent(edge2, k1 -> new HashSet<>());
+                                    sharedTriples1.computeIfAbsent(edge1, k1 -> new HashSet<>());
+                                    sharedTriples1.computeIfAbsent(edge2, k1 -> new HashSet<>());
 
-                                    sharedTriples.get(edge1).add(new Triple(adj.get(j), node, adj.get(k)));
-                                    sharedTriples.get(edge2).add(new Triple(adj.get(j), node, adj.get(k)));
+                                    sharedTriples1.get(edge1).add(new Triple(adj.get(j), node, adj.get(k)));
+                                    sharedTriples1.get(edge2).add(new Triple(adj.get(j), node, adj.get(k)));
+
+                                    if (G2.isAdjacentTo(node, adj.get(j)) && G2.isAdjacentTo(node, adj.get(k))
+                                            && !G2.isAdjacentTo(adj.get(j), adj.get(k))) {
+                                        sharedTriples2.computeIfAbsent(edge1, k1 -> new HashSet<>());
+                                        sharedTriples2.computeIfAbsent(edge2, k1 -> new HashSet<>());
+
+                                        sharedTriples2.get(edge1).add(new Triple(adj.get(j), node, adj.get(k)));
+                                        sharedTriples2.get(edge2).add(new Triple(adj.get(j), node, adj.get(k)));
+
+                                    }
 
                                     Ut++;
                                 }
@@ -775,10 +787,16 @@ public class CalibrationQuestion {
                         }
                     }
 
-                    int shared = 0;
+                    int shared1 = 0;
 
-                    for (Edge edge : sharedTriples.keySet()) {
-                        if (sharedTriples.get(edge).size() > 1) shared++;
+                    for (Edge edge : sharedTriples1.keySet()) {
+                        if (sharedTriples1.get(edge).size() > 1) shared1++;
+                    }
+
+                    int shared2 = 0;
+
+                    for (Edge edge : sharedTriples2.keySet()) {
+                        if (sharedTriples2.get(edge).size() > 1) shared2++;
                     }
 
                     int A = 0;
@@ -790,7 +808,6 @@ public class CalibrationQuestion {
                     }
 
                     int S2 = 0;
-                    Set<Edge> record2 = new HashSet<>();
 
                     for (Node node : nodes) {
                         List<Node> adj = R.getAdjacentNodes(node);
@@ -810,6 +827,13 @@ public class CalibrationQuestion {
                                             record2.add(edge2);
 
                                             S2++;
+
+                                            sharedTriples2.computeIfAbsent(edge1, k1 -> new HashSet<>());
+                                            sharedTriples2.computeIfAbsent(edge2, k1 -> new HashSet<>());
+
+                                            sharedTriples2.get(edge1).add(new Triple(adj.get(j), node, adj.get(k)));
+                                            sharedTriples2.get(edge2).add(new Triple(adj.get(j), node, adj.get(k)));
+
                                         }
                                     }
                                 }
@@ -817,10 +841,25 @@ public class CalibrationQuestion {
                         }
                     }
 
+                    int F2 = 0;
+
+                    for (Edge e : R.getEdges()) {
+                        Node x = e.getNode1();
+                        Node y = e.getNode2();
+
+                        if (R.isDirectedFromTo(x, y) && G2.isDirectedFromTo(y, x)) {
+                            F2 = F2 + 1;
+                        }
+
+                        if (R.isDirectedFromTo(y, x) && G2.isDirectedFromTo(x, y)) {
+                            F2 = F2 + 1;
+                        }
+                    }
+
                     UtRStatistic utr = new UtRStatistic();
                     double r2 = utr.getValue(G2, R, data);
 
-                    double f2 = utr.getCount();
+                    double f2 = utr.getF();
 
                     double d = _avgDegree / (double) (_numVars - 1);
 
@@ -849,9 +888,11 @@ public class CalibrationQuestion {
                                     + "\t" + getFormat(nf, ahrc2)
                                     + "\t" + nf.format(A)
                                     + "\t" + nf.format(Ut)
+                                    + "\t" + nf.format(F2)
                                     + "\t" + nf.format(f2)
                                     + "\t" + nf.format(S2)
-                                    + "\t" + nf.format(shared)
+                                    + "\t" + nf.format(shared1)
+                                    + "\t" + nf.format(shared2)
                                     + "\t" + elapsed
                     );
                 }
