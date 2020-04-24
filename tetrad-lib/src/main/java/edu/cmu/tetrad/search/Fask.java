@@ -162,7 +162,7 @@ public final class Fask implements GraphSearch {
 
         SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
 
-        System.out.println("Orientation");
+//        System.out.println("Orientation");
 
         Graph graph = new EdgeListGraph(variables);
 
@@ -201,8 +201,8 @@ public final class Fask implements GraphSearch {
             }
         }
 
-        System.out.println();
-        System.out.println("Done");
+//        System.out.println();
+//        System.out.println("Done");
 
         long stop = System.currentTimeMillis();
         this.elapsed = stop - start;

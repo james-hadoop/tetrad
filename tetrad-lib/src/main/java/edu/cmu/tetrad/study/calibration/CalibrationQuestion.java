@@ -6,6 +6,7 @@ import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.data.Variable;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.Fask;
 import edu.cmu.tetrad.search.GraphSearch;
@@ -15,12 +16,15 @@ import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.ChoiceGenerator;
+import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.RandomUtil;
+import edu.pitt.dbmi.data.reader.Data;
+import edu.pitt.dbmi.data.reader.DataReader;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
+import java.io.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -30,7 +34,7 @@ import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
 public class CalibrationQuestion {
 
     public static void main(String... args) {
-        scenario6();
+        scenario8();
     }
 
     private static void scenario1() {
@@ -1058,6 +1062,132 @@ public class CalibrationQuestion {
         }
 
         return g1b;
+    }
+
+    private static void scenario8() {
+        File dir = new File("/Users/user/Box/data/pairs");
+
+        NumberFormat nf = new DecimalFormat("0000");
+
+        int correct = 0;
+        int total = 0;
+
+        for (int i = 1; i <= 108; i++) {
+            File data = new File(dir, "pair" + nf.format(i) + ".txt");
+            File des = new File(dir, "pair" + nf.format(i) + "_des.txt");
+
+            ContinuousTabularDatasetFileReader dataReader
+                    = new ContinuousTabularDatasetFileReader(data.toPath(), Delimiter.WHITESPACE);
+            dataReader.setHasHeader(false);
+
+            DataSet dataSet = null;
+
+            try {
+                Data _data = dataReader.readInData();
+                dataSet = (DataSet) DataConvertUtils.toDataModel(_data);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            boolean trueLeftRight = false;
+            boolean trueRightLeft = false;
+            boolean trueConfounded = false;
+            boolean vShaped = false;
+
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(des));
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("#-->")) {
+                        trueLeftRight = true;
+                        break;
+                    }
+                }
+
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("#<--")) {
+                        trueRightLeft = true;
+                        break;
+                    }
+                }
+
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("#<T>")) {
+                        trueConfounded = true;
+                        break;
+                    }
+                }
+
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("V-shaped")) {
+                        vShaped = true;
+                        break;
+                    }
+                }
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            List<Node> nodes = new ArrayList<>();
+            assert dataSet != null;
+            List<Node> variables = dataSet.getVariables();
+            nodes.add(variables.get(0));
+            nodes.add(variables.get(1));
+
+            Graph g = new EdgeListGraph(dataSet.getVariables());
+            g.addUndirectedEdge(nodes.get(0), nodes.get(1));
+
+            Fask fask = new Fask(dataSet, g);//, new IndTestFisherZ(dataSet, 0.001));
+            fask.setAlpha(.01);
+            Graph out;
+            try {
+                out = fask.search();
+
+                if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) continue;
+            } catch (Exception e) {
+                continue;
+            }
+
+            boolean estLeftRight = out.containsEdge(Edges.directedEdge(nodes.get(0), nodes.get(1)));
+            boolean estRightLeft = out.containsEdge(Edges.directedEdge(nodes.get(1), nodes.get(0)));
+
+//            if (trueConfounded) continue;
+//            if (vShaped) continue;
+//            if (!(trueLeftRight || trueRightLeft)) continue;
+//            if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) continue;
+
+            System.out.println("\ni = " + i);
+
+            if (trueLeftRight) System.out.println("true -->");
+            if (trueRightLeft) System.out.println("true <--");
+            if (trueConfounded) System.out.println("true confounded");
+            if (estLeftRight) System.out.println("est -->");
+            if (estRightLeft) System.out.println("est <--");
+
+
+            if (trueLeftRight && estLeftRight) {
+                System.out.println("Correct left right");
+                correct++;
+            }
+            if (trueRightLeft && estRightLeft) {
+                System.out.println("Correct right left");
+                correct++;
+            }
+            if (trueLeftRight || trueRightLeft) {
+                total++;
+            }
+
+            System.out.println("Running total: correct = " + correct + " total = " + total);
+
+        }
+
+        System.out.println("Score = " + (correct / (double) total));
     }
 
     private static void collectUnshieldedTripleLegsAndShieldsInR(Graph R, Set<Edge> L, Set<Edge> M, Node
