@@ -146,8 +146,6 @@ public final class Fask implements GraphSearch {
 
             G0 = g1;
         } else {
-            System.out.println("FAS");
-
             FasStable fas = new FasStable(test);
             fas.setDepth(getDepth());
             fas.setVerbose(false);

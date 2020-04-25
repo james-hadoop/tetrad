@@ -1074,7 +1074,9 @@ public class CalibrationQuestion {
         int skippedIndependent = 0;
 
         for (int i = 1; i <= 108; i++) {
+
             System.out.println("\nindex = " + i);
+
 
 //            File data = new File(dir, "pair" + nf.format(i) + ".txt");
             File data = new File(dir, "pair." + i + ".resave.txt");
@@ -1111,7 +1113,7 @@ public class CalibrationQuestion {
             double sk0 = StatUtils.skewness(data0);
             double sk1 = StatUtils.skewness(data1);
 
-            if (abs(sk0) < 0.05 || abs(sk1) < 0.05) {
+            if (abs(sk0) < 0.001 || abs(sk1) < 0.001) {
                 System.out.println("Skipping " + i + " because at least one skewness is too weak.");
                 System.out.println("sk0 = " + sk0);
                 System.out.println("sk1 = " + sk1);
@@ -1225,7 +1227,7 @@ public class CalibrationQuestion {
             Graph g = new EdgeListGraph(dataSet.getVariables());
             g.addUndirectedEdge(nodes.get(0), nodes.get(1));
 
-            Fask fask = new Fask(dataSet, new IndTestFisherZ(dataSet, 0.001));
+            Fask fask = new Fask(dataSet, g);//new IndTestFisherZ(dataSet, 0.001));
             fask.setAlpha(.001);
 
 //            if (vShaped || asymmetricAboutOrigin) {// && (concave || convex || monotonic))) {
@@ -1247,9 +1249,21 @@ public class CalibrationQuestion {
                 }
             } catch (Exception e) {
 //                e.printStackTrace();
-                System.out.println("Skipping " + i + " because it is singular.");
-                skippedSingular++;
-                continue;
+
+                System.out.println("Rerunning " + i + " without 2-cycle check because of singularity.");
+
+                fask.setAlpha(0);
+
+                out = fask.search();
+                if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) {
+                    System.out.println("Skipping " + i + " because the variables are judged to be independent.");
+                    skippedIndependent++;
+                    continue;
+                }
+
+//                System.out.println("Skipping " + i + " because it is singular.");
+//                skippedSingular++;
+//                continue;
             }
 
             boolean estLeftRight = out.containsEdge(Edges.directedEdge(nodes.get(0), nodes.get(1)));
@@ -1265,6 +1279,10 @@ public class CalibrationQuestion {
 //            if (!(trueLeftRight || trueRightLeft)) continue;
 //            if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) continue;
 //            if (estLeftRight && estRightLeft) continue;
+
+//            if ((trueLeftRight && estLeftRight) || (trueRightLeft && estRightLeft)) {
+//                continue;
+//            }
 
             if (trueLeftRight) System.out.println("true -->");
             if (trueRightLeft) System.out.println("true <--");
@@ -1293,7 +1311,6 @@ public class CalibrationQuestion {
 //            }
 
             System.out.println("Running total: correct = " + correct + " total = " + total);
-
         }
 
         NumberFormat nf2 = new DecimalFormat("0.00");
