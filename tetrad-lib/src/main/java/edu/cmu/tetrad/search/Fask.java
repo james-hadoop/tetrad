@@ -185,7 +185,7 @@ public final class Fask implements GraphSearch {
                         graph.addDirectedEdge(X, Y);
                     } else if (knowledgeOrients(Y, X)) {
                         graph.addDirectedEdge(Y, X);
-                    } else if (bidirected(x, y, G0, X, Y)) {
+                    } else if (alpha > 0.0 && bidirected(x, y, G0, X, Y)) {
                         Edge edge1 = Edges.directedEdge(X, Y);
                         Edge edge2 = Edges.directedEdge(Y, X);
                         graph.addEdge(edge1);

@@ -3,10 +3,7 @@ package edu.cmu.tetrad.study.calibration;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.statistic.*;
-import edu.cmu.tetrad.data.ContinuousVariable;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.Variable;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.Fask;
 import edu.cmu.tetrad.search.GraphSearch;
@@ -15,14 +12,12 @@ import edu.cmu.tetrad.search.PcAll;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
-import edu.cmu.tetrad.util.ChoiceGenerator;
-import edu.cmu.tetrad.util.DataConvertUtils;
-import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.RandomUtil;
+import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.DataReader;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.*;
+import sun.util.resources.da.CalendarData_da;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -30,6 +25,8 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
+import static java.lang.Math.abs;
+import static java.lang.Math.signum;
 
 public class CalibrationQuestion {
 
@@ -1072,27 +1069,75 @@ public class CalibrationQuestion {
         int correct = 0;
         int total = 0;
 
+        int skippedWeakSkewness = 0;
+        int skippedSingular = 0;
+        int skippedIndependent = 0;
+
         for (int i = 1; i <= 108; i++) {
-            File data = new File(dir, "pair" + nf.format(i) + ".txt");
+            System.out.println("\nindex = " + i);
+
+//            File data = new File(dir, "pair" + nf.format(i) + ".txt");
+            File data = new File(dir, "pair." + i + ".resave.txt");
             File des = new File(dir, "pair" + nf.format(i) + "_des.txt");
 
             ContinuousTabularDatasetFileReader dataReader
-                    = new ContinuousTabularDatasetFileReader(data.toPath(), Delimiter.WHITESPACE);
-            dataReader.setHasHeader(false);
+                    = new ContinuousTabularDatasetFileReader(data.toPath(), Delimiter.TAB);
+            dataReader.setHasHeader(true);
+            dataReader.setMissingDataMarker("*");
 
             DataSet dataSet = null;
 
             try {
                 Data _data = dataReader.readInData();
                 dataSet = (DataSet) DataConvertUtils.toDataModel(_data);
+
+                if (dataSet.getNumColumns() > 2 && Double.isNaN(dataSet.getDouble(0, dataSet.getNumColumns() - 1))) {
+                    dataSet.removeColumn(dataSet.getNumColumns() - 1);
+                }
+
+//                DataWriter.writeRectangularData(dataSet, new PrintWriter(
+//                        new File(dir,"pair." + i + ".resave.txt")), '\t');
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            assert dataSet != null;
+            TetradMatrix doubles = dataSet.getDoubleData();
+
+            double[] data0 = doubles.getColumn(0).toArray();
+            double[] data1 = doubles.getColumn(1).toArray();
+
+            double sk0 = StatUtils.skewness(data0);
+            double sk1 = StatUtils.skewness(data1);
+
+            if (abs(sk0) < 0.05 || abs(sk1) < 0.05) {
+                System.out.println("Skipping " + i + " because at least one skewness is too weak.");
+                System.out.println("sk0 = " + sk0);
+                System.out.println("sk1 = " + sk1);
+                skippedWeakSkewness++;
+                continue;
+            }
+
+//            for (int m = 0; m < dataSet.getNumRows(); m++) {
+//                if (sk0 < 0) {
+//                    dataSet.setDouble(m, 0, -dataSet.getDouble(m, 0));
+//                }
+//
+//                if (sk1 < 0) {
+//                    dataSet.setDouble(m, 1, -dataSet.getDouble(m, 1));
+//                }
+//            }
 
             boolean trueLeftRight = false;
             boolean trueRightLeft = false;
             boolean trueConfounded = false;
             boolean vShaped = false;
+            boolean asymmetricAboutOrigin = false;
+            boolean concave = false;
+            boolean convex = false;
+            boolean monotonic = false;
+            boolean notTwoCycle = false;
 
             try {
                 BufferedReader reader = new BufferedReader(new FileReader(des));
@@ -1129,13 +1174,50 @@ public class CalibrationQuestion {
                     }
                 }
 
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("AsymmetricAboutOrigin")) {
+                        asymmetricAboutOrigin = true;
+                        break;
+                    }
+                }
 
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("Concave")) {
+                        concave = true;
+                        break;
+                    }
+                }
+
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("Convex")) {
+                        convex = true;
+                        break;
+                    }
+                }
+
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("Monotonic")) {
+                        monotonic = true;
+                        break;
+                    }
+                }
+
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("NotTwoCycle")) {
+                        notTwoCycle = true;
+                        break;
+                    }
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             List<Node> nodes = new ArrayList<>();
-            assert dataSet != null;
             List<Node> variables = dataSet.getVariables();
             nodes.add(variables.get(0));
             nodes.add(variables.get(1));
@@ -1143,51 +1225,85 @@ public class CalibrationQuestion {
             Graph g = new EdgeListGraph(dataSet.getVariables());
             g.addUndirectedEdge(nodes.get(0), nodes.get(1));
 
-            Fask fask = new Fask(dataSet, g);//, new IndTestFisherZ(dataSet, 0.001));
-            fask.setAlpha(.01);
+            Fask fask = new Fask(dataSet, new IndTestFisherZ(dataSet, 0.001));
+            fask.setAlpha(.001);
+
+//            if (vShaped || asymmetricAboutOrigin) {// && (concave || convex || monotonic))) {
+//                fask.setAlpha(0);
+//            }
+
+            if (asymmetricAboutOrigin || notTwoCycle) {
+                fask.setAlpha(0);
+            }
+
             Graph out;
+
             try {
                 out = fask.search();
-
-                if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) continue;
+                if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) {
+                    System.out.println("Skipping " + i + " because the variables are judged to be independent.");
+                    skippedIndependent++;
+                    continue;
+                }
             } catch (Exception e) {
+//                e.printStackTrace();
+                System.out.println("Skipping " + i + " because it is singular.");
+                skippedSingular++;
                 continue;
             }
 
             boolean estLeftRight = out.containsEdge(Edges.directedEdge(nodes.get(0), nodes.get(1)));
             boolean estRightLeft = out.containsEdge(Edges.directedEdge(nodes.get(1), nodes.get(0)));
 
+            if (vShaped || asymmetricAboutOrigin) {
+                estLeftRight = !estLeftRight;
+                estRightLeft = !estRightLeft;
+            }
+
 //            if (trueConfounded) continue;
 //            if (vShaped) continue;
 //            if (!(trueLeftRight || trueRightLeft)) continue;
 //            if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) continue;
-
-            System.out.println("\ni = " + i);
+//            if (estLeftRight && estRightLeft) continue;
 
             if (trueLeftRight) System.out.println("true -->");
             if (trueRightLeft) System.out.println("true <--");
             if (trueConfounded) System.out.println("true confounded");
+            if (vShaped) System.out.println("V-shaped");
+            if (asymmetricAboutOrigin) System.out.println("AsymmetricAboutOrigin");
+            if (concave) System.out.println("Concave");
+            if (convex) System.out.println("Convex");
+            if (monotonic) System.out.println("Monotonic");
+            if (notTwoCycle) System.out.println("NotTwoCycle");
+
             if (estLeftRight) System.out.println("est -->");
             if (estRightLeft) System.out.println("est <--");
 
 
             if (trueLeftRight && estLeftRight) {
-                System.out.println("Correct left right");
+                System.out.println("Correct left-right");
                 correct++;
             }
             if (trueRightLeft && estRightLeft) {
-                System.out.println("Correct right left");
+                System.out.println("Correct right-left");
                 correct++;
             }
-            if (trueLeftRight || trueRightLeft) {
-                total++;
-            }
+//            if (trueLeftRight || trueRightLeft) {
+            total++;
+//            }
 
             System.out.println("Running total: correct = " + correct + " total = " + total);
 
         }
 
-        System.out.println("Score = " + (correct / (double) total));
+        NumberFormat nf2 = new DecimalFormat("0.00");
+
+        System.out.println("Score = " + nf2.format((correct / (double) total)));
+        System.out.println("Total correct = " + correct);
+        System.out.println("Total not skipped = " + total);
+        System.out.println("Skipped because of weak skewnesses = " + skippedWeakSkewness);
+        System.out.println("Skipped because of singularity = " + skippedSingular);
+        System.out.println("Skipped because variables were judged independent = " + skippedIndependent);
     }
 
     private static void collectUnshieldedTripleLegsAndShieldsInR(Graph R, Set<Edge> L, Set<Edge> M, Node
