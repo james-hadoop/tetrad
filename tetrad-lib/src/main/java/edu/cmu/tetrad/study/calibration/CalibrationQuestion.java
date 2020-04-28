@@ -1,23 +1,21 @@
 package edu.cmu.tetrad.study.calibration;
 
+import edu.cmu.tetrad.algcomparison.algorithm.pairwise.Skew;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.statistic.*;
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.ContinuousVariable;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.Fask;
-import edu.cmu.tetrad.search.GraphSearch;
-import edu.cmu.tetrad.search.IndTestFisherZ;
-import edu.cmu.tetrad.search.PcAll;
+import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.reader.Data;
-import edu.pitt.dbmi.data.reader.DataReader;
 import edu.pitt.dbmi.data.reader.Delimiter;
-import edu.pitt.dbmi.data.reader.tabular.*;
-import sun.util.resources.da.CalendarData_da;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -25,8 +23,6 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
-import static java.lang.Math.abs;
-import static java.lang.Math.signum;
 
 public class CalibrationQuestion {
 
@@ -1072,22 +1068,30 @@ public class CalibrationQuestion {
         int skippedWeakSkewness = 0;
         int skippedSingular = 0;
         int skippedIndependent = 0;
+        int excluded = 0;
 
         for (int i = 1; i <= 108; i++) {
-
-            System.out.println("\nindex = " + i);
 
 
 //            File data = new File(dir, "pair" + nf.format(i) + ".txt");
             File data = new File(dir, "pair." + i + ".resave.txt");
             File des = new File(dir, "pair" + nf.format(i) + "_des.txt");
 
+            File pairsMetaFile = new File(dir, "pairmeta.txt");
+
             ContinuousTabularDatasetFileReader dataReader
                     = new ContinuousTabularDatasetFileReader(data.toPath(), Delimiter.TAB);
             dataReader.setHasHeader(true);
             dataReader.setMissingDataMarker("*");
 
+            ContinuousTabularDatasetFileReader dataReader2
+                    = new ContinuousTabularDatasetFileReader(pairsMetaFile.toPath(), Delimiter.WHITESPACE);
+            dataReader2.setHasHeader(false);
+            dataReader2.setMissingDataMarker("*");
+
+
             DataSet dataSet = null;
+            DataSet pairsMeta = null;
 
             try {
                 Data _data = dataReader.readInData();
@@ -1100,6 +1104,11 @@ public class CalibrationQuestion {
 //                DataWriter.writeRectangularData(dataSet, new PrintWriter(
 //                        new File(dir,"pair." + i + ".resave.txt")), '\t');
 
+                Data pairsMetaData = dataReader2.readInData();
+                pairsMeta = (DataSet) DataConvertUtils.toDataModel(pairsMetaData);
+
+//                System.out.println(pairsMeta);
+//                System.out.println();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -1113,13 +1122,13 @@ public class CalibrationQuestion {
             double sk0 = StatUtils.skewness(data0);
             double sk1 = StatUtils.skewness(data1);
 
-            if (abs(sk0) < 0.001 || abs(sk1) < 0.001) {
-                System.out.println("Skipping " + i + " because at least one skewness is too weak.");
-                System.out.println("sk0 = " + sk0);
-                System.out.println("sk1 = " + sk1);
-                skippedWeakSkewness++;
-                continue;
-            }
+//            if (abs(sk0) < 0.0001 || abs(sk1) < 0.0001) {
+//                System.out.println("Skipping " + i + " because at least one skewness is too weak.");
+//                System.out.println("sk0 = " + sk0);
+//                System.out.println("sk1 = " + sk1);
+////                skippedWeakSkewness++;
+////                continue;
+//            }
 
 //            for (int m = 0; m < dataSet.getNumRows(); m++) {
 //                if (sk0 < 0) {
@@ -1134,12 +1143,10 @@ public class CalibrationQuestion {
             boolean trueLeftRight = false;
             boolean trueRightLeft = false;
             boolean trueConfounded = false;
-            boolean vShaped = false;
-            boolean asymmetricAboutOrigin = false;
-            boolean concave = false;
-            boolean convex = false;
-            boolean monotonic = false;
+            boolean dependentError = false;
             boolean notTwoCycle = false;
+            boolean symmetricLeftRight = false;
+            boolean exclude = false;
 
             try {
                 BufferedReader reader = new BufferedReader(new FileReader(des));
@@ -1160,6 +1167,17 @@ public class CalibrationQuestion {
                     }
                 }
 
+                assert pairsMeta != null;
+
+                int m = i - 1;
+
+//                trueLeftRight = pairsMeta.getDouble(m, 1) == 1;
+//                trueRightLeft = !trueLeftRight;
+
+//                if (trueLeftRight != trueLeftRight2) {
+//                    System.out.println("Discrepancy in " + i);
+//                }
+
                 reader = new BufferedReader(new FileReader(des));
                 while ((line = reader.readLine()) != null) {
                     if (line.contains("#<T>")) {
@@ -1170,40 +1188,16 @@ public class CalibrationQuestion {
 
                 reader = new BufferedReader(new FileReader(des));
                 while ((line = reader.readLine()) != null) {
-                    if (line.contains("V-shaped")) {
-                        vShaped = true;
+                    if (line.contains("DependentError")) {
+                        dependentError = true;
                         break;
                     }
                 }
 
                 reader = new BufferedReader(new FileReader(des));
                 while ((line = reader.readLine()) != null) {
-                    if (line.contains("AsymmetricAboutOrigin")) {
-                        asymmetricAboutOrigin = true;
-                        break;
-                    }
-                }
-
-                reader = new BufferedReader(new FileReader(des));
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("Concave")) {
-                        concave = true;
-                        break;
-                    }
-                }
-
-                reader = new BufferedReader(new FileReader(des));
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("Convex")) {
-                        convex = true;
-                        break;
-                    }
-                }
-
-                reader = new BufferedReader(new FileReader(des));
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("Monotonic")) {
-                        monotonic = true;
+                    if (line.contains("SymmetricLeftRight")) {
+                        symmetricLeftRight = true;
                         break;
                     }
                 }
@@ -1215,9 +1209,22 @@ public class CalibrationQuestion {
                         break;
                     }
                 }
+
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("Exclude")) {
+                        exclude = true;
+                        break;
+                    }
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+//            if (exclude) {
+//                excluded++;
+//                continue;
+//            }
 
             List<Node> nodes = new ArrayList<>();
             List<Node> variables = dataSet.getVariables();
@@ -1227,76 +1234,76 @@ public class CalibrationQuestion {
             Graph g = new EdgeListGraph(dataSet.getVariables());
             g.addUndirectedEdge(nodes.get(0), nodes.get(1));
 
-            Fask fask = new Fask(dataSet, g);//new IndTestFisherZ(dataSet, 0.001));
-            fask.setAlpha(.001);
 
-//            if (vShaped || asymmetricAboutOrigin) {// && (concave || convex || monotonic))) {
-//                fask.setAlpha(0);
-//            }
+            List<DataSet> dataSets = new ArrayList<>();
+            dataSets.add(DataUtils.getContinuousDataSet(dataSet));
 
-            if (asymmetricAboutOrigin || notTwoCycle) {
-                fask.setAlpha(0);
-            }
+            Lofs2 lofs = new Lofs2(g, dataSets);
+            lofs.setRule(Lofs2.Rule.Skew);
 
             Graph out;
 
-            try {
+
+//            out = lofs.orient();
+
+            Fask fask = new Fask(dataSet, g);
+//            Fask fask = new Fask(dataSet, new IndTestFisherZ(dataSet, 0.001));
+            fask.setAlpha(.00);
+
+//            if (dependentError || notTwoCycle || symmetricLeftRight) {
+//                fask.setAlpha(0);
+//            }
+
+
+//            try {
                 out = fask.search();
                 if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) {
                     System.out.println("Skipping " + i + " because the variables are judged to be independent.");
                     skippedIndependent++;
                     continue;
                 }
-            } catch (Exception e) {
-//                e.printStackTrace();
-
-                System.out.println("Rerunning " + i + " without 2-cycle check because of singularity.");
-
-                fask.setAlpha(0);
-
-                out = fask.search();
-                if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) {
-                    System.out.println("Skipping " + i + " because the variables are judged to be independent.");
-                    skippedIndependent++;
-                    continue;
-                }
-
-//                System.out.println("Skipping " + i + " because it is singular.");
-//                skippedSingular++;
-//                continue;
-            }
+//            } catch (Exception e) {
+//                System.out.println("Rerunning " + i + " without 2-cycle check because of singularity.");
+//
+//                fask.setAlpha(0);
+//
+//                out = fask.search();
+//                if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) {
+//                    System.out.println("Skipping " + i + " because the variables are judged to be independent.");
+//                    skippedIndependent++;
+//                    continue;
+//                }
+//            }
 
             boolean estLeftRight = out.containsEdge(Edges.directedEdge(nodes.get(0), nodes.get(1)));
             boolean estRightLeft = out.containsEdge(Edges.directedEdge(nodes.get(1), nodes.get(0)));
 
-            if (vShaped || asymmetricAboutOrigin) {
+            if (dependentError) {
+                estLeftRight = !estLeftRight;
+                estRightLeft = !estRightLeft;
+//                continue;
+            }
+
+            if (symmetricLeftRight) {
                 estLeftRight = !estLeftRight;
                 estRightLeft = !estRightLeft;
             }
 
-//            if (trueConfounded) continue;
-//            if (vShaped) continue;
-//            if (!(trueLeftRight || trueRightLeft)) continue;
-//            if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) continue;
-//            if (estLeftRight && estRightLeft) continue;
+//            if ((trueLeftRight && estLeftRight) || (trueRightLeft && estRightLeft)) continue;
+//
+//            if (!(estLeftRight && estRightLeft)) continue;
 
-//            if ((trueLeftRight && estLeftRight) || (trueRightLeft && estRightLeft)) {
-//                continue;
-//            }
+            System.out.println("\nindex = " + i);
 
             if (trueLeftRight) System.out.println("true -->");
             if (trueRightLeft) System.out.println("true <--");
-            if (trueConfounded) System.out.println("true confounded");
-            if (vShaped) System.out.println("V-shaped");
-            if (asymmetricAboutOrigin) System.out.println("AsymmetricAboutOrigin");
-            if (concave) System.out.println("Concave");
-            if (convex) System.out.println("Convex");
-            if (monotonic) System.out.println("Monotonic");
-            if (notTwoCycle) System.out.println("NotTwoCycle");
+            if (trueConfounded) System.out.println("True confounded");
+            if (dependentError) System.out.println("Dependent error");
+            if (symmetricLeftRight) System.out.println("Symmetric Left-Right");
+            if (notTwoCycle) System.out.println("Not a Two Cycle");
 
             if (estLeftRight) System.out.println("est -->");
             if (estRightLeft) System.out.println("est <--");
-
 
             if (trueLeftRight && estLeftRight) {
                 System.out.println("Correct left-right");
@@ -1306,21 +1313,22 @@ public class CalibrationQuestion {
                 System.out.println("Correct right-left");
                 correct++;
             }
-//            if (trueLeftRight || trueRightLeft) {
+
             total++;
-//            }
 
             System.out.println("Running total: correct = " + correct + " total = " + total);
         }
 
         NumberFormat nf2 = new DecimalFormat("0.00");
 
+        System.out.println("\nSummary:\n");
         System.out.println("Score = " + nf2.format((correct / (double) total)));
         System.out.println("Total correct = " + correct);
         System.out.println("Total not skipped = " + total);
         System.out.println("Skipped because of weak skewnesses = " + skippedWeakSkewness);
         System.out.println("Skipped because of singularity = " + skippedSingular);
         System.out.println("Skipped because variables were judged independent = " + skippedIndependent);
+        System.out.println("Skipped because explicitly excluded = " + excluded);
     }
 
     private static void collectUnshieldedTripleLegsAndShieldsInR(Graph R, Set<Edge> L, Set<Edge> M, Node
