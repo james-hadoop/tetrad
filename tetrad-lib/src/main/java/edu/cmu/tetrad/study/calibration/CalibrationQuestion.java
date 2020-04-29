@@ -1289,7 +1289,7 @@ public class CalibrationQuestion {
                 estRightLeft = !estRightLeft;
             }
 
-//            if ((trueLeftRight && estLeftRight) || (trueRightLeft && estRightLeft)) continue;
+            if ((trueLeftRight && estLeftRight) || (trueRightLeft && estRightLeft)) continue;
 //
 //            if (!(estLeftRight && estRightLeft)) continue;
 
