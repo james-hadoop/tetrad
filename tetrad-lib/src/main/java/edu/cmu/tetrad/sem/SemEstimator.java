@@ -233,7 +233,11 @@ public final class SemEstimator implements TetradSerializable {
         TetradLogger.getInstance().log("stats", "Sample Size = " + semIm.getSampleSize());
         TetradLogger.getInstance().log("stats", "Model Chi Square = " + nf.format(semIm.getChiSquare()));
         TetradLogger.getInstance().log("stats", "Model DOF = " + nf.format(semPm.getDof()));
-        TetradLogger.getInstance().log("stats", "Model P Value = " + nf.format(semIm.getPValue()));
+
+        if (!(semOptimizer instanceof SemOptimizerRicf)) {
+            TetradLogger.getInstance().log("stats", "Model P Value = " + nf.format(semIm.getPValue()));
+        }
+
         TetradLogger.getInstance().log("stats", "Model BIC = " + nf.format(semIm.getBicScore()));
 
         return this.estimatedSem;

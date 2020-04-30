@@ -8,6 +8,8 @@ import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.regression.RegressionDataset;
+import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.sem.SemIm;
@@ -16,6 +18,9 @@ import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
+import edu.pitt.dbmi.data.reader.tabular.MixedTabularDatasetFileReader;
+import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDatasetFileReader;
+import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -23,6 +28,9 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
+import static edu.cmu.tetrad.util.StatUtils.correlation;
+import static edu.cmu.tetrad.util.StatUtils.skewness;
+import static java.lang.Math.abs;
 
 public class CalibrationQuestion {
 
@@ -1068,7 +1076,35 @@ public class CalibrationQuestion {
         int skippedWeakSkewness = 0;
         int skippedSingular = 0;
         int skippedIndependent = 0;
-        int excluded = 0;
+
+        File readmeMetaFile = new File(dir, "README2.txt");
+        boolean[] readmeTruth = new boolean[108];
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(readmeMetaFile));
+
+            for (int r = 0; r < 108; r++) {
+                String l = reader.readLine();
+                readmeTruth[r] = l.contains("->");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        DataSet pairsMeta = null;
+        try {
+            File pairsMetaFile = new File(dir, "pairmeta.txt");
+            ContinuousTabularDatasetFileReader dataReader2
+                    = new ContinuousTabularDatasetFileReader(pairsMetaFile.toPath(), Delimiter.WHITESPACE);
+            dataReader2.setHasHeader(false);
+            dataReader2.setMissingDataMarker("*");
+            Data pairsMetaData = dataReader2.readInData();
+            pairsMeta = (DataSet) DataConvertUtils.toDataModel(pairsMetaData);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         for (int i = 1; i <= 108; i++) {
 
@@ -1077,21 +1113,14 @@ public class CalibrationQuestion {
             File data = new File(dir, "pair." + i + ".resave.txt");
             File des = new File(dir, "pair" + nf.format(i) + "_des.txt");
 
-            File pairsMetaFile = new File(dir, "pairmeta.txt");
 
             ContinuousTabularDatasetFileReader dataReader
                     = new ContinuousTabularDatasetFileReader(data.toPath(), Delimiter.TAB);
             dataReader.setHasHeader(true);
             dataReader.setMissingDataMarker("*");
 
-            ContinuousTabularDatasetFileReader dataReader2
-                    = new ContinuousTabularDatasetFileReader(pairsMetaFile.toPath(), Delimiter.WHITESPACE);
-            dataReader2.setHasHeader(false);
-            dataReader2.setMissingDataMarker("*");
-
 
             DataSet dataSet = null;
-            DataSet pairsMeta = null;
 
             try {
                 Data _data = dataReader.readInData();
@@ -1101,17 +1130,18 @@ public class CalibrationQuestion {
                     dataSet.removeColumn(dataSet.getNumColumns() - 1);
                 }
 
+                Data _data3 = dataReader.readInData();
+                dataSet = (DataSet) DataConvertUtils.toDataModel(_data3);
+
 //                DataWriter.writeRectangularData(dataSet, new PrintWriter(
 //                        new File(dir,"pair." + i + ".resave.txt")), '\t');
 
-                Data pairsMetaData = dataReader2.readInData();
-                pairsMeta = (DataSet) DataConvertUtils.toDataModel(pairsMetaData);
-
-//                System.out.println(pairsMeta);
-//                System.out.println();
+               System.out.println();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+
 
             assert dataSet != null;
             TetradMatrix doubles = dataSet.getDoubleData();
@@ -1119,8 +1149,8 @@ public class CalibrationQuestion {
             double[] data0 = doubles.getColumn(0).toArray();
             double[] data1 = doubles.getColumn(1).toArray();
 
-            double sk0 = StatUtils.skewness(data0);
-            double sk1 = StatUtils.skewness(data1);
+            double sk0 = skewness(data0);
+            double sk1 = skewness(data1);
 
 //            if (abs(sk0) < 0.0001 || abs(sk1) < 0.0001) {
 //                System.out.println("Skipping " + i + " because at least one skewness is too weak.");
@@ -1143,10 +1173,14 @@ public class CalibrationQuestion {
             boolean trueLeftRight = false;
             boolean trueRightLeft = false;
             boolean trueConfounded = false;
-            boolean dependentError = false;
             boolean notTwoCycle = false;
             boolean symmetricLeftRight = false;
-            boolean exclude = false;
+            boolean _excluded = false;
+
+            boolean skewedX = false;
+            boolean skewedResidual = false;
+            boolean dependentError = false;
+            boolean skewedResidualOfResidual = false;
 
             try {
                 BufferedReader reader = new BufferedReader(new FileReader(des));
@@ -1178,6 +1212,21 @@ public class CalibrationQuestion {
 //                    System.out.println("Discrepancy in " + i);
 //                }
 
+//                trueLeftRight = readmeTruth[i - 1];
+//                trueRightLeft = !trueLeftRight;
+
+//                if ((pairsMeta.getDouble(m, 1) == 1) != (readmeTruth[i - 1])) {
+//                    System.out.println("Index " + i + " ground truth inconsistency");
+//                    System.out.println("Pairs meta = " + (pairsMeta.getDouble(m, 1) == 1));
+//                    System.out.println("Readme = " + (readmeTruth[i - 1]));
+//                }
+
+                if ((trueLeftRight) != (readmeTruth[i - 1])) {
+                    System.out.println("Index " + i + " ground truth inconsistency");
+                    System.out.println("Description files = " + (trueLeftRight));
+                    System.out.println("Readme = " + (readmeTruth[i - 1]));
+                }
+
                 reader = new BufferedReader(new FileReader(des));
                 while ((line = reader.readLine()) != null) {
                     if (line.contains("#<T>")) {
@@ -1188,8 +1237,32 @@ public class CalibrationQuestion {
 
                 reader = new BufferedReader(new FileReader(des));
                 while ((line = reader.readLine()) != null) {
+                    if (line.contains("SkewedX")) {
+                        skewedX = true;
+                        break;
+                    }
+                }
+
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("SkewedResidual") && !line.contains("SkewedResidualOfResidual")) {
+                        skewedResidual = true;
+                        break;
+                    }
+                }
+
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
                     if (line.contains("DependentError")) {
                         dependentError = true;
+                        break;
+                    }
+                }
+
+                reader = new BufferedReader(new FileReader(des));
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("SkewedResidualOfResidual")) {
+                        skewedResidualOfResidual = true;
                         break;
                     }
                 }
@@ -1213,7 +1286,7 @@ public class CalibrationQuestion {
                 reader = new BufferedReader(new FileReader(des));
                 while ((line = reader.readLine()) != null) {
                     if (line.contains("Exclude")) {
-                        exclude = true;
+                        _excluded = true;
                         break;
                     }
                 }
@@ -1221,10 +1294,10 @@ public class CalibrationQuestion {
                 e.printStackTrace();
             }
 
-//            if (exclude) {
-//                excluded++;
-//                continue;
-//            }
+
+//            System.out.println(i + ": skX = " + skX + (isSkewedX ? " SkewedX" : ""));
+//            System.out.println(i + ": skRes = " + skRes + (isSkewedResidualsOfResiduals ? " SkewedResidualOfResidual" : ""));
+
 
             List<Node> nodes = new ArrayList<>();
             List<Node> variables = dataSet.getVariables();
@@ -1241,64 +1314,82 @@ public class CalibrationQuestion {
             Lofs2 lofs = new Lofs2(g, dataSets);
             lofs.setRule(Lofs2.Rule.Skew);
 
+            RegressionDataset regression = new RegressionDataset(dataSet);
+            RegressionResult result = regression.regress(variables.get(1), variables.get(0));
+            TetradVector residuals = result.getResiduals();
+
+            double skRes = skewness(residuals.toArray());
+            double skX = skewness(dataSet.getDoubleData().getColumn(0).toArray());
+
+
+            boolean _skewedX = abs(skX) > .1;
+//            skewedResidualOfResidual = abs(skRes) > .5;
+
+//            if (!(_skewedX == skewedX)) {
+//                System.out.println("index = " + i);
+//                System.out.println("skew x = " + skX);
+//                System.out.println("skewedX = " + skewedX);
+//                System.out.println("_skewedX = " + _skewedX);
+//
+//                continue;
+//            } else if (true) {
+//                continue;
+//            }
+
+            skewedX = _skewedX;
+
+//            dependentError = correlation(dataSet.getDoubleData().getColumn(0).toArray(), residuals.toArray()) > 0.1;
+
+
             Graph out;
 
 
 //            out = lofs.orient();
-
-            Fask fask = new Fask(dataSet, g);
-//            Fask fask = new Fask(dataSet, new IndTestFisherZ(dataSet, 0.001));
-            fask.setAlpha(.00);
-
-//            if (dependentError || notTwoCycle || symmetricLeftRight) {
-//                fask.setAlpha(0);
-//            }
-
-
-//            try {
+            try {
+                Fask fask = new Fask(dataSet, g);
+//                fask = new Fask(dataSet, new IndTestFisherZ(dataSet, 0.001));
+                fask.setAlpha(.00);
                 out = fask.search();
-                if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) {
-                    System.out.println("Skipping " + i + " because the variables are judged to be independent.");
-                    skippedIndependent++;
-                    continue;
-                }
-//            } catch (Exception e) {
-//                System.out.println("Rerunning " + i + " without 2-cycle check because of singularity.");
-//
-//                fask.setAlpha(0);
-//
-//                out = fask.search();
-//                if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) {
-//                    System.out.println("Skipping " + i + " because the variables are judged to be independent.");
-//                    skippedIndependent++;
-//                    continue;
-//                }
-//            }
+            } catch (SingularMatrixException e) {
+                skippedSingular++;
+                continue;
+            }
+
+            if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) {
+                System.out.println("Skipping " + i + " because the variables are judged to be independent.");
+                skippedIndependent++;
+//                continue;
+            }
 
             boolean estLeftRight = out.containsEdge(Edges.directedEdge(nodes.get(0), nodes.get(1)));
             boolean estRightLeft = out.containsEdge(Edges.directedEdge(nodes.get(1), nodes.get(0)));
 
-            if (dependentError) {
-                estLeftRight = !estLeftRight;
-                estRightLeft = !estRightLeft;
+            if (!skewedX && !skewedResidual) {
+                skippedWeakSkewness++;
 //                continue;
             }
 
-            if (symmetricLeftRight) {
+            if (dependentError) {
                 estLeftRight = !estLeftRight;
                 estRightLeft = !estRightLeft;
             }
 
 //            if ((trueLeftRight && estLeftRight) || (trueRightLeft && estRightLeft)) continue;
-//
-//            if (!(estLeftRight && estRightLeft)) continue;
+//            if (!skewedResidualOfResidual) continue;
+
 
             System.out.println("\nindex = " + i);
 
             if (trueLeftRight) System.out.println("true -->");
             if (trueRightLeft) System.out.println("true <--");
             if (trueConfounded) System.out.println("True confounded");
+
+            if (skewedX) System.out.println("SkewedX");
+            if (skewedResidual) System.out.println("Skewed Residual");
             if (dependentError) System.out.println("Dependent error");
+            if (skewedResidualOfResidual) System.out.println("Skewed Residual of Residual");
+            if (_excluded) System.out.println("Excluded");
+
             if (symmetricLeftRight) System.out.println("Symmetric Left-Right");
             if (notTwoCycle) System.out.println("Not a Two Cycle");
 
@@ -1328,7 +1419,7 @@ public class CalibrationQuestion {
         System.out.println("Skipped because of weak skewnesses = " + skippedWeakSkewness);
         System.out.println("Skipped because of singularity = " + skippedSingular);
         System.out.println("Skipped because variables were judged independent = " + skippedIndependent);
-        System.out.println("Skipped because explicitly excluded = " + excluded);
+//        System.out.println("Skipped because excluded = " + excluded);
     }
 
     private static void collectUnshieldedTripleLegsAndShieldsInR(Graph R, Set<Edge> L, Set<Edge> M, Node
