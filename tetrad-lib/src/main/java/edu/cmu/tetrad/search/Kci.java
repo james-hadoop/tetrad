@@ -500,26 +500,30 @@ public class Kci implements IndependenceTest, ScoreForFact {
             double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
             final boolean independent = p > alpha2;
 
-            if (independent) {
-                System.out.println(fact + " INDEPENDENT p = " + p);
-                TetradLogger.getInstance().log("info", fact + " Independent");
+            if (verbose) {
+                if (independent) {
+                    System.out.println(fact + " INDEPENDENT p = " + p);
+                    TetradLogger.getInstance().log("info", fact + " Independent");
 
-            } else {
-                System.out.println(fact + " dependent p = " + p);
-                TetradLogger.getInstance().log("info", fact.toString());
+                } else {
+                    System.out.println(fact + " dependent p = " + p);
+                    TetradLogger.getInstance().log("info", fact.toString());
+                }
             }
 
             return independent;
         } else {
             final boolean independent = p > alpha;
 
-            if (independent) {
-                System.out.println(fact + " INDEPENDENT p = " + p);
-                TetradLogger.getInstance().log("info", fact + " Independent");
+            if (verbose) {
+                if (independent) {
+                    System.out.println(fact + " INDEPENDENT p = " + p);
+                    TetradLogger.getInstance().log("info", fact + " Independent");
 
-            } else {
-                System.out.println(fact + " dependent p = " + p);
-                TetradLogger.getInstance().log("info", fact.toString());
+                } else {
+                    System.out.println(fact + " dependent p = " + p);
+                    TetradLogger.getInstance().log("info", fact.toString());
+                }
             }
 
             return independent;

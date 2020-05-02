@@ -30,6 +30,7 @@ import org.apache.commons.math3.linear.CholeskyDecomposition;
 
 import java.util.*;
 
+import static cern.jet.math.Functions.floor;
 import static java.lang.Math.*;
 
 
@@ -247,163 +248,182 @@ public final class StatUtils {
         return (a[k1] + a[k2]) / 2;
     }
 
-    /**
-     * @param array          a long array.
-     * @param quartileNumber 1, 2, or 3.
-     * @return the requested quartile of the values in this array.
-     */
-    public static double quartile(long array[], int quartileNumber) {
-        return quartile(array, array.length, quartileNumber);
-    }
+//    /**
+//     * @param array          a long array.
+//     * @param quartileNumber 1, 2, or 3.
+//     * @return the requested quartile of the values in this array.
+//     */
+//    public static double quartile(long array[], int quartileNumber) {
+//        return quartile(array, array.length, quartileNumber);
+//    }
 
     /**
      * @param array          a double array.
      * @param quartileNumber 1, 2, or 3.
      * @return the requested quartile of the values in this array.
      */
-    public static double quartile(double array[], int quartileNumber) {
-        return quartile(array, array.length, quartileNumber);
+    public static double[] quartile(double array[], int quartileNumber) {
+        return quartile(array);
     }
 
+//    /**
+//     * @param array          a long array.
+//     * @param N              the number of values of array which should be
+//     *                       considered.
+//     * @param quartileNumber 1, 2, or 3.
+//     * @return the requested quartile of the first N values in this array.
+//     */
+//    public static double quartile(long array[], int N, int quartileNumber) {
+//
+//        if ((quartileNumber < 1) || (quartileNumber > 3)) {
+//            throw new IllegalArgumentException("StatUtils.quartile:  " +
+//                    "Quartile number must be 1, 2, or 3.");
+//        }
+//
+//        long a[] = new long[N + 1];
+//
+//        System.arraycopy(array, 0, a, 0, N);
+//
+//        a[N] = Long.MAX_VALUE;
+//
+//        long v, t;
+//        int i, j, l = 0;
+//        int r = N - 1;
+//
+//        // find the two indexes k1 and k2 (possibly equal) which need
+//        // to be interpolated to get the quartile, being careful to
+//        // zero-index.
+//        double doubleIndex = (quartileNumber / 4.0) * (N + 1.0) - 1;
+//        double ratio = doubleIndex - (int) (doubleIndex);
+//        int k1 = (int) Math.floor(doubleIndex);
+//        int k2 = (int) Math.ceil(doubleIndex);
+//
+//        // partially sort array a[] to find k1 and k2
+//        while (r > l) {
+//            v = a[l];
+//            i = l;
+//            j = r + 1;
+//
+//            for (; ; ) {
+//                while (a[++i] < v) {
+//                }
+//
+//                while (a[--j] > v) {
+//                }
+//
+//                if (i >= j) {
+//                    break;
+//                }
+//
+//                t = a[i];
+//                a[i] = a[j];
+//                a[j] = t;
+//            }
+//
+//            t = a[j];
+//            a[j] = a[l];
+//            a[l] = t;
+//
+//            if (j <= k1) {
+//                l = j + 1;
+//            }
+//
+//            if (j >= k2) {
+//                r = j - 1;
+//            }
+//        }
+//
+//        // return the interpolated value.
+//        return (a[k1] + ratio * (a[k2] - a[k1]));
+//    }
+
     /**
-     * @param array          a long array.
-     * @param N              the number of values of array which should be
-     *                       considered.
-     * @param quartileNumber 1, 2, or 3.
-     * @return the requested quartile of the first N values in this array.
+     * @param array  a double array.
+     * @return An double[] array with values [min q1 median q3 max]
      */
-    public static double quartile(long array[], int N, int quartileNumber) {
+    public static double[] quartile(double array[]) {
+        array = Arrays.copyOf(array, array.length);
+        Arrays.sort(array);
 
-        if ((quartileNumber < 1) || (quartileNumber > 3)) {
-            throw new IllegalArgumentException("StatUtils.quartile:  " +
-                    "Quartile number must be 1, 2, or 3.");
-        }
+        int L = array.length;
 
-        long a[] = new long[N + 1];
+        int i1 = 0;
+        int i2a = (int) floor(0.25 * L);
+        int i2b = (int) ceil(0.25 * L);
 
-        System.arraycopy(array, 0, a, 0, N);
+        int i3a = (int) floor(0.5 * L);
+        int i3b = (int) ceil(0.5 * L);
 
-        a[N] = Long.MAX_VALUE;
+        int i4a = (int) floor(0.75 * L);
+        int i4b = (int) ceil(0.75 * L);
 
-        long v, t;
-        int i, j, l = 0;
-        int r = N - 1;
+        int i5 = L - 1;
 
-        // find the two indexes k1 and k2 (possibly equal) which need
-        // to be interpolated to get the quartile, being careful to
-        // zero-index.
-        double doubleIndex = (quartileNumber / 4.0) * (N + 1.0) - 1;
-        double ratio = doubleIndex - (int) (doubleIndex);
-        int k1 = (int) Math.floor(doubleIndex);
-        int k2 = (int) Math.ceil(doubleIndex);
+        double[] m = new double[5];
 
-        // partially sort array a[] to find k1 and k2
-        while (r > l) {
-            v = a[l];
-            i = l;
-            j = r + 1;
+        m[0] = array[i1];
+        m[1] = (array[i2a] + array[i2b]) / 2.0;
+        m[2] = (array[i3a] + array[i3b]) / 2.0;
+        m[3] = (array[i4a] + array[i4b]) / 2.0;
+        m[4] = array[i5];
 
-            for (; ; ) {
-                while (a[++i] < v) {
-                }
+        return m;
 
-                while (a[--j] > v) {
-                }
-
-                if (i >= j) {
-                    break;
-                }
-
-                t = a[i];
-                a[i] = a[j];
-                a[j] = t;
-            }
-
-            t = a[j];
-            a[j] = a[l];
-            a[l] = t;
-
-            if (j <= k1) {
-                l = j + 1;
-            }
-
-            if (j >= k2) {
-                r = j - 1;
-            }
-        }
-
-        // return the interpolated value.
-        return (a[k1] + ratio * (a[k2] - a[k1]));
-    }
-
-    /**
-     * @param array          a double array.
-     * @param N              the number of values of array which should be
-     *                       considered.
-     * @param quartileNumber 1, 2, or 3.
-     * @return the requested quartile of the first N values in this array.
-     */
-    public static double quartile(double array[], int N, int quartileNumber) {
-
-        if ((quartileNumber < 1) || (quartileNumber > 3)) {
-            throw new IllegalArgumentException("StatUtils.quartile:  " +
-                    "Quartile number must be 1, 2, or 3.");
-        }
-
-        double a[] = new double[N + 1];
-
-        System.arraycopy(array, 0, a, 0, N);
-
-        a[N] = Double.POSITIVE_INFINITY;
-
-        double v, t;
-        int i, j, l = 0;
-        int r = N - 1;
-
-        // find the two indexes k1 and k2 (possibly equal) which need
-        // to be interpolated to get the quartile, being careful to
-        // zero-index.  Also find interpolation ratio.
-        double doubleIndex = (quartileNumber / 4.0) * (N + 1.0) - 1;
-        double ratio = doubleIndex - (int) (doubleIndex);
-        int k1 = (int) Math.floor(doubleIndex);
-        int k2 = (int) Math.ceil(doubleIndex);
-
-        // partially sort array a[] to find k1 and k2
-        while (r > l) {
-            v = a[l];
-            i = l;
-            j = r + 1;
-
-            for (; ; ) {
-                while (a[++i] < v) {
-                }
-                while (a[--j] > v) {
-                }
-
-                if (i >= j) {
-                    break;
-                }
-
-                t = a[i];
-                a[i] = a[j];
-                a[j] = t;
-            }
-
-            t = a[j];
-            a[j] = a[l];
-            a[l] = t;
-
-            if (j <= k1) {
-                l = j + 1;
-            }
-
-            if (j >= k2) {
-                r = j - 1;
-            }
-        }
-
-        // return the interpolated value.
-        return (a[k1] + ratio * (a[k2] - a[k1]));
+//
+//        double a[] = new double[N + 1];
+//
+//        System.arraycopy(array, 0, a, 0, N);
+//
+//        a[N] = Double.POSITIVE_INFINITY;
+//
+//        double v, t;
+//        int i, j, l = 0;
+//        int r = N - 1;
+//
+//        // find the two indexes k1 and k2 (possibly equal) which need
+//        // to be interpolated to get the quartile, being careful to
+//        // zero-index.  Also find interpolation ratio.
+//        double doubleIndex = (quartileNumber / 4.0) * (N + 1.0) - 1;
+//        double ratio = doubleIndex - (int) (doubleIndex);
+//        int k1 = (int) Math.floor(doubleIndex);
+//        int k2 = (int) Math.ceil(doubleIndex);
+//
+//        // partially sort array a[] to find k1 and k2
+//        while (r > l) {
+//            v = a[l];
+//            i = l;
+//            j = r + 1;
+//
+//            for (; ; ) {
+//                while (a[++i] < v) {
+//                }
+//                while (a[--j] > v) {
+//                }
+//
+//                if (i >= j) {
+//                    break;
+//                }
+//
+//                t = a[i];
+//                a[i] = a[j];
+//                a[j] = t;
+//            }
+//
+//            t = a[j];
+//            a[j] = a[l];
+//            a[l] = t;
+//
+//            if (j <= k1) {
+//                l = j + 1;
+//            }
+//
+//            if (j >= k2) {
+//                r = j - 1;
+//            }
+//        }
+//
+//        // return the interpolated value.
+//        return (a[k1] + ratio * (a[k2] - a[k1]));
     }
 
     /**
@@ -1269,8 +1289,9 @@ public final class StatUtils {
         double esss = thirdMoment / N;
 
         if (secondMoment == 0) {
-            throw new ArithmeticException("StatUtils.skew:  There is no skew " +
-                    "when the variance is zero.");
+            return 0;
+//            throw new ArithmeticException("StatUtils.skew:  There is no skew " +
+//                    "when the variance is zero.");
         }
 
         return esss / Math.pow(ess, 1.5);
