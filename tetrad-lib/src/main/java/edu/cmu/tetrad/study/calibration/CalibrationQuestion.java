@@ -15,6 +15,7 @@ import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
+import org.apache.commons.math3.exception.MathArithmeticException;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.io.*;
@@ -1063,8 +1064,13 @@ public class CalibrationQuestion {
     private static void scenario8() {
         File dir = new File("/Users/user/Box/data/pairs");
 
-        List<Integer> selectedRight = new ArrayList<>();
-        List<Integer> selectedWrong = new ArrayList<>();
+        List<List<List<Integer>>> selected = new ArrayList<>();
+
+        for (int i = 0; i < 4; i++) {
+            selected.add(new ArrayList<>());
+            selected.get(i).add(new ArrayList<>());
+            selected.get(i).add(new ArrayList<>());
+        }
 
         NumberFormat nf = new DecimalFormat("0000");
 
@@ -1108,7 +1114,6 @@ public class CalibrationQuestion {
 //            System.out.println("index = " + i);
 
 
-
 //            File data = new File(dir, "pair" + nf.format(i) + ".txt");
             File data = new File(dir, "pair." + i + ".resave.txt");
             File des = new File(dir, "pair" + nf.format(i) + "_des.txt");
@@ -1133,8 +1138,12 @@ public class CalibrationQuestion {
                 Data _data3 = dataReader.readInData();
                 dataSet = (DataSet) DataConvertUtils.toDataModel(_data3);
 
-                DataWriter.writeRectangularData(dataSet, new PrintWriter(
-                        new File(dir, "pair." + i + ".resave.txt")), '\t');
+                if (dataSet.getNumRows() > 1000) {
+                    dataSet = DataUtils.getBootstrapSample(dataSet, 1000);
+                }
+
+//                DataWriter.writeRectangularData(dataSet, new PrintWriter(
+//                        new File(dir, "pair." + i + ".resave.txt")), '\t');
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -1146,16 +1155,16 @@ public class CalibrationQuestion {
             double[] data0 = doubles.getColumn(0).toArray();
             double[] data1 = doubles.getColumn(1).toArray();
 
-            double sk0 = skewness(data0);
-            double sk1 = skewness(data1);
+            double skX = skewness(data0);
+            double skY = skewness(data1);
 
 
 //            for (int m = 0; m < dataSet.getNumRows(); m++) {
-//                if (sk0 < 0) {
+//                if (skX < 0) {
 //                    dataSet.setDouble(m, 0, -dataSet.getDouble(m, 0));
 //                }
 //
-//                if (sk1 < 0) {
+//                if (skY < 0) {
 //                    dataSet.setDouble(m, 1, -dataSet.getDouble(m, 1));
 //                }
 //            }
@@ -1167,7 +1176,7 @@ public class CalibrationQuestion {
 
             boolean skewedX = false;
             boolean skewedResidual = false;
-            boolean fileSaysReversed = false;
+            boolean fileSaysDependent = false;
             boolean skewedResidualOfResidual = false;
 
             try {
@@ -1234,7 +1243,7 @@ public class CalibrationQuestion {
                 reader = new BufferedReader(new FileReader(des));
                 while ((line = reader.readLine()) != null) {
                     if (line.contains("DependentError")) {
-                        fileSaysReversed = true;
+                        fileSaysDependent = true;
                         break;
                     }
                 }
@@ -1294,13 +1303,6 @@ public class CalibrationQuestion {
             Lofs2 lofs = new Lofs2(g, dataSets);
             lofs.setRule(Lofs2.Rule.Skew);
 
-            RegressionDataset regression = new RegressionDataset(dataSet);
-            RegressionResult result = regression.regress(variables.get(1), variables.get(0));
-            TetradVector residuals = result.getResiduals();
-
-            double skRes = skewness(residuals.toArray());
-            double skX = skewness(dataSet.getDoubleData().getColumn(0).toArray());
-
             TetradMatrix _data = new TetradMatrix(dataSet.getNumRows(), 2);
 
             _data.assignColumn(0, dataSet.getDoubleData().getColumn(1));
@@ -1319,62 +1321,61 @@ public class CalibrationQuestion {
 
             DataSet d2 = new BoxDataSet(new DoubleDataBox(m2.toArray()), n);
 
+            // Remove missing value rows.
             d2 = filter(d2);
 
-            IndependenceTest test;
+            IndependenceTest test = null;
+            boolean testSaysIndependent;
 
-            if (dataSet.getNumRows() < 1000) {
-                test = new Kci(d2, 0.001);
-                test.setVerbose(false);
+            double skeY = skewness(rYnl);
+
+
+            if (abs(skeY - skY) < 0.15) {
+                testSaysIndependent = true;
+                System.out.println("skY and skeY close");
             } else {
-                test = new IndTestFisherZ(d2, 0.001);
+
+                testSaysIndependent = false;
+                System.out.println("skY and skeY distant");
+
+
+//                double alpha = 0.00001;
+//
+//                try {
+//                    if (dataSet.getNumRows() <= 1000) {
+//                        test = new Kci(d2, alpha);
+//                        test.setVerbose(false);
+//                        test.isIndependent(n.get(0), n.get(1));
+//                        testSaysIndependent = test.getPValue() > alpha;
+//                    } else {
+//                        test = new IndTestFisherZ(d2, alpha);
+//                        testSaysIndependent = test.getPValue() > alpha;
+//                    }
+//                } catch (Exception e) {
+//                    test = new IndTestFisherZ(d2, alpha);
+//                    test.isIndependent(n.get(0), n.get(1));
+//                    testSaysIndependent = test.getPValue() > alpha;
+//                    e.printStackTrace();
+//                }
             }
 
-            boolean ind = false;
-            try {
-                ind = test.isIndependent(n.get(0), n.get(1));
-            } catch (Exception e) {
-                ind = true;
-            }
 
-            ind = test.getPValue() > 0.05;
-
-//                ind = (sd(rYnl)) < 0.3;
+//                testSaysIndependent = (sd(rYnl)) < 0.3;
 
 
-            // here1
-            if (!(!fileSaysReversed && !ind)) continue;
-
-            // Mistakes where file reversed and dependent: None.
-//selected right = [1, 2, 15, 20, 21, 27, 37, 38, 47, 48, 49, 52, 56, 57, 58, 59, 60, 61, 62, 63, 68, 71, 74, 75, 76, 79, 80, 83, 84, 91, 92, 93, 98, 101, 107, 108]
-//selected wrong = [78, 88]
-            // Mistrakes where file not reversed and independent: 55
-                // Correct: 8, 24, 29, 30, 31, 32, 33, 34, 39, 40, 41, 45, 53
-//selected right = [8, 24, 29, 30, 31, 32, 33, 34, 39, 40, 45, 65, 67, 72, 77, 94, 95, 96, 102, 106]
-//selected wrong = [55, 66]
-
-            // Mistakes where file reversed but independent: 5, 6, 7, 9, 10, 11, 12, 17, 19, 22, 25, 26, 28, 38, 42, 44, 46
-//selected right = [5, 6, 7, 9, 10, 11, 12, 17, 19, 22, 25, 26, 28, 42, 44, 46, 69, 70, 73, 81, 85, 89, 97, 99, 103, 105]
-//selected wrong = [87, 90, 104]
-
-            // Mistakes where file not reversed but dependent: 3, 4, 13, 14, 16, 18, 23, 35, 36, 43, 50, 51, 54
-//selected right = [3, 4, 13, 14, 16, 18, 23, 35, 36, 41, 43, 50, 51, 53, 54, 64, 82, 86, 100]
-//selected wrong = []
-
-            if (dataSet.getNumRows() < 1000) {
+            if (dataSet.getNumRows() <= 1000) {
                 System.out.println("KCI");
             } else {
                 System.out.println("Fisher Z");
             }
 
-            if (!Double.isNaN(test.getPValue()) && test.getPValue() != -1) {
-                System.out.println("index " + i + " x _||_ rYnl = " + (!ind ? "Dependent" : "Independent")
-                    + " p-value = " + test.getPValue());
+            if (test != null && !Double.isNaN(test.getPValue()) && test.getPValue() != -1) {
+                System.out.println("index " + i + " x _||_ rYnl = " + (!testSaysIndependent ? "Dependent" : "Independent")
+                        + " p-value = " + test.getPValue());
             }
 
             long N = dataSet.getNumRows();
             double G1Mult = sqrt((N * (N - 1.0)) / (N - 2.0));
-            double skeY = skewness(rYnl);
             double se = sqrt((6.0 * N * (N - 1.0)) / ((N - 2.0) * (N + 1.0) * (N + 3.0)));
 
             double[] q = quartile(rYnl);
@@ -1401,15 +1402,22 @@ public class CalibrationQuestion {
             }
 
 
-            if (/*abs(sk0) < 0.0001 || abs(sk1) < 0.0001*/ abs(skX) < 0.05 && abs(skRes) < 0.05) {
-//                System.out.println("Skipping " + i + " because at least one skewness is too weak.");
-//                System.out.println("sk0 = " + sk0);
-//                System.out.println("sk1 = " + sk1);
-//                System.out.println("skRes = " + skRes);
+            if (abs(skX) < 0.5 && abs(skeY) < 0.5) {
+                System.out.println("Index " + i + " Weak skewnesses");
                 skippedWeakSkewness++;
-//                continue;
+                continue;
             }
 
+            System.out.println("skX = " + skX);
+            System.out.println("skY = " + skY);
+            System.out.println("skeY = " + skeY);
+
+
+//            if (abs(skX) < 0.01 || abs(skeY) < 0.01) {
+////                System.out.println("Skipping " + i + " because at least one skewness is too weak.");
+////                skippedWeakSkewness++;
+////                continue;
+//            }
 
 
             boolean _skewedX = abs(skX) > .1;
@@ -1430,7 +1438,7 @@ public class CalibrationQuestion {
             skewedX = _skewedX;
             skewedResidual = _skewedeY;
 
-//            fileSaysReversed = correlation(dataSet.getDoubleData().getColumn(0).toArray(), residuals.toArray()) > 0.1;
+//            fileSaysDependent = correlation(dataSet.getDoubleData().getColumn(0).toArray(), residuals.toArray()) > 0.1;
 
 
             Graph out;
@@ -1449,8 +1457,8 @@ public class CalibrationQuestion {
 
 //            IndependenceTest test;
 //
-//            if (dataSet.getNumRows() < 1000) {
-//                test = new Kci(dataSet, 0.05);
+//            if (dataSet.getNumRows() <= 1000) {
+//                test = new Kci(dataSet, alpha);
 //            } else {
 //                test = new IndTestFisherZ(dataSet, 0.05);
 //            }
@@ -1470,26 +1478,111 @@ public class CalibrationQuestion {
 //                continue;
 //            }
 
-//            fileSaysReversed = abs(skewness(rYnl)) > 0.1;
+//            fileSaysDependent = abs(skewness(rYnl)) > 0.1;
 
-            if (fileSaysReversed) {
+            if (fileSaysDependent) {
                 estLeftRight = !estLeftRight;
                 estRightLeft = !estRightLeft;
             }
 
 
             // here2
-            if (((trueLeftRight && estLeftRight) || (!trueLeftRight && estRightLeft))) {
-                selectedRight.add(i);
-            } else {
-                selectedWrong.add(i);
-            }
+            // here1
 
+            boolean _correct = ((trueLeftRight && estLeftRight) || (!trueLeftRight && estRightLeft));
+
+            if (fileSaysDependent) {
+                if (testSaysIndependent) {
+                    // c
+                    if (_correct) {
+                        selected.get(0).get(0).add(i);
+                    } else {
+                        selected.get(0).get(1).add(i);
+                    }
+                } else { // test says dependent
+                    //a
+                    if (_correct) {
+                        selected.get(1).get(0).add(i);
+                    } else {
+                        selected.get(1).get(1).add(i);
+                    }
+                }
+            } else {
+                if (testSaysIndependent) {
+                    //b
+                    if (_correct) {
+                        selected.get(2).get(0).add(i);
+                    } else {
+                        selected.get(2).get(1).add(i);
+                    }
+                } else {
+                    //d
+                    if (_correct) {
+                        selected.get(3).get(0).add(i);
+                    } else {
+                        selected.get(3).get(1).add(i);
+                    }
+                }
+            }
 
 //            if ((trueLeftRight && estLeftRight) || (!trueLeftRight && estRightLeft)) continue;
 //            if (!skewedResidualOfResidual) continue;
 
+// (a)
+// By eye X ~_||_ rY
+//     Judged X ~_||_ rY
 
+// [[1, 2, 5, 6, 7, 9, 10, 11, 12, 15, 17, 20, 21, 25, 27, 37, 38, 42, 44, 46, 47, 48, 49, 56, 57, 58, 59, 60, 61, 62, 63, 68, 70, 71, 73, 74, 75, 76, 79, 80, 83, 84, 91, 92, 93, 98, 101, 105, 107, 108],
+//    [28, 52, 78, 87, 88, 99]],
+
+// (b)
+// By eye X _||_ rY
+//     Judged X _||_ rY
+
+// [[24, 29, 33, 34, 39, 40, 72, 102, 106],
+//     [55]],
+
+// (c)
+// By eye X ~_||_ rY
+//     Judged X _||_ rY
+//[[[19, 22, 26, 69, 81, 85, 89, 97, 103],
+//    [90, 104]],
+
+// (d)
+// By eye X _||_ rY
+//     Judged X ~_||_ rY
+
+// [[3, 4, 8, 13, 14, 16, 18, 23, 30, 31, 32, 35, 36, 41, 43, 45, 50, 51, 53, 54, 64, 65, 67, 77, 82, 86, 94, 95, 96, 100],
+//     [66]]]
+
+            // c
+            //[[[1, 19, 22, 38, 42, 56, 57, 58, 59, 60, 61, 62, 63, 68, 69, 81, 85, 89, 91, 92, 97, 98, 103, 108],
+            // [25, 90, 104]],
+
+            // a
+            // [[2, 5, 7, 9, 10, 11, 12, 15, 17, 20, 21, 26, 27, 28, 37, 44, 46, 47, 48, 49, 52, 70, 71, 73, 74, 75, 76, 79, 80, 83, 84, 93, 99, 101, 105, 107],
+            // [6, 78, 87, 88]],
+
+            // b
+            // [[3, 4, 23, 24, 29, 30, 31, 32, 33, 34, 39, 40, 41, 51, 66, 72, 86, 94, 100, 102, 106],
+            // [8, 55, 95]],
+
+            // d
+            // [[13, 14, 16, 18, 35, 36, 43, 45, 50, 53, 54, 64, 65, 67, 77, 82, 96],
+            // []]]
+
+
+            //==
+
+            //c [[[1, 19, 22, 38, 42, 56, 57, 58, 59, 60, 61, 62, 63, 68, 69, 81, 85, 89, 91, 92, 97, 98, 103, 108], [25, 90, 104]],
+            //a [[2, 5, 7, 9, 10, 11, 12, 15, 17, 20, 21, 26, 27, 28, 37, 44, 46, 47, 48, 49, 52, 70, 71, 73, 74, 75, 76, 79, 80, 83, 84, 93, 99, 101, 105, 107], [6, 78, 87, 88]],
+            //b [[3, 4, 23, 24, 29, 30, 31, 32, 33, 34, 39, 40, 41, 51, 66, 72, 86, 94, 100, 102, 106], [8, 55, 95]],
+            //d [[13, 14, 16, 18, 35, 36, 43, 45, 50, 53, 54, 64, 65, 67, 77, 82, 96], []]]
+
+            //c [[[1, 19, 22, 25, 26, 38, 56, 57, 58, 59, 60, 61, 62, 63, 68, 69, 81, 85, 89, 91, 92, 97, 98, 103, 108], [42]],
+            //a [[2, 5, 6, 7, 9, 10, 11, 12, 15, 17, 20, 21, 27, 28, 37, 47, 48, 49, 52, 71, 73, 74, 75, 76, 79, 80, 83, 84, 93, 99, 101, 105, 107], [44, 46, 70, 78, 87, 88]],
+            //b  [[3, 4, 23, 24, 29, 30, 31, 32, 33, 34, 39, 40, 41, 51, 66, 72, 86, 90, 94, 100, 102, 104, 106], [8, 55]],
+            //d [[13, 14, 16, 18, 35, 36, 43, 45, 50, 53, 54, 64, 77, 82, 96], [65, 67, 95]]]
 
             if (trueLeftRight) {
                 System.out.println("true -->");
@@ -1497,7 +1590,7 @@ public class CalibrationQuestion {
                 System.out.println("true <--");
             }
 
-           if (dataSet.getNumRows() < 1000) {
+            if (dataSet.getNumRows() <= 1000) {
                 System.out.println("KCI");
             } else {
                 System.out.println("Fisher Z");
@@ -1505,13 +1598,13 @@ public class CalibrationQuestion {
 
 //            if (skewedX) System.out.println("SkewedX");
 //            if (skewedResidual) System.out.println("Skewed Residual");
-            if (ind) {
+            if (testSaysIndependent) {
                 System.out.println("Index " + i + " Independent ");
             } else {
                 System.out.println("Index " + i + " Dependent ");
             }
 
-            if (fileSaysReversed) {
+            if (fileSaysDependent) {
                 System.out.println("Index " + i + " File Says Reversed");
             } else {
                 System.out.println("Index " + i + " File Says Not Reversed");
@@ -1552,8 +1645,11 @@ public class CalibrationQuestion {
         System.out.println("Skipped because variables were judged independent = " + skippedIndependent);
 //        System.out.println("Skipped because excluded = " + excluded);
 
-        System.out.println("selected right = " + selectedRight);
-        System.out.println("selected wrong = " + selectedWrong);
+
+        System.out.println("a: " + selected.get(1));
+        System.out.println("b: " + selected.get(2));
+        System.out.println("c: " + selected.get(0));
+        System.out.println("d: " + selected.get(3));
     }
 
     private static void collectUnshieldedTripleLegsAndShieldsInR(Graph R, Set<Edge> L, Set<Edge> M, Node
@@ -1593,7 +1689,7 @@ public class CalibrationQuestion {
             for (int j = 0; j < N; j++) {
                 double xj = xdata[j];
                 double d = distance(data, 1, i, j);
-                double k = kernelGaussian(d,.5, h);
+                double k = kernelGaussian(d, .5, h);
                 sumx[i] += k * xj;
                 totalWeightx[i] += k;
             }
