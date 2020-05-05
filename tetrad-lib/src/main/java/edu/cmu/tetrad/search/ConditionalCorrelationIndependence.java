@@ -344,7 +344,7 @@ public final class ConditionalCorrelationIndependence {
         }
 
         for (int i = 0; i < N; i++) {
-            if (totalWeightx[i] == 0) totalWeightx[i] = 1;
+//            if (totalWeightx[i] == 0) totalWeightx[i] = 1;
 
             residualsx[i] = xdata[i] - sumx[i] / totalWeightx[i];
 

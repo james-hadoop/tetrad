@@ -1,5 +1,6 @@
 package edu.cmu.tetrad.study.calibration;
 
+import edu.cmu.tetrad.algcomparison.independence.CciTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -1089,6 +1090,8 @@ public class CalibrationQuestion {
         DataSet dataSet = null;
 
         for (int i = 1; i <= 108; i++) {
+            System.out.println("========================= INDEX = " + i);
+
             File data = new File(dir, "pair" + nf.format(i) + ".txt");
 
             dataSet = loadContinuousData(data, false, Delimiter.WHITESPACE);
@@ -1115,20 +1118,16 @@ public class CalibrationQuestion {
 
             File des = new File(dir, "pair" + nf.format(i) + "_des.txt");
 
-            boolean groundTruthLeftRight = false;
-            boolean groundTruthRightLeft = false;
-            boolean fileSaysDependent = false;
-
-            groundTruthLeftRight = find(des, "#-->");
-            groundTruthRightLeft = find(des, "#<--");
-            fileSaysDependent = find(des, "DependentError");
+            boolean groundTruthLeftRight = find(des, "#-->");
+            boolean groundTruthRightLeft = find(des, "#<--");
+            boolean fileSaysDependent = find(des, "DependentError");
 
 //            fileSaysDependent = !groundTruthRightLeft;
 
-            if (groundTruthLeftRight) {
-                groundTruthRightLeft = true;
-                fileSaysDependent = true;
-            }
+//            if (groundTruthLeftRight && groundTruthRightLeft) {
+//                groundTruthLeftRight = true;
+//                groundTruthRightLeft = false;
+//            }
 
             List<Node> nodes = new ArrayList<>();
             List<Node> variables = dataSet.getVariables();
@@ -1207,12 +1206,25 @@ public class CalibrationQuestion {
 //            double se = sqrt((6.0 * N * (N - 1.0)) / ((N - 2.0) * (N + 1.0) * (N + 3.0)));
 
             double f1 = 0;
-            double f2 = .25;
+            double f2 = .1;
 //
 //            System.out.println("index " + i + " se = " + se);
 //
 ////            // skew test.
-            testSaysDependent = abs(skeY - skY) < f2 || abs(skeX - skX) < f2;
+//            testSaysDependent = abs(skeY - skY) > f2 || abs(skeX - skX) > f2;
+
+            try {
+                if (dataSet.getNumRows() <= 1000) {
+                    IndependenceTest test = new IndTestConditionalCorrelation(d2, 0.05);
+                    test.setVerbose(false);
+                    testSaysDependent = !(test.isIndependent(n.get(0), n.get(3)) || test.isIndependent(n.get(1), n.get(2)));
+//                    testSaysDependent = test.getPValue() < alpha;
+                } else {
+                    continue;
+                }
+            } catch (Exception e) {
+                continue;
+            }
 
             // FASK
             Graph out;
@@ -1228,10 +1240,21 @@ public class CalibrationQuestion {
             }
 
             boolean estLeftRight = out.containsEdge(Edges.directedEdge(nodes.get(0), nodes.get(1)));
+            boolean estRightLeft = out.containsEdge(Edges.directedEdge(nodes.get(1), nodes.get(0)));
 
-            if (testSaysDependent) {
+            if (fileSaysDependent) {
                 estLeftRight = !estLeftRight;
+                estRightLeft = !estRightLeft;
             }
+
+//            if (!(estLeftRight && !testSaysDependent)) {
+//                continue;
+////                estLeftRight = false;
+//            }
+
+//            if (estLeftRight) {
+//                continue;
+//            }
 
             int row;
 
@@ -1289,10 +1312,11 @@ public class CalibrationQuestion {
 //        System.out.println("Skipped because excluded = " + excluded);
 
 
-        System.out.println("TP: " + selected.get(0));
-        System.out.println("TN: " + selected.get(1));
-        System.out.println("FP: " + selected.get(2));
-        System.out.println("FN: " + selected.get(3));
+        System.out.println();
+        System.out.println("Flipped Dependent: " + selected.get(0));
+        System.out.println("Flipped Independent: " + selected.get(1));
+        System.out.println("Unflipped Dependent: " + selected.get(2));
+        System.out.println("Unflipped Independent: " + selected.get(3));
 
 //        System.out.println();
 //        System.out.println("All reversed: " + allReversed);
@@ -1376,6 +1400,7 @@ public class CalibrationQuestion {
      * and the second double[] array contains the resituls for y.
      */
     public static double[] residuals(double[][] data) {
+        System.out.println("Calculation nonlinear residuals");
         int N = data[0].length;
 
         int _x = 0;
@@ -1401,14 +1426,16 @@ public class CalibrationQuestion {
         }
 
         for (int i = 0; i < N; i++) {
-            if (totalWeightx[i] == 0) totalWeightx[i] = 1;
+//            if (totalWeightx[i] == 0) totalWeightx[i] = 1;
 
-            residualsx[i] = xdata[i] - sumx[i] / totalWeightx[i];
+            residualsx[i] = /*xdata[i] -*/ sumx[i] / totalWeightx[i];
 
             if (Double.isNaN(residualsx[i])) {
                 residualsx[i] = 0;
             }
         }
+
+        System.out.println("Done");
 
         return residualsx;
     }
