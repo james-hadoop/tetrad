@@ -93,6 +93,12 @@ public class TetradVector implements TetradSerializable {
         return new TetradVector(data.subtract(mb.data));
     }
 
+    public TetradVector minus(double s) {
+        TetradVector v = new TetradVector(this.data);
+        for (int i = 0; i < v.size(); i++) v.set(i, v.get(i) - s);
+        return v;
+    }
+
     public TetradVector plus(TetradVector mb) {
         return new TetradVector(data.add(mb.data));
     }

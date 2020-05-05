@@ -15,7 +15,6 @@ import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
-import org.apache.commons.math3.exception.MathArithmeticException;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.io.*;
@@ -31,7 +30,11 @@ import static java.lang.Math.*;
 public class CalibrationQuestion {
 
     public static void main(String... args) {
-        scenario8();
+        try {
+            scenario8();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void scenario1() {
@@ -1061,8 +1064,10 @@ public class CalibrationQuestion {
         return g1b;
     }
 
-    private static void scenario8() {
+    private static void scenario8() throws IOException {
         File dir = new File("/Users/user/Box/data/pairs");
+
+        int maxN = 1000;
 
         List<List<List<Integer>>> selected = new ArrayList<>();
 
@@ -1081,212 +1086,49 @@ public class CalibrationQuestion {
         int skippedSingular = 0;
         int skippedIndependent = 0;
 
-//        File readmeMetaFile = new File(dir, "README2.txt");
-//        boolean[] readmeTruth = new boolean[108];
-//
-//        try {
-//            BufferedReader reader = new BufferedReader(new FileReader(readmeMetaFile));
-//
-//            for (int r = 0; r < 108; r++) {
-//                String l = reader.readLine();
-//                readmeTruth[r] = l.contains("->");
-//            }
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-//        DataSet pairsMeta = null;
-//        try {
-//            File pairsMetaFile = new File(dir, "pairmeta.txt");
-//            ContinuousTabularDatasetFileReader dataReader2
-//                    = new ContinuousTabularDatasetFileReader(pairsMetaFile.toPath(), Delimiter.WHITESPACE);
-//            dataReader2.setHasHeader(false);
-//            dataReader2.setMissingDataMarker("*");
-//            Data pairsMetaData = dataReader2.readInData();
-//            pairsMeta = (DataSet) DataConvertUtils.toDataModel(pairsMetaData);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
+        DataSet dataSet = null;
 
         for (int i = 1; i <= 108; i++) {
-//            System.out.println("index = " + i);
+            File data = new File(dir, "pair" + nf.format(i) + ".txt");
 
+            dataSet = loadContinuousData(data, false, Delimiter.WHITESPACE);
+            assert dataSet != null;
 
-//            File data = new File(dir, "pair" + nf.format(i) + ".txt");
-            File data = new File(dir, "pair." + i + ".resave.txt");
-            File des = new File(dir, "pair" + nf.format(i) + "_des.txt");
-
-
-            ContinuousTabularDatasetFileReader dataReader
-                    = new ContinuousTabularDatasetFileReader(data.toPath(), Delimiter.TAB);
-            dataReader.setHasHeader(true);
-            dataReader.setMissingDataMarker("*");
-
-
-            DataSet dataSet = null;
-
-            try {
-                Data _data = dataReader.readInData();
-                dataSet = (DataSet) DataConvertUtils.toDataModel(_data);
-
-                if (dataSet.getNumColumns() > 2 && Double.isNaN(dataSet.getDouble(0, dataSet.getNumColumns() - 1))) {
-                    dataSet.removeColumn(dataSet.getNumColumns() - 1);
-                }
-
-                Data _data3 = dataReader.readInData();
-                dataSet = (DataSet) DataConvertUtils.toDataModel(_data3);
-
-                if (dataSet.getNumRows() > 1000) {
-                    dataSet = DataUtils.getBootstrapSample(dataSet, 1000);
-                }
-
-//                DataWriter.writeRectangularData(dataSet, new PrintWriter(
-//                        new File(dir, "pair." + i + ".resave.txt")), '\t');
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (dataSet.getNumRows() > maxN) {
+                dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             }
 
+//            DataWriter.writeRectangularData(dataSet, new PrintWriter(
+//                    new File(dir, "pair." + i + ".resave.txt")), '\t');
 
-            assert dataSet != null;
-            TetradMatrix doubles = dataSet.getDoubleData();
-
-            double[] data0 = doubles.getColumn(0).toArray();
-            double[] data1 = doubles.getColumn(1).toArray();
-
-            double skX = skewness(data0);
-            double skY = skewness(data1);
-
-
-//            for (int m = 0; m < dataSet.getNumRows(); m++) {
-//                if (skX < 0) {
-//                    dataSet.setDouble(m, 0, -dataSet.getDouble(m, 0));
-//                }
-//
-//                if (skY < 0) {
-//                    dataSet.setDouble(m, 1, -dataSet.getDouble(m, 1));
-//                }
+//            if (true) {
+//                continue;
 //            }
 
-            boolean trueLeftRight = false;
-            boolean notTwoCycle = false;
-            boolean symmetricLeftRight = false;
-            boolean _excluded = false;
+            TetradMatrix doubles = dataSet.getDoubleData();
 
-            boolean skewedX = false;
-            boolean skewedResidual = false;
+            double[] x = doubles.getColumn(0).toArray();
+            double[] y = doubles.getColumn(1).toArray();
+
+            double skX = skewness(x);
+            double skY = skewness(y);
+
+            File des = new File(dir, "pair" + nf.format(i) + "_des.txt");
+
+            boolean groundTruthLeftRight = false;
+            boolean groundTruthRightLeft = false;
             boolean fileSaysDependent = false;
-            boolean skewedResidualOfResidual = false;
 
-            try {
-                BufferedReader reader = new BufferedReader(new FileReader(des));
-                String line;
+            groundTruthLeftRight = find(des, "#-->");
+            groundTruthRightLeft = find(des, "#<--");
+            fileSaysDependent = find(des, "DependentError");
 
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("#-->")) {
-                        trueLeftRight = true;
-                        break;
-                    }
-                }
+//            fileSaysDependent = !groundTruthRightLeft;
 
-//                assert pairsMeta != null;
-//
-//                int m = i - 1;
-//
-//                trueLeftRight = pairsMeta.getDouble(m, 1) == 1;
-//                trueRightLeft = !trueLeftRight;
-
-//                if (trueLeftRight != trueLeftRight2) {
-//                    System.out.println("Discrepancy in " + i);
-//                }
-
-//                trueLeftRight = readmeTruth[i - 1];
-//                trueRightLeft = !trueLeftRight;
-
-//                if ((pairsMeta.getDouble(m, 1) == 1) != (readmeTruth[i - 1])) {
-//                    System.out.println("Index " + i + " ground truth inconsistency");
-//                    System.out.println("Pairs meta = " + (pairsMeta.getDouble(m, 1) == 1));
-//                    System.out.println("Readme = " + (readmeTruth[i - 1]));
-//                }
-
-//                if ((trueLeftRight) != (readmeTruth[i - 1])) {
-//                    System.out.println("Index " + i + " ground truth inconsistency");
-//                    System.out.println("Description files = " + (trueLeftRight));
-//                    System.out.println("Readme = " + (readmeTruth[i - 1]));
-//                }
-
-//                reader = new BufferedReader(new FileReader(des));
-//                while ((line = reader.readLine()) != null) {
-//                    if (line.contains("#<T>")) {
-//                        trueConfounded = true;
-//                        break;
-//                    }
-//                }
-
-                reader = new BufferedReader(new FileReader(des));
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("SkewedX")) {
-                        skewedX = true;
-                        break;
-                    }
-                }
-
-                reader = new BufferedReader(new FileReader(des));
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("SkewedResidual") && !line.contains("SkewedResidualOfResidual")) {
-                        skewedResidual = true;
-                        break;
-                    }
-                }
-
-                reader = new BufferedReader(new FileReader(des));
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("DependentError")) {
-                        fileSaysDependent = true;
-                        break;
-                    }
-                }
-
-                reader = new BufferedReader(new FileReader(des));
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("SkewedResidualOfResidual")) {
-                        skewedResidualOfResidual = true;
-                        break;
-                    }
-                }
-
-                reader = new BufferedReader(new FileReader(des));
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("SymmetricLeftRight")) {
-                        symmetricLeftRight = true;
-                        break;
-                    }
-                }
-
-                reader = new BufferedReader(new FileReader(des));
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("NotTwoCycle")) {
-                        notTwoCycle = true;
-                        break;
-                    }
-                }
-
-                reader = new BufferedReader(new FileReader(des));
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("Exclude")) {
-                        _excluded = true;
-                        break;
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (groundTruthLeftRight) {
+                groundTruthRightLeft = true;
+                fileSaysDependent = true;
             }
-
-
-//            System.out.println(i + ": skX = " + skX + (isSkewedX ? " SkewedX" : ""));
-//            System.out.println(i + ": skRes = " + skRes + (isSkewedResidualsOfResiduals ? " SkewedResidualOfResidual" : ""));
-
 
             List<Node> nodes = new ArrayList<>();
             List<Node> variables = dataSet.getVariables();
@@ -1296,13 +1138,21 @@ public class CalibrationQuestion {
             Graph g = new EdgeListGraph(dataSet.getVariables());
             g.addUndirectedEdge(nodes.get(0), nodes.get(1));
 
+//            // LOFS
+//            List<DataSet> dataSets = new ArrayList<>();
+//            dataSets.add(DataUtils.getContinuousDataSet(dataSet));
+//            Lofs2 lofs = new Lofs2(g, dataSets);
+//            lofs.setRule(Lofs2.Rule.Skew);
 
-            List<DataSet> dataSets = new ArrayList<>();
-            dataSets.add(DataUtils.getContinuousDataSet(dataSet));
+            // Linear Regressions.
+            RegressionDataset regression = new RegressionDataset(dataSet);
+            RegressionResult result = regression.regress(variables.get(0), variables.get(1));
+            TetradVector rxLin = result.getResiduals();
 
-            Lofs2 lofs = new Lofs2(g, dataSets);
-            lofs.setRule(Lofs2.Rule.Skew);
+            result = regression.regress(variables.get(1), variables.get(0));
+            TetradVector ryLin = result.getResiduals();
 
+            // Nonlinear Regressions
             TetradMatrix _data = new TetradMatrix(dataSet.getNumRows(), 2);
 
             _data.assignColumn(0, dataSet.getDoubleData().getColumn(1));
@@ -1310,141 +1160,63 @@ public class CalibrationQuestion {
 
             double[] rYnl = residuals(_data.transpose().toArray());
 
-            TetradMatrix m2 = new TetradMatrix(dataSet.getNumRows(), 2);
+            _data.assignColumn(0, dataSet.getDoubleData().getColumn(0));
+            _data.assignColumn(1, dataSet.getDoubleData().getColumn(1));
+
+            double[] rXnl = residuals(_data.transpose().toArray());
+
+            // Make dataset with variables and all regressions.
+            TetradMatrix m2 = new TetradMatrix(dataSet.getNumRows(), 6);
 
             m2.assignColumn(0, dataSet.getDoubleData().getColumn(0));
-            m2.assignColumn(1, new TetradVector(rYnl));
+            m2.assignColumn(1, dataSet.getDoubleData().getColumn(1));
+            m2.assignColumn(2, new TetradVector(rXnl));
+            m2.assignColumn(3, new TetradVector(rYnl));
+            m2.assignColumn(4, rxLin);
+            m2.assignColumn(5, ryLin);
 
             List<Node> n = new ArrayList<>();
             n.add(new ContinuousVariable("X"));
+            n.add(new ContinuousVariable("Y"));
+            n.add(new ContinuousVariable("rX"));
             n.add(new ContinuousVariable("rY"));
+            n.add(new ContinuousVariable("rXLin"));
+            n.add(new ContinuousVariable("rYLin"));
 
             DataSet d2 = new BoxDataSet(new DoubleDataBox(m2.toArray()), n);
 
-            // Remove missing value rows.
-            d2 = filter(d2);
+            writeDataSet(dir, i, d2);
 
-            IndependenceTest test = null;
-            boolean testSaysIndependent;
+            // Skewness Test
+            boolean testSaysDependent;
 
+            double skeX = skewness(rXnl);
             double skeY = skewness(rYnl);
-
-
-            if (abs(skeY - skY) < 0.15) {
-                testSaysIndependent = true;
-                System.out.println("skY and skeY close");
-            } else {
-
-                testSaysIndependent = false;
-                System.out.println("skY and skeY distant");
-
-
-//                double alpha = 0.00001;
-//
-//                try {
-//                    if (dataSet.getNumRows() <= 1000) {
-//                        test = new Kci(d2, alpha);
-//                        test.setVerbose(false);
-//                        test.isIndependent(n.get(0), n.get(1));
-//                        testSaysIndependent = test.getPValue() > alpha;
-//                    } else {
-//                        test = new IndTestFisherZ(d2, alpha);
-//                        testSaysIndependent = test.getPValue() > alpha;
-//                    }
-//                } catch (Exception e) {
-//                    test = new IndTestFisherZ(d2, alpha);
-//                    test.isIndependent(n.get(0), n.get(1));
-//                    testSaysIndependent = test.getPValue() > alpha;
-//                    e.printStackTrace();
-//                }
-            }
-
-
-//                testSaysIndependent = (sd(rYnl)) < 0.3;
-
-
-            if (dataSet.getNumRows() <= 1000) {
-                System.out.println("KCI");
-            } else {
-                System.out.println("Fisher Z");
-            }
-
-            if (test != null && !Double.isNaN(test.getPValue()) && test.getPValue() != -1) {
-                System.out.println("index " + i + " x _||_ rYnl = " + (!testSaysIndependent ? "Dependent" : "Independent")
-                        + " p-value = " + test.getPValue());
-            }
-
             long N = dataSet.getNumRows();
-            double G1Mult = sqrt((N * (N - 1.0)) / (N - 2.0));
-            double se = sqrt((6.0 * N * (N - 1.0)) / ((N - 2.0) * (N + 1.0) * (N + 3.0)));
-
-            double[] q = quartile(rYnl);
-
-            double r = skeY / se;
-
-//            System.out.println("sd(res) = " + sd(residuals.toArray()));
-//            System.out.println("sd(rYnl) = " + sd(rYnl));
-//            System.out.println("skeY = " + skeY);
-//            System.out.println("r = " + r);
-//            System.out.println("min = " + (q[0] - q[0]) / (q[4] - q[0]));
-//            System.out.println("q1 = " + (q[1] - q[0]) / (q[4] - q[0]));
-//            System.out.println("q2 = " + (q[2] - q[0]) / (q[4] - q[0]));
-//            System.out.println("q3 = " + (q[3] - q[0]) / (q[4] - q[0]));
-//            System.out.println("max = " + (q[4] - q[0]) / (q[4] - q[0]));
-
-//            }
-
-            try {
-                DataWriter.writeRectangularData(d2, new PrintWriter(
-                        new File(dir, "pair." + i + ".x.resy.txt")), '\t');
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
 
 
-            if (abs(skX) < 0.5 && abs(skeY) < 0.5) {
-                System.out.println("Index " + i + " Weak skewnesses");
-                skippedWeakSkewness++;
-                continue;
-            }
-
+            // Print Skewnesses
+            System.out.println("N = " + N);
             System.out.println("skX = " + skX);
             System.out.println("skY = " + skY);
+            System.out.println("skeX = " + skeX);
             System.out.println("skeY = " + skeY);
 
 
-//            if (abs(skX) < 0.01 || abs(skeY) < 0.01) {
-////                System.out.println("Skipping " + i + " because at least one skewness is too weak.");
-////                skippedWeakSkewness++;
-////                continue;
-//            }
+//            double G1Mult = sqrt((N * (N - 1.0)) / (N - 2.0));
+//            double se = sqrt((6.0 * N * (N - 1.0)) / ((N - 2.0) * (N + 1.0) * (N + 3.0)));
 
-
-            boolean _skewedX = abs(skX) > .1;
-            boolean _skewedeY = abs(skeY) > .1;
-//            skewedResidualOfResidual = abs(skRes) > .5;
-
-//            if (!(_skewedX == skewedX)) {
-//                System.out.println("index = " + i);
-//                System.out.println("skew x = " + skX);
-//                System.out.println("skewedX = " + skewedX);
-//                System.out.println("_skewedX = " + _skewedX);
+            double f1 = 0;
+            double f2 = .25;
 //
-//                continue;
-//            } else if (true) {
-//                continue;
-//            }
+//            System.out.println("index " + i + " se = " + se);
+//
+////            // skew test.
+            testSaysDependent = abs(skeY - skY) < f2 || abs(skeX - skX) < f2;
 
-            skewedX = _skewedX;
-            skewedResidual = _skewedeY;
-
-//            fileSaysDependent = correlation(dataSet.getDoubleData().getColumn(0).toArray(), residuals.toArray()) > 0.1;
-
-
+            // FASK
             Graph out;
 
-
-//            out = lofs.orient();
             try {
                 Fask fask = new Fask(dataSet, g);
 //                Fask fask = new Fask(dataSet, new IndTestFisherZ(dataSet, 0.05));
@@ -1455,183 +1227,54 @@ public class CalibrationQuestion {
                 continue;
             }
 
-//            IndependenceTest test;
-//
-//            if (dataSet.getNumRows() <= 1000) {
-//                test = new Kci(dataSet, alpha);
-//            } else {
-//                test = new IndTestFisherZ(dataSet, 0.05);
-//            }
-//
-//            if (i != 5 && test.isIndependent(nodes.get(0), nodes.get(1))) {
-////                if (!out.isAdjacentTo(nodes.get(0), nodes.get(1))) {
-//                System.out.println("Skipping " + i + " because the variables are judged to be independent.");
-//                skippedIndependent++;
-////                continue;
-//            }
-
             boolean estLeftRight = out.containsEdge(Edges.directedEdge(nodes.get(0), nodes.get(1)));
-            boolean estRightLeft = out.containsEdge(Edges.directedEdge(nodes.get(1), nodes.get(0)));
 
-//            if (!estLeftRight && !estRightLeft) {
-//                System.out.println("Index " + i + "Should be oriented --> or <--.");
-//                continue;
-//            }
-
-//            fileSaysDependent = abs(skewness(rYnl)) > 0.1;
-
-            if (fileSaysDependent) {
+            if (testSaysDependent) {
                 estLeftRight = !estLeftRight;
-                estRightLeft = !estRightLeft;
             }
 
-
-            // here2
-            // here1
-
-            boolean _correct = ((trueLeftRight && estLeftRight) || (!trueLeftRight && estRightLeft));
+            int row;
 
             if (fileSaysDependent) {
-                if (testSaysIndependent) {
-                    // c
-                    if (_correct) {
-                        selected.get(0).get(0).add(i);
-                    } else {
-                        selected.get(0).get(1).add(i);
-                    }
-                } else { // test says dependent
-                    //a
-                    if (_correct) {
-                        selected.get(1).get(0).add(i);
-                    } else {
-                        selected.get(1).get(1).add(i);
-                    }
-                }
-            } else {
-                if (testSaysIndependent) {
-                    //b
-                    if (_correct) {
-                        selected.get(2).get(0).add(i);
-                    } else {
-                        selected.get(2).get(1).add(i);
-                    }
+                if (testSaysDependent) {
+                    row = 0;
                 } else {
-                    //d
-                    if (_correct) {
-                        selected.get(3).get(0).add(i);
-                    } else {
-                        selected.get(3).get(1).add(i);
-                    }
+                    row = 1;
+                }
+            } else {
+                if (testSaysDependent) {
+                    row = 2;
+                } else {
+                    row = 3;
                 }
             }
 
-//            if ((trueLeftRight && estLeftRight) || (!trueLeftRight && estRightLeft)) continue;
-//            if (!skewedResidualOfResidual) continue;
+            boolean correctDirection = ((groundTruthLeftRight && estLeftRight) || (groundTruthRightLeft && !estLeftRight));
 
-// (a)
-// By eye X ~_||_ rY
-//     Judged X ~_||_ rY
-
-// [[1, 2, 5, 6, 7, 9, 10, 11, 12, 15, 17, 20, 21, 25, 27, 37, 38, 42, 44, 46, 47, 48, 49, 56, 57, 58, 59, 60, 61, 62, 63, 68, 70, 71, 73, 74, 75, 76, 79, 80, 83, 84, 91, 92, 93, 98, 101, 105, 107, 108],
-//    [28, 52, 78, 87, 88, 99]],
-
-// (b)
-// By eye X _||_ rY
-//     Judged X _||_ rY
-
-// [[24, 29, 33, 34, 39, 40, 72, 102, 106],
-//     [55]],
-
-// (c)
-// By eye X ~_||_ rY
-//     Judged X _||_ rY
-//[[[19, 22, 26, 69, 81, 85, 89, 97, 103],
-//    [90, 104]],
-
-// (d)
-// By eye X _||_ rY
-//     Judged X ~_||_ rY
-
-// [[3, 4, 8, 13, 14, 16, 18, 23, 30, 31, 32, 35, 36, 41, 43, 45, 50, 51, 53, 54, 64, 65, 67, 77, 82, 86, 94, 95, 96, 100],
-//     [66]]]
-
-            // c
-            //[[[1, 19, 22, 38, 42, 56, 57, 58, 59, 60, 61, 62, 63, 68, 69, 81, 85, 89, 91, 92, 97, 98, 103, 108],
-            // [25, 90, 104]],
-
-            // a
-            // [[2, 5, 7, 9, 10, 11, 12, 15, 17, 20, 21, 26, 27, 28, 37, 44, 46, 47, 48, 49, 52, 70, 71, 73, 74, 75, 76, 79, 80, 83, 84, 93, 99, 101, 105, 107],
-            // [6, 78, 87, 88]],
-
-            // b
-            // [[3, 4, 23, 24, 29, 30, 31, 32, 33, 34, 39, 40, 41, 51, 66, 72, 86, 94, 100, 102, 106],
-            // [8, 55, 95]],
-
-            // d
-            // [[13, 14, 16, 18, 35, 36, 43, 45, 50, 53, 54, 64, 65, 67, 77, 82, 96],
-            // []]]
-
-
-            //==
-
-            //c [[[1, 19, 22, 38, 42, 56, 57, 58, 59, 60, 61, 62, 63, 68, 69, 81, 85, 89, 91, 92, 97, 98, 103, 108], [25, 90, 104]],
-            //a [[2, 5, 7, 9, 10, 11, 12, 15, 17, 20, 21, 26, 27, 28, 37, 44, 46, 47, 48, 49, 52, 70, 71, 73, 74, 75, 76, 79, 80, 83, 84, 93, 99, 101, 105, 107], [6, 78, 87, 88]],
-            //b [[3, 4, 23, 24, 29, 30, 31, 32, 33, 34, 39, 40, 41, 51, 66, 72, 86, 94, 100, 102, 106], [8, 55, 95]],
-            //d [[13, 14, 16, 18, 35, 36, 43, 45, 50, 53, 54, 64, 65, 67, 77, 82, 96], []]]
-
-            //c [[[1, 19, 22, 25, 26, 38, 56, 57, 58, 59, 60, 61, 62, 63, 68, 69, 81, 85, 89, 91, 92, 97, 98, 103, 108], [42]],
-            //a [[2, 5, 6, 7, 9, 10, 11, 12, 15, 17, 20, 21, 27, 28, 37, 47, 48, 49, 52, 71, 73, 74, 75, 76, 79, 80, 83, 84, 93, 99, 101, 105, 107], [44, 46, 70, 78, 87, 88]],
-            //b  [[3, 4, 23, 24, 29, 30, 31, 32, 33, 34, 39, 40, 41, 51, 66, 72, 86, 90, 94, 100, 102, 104, 106], [8, 55]],
-            //d [[13, 14, 16, 18, 35, 36, 43, 45, 50, 53, 54, 64, 77, 82, 96], [65, 67, 95]]]
-
-            if (trueLeftRight) {
-                System.out.println("true -->");
+            if (correctDirection) {
+                selected.get(row).get(0).add(i);
             } else {
-                System.out.println("true <--");
+                selected.get(row).get(1).add(i);
             }
 
-            if (dataSet.getNumRows() <= 1000) {
-                System.out.println("KCI");
-            } else {
-                System.out.println("Fisher Z");
-            }
+            // Print truth and estimate.
+            if (groundTruthLeftRight) System.out.println("true -->");
+            if (groundTruthRightLeft) System.out.println("true <--");
 
-//            if (skewedX) System.out.println("SkewedX");
-//            if (skewedResidual) System.out.println("Skewed Residual");
-            if (testSaysIndependent) {
-                System.out.println("Index " + i + " Independent ");
-            } else {
-                System.out.println("Index " + i + " Dependent ");
-            }
-
-            if (fileSaysDependent) {
-                System.out.println("Index " + i + " File Says Reversed");
-            } else {
-                System.out.println("Index " + i + " File Says Not Reversed");
-            }
-
-
-//            if (skewedResidualOfResidual) System.out.println("Skewed Residual of Residual");
-//            if (_excluded) System.out.println("Excluded");
-//
-//            if (symmetricLeftRight) System.out.println("Symmetric Left-Right");
-//            if (notTwoCycle) System.out.println("Not a Two Cycle");
-//
             if (estLeftRight) System.out.println("est -->");
-            if (estRightLeft) System.out.println("est <--");
+            else System.out.println("est <--");
 
-            if (trueLeftRight && estLeftRight) {
-//                System.out.println("Correct left-right");
-                correct++;
-            }
-            if (!trueLeftRight && estRightLeft) {
-//                System.out.println("Correct right-left");
+            if (testSaysDependent) System.out.println("Index " + i + " Test Says Dependent");
+            else System.out.println("Index " + i + " Test Says Independent");
+
+            if (fileSaysDependent) System.out.println("Index " + i + " File Says Dependent");
+            else System.out.println("Index " + i + " File Says Independent");
+
+            if (correctDirection) {
                 correct++;
             }
 
             total++;
-
-//            System.out.println("Running total: correct = " + correct + " total = " + total);
         }
 
         NumberFormat nf2 = new DecimalFormat("0.00");
@@ -1646,10 +1289,72 @@ public class CalibrationQuestion {
 //        System.out.println("Skipped because excluded = " + excluded);
 
 
-        System.out.println("a: " + selected.get(1));
-        System.out.println("b: " + selected.get(2));
-        System.out.println("c: " + selected.get(0));
-        System.out.println("d: " + selected.get(3));
+        System.out.println("TP: " + selected.get(0));
+        System.out.println("TN: " + selected.get(1));
+        System.out.println("FP: " + selected.get(2));
+        System.out.println("FN: " + selected.get(3));
+
+//        System.out.println();
+//        System.out.println("All reversed: " + allReversed);
+//        System.out.println("All not reversed: " + allNotReversed);
+    }
+
+    private static boolean find(File des, String f) throws IOException {
+        boolean b = false;
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(des));
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.contains(f)) {
+                    b = true;
+                    break;
+                }
+            }
+
+            return b;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private static DataSet loadContinuousData(File data, boolean hasHeader, Delimiter delimiter) throws IOException {
+        try {
+            ContinuousTabularDatasetFileReader dataReader
+                    = new ContinuousTabularDatasetFileReader(data.toPath(), delimiter);
+            dataReader.setHasHeader(hasHeader);
+            dataReader.setMissingDataMarker("*");
+
+            Data _data = dataReader.readInData();
+            return (DataSet) DataConvertUtils.toDataModel(_data);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+    }
+
+    private static void writeDataSet(File dir, int i, DataSet d2) {
+        try {
+            DataWriter.writeRectangularData(d2, new PrintWriter(
+                    new File(dir, "pair2." + i + ".txt")), '\t');
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Looks to see whether x is smoothly positively skewed conditional on intervals of y.
+    private static boolean conditionallySmoothlyPositivelySkewed(TetradVector x, TetradVector y) {
+        double mean = mean(x, x.size());
+
+        double[] _ryLin = x.minus(mean).toArray();
+
+        Arrays.sort(_ryLin);
+
+
+        return false;
     }
 
     private static void collectUnshieldedTripleLegsAndShieldsInR(Graph R, Set<Edge> L, Set<Edge> M, Node
@@ -1689,7 +1394,7 @@ public class CalibrationQuestion {
             for (int j = 0; j < N; j++) {
                 double xj = xdata[j];
                 double d = distance(data, 1, i, j);
-                double k = kernelGaussian(d, .5, h);
+                double k = kernelGaussian(d, 1, h);
                 sumx[i] += k * xj;
                 totalWeightx[i] += k;
             }

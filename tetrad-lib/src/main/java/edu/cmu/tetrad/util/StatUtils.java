@@ -1289,7 +1289,7 @@ public final class StatUtils {
         double esss = thirdMoment / N;
 
         if (secondMoment == 0) {
-            return 0;
+            return Double.NaN;
 //            throw new ArithmeticException("StatUtils.skew:  There is no skew " +
 //                    "when the variance is zero.");
         }
