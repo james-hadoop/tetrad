@@ -480,6 +480,8 @@ public final class ConditionalCorrelationIndependence {
         double[] __x = standardize(_x);
         double[] __y = standardize(_y);
 
+        removeNaN(_x, _y);
+
         double r = covariance(__x, __y); // correlation
         int N = __x.length;
 
@@ -487,6 +489,40 @@ public final class ConditionalCorrelationIndependence {
         double z = 0.5 * sqrt(N) * (log(1.0 + r) - log(1.0 - r));
 
         return z / (sqrt((moment22(__x, __y))));
+    }
+
+    private void removeNaN(double[] _x, double[] _y) {
+        boolean flag = false;
+
+        for (int i = 0; i < _x.length; i++) {
+            if (Double.isNaN(_x[i]) || Double.isNaN(_y[i])) {
+                flag = true;
+                break;
+            }
+        }
+
+        if (flag) {
+            List<Double> x = new ArrayList<>();
+            List<Double> y = new ArrayList<>();
+
+            for (int i = 0; i < _x.length; i++) {
+                if (Double.isNaN(_x[i]) || Double.isNaN(_y[i])) {
+                    x.add(_x[i]);
+                    y.add(_y[i]);
+                }
+            }
+
+            double[] ___x = new double[x.size()];
+            double[] ___y = new double[y.size()];
+
+            for (int i = 0; i < x.size(); i++) {
+                ___x[i] = x.get(i);
+                ___y[i] = y.get(i);
+            }
+
+            _x = ___x;
+            _y = ___y;
+        }
     }
 
     private double[] logColumn(double[] f) {

@@ -23,14 +23,12 @@ package edu.cmu.tetrad.util;
 
 import cern.colt.list.DoubleArrayList;
 import cern.jet.stat.Descriptive;
-import edu.cmu.tetrad.data.DataUtils;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.CholeskyDecomposition;
 
 import java.util.*;
 
-import static cern.jet.math.Functions.floor;
 import static java.lang.Math.*;
 
 
@@ -424,6 +422,24 @@ public final class StatUtils {
 //
 //        // return the interpolated value.
 //        return (a[k1] + ratio * (a[k2] - a[k1]));
+    }
+
+    /**
+     * @param array  a double array.
+     * @return An double[] array with values [min q1 median q3 max]
+     */
+    public static double quantile(double array[], double percent) {
+        array = Arrays.copyOf(array, array.length);
+        Arrays.sort(array);
+
+        int L = array.length;
+
+        int index = (int) floor(percent * L);
+
+        if (index < 0) index = 0;
+        if (index > L - 1) index = L - 1;
+
+        return array[index];
     }
 
     /**
@@ -1253,6 +1269,7 @@ public final class StatUtils {
         double thirdMoment = 0.0;
 
         for (int j = 0; j < N; j++) {
+            if (Double.isNaN(array[j])) continue;
             double s = array[j] - mean;
             secondMoment += s * s;
             thirdMoment += s * s * s;
@@ -1280,19 +1297,25 @@ public final class StatUtils {
         double thirdMoment = 0.0;
 
         for (int j = 0; j < N; j++) {
+            if (Double.isNaN(array[j])) continue;
             double s = array[j] - mean;
+            if (s == 0) continue;
             secondMoment += s * s;
             thirdMoment += s * s * s;
+        }
+
+        if (secondMoment == 0) {
+            secondMoment = 1e-5;
         }
 
         double ess = secondMoment / N;
         double esss = thirdMoment / N;
 
-        if (secondMoment == 0) {
-            return Double.NaN;
-//            throw new ArithmeticException("StatUtils.skew:  There is no skew " +
-//                    "when the variance is zero.");
-        }
+//        if (secondMoment == 0) {
+//            return Double.NaN;
+////            throw new ArithmeticException("StatUtils.skew:  There is no skew " +
+////                    "when the variance is zero.");
+//        }
 
         return esss / Math.pow(ess, 1.5);
     }

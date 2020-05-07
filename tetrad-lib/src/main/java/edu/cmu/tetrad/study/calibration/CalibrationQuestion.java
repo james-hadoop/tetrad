@@ -1,6 +1,5 @@
 package edu.cmu.tetrad.study.calibration;
 
-import edu.cmu.tetrad.algcomparison.independence.CciTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -24,7 +23,6 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
-import static edu.cmu.tetrad.util.StatUtils.*;
 import static edu.cmu.tetrad.util.StatUtils.median;
 import static java.lang.Math.*;
 
@@ -1090,7 +1088,8 @@ public class CalibrationQuestion {
         DataSet dataSet = null;
 
         for (int i = 1; i <= 108; i++) {
-            System.out.println("========================= INDEX = " + i);
+
+            if (i == 87) continue;
 
             File data = new File(dir, "pair" + nf.format(i) + ".txt");
 
@@ -1113,8 +1112,8 @@ public class CalibrationQuestion {
             double[] x = doubles.getColumn(0).toArray();
             double[] y = doubles.getColumn(1).toArray();
 
-            double skX = skewness(x);
-            double skY = skewness(y);
+            double skX = StatUtils.skewness(x);
+            double skY = StatUtils.skewness(y);
 
             File des = new File(dir, "pair" + nf.format(i) + "_des.txt");
 
@@ -1184,15 +1183,36 @@ public class CalibrationQuestion {
 
             DataSet d2 = new BoxDataSet(new DoubleDataBox(m2.toArray()), n);
 
-            writeDataSet(dir, i, d2);
+//            writeDataSet(dir, i, d2);
 
             // Skewness Test
-            boolean testSaysDependent;
+            boolean testSaysFlip;
 
-            double skeX = skewness(rXnl);
-            double skeY = skewness(rYnl);
+//            double[][] ret = removeNaN(rXnl, rYnl);
+//            rXnl = ret[0];
+//            rYnl = ret[1];
+
+            double midX = StatUtils.median(x);
+            double midY = StatUtils.median(y);
+
+            System.out.println("midX = " + midX + " midY = " + midY);
+
+            int numIntervals = 6;
+
+            int s1 = smoothlySkewed(x, rYnl, numIntervals);
+            int s2 = smoothlySkewed(y, rXnl, numIntervals);
+
+            boolean flippedBySkew = !((s1 == 1 && s2 == 1) || (s1 == -1 && s2 == -1));
+//                    || (smoothlySkewed(y, rXnl) == -1);
+//            if (!smoothNonflipped) continue;
+            System.out.println("========================= INDEX = " + i);
+
+            System.out.println("BOYAA! " + flippedBySkew + " x | ry = " + s1 + " y | rx = " + s2);
+
+
+            double skeX = StatUtils.skewness(rXnl);
+            double skeY = StatUtils.skewness(rYnl);
             long N = dataSet.getNumRows();
-
 
             // Print Skewnesses
             System.out.println("N = " + N);
@@ -1206,25 +1226,32 @@ public class CalibrationQuestion {
 //            double se = sqrt((6.0 * N * (N - 1.0)) / ((N - 2.0) * (N + 1.0) * (N + 3.0)));
 
             double f1 = 0;
-            double f2 = .1;
+            double f2 = .2;
 //
 //            System.out.println("index " + i + " se = " + se);
 //
 ////            // skew test.
-//            testSaysDependent = abs(skeY - skY) > f2 || abs(skeX - skX) > f2;
+            testSaysFlip = abs(skeY - skY) > f2 || abs(skeX - skX) > f2;
 
-            try {
-                if (dataSet.getNumRows() <= 1000) {
-                    IndependenceTest test = new IndTestConditionalCorrelation(d2, 0.05);
-                    test.setVerbose(false);
-                    testSaysDependent = !(test.isIndependent(n.get(0), n.get(3)) || test.isIndependent(n.get(1), n.get(2)));
-//                    testSaysDependent = test.getPValue() < alpha;
-                } else {
-                    continue;
-                }
-            } catch (Exception e) {
-                continue;
-            }
+//            testSaysFlip = flippedBySkew;
+
+
+//            System.out.println("Starting independence check. index = " + i);
+//            try {
+//                if (dataSet.getNumRows() <= 1000) {
+//                    IndependenceTest test = new IndTestConditionalCorrelation(d2, 0.15);
+//                    test.setVerbose(false);
+//                    System.out.println(n.get(0) +  " " + n.get(3));
+//                    testSaysFlip = test.isIndependent(n.get(0), n.get(3));// || !test.isIndependent(n.get(1), n.get(2));
+//                    testSaysFlip = test.getPValue() != 0;
+//                } else {
+//                    continue;
+//                }
+//            } catch (Exception e) {
+//                continue;
+//            }
+//
+//            System.out.println("Finishing independence check. index = " + i);
 
             // FASK
             Graph out;
@@ -1242,37 +1269,29 @@ public class CalibrationQuestion {
             boolean estLeftRight = out.containsEdge(Edges.directedEdge(nodes.get(0), nodes.get(1)));
             boolean estRightLeft = out.containsEdge(Edges.directedEdge(nodes.get(1), nodes.get(0)));
 
-            if (fileSaysDependent) {
+
+            testSaysFlip = flippedBySkew ;
+            if (testSaysFlip) {
                 estLeftRight = !estLeftRight;
                 estRightLeft = !estRightLeft;
             }
-
-//            if (!(estLeftRight && !testSaysDependent)) {
-//                continue;
-////                estLeftRight = false;
-//            }
-
-//            if (estLeftRight) {
-//                continue;
-//            }
+            boolean correctDirection = ((groundTruthLeftRight && estLeftRight) || (groundTruthRightLeft && !estLeftRight));
 
             int row;
 
-            if (fileSaysDependent) {
-                if (testSaysDependent) {
+            if (testSaysFlip) {
+                if (correctDirection) {
                     row = 0;
                 } else {
                     row = 1;
                 }
-            } else {
-                if (testSaysDependent) {
+            } else { // test says don't flip
+                if (correctDirection) {
                     row = 2;
                 } else {
                     row = 3;
                 }
             }
-
-            boolean correctDirection = ((groundTruthLeftRight && estLeftRight) || (groundTruthRightLeft && !estLeftRight));
 
             if (correctDirection) {
                 selected.get(row).get(0).add(i);
@@ -1287,7 +1306,7 @@ public class CalibrationQuestion {
             if (estLeftRight) System.out.println("est -->");
             else System.out.println("est <--");
 
-            if (testSaysDependent) System.out.println("Index " + i + " Test Says Dependent");
+            if (testSaysFlip) System.out.println("Index " + i + " Test Says Dependent");
             else System.out.println("Index " + i + " Test Says Independent");
 
             if (fileSaysDependent) System.out.println("Index " + i + " File Says Dependent");
@@ -1313,14 +1332,38 @@ public class CalibrationQuestion {
 
 
         System.out.println();
-        System.out.println("Flipped Dependent: " + selected.get(0));
-        System.out.println("Flipped Independent: " + selected.get(1));
-        System.out.println("Unflipped Dependent: " + selected.get(2));
-        System.out.println("Unflipped Independent: " + selected.get(3));
+        System.out.println("Test says flip, Correct Direction: " + selected.get(0));
+        System.out.println("Test says flip, Wrong Direction: " + selected.get(1));
+        System.out.println("Test says don't flip, Correct Direction: " + selected.get(2));
+        System.out.println("Test says don't flip, Wrong Direction: " + selected.get(3));
 
 //        System.out.println();
 //        System.out.println("All reversed: " + allReversed);
 //        System.out.println("All not reversed: " + allNotReversed);
+    }
+
+    private static int smoothlySkewed(double[] x, double[] y, int numIntervals) {
+        double minX = 0;
+        double maxX = 1;
+
+        double interval = (maxX - minX) / numIntervals;
+
+        int count1 = 0;
+        int count2 = 0;
+
+        for (int i = 0; i < numIntervals; i++) {
+            double p1 = minX + i * interval;
+            double p2 = minX + (i + 1) * interval;
+
+            double left = StatUtils.quantile(x, p1);
+            double right = StatUtils.quantile(x, p2);
+            double s1 = skewness(x, y, left, right);
+
+            if (s1 > 0) count1++;
+            if (s1 < 0) count2++;
+        }
+
+        return Integer.compare(count1, count2);
     }
 
     private static boolean find(File des, String f) throws IOException {
@@ -1371,7 +1414,7 @@ public class CalibrationQuestion {
 
     // Looks to see whether x is smoothly positively skewed conditional on intervals of y.
     private static boolean conditionallySmoothlyPositivelySkewed(TetradVector x, TetradVector y) {
-        double mean = mean(x, x.size());
+        double mean = StatUtils.mean(x, x.size());
 
         double[] _ryLin = x.minus(mean).toArray();
 
@@ -1400,7 +1443,6 @@ public class CalibrationQuestion {
      * and the second double[] array contains the resituls for y.
      */
     public static double[] residuals(double[][] data) {
-        System.out.println("Calculation nonlinear residuals");
         int N = data[0].length;
 
         int _x = 0;
@@ -1428,14 +1470,13 @@ public class CalibrationQuestion {
         for (int i = 0; i < N; i++) {
 //            if (totalWeightx[i] == 0) totalWeightx[i] = 1;
 
-            residualsx[i] = /*xdata[i] -*/ sumx[i] / totalWeightx[i];
+//            residualsx[i] = xdata[i] - sumx[i] / totalWeightx[i];
+            residualsx[i] = sumx[i] / totalWeightx[i];
 
-            if (Double.isNaN(residualsx[i])) {
-                residualsx[i] = 0;
-            }
+//            if (Double.isNaN(residualsx[i])) {
+//                residualsx[i] = xdata[i];
+//            }
         }
-
-        System.out.println("Done");
 
         return residualsx;
     }
@@ -1564,4 +1605,93 @@ public class CalibrationQuestion {
         double mad = median(g);
         return (1.4826 * mad) * pow((4.0 / 3.0) / xCol.length, 0.2);
     }
+
+    private static double[][] removeNaN(double[] _x, double[] _y) {
+        boolean flag = false;
+
+        for (int i = 0; i < _x.length; i++) {
+            if (Double.isNaN(_x[i]) || Double.isNaN(_y[i])) {
+                flag = true;
+                break;
+            }
+        }
+
+        if (flag) {
+            List<Double> x = new ArrayList<>();
+            List<Double> y = new ArrayList<>();
+
+            for (int i = 0; i < _x.length; i++) {
+                if (Double.isNaN(_x[i]) || Double.isNaN(_y[i])) {
+                    x.add(_x[i]);
+                    y.add(_y[i]);
+                }
+            }
+
+            double[] ___x = new double[x.size()];
+            double[] ___y = new double[y.size()];
+
+            for (int i = 0; i < x.size(); i++) {
+                ___x[i] = x.get(i);
+                ___y[i] = y.get(i);
+            }
+
+            _x = ___x;
+            _y = ___y;
+        }
+
+        double[][] ret = new double[_x.length][2];
+        ret[0] = _x;
+        ret[1] = _y;
+
+        return ret;
+    }
+
+    public static double skewness(double[] x, double[] y, double left, double right) {
+        double secondMoment = 0.0;
+        double thirdMoment = 0.0;
+
+        double meany = StatUtils.mean(y);
+
+        int count = 0;
+
+        for (int i = 0; i < y.length; i++) {
+            if (x[i] < left || x[i] > right) continue;
+            if (Double.isNaN(y[i])) continue;
+            double s = y[i] - meany;
+            if (s == 0) continue;
+            count++;
+            secondMoment += s * s;
+            thirdMoment += s * s * s;
+        }
+
+        if (secondMoment == 0) {
+            secondMoment = 1e-5;
+        }
+
+        double ess = secondMoment / count;
+        double esss = thirdMoment / count;
+
+//        if (secondMoment == 0) {
+//            return Double.NaN;
+////            throw new ArithmeticException("StatUtils.skew:  There is no skew " +
+////                    "when the variance is zero.");
+//        }
+
+        return esss / Math.pow(ess, 1.5);
+    }
+
+    public static double mean(double[] x, double y[], double center, double below, double above) {
+        int count = 0;
+        double sum = 0.0;
+
+        for (int i = 0; i < y.length; i++) {
+            if (x[i] < below || x[i] > above) continue;
+            if (Double.isNaN(y[i])) continue;
+            sum += y[i];
+            count++;
+        }
+
+        return sum / (double) count;
+    }
+
 }
