@@ -1065,6 +1065,7 @@ public class CalibrationQuestion {
 
     private static void scenario8() throws IOException {
         File dir = new File("/Users/user/Box/data/pairs");
+        File dir2 = new File("/Users/user/Box/data/pairs/data");
 
         int maxN = 1000;
 
@@ -1089,31 +1090,43 @@ public class CalibrationQuestion {
 
         for (int i = 1; i <= 108; i++) {
 
-            if (i == 87) continue;
+//            if (i == 87) continue;
 
             File data = new File(dir, "pair" + nf.format(i) + ".txt");
 
             dataSet = loadContinuousData(data, false, Delimiter.WHITESPACE);
             assert dataSet != null;
 
-            if (dataSet.getNumRows() > maxN) {
-                dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
-            }
-
-//            DataWriter.writeRectangularData(dataSet, new PrintWriter(
-//                    new File(dir, "pair." + i + ".resave.txt")), '\t');
-
-//            if (true) {
-//                continue;
+//            if (dataSet.getNumRows() > maxN) {
+//                dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
 //            }
 
-            TetradMatrix doubles = dataSet.getDoubleData();
+//            dataSet = DataUtils.standardizeData(dataSet);
 
-            double[] x = doubles.getColumn(0).toArray();
-            double[] y = doubles.getColumn(1).toArray();
+            dataSet.getVariable(0).setName("X");
+            dataSet.getVariable(1).setName("Y");
 
-            double skX = StatUtils.skewness(x);
-            double skY = StatUtils.skewness(y);
+            DataWriter.writeRectangularData(dataSet, new PrintWriter(
+                    new File(dir2, "pair." + i + ".txt")), '\t');
+
+            if (true) {
+                continue;
+            }
+
+            double skX = StatUtils.skewness(dataSet.getDoubleData().getColumn(0).toArray());
+            double skY = StatUtils.skewness(dataSet.getDoubleData().getColumn(1).toArray());
+
+//            TetradVector x = dataSet.getDoubleData().getColumn(0).scalarMult(signum(skX));
+//            TetradVector y = dataSet.getDoubleData().getColumn(1).scalarMult(signum(skY));
+
+//            dataSet.getDoubleData().assignColumn(0, x);
+//            dataSet.getDoubleData().assignColumn(1, y);
+//
+
+            for (int q = 0; q < dataSet.getNumRows(); q++) {
+                dataSet.setDouble(q, 0, dataSet.getDouble(q, 0) * signum(skX));
+                dataSet.setDouble(q, 1, dataSet.getDouble(q, 1) * signum(skY));
+            }
 
             File des = new File(dir, "pair" + nf.format(i) + "_des.txt");
 
@@ -1133,7 +1146,7 @@ public class CalibrationQuestion {
             nodes.add(variables.get(0));
             nodes.add(variables.get(1));
 
-            Graph g = new EdgeListGraph(dataSet.getVariables());
+            Graph g = new EdgeListGraph(variables);
             g.addUndirectedEdge(nodes.get(0), nodes.get(1));
 
 //            // LOFS
@@ -1183,7 +1196,7 @@ public class CalibrationQuestion {
 
             DataSet d2 = new BoxDataSet(new DoubleDataBox(m2.toArray()), n);
 
-//            writeDataSet(dir, i, d2);
+            writeDataSet(dir, i, d2);
 
             // Skewness Test
             boolean testSaysFlip;
@@ -1192,18 +1205,28 @@ public class CalibrationQuestion {
 //            rXnl = ret[0];
 //            rYnl = ret[1];
 
-            double midX = StatUtils.median(x);
-            double midY = StatUtils.median(y);
+            double midX = StatUtils.median(dataSet.getDoubleData().getColumn(0).toArray());
+            double midY = StatUtils.median(dataSet.getDoubleData().getColumn(1).toArray());
 
             System.out.println("midX = " + midX + " midY = " + midY);
 
             int numIntervals = 6;
 
-            int s1 = smoothlySkewed(x, rYnl, numIntervals);
-            int s2 = smoothlySkewed(y, rXnl, numIntervals);
+            int s1 = smoothlySkewed(dataSet.getDoubleData().getColumn(0).toArray(), rYnl, numIntervals);
+            int s2 = smoothlySkewed(dataSet.getDoubleData().getColumn(1).toArray(), rXnl, numIntervals);
+
+//            if (!(s1 == 1 && s2 == 1)) {
+//                continue;
+//            }
 
             boolean flippedBySkew = !((s1 == 1 && s2 == 1) || (s1 == -1 && s2 == -1));
 //                    || (smoothlySkewed(y, rXnl) == -1);
+
+
+
+            if (skX < 0) flippedBySkew = !flippedBySkew;
+            if (skY < 0) flippedBySkew = !flippedBySkew;
+
 //            if (!smoothNonflipped) continue;
             System.out.println("========================= INDEX = " + i);
 
@@ -1270,7 +1293,7 @@ public class CalibrationQuestion {
             boolean estRightLeft = out.containsEdge(Edges.directedEdge(nodes.get(1), nodes.get(0)));
 
 
-            testSaysFlip = flippedBySkew ;
+            testSaysFlip = flippedBySkew;
             if (testSaysFlip) {
                 estLeftRight = !estLeftRight;
                 estRightLeft = !estRightLeft;
@@ -1357,13 +1380,17 @@ public class CalibrationQuestion {
 
             double left = StatUtils.quantile(x, p1);
             double right = StatUtils.quantile(x, p2);
-            double s1 = skewness(x, y, left, right);
+            double s = skewness(x, y, left, right);
 
-            if (s1 > 0) count1++;
-            if (s1 < 0) count2++;
+            if (s > 0) count1++;
+            if (s < 0) count2++;
         }
 
-        return Integer.compare(count1, count2);
+        if (count1 > count2 + 2) return 1;
+        if (count2 > count1 + 2) return -1;
+        else return 0;
+
+//        return Integer.compare(count1, count2);
     }
 
     private static boolean find(File des, String f) throws IOException {
@@ -1443,6 +1470,7 @@ public class CalibrationQuestion {
      * and the second double[] array contains the resituls for y.
      */
     public static double[] residuals(double[][] data) {
+
         int N = data[0].length;
 
         int _x = 0;
@@ -1470,8 +1498,8 @@ public class CalibrationQuestion {
         for (int i = 0; i < N; i++) {
 //            if (totalWeightx[i] == 0) totalWeightx[i] = 1;
 
-//            residualsx[i] = xdata[i] - sumx[i] / totalWeightx[i];
-            residualsx[i] = sumx[i] / totalWeightx[i];
+            residualsx[i] = xdata[i] - sumx[i] / totalWeightx[i];
+//            residualsx[i] = sumx[i] / totalWeightx[i];
 
 //            if (Double.isNaN(residualsx[i])) {
 //                residualsx[i] = xdata[i];
