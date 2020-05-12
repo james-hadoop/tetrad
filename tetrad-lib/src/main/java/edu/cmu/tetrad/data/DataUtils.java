@@ -1482,6 +1482,22 @@ public final class DataUtils {
                 data.getVariables());
     }
 
+    public static DataSet sampleRowsWithoutReplacement(DataSet data, int sampleSize) {
+        List<Integer> ind = new ArrayList<>();
+        for (int i = 0; i < data.getNumRows(); i++) ind.add(i);
+
+        Collections.shuffle(ind);
+
+        int[] rows = new int[sampleSize];
+        for (int i = 0; i < sampleSize; i++) rows[i] = ind.get(i);
+
+        int[] cols = new int[data.getNumColumns()];
+        for (int i = 0; i < cols.length; i++) cols[i] = i;
+
+        return new BoxDataSet(new VerticalDoubleDataBox(data.getDoubleData().getSelection(rows, cols).transpose().toArray()),
+                data.getVariables());
+    }
+
     /**
      * @return a sample without replacement with the given sample size from the
      * given dataset. May return a sample of less than the given size; makes

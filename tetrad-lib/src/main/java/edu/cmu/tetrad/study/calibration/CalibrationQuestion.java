@@ -15,7 +15,6 @@ import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
-import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -1064,17 +1063,12 @@ public class CalibrationQuestion {
     }
 
     private static void scenario8() throws IOException {
-        File dir = new File("/Users/user/Box/data/pairs");
-        File dir2 = new File("/Users/user/Box/data/pairs/data");
+        int maxN = 3000;
 
-        int maxN = 1000;
-
-        List<List<List<Integer>>> selected = new ArrayList<>();
+        List<List<Integer>> selected = new ArrayList<>();
 
         for (int i = 0; i < 4; i++) {
             selected.add(new ArrayList<>());
-            selected.get(i).add(new ArrayList<>());
-            selected.get(i).add(new ArrayList<>());
         }
 
         NumberFormat nf = new DecimalFormat("0000");
@@ -1082,65 +1076,64 @@ public class CalibrationQuestion {
         int correct = 0;
         int total = 0;
 
-        int skippedWeakSkewness = 0;
         int skippedSingular = 0;
-        int skippedIndependent = 0;
-
-        DataSet dataSet = null;
 
         for (int i = 1; i <= 108; i++) {
 
-//            if (i == 87) continue;
+//            int[] interval = {1, 10};    // TT
+//            int[] interval = {11, 20}; // TT
+//            int[] interval = {51, 60};  // TT
+//            int[] interval = {61, 70};  // TT
+//            int[] interval = {71, 80};  // TT
+//            int[] interval = {81, 90};   // TT
 
-            File data = new File(dir, "pair" + nf.format(i) + ".txt");
+//            int[] interval = {21, 30};
+            int[] interval = {101, 108};  //TF
 
-            dataSet = loadContinuousData(data, false, Delimiter.WHITESPACE);
+//            int[] interval = {31, 40};  // TF
+//            int[] interval = {41, 50};  // TF
+//            int[] interval = {91, 100};  // TF
+
+
+            if (i < interval[0]) continue;
+            if (i > interval[1]) break;
+
+            System.out.println("========================= INDEX = " + i);
+
+//            File data = new File(dir, "pair" + nf.format(i) + ".txt");
+            File data = new File(new File("/Users/user/Box/data/pairs/data"), "pair." + i + ".txt");
+
+            DataSet dataSet = loadContinuousData(data, true, Delimiter.TAB);
             assert dataSet != null;
 
-//            if (dataSet.getNumRows() > maxN) {
-//                dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
-//            }
+            if (dataSet.getNumRows() > maxN) {
+                dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
+//                dataSet = DataUtils.sampleRowsWithoutReplacement(dataSet, maxN);
+            }
 
 //            dataSet = DataUtils.standardizeData(dataSet);
 
-            dataSet.getVariable(0).setName("X");
-            dataSet.getVariable(1).setName("Y");
+            dataSet.getVariable(0).setName("C1");
+            dataSet.getVariable(1).setName("C2");
 
-            DataWriter.writeRectangularData(dataSet, new PrintWriter(
-                    new File(dir2, "pair." + i + ".txt")), '\t');
+            long N = dataSet.getNumRows();
 
-            if (true) {
-                continue;
-            }
+            System.out.println("N = " + N);
 
-            double skX = StatUtils.skewness(dataSet.getDoubleData().getColumn(0).toArray());
-            double skY = StatUtils.skewness(dataSet.getDoubleData().getColumn(1).toArray());
 
-//            TetradVector x = dataSet.getDoubleData().getColumn(0).scalarMult(signum(skX));
-//            TetradVector y = dataSet.getDoubleData().getColumn(1).scalarMult(signum(skY));
+            // Translate the dataset into Java-friendly format.
+//            DataWriter.writeRectangularData(dataSet, new PrintWriter(
+//                    new File("/Users/user/Box/data/pairs/data", "pair." + i + ".txt")), '\t');
 
-//            dataSet.getDoubleData().assignColumn(0, x);
-//            dataSet.getDoubleData().assignColumn(1, y);
+
+            File des = new File("/Users/user/Box/data/pairs5", "pair" + nf.format(i) + "_des.txt");
+
+//            boolean groundTruthLeftRight = find(des, "-->");
+//            boolean groundTruthRightLeft = find(des, "<--");
 //
-
-            for (int q = 0; q < dataSet.getNumRows(); q++) {
-                dataSet.setDouble(q, 0, dataSet.getDouble(q, 0) * signum(skX));
-                dataSet.setDouble(q, 1, dataSet.getDouble(q, 1) * signum(skY));
-            }
-
-            File des = new File(dir, "pair" + nf.format(i) + "_des.txt");
-
-            boolean groundTruthLeftRight = find(des, "#-->");
-            boolean groundTruthRightLeft = find(des, "#<--");
-            boolean fileSaysDependent = find(des, "DependentError");
-
-//            fileSaysDependent = !groundTruthRightLeft;
-
-//            if (groundTruthLeftRight && groundTruthRightLeft) {
-//                groundTruthLeftRight = true;
-//                groundTruthRightLeft = false;
-//            }
-
+            boolean groundTruthLeftRight = find(des, "x --> y") || find(des, "y <-- x");
+            boolean groundTruthRightLeft = find(des, "x <-- y") || find(des, "y --> x");
+//
             List<Node> nodes = new ArrayList<>();
             List<Node> variables = dataSet.getVariables();
             nodes.add(variables.get(0));
@@ -1149,177 +1142,45 @@ public class CalibrationQuestion {
             Graph g = new EdgeListGraph(variables);
             g.addUndirectedEdge(nodes.get(0), nodes.get(1));
 
-//            // LOFS
-//            List<DataSet> dataSets = new ArrayList<>();
-//            dataSets.add(DataUtils.getContinuousDataSet(dataSet));
-//            Lofs2 lofs = new Lofs2(g, dataSets);
-//            lofs.setRule(Lofs2.Rule.Skew);
-
-            // Linear Regressions.
-            RegressionDataset regression = new RegressionDataset(dataSet);
-            RegressionResult result = regression.regress(variables.get(0), variables.get(1));
-            TetradVector rxLin = result.getResiduals();
-
-            result = regression.regress(variables.get(1), variables.get(0));
-            TetradVector ryLin = result.getResiduals();
-
-            // Nonlinear Regressions
-            TetradMatrix _data = new TetradMatrix(dataSet.getNumRows(), 2);
-
-            _data.assignColumn(0, dataSet.getDoubleData().getColumn(1));
-            _data.assignColumn(1, dataSet.getDoubleData().getColumn(0));
-
-            double[] rYnl = residuals(_data.transpose().toArray());
-
-            _data.assignColumn(0, dataSet.getDoubleData().getColumn(0));
-            _data.assignColumn(1, dataSet.getDoubleData().getColumn(1));
-
-            double[] rXnl = residuals(_data.transpose().toArray());
-
-            // Make dataset with variables and all regressions.
-            TetradMatrix m2 = new TetradMatrix(dataSet.getNumRows(), 6);
-
-            m2.assignColumn(0, dataSet.getDoubleData().getColumn(0));
-            m2.assignColumn(1, dataSet.getDoubleData().getColumn(1));
-            m2.assignColumn(2, new TetradVector(rXnl));
-            m2.assignColumn(3, new TetradVector(rYnl));
-            m2.assignColumn(4, rxLin);
-            m2.assignColumn(5, ryLin);
-
-            List<Node> n = new ArrayList<>();
-            n.add(new ContinuousVariable("X"));
-            n.add(new ContinuousVariable("Y"));
-            n.add(new ContinuousVariable("rX"));
-            n.add(new ContinuousVariable("rY"));
-            n.add(new ContinuousVariable("rXLin"));
-            n.add(new ContinuousVariable("rYLin"));
-
-            DataSet d2 = new BoxDataSet(new DoubleDataBox(m2.toArray()), n);
-
-            writeDataSet(dir, i, d2);
-
-            // Skewness Test
-            boolean testSaysFlip;
-
-//            double[][] ret = removeNaN(rXnl, rYnl);
-//            rXnl = ret[0];
-//            rYnl = ret[1];
-
-            double midX = StatUtils.median(dataSet.getDoubleData().getColumn(0).toArray());
-            double midY = StatUtils.median(dataSet.getDoubleData().getColumn(1).toArray());
-
-            System.out.println("midX = " + midX + " midY = " + midY);
-
-            int numIntervals = 6;
-
-            int s1 = smoothlySkewed(dataSet.getDoubleData().getColumn(0).toArray(), rYnl, numIntervals);
-            int s2 = smoothlySkewed(dataSet.getDoubleData().getColumn(1).toArray(), rXnl, numIntervals);
-
-//            if (!(s1 == 1 && s2 == 1)) {
-//                continue;
-//            }
-
-            boolean flippedBySkew = !((s1 == 1 && s2 == 1) || (s1 == -1 && s2 == -1));
-//                    || (smoothlySkewed(y, rXnl) == -1);
-
-
-
-            if (skX < 0) flippedBySkew = !flippedBySkew;
-            if (skY < 0) flippedBySkew = !flippedBySkew;
-
-//            if (!smoothNonflipped) continue;
-            System.out.println("========================= INDEX = " + i);
-
-            System.out.println("BOYAA! " + flippedBySkew + " x | ry = " + s1 + " y | rx = " + s2);
-
-
-            double skeX = StatUtils.skewness(rXnl);
-            double skeY = StatUtils.skewness(rYnl);
-            long N = dataSet.getNumRows();
-
-            // Print Skewnesses
-            System.out.println("N = " + N);
-            System.out.println("skX = " + skX);
-            System.out.println("skY = " + skY);
-            System.out.println("skeX = " + skeX);
-            System.out.println("skeY = " + skeY);
-
-
-//            double G1Mult = sqrt((N * (N - 1.0)) / (N - 2.0));
-//            double se = sqrt((6.0 * N * (N - 1.0)) / ((N - 2.0) * (N + 1.0) * (N + 3.0)));
-
-            double f1 = 0;
-            double f2 = .2;
-//
-//            System.out.println("index " + i + " se = " + se);
-//
-////            // skew test.
-            testSaysFlip = abs(skeY - skY) > f2 || abs(skeX - skX) > f2;
-
-//            testSaysFlip = flippedBySkew;
-
-
-//            System.out.println("Starting independence check. index = " + i);
-//            try {
-//                if (dataSet.getNumRows() <= 1000) {
-//                    IndependenceTest test = new IndTestConditionalCorrelation(d2, 0.15);
-//                    test.setVerbose(false);
-//                    System.out.println(n.get(0) +  " " + n.get(3));
-//                    testSaysFlip = test.isIndependent(n.get(0), n.get(3));// || !test.isIndependent(n.get(1), n.get(2));
-//                    testSaysFlip = test.getPValue() != 0;
-//                } else {
-//                    continue;
-//                }
-//            } catch (Exception e) {
-//                continue;
-//            }
-//
-//            System.out.println("Finishing independence check. index = " + i);
-
-            // FASK
-            Graph out;
-
-            try {
-                Fask fask = new Fask(dataSet, g);
-//                Fask fask = new Fask(dataSet, new IndTestFisherZ(dataSet, 0.05));
-                fask.setAlpha(0);
-                out = fask.search();
-            } catch (SingularMatrixException e) {
-                skippedSingular++;
-                continue;
+            for (boolean flipX : new boolean[]{true, false}) {
+                for (boolean flipY : new boolean[]{true, false}) {
+                    flippyFask(dataSet, nodes, g, flipX, flipY);
+                }
             }
 
-            boolean estLeftRight = out.containsEdge(Edges.directedEdge(nodes.get(0), nodes.get(1)));
-            boolean estRightLeft = out.containsEdge(Edges.directedEdge(nodes.get(1), nodes.get(0)));
+            boolean flipX = shouldFlipByCounts(dataSet, 0);
+            boolean flipY = shouldFlipByCounts(dataSet, 1);
 
+            boolean estLeftRight = flippyFask(dataSet, nodes, g, true, true);//shouldFlipByCounts(dataSet, 0), shouldFlipByCounts(dataSet, 1));
+//
+//            if (getResNlCoef(dataSet, 0, 1) > 0) {
+////                if (getCoef(dataSet, variables, 0, 1) > 0) {
+//                estLeftRight = !estLeftRight;
+//            }
 
-            testSaysFlip = flippedBySkew;
-            if (testSaysFlip) {
+            System.out.println("Index " + i + " coef = " + getCoef(dataSet, variables, 0, 1));
+
+            if (getCoef(dataSet, variables, 1, 0) > 0) {
                 estLeftRight = !estLeftRight;
-                estRightLeft = !estRightLeft;
             }
+//            else if (getCoef(dataSet, variables, 1, 0) > 0)  {
+//                estLeftRight = !estLeftRight;
+//            }
+
             boolean correctDirection = ((groundTruthLeftRight && estLeftRight) || (groundTruthRightLeft && !estLeftRight));
 
-            int row;
-
-            if (testSaysFlip) {
+            if (getCoef(dataSet, variables, 1, 0) > 0) {
                 if (correctDirection) {
-                    row = 0;
+                    selected.get(0).add(i);
                 } else {
-                    row = 1;
+                    selected.get(1).add(i);
                 }
-            } else { // test says don't flip
-                if (correctDirection) {
-                    row = 2;
-                } else {
-                    row = 3;
-                }
-            }
-
-            if (correctDirection) {
-                selected.get(row).get(0).add(i);
             } else {
-                selected.get(row).get(1).add(i);
+                if (correctDirection) {
+                    selected.get(2).add(i);
+                } else {
+                    selected.get(3).add(i);
+                }
             }
 
             // Print truth and estimate.
@@ -1328,12 +1189,6 @@ public class CalibrationQuestion {
 
             if (estLeftRight) System.out.println("est -->");
             else System.out.println("est <--");
-
-            if (testSaysFlip) System.out.println("Index " + i + " Test Says Dependent");
-            else System.out.println("Index " + i + " Test Says Independent");
-
-            if (fileSaysDependent) System.out.println("Index " + i + " File Says Dependent");
-            else System.out.println("Index " + i + " File Says Independent");
 
             if (correctDirection) {
                 correct++;
@@ -1348,21 +1203,175 @@ public class CalibrationQuestion {
         System.out.println("Score = " + nf2.format((correct / (double) total)));
         System.out.println("Total correct = " + correct);
         System.out.println("Total not skipped = " + total);
-        System.out.println("Skipped because of weak skewnesses = " + skippedWeakSkewness);
         System.out.println("Skipped because of singularity = " + skippedSingular);
-        System.out.println("Skipped because variables were judged independent = " + skippedIndependent);
-//        System.out.println("Skipped because excluded = " + excluded);
-
 
         System.out.println();
-        System.out.println("Test says flip, Correct Direction: " + selected.get(0));
-        System.out.println("Test says flip, Wrong Direction: " + selected.get(1));
-        System.out.println("Test says don't flip, Correct Direction: " + selected.get(2));
-        System.out.println("Test says don't flip, Wrong Direction: " + selected.get(3));
+        System.out.println("Positive coefficient, Correct Direction: " + selected.get(0));
+        System.out.println("Positive coefficient, Wrong Direction: " + selected.get(1));
+        System.out.println("Negative coefficient, Correct Direction: " + selected.get(2));
+        System.out.println("Negative coefficient, Wrong Direction: " + selected.get(3));
+    }
 
-//        System.out.println();
-//        System.out.println("All reversed: " + allReversed);
-//        System.out.println("All not reversed: " + allNotReversed);
+    private static boolean flippyFask(DataSet dataSet, List<Node> nodes, Graph g, boolean flipX, boolean flipY) {
+        DataSet flippedData = dataSet.copy();
+
+        flipColumn(flippedData, 0, flipX);
+        flipColumn(flippedData, 1, flipY);
+
+        boolean _flipX = shouldFlipByCounts(flippedData, 0);
+        boolean _flipY = shouldFlipByCounts(flippedData, 1);
+
+//            writeResData(flippedData, i);
+
+        boolean estLeftRight = getFaskDirection(flippedData, nodes, g);
+
+        if (flipX) {
+            estLeftRight = !estLeftRight;
+        }
+
+        if (flipY) {
+            estLeftRight = !estLeftRight;
+        }
+
+        System.out.println("FlipX = " + flipX + " FlipY = " + flipY + " Flip again? _flipX = " + _flipX + " _flipY = " + _flipY
+                + ", result = " + (estLeftRight ? " -->" : "<--"));
+
+        return estLeftRight;
+    }
+
+    private static boolean getFaskDirection(DataSet dataSet, List<Node> nodes, Graph g) {
+        Fask fask = new Fask(dataSet, g);
+//                Fask fask = new Fask(dataSet, new IndTestFisherZ(dataSet, 0.05));
+        fask.setAlpha(0);
+        fask.setExtraEdgeThreshold(0.01);
+        fask.setUseSkewAdjacencies(false);
+        Graph out = fask.search();
+
+        boolean _estLeftRight = out.containsEdge(Edges.directedEdge(nodes.get(0), nodes.get(1)));
+        boolean _estRightLeft = out.containsEdge(Edges.directedEdge(nodes.get(1), nodes.get(0)));
+
+        return _estLeftRight;
+    }
+
+    private static void writeResData(DataSet dataSet, int i) {
+        double[] rXnl = residualsNl(dataSet, 0, 1);
+        double[] rYnl = residualsNl(dataSet, 1, 0);
+
+        TetradVector rxLin = getLinearResiduals(dataSet, dataSet.getVariables(), 1, 0);
+        TetradVector ryLin = getLinearResiduals(dataSet, dataSet.getVariables(), 0, 1);
+
+        DataSet resdata = resData(dataSet, rxLin, ryLin, rXnl, rYnl);
+
+        writeDataSet(new File("/Users/user/Box/data/pairs/resdata"), i, resdata);
+    }
+
+    private static DataSet resData(DataSet dataSet, TetradVector rxLin, TetradVector ryLin, double[] rXnl, double[] rYnl) {
+        TetradVector x = dataSet.getDoubleData().getColumn(0);
+        TetradVector y = dataSet.getDoubleData().getColumn(1);
+
+        TetradMatrix m2 = new TetradMatrix(dataSet.getNumRows(), 6);
+        m2.assignColumn(0, x);
+        m2.assignColumn(1, y);
+        m2.assignColumn(2, new TetradVector(rXnl));
+        m2.assignColumn(3, new TetradVector(rYnl));
+        if (rxLin != null) {
+            m2.assignColumn(4, rxLin);
+        }
+        if (ryLin != null) {
+            m2.assignColumn(5, ryLin);
+        }
+
+        List<Node> n = new ArrayList<>();
+        n.add(new ContinuousVariable("X"));
+        n.add(new ContinuousVariable("Y"));
+        n.add(new ContinuousVariable("rX"));
+        n.add(new ContinuousVariable("rY"));
+        n.add(new ContinuousVariable("rXLin"));
+        n.add(new ContinuousVariable("rYLin"));
+
+        return new BoxDataSet(new DoubleDataBox(m2.toArray()), n);
+    }
+
+    private static void flipColumn(DataSet dataSet, int colToFlip, boolean flippedCoef) {
+        if (flippedCoef) {
+            for (int q = 0; q < dataSet.getNumRows(); q++) {
+                dataSet.setDouble(q, colToFlip, dataSet.getDouble(q, colToFlip) * -1);
+            }
+        }
+    }
+
+    private static double getCoef(DataSet dataSet, List<Node> variables, int x, int y) {
+        try {
+            RegressionDataset regression = new RegressionDataset(dataSet);
+            RegressionResult result = regression.regress(variables.get(x), variables.get(y));
+            return result.getCoef()[1];
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static double getResNlCoef(DataSet dataSet, int x, int y) {
+        try {
+            double[] rY = residualsNl(dataSet, y, x);
+            double[] _x = dataSet.getDoubleData().getColumn(x).toArray();
+            double[][] X = new double[1][];
+            X[0] = _x;
+
+            RegressionResult result = RegressionDataset.regress(rY, X);
+            return result.getCoef()[0];
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static TetradVector getLinearResiduals(DataSet dataSet, List<Node> variables, int x, int y) {
+        try {
+            RegressionDataset regression = new RegressionDataset(dataSet);
+            RegressionResult result = regression.regress(variables.get(x), variables.get(y));
+            return result.getResiduals();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static double[] residualsNl(DataSet dataSet, int x, int y) {
+        TetradMatrix _data = new TetradMatrix(dataSet.getNumRows(), 2);
+
+        _data.assignColumn(0, dataSet.getDoubleData().getColumn(x));
+        _data.assignColumn(1, dataSet.getDoubleData().getColumn(y));
+
+        return residuals(_data.transpose().toArray());
+    }
+
+    private static void flipXY(DataSet dataSet, boolean flipX, boolean flipY) {
+        if (flipX) System.out.println("Flip X");
+        if (flipY) System.out.println("Flip Y");
+
+        for (int q = 0; q < dataSet.getNumRows(); q++) {
+            if (flipX) {
+                dataSet.setDouble(q, 0, dataSet.getDouble(q, 0) * -1);
+            }
+
+            if (flipY) {
+                dataSet.setDouble(q, 1, dataSet.getDouble(q, 1) * -1);
+            }
+        }
+    }
+
+    private static boolean shouldFlipByCounts(DataSet dataSet, int column) {
+        int posX = 0;
+        int negX = 0;
+//
+//        return StatUtils.skewness(dataSet.getDoubleData().getColumn(column).toArray()) < 0;
+//
+        for (int _i = 0; _i < dataSet.getNumRows(); _i++) {
+            double x = dataSet.getDouble(_i, column);
+
+            if (x > 0) posX++;
+            if (x < 0) negX++;
+        }
+
+        return negX > posX + 50;
     }
 
     private static int smoothlySkewed(double[] x, double[] y, int numIntervals) {
