@@ -362,7 +362,7 @@ public final class Fask implements GraphSearch {
         final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
         if (sk_ey < 0) {
-            lr *= -1;
+//            lr *= -1;
         }
 
         final double a = correlation(x, y);

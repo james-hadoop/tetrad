@@ -1080,7 +1080,7 @@ public class CalibrationQuestion {
 
         for (int i = 1; i <= 108; i++) {
 
-//            int[] interval = {1, 10};    // TT
+            int[] interval = {1, 10};    // TT
 //            int[] interval = {11, 20}; // TT
 //            int[] interval = {51, 60};  // TT
 //            int[] interval = {61, 70};  // TT
@@ -1088,7 +1088,7 @@ public class CalibrationQuestion {
 //            int[] interval = {81, 90};   // TT
 
 //            int[] interval = {21, 30};
-            int[] interval = {101, 108};  //TF
+//            int[] interval = {101, 108};  //TF
 
 //            int[] interval = {31, 40};  // TF
 //            int[] interval = {41, 50};  // TF
