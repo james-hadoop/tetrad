@@ -84,6 +84,8 @@ public final class Fask implements GraphSearch {
     // True if skew adjacencies should be included in the output.
     private boolean useSkewAdjacencies = true;
 
+    private double mrThreshold = 0.0;
+
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
@@ -189,9 +191,19 @@ public final class Fask implements GraphSearch {
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else {
+//                        if (!leftRight(x, y) && leftRight(y, x)) {
+//                            graph.addDirectedEdge(Y, X);
+//                        } else if (!leftRight(y, x) && leftRight(x, y)){
+//                            graph.addDirectedEdge(X, Y);
+//                        } else {
+//                            graph.addUndirectedEdge(X, Y);
+//                        }
+
                         if (leftRightMinnesota(x, y)) {
                             graph.addDirectedEdge(X, Y);
-                        } else {
+                        }
+//                        } else {
+                        if (leftRightMinnesota(y, x)) {
                             graph.addDirectedEdge(Y, X);
                         }
                     }
@@ -338,6 +350,36 @@ public final class Fask implements GraphSearch {
         return true;
     }
 
+    private boolean leftRight(double[] x, double[] y) {
+//        x = correctSkewness(x);
+        y = correctSkewness(y);
+//
+//        if (shouldFlip(x)) flip(x);
+//        if (shouldFlip(y)) flip(y);
+//
+        final double cxyx = cov(x, y, x);
+        final double cxyy = cov(x, y, y);
+        final double cxxx = cov(x, x, x);
+        final double cyyx = cov(y, y, x);
+        final double cxxy = cov(x, x, y);
+        final double cyyy = cov(y, y, y);
+
+        double lr = (cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy));
+
+        final double a = correlation(x, y);
+
+//        lr *= signum(a);
+
+        if (a < 0) {//sk_ey > 0) {
+            lr *= -1;
+        }
+
+//        if (shouldFlip(x)) lr *= -1;
+//        if (shouldFlip(y)) lr *= -1;
+
+        return lr > -2.0;
+    }
+
     private boolean leftRightMinnesota(double[] x, double[] y) {
         x = correctSkewness(x);
         y = correctSkewness(y);
@@ -362,7 +404,7 @@ public final class Fask implements GraphSearch {
         final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
         if (sk_ey < 0) {
-            lr *= -1;
+//            lr *= -1;
         }
 
         final double a = correlation(x, y);
@@ -371,7 +413,7 @@ public final class Fask implements GraphSearch {
             lr *= -1;
         }
 
-        return lr > 0;
+        return lr > -3;//getMrThreshold();
     }
 
     private double[] correctSkewness(double[] data) {
@@ -546,6 +588,14 @@ public final class Fask implements GraphSearch {
 
     public void setUseSkewAdjacencies(boolean useSkewAdjacencies) {
         this.useSkewAdjacencies = useSkewAdjacencies;
+    }
+
+    public double getMrThreshold() {
+        return mrThreshold;
+    }
+
+    public void setMrThreshold(double mrThreshold) {
+        this.mrThreshold = mrThreshold;
     }
 }
 
