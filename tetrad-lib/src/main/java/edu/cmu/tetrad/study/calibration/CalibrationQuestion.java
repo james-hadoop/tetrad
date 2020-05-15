@@ -1067,6 +1067,7 @@ public class CalibrationQuestion {
         int maxN = 3000;
 
         List<List<Integer>> selected = new ArrayList<>();
+        List<Integer> mute = new ArrayList<>();
 
         for (int i = 0; i < 4; i++) {
             selected.add(new ArrayList<>());
@@ -1100,12 +1101,8 @@ public class CalibrationQuestion {
 
             File des = new File("/Users/user/Box/data/pairs5", "pair" + nf.format(i) + "_des.txt");
 
-//            boolean groundTruthLeftRight = find(des, "-->");
-//            boolean groundTruthRightLeft = find(des, "<--");
-//
-            boolean groundTruthLeftRight = find(des, "x --> y") || find(des, "y <-- x");
-            boolean groundTruthRightLeft = find(des, "x <-- y") || find(des, "y --> x");
-//
+            boolean groundTruthDirection = find(des, "-->");
+
             List<Node> nodes = new ArrayList<>();
             List<Node> variables = dataSet.getVariables();
             nodes.add(variables.get(0));
@@ -1114,50 +1111,29 @@ public class CalibrationQuestion {
             Graph g = new EdgeListGraph(variables);
             g.addUndirectedEdge(nodes.get(0), nodes.get(1));
 
-            for (boolean flipX : new boolean[]{true, false}) {
-                for (boolean flipY : new boolean[]{true, false}) {
-                    flippyFask(dataSet, nodes, g, flipX, flipY);
-                }
+            double mrThreshold = -5.0;
+
+            boolean estLeftRight;
+
+            try {
+                estLeftRight = flippyFask(dataSet, nodes, g, mrThreshold);
+            } catch (Exception e) {
+                System.out.println("########### SKIPPING, ORIENTED IN BOTH DIRECTIONS #############");
+                mute.add(i);
+                continue;
             }
 
-            boolean flipX = shouldFlipByCounts(dataSet, 0);
-            boolean flipY = shouldFlipByCounts(dataSet, 1);
+            boolean correctDirection = groundTruthDirection == estLeftRight;
 
-            boolean estLeftRight = flippyFask(dataSet, nodes, g, true, true);//shouldFlipByCounts(dataSet, 0), shouldFlipByCounts(dataSet, 1));
-//
-//            if (getResNlCoef(dataSet, 0, 1) > 0) {
-////                if (getCoef(dataSet, variables, 0, 1) > 0) {
-//                estLeftRight = !estLeftRight;
-//            }
-
-            System.out.println("Index " + i + " coef = " + getCoef(dataSet, variables, 0, 1));
-
-            if (getCoef(dataSet, variables, 1, 0) > 0) {
-                estLeftRight = !estLeftRight;
-            }
-//            else if (getCoef(dataSet, variables, 1, 0) > 0)  {
-//                estLeftRight = !estLeftRight;
-//            }
-
-            boolean correctDirection = ((groundTruthLeftRight && estLeftRight) || (groundTruthRightLeft && !estLeftRight));
-
-            if (getCoef(dataSet, variables, 1, 0) > 0) {
-                if (correctDirection) {
-                    selected.get(0).add(i);
-                } else {
-                    selected.get(1).add(i);
-                }
+            if (correctDirection) {
+                selected.get(0).add(i);
             } else {
-                if (correctDirection) {
-                    selected.get(2).add(i);
-                } else {
-                    selected.get(3).add(i);
-                }
+                selected.get(1).add(i);
             }
 
             // Print truth and estimate.
-            if (groundTruthLeftRight) System.out.println("true -->");
-            if (groundTruthRightLeft) System.out.println("true <--");
+            if (groundTruthDirection) System.out.println("true -->");
+            else System.out.println("true <--");
 
             if (estLeftRight) System.out.println("est -->");
             else System.out.println("est <--");
@@ -1177,44 +1153,50 @@ public class CalibrationQuestion {
         System.out.println("Total not skipped = " + total);
 
         System.out.println();
-        System.out.println("Positive coefficient, Correct Direction: " + selected.get(0));
-        System.out.println("Positive coefficient, Wrong Direction: " + selected.get(1));
-        System.out.println("Negative coefficient, Correct Direction: " + selected.get(2));
-        System.out.println("Negative coefficient, Wrong Direction: " + selected.get(3));
+        System.out.println("Correct Direction: " + selected.get(0));
+        System.out.println("Wrong Direction: " + selected.get(1));
+
+        System.out.println("Didn't classify: " + mute);
     }
 
-    private static boolean flippyFask(DataSet dataSet, List<Node> nodes, Graph g, boolean flipX, boolean flipY) {
-        DataSet flippedData = dataSet.copy();
+    private static DataSet logData(DataSet dataSet, double a) {
+        double min = 0.0;
 
+        for (int i = 0; i < dataSet.getNumRows(); i++) {
+            if (dataSet.getDouble(i, 0) < min) {
+                min = dataSet.getDouble(i, 0);
+            }
+
+            if (dataSet.getDouble(i, 1) < min) {
+                min = dataSet.getDouble(i, 1);
+            }
+        }
+
+
+        TetradMatrix _data = DataUtils.logData(dataSet.getDoubleData().transpose(), a, false, 10);
+
+        DataBox box = new VerticalDoubleDataBox(_data.toArray());
+
+        dataSet = new BoxDataSet(box, dataSet.getVariables());
+        return dataSet;
+    }
+
+    private static boolean flippyFask(DataSet dataSet, List<Node> nodes, Graph g, double mrThreshold) {
+        DataSet flippedData = flipData(dataSet, true, true);
+        return getFaskDirection(flippedData, nodes, g, mrThreshold);
+    }
+
+    private static DataSet flipData(DataSet dataSet, boolean flipX, boolean flipY) {
+        DataSet flippedData = dataSet.copy();
         flipColumn(flippedData, 0, flipX);
         flipColumn(flippedData, 1, flipY);
-
-        boolean _flipX = shouldFlipByCounts(flippedData, 0);
-        boolean _flipY = shouldFlipByCounts(flippedData, 1);
-
-//            writeResData(flippedData, i);
-
-        boolean estLeftRight = getFaskDirection(flippedData, nodes, g);
-
-        if (flipX) {
-            estLeftRight = !estLeftRight;
-        }
-
-        if (flipY) {
-            estLeftRight = !estLeftRight;
-        }
-
-        System.out.println("FlipX = " + flipX + " FlipY = " + flipY + " Flip again? _flipX = " + _flipX + " _flipY = " + _flipY
-                + ", result = " + (estLeftRight ? " -->" : "<--"));
-
-        return estLeftRight;
+        return flippedData;
     }
 
-    private static boolean getFaskDirection(DataSet dataSet, List<Node> nodes, Graph g) {
+    private static boolean getFaskDirection(DataSet dataSet, List<Node> nodes, Graph g, double mrThreshold) {
         Fask fask = new Fask(dataSet, g);
-//                Fask fask = new Fask(dataSet, new IndTestFisherZ(dataSet, 0.05));
-        fask.setAlpha(0);
-        fask.setExtraEdgeThreshold(0.01);
+        fask.setAlpha(0.00);
+        fask.setExtraEdgeThreshold(mrThreshold);
         fask.setUseSkewAdjacencies(false);
         fask.setMrThreshold(mrThreshold);
         Graph out = fask.search();
@@ -1239,6 +1221,35 @@ public class CalibrationQuestion {
         DataSet resdata = resData(dataSet, rxLin, ryLin, rXnl, rYnl);
 
         writeDataSet(new File("/Users/user/Box/data/pairs/resdata"), i, resdata);
+    }
+
+    private static boolean yMoreIndepenent(DataSet dataSet, int i) {
+        DataSet copy = dataSet.copy();
+        copy.addVariable(new ContinuousVariable("rX"));
+        copy.addVariable(new ContinuousVariable("rY"));
+
+        double[] rXnl = residualsNl(dataSet, 0, 1);
+        double[] rYnl = residualsNl(dataSet, 1, 0);
+
+        int rX = copy.getColumn(copy.getVariable("rX"));
+        int rY = copy.getColumn(copy.getVariable("rY"));
+
+        for (int w = 0; w < rXnl.length; w++) {
+            copy.setDouble(w, rX, rXnl[w]);
+            copy.setDouble(w, rY, rYnl[w]);
+        }
+
+        IndependenceTest test = new IndTestFisherZ(copy, 0.05);
+
+        System.out.println(copy.getVariables());
+
+        test.isIndependent(copy.getVariable("C1"), copy.getVariable("rY"));
+        double p1 = test.getPValue();
+
+        test.isIndependent(copy.getVariable("C2"), copy.getVariable("rX"));
+        double p2 = test.getPValue();
+
+        return p1 > p2;
     }
 
     private static DataSet resData(DataSet dataSet, TetradVector rxLin, TetradVector ryLin, double[] rXnl, double[] rYnl) {
