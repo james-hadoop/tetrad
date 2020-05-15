@@ -404,7 +404,7 @@ public final class Fask implements GraphSearch {
         final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
         if (sk_ey < 0) {
-//            lr *= -1;
+            lr *= -1;
         }
 
         final double a = correlation(x, y);
@@ -413,7 +413,7 @@ public final class Fask implements GraphSearch {
             lr *= -1;
         }
 
-        return lr > -3;//getMrThreshold();
+        return lr > 0.01 ;//getMrThreshold();
     }
 
     private double[] correctSkewness(double[] data) {
