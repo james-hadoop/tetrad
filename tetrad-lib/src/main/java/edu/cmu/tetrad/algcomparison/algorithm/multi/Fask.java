@@ -14,6 +14,7 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,6 +72,7 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
             search.setUseFasAdjacencies(parameters.getBoolean(Params.USE_FAS_ADJACENCIES));
             search.setUseSkewAdjacencies(parameters.getBoolean(Params.USE_CORR_DIFF_ADJACENCIES));
             search.setAlpha(parameters.getDouble(Params.TWO_CYCLE_ALPHA));
+            search.setDelta(parameters.getDouble(Params.FASK_DELTA));
             search.setKnowledge(knowledge);
             return getGraph(search);
         } else {
@@ -135,10 +137,11 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
 //        if (test != null) {
 //            parameters.addAll(test.getParameters());
 //        }
-        
+
         parameters.add(Params.DEPTH);
         parameters.add(Params.TWO_CYCLE_ALPHA);
         parameters.add(Params.EXTRA_EDGE_THRESHOLD);
+        parameters.add(Params.FASK_DELTA);
 
         parameters.add(Params.USE_FAS_ADJACENCIES);
         parameters.add(Params.USE_CORR_DIFF_ADJACENCIES);

@@ -23,7 +23,7 @@ import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
 import static edu.cmu.tetrad.util.StatUtils.median;
-import static edu.cmu.tetrad.util.StatUtils.standardizeData;
+import static edu.cmu.tetrad.util.StatUtils.mu;
 import static java.lang.Math.*;
 
 public class CalibrationQuestion {
@@ -1067,7 +1067,7 @@ public class CalibrationQuestion {
         int maxN = 3000;
 
         List<List<Integer>> selected = new ArrayList<>();
-        List<Integer> mute = new ArrayList<>();
+        List<Integer> ambiguous = new ArrayList<>();
 
         for (int i = 0; i < 4; i++) {
             selected.add(new ArrayList<>());
@@ -1089,9 +1089,19 @@ public class CalibrationQuestion {
             dataSet.getVariable(0).setName("C1");
             dataSet.getVariable(1).setName("C2");
 
+            System.out.println("Should flip C1: " + shouldFlipByCounts(dataSet, 0));
+            System.out.println("Should flip C2: " + shouldFlipByCounts(dataSet, 1));
+
+//            flipColumn(dataSet, 0, shouldFlipByCounts(dataSet, 0));
+//            flipColumn(dataSet, 1, shouldFlipByCounts(dataSet, 1));
+//
+//            writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
+
+
             long N = dataSet.getNumRows();
 
             System.out.println("N = " + N);
+
 
 
             // Translate the dataset into Java-friendly format.
@@ -1111,32 +1121,34 @@ public class CalibrationQuestion {
             Graph g = new EdgeListGraph(variables);
             g.addUndirectedEdge(nodes.get(0), nodes.get(1));
 
-            double mrThreshold = -5.0;
+            double faskDelta = .05;
 
-            boolean estLeftRight;
+            int estLeftRight = fask(dataSet, nodes, g, faskDelta);
 
-            try {
-                estLeftRight = flippyFask(dataSet, nodes, g, mrThreshold);
-            } catch (Exception e) {
+            if (groundTruthDirection) System.out.println("true -->");
+            else System.out.println("true <--");
+
+            if (estLeftRight == 0) {
                 System.out.println("########### SKIPPING, ORIENTED IN BOTH DIRECTIONS #############");
-                mute.add(i);
+                ambiguous.add(i);
                 continue;
             }
 
-            boolean correctDirection = groundTruthDirection == estLeftRight;
+            boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
+                    || ((!groundTruthDirection && estLeftRight == -1));
+            boolean wrongDirection = (groundTruthDirection && estLeftRight == -1)
+                    || ((!groundTruthDirection && estLeftRight == 1));
 
             if (correctDirection) {
                 selected.get(0).add(i);
-            } else {
+            } else if (wrongDirection) {
                 selected.get(1).add(i);
             }
 
             // Print truth and estimate.
-            if (groundTruthDirection) System.out.println("true -->");
-            else System.out.println("true <--");
 
-            if (estLeftRight) System.out.println("est -->");
-            else System.out.println("est <--");
+            if (estLeftRight == 1) System.out.println("est -->");
+            else if (estLeftRight == -1) System.out.println("est <--");
 
             if (correctDirection) {
                 correct++;
@@ -1156,7 +1168,7 @@ public class CalibrationQuestion {
         System.out.println("Correct Direction: " + selected.get(0));
         System.out.println("Wrong Direction: " + selected.get(1));
 
-        System.out.println("Didn't classify: " + mute);
+        System.out.println("Didn't classify: " + ambiguous);
     }
 
     private static DataSet logData(DataSet dataSet, double a) {
@@ -1181,9 +1193,12 @@ public class CalibrationQuestion {
         return dataSet;
     }
 
-    private static boolean flippyFask(DataSet dataSet, List<Node> nodes, Graph g, double mrThreshold) {
-        DataSet flippedData = flipData(dataSet, true, true);
-        return getFaskDirection(flippedData, nodes, g, mrThreshold);
+    private static int fask(DataSet dataSet, List<Node> nodes, Graph g, double faskDelta) {
+        int dir1 =  getFaskDirection(dataSet, nodes, g, faskDelta);
+//        int dir2 = getFaskDirection(flipData(dataSet, true, true), nodes, g, faskDelta);
+//        int dir3 = getFaskDirection(flipData(dataSet, true, false), nodes, g, faskDelta);
+//        if (dir1 == dir3 && dir1 != 0 && dir2 != 0) return dir1;
+        return dir1;
     }
 
     private static DataSet flipData(DataSet dataSet, boolean flipX, boolean flipY) {
@@ -1193,22 +1208,24 @@ public class CalibrationQuestion {
         return flippedData;
     }
 
-    private static boolean getFaskDirection(DataSet dataSet, List<Node> nodes, Graph g, double mrThreshold) {
+    private static int getFaskDirection(DataSet dataSet, List<Node> nodes, Graph g, double faskDelta) {
         Fask fask = new Fask(dataSet, g);
         fask.setAlpha(0.00);
-        fask.setExtraEdgeThreshold(mrThreshold);
+        fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);
-        fask.setMrThreshold(mrThreshold);
+        fask.setDelta(faskDelta);
         Graph out = fask.search();
 
         System.out.println(out);
 
+        if (out.getEdges(nodes.get(0), nodes.get(1)).size() == 2 || out.getEdges(nodes.get(0), nodes.get(1)).isEmpty()) {
+            return 0;
+        }
+
         boolean _estLeftRight = out.getEdge(nodes.get(0), nodes.get(1)).pointsTowards(nodes.get(1));
-        boolean _estRightLeft = out.getEdge(nodes.get(0), nodes.get(1)).pointsTowards(nodes.get(0));
+//        boolean _estRightLeft = out.getEdge(nodes.get(1), nodes.get(0)).pointsTowards(nodes.get(0));
 
-        if (_estLeftRight == _estRightLeft) throw new RuntimeException();
-
-        return _estLeftRight;
+        return _estLeftRight ? 1 : -1;
     }
 
     private static void writeResData(DataSet dataSet, int i) {
@@ -1348,19 +1365,19 @@ public class CalibrationQuestion {
     }
 
     private static boolean shouldFlipByCounts(DataSet dataSet, int column) {
-        int posX = 0;
-        int negX = 0;
-//
-//        return StatUtils.skewness(dataSet.getDoubleData().getColumn(column).toArray()) < 0;
-//
-        for (int _i = 0; _i < dataSet.getNumRows(); _i++) {
-            double x = dataSet.getDouble(_i, column);
+//        int posX = 0;
+//        int negX = 0;
 
-            if (x > 0) posX++;
-            if (x < 0) negX++;
-        }
+        return StatUtils.skewness(dataSet.getDoubleData().getColumn(column).toArray()) < 0;
 
-        return negX > posX + 50;
+//        for (int _i = 0; _i < dataSet.getNumRows(); _i++) {
+//            double x = dataSet.getDouble(_i, column);
+//
+//            if (x > 0) posX++;
+//            if (x < 0) negX++;
+//        }
+//
+//        return negX > posX + 50;
     }
 
     private static int smoothlySkewed(double[] x, double[] y, int numIntervals) {

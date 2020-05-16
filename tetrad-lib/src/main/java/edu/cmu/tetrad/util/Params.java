@@ -66,6 +66,7 @@ public final class Params {
     public static final String DO_MARKOV_LOOP = "doMarkovLoop";
     public static final String ERRORS_NORMAL = "errorsNormal";
     public static final String EXTRA_EDGE_THRESHOLD = "extraEdgeThreshold";
+    public static final String FASK_DELTA = "faskDelta";
     public static final String FAITHFULNESS_ASSUMED = "faithfulnessAssumed";
     public static final String FAS_RULE = "fasRule";
     public static final String FAST_ICA_A = "fastIcaA";
