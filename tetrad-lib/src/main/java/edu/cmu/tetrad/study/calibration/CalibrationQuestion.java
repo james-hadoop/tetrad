@@ -1086,22 +1086,42 @@ public class CalibrationQuestion {
             DataSet dataSet = loadContinuousData(data, true, Delimiter.TAB);
             assert dataSet != null;
 
+            if (dataSet.getNumRows() > 5000) dataSet = DataUtils.getBootstrapSample(dataSet, 5000);
+
+//            dataSet = flipData(dataSet, StatUtils.skewness(dataSet.getDoubleData().getColumn(0).toArray()) < 0,
+//                    StatUtils.skewness(dataSet.getDoubleData().getColumn(0).toArray()) < 0);
+
+//            dataSet = flipData(dataSet, true, true);
+
+            double[] x = dataSet.getDoubleData().getColumn(0).toArray();
+            double[] y = dataSet.getDoubleData().getColumn(1).toArray();
+
+            double[] res = residualsNl(y, x);
+
+            for (int w = 0; w < res.length; w++) {
+                dataSet.setDouble(w, 0, dataSet.getDouble(w, 0) + res[w]);
+            }
+
+//            double coef = getCoef(dataSet.getDoubleData().getColumn(0).toArray(), dataSet.getDoubleData().getColumn(1).toArray());
+//
+//            flipColumn(dataSet, 0, coef < 0);
+
             dataSet.getVariable(0).setName("C1");
             dataSet.getVariable(1).setName("C2");
 
-            System.out.println("Should flip C1: " + shouldFlipByCounts(dataSet, 0));
-            System.out.println("Should flip C2: " + shouldFlipByCounts(dataSet, 1));
+//            System.out.println("Should flip C1: " + shouldFlipByCounts(dataSet, 0));
+//            System.out.println("Should flip C2: " + shouldFlipByCounts(dataSet, 1));
 
-//            flipColumn(dataSet, 0, shouldFlipByCounts(dataSet, 0));
-//            flipColumn(dataSet, 1, shouldFlipByCounts(dataSet, 1));
+//            boolean flipX = shouldFlipByCounts(dataSet, 0);
+//            boolean flipY = shouldFlipByCounts(dataSet, 1);
+
+//            DataSet flippedData = flipData(dataSet, flipX, flipY);
 //
-//            writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
-
+            writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
 
             long N = dataSet.getNumRows();
 
             System.out.println("N = " + N);
-
 
 
             // Translate the dataset into Java-friendly format.
@@ -1113,36 +1133,35 @@ public class CalibrationQuestion {
 
             boolean groundTruthDirection = find(des, "-->");
 
-            List<Node> nodes = new ArrayList<>();
-            List<Node> variables = dataSet.getVariables();
-            nodes.add(variables.get(0));
-            nodes.add(variables.get(1));
+            double faskDelta = 0;
 
-            Graph g = new EdgeListGraph(variables);
-            g.addUndirectedEdge(nodes.get(0), nodes.get(1));
-
-            double faskDelta = .05;
-
-            int estLeftRight = fask(dataSet, nodes, g, faskDelta);
+            int estLeftRight = getFaskDirection(flipData(dataSet, true, true), faskDelta);
 
             if (groundTruthDirection) System.out.println("true -->");
             else System.out.println("true <--");
-
-            if (estLeftRight == 0) {
-                System.out.println("########### SKIPPING, ORIENTED IN BOTH DIRECTIONS #############");
-                ambiguous.add(i);
-                continue;
-            }
 
             boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
                     || ((!groundTruthDirection && estLeftRight == -1));
             boolean wrongDirection = (groundTruthDirection && estLeftRight == -1)
                     || ((!groundTruthDirection && estLeftRight == 1));
 
+//            if (flipX) {
+//                correctDirection = !correctDirection;
+//                wrongDirection = !wrongDirection;
+//            }
+//
+//            if (flipY) {
+//                correctDirection = !correctDirection;
+//                wrongDirection = !wrongDirection;
+//            }
+
             if (correctDirection) {
                 selected.get(0).add(i);
             } else if (wrongDirection) {
                 selected.get(1).add(i);
+            } else {
+                System.out.println("########### SKIPPING, ORIENTED IN BOTH DIRECTIONS #############");
+                ambiguous.add(i);
             }
 
             // Print truth and estimate.
@@ -1193,14 +1212,6 @@ public class CalibrationQuestion {
         return dataSet;
     }
 
-    private static int fask(DataSet dataSet, List<Node> nodes, Graph g, double faskDelta) {
-        int dir1 =  getFaskDirection(dataSet, nodes, g, faskDelta);
-//        int dir2 = getFaskDirection(flipData(dataSet, true, true), nodes, g, faskDelta);
-//        int dir3 = getFaskDirection(flipData(dataSet, true, false), nodes, g, faskDelta);
-//        if (dir1 == dir3 && dir1 != 0 && dir2 != 0) return dir1;
-        return dir1;
-    }
-
     private static DataSet flipData(DataSet dataSet, boolean flipX, boolean flipY) {
         DataSet flippedData = dataSet.copy();
         flipColumn(flippedData, 0, flipX);
@@ -1208,7 +1219,11 @@ public class CalibrationQuestion {
         return flippedData;
     }
 
-    private static int getFaskDirection(DataSet dataSet, List<Node> nodes, Graph g, double faskDelta) {
+    private static int getFaskDirection(DataSet dataSet, double faskDelta) {
+        Graph g = new EdgeListGraph(dataSet.getVariables());
+        List<Node> nodes = dataSet.getVariables();
+        g.addUndirectedEdge(nodes.get(0), nodes.get(1));
+
         Fask fask = new Fask(dataSet, g);
         fask.setAlpha(0.00);
         fask.setExtraEdgeThreshold(0);
@@ -1228,9 +1243,9 @@ public class CalibrationQuestion {
         return _estLeftRight ? 1 : -1;
     }
 
-    private static void writeResData(DataSet dataSet, int i) {
-        double[] rXnl = residualsNl(dataSet, 0, 1);
-        double[] rYnl = residualsNl(dataSet, 1, 0);
+    private static void writeResData(DataSet dataSet, double[] x, double[] y, int i) {
+        double[] rXnl = residualsNl(x, y);
+        double[] rYnl = residualsNl(y, x);
 
         TetradVector rxLin = getLinearResiduals(dataSet, dataSet.getVariables(), 1, 0);
         TetradVector ryLin = getLinearResiduals(dataSet, dataSet.getVariables(), 0, 1);
@@ -1238,35 +1253,6 @@ public class CalibrationQuestion {
         DataSet resdata = resData(dataSet, rxLin, ryLin, rXnl, rYnl);
 
         writeDataSet(new File("/Users/user/Box/data/pairs/resdata"), i, resdata);
-    }
-
-    private static boolean yMoreIndepenent(DataSet dataSet, int i) {
-        DataSet copy = dataSet.copy();
-        copy.addVariable(new ContinuousVariable("rX"));
-        copy.addVariable(new ContinuousVariable("rY"));
-
-        double[] rXnl = residualsNl(dataSet, 0, 1);
-        double[] rYnl = residualsNl(dataSet, 1, 0);
-
-        int rX = copy.getColumn(copy.getVariable("rX"));
-        int rY = copy.getColumn(copy.getVariable("rY"));
-
-        for (int w = 0; w < rXnl.length; w++) {
-            copy.setDouble(w, rX, rXnl[w]);
-            copy.setDouble(w, rY, rYnl[w]);
-        }
-
-        IndependenceTest test = new IndTestFisherZ(copy, 0.05);
-
-        System.out.println(copy.getVariables());
-
-        test.isIndependent(copy.getVariable("C1"), copy.getVariable("rY"));
-        double p1 = test.getPValue();
-
-        test.isIndependent(copy.getVariable("C2"), copy.getVariable("rX"));
-        double p2 = test.getPValue();
-
-        return p1 > p2;
     }
 
     private static DataSet resData(DataSet dataSet, TetradVector rxLin, TetradVector ryLin, double[] rXnl, double[] rYnl) {
@@ -1296,12 +1282,14 @@ public class CalibrationQuestion {
         return new BoxDataSet(new DoubleDataBox(m2.toArray()), n);
     }
 
-    private static void flipColumn(DataSet dataSet, int colToFlip, boolean flip) {
+    private static boolean flipColumn(DataSet dataSet, int colToFlip, boolean flip) {
         if (flip) {
             for (int q = 0; q < dataSet.getNumRows(); q++) {
                 dataSet.setDouble(q, colToFlip, dataSet.getDouble(q, colToFlip) * -1);
             }
         }
+
+        return flip;
     }
 
     private static double getCoef(double[] x, double[] y) {
@@ -1310,20 +1298,6 @@ public class CalibrationQuestion {
 
         try {
             RegressionResult result = RegressionDataset.regress(x, _y);
-            return result.getCoef()[0];
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static double getResNlCoef(DataSet dataSet, int x, int y) {
-        try {
-            double[] rY = residualsNl(dataSet, y, x);
-            double[] _x = dataSet.getDoubleData().getColumn(x).toArray();
-            double[][] X = new double[1][];
-            X[0] = _x;
-
-            RegressionResult result = RegressionDataset.regress(rY, X);
             return result.getCoef()[0];
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -1340,13 +1314,8 @@ public class CalibrationQuestion {
         }
     }
 
-    private static double[] residualsNl(DataSet dataSet, int x, int y) {
-        TetradMatrix _data = new TetradMatrix(dataSet.getNumRows(), 2);
-
-        _data.assignColumn(0, dataSet.getDoubleData().getColumn(x));
-        _data.assignColumn(1, dataSet.getDoubleData().getColumn(y));
-
-        return residuals(_data.transpose().toArray());
+    private static double[] residualsNl(double[] x, double[] y) {
+        return residuals(x, y);
     }
 
     private static void flipXY(DataSet dataSet, boolean flipX, boolean flipY) {
@@ -1484,26 +1453,26 @@ public class CalibrationQuestion {
      * @return a double[2][] array. The first double[] array contains the residuals for x
      * and the second double[] array contains the resituls for y.
      */
-    public static double[] residuals(double[][] data) {
+    public static double[] residuals(double[] x, double[] y) {
 
-        int N = data[0].length;
+        int N = x.length;
 
         int _x = 0;
 
         double[] residualsx = new double[N];
 
-        double[] xdata = data[_x];
+        double[] xdata = Arrays.copyOf(x, x.length);
 
         double[] sumx = new double[N];
 
         double[] totalWeightx = new double[N];
 
-        double h = h(data[1]);
+        double h = h(y);
 
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
                 double xj = xdata[j];
-                double d = distance(data, 1, i, j);
+                double d = distance(y, i, j);
                 double k = kernelGaussian(d, 1, h);
                 sumx[i] += k * xj;
                 totalWeightx[i] += k;
@@ -1530,10 +1499,10 @@ public class CalibrationQuestion {
     }
 
     // Euclidean distance.
-    private static double distance(double[][] data, int z, int i, int j) {
+    private static double distance(double[] data, int i, int j) {
         double sum = 0.0;
 
-        double d = (data[z][i] - data[z][j]) / 2.0;
+        double d = (data[i] - data[j]) / 2.0;
 
         if (!Double.isNaN(d)) {
             sum += d * d;
