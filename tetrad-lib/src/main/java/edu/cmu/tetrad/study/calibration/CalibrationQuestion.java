@@ -1088,10 +1088,8 @@ public class CalibrationQuestion {
 
             if (dataSet.getNumRows() > 5000) dataSet = DataUtils.getBootstrapSample(dataSet, 5000);
 
-//            dataSet = flipData(dataSet, StatUtils.skewness(dataSet.getDoubleData().getColumn(0).toArray()) < 0,
-//                    StatUtils.skewness(dataSet.getDoubleData().getColumn(0).toArray()) < 0);
-
-//            dataSet = flipData(dataSet, true, true);
+            dataSet = flipData(dataSet, StatUtils.skewness(dataSet.getDoubleData().getColumn(0).toArray()) > 0,
+                    StatUtils.skewness(dataSet.getDoubleData().getColumn(1).toArray()) > 0);
 
             double[] x = dataSet.getDoubleData().getColumn(0).toArray();
             double[] y = dataSet.getDoubleData().getColumn(1).toArray();
@@ -1102,21 +1100,9 @@ public class CalibrationQuestion {
                 dataSet.setDouble(w, 0, dataSet.getDouble(w, 0) + res[w]);
             }
 
-//            double coef = getCoef(dataSet.getDoubleData().getColumn(0).toArray(), dataSet.getDoubleData().getColumn(1).toArray());
-//
-//            flipColumn(dataSet, 0, coef < 0);
-
             dataSet.getVariable(0).setName("C1");
             dataSet.getVariable(1).setName("C2");
 
-//            System.out.println("Should flip C1: " + shouldFlipByCounts(dataSet, 0));
-//            System.out.println("Should flip C2: " + shouldFlipByCounts(dataSet, 1));
-
-//            boolean flipX = shouldFlipByCounts(dataSet, 0);
-//            boolean flipY = shouldFlipByCounts(dataSet, 1);
-
-//            DataSet flippedData = flipData(dataSet, flipX, flipY);
-//
             writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
 
             long N = dataSet.getNumRows();
@@ -1135,25 +1121,12 @@ public class CalibrationQuestion {
 
             double faskDelta = 0;
 
-            int estLeftRight = getFaskDirection(flipData(dataSet, true, true), faskDelta);
-
-            if (groundTruthDirection) System.out.println("true -->");
-            else System.out.println("true <--");
+            int estLeftRight = getFaskDirection(dataSet, faskDelta);
 
             boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
                     || ((!groundTruthDirection && estLeftRight == -1));
             boolean wrongDirection = (groundTruthDirection && estLeftRight == -1)
                     || ((!groundTruthDirection && estLeftRight == 1));
-
-//            if (flipX) {
-//                correctDirection = !correctDirection;
-//                wrongDirection = !wrongDirection;
-//            }
-//
-//            if (flipY) {
-//                correctDirection = !correctDirection;
-//                wrongDirection = !wrongDirection;
-//            }
 
             if (correctDirection) {
                 selected.get(0).add(i);
@@ -1164,7 +1137,8 @@ public class CalibrationQuestion {
                 ambiguous.add(i);
             }
 
-            // Print truth and estimate.
+            if (groundTruthDirection) System.out.println("true -->");
+            else System.out.println("true <--");
 
             if (estLeftRight == 1) System.out.println("est -->");
             else if (estLeftRight == -1) System.out.println("est <--");
@@ -1181,7 +1155,7 @@ public class CalibrationQuestion {
         System.out.println("\nSummary:\n");
         System.out.println("Score = " + nf2.format((correct / (double) total)));
         System.out.println("Total correct = " + correct);
-        System.out.println("Total not skipped = " + total);
+        System.out.println("Total = " + total);
 
         System.out.println();
         System.out.println("Correct Direction: " + selected.get(0));
@@ -1370,11 +1344,9 @@ public class CalibrationQuestion {
             if (s < 0) count2++;
         }
 
-        if (count1 > count2 + 2) return 1;
-        if (count2 > count1 + 2) return -1;
+        if (count1 > count2) return 1;
+        if (count2 > count1) return -1;
         else return 0;
-
-//        return Integer.compare(count1, count2);
     }
 
     private static boolean find(File des, String f) throws IOException {
@@ -1457,11 +1429,7 @@ public class CalibrationQuestion {
 
         int N = x.length;
 
-        int _x = 0;
-
         double[] residualsx = new double[N];
-
-        double[] xdata = Arrays.copyOf(x, x.length);
 
         double[] sumx = new double[N];
 
@@ -1471,23 +1439,16 @@ public class CalibrationQuestion {
 
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                double xj = xdata[j];
+                double xj = x[j];
                 double d = distance(y, i, j);
-                double k = kernelGaussian(d, 1, h);
+                double k = kernelGaussian(d, 3, h);
                 sumx[i] += k * xj;
                 totalWeightx[i] += k;
             }
         }
 
         for (int i = 0; i < N; i++) {
-//            if (totalWeightx[i] == 0) totalWeightx[i] = 1;
-
-            residualsx[i] = xdata[i] - sumx[i] / totalWeightx[i];
-//            residualsx[i] = sumx[i] / totalWeightx[i];
-
-//            if (Double.isNaN(residualsx[i])) {
-//                residualsx[i] = xdata[i];
-//            }
+            residualsx[i] = x[i] - sumx[i] / totalWeightx[i];
         }
 
         return residualsx;

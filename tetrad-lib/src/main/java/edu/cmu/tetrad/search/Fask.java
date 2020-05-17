@@ -354,6 +354,9 @@ public final class Fask implements GraphSearch {
         double sx = StatUtils.skewness(x);
         double sy = StatUtils.skewness(y);
 
+//        double sx = smoothlySkewed(x, y, 9);
+//        double sy = smoothlySkewed(x, y, 9);
+
         r *= signum(sx) * signum(sy);
         lr *= signum(r);
         if (r < delta) lr *= -1;
@@ -607,6 +610,66 @@ public final class Fask implements GraphSearch {
 
     public void setDelta(double delta) {
         this.delta = delta;
+    }
+
+    private static int smoothlySkewed(double[] x, double[] y, int numIntervals) {
+        double minX = 0;
+        double maxX = 1;
+
+        double interval = (maxX - minX) / numIntervals;
+
+        int count1 = 0;
+        int count2 = 0;
+
+        for (int i = 0; i < numIntervals; i++) {
+            double p1 = minX + i * interval;
+            double p2 = minX + (i + 1) * interval;
+
+            double left = StatUtils.quantile(x, p1);
+            double right = StatUtils.quantile(x, p2);
+            double s = skewness(x, y, left, right);
+
+            if (s > 0) count1++;
+            if (s < 0) count2++;
+        }
+
+        if (count1 > count2) return 1;
+        if (count2 > count1) return -1;
+        else return 0;
+    }
+
+    public static double skewness(double[] x, double[] y, double left, double right) {
+        double secondMoment = 0.0;
+        double thirdMoment = 0.0;
+
+        double meany = StatUtils.mean(y);
+
+        int count = 0;
+
+        for (int i = 0; i < y.length; i++) {
+            if (x[i] < left || x[i] > right) continue;
+            if (Double.isNaN(y[i])) continue;
+            double s = y[i] - meany;
+            if (s == 0) continue;
+            count++;
+            secondMoment += s * s;
+            thirdMoment += s * s * s;
+        }
+
+        if (secondMoment == 0) {
+            secondMoment = 1e-5;
+        }
+
+        double ess = secondMoment / count;
+        double esss = thirdMoment / count;
+
+//        if (secondMoment == 0) {
+//            return Double.NaN;
+////            throw new ArithmeticException("StatUtils.skew:  There is no skew " +
+////                    "when the variance is zero.");
+//        }
+
+        return esss / Math.pow(ess, 1.5);
     }
 }
 
