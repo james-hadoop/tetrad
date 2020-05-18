@@ -14,7 +14,7 @@ import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.Delimiter;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
+import edu.pitt.dbmi.data.reader.tabular.*;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -22,8 +22,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
-import static edu.cmu.tetrad.util.StatUtils.median;
-import static edu.cmu.tetrad.util.StatUtils.mu;
+import static edu.cmu.tetrad.util.StatUtils.*;
 import static java.lang.Math.*;
 
 public class CalibrationQuestion {
@@ -1064,7 +1063,11 @@ public class CalibrationQuestion {
     }
 
     private static void scenario8() throws IOException {
-        int maxN = 3000;
+        int maxN = 1000;
+        double coef = 1;
+
+        File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
+        DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
 
         List<List<Integer>> selected = new ArrayList<>();
         List<Integer> ambiguous = new ArrayList<>();
@@ -1075,8 +1078,11 @@ public class CalibrationQuestion {
 
         NumberFormat nf = new DecimalFormat("0000");
 
-        int correct = 0;
-        int total = 0;
+        double correct = 0;
+        double total = 0;
+        double ambCount = 0;
+
+        long start = System.currentTimeMillis();
 
         for (int i = 1; i <= 108; i++) {
             System.out.println("========================= INDEX = " + i);
@@ -1086,18 +1092,19 @@ public class CalibrationQuestion {
             DataSet dataSet = loadContinuousData(data, true, Delimiter.TAB);
             assert dataSet != null;
 
-            if (dataSet.getNumRows() > 5000) dataSet = DataUtils.getBootstrapSample(dataSet, 5000);
+            if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
 
-            dataSet = flipData(dataSet, StatUtils.skewness(dataSet.getDoubleData().getColumn(0).toArray()) > 0,
-                    StatUtils.skewness(dataSet.getDoubleData().getColumn(1).toArray()) > 0);
+//            dataSet = flipData(dataSet, StatUtils.skewness(dataSet.getDoubleData().getColumn(0).toArray()) > 0,
+//                    StatUtils.skewness(dataSet.getDoubleData().getColumn(1).toArray()) > 0);
+            dataSet = flipData(dataSet, true,true);
 
             double[] x = dataSet.getDoubleData().getColumn(0).toArray();
             double[] y = dataSet.getDoubleData().getColumn(1).toArray();
 
-            double[] res = residualsNl(y, x);
+            double[] res = residuals(y, x);
 
             for (int w = 0; w < res.length; w++) {
-                dataSet.setDouble(w, 0, dataSet.getDouble(w, 0) + res[w]);
+                dataSet.setDouble(w, 0, coef * dataSet.getDouble(w, 0) + res[w]);
             }
 
             dataSet.getVariable(0).setName("C1");
@@ -1117,7 +1124,25 @@ public class CalibrationQuestion {
 
             File des = new File("/Users/user/Box/data/pairs5", "pair" + nf.format(i) + "_des.txt");
 
-            boolean groundTruthDirection = find(des, "-->");
+            boolean groundTruthDirection = find(des, "x --> y") || find(des, "y <-- x");
+
+            if (!groundTruthDirection) System.out.println("Didn't find -->");
+
+            List<Node> gtNodes = groundTruthData.getVariables();
+            DiscreteVariable c4 = (DiscreteVariable) gtNodes.get(4);
+            DiscreteVariable c5 = (DiscreteVariable) gtNodes.get(5);
+
+            String category = c4.getCategory(groundTruthData.getInt(i - 1, 4));
+            double weight = 1;//Double.parseDouble(c5.getCategory(groundTruthData.getInt(i - 1, 5)));
+
+            System.out.println("Category from file = " + category);
+
+            boolean groundTruthDirection2 = category.equals("->");
+
+            if (groundTruthDirection != groundTruthDirection2) {
+                System.out.println("Discrepancy  " + i);
+                System.out.println();
+            }
 
             double faskDelta = 0;
 
@@ -1135,27 +1160,32 @@ public class CalibrationQuestion {
             } else {
                 System.out.println("########### SKIPPING, ORIENTED IN BOTH DIRECTIONS #############");
                 ambiguous.add(i);
+                ambCount += weight;
             }
 
-            if (groundTruthDirection) System.out.println("true -->");
+             if (groundTruthDirection) System.out.println("true -->");
             else System.out.println("true <--");
 
             if (estLeftRight == 1) System.out.println("est -->");
             else if (estLeftRight == -1) System.out.println("est <--");
 
             if (correctDirection) {
-                correct++;
+                correct += weight;
             }
 
-            total++;
+            total += weight;
         }
+
+        long stop = System.currentTimeMillis();
 
         NumberFormat nf2 = new DecimalFormat("0.00");
 
         System.out.println("\nSummary:\n");
-        System.out.println("Score = " + nf2.format((correct / (double) total)));
+        System.out.println("Weighted accuracy = " + nf2.format((correct / (double) total)));
+        System.out.println("Weighted precision = " + nf2.format((correct / (double) (total - ambCount))));
         System.out.println("Total correct = " + correct);
         System.out.println("Total = " + total);
+        System.out.println("Elapsed time = " + ((stop - start) / 1000) + "s");
 
         System.out.println();
         System.out.println("Correct Direction: " + selected.get(0));
@@ -1218,8 +1248,8 @@ public class CalibrationQuestion {
     }
 
     private static void writeResData(DataSet dataSet, double[] x, double[] y, int i) {
-        double[] rXnl = residualsNl(x, y);
-        double[] rYnl = residualsNl(y, x);
+        double[] rXnl = residuals(x, y);
+        double[] rYnl = residuals(y, x);
 
         TetradVector rxLin = getLinearResiduals(dataSet, dataSet.getVariables(), 1, 0);
         TetradVector ryLin = getLinearResiduals(dataSet, dataSet.getVariables(), 0, 1);
@@ -1286,10 +1316,6 @@ public class CalibrationQuestion {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static double[] residualsNl(double[] x, double[] y) {
-        return residuals(x, y);
     }
 
     private static void flipXY(DataSet dataSet, boolean flipX, boolean flipY) {
@@ -1386,6 +1412,39 @@ public class CalibrationQuestion {
 
     }
 
+    private static DataSet loadDiscreteData(File data, boolean hasHeader, Delimiter delimiter) throws IOException {
+        try {
+            VerticalDiscreteTabularDatasetFileReader dataReader
+                    = new VerticalDiscreteTabularDatasetFileReader(data.toPath(), delimiter);
+            dataReader.setHasHeader(hasHeader);
+            dataReader.setMissingDataMarker("*");
+            dataReader.setQuoteCharacter('"');
+
+            Data _data = dataReader.readInData();
+            return (DataSet) DataConvertUtils.toDataModel(_data);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+    }
+
+    private static DataSet loadMixedData(File data, boolean hasHeader, Delimiter delimiter) throws IOException {
+        try {
+            MixedTabularDatasetFileReader dataReader
+                    = new MixedTabularDatasetFileReader(data.toPath(), delimiter, 5);
+            dataReader.setHasHeader(hasHeader);
+            dataReader.setMissingDataMarker("*");
+
+            Data _data = dataReader.readInData();
+            return (DataSet) DataConvertUtils.toDataModel(_data);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+    }
+
     private static void writeDataSet(File dir, int i, DataSet d2) {
         try {
             DataWriter.writeRectangularData(d2, new PrintWriter(
@@ -1441,7 +1500,7 @@ public class CalibrationQuestion {
             for (int j = 0; j < N; j++) {
                 double xj = x[j];
                 double d = distance(y, i, j);
-                double k = kernelGaussian(d, 3, h);
+                double k = kernelGaussian(d, 5, h);
                 sumx[i] += k * xj;
                 totalWeightx[i] += k;
             }
