@@ -1084,7 +1084,7 @@ public class CalibrationQuestion {
 
         long start = System.currentTimeMillis();
 
-        for (int i = 1; i <= 108; i++) {
+        for (int i = 1; i <= 100; i++) {
             System.out.println("========================= INDEX = " + i);
 
             File data = new File(new File("/Users/user/Box/data/pairs/data"), "pair." + i + ".txt");
@@ -1133,7 +1133,7 @@ public class CalibrationQuestion {
             DiscreteVariable c5 = (DiscreteVariable) gtNodes.get(5);
 
             String category = c4.getCategory(groundTruthData.getInt(i - 1, 4));
-            double weight = 1;//Double.parseDouble(c5.getCategory(groundTruthData.getInt(i - 1, 5)));
+            double weight = Double.parseDouble(c5.getCategory(groundTruthData.getInt(i - 1, 5)));
 
             System.out.println("Category from file = " + category);
 
@@ -1163,7 +1163,7 @@ public class CalibrationQuestion {
                 ambCount += weight;
             }
 
-             if (groundTruthDirection) System.out.println("true -->");
+            if (groundTruthDirection) System.out.println("true -->");
             else System.out.println("true <--");
 
             if (estLeftRight == 1) System.out.println("est -->");
@@ -1476,41 +1476,41 @@ public class CalibrationQuestion {
     }
 
     /**
-     * Calculates the residuals of x regressed nonparametrically onto z. Left public
+     * Calculates the residuals of y regressed nonparametrically onto y. Left public
      * so it can be accessed separately.
      * <p>
-     * Here we want residuals of y regressed onto x. I'll tailor the method to that.
+     * Here we want residuals of x regressed onto y. I'll tailor the method to that.
      *
-     * @return a double[2][] array. The first double[] array contains the residuals for x
-     * and the second double[] array contains the resituls for y.
+     * @return a double[2][] array. The first double[] array contains the residuals for y
+     * and the second double[] array contains the resituls for x.
      */
-    public static double[] residuals(double[] x, double[] y) {
+    public static double[] residuals(double[] y, double[] x) {
 
-        int N = x.length;
+        int N = y.length;
 
-        double[] residualsx = new double[N];
+        double[] residualsy = new double[N];
 
-        double[] sumx = new double[N];
+        double[] sumy = new double[N];
 
-        double[] totalWeightx = new double[N];
+        double[] totalWeighty = new double[N];
 
-        double h = h(y);
+        double h = h(x);
 
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                double xj = x[j];
-                double d = distance(y, i, j);
-                double k = kernelGaussian(d, 5, h);
-                sumx[i] += k * xj;
-                totalWeightx[i] += k;
+                double xj = y[j];
+                double d = distance(x, i, j);
+                double k = kernelGaussian(d, 10, h);
+                sumy[i] += k * xj;
+                totalWeighty[i] += k;
             }
         }
 
         for (int i = 0; i < N; i++) {
-            residualsx[i] = x[i] - sumx[i] / totalWeightx[i];
+            residualsy[i] = y[i] - sumy[i] / totalWeighty[i];
         }
 
-        return residualsx;
+        return residualsy;
     }
 
     private static double kernelGaussian(double z, double width, double h) {
@@ -1631,11 +1631,37 @@ public class CalibrationQuestion {
     }
 
     private static double h(double[] xCol) {
-        double[] g = new double[xCol.length];
-        double median = median(xCol);
-        for (int j = 0; j < xCol.length; j++) g[j] = abs(xCol[j] - median);
-        double mad = median(g);
-        return (1.4826 * mad) * pow((4.0 / 3.0) / xCol.length, 0.2);
+//        double max = max(xCol);
+//        double min = min(xCol);
+//        double g = max - min;
+
+        int N = xCol.length;
+        double w;
+
+        if (N < 200) {
+            w = 0.8;
+        } else if (N < 1200) {
+            w = 0.5;
+        } else {
+            w = 0.3;
+        }
+
+        return w;
+
+
+//        if (xCol.length < 100) return 0.8 * g;
+//        else if (xCol.length < 200) return 0.6 * g;
+//        else if (xCol.length < 300) return 0.4 * g;
+//        else if (xCol.length < 500) return 0.2 * g;
+//        else if (xCol.length < 1000) return 0.1 * g;
+//        return 0.05 * g;
+//
+
+//        double[] g = new double[xCol.length];
+//        double median = median(xCol);
+//        for (int j = 0; j < xCol.length; j++) g[j] = abs(xCol[j] - 2 * median);
+//        double mad = median(g);
+//        return 5 * (1.4826 * mad) * pow((4.0 / 3.0) / xCol.length, .0001);
     }
 
     private static double[][] removeNaN(double[] _x, double[] _y) {
