@@ -346,16 +346,15 @@ public final class Fask implements GraphSearch {
     }
 
     private boolean leftRight(double[] x, double[] y) {
-        double left = cu(x, y, x) / (sqrt(cu(x, x, x) * cu(y, y, x)));
-        double right = cu(x, y, y) / (sqrt(cu(x, x, y) * cu(y, y, y)));
+        if (true) return leftRight2(x, y);
+
+        double left = cov(x, y, x) / (sqrt(cov(x, x, x) * cov(y, y, x)));
+        double right = cov(x, y, y) / (sqrt(cov(x, x, y) * cov(y, y, y)));
         double lr = left - right;
 
         double r = StatUtils.correlation(x, y);
         double sx = StatUtils.skewness(x);
         double sy = StatUtils.skewness(y);
-//
-//        double sx = smoothlySkewed(x, y, 9);
-//        double sy = smoothlySkewed(x, y, 9);
 
         r *= signum(sx) * signum(sy);
         lr *= signum(r);
@@ -365,12 +364,6 @@ public final class Fask implements GraphSearch {
     }
 
     private boolean leftRight2(double[] x, double[] y) {
-//        x = correctSkewness(x);
-        y = correctSkewness(y);
-//
-//        if (shouldFlip(x)) flip(x);
-//        if (shouldFlip(y)) flip(y);
-//
         final double cxyx = cov(x, y, x);
         final double cxyy = cov(x, y, y);
         final double cxxx = cov(x, x, x);
@@ -380,18 +373,20 @@ public final class Fask implements GraphSearch {
 
         double lr = (cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy));
 
-        final double a = correlation(x, y);
+        double r = StatUtils.correlation(x, y);
+        double sx = StatUtils.skewness(x);
+        double sy = StatUtils.skewness(y);
 
-//        lr *= signum(a);
+        int numIntervals = 15;
 
-        if (a < 0) {//sk_ey > 0) {
-            lr *= -1;
-        }
+        sx = smoothlySkewed(x, y, numIntervals);
+        sy = smoothlySkewed(y, x, numIntervals);
 
-//        if (shouldFlip(x)) lr *= -1;
-//        if (shouldFlip(y)) lr *= -1;
+        r *= signum(sx) * signum(sy);
+        lr *= signum(r);
+        if (r < delta) lr *= -1;
 
-        return lr > delta;
+        return lr > 0;
     }
 
     private boolean leftRightMinnesota(double[] x, double[] y) {
@@ -466,21 +461,6 @@ public final class Fask implements GraphSearch {
         if (yHat.columns() == 0) yHat = y.copy();
 
         return y.minus(yHat).getColumn(0).toArray();
-    }
-
-    private static double cu(double[] x, double[] y, double[] condition) {
-        double exy = 0.0;
-
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            if (condition[k] > 0) {
-                exy += x[k] * y[k];
-                n++;
-            }
-        }
-
-        return exy / n;
     }
 
     private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) throws SingularMatrixException {
@@ -613,29 +593,45 @@ public final class Fask implements GraphSearch {
     }
 
     private static int smoothlySkewed(double[] x, double[] y, int numIntervals) {
-        double minX = 0;
+        double minP = 0;
         double maxX = 1;
+        int right = 0;
+        int left = 0;
 
-        double interval = (maxX - minX) / numIntervals;
+        double interval = (maxX - minP) / numIntervals;
 
-        int count1 = 0;
-        int count2 = 0;
+        for (int j = 0; j < numIntervals; j++) {
+            double p1 = minP + j * interval;
+            double p2 = minP + (j + 1) * interval;
 
-        for (int i = 0; i < numIntervals; i++) {
-            double p1 = minX + i * interval;
-            double p2 = minX + (i + 1) * interval;
+            double top = StatUtils.quantile(y, p2);
+            double bottom = StatUtils.quantile(y, p1);
 
-            double left = StatUtils.quantile(x, p1);
-            double right = StatUtils.quantile(x, p2);
-            double s = skewness(x, y, left, right);
+            double max = StatUtils.max(x);
+            double min = StatUtils.min(x);
 
-            if (s > 0) count1++;
-            if (s < 0) count2++;
+            for (int i = 0; i < numIntervals; i++) {
+                double b = (i + 1) * (max(abs(min), abs(max)) / numIntervals);
+                double count1 = 0;
+                double count2 = 0;
+
+                for (int k = 0; k < x.length; k++) {
+                    if (y[k] >= bottom && y[k] <= top && x[k] >= -b && x[k] < 0) {
+                        count1 += 1;
+                    } else if (y[k] >= bottom && y[k] <= top && x[k] > 0 && x[k] <= b) {
+                        count2 += 1;
+                    }
+                }
+
+                if (count1 > count2) {
+                    left++;
+                } else if (count2 > count1) {
+                    right++;
+                }
+            }
         }
 
-        if (count1 > count2) return 1;
-        if (count2 > count1) return -1;
-        else return 0;
+        return Integer.compare(left, right);
     }
 
     public static double skewness(double[] x, double[] y, double left, double right) {

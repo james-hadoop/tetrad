@@ -1063,8 +1063,10 @@ public class CalibrationQuestion {
     }
 
     private static void scenario8() throws IOException {
-        int maxN = 1000;
-        double coef = 1;
+
+        // Parameters.
+        boolean useWeightsFromFile = false;
+        int maxN = 700;
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
         DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
@@ -1072,31 +1074,32 @@ public class CalibrationQuestion {
         List<List<Integer>> selected = new ArrayList<>();
         List<Integer> ambiguous = new ArrayList<>();
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 2; i++) {
             selected.add(new ArrayList<>());
         }
 
-        NumberFormat nf = new DecimalFormat("0000");
+        List<DataSet> dataSets = new ArrayList<>();
 
+        for (int i = 1; i <= 108; i++) {
+            File data = new File(new File("/Users/user/Box/data/pairs/data"), "pair." + i + ".txt");
+            DataSet dataSet = loadContinuousData(data, true, Delimiter.TAB);
+            dataSet.getVariable(0).setName("X");
+            dataSet.getVariable(1).setName("Y");
+            if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
+            dataSets.add(dataSet);
+        }
+
+
+        // Counts
         double correct = 0;
         double total = 0;
-        double ambCount = 0;
+        double ambiguousCount = 0;
 
         long start = System.currentTimeMillis();
 
         for (int i = 1; i <= 100; i++) {
             System.out.println("========================= INDEX = " + i);
-
-            File data = new File(new File("/Users/user/Box/data/pairs/data"), "pair." + i + ".txt");
-
-            DataSet dataSet = loadContinuousData(data, true, Delimiter.TAB);
-            assert dataSet != null;
-
-            if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
-
-//            dataSet = flipData(dataSet, StatUtils.skewness(dataSet.getDoubleData().getColumn(0).toArray()) > 0,
-//                    StatUtils.skewness(dataSet.getDoubleData().getColumn(1).toArray()) > 0);
-            dataSet = flipData(dataSet, true,true);
+            DataSet dataSet = dataSets.get(i - 1);
 
             double[] x = dataSet.getDoubleData().getColumn(0).toArray();
             double[] y = dataSet.getDoubleData().getColumn(1).toArray();
@@ -1104,11 +1107,8 @@ public class CalibrationQuestion {
             double[] res = residuals(y, x);
 
             for (int w = 0; w < res.length; w++) {
-                dataSet.setDouble(w, 0, coef * dataSet.getDouble(w, 0) + res[w]);
+                dataSet.setDouble(w, 0, dataSet.getDouble(w, 0) - res[w]);
             }
-
-            dataSet.getVariable(0).setName("C1");
-            dataSet.getVariable(1).setName("C2");
 
             writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
 
@@ -1116,37 +1116,23 @@ public class CalibrationQuestion {
 
             System.out.println("N = " + N);
 
-
-            // Translate the dataset into Java-friendly format.
-//            DataWriter.writeRectangularData(dataSet, new PrintWriter(
-//                    new File("/Users/user/Box/data/pairs/data", "pair." + i + ".txt")), '\t');
-
-
-            File des = new File("/Users/user/Box/data/pairs5", "pair" + nf.format(i) + "_des.txt");
-
-            boolean groundTruthDirection = find(des, "x --> y") || find(des, "y <-- x");
-
-            if (!groundTruthDirection) System.out.println("Didn't find -->");
-
             List<Node> gtNodes = groundTruthData.getVariables();
             DiscreteVariable c4 = (DiscreteVariable) gtNodes.get(4);
             DiscreteVariable c5 = (DiscreteVariable) gtNodes.get(5);
 
             String category = c4.getCategory(groundTruthData.getInt(i - 1, 4));
-            double weight = Double.parseDouble(c5.getCategory(groundTruthData.getInt(i - 1, 5)));
 
-            System.out.println("Category from file = " + category);
+            double weight;
 
-            boolean groundTruthDirection2 = category.equals("->");
-
-            if (groundTruthDirection != groundTruthDirection2) {
-                System.out.println("Discrepancy  " + i);
-                System.out.println();
+            if (useWeightsFromFile) {
+                weight = Double.parseDouble(c5.getCategory(groundTruthData.getInt(i - 1, 5)));
+            } else {
+                weight = 1;
             }
 
-            double faskDelta = 0;
+            boolean groundTruthDirection = category.equals("->");
 
-            int estLeftRight = getFaskDirection(dataSet, faskDelta);
+            int estLeftRight = getFaskDirection(dataSet);
 
             boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
                     || ((!groundTruthDirection && estLeftRight == -1));
@@ -1158,9 +1144,9 @@ public class CalibrationQuestion {
             } else if (wrongDirection) {
                 selected.get(1).add(i);
             } else {
-                System.out.println("########### SKIPPING, ORIENTED IN BOTH DIRECTIONS #############");
+                System.out.println("########### SKIPPING, NOT ORIENTED BY FASK #############");
                 ambiguous.add(i);
-                ambCount += weight;
+                ambiguousCount += weight;
             }
 
             if (groundTruthDirection) System.out.println("true -->");
@@ -1181,11 +1167,11 @@ public class CalibrationQuestion {
         NumberFormat nf2 = new DecimalFormat("0.00");
 
         System.out.println("\nSummary:\n");
-        System.out.println("Weighted accuracy = " + nf2.format((correct / (double) total)));
-        System.out.println("Weighted precision = " + nf2.format((correct / (double) (total - ambCount))));
+        System.out.println((useWeightsFromFile ? "Weighted accuracy = " :"Accuracy = ") + nf2.format((correct / (double) total)));
+        System.out.println((useWeightsFromFile ? "Weighted precision = " :"Precision = ") + nf2.format((correct / (double) (total - ambiguousCount))));
         System.out.println("Total correct = " + correct);
         System.out.println("Total = " + total);
-        System.out.println("Elapsed time = " + ((stop - start) / 1000) + "s");
+        System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
 
         System.out.println();
         System.out.println("Correct Direction: " + selected.get(0));
@@ -1223,7 +1209,7 @@ public class CalibrationQuestion {
         return flippedData;
     }
 
-    private static int getFaskDirection(DataSet dataSet, double faskDelta) {
+    private static int getFaskDirection(DataSet dataSet) {
         Graph g = new EdgeListGraph(dataSet.getVariables());
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(0), nodes.get(1));
@@ -1232,10 +1218,7 @@ public class CalibrationQuestion {
         fask.setAlpha(0.00);
         fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);
-        fask.setDelta(faskDelta);
         Graph out = fask.search();
-
-        System.out.println(out);
 
         if (out.getEdges(nodes.get(0), nodes.get(1)).size() == 2 || out.getEdges(nodes.get(0), nodes.get(1)).isEmpty()) {
             return 0;
@@ -1370,9 +1353,7 @@ public class CalibrationQuestion {
             if (s < 0) count2++;
         }
 
-        if (count1 > count2) return 1;
-        if (count2 > count1) return -1;
-        else return 0;
+        return Integer.compare(count1, count2);
     }
 
     private static boolean find(File des, String f) throws IOException {
@@ -1494,14 +1475,14 @@ public class CalibrationQuestion {
 
         double[] totalWeighty = new double[N];
 
-        double h = h(x);
+        double h = h1(x);
 
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                double xj = y[j];
+                double yj = y[j];
                 double d = distance(x, i, j);
-                double k = kernelGaussian(d, 10, h);
-                sumy[i] += k * xj;
+                double k = kernelGaussian(d, 5, h);
+                sumy[i] += k * yj;
                 totalWeighty[i] += k;
             }
         }
@@ -1616,25 +1597,21 @@ public class CalibrationQuestion {
         return newDataSet;
     }
 
-    private double getH(int[] _z) {
-        double h = 0.0;
+//    private double getH(int[] _z) {
+//        double h = 0.0;
+//
+//        for (int c : _z) {
+//            if (this.h[c] > h) {
+//                h = this.h[c];
+//            }
+//        }
+//
+//        h *= sqrt(_z.length);
+//        if (h == 0) h = 1;
+//        return h;
+//    }
 
-        for (int c : _z) {
-            if (this.h[c] > h) {
-                h = this.h[c];
-            }
-        }
-
-        h *= sqrt(_z.length);
-        if (h == 0) h = 1;
-        return h;
-    }
-
-    private static double h(double[] xCol) {
-//        double max = max(xCol);
-//        double min = min(xCol);
-//        double g = max - min;
-
+    private static double h1(double[] xCol) {
         int N = xCol.length;
         double w;
 
@@ -1647,62 +1624,73 @@ public class CalibrationQuestion {
         }
 
         return w;
+    }
 
+    private static double h2(double[] xCol) {
+        int N = xCol.length;
 
-//        if (xCol.length < 100) return 0.8 * g;
-//        else if (xCol.length < 200) return 0.6 * g;
-//        else if (xCol.length < 300) return 0.4 * g;
-//        else if (xCol.length < 500) return 0.2 * g;
-//        else if (xCol.length < 1000) return 0.1 * g;
-//        return 0.05 * g;
+        double max = max(xCol);
+        double min = min(xCol);
+        double g = 2;
+
+        double f = 1;
+
+        if (xCol.length < 100) f = 0.8;
+        else if (xCol.length < 200) f = 0.6;
+        else if (xCol.length < 300) f = 0.4;
+        else if (xCol.length < 500) f = 0.2;
+        else if (xCol.length < 1000) f = 0.1;
+
+        return f * g;
+    }
+
+    private static double h3(double[] xCol) {
+        double[] g = new double[xCol.length];
+        double median = median(xCol);
+        for (int j = 0; j < xCol.length; j++) g[j] = abs(xCol[j] - 2 * median);
+        double mad = median(g);
+        return 5 * (1.4826 * mad) * pow((4.0 / 3.0) / xCol.length, .0001);
+    }
+
+//    private static double[][] removeNaN(double[] _x, double[] _y) {
+//        boolean flag = false;
 //
-
-//        double[] g = new double[xCol.length];
-//        double median = median(xCol);
-//        for (int j = 0; j < xCol.length; j++) g[j] = abs(xCol[j] - 2 * median);
-//        double mad = median(g);
-//        return 5 * (1.4826 * mad) * pow((4.0 / 3.0) / xCol.length, .0001);
-    }
-
-    private static double[][] removeNaN(double[] _x, double[] _y) {
-        boolean flag = false;
-
-        for (int i = 0; i < _x.length; i++) {
-            if (Double.isNaN(_x[i]) || Double.isNaN(_y[i])) {
-                flag = true;
-                break;
-            }
-        }
-
-        if (flag) {
-            List<Double> x = new ArrayList<>();
-            List<Double> y = new ArrayList<>();
-
-            for (int i = 0; i < _x.length; i++) {
-                if (Double.isNaN(_x[i]) || Double.isNaN(_y[i])) {
-                    x.add(_x[i]);
-                    y.add(_y[i]);
-                }
-            }
-
-            double[] ___x = new double[x.size()];
-            double[] ___y = new double[y.size()];
-
-            for (int i = 0; i < x.size(); i++) {
-                ___x[i] = x.get(i);
-                ___y[i] = y.get(i);
-            }
-
-            _x = ___x;
-            _y = ___y;
-        }
-
-        double[][] ret = new double[_x.length][2];
-        ret[0] = _x;
-        ret[1] = _y;
-
-        return ret;
-    }
+//        for (int i = 0; i < _x.length; i++) {
+//            if (Double.isNaN(_x[i]) || Double.isNaN(_y[i])) {
+//                flag = true;
+//                break;
+//            }
+//        }
+//
+//        if (flag) {
+//            List<Double> x = new ArrayList<>();
+//            List<Double> y = new ArrayList<>();
+//
+//            for (int i = 0; i < _x.length; i++) {
+//                if (Double.isNaN(_x[i]) || Double.isNaN(_y[i])) {
+//                    x.add(_x[i]);
+//                    y.add(_y[i]);
+//                }
+//            }
+//
+//            double[] ___x = new double[x.size()];
+//            double[] ___y = new double[y.size()];
+//
+//            for (int i = 0; i < x.size(); i++) {
+//                ___x[i] = x.get(i);
+//                ___y[i] = y.get(i);
+//            }
+//
+//            _x = ___x;
+//            _y = ___y;
+//        }
+//
+//        double[][] ret = new double[_x.length][2];
+//        ret[0] = _x;
+//        ret[1] = _y;
+//
+//        return ret;
+//    }
 
     public static double skewness(double[] x, double[] y, double left, double right) {
         double secondMoment = 0.0;
