@@ -1066,7 +1066,8 @@ public class CalibrationQuestion {
 
         // Parameters.
         boolean useWeightsFromFile = false;
-        int maxN = 700;
+        int maxN = 1000;
+        double bias = -0.1;
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
         DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
@@ -1132,7 +1133,7 @@ public class CalibrationQuestion {
 
             boolean groundTruthDirection = category.equals("->");
 
-            int estLeftRight = getFaskDirection(dataSet);
+            int estLeftRight = getFaskDirection(dataSet, bias);
 
             boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
                     || ((!groundTruthDirection && estLeftRight == -1));
@@ -1209,7 +1210,7 @@ public class CalibrationQuestion {
         return flippedData;
     }
 
-    private static int getFaskDirection(DataSet dataSet) {
+    private static int getFaskDirection(DataSet dataSet, double bias) {
         Graph g = new EdgeListGraph(dataSet.getVariables());
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(0), nodes.get(1));
@@ -1218,6 +1219,7 @@ public class CalibrationQuestion {
         fask.setAlpha(0.00);
         fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);
+        fask.setBias(bias);
         Graph out = fask.search();
 
         if (out.getEdges(nodes.get(0), nodes.get(1)).size() == 2 || out.getEdges(nodes.get(0), nodes.get(1)).isEmpty()) {

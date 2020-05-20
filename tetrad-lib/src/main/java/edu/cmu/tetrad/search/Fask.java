@@ -84,7 +84,7 @@ public final class Fask implements GraphSearch {
     // True if skew adjacencies should be included in the output.
     private boolean useSkewAdjacencies = true;
 
-    private double delta = 0.0;
+    private double bias = 0.0;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -192,14 +192,20 @@ public final class Fask implements GraphSearch {
                         graph.addEdge(edge2);
                     } else {
                         boolean lrxy = leftRight(x, y);
-                        boolean lryx = leftRight(y, x);
+//                        boolean lryx = leftRight(y, x);
 
-                        if (lrxy && !lryx) {
+//                        if (lrxy && !lryx) {
+//                            graph.addDirectedEdge(X, Y);
+//                        }
+//
+//                        if (lryx && !lrxy) {
+//                            graph.addDirectedEdge(Y, X);
+//                        }
+
+                        if (lrxy) {
                             graph.addDirectedEdge(X, Y);
-                        }
-
-                        if (lryx && !lrxy) {
-                            graph.addDirectedEdge(Y, X);
+                        } else {
+                            graph.addUndirectedEdge(Y, X);
                         }
                     }
                 }
@@ -358,7 +364,7 @@ public final class Fask implements GraphSearch {
 
         r *= signum(sx) * signum(sy);
         lr *= signum(r);
-        if (r < delta) lr *= -1;
+        if (r < bias) lr *= -1;
 
         return lr > 0;
     }
@@ -384,7 +390,7 @@ public final class Fask implements GraphSearch {
 
         r *= signum(sx) * signum(sy);
         lr *= signum(r);
-        if (r < delta) lr *= -1;
+        if (r < bias) lr *= -1;
 
         return lr > 0;
     }
@@ -422,7 +428,7 @@ public final class Fask implements GraphSearch {
             lr *= -1;
         }
 
-        return lr > delta;
+        return lr > bias;
     }
 
     private double[] correctSkewness(double[] data) {
@@ -584,12 +590,12 @@ public final class Fask implements GraphSearch {
         this.useSkewAdjacencies = useSkewAdjacencies;
     }
 
-    public double getDelta() {
-        return delta;
+    public double getBias() {
+        return bias;
     }
 
-    public void setDelta(double delta) {
-        this.delta = delta;
+    public void setBias(double bias) {
+        this.bias = bias;
     }
 
     private static int smoothlySkewed(double[] x, double[] y, int numIntervals) {
@@ -623,9 +629,9 @@ public final class Fask implements GraphSearch {
                     }
                 }
 
-                if (count1 > count2) {
+                if (count1 > count2 && count1 > 10) {
                     left++;
-                } else if (count2 > count1) {
+                } else if (count2 > count1 && count2 > 10) {
                     right++;
                 }
             }
@@ -658,12 +664,6 @@ public final class Fask implements GraphSearch {
 
         double ess = secondMoment / count;
         double esss = thirdMoment / count;
-
-//        if (secondMoment == 0) {
-//            return Double.NaN;
-////            throw new ArithmeticException("StatUtils.skew:  There is no skew " +
-////                    "when the variance is zero.");
-//        }
 
         return esss / Math.pow(ess, 1.5);
     }
