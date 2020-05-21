@@ -1065,8 +1065,9 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
 
         // Parameters.
-        boolean useWeightsFromFile = false;
+        boolean useWeightsFromFile = true;
         int maxN = 600;
+        int initialSegment = 108;
         double bias = -0.2;
         int smoothSkewIntervals = 15;
         int smoothSkewMinCount = 10;
@@ -1101,7 +1102,7 @@ public class CalibrationQuestion {
 
         long start = System.currentTimeMillis();
 
-        for (int i = 1; i <= 100; i++) {
+        for (int i = 1; i <= initialSegment; i++) {
             System.out.println("========================= INDEX = " + i);
             DataSet dataSet = dataSets.get(i - 1);
 
