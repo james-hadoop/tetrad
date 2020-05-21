@@ -85,6 +85,8 @@ public final class Fask implements GraphSearch {
     private boolean useSkewAdjacencies = true;
 
     private double bias = 0.0;
+    private int smoothSkewIntervals = 15;
+    private int smoothSkewMinCount = 10;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -383,14 +385,14 @@ public final class Fask implements GraphSearch {
         double sx = StatUtils.skewness(x);
         double sy = StatUtils.skewness(y);
 
-        int numIntervals = 15;
-
-        sx = smoothlySkewed(x, y, numIntervals);
-        sy = smoothlySkewed(y, x, numIntervals);
+        sx = smoothlySkewed(x, y, getSmoothSkewIntervals(), getSmoothSkewMinCount());
+        sy = smoothlySkewed(y, x, getSmoothSkewIntervals(), getSmoothSkewMinCount());
 
         r *= signum(sx) * signum(sy);
         lr *= signum(r);
         if (r < bias) lr *= -1;
+
+//        System.out.println("LR = " + lr);
 
         return lr > 0;
     }
@@ -598,7 +600,7 @@ public final class Fask implements GraphSearch {
         this.bias = bias;
     }
 
-    private static int smoothlySkewed(double[] x, double[] y, int numIntervals) {
+    private static int smoothlySkewed(double[] x, double[] y, int numIntervals, int minCount) {
         double minP = 0;
         double maxX = 1;
         int right = 0;
@@ -629,9 +631,9 @@ public final class Fask implements GraphSearch {
                     }
                 }
 
-                if (count1 > count2 && count1 > 10) {
+                if (count1 > count2 && count1 > minCount) {
                     left++;
-                } else if (count2 > count1 && count2 > 10) {
+                } else if (count2 > count1 && count2 > minCount) {
                     right++;
                 }
             }
@@ -666,6 +668,22 @@ public final class Fask implements GraphSearch {
         double esss = thirdMoment / count;
 
         return esss / Math.pow(ess, 1.5);
+    }
+
+    public int getSmoothSkewIntervals() {
+        return smoothSkewIntervals;
+    }
+
+    public void setSmoothSkewIntervals(int smoothSkewIntervals) {
+        this.smoothSkewIntervals = smoothSkewIntervals;
+    }
+
+    public int getSmoothSkewMinCount() {
+        return smoothSkewMinCount;
+    }
+
+    public void setSmoothSkewMinCount(int smoothSkewMinCount) {
+        this.smoothSkewMinCount = smoothSkewMinCount;
     }
 }
 

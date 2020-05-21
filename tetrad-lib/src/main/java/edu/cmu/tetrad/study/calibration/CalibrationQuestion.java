@@ -1066,8 +1066,10 @@ public class CalibrationQuestion {
 
         // Parameters.
         boolean useWeightsFromFile = false;
-        int maxN = 1000;
-        double bias = -0.1;
+        int maxN = 600;
+        double bias = -0.1   ;
+        int smoothSkewIntervals = 15;
+        int smoothSkewMinCount = 10;
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
         DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
@@ -1115,7 +1117,7 @@ public class CalibrationQuestion {
 
             long N = dataSet.getNumRows();
 
-            System.out.println("N = " + N);
+//            System.out.println("N = " + N);
 
             List<Node> gtNodes = groundTruthData.getVariables();
             DiscreteVariable c4 = (DiscreteVariable) gtNodes.get(4);
@@ -1133,7 +1135,8 @@ public class CalibrationQuestion {
 
             boolean groundTruthDirection = category.equals("->");
 
-            int estLeftRight = getFaskDirection(dataSet, bias);
+            int estLeftRight = getFaskDirection(dataSet, bias, smoothSkewIntervals,
+                    smoothSkewMinCount);
 
             boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
                     || ((!groundTruthDirection && estLeftRight == -1));
@@ -1168,8 +1171,8 @@ public class CalibrationQuestion {
         NumberFormat nf2 = new DecimalFormat("0.00");
 
         System.out.println("\nSummary:\n");
-        System.out.println((useWeightsFromFile ? "Weighted accuracy = " :"Accuracy = ") + nf2.format((correct / (double) total)));
-        System.out.println((useWeightsFromFile ? "Weighted precision = " :"Precision = ") + nf2.format((correct / (double) (total - ambiguousCount))));
+        System.out.println((useWeightsFromFile ? "Weighted accuracy = " : "Accuracy = ") + nf2.format((correct / (double) total)));
+        System.out.println((useWeightsFromFile ? "Weighted precision = " : "Precision = ") + nf2.format((correct / (double) (total - ambiguousCount))));
         System.out.println("Total correct = " + correct);
         System.out.println("Total = " + total);
         System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
@@ -1210,7 +1213,8 @@ public class CalibrationQuestion {
         return flippedData;
     }
 
-    private static int getFaskDirection(DataSet dataSet, double bias) {
+    private static int getFaskDirection(DataSet dataSet, double bias, int smoothSkewIntervals,
+                                        int smoothSkewMinCounts) {
         Graph g = new EdgeListGraph(dataSet.getVariables());
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(0), nodes.get(1));
@@ -1220,6 +1224,8 @@ public class CalibrationQuestion {
         fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);
         fask.setBias(bias);
+        fask.setSmoothSkewIntervals(smoothSkewIntervals);
+        fask.setSmoothSkewMinCount(smoothSkewMinCounts);
         Graph out = fask.search();
 
         if (out.getEdges(nodes.get(0), nodes.get(1)).size() == 2 || out.getEdges(nodes.get(0), nodes.get(1)).isEmpty()) {
@@ -1467,9 +1473,26 @@ public class CalibrationQuestion {
      * @return a double[2][] array. The first double[] array contains the residuals for y
      * and the second double[] array contains the resituls for x.
      */
-    public static double[] residuals(double[] y, double[] x) {
+    public static double[] residuals(final double[] y, final double[] x) {
 
         int N = y.length;
+//
+//        double[] ___x = Arrays.copyOf(__x, __x.length);
+//        double[] ___y = Arrays.copyOf(__y, __y.length);
+//
+//        List<Integer> indices = new ArrayList<>();
+//        for (int i = 0; i < N; i++) indices.add(i);
+//
+//        indices.sort(Comparator.comparingDouble(o -> ___y[o]));
+//
+//        double[] x = new double[N];
+//        double[] y = new double[N];
+//
+//        for (int i = 0; i < N; i++) {
+//            Integer ind = indices.get(i);
+//            x[i] = ___x[ind];
+//            y[i] = ___y[ind];
+//        }
 
         double[] residualsy = new double[N];
 
@@ -1479,9 +1502,38 @@ public class CalibrationQuestion {
 
         double h = h1(x);
 
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                double yj = y[j];
+//        double epsilon = .5;
+
+        for (int j = 0; j < N; j++) {
+            double yj = y[j];
+
+//            int q;
+//
+//            for (q = 1; q < N; q++) {
+//                double k1 = 0;
+//                double k2 = 0;
+//
+//                if (j - q >= 0){
+//                    double d = distance(x, j - q, j);
+//                    k1 = kernelGaussian(d, 5, h);
+////                    System.out.println("k1 = " + k1);
+//                    sumy[j - q] += k1 * yj;
+//                    totalWeighty[j - q] += k1;
+//                }
+//
+//                if (j + q < N) {
+//                    double d = distance(x, j + q, j);
+//                    k2 = kernelGaussian(d, 5, h);
+//                    sumy[j + q] += k2 * yj;
+//                    totalWeighty[j + q] += k2;
+//                }
+//
+//                if (k1 < epsilon && k2 < epsilon) break;
+//            }
+
+//            System.out.println("q = " + q);
+
+            for (int i = 0; i < N; i++) {
                 double d = distance(x, i, j);
                 double k = kernelGaussian(d, 5, h);
                 sumy[i] += k * yj;
@@ -1492,6 +1544,9 @@ public class CalibrationQuestion {
         for (int i = 0; i < N; i++) {
             residualsy[i] = y[i] - sumy[i] / totalWeighty[i];
         }
+
+//        double[] _residualsy = new double[N];
+//        for (int i = 0; i < N; i++) _residualsy[indices.get(i)] = residualsy[i];
 
         return residualsy;
     }
