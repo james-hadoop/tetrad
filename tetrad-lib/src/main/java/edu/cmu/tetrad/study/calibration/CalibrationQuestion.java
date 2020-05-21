@@ -1067,7 +1067,7 @@ public class CalibrationQuestion {
         // Parameters.
         boolean useWeightsFromFile = false;
         int maxN = 600;
-        double bias = -0.1   ;
+        double bias = -0.2;
         int smoothSkewIntervals = 15;
         int smoothSkewMinCount = 10;
 
@@ -1086,8 +1086,9 @@ public class CalibrationQuestion {
         for (int i = 1; i <= 108; i++) {
             File data = new File(new File("/Users/user/Box/data/pairs/data"), "pair." + i + ".txt");
             DataSet dataSet = loadContinuousData(data, true, Delimiter.TAB);
-            dataSet.getVariable(0).setName("X");
-            dataSet.getVariable(1).setName("Y");
+//            dataSet.getVariable(0).setName("X");
+//            dataSet.getVariable(1).setName("Y");
+            dataSet = DataUtils.standardizeData(dataSet);
             if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             dataSets.add(dataSet);
         }
@@ -1476,23 +1477,6 @@ public class CalibrationQuestion {
     public static double[] residuals(final double[] y, final double[] x) {
 
         int N = y.length;
-//
-//        double[] ___x = Arrays.copyOf(__x, __x.length);
-//        double[] ___y = Arrays.copyOf(__y, __y.length);
-//
-//        List<Integer> indices = new ArrayList<>();
-//        for (int i = 0; i < N; i++) indices.add(i);
-//
-//        indices.sort(Comparator.comparingDouble(o -> ___y[o]));
-//
-//        double[] x = new double[N];
-//        double[] y = new double[N];
-//
-//        for (int i = 0; i < N; i++) {
-//            Integer ind = indices.get(i);
-//            x[i] = ___x[ind];
-//            y[i] = ___y[ind];
-//        }
 
         double[] residualsy = new double[N];
 
@@ -1502,36 +1486,8 @@ public class CalibrationQuestion {
 
         double h = h1(x);
 
-//        double epsilon = .5;
-
         for (int j = 0; j < N; j++) {
             double yj = y[j];
-
-//            int q;
-//
-//            for (q = 1; q < N; q++) {
-//                double k1 = 0;
-//                double k2 = 0;
-//
-//                if (j - q >= 0){
-//                    double d = distance(x, j - q, j);
-//                    k1 = kernelGaussian(d, 5, h);
-////                    System.out.println("k1 = " + k1);
-//                    sumy[j - q] += k1 * yj;
-//                    totalWeighty[j - q] += k1;
-//                }
-//
-//                if (j + q < N) {
-//                    double d = distance(x, j + q, j);
-//                    k2 = kernelGaussian(d, 5, h);
-//                    sumy[j + q] += k2 * yj;
-//                    totalWeighty[j + q] += k2;
-//                }
-//
-//                if (k1 < epsilon && k2 < epsilon) break;
-//            }
-
-//            System.out.println("q = " + q);
 
             for (int i = 0; i < N; i++) {
                 double d = distance(x, i, j);
@@ -1544,9 +1500,6 @@ public class CalibrationQuestion {
         for (int i = 0; i < N; i++) {
             residualsy[i] = y[i] - sumy[i] / totalWeighty[i];
         }
-
-//        double[] _residualsy = new double[N];
-//        for (int i = 0; i < N; i++) _residualsy[indices.get(i)] = residualsy[i];
 
         return residualsy;
     }
