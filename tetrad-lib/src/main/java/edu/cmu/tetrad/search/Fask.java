@@ -27,8 +27,11 @@ import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
+import jdk.net.SocketFlow;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.util.StatUtils.correlation;
@@ -193,7 +196,13 @@ public final class Fask implements GraphSearch {
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else {
-                        boolean lrxy = leftRight(x, y);
+                        boolean lrxy = false;
+                        try {
+                            lrxy = leftRight2(x, y);
+                        } catch (Exception e) {
+//                            e.printStackTrace();
+                            return graph;
+                        }
 //                        boolean lryx = leftRight(y, x);
 
 //                        if (lrxy && !lryx) {
@@ -207,7 +216,7 @@ public final class Fask implements GraphSearch {
                         if (lrxy) {
                             graph.addDirectedEdge(X, Y);
                         } else {
-                            graph.addUndirectedEdge(Y, X);
+                            graph.addDirectedEdge(Y, X);
                         }
                     }
                 }
@@ -388,11 +397,42 @@ public final class Fask implements GraphSearch {
         sx = smoothlySkewed(x, y, getSmoothSkewIntervals(), getSmoothSkewMinCount());
         sy = smoothlySkewed(y, x, getSmoothSkewIntervals(), getSmoothSkewMinCount());
 
-        r *= signum(sx) * signum(sy);
-        lr *= signum(r);
-        if (r < bias) lr *= -1;
+//        if (sx == 0) sx = StatUtils.skewness(x);
+//        if (sy == 0) sy = StatUtils.skewness(y);
 
-//        System.out.println("LR = " + lr);
+        if (sx == 0 && sy == 0) throw new IllegalArgumentException("ambiguous sy or sy 0");
+
+//
+//        r *= signum(sx);
+//        r *= signum(sy);
+//        lr *= signum(r);
+//        if (r < 0) lr *= -1;
+
+//        double[] _x = new double[x.length];
+//        double[] _y = new double[y.length];
+//
+//        for (int i = 0; i < x.length; i++) {
+//            _x[i] = function(3, x[i]);
+//            _y[i] = function(3, y[i]);
+//        }
+//
+//        double r2 = StatUtils.correlation(_x, _y);
+
+        NumberFormat nf = new DecimalFormat("0.00000");
+
+        System.out.print("\t" + nf.format(r));
+
+        if (r < -0.95) {
+            lr *= -1;
+//            throw new IllegalArgumentException("ambiguous r too big");
+        }
+
+//        if (abs(r) < 0.001) {
+//            lr *= -1;
+//            throw new IllegalArgumentException("ambiguous r too small");
+//        }
+
+//        System.out.print("\t" + nf.format(r));
 
         return lr > 0;
     }
@@ -620,14 +660,14 @@ public final class Fask implements GraphSearch {
 
             for (int i = 0; i < numIntervals; i++) {
                 double b = (i + 1) * (max(abs(min), abs(max)) / numIntervals);
-                double count1 = 0;
-                double count2 = 0;
+                int count1 = 0;
+                int count2 = 0;
 
                 for (int k = 0; k < x.length; k++) {
                     if (y[k] >= bottom && y[k] <= top && x[k] >= -b && x[k] < 0) {
-                        count1 += 1;
+                        count1++;
                     } else if (y[k] >= bottom && y[k] <= top && x[k] > 0 && x[k] <= b) {
-                        count2 += 1;
+                        count2++;
                     }
                 }
 
@@ -684,6 +724,18 @@ public final class Fask implements GraphSearch {
 
     public void setSmoothSkewMinCount(int smoothSkewMinCount) {
         this.smoothSkewMinCount = smoothSkewMinCount;
+    }
+
+    private double function(int index, double x) {
+        double g = 1.0;
+
+        for (int i = 1; i <= index; i++) {
+            g *= x;
+        }
+
+        if (abs(g) == Double.POSITIVE_INFINITY) g = Double.NaN;
+
+        return g;
     }
 }
 

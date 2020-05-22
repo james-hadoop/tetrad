@@ -725,7 +725,7 @@ public final class StatUtils {
      * products of the sample means for the first N values in array1 and
      * array2..
      */
-    public static double sxy(double array1[], double array2[], int N) {
+    public static double sxy(double[] array1, double[] array2, int N) {
         double sum = 0.0;
         double meanX = mean(array1, N);
         double meanY = mean(array2, N);

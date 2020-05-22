@@ -1065,12 +1065,12 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
 
         // Parameters.
-        boolean useWeightsFromFile = true;
+        boolean useWeightsFromFile = false;
         int maxN = 600;
-        int initialSegment = 108;
-        double bias = -0.2;
-        int smoothSkewIntervals = 15;
-        int smoothSkewMinCount = 10;
+        int initialSegment = 100;
+        double bias = -0.1;
+        int smoothSkewIntervals = 20;
+        int smoothSkewMinCount = 8;
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
         DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
@@ -1102,8 +1102,10 @@ public class CalibrationQuestion {
 
         long start = System.currentTimeMillis();
 
+        System.out.println("i\tTrue\tEst");
+
         for (int i = 1; i <= initialSegment; i++) {
-            System.out.println("========================= INDEX = " + i);
+            System.out.print(i);
             DataSet dataSet = dataSets.get(i - 1);
 
             double[] x = dataSet.getDoubleData().getColumn(0).toArray();
@@ -1150,16 +1152,23 @@ public class CalibrationQuestion {
             } else if (wrongDirection) {
                 selected.get(1).add(i);
             } else {
-                System.out.println("########### SKIPPING, NOT ORIENTED BY FASK #############");
+//                System.out.println("########### SKIPPING, NOT ORIENTED BY FASK #############");
                 ambiguous.add(i);
                 ambiguousCount += weight;
             }
 
-            if (groundTruthDirection) System.out.println("true -->");
-            else System.out.println("true <--");
+            if (groundTruthDirection) System.out.print("\t-->");
+            else System.out.print("\t<--");
 
-            if (estLeftRight == 1) System.out.println("est -->");
-            else if (estLeftRight == -1) System.out.println("est <--");
+            if (estLeftRight == 1) System.out.print("\t-->");
+            else if (estLeftRight == -1) System.out.print("\t<--");
+            else System.out.print("\t");
+
+            if ((estLeftRight == 0)) System.out.print("\tA");
+            else if (groundTruthDirection == (estLeftRight == 1)) System.out.print("\tC");
+            else System.out.print("\tI");
+
+            System.out.println();
 
             if (correctDirection) {
                 correct += weight;
@@ -1173,17 +1182,17 @@ public class CalibrationQuestion {
         NumberFormat nf2 = new DecimalFormat("0.00");
 
         System.out.println("\nSummary:\n");
-        System.out.println((useWeightsFromFile ? "Weighted accuracy = " : "Accuracy = ") + nf2.format((correct / (double) total)));
-        System.out.println((useWeightsFromFile ? "Weighted precision = " : "Precision = ") + nf2.format((correct / (double) (total - ambiguousCount))));
+        System.out.println((useWeightsFromFile ? "Weighted accuracy = " : "Unweighted Accuracy = ") + nf2.format((correct / (double) total)));
+        System.out.println((useWeightsFromFile ? "Weighted precision = " : "Unweighted Precision = ") + nf2.format((correct / (double) (total - ambiguousCount))));
         System.out.println("Total correct = " + correct);
         System.out.println("Total = " + total);
         System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
 
         System.out.println();
-        System.out.println("Correct Direction: " + selected.get(0));
-        System.out.println("Wrong Direction: " + selected.get(1));
+        System.out.println("Correct Direction: " + selected.get(0).size());
+        System.out.println("Wrong Direction: " + selected.get(1).size());
 
-        System.out.println("Didn't classify: " + ambiguous);
+        System.out.println("Didn't classify: " + ambiguous.size());
     }
 
     private static DataSet logData(DataSet dataSet, double a) {
