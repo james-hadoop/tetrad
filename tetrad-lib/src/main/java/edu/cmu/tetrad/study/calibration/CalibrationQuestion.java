@@ -1066,9 +1066,9 @@ public class CalibrationQuestion {
 
         // Parameters.
         boolean useWeightsFromFile = false;
-        int maxN = 600;
+        int maxN = 1000;
         int initialSegment = 100;
-        double bias = -0.1;
+        double bias = -0.95;
         int smoothSkewIntervals = 20;
         int smoothSkewMinCount = 8;
 
@@ -1165,8 +1165,8 @@ public class CalibrationQuestion {
             else System.out.print("\t");
 
             if ((estLeftRight == 0)) System.out.print("\tA");
-            else if (groundTruthDirection == (estLeftRight == 1)) System.out.print("\tC");
-            else System.out.print("\tI");
+            else if (groundTruthDirection == (estLeftRight == 1)) System.out.print("\t1");
+            else System.out.print("\t0");
 
             System.out.println();
 

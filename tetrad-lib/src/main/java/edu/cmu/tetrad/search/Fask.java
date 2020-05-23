@@ -21,21 +21,25 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
-import jdk.net.SocketFlow;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static edu.cmu.tetrad.util.StatUtils.correlation;
-import static edu.cmu.tetrad.util.StatUtils.skewness;
 import static java.lang.Math.*;
 
 /**
@@ -400,13 +404,13 @@ public final class Fask implements GraphSearch {
 //        if (sx == 0) sx = StatUtils.skewness(x);
 //        if (sy == 0) sy = StatUtils.skewness(y);
 
-        if (sx == 0 && sy == 0) throw new IllegalArgumentException("ambiguous sy or sy 0");
+//        if (sx == 0 && sy == 0) throw new IllegalArgumentException("ambiguous sy or sy 0");
 
 //
 //        r *= signum(sx);
 //        r *= signum(sy);
 //        lr *= signum(r);
-//        if (r < 0) lr *= -1;
+//        if (r < -.1) lr *= -1;
 
 //        double[] _x = new double[x.length];
 //        double[] _y = new double[y.length];
@@ -422,7 +426,7 @@ public final class Fask implements GraphSearch {
 
         System.out.print("\t" + nf.format(r));
 
-        if (r < -0.95) {
+        if (r < bias) {// && (r < 0 && r > -0.05) ) {
             lr *= -1;
 //            throw new IllegalArgumentException("ambiguous r too big");
         }
