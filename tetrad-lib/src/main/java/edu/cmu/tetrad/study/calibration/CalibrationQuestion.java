@@ -87,9 +87,7 @@ public class CalibrationQuestion {
 
             System.out.println("gt = " + gt + " ge = " + ge);
 
-            if (ge.isAdjacentTo(x, y) && ge.isAdjacentTo(y, z)//) {// && gt.isAdjacentTo(x, y) && gt.isAdjacentTo(y, z)) {
-//                    && !ge.isAdjacentTo(x, z)
-            ) {
+            if (ge.isAdjacentTo(x, y) && ge.isAdjacentTo(y, z)) {
                 if (gt.isAdjacentTo(x, z)) {
                     c++;
                 }
@@ -132,15 +130,12 @@ public class CalibrationQuestion {
 
             Graph gt = GraphUtils.randomGraph(nodes, 0, numEdges, 100, 100, 100, false);
 
-//            if (gt.isAdjacentTo(x, y) && gt.isAdjacentTo(y, z)) {
-
             SemPm pm = new SemPm(gt);
             SemIm im = new SemIm(pm);
 
             DataSet data = im.simulateData(sampleSize, false);
 
             edu.cmu.tetrad.search.Fges fges = new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search.SemBicScore(data));
-//            edu.cmu.tetrad.search.Pc fges = new edu.cmu.tetrad.search.Pc(new edu.cmu.tetrad.search.IndTestFisherZ(data, 0.1));
 
             Graph ge = fges.search();
             ge = GraphUtils.replaceNodes(ge, gt.getNodes());
@@ -156,7 +151,6 @@ public class CalibrationQuestion {
             }
 
         }
-//        }
 
         System.out.println("p = " + p + " q = " + (c / (double) total));
     }
@@ -191,15 +185,6 @@ public class CalibrationQuestion {
 
             Graph gt = GraphUtils.randomGraph(nodes, 0, numEdges, 100, 100, 100, false);
 
-//            if (!gt.isAdjacentTo(x, y)) gt.addDirectedEdge(x, y);
-//            if (!gt.isAdjacentTo(y, z)) gt.addDirectedEdge(y, z);
-//            if (!gt.isAdjacentTo(x, z)) gt.addDirectedEdge(x, z);
-
-//            gt.removeEdge(x, z);
-
-
-//            if (gt.isAdjacentTo(x, y) && gt.isAdjacentTo(y, z)) {
-
             SemPm pm = new SemPm(gt);
 
             Parameters parameters = new Parameters();
@@ -211,14 +196,9 @@ public class CalibrationQuestion {
             DataSet data = im.simulateData(sampleSize, false);
 
             edu.cmu.tetrad.search.Fges s = new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search.SemBicScore(data));
-//                edu.cmu.tetrad.search.Pc s = new edu.cmu.tetrad.search.Pc(new edu.cmu.tetrad.search.IndTestFisherZ(data, 0.1));
 
             Graph ge = s.search();
             ge = GraphUtils.replaceNodes(ge, gt.getNodes());
-
-//            if (!ge.isAdjacentTo(x, y)) ge.addDirectedEdge(x, y);
-//            if (!ge.isAdjacentTo(y, z)) ge.addDirectedEdge(y, z);
-
 
             {
                 if (ge.isAdjacentTo(x, y) && ge.isAdjacentTo(y, z)) {
@@ -236,13 +216,8 @@ public class CalibrationQuestion {
                 totald++;
             }
 
-//            System.out.println("Run " + i + " p = " + p + " c = " + c + " totalc = " + totalc + " d = " + d
-//                    + " totald = " + totald + " qc = " + (c / (double) totalc) + " qd = " + (d / (double) totald));
-
-
             System.out.println("Run " + i + " P(XYe & YZe) = " + (c / (double) totalc) + " P(XYe & YZe | XZt) = " + (d / (double) totald));
         }
-//        }
 
         System.out.println("p = " + p + " q = " + (c / (double) totalc));
     }
@@ -275,15 +250,6 @@ public class CalibrationQuestion {
 
             Graph gt = GraphUtils.randomGraph(nodes, 0, numEdges, 100, 100, 100, false);
 
-//            if (!gt.isAdjacentTo(x, y)) gt.addDirectedEdge(x, y);
-//            if (!gt.isAdjacentTo(y, z)) gt.addDirectedEdge(y, z);
-//            if (!gt.isAdjacentTo(x, z)) gt.addDirectedEdge(x, z);
-
-//            gt.removeEdge(x, z);
-
-
-//            if (gt.isAdjacentTo(x, y) && gt.isAdjacentTo(y, z)) {
-
             SemPm pm = new SemPm(gt);
 
             Parameters parameters = new Parameters();
@@ -295,13 +261,9 @@ public class CalibrationQuestion {
             DataSet data = im.simulateData(sampleSize, false);
 
             edu.cmu.tetrad.search.Fges s = new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search.SemBicScore(data));
-//                edu.cmu.tetrad.search.Pc s = new edu.cmu.tetrad.search.Pc(new edu.cmu.tetrad.search.IndTestFisherZ(data, 0.1));
 
             Graph ge = s.search();
             ge = GraphUtils.replaceNodes(ge, gt.getNodes());
-
-//            if (!ge.isAdjacentTo(x, y)) ge.addDirectedEdge(x, y);
-//            if (!ge.isAdjacentTo(y, z)) ge.addDirectedEdge(y, z);
 
             ChoiceGenerator gen = new ChoiceGenerator(numVars, 3);
             int[] choice;
@@ -916,9 +878,7 @@ public class CalibrationQuestion {
 
         PrintStream out = null;
 
-//        Graph G2 = loadGraphTxt(new File("/Users/user/Box/data/Sachs/files.for.fask.sachs.report/txt/ground.truth.sachs.txt"));
         Graph G2 = loadGraphTxt(new File("/Users/user/Box/data/Sachs/files.for.fask.sachs.report/txt/sachgroundtruth.txt"));
-//        Graph G2 = loadGraphTxt(new File("/Users/user/Box/data/Sachs/peter.ground.truth2.txt"));
 
         makeBidirectedCycleUndirected(G2);
 
@@ -1065,10 +1025,10 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
 
         // Parameters.
-        boolean useWeightsFromFile = false;
+        boolean useWeightsFromFile = true;
         int maxN = 1000;
         int initialSegment = 100;
-        double bias = -0.95;
+        double delta = -0.95;
         int smoothSkewIntervals = 20;
         int smoothSkewMinCount = 8;
 
@@ -1087,8 +1047,6 @@ public class CalibrationQuestion {
         for (int i = 1; i <= 108; i++) {
             File data = new File(new File("/Users/user/Box/data/pairs/data"), "pair." + i + ".txt");
             DataSet dataSet = loadContinuousData(data, true, Delimiter.TAB);
-//            dataSet.getVariable(0).setName("X");
-//            dataSet.getVariable(1).setName("Y");
             dataSet = DataUtils.standardizeData(dataSet);
             if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             dataSets.add(dataSet);
@@ -1119,10 +1077,6 @@ public class CalibrationQuestion {
 
             writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
 
-            long N = dataSet.getNumRows();
-
-//            System.out.println("N = " + N);
-
             List<Node> gtNodes = groundTruthData.getVariables();
             DiscreteVariable c4 = (DiscreteVariable) gtNodes.get(4);
             DiscreteVariable c5 = (DiscreteVariable) gtNodes.get(5);
@@ -1139,7 +1093,7 @@ public class CalibrationQuestion {
 
             boolean groundTruthDirection = category.equals("->");
 
-            int estLeftRight = getFaskDirection(dataSet, bias, smoothSkewIntervals,
+            int estLeftRight = getFaskDirection(dataSet, delta, smoothSkewIntervals,
                     smoothSkewMinCount);
 
             boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
@@ -1152,7 +1106,6 @@ public class CalibrationQuestion {
             } else if (wrongDirection) {
                 selected.get(1).add(i);
             } else {
-//                System.out.println("########### SKIPPING, NOT ORIENTED BY FASK #############");
                 ambiguous.add(i);
                 ambiguousCount += weight;
             }
@@ -1224,7 +1177,7 @@ public class CalibrationQuestion {
         return flippedData;
     }
 
-    private static int getFaskDirection(DataSet dataSet, double bias, int smoothSkewIntervals,
+    private static int getFaskDirection(DataSet dataSet, double delta, int smoothSkewIntervals,
                                         int smoothSkewMinCounts) {
         Graph g = new EdgeListGraph(dataSet.getVariables());
         List<Node> nodes = dataSet.getVariables();
@@ -1234,7 +1187,7 @@ public class CalibrationQuestion {
         fask.setAlpha(0.00);
         fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);
-        fask.setBias(bias);
+        fask.setDelta(delta);
         fask.setSmoothSkewIntervals(smoothSkewIntervals);
         fask.setSmoothSkewMinCount(smoothSkewMinCounts);
         Graph out = fask.search();

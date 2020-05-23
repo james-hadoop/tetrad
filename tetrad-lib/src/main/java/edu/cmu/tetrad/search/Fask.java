@@ -32,8 +32,6 @@ import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -91,7 +89,7 @@ public final class Fask implements GraphSearch {
     // True if skew adjacencies should be included in the output.
     private boolean useSkewAdjacencies = true;
 
-    private double bias = 0.0;
+    private double delta = -0.95;
     private int smoothSkewIntervals = 15;
     private int smoothSkewMinCount = 10;
 
@@ -379,7 +377,7 @@ public final class Fask implements GraphSearch {
 
         r *= signum(sx) * signum(sy);
         lr *= signum(r);
-        if (r < bias) lr *= -1;
+        if (r < delta) lr *= -1;
 
         return lr > 0;
     }
@@ -393,50 +391,11 @@ public final class Fask implements GraphSearch {
         final double cyyy = cov(y, y, y);
 
         double lr = (cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy));
-
         double r = StatUtils.correlation(x, y);
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
 
-        sx = smoothlySkewed(x, y, getSmoothSkewIntervals(), getSmoothSkewMinCount());
-        sy = smoothlySkewed(y, x, getSmoothSkewIntervals(), getSmoothSkewMinCount());
-
-//        if (sx == 0) sx = StatUtils.skewness(x);
-//        if (sy == 0) sy = StatUtils.skewness(y);
-
-//        if (sx == 0 && sy == 0) throw new IllegalArgumentException("ambiguous sy or sy 0");
-
-//
-//        r *= signum(sx);
-//        r *= signum(sy);
-//        lr *= signum(r);
-//        if (r < -.1) lr *= -1;
-
-//        double[] _x = new double[x.length];
-//        double[] _y = new double[y.length];
-//
-//        for (int i = 0; i < x.length; i++) {
-//            _x[i] = function(3, x[i]);
-//            _y[i] = function(3, y[i]);
-//        }
-//
-//        double r2 = StatUtils.correlation(_x, _y);
-
-        NumberFormat nf = new DecimalFormat("0.00000");
-
-        System.out.print("\t" + nf.format(r));
-
-        if (r < bias) {// && (r < 0 && r > -0.05) ) {
+        if (r < delta) {
             lr *= -1;
-//            throw new IllegalArgumentException("ambiguous r too big");
         }
-
-//        if (abs(r) < 0.001) {
-//            lr *= -1;
-//            throw new IllegalArgumentException("ambiguous r too small");
-//        }
-
-//        System.out.print("\t" + nf.format(r));
 
         return lr > 0;
     }
@@ -474,7 +433,7 @@ public final class Fask implements GraphSearch {
             lr *= -1;
         }
 
-        return lr > bias;
+        return lr > delta;
     }
 
     private double[] correctSkewness(double[] data) {
@@ -636,12 +595,12 @@ public final class Fask implements GraphSearch {
         this.useSkewAdjacencies = useSkewAdjacencies;
     }
 
-    public double getBias() {
-        return bias;
+    public double getDelta() {
+        return delta;
     }
 
-    public void setBias(double bias) {
-        this.bias = bias;
+    public void setDelta(double delta) {
+        this.delta = delta;
     }
 
     private static int smoothlySkewed(double[] x, double[] y, int numIntervals, int minCount) {
