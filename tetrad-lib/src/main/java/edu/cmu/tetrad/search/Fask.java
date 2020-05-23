@@ -21,6 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
+import cern.jet.random.StudentT;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IKnowledge;
@@ -30,12 +31,10 @@ import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static edu.cmu.tetrad.util.StatUtils.correlation;
 import static java.lang.Math.*;
@@ -92,6 +91,8 @@ public final class Fask implements GraphSearch {
     private double delta = -0.95;
     private int smoothSkewIntervals = 15;
     private int smoothSkewMinCount = 10;
+
+    private Map<NodePair, Double> confidence = new HashMap<>();
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -198,9 +199,9 @@ public final class Fask implements GraphSearch {
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else {
-                        boolean lrxy = false;
+                        boolean lrxy;
                         try {
-                            lrxy = leftRight2(x, y);
+                            lrxy = leftRight2(x, y, X, Y);
                         } catch (Exception e) {
 //                            e.printStackTrace();
                             return graph;
@@ -365,8 +366,6 @@ public final class Fask implements GraphSearch {
     }
 
     private boolean leftRight(double[] x, double[] y) {
-        if (true) return leftRight2(x, y);
-
         double left = cov(x, y, x) / (sqrt(cov(x, x, x) * cov(y, y, x)));
         double right = cov(x, y, y) / (sqrt(cov(x, x, y) * cov(y, y, y)));
         double lr = left - right;
@@ -382,7 +381,14 @@ public final class Fask implements GraphSearch {
         return lr > 0;
     }
 
-    private boolean leftRight2(double[] x, double[] y) {
+    private boolean leftRight2(double[] x, double[] y, Node X, Node Y) {
+        double r = StatUtils.correlation(x, y);
+
+        if (r > 0) {
+            y = Arrays.copyOf(y, y.length);
+            for (int i = 0; i < y.length; i++) y[i] = -y[i];
+        }
+
         final double cxyx = cov(x, y, x);
         final double cxyy = cov(x, y, y);
         final double cxxx = cov(x, x, x);
@@ -391,11 +397,30 @@ public final class Fask implements GraphSearch {
         final double cyyy = cov(y, y, y);
 
         double lr = (cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy));
-        double r = StatUtils.correlation(x, y);
+//        r = StatUtils.correlation(x, y);
 
         if (r < delta) {
             lr *= -1;
         }
+
+        double n1 = cov2(x, y, x)[1];
+        double n2 = cov2(x, y, y)[1];
+
+        double c1 = cxyx / sqrt(cxxx * cyyx);
+        double c2 = cxyy / sqrt(cxxy * cyyy);
+
+        double z1 = 0.5 * sqrt(n1) * (log(1 + c1) - log(1 - c1));
+        double z2 = 0.5 * sqrt(n2) * (log(1 + c2) - log(1 - c2));
+
+        double zdiff = (z1 - z2) / sqrt((1. / (n1 - 3) + 1. / (n2 - 3)));
+
+        double p = 2.0 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(zdiff)));
+
+        confidence.put(new NodePair(X, Y), p);
+
+//        if (r > 0) {
+//            confidence.put(new NodePair(X, Y), 1.);
+//        }
 
         return lr > 0;
     }
@@ -456,6 +481,21 @@ public final class Fask implements GraphSearch {
         }
 
         return exy / n;
+    }
+
+    private static double[] cov2(double[] x, double[] y, double[] condition) {
+        double exy = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition[k] > 0) {
+                exy += x[k] * y[k];
+                n++;
+            }
+        }
+
+        return new double[]{exy / n, n};
     }
 
     private double[] residuals(double[] _y, double[][] _x) {
@@ -699,6 +739,10 @@ public final class Fask implements GraphSearch {
         if (abs(g) == Double.POSITIVE_INFINITY) g = Double.NaN;
 
         return g;
+    }
+
+    public double getConfidence(Node X, Node Y) {
+        return confidence.get(new NodePair(X, Y));
     }
 }
 

@@ -1025,12 +1025,13 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
 
         // Parameters.
-        boolean useWeightsFromFile = true;
+        boolean useWeightsFromFile = false;
         int maxN = 1000;
-        int initialSegment = 100;
-        double delta = -0.95;
+        int initialSegment = 108;
+        double delta = -.95;
         int smoothSkewIntervals = 20;
         int smoothSkewMinCount = 8;
+        double cutoffp = .01;
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
         DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
@@ -1044,12 +1045,20 @@ public class CalibrationQuestion {
 
         List<DataSet> dataSets = new ArrayList<>();
 
+        NumberFormat nf = new DecimalFormat("0000");
+
         for (int i = 1; i <= 108; i++) {
-            File data = new File(new File("/Users/user/Box/data/pairs/data"), "pair." + i + ".txt");
-            DataSet dataSet = loadContinuousData(data, true, Delimiter.TAB);
+            File data = new File("/Users/user/Box/data/pairs 4/pair" + nf.format(i) + ".txt");
+            System.out.println(data.getAbsolutePath());
+
+            DataSet dataSet = loadContinuousData(data, false, Delimiter.WHITESPACE);
+            writeDataSet(new File("/Users/user/Box/data/pairs/data"), i, dataSet);
+
             dataSet = DataUtils.standardizeData(dataSet);
             if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             dataSets.add(dataSet);
+
+
         }
 
 
@@ -1066,8 +1075,18 @@ public class CalibrationQuestion {
             System.out.print(i);
             DataSet dataSet = dataSets.get(i - 1);
 
-            double[] x = dataSet.getDoubleData().getColumn(0).toArray();
-            double[] y = dataSet.getDoubleData().getColumn(1).toArray();
+            int  x0 = 0;
+            int y0 = 1;
+
+            if (i == 105) {
+                x0 = 1;
+                y0 = 9;
+            }
+
+
+
+            double[] x = dataSet.getDoubleData().getColumn(x0).toArray();
+            double[] y = dataSet.getDoubleData().getColumn(y0).toArray();
 
             double[] res = residuals(y, x);
 
@@ -1093,8 +1112,9 @@ public class CalibrationQuestion {
 
             boolean groundTruthDirection = category.equals("->");
 
+
             int estLeftRight = getFaskDirection(dataSet, delta, smoothSkewIntervals,
-                    smoothSkewMinCount);
+                    smoothSkewMinCount, cutoffp, x0, y0);
 
             boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
                     || ((!groundTruthDirection && estLeftRight == -1));
@@ -1178,7 +1198,7 @@ public class CalibrationQuestion {
     }
 
     private static int getFaskDirection(DataSet dataSet, double delta, int smoothSkewIntervals,
-                                        int smoothSkewMinCounts) {
+                                        int smoothSkewMinCounts, double cutoffp, int x, int y) {
         Graph g = new EdgeListGraph(dataSet.getVariables());
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(0), nodes.get(1));
@@ -1191,6 +1211,11 @@ public class CalibrationQuestion {
         fask.setSmoothSkewIntervals(smoothSkewIntervals);
         fask.setSmoothSkewMinCount(smoothSkewMinCounts);
         Graph out = fask.search();
+
+        double confidence = fask.getConfidence(nodes.get(0), nodes.get(1));
+        System.out.println("Confidence + " + confidence);
+
+        if (confidence >= cutoffp) return 0;
 
         if (out.getEdges(nodes.get(0), nodes.get(1)).size() == 2 || out.getEdges(nodes.get(0), nodes.get(1)).isEmpty()) {
             return 0;
