@@ -5,16 +5,18 @@ import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.regression.RegressionDataset;
-import edu.cmu.tetrad.regression.RegressionResult;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.Fask;
+import edu.cmu.tetrad.search.GraphSearch;
+import edu.cmu.tetrad.search.IndTestFisherZ;
+import edu.cmu.tetrad.search.PcAll;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.Delimiter;
-import edu.pitt.dbmi.data.reader.tabular.*;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
+import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDatasetFileReader;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -22,8 +24,6 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
-import static edu.cmu.tetrad.util.StatUtils.*;
-import static java.lang.Math.*;
 
 public class CalibrationQuestion {
 
@@ -921,9 +921,6 @@ public class CalibrationQuestion {
 
             List<Node> nodes = R.getNodes();
 
-            ChoiceGenerator gen = new ChoiceGenerator(nodes.size(), 3);
-            int[] choice;
-
             int Ut = 0;
 
             for (int i = 0; i < nodes.size() - 1; i++) {
@@ -943,24 +940,6 @@ public class CalibrationQuestion {
             for (Edge e2 : R.getEdges()) {
                 if (e2.isDirected()) {
                     A++;
-                }
-            }
-
-            int S2 = 0;
-
-            for (int i = 0; i < nodes.size() - 1; i++) {
-                List<Node> adj = R.getAdjacentNodes(nodes.get(i));
-
-                for (int j = 0; j < adj.size(); j++) {
-                    for (int k = j + 1; k < adj.size(); k++) {
-                        if (!R.isAdjacentTo(adj.get(j), adj.get(k))) {
-                            if (G2.isAdjacentTo(nodes.get(i), adj.get(j)) && G2.isAdjacentTo(nodes.get(i), adj.get(k))) {
-                                if (G2.isAdjacentTo(adj.get(j), adj.get(k))) {
-                                    S2++;
-                                }
-                            }
-                        }
-                    }
                 }
             }
 
@@ -1094,17 +1073,6 @@ public class CalibrationQuestion {
                 y0 = 9;
             }
 
-
-
-            double[] x = dataSet.getDoubleData().getColumn(x0).toArray();
-            double[] y = dataSet.getDoubleData().getColumn(y0).toArray();
-
-            double[] res = residuals(y, x);
-
-            for (int w = 0; w < res.length; w++) {
-                dataSet.setDouble(w, 0, dataSet.getDouble(w, 0) - res[w]);
-            }
-
             writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
 
             List<Node> gtNodes = groundTruthData.getVariables();
@@ -1179,35 +1147,6 @@ public class CalibrationQuestion {
         System.out.println("Didn't classify: " + ambiguous);
     }
 
-    private static DataSet logData(DataSet dataSet, double a) {
-        double min = 0.0;
-
-        for (int i = 0; i < dataSet.getNumRows(); i++) {
-            if (dataSet.getDouble(i, 0) < min) {
-                min = dataSet.getDouble(i, 0);
-            }
-
-            if (dataSet.getDouble(i, 1) < min) {
-                min = dataSet.getDouble(i, 1);
-            }
-        }
-
-
-        TetradMatrix _data = DataUtils.logData(dataSet.getDoubleData().transpose(), a, false, 10);
-
-        DataBox box = new VerticalDoubleDataBox(_data.toArray());
-
-        dataSet = new BoxDataSet(box, dataSet.getVariables());
-        return dataSet;
-    }
-
-    private static DataSet flipData(DataSet dataSet, boolean flipX, boolean flipY) {
-        DataSet flippedData = dataSet.copy();
-        flipColumn(flippedData, 0, flipX);
-        flipColumn(flippedData, 1, flipY);
-        return flippedData;
-    }
-
     private static int getFaskDirection(DataSet dataSet, double delta, int smoothSkewIntervals,
                                         int smoothSkewMinCounts, double cutoffp, int x, int y) {
         Graph g = new EdgeListGraph(dataSet.getVariables());
@@ -1221,6 +1160,7 @@ public class CalibrationQuestion {
         fask.setDelta(delta);
         fask.setSmoothSkewIntervals(smoothSkewIntervals);
         fask.setSmoothSkewMinCount(smoothSkewMinCounts);
+        fask.setRemoveNonlinearTrend(true);
         Graph out = fask.search();
 
         double confidence = fask.getConfidence(nodes.get(0), nodes.get(1));
@@ -1236,153 +1176,6 @@ public class CalibrationQuestion {
 //        boolean _estRightLeft = out.getEdge(nodes.get(1), nodes.get(0)).pointsTowards(nodes.get(0));
 
         return _estLeftRight ? 1 : -1;
-    }
-
-    private static void writeResData(DataSet dataSet, double[] x, double[] y, int i) {
-        double[] rXnl = residuals(x, y);
-        double[] rYnl = residuals(y, x);
-
-        TetradVector rxLin = getLinearResiduals(dataSet, dataSet.getVariables(), 1, 0);
-        TetradVector ryLin = getLinearResiduals(dataSet, dataSet.getVariables(), 0, 1);
-
-        DataSet resdata = resData(dataSet, rxLin, ryLin, rXnl, rYnl);
-
-        writeDataSet(new File("/Users/user/Box/data/pairs/resdata"), i, resdata);
-    }
-
-    private static DataSet resData(DataSet dataSet, TetradVector rxLin, TetradVector ryLin, double[] rXnl, double[] rYnl) {
-        TetradVector x = dataSet.getDoubleData().getColumn(0);
-        TetradVector y = dataSet.getDoubleData().getColumn(1);
-
-        TetradMatrix m2 = new TetradMatrix(dataSet.getNumRows(), 6);
-        m2.assignColumn(0, x);
-        m2.assignColumn(1, y);
-        m2.assignColumn(2, new TetradVector(rXnl));
-        m2.assignColumn(3, new TetradVector(rYnl));
-        if (rxLin != null) {
-            m2.assignColumn(4, rxLin);
-        }
-        if (ryLin != null) {
-            m2.assignColumn(5, ryLin);
-        }
-
-        List<Node> n = new ArrayList<>();
-        n.add(new ContinuousVariable("X"));
-        n.add(new ContinuousVariable("Y"));
-        n.add(new ContinuousVariable("rX"));
-        n.add(new ContinuousVariable("rY"));
-        n.add(new ContinuousVariable("rXLin"));
-        n.add(new ContinuousVariable("rYLin"));
-
-        return new BoxDataSet(new DoubleDataBox(m2.toArray()), n);
-    }
-
-    private static boolean flipColumn(DataSet dataSet, int colToFlip, boolean flip) {
-        if (flip) {
-            for (int q = 0; q < dataSet.getNumRows(); q++) {
-                dataSet.setDouble(q, colToFlip, dataSet.getDouble(q, colToFlip) * -1);
-            }
-        }
-
-        return flip;
-    }
-
-    private static double getCoef(double[] x, double[] y) {
-        double[][] _y = new double[1][];
-        _y[0] = y;
-
-        try {
-            RegressionResult result = RegressionDataset.regress(x, _y);
-            return result.getCoef()[0];
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static TetradVector getLinearResiduals(DataSet dataSet, List<Node> variables, int x, int y) {
-        try {
-            RegressionDataset regression = new RegressionDataset(dataSet);
-            RegressionResult result = regression.regress(variables.get(x), variables.get(y));
-            return result.getResiduals();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void flipXY(DataSet dataSet, boolean flipX, boolean flipY) {
-        if (flipX) System.out.println("Flip X");
-        if (flipY) System.out.println("Flip Y");
-
-        for (int q = 0; q < dataSet.getNumRows(); q++) {
-            if (flipX) {
-                dataSet.setDouble(q, 0, dataSet.getDouble(q, 0) * -1);
-            }
-
-            if (flipY) {
-                dataSet.setDouble(q, 1, dataSet.getDouble(q, 1) * -1);
-            }
-        }
-    }
-
-    private static boolean shouldFlipByCounts(DataSet dataSet, int column) {
-//        int posX = 0;
-//        int negX = 0;
-
-        return StatUtils.skewness(dataSet.getDoubleData().getColumn(column).toArray()) < 0;
-
-//        for (int _i = 0; _i < dataSet.getNumRows(); _i++) {
-//            double x = dataSet.getDouble(_i, column);
-//
-//            if (x > 0) posX++;
-//            if (x < 0) negX++;
-//        }
-//
-//        return negX > posX + 50;
-    }
-
-    private static int smoothlySkewed(double[] x, double[] y, int numIntervals) {
-        double minX = 0;
-        double maxX = 1;
-
-        double interval = (maxX - minX) / numIntervals;
-
-        int count1 = 0;
-        int count2 = 0;
-
-        for (int i = 0; i < numIntervals; i++) {
-            double p1 = minX + i * interval;
-            double p2 = minX + (i + 1) * interval;
-
-            double left = StatUtils.quantile(x, p1);
-            double right = StatUtils.quantile(x, p2);
-            double s = skewness(x, y, left, right);
-
-            if (s > 0) count1++;
-            if (s < 0) count2++;
-        }
-
-        return Integer.compare(count1, count2);
-    }
-
-    private static boolean find(File des, String f) throws IOException {
-        boolean b = false;
-
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(des));
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                if (line.contains(f)) {
-                    b = true;
-                    break;
-                }
-            }
-
-            return b;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
     }
 
     private static DataSet loadContinuousData(File data, boolean hasHeader, Delimiter delimiter) throws IOException {
@@ -1418,22 +1211,6 @@ public class CalibrationQuestion {
 
     }
 
-    private static DataSet loadMixedData(File data, boolean hasHeader, Delimiter delimiter) throws IOException {
-        try {
-            MixedTabularDatasetFileReader dataReader
-                    = new MixedTabularDatasetFileReader(data.toPath(), delimiter, 5);
-            dataReader.setHasHeader(hasHeader);
-            dataReader.setMissingDataMarker("*");
-
-            Data _data = dataReader.readInData();
-            return (DataSet) DataConvertUtils.toDataModel(_data);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw e;
-        }
-
-    }
-
     private static void writeDataSet(File dir, int i, DataSet d2) {
         try {
             DataWriter.writeRectangularData(d2, new PrintWriter(
@@ -1441,18 +1218,6 @@ public class CalibrationQuestion {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    // Looks to see whether x is smoothly positively skewed conditional on intervals of y.
-    private static boolean conditionallySmoothlyPositivelySkewed(TetradVector x, TetradVector y) {
-        double mean = StatUtils.mean(x, x.size());
-
-        double[] _ryLin = x.minus(mean).toArray();
-
-        Arrays.sort(_ryLin);
-
-
-        return false;
     }
 
     private static void collectUnshieldedTripleLegsAndShieldsInR(Graph R, Set<Edge> L, Set<Edge> M, Node
@@ -1463,110 +1228,6 @@ public class CalibrationQuestion {
             L.add(Edges.undirectedEdge(v2, v3));
         }
     }
-
-    /**
-     * Calculates the residuals of y regressed nonparametrically onto y. Left public
-     * so it can be accessed separately.
-     * <p>
-     * Here we want residuals of x regressed onto y. I'll tailor the method to that.
-     *
-     * @return a double[2][] array. The first double[] array contains the residuals for y
-     * and the second double[] array contains the resituls for x.
-     */
-    public static double[] residuals(final double[] y, final double[] x) {
-
-        int N = y.length;
-
-        double[] residualsy = new double[N];
-
-        double[] sumy = new double[N];
-
-        double[] totalWeighty = new double[N];
-
-        double h = h1(x);
-
-        for (int j = 0; j < N; j++) {
-            double yj = y[j];
-
-            for (int i = 0; i < N; i++) {
-                double d = distance(x, i, j);
-                double k = kernelGaussian(d, 5, h);
-                sumy[i] += k * yj;
-                totalWeighty[i] += k;
-            }
-        }
-
-        for (int i = 0; i < N; i++) {
-            residualsy[i] = y[i] - sumy[i] / totalWeighty[i];
-        }
-
-        return residualsy;
-    }
-
-    private static double kernelGaussian(double z, double width, double h) {
-        z /= width * h;
-        return Math.exp(-z * z);
-    }
-
-    // Euclidean distance.
-    private static double distance(double[] data, int i, int j) {
-        double sum = 0.0;
-
-        double d = (data[i] - data[j]) / 2.0;
-
-        if (!Double.isNaN(d)) {
-            sum += d * d;
-        }
-
-        return sqrt(sum);
-    }
-
-//    // Optimal bandwidth qsuggested by Bowman and Bowman and Azzalini (1997) q.31,
-//    // using MAD.
-//    private static double h(DataSet data, int i) {
-//        TetradMatrix _data = data.getDoubleData();
-//        double[] xCol = _data.getColumn(i).toArray();
-//        double[] g = new double[xCol.length];
-//        double median = median(xCol);
-//        for (int j = 0; j < xCol.length; j++) g[j] = abs(xCol[j] - median);
-//        double mad = median(g);
-//        return (1.4826 * mad) * pow((4.0 / 3.0) / xCol.length, 0.2);
-//    }
-
-//    private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int sampleSize) {
-//        Set<Integer> js = new HashSet<>();
-//
-//        if (sampleSize > data[0].length) sampleSize = (int) ceil(0.8 * data.length);
-//        if (_z.length == 0) return new HashSet<>();
-//
-//        int radius = 0;
-//
-//        while (true) {
-//            for (int z1 : _z) {
-//                int q = reverseLookup.get(z1).get(i);
-//
-//                if (q - radius >= 0 && q - radius < data[z1].length) {
-//                    final int r2 = sortedIndices.get(z1).get(q - radius);
-//                    js.add(r2);
-//                }
-//
-//                if (q + radius >= 0 && q + radius < data[z1].length) {
-//                    final int r2 = sortedIndices.get(z1).get(q + radius);
-//                    js.add(r2);
-//                }
-//
-//            }
-//
-//            if (js.size() >= sampleSize) return js;
-//
-//            radius++;
-//        }
-//    }
-
-    /**
-     * Bowman and Azzalini Kernel widths of each variable.
-     */
-    private static double[] h;
 
     public static DataSet filter(DataSet data) {
         List<Node> variables = data.getVariables();
@@ -1605,148 +1266,4 @@ public class CalibrationQuestion {
 
         return newDataSet;
     }
-
-//    private double getH(int[] _z) {
-//        double h = 0.0;
-//
-//        for (int c : _z) {
-//            if (this.h[c] > h) {
-//                h = this.h[c];
-//            }
-//        }
-//
-//        h *= sqrt(_z.length);
-//        if (h == 0) h = 1;
-//        return h;
-//    }
-
-    private static double h1(double[] xCol) {
-        int N = xCol.length;
-        double w;
-
-        if (N < 200) {
-            w = 0.8;
-        } else if (N < 1200) {
-            w = 0.5;
-        } else {
-            w = 0.3;
-        }
-
-        return w;
-    }
-
-    private static double h2(double[] xCol) {
-        int N = xCol.length;
-
-        double max = max(xCol);
-        double min = min(xCol);
-        double g = 2;
-
-        double f = 1;
-
-        if (xCol.length < 100) f = 0.8;
-        else if (xCol.length < 200) f = 0.6;
-        else if (xCol.length < 300) f = 0.4;
-        else if (xCol.length < 500) f = 0.2;
-        else if (xCol.length < 1000) f = 0.1;
-
-        return f * g;
-    }
-
-    private static double h3(double[] xCol) {
-        double[] g = new double[xCol.length];
-        double median = median(xCol);
-        for (int j = 0; j < xCol.length; j++) g[j] = abs(xCol[j] - 2 * median);
-        double mad = median(g);
-        return 5 * (1.4826 * mad) * pow((4.0 / 3.0) / xCol.length, .0001);
-    }
-
-//    private static double[][] removeNaN(double[] _x, double[] _y) {
-//        boolean flag = false;
-//
-//        for (int i = 0; i < _x.length; i++) {
-//            if (Double.isNaN(_x[i]) || Double.isNaN(_y[i])) {
-//                flag = true;
-//                break;
-//            }
-//        }
-//
-//        if (flag) {
-//            List<Double> x = new ArrayList<>();
-//            List<Double> y = new ArrayList<>();
-//
-//            for (int i = 0; i < _x.length; i++) {
-//                if (Double.isNaN(_x[i]) || Double.isNaN(_y[i])) {
-//                    x.add(_x[i]);
-//                    y.add(_y[i]);
-//                }
-//            }
-//
-//            double[] ___x = new double[x.size()];
-//            double[] ___y = new double[y.size()];
-//
-//            for (int i = 0; i < x.size(); i++) {
-//                ___x[i] = x.get(i);
-//                ___y[i] = y.get(i);
-//            }
-//
-//            _x = ___x;
-//            _y = ___y;
-//        }
-//
-//        double[][] ret = new double[_x.length][2];
-//        ret[0] = _x;
-//        ret[1] = _y;
-//
-//        return ret;
-//    }
-
-    public static double skewness(double[] x, double[] y, double left, double right) {
-        double secondMoment = 0.0;
-        double thirdMoment = 0.0;
-
-        double meany = StatUtils.mean(y);
-
-        int count = 0;
-
-        for (int i = 0; i < y.length; i++) {
-            if (x[i] < left || x[i] > right) continue;
-            if (Double.isNaN(y[i])) continue;
-            double s = y[i] - meany;
-            if (s == 0) continue;
-            count++;
-            secondMoment += s * s;
-            thirdMoment += s * s * s;
-        }
-
-        if (secondMoment == 0) {
-            secondMoment = 1e-5;
-        }
-
-        double ess = secondMoment / count;
-        double esss = thirdMoment / count;
-
-//        if (secondMoment == 0) {
-//            return Double.NaN;
-////            throw new ArithmeticException("StatUtils.skew:  There is no skew " +
-////                    "when the variance is zero.");
-//        }
-
-        return esss / Math.pow(ess, 1.5);
-    }
-
-    public static double mean(double[] x, double y[], double center, double below, double above) {
-        int count = 0;
-        double sum = 0.0;
-
-        for (int i = 0; i < y.length; i++) {
-            if (x[i] < below || x[i] > above) continue;
-            if (Double.isNaN(y[i])) continue;
-            sum += y[i];
-            count++;
-        }
-
-        return sum / (double) count;
-    }
-
 }

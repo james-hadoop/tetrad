@@ -21,7 +21,6 @@
 
 package edu.cmu.tetrad.search;
 
-import cern.jet.random.StudentT;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IKnowledge;
@@ -93,6 +92,7 @@ public final class Fask implements GraphSearch {
     private int smoothSkewMinCount = 10;
 
     private Map<NodePair, Double> confidence = new HashMap<>();
+    private boolean removeNonlinearTrend = false;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -104,7 +104,6 @@ public final class Fask implements GraphSearch {
 
         this.dataSet = dataSet;
         this.test = test;
-
         data = dataSet.getDoubleData().transpose().toArray();
     }
 
@@ -382,12 +381,23 @@ public final class Fask implements GraphSearch {
     }
 
     private boolean leftRight2(double[] x, double[] y, Node X, Node Y) {
+
+        if (isRemoveNonlinearTrend()) {
+            x = Arrays.copyOf(x, x.length);
+
+            double[] res = residuals(y, x);
+
+            for (int i = 0; i < x.length; i++) {
+                x[i] = x[i] - res[i];
+            }
+        }
+
         double r = StatUtils.correlation(x, y);
 
-        if (r > 0) {
-            y = Arrays.copyOf(y, y.length);
-            for (int i = 0; i < y.length; i++) y[i] = -y[i];
-        }
+//        if (r > 0) {
+//            y = Arrays.copyOf(y, y.length);
+//            for (int i = 0; i < y.length; i++) y[i] = -y[i];
+//        }
 
         final double cxyx = cov(x, y, x);
         final double cxyy = cov(x, y, y);
@@ -739,6 +749,85 @@ public final class Fask implements GraphSearch {
 
     public double getConfidence(Node X, Node Y) {
         return confidence.get(new NodePair(X, Y));
+    }
+
+    /**
+     * Calculates the residuals of y regressed nonparametrically onto y. Left public
+     * so it can be accessed separately.
+     * <p>
+     * Here we want residuals of x regressed onto y. I'll tailor the method to that.
+     *
+     * @return a double[2][] array. The first double[] array contains the residuals for y
+     * and the second double[] array contains the resituls for x.
+     */
+    public static double[] residuals(final double[] y, final double[] x) {
+
+        int N = y.length;
+
+        double[] residualsy = new double[N];
+
+        double[] sumy = new double[N];
+
+        double[] totalWeighty = new double[N];
+
+        double h = h1(x);
+
+        for (int j = 0; j < N; j++) {
+            double yj = y[j];
+
+            for (int i = 0; i < N; i++) {
+                double d = distance(x, i, j);
+                double k = kernelGaussian(d, 5, h);
+                sumy[i] += k * yj;
+                totalWeighty[i] += k;
+            }
+        }
+
+        for (int i = 0; i < N; i++) {
+            residualsy[i] = y[i] - sumy[i] / totalWeighty[i];
+        }
+
+        return residualsy;
+    }
+
+    private static double h1(double[] xCol) {
+        int N = xCol.length;
+        double w;
+
+        if (N < 200) {
+            w = 0.8;
+        } else if (N < 1200) {
+            w = 0.5;
+        } else {
+            w = 0.3;
+        }
+
+        return w;
+    }
+
+    private static double distance(double[] data, int i, int j) {
+        double sum = 0.0;
+
+        double d = (data[i] - data[j]) / 2.0;
+
+        if (!Double.isNaN(d)) {
+            sum += d * d;
+        }
+
+        return sqrt(sum);
+    }
+
+    private static double kernelGaussian(double z, double width, double h) {
+        z /= width * h;
+        return Math.exp(-z * z);
+    }
+
+    public boolean isRemoveNonlinearTrend() {
+        return removeNonlinearTrend;
+    }
+
+    public void setRemoveNonlinearTrend(boolean removeNonlinearTrend) {
+        this.removeNonlinearTrend = removeNonlinearTrend;
     }
 }
 
