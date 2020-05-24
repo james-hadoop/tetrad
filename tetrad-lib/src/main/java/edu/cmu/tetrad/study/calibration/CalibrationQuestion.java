@@ -5,10 +5,7 @@ import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.Fask;
-import edu.cmu.tetrad.search.GraphSearch;
-import edu.cmu.tetrad.search.IndTestFisherZ;
-import edu.cmu.tetrad.search.PcAll;
+import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
@@ -1010,7 +1007,7 @@ public class CalibrationQuestion {
         double delta = -.95;
         int smoothSkewIntervals = 20;
         int smoothSkewMinCount = 8;
-        double cutoffp = .01;
+        double cutoffp = .2;
 
         int[] notScalarMaybe = {47, 33, 70, 71, 107, 33, 36, 69, 85, 95, 97, 98};
         List<Integer> notScalar = new ArrayList<>();
@@ -1151,9 +1148,9 @@ public class CalibrationQuestion {
                                         int smoothSkewMinCounts, double cutoffp, int x, int y) {
         Graph g = new EdgeListGraph(dataSet.getVariables());
         List<Node> nodes = dataSet.getVariables();
-        g.addUndirectedEdge(nodes.get(0), nodes.get(1));
+        g.addUndirectedEdge(nodes.get(x), nodes.get(y));
 
-        Fask fask = new Fask(dataSet, g);
+        Fask fask = new Fask(dataSet, new IndTestCorrelationT(dataSet, 0.001));
         fask.setAlpha(0.00);
         fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);
@@ -1163,10 +1160,14 @@ public class CalibrationQuestion {
         fask.setRemoveNonlinearTrend(true);
         Graph out = fask.search();
 
-        double confidence = fask.getConfidence(nodes.get(0), nodes.get(1));
-        System.out.println("Confidence + " + confidence);
+        if (out.isAdjacentTo(nodes.get(x), nodes.get(y))) {
+            double confidence = fask.getConfidence(nodes.get(x), nodes.get(y));
+            System.out.println("Confidence + " + confidence);
 
-        if (confidence >= cutoffp) return 0;
+            if (confidence > cutoffp) return 0;
+        } else {
+            System.out.println("INDEPENDENT");
+        }
 
         if (out.getEdges(nodes.get(0), nodes.get(1)).size() == 2 || out.getEdges(nodes.get(0), nodes.get(1)).isEmpty()) {
             return 0;

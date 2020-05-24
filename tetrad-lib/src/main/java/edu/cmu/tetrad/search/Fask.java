@@ -382,6 +382,11 @@ public final class Fask implements GraphSearch {
 
     private boolean leftRight2(double[] x, double[] y, Node X, Node Y) {
 
+//        if (r > 0) {
+//            y = Arrays.copyOf(y, y.length);
+//            for (int i = 0; i < y.length; i++) y[i] = -y[i];
+//        }
+
         if (isRemoveNonlinearTrend()) {
             x = Arrays.copyOf(x, x.length);
 
@@ -392,13 +397,6 @@ public final class Fask implements GraphSearch {
             }
         }
 
-        double r = StatUtils.correlation(x, y);
-
-//        if (r > 0) {
-//            y = Arrays.copyOf(y, y.length);
-//            for (int i = 0; i < y.length; i++) y[i] = -y[i];
-//        }
-
         final double cxyx = cov(x, y, x);
         final double cxyy = cov(x, y, y);
         final double cxxx = cov(x, x, x);
@@ -407,8 +405,8 @@ public final class Fask implements GraphSearch {
         final double cyyy = cov(y, y, y);
 
         double lr = (cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy));
-        r = StatUtils.correlation(x, y);
-//
+        double r = StatUtils.correlation(x, y);
+
         if (r < delta) {
             lr *= -1;
         }
