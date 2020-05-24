@@ -1002,12 +1002,12 @@ public class CalibrationQuestion {
 
         // Parameters.
         boolean useWeightsFromFile = false;
-        int maxN = 1000;
+        int maxN = 600;
         int initialSegment = 100;
         double delta = -.95;
         int smoothSkewIntervals = 20;
         int smoothSkewMinCount = 8;
-        double cutoffp = .2;
+        double cutoffp =  1;
 
         int[] notScalarMaybe = {47, 33, 70, 71, 107, 33, 36, 69, 85, 95, 97, 98};
         List<Integer> notScalar = new ArrayList<>();
@@ -1064,6 +1064,33 @@ public class CalibrationQuestion {
 
             int x0 = 0;
             int y0 = 1;
+
+
+
+            if (i == 52) {
+                x0 = 0;
+                y0 = 4;
+            }
+
+            if (i == 53) {
+                x0 = 0;
+                y0 = 3;
+            }
+
+            if (i == 54) {
+                x0 = 1;
+                y0 = 0;
+            }
+
+            if (i == 55) {
+                x0 = 0;
+                y0 = 16;
+            }
+
+            if (i == 71) {
+                x0 = 2;
+                y0 = 7;
+            }
 
             if (i == 105) {
                 x0 = 1;
@@ -1150,7 +1177,7 @@ public class CalibrationQuestion {
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(x), nodes.get(y));
 
-        Fask fask = new Fask(dataSet, new IndTestCorrelationT(dataSet, 0.001));
+        Fask fask = new Fask(dataSet, g);//new IndTestCorrelationT(dataSet, 0.001));
         fask.setAlpha(0.00);
         fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);
@@ -1160,21 +1187,17 @@ public class CalibrationQuestion {
         fask.setRemoveNonlinearTrend(true);
         Graph out = fask.search();
 
-        if (out.isAdjacentTo(nodes.get(x), nodes.get(y))) {
-            double confidence = fask.getConfidence(nodes.get(x), nodes.get(y));
-            System.out.println("Confidence + " + confidence);
-
-            if (confidence > cutoffp) return 0;
-        } else {
+        if (out.getEdges(nodes.get(x), nodes.get(y)).isEmpty()) {
             System.out.println("INDEPENDENT");
-        }
-
-        if (out.getEdges(nodes.get(0), nodes.get(1)).size() == 2 || out.getEdges(nodes.get(0), nodes.get(1)).isEmpty()) {
             return 0;
         }
 
-        boolean _estLeftRight = out.getEdge(nodes.get(0), nodes.get(1)).pointsTowards(nodes.get(1));
-//        boolean _estRightLeft = out.getEdge(nodes.get(1), nodes.get(0)).pointsTowards(nodes.get(0));
+        if (out.getEdges(nodes.get(x), nodes.get(y)).size() == 2) {
+            System.out.println("2-CYCLE");
+            return 0;
+        }
+
+        boolean _estLeftRight = out.getEdge(nodes.get(x), nodes.get(y)).pointsTowards(nodes.get(1));
 
         return _estLeftRight ? 1 : -1;
     }
