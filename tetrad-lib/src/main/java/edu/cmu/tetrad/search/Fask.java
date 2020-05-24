@@ -397,8 +397,8 @@ public final class Fask implements GraphSearch {
         final double cyyy = cov(y, y, y);
 
         double lr = (cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy));
-//        r = StatUtils.correlation(x, y);
-
+        r = StatUtils.correlation(x, y);
+//
         if (r < delta) {
             lr *= -1;
         }
@@ -417,10 +417,6 @@ public final class Fask implements GraphSearch {
         double p = 2.0 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(zdiff)));
 
         confidence.put(new NodePair(X, Y), p);
-
-//        if (r > 0) {
-//            confidence.put(new NodePair(X, Y), 1.);
-//        }
 
         return lr > 0;
     }

@@ -1027,11 +1027,15 @@ public class CalibrationQuestion {
         // Parameters.
         boolean useWeightsFromFile = false;
         int maxN = 1000;
-        int initialSegment = 108;
+        int initialSegment = 100;
         double delta = -.95;
         int smoothSkewIntervals = 20;
         int smoothSkewMinCount = 8;
         double cutoffp = .01;
+
+        int[] notScalarMaybe = {47, 33, 70, 71, 107, 33, 36, 69, 85, 95, 97, 98};
+        List<Integer> notScalar = new ArrayList<>();
+        for (int i : notScalarMaybe) notScalar.add(i);
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
         DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
@@ -1073,9 +1077,16 @@ public class CalibrationQuestion {
 
         for (int i = 1; i <= initialSegment; i++) {
             System.out.print(i);
+
+//            if (notScalar.contains(i)) {
+//                System.out.println("NOT SCALAR");
+//                ambiguous.add(i);
+//                continue;
+//            }
+
             DataSet dataSet = dataSets.get(i - 1);
 
-            int  x0 = 0;
+            int x0 = 0;
             int y0 = 1;
 
             if (i == 105) {
@@ -1163,9 +1174,9 @@ public class CalibrationQuestion {
 
         System.out.println();
         System.out.println("Correct Direction: " + selected.get(0).size());
-        System.out.println("Wrong Direction: " + selected.get(1).size());
+        System.out.println("Wrong Direction: " + selected.get(1));
 
-        System.out.println("Didn't classify: " + ambiguous.size());
+        System.out.println("Didn't classify: " + ambiguous);
     }
 
     private static DataSet logData(DataSet dataSet, double a) {
