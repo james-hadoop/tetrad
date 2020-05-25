@@ -1002,16 +1002,20 @@ public class CalibrationQuestion {
 
         // Parameters.
         boolean useWeightsFromFile = false;
-        int maxN = 600;
+        int maxN = 1500;
         int initialSegment = 100;
         double delta = -.95;
         int smoothSkewIntervals = 20;
         int smoothSkewMinCount = 8;
         double cutoffp =  1;
 
-        int[] notScalarMaybe = {47, 33, 70, 71, 107, 33, 36, 69, 85, 95, 97, 98};
-        List<Integer> notScalar = new ArrayList<>();
-        for (int i : notScalarMaybe) notScalar.add(i);
+        int[] discrete = {47, 70, 71, 85, 95, 107};
+        int[] notScalar = {52, 53, 54, 55, 71, 105};
+        int[] missingValues = {81, 82, 83};
+        List<Integer> omit = new ArrayList<>();
+//        for (int i : discrete) omit.add(i);
+//        for (int i : notScalar) omit.add(i);
+//        for (int i : missingValues) omit.add(i);
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
         DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
@@ -1054,18 +1058,16 @@ public class CalibrationQuestion {
         for (int i = 1; i <= initialSegment; i++) {
             System.out.print(i);
 
-//            if (notScalar.contains(i)) {
-//                System.out.println("NOT SCALAR");
-//                ambiguous.add(i);
-//                continue;
-//            }
+            if (omit.contains(i)) {
+                System.out.println(" OMITTED");
+                ambiguous.add(i);
+                continue;
+            }
 
             DataSet dataSet = dataSets.get(i - 1);
 
             int x0 = 0;
             int y0 = 1;
-
-
 
             if (i == 52) {
                 x0 = 0;
@@ -1177,7 +1179,7 @@ public class CalibrationQuestion {
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(x), nodes.get(y));
 
-        Fask fask = new Fask(dataSet, g);//new IndTestCorrelationT(dataSet, 0.001));
+        Fask fask = new Fask(dataSet, g);//new IndTestCorrelationT(dataSet, 0.1));
         fask.setAlpha(0.00);
         fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);
@@ -1196,6 +1198,13 @@ public class CalibrationQuestion {
             System.out.println("2-CYCLE");
             return 0;
         }
+
+//        System.out.println("Confidence = " + fask.getConfidence(nodes.get(x), nodes.get(y)));
+
+//        if (fask.getConfidence(nodes.get(x), nodes.get(y)) > 0.001) {
+//            System.out.println("No confidence");
+//            return 0;
+//        }
 
         boolean _estLeftRight = out.getEdge(nodes.get(x), nodes.get(y)).pointsTowards(nodes.get(1));
 

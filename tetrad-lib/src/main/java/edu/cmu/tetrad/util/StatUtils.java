@@ -23,6 +23,7 @@ package edu.cmu.tetrad.util;
 
 import cern.colt.list.DoubleArrayList;
 import cern.jet.stat.Descriptive;
+import edu.cmu.tetrad.data.AndersonDarlingTest;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.CholeskyDecomposition;
@@ -1968,6 +1969,10 @@ public final class StatUtils {
         double negentropy = k2 * Math.pow(b1 - gamma, 2) + k1 * Math.pow(b2, 2);
 
         return gaussianEntropy - negentropy + log(xstd);
+    }
+
+    public static double ad(double array[]) {
+        return new AndersonDarlingTest(array).getASquaredStar();
     }
 
     public static double[] standardizeData(double[] data) {

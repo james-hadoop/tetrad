@@ -21,10 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
@@ -382,6 +379,13 @@ public final class Fask implements GraphSearch {
 
     private boolean leftRight2(double[] x, double[] y, Node X, Node Y) {
 
+        System.out.println("\nAD for x = " + StatUtils.ad(x));
+        System.out.println("AD for y = " + StatUtils.ad(y));
+
+        boolean flipForAd = StatUtils.ad(x) > 20 && StatUtils.ad(y) > 20;
+
+
+
 //        if (r > 0) {
 //            y = Arrays.copyOf(y, y.length);
 //            for (int i = 0; i < y.length; i++) y[i] = -y[i];
@@ -396,6 +400,7 @@ public final class Fask implements GraphSearch {
                 x[i] = x[i] - res[i];
             }
         }
+
 
         final double cxyx = cov(x, y, x);
         final double cxyy = cov(x, y, y);
@@ -425,6 +430,8 @@ public final class Fask implements GraphSearch {
         double p = 2.0 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(zdiff)));
 
         confidence.put(new NodePair(X, Y), p);
+
+        if (flipForAd) lr = -lr;
 
         return lr > 0;
     }
