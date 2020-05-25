@@ -1971,8 +1971,12 @@ public final class StatUtils {
         return gaussianEntropy - negentropy + log(xstd);
     }
 
-    public static double ad(double array[]) {
-        return new AndersonDarlingTest(array).getASquaredStar();
+    public static double ad(double[] array, boolean aSqaredStar) {
+        if (aSqaredStar) {
+            return new AndersonDarlingTest(array).getASquaredStar();
+        } else {
+            return new AndersonDarlingTest(array).getASquared();
+        }
     }
 
     public static double[] standardizeData(double[] data) {

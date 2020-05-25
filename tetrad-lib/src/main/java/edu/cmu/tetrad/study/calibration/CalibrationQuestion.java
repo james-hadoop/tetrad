@@ -1004,7 +1004,7 @@ public class CalibrationQuestion {
         boolean useWeightsFromFile = false;
         int maxN = 1500;
         int initialSegment = 100;
-        double delta = -.95;
+        double delta = 1;
         int smoothSkewIntervals = 20;
         int smoothSkewMinCount = 8;
         double cutoffp =  1;
@@ -1042,7 +1042,7 @@ public class CalibrationQuestion {
             if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             dataSets.add(dataSet);
 
-
+            writeResData(dataSet, i);
         }
 
 
@@ -1179,7 +1179,8 @@ public class CalibrationQuestion {
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(x), nodes.get(y));
 
-        Fask fask = new Fask(dataSet, g);//new IndTestCorrelationT(dataSet, 0.1));
+        Fask fask = new Fask(dataSet, g);
+//        Fask fask = new Fask(dataSet, new IndTestCorrelationT(dataSet, 0.1));
         fask.setAlpha(0.00);
         fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);
@@ -1298,5 +1299,24 @@ public class CalibrationQuestion {
         }
 
         return newDataSet;
+    }
+
+    private static void writeResData(DataSet dataSet, int i) {
+        double[] x = dataSet.copy().getDoubleData().transpose().toArray()[0];
+        double[] y = dataSet.copy().getDoubleData().transpose().toArray()[1];
+
+        double[] rxy = Fask.residuals(x, y);
+
+
+        for (int j = 0; j < x.length; j++) y[j] -= rxy[j];
+        double[][] res = new double[][]{x, rxy};
+
+        List<Node> vars = new ArrayList<>();
+        vars.add(new ContinuousVariable("x"));
+        vars.add(new ContinuousVariable("rxy"));
+
+        DataSet dataSet1 = new BoxDataSet(new VerticalDoubleDataBox(res), vars);
+
+        writeDataSet(new File("/Users/user/Box/data/pairs/resdata"), i, dataSet1);
     }
 }
