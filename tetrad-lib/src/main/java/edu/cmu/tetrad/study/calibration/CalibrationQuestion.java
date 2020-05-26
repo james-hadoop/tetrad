@@ -1004,7 +1004,7 @@ public class CalibrationQuestion {
         boolean useWeightsFromFile = false;
         int maxN = 1500;
         int initialSegment = 100;
-        double delta = 1;
+        double delta = -1;
         int smoothSkewIntervals = 20;
         int smoothSkewMinCount = 8;
         double cutoffp =  1;
@@ -1014,7 +1014,7 @@ public class CalibrationQuestion {
         int[] missingValues = {81, 82, 83};
         List<Integer> omit = new ArrayList<>();
 //        for (int i : discrete) omit.add(i);
-//        for (int i : notScalar) omit.add(i);
+        for (int i : notScalar) omit.add(i);
 //        for (int i : missingValues) omit.add(i);
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
@@ -1168,9 +1168,9 @@ public class CalibrationQuestion {
 
         System.out.println();
         System.out.println("Correct Direction: " + selected.get(0).size());
-        System.out.println("Wrong Direction: " + selected.get(1));
+        System.out.println("Wrong Direction: " + selected.get(1).size());
 
-        System.out.println("Didn't classify: " + ambiguous);
+        System.out.println("Didn't classify: " + ambiguous.size());
     }
 
     private static int getFaskDirection(DataSet dataSet, double delta, int smoothSkewIntervals,
@@ -1179,8 +1179,7 @@ public class CalibrationQuestion {
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(x), nodes.get(y));
 
-        Fask fask = new Fask(dataSet, g);
-//        Fask fask = new Fask(dataSet, new IndTestCorrelationT(dataSet, 0.1));
+        Fask fask = new Fask(dataSet, g);//new IndTestCorrelationT(dataSet, 0.1));
         fask.setAlpha(0.00);
         fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);

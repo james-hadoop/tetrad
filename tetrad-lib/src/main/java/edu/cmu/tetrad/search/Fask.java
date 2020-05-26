@@ -378,78 +378,24 @@ public final class Fask implements GraphSearch {
     }
 
     private boolean leftRight2(double[] x, double[] y, Node X, Node Y) {
+        double r = StatUtils.correlation(x, y);
 
-        boolean star = false;
-
-        System.out.println("\nAD for x = " + StatUtils.ad(x, star));
-        System.out.println("AD for y = " + StatUtils.ad(y, star));
-
-        boolean flipForAd = StatUtils.ad(x, star) > 19.5 && StatUtils.ad(y, star) > 19.5;
-
-
-//        if (r > 0) {
-//            y = Arrays.copyOf(y, y.length);
-//            for (int i = 0; i < y.length; i++) y[i] = -y[i];
-//        }
-
-//        if (isRemoveNonlinearTrend()) {
-//            x = Arrays.copyOf(x, x.length);
-//
-//            double[] res = residuals(y, x);
-//
-//            for (int i = 0; i < x.length; i++) {
-//                x[i] = x[i] - res[i];
-//            }
-//        }
-
-        if (isRemoveNonlinearTrend()) {
-            x = Arrays.copyOf(x, x.length);
-            y = Arrays.copyOf(y, y.length);
-
-            double[] res = residuals(x, y);
-
-            String i1 = smoothlySkewed(x, res, 18, 10, true);
-            String i2 = smoothlySkewed(x, res, 18, 10, false);
-//
-            System.out.println("above rxy = 0 = " + i1 + " below rxy = 0 = " + i2);
-
-            // Extract the "non-additive" part of the distribution for x = g(y) + rxy. We were plotting
-            // x versus y and doing FASK that way. Insteadk we will plot x versus (g(y) + rxy) - rxy)
-            // so x versus g(y) and run FASK on these two variables (x versus g(y)). If g is additive,
-            // x versus g(y) should yield a straight line.
-            for (int i = 0; i < x.length; i++) {
-                y[i] = y[i] - res[i];
-            }
-
-//            final List<Integer> indices = new ArrayList<>();
-//            for (int i = 0; i < x.length; i++) indices.add(i);
-//
-//            final double[] _x = Arrays.copyOf(x, x.length);
-//            final double[] _y = Arrays.copyOf(y, y.length);
-//
-//            Collections.sort(indices, new Comparator<Integer>() {
-//                @Override
-//                public int compare(Integer o1, Integer o2) {
-//                    return Double.compare(_x[o1], _x[o2]);
-//                }
-//            });
-//
-//            double deltarx0 = res[indices.get(res.length - 1)] - res[indices.get(0)];
-//            double deltax0 = _x[indices.get(res.length - 1)] - _x[indices.get(0)];
-//            double b = deltarx0 / deltax0;
-//            boolean same = true;
-//
-//            for (int i = 2; i < res.length - 1; i++) {
-//                double deltax = x[indices.get(i)] - x[indices.get(0)];
-//                if (deltax != 0) {
-//                    double pred = b * deltax;
-//                    if (abs(res[indices.get(i)] - pred) > 1) same = false;
-//                }
-//            }
-//
-//            if (same) System.out.println("Collinear");
+        if (r < 0) {
+            for (int i = 0; i < x.length; i++) x[i] *= -1;
         }
 
+        boolean flipForAD = StatUtils.ad(x, false) > 20 && StatUtils.ad(y, false) > 20;
+
+        removeNonlinearTrend = true;
+        if (isRemoveNonlinearTrend()) {
+            x = Arrays.copyOf(x, x.length);
+
+            double[] res = residuals(y, x);
+
+            for (int i = 0; i < x.length; i++) {
+                x[i] = x[i] - res[i];
+            }
+        }
 
         final double cxyx = cov(x, y, x);
         final double cxyy = cov(x, y, y);
@@ -459,10 +405,9 @@ public final class Fask implements GraphSearch {
         final double cyyy = cov(y, y, y);
 
         double lr = (cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy));
-        double r = StatUtils.correlation(x, y);
 
-        if (r > delta) {
-//            lr *= -1;
+        if (r < delta) {
+            lr *= -1;
         }
 
         double n1 = cov2(x, y, x)[1];
@@ -480,12 +425,9 @@ public final class Fask implements GraphSearch {
 
         confidence.put(new NodePair(X, Y), p);
 
-        if (flipForAd) {
-            System.out.println("High ADs");
-            lr = -lr;
-        }
+        if (flipForAD) lr *= -1;
 
-        return -lr > 0;
+        return lr > 0;
     }
 
     private boolean leftRightMinnesota(double[] x, double[] y) {
@@ -510,10 +452,6 @@ public final class Fask implements GraphSearch {
         double lr = Q - R;
 
         final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
-//
-//        if (sk_ey < 0) {
-//            lr *= -1;
-//        }
 
         final double a = correlation(x, y);
 
@@ -706,7 +644,7 @@ public final class Fask implements GraphSearch {
         this.delta = delta;
     }
 
-    private static String smoothlySkewed(double[] x, double[] y, int numIntervals, int minCount, boolean upper) {
+    private static int smoothlySkewed(double[] x, double[] y, int numIntervals, int minCount) {
         double minP = 0;
         double maxX = 1;
         int right = 0;
@@ -723,9 +661,6 @@ public final class Fask implements GraphSearch {
 
             double max = StatUtils.max(x);
             double min = StatUtils.min(x);
-
-            if (upper && bottom < 0) continue;
-            if (!upper && top > 0) continue;
 
             for (int i = 0; i < numIntervals; i++) {
                 double b = (i + 1) * (max(abs(min), abs(max)) / numIntervals);
@@ -748,9 +683,7 @@ public final class Fask implements GraphSearch {
             }
         }
 
-        return "left = " + left + " right = " + right;
-
-//        return Integer.compare(left, right);
+        return Integer.compare(left, right);
     }
 
     public static double skewness(double[] x, double[] y, double left, double right) {
@@ -823,10 +756,15 @@ public final class Fask implements GraphSearch {
      * and the second double[] array contains the resituls for x.
      */
     public static double[] residuals(final double[] y, final double[] x) {
+
         int N = y.length;
-        double[] residuals = new double[N];
-        double[] sum = new double[N];
-        double[] totalWeight = new double[N];
+
+        double[] residualsy = new double[N];
+
+        double[] sumy = new double[N];
+
+        double[] totalWeighty = new double[N];
+
         double h = h1(x);
 
         for (int j = 0; j < N; j++) {
@@ -834,17 +772,17 @@ public final class Fask implements GraphSearch {
 
             for (int i = 0; i < N; i++) {
                 double d = distance(x, i, j);
-                double k = kernelGaussian(d, 1, h);
-                sum[i] += k * yj;
-                totalWeight[i] += k;
+                double k = kernelGaussian(d, 5, h);
+                sumy[i] += k * yj;
+                totalWeighty[i] += k;
             }
         }
 
         for (int i = 0; i < N; i++) {
-            residuals[i] = (y[i] - sum[i] / totalWeight[i]);
+            residualsy[i] = y[i] - sumy[i] / totalWeighty[i];
         }
 
-        return residuals;
+        return residualsy;
     }
 
     private static double h1(double[] xCol) {
