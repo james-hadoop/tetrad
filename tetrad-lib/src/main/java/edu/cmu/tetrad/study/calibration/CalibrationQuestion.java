@@ -1002,26 +1002,26 @@ public class CalibrationQuestion {
 
         // Parameters.
         boolean useWeightsFromFile = false;
-        int maxN = 1500;
+        int maxN = 500;
         int initialSegment = 100;
         double delta = -1;
         int smoothSkewIntervals = 20;
         int smoothSkewMinCount = 8;
         double cutoffp =  1;
 
-        int[] discrete = {47, 70, 71, 85, 95, 107};
+        int[] discrete = {47, 70, 71, 85, 107};//, 5, 6, 7, 8, 9, 10, 11};
         int[] notScalar = {52, 53, 54, 55, 71, 105};
         int[] missingValues = {81, 82, 83};
         List<Integer> omit = new ArrayList<>();
 //        for (int i : discrete) omit.add(i);
-        for (int i : notScalar) omit.add(i);
+//        for (int i : notScalar) omit.add(i);
 //        for (int i : missingValues) omit.add(i);
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
         DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
 
         List<List<Integer>> selected = new ArrayList<>();
-        List<Integer> ambiguous = new ArrayList<>();
+        List<Integer> omitted = new ArrayList<>();
 
         for (int i = 0; i < 2; i++) {
             selected.add(new ArrayList<>());
@@ -1058,10 +1058,14 @@ public class CalibrationQuestion {
         for (int i = 1; i <= initialSegment; i++) {
             System.out.print(i);
 
-            if (omit.contains(i)) {
+            if (Arrays.binarySearch(discrete, i) > -1) {
+                System.out.println(" DISCRETE");
+                omitted.add(i);
+//                continue;
+            } else if (omitted.contains(i)) {
                 System.out.println(" OMITTED");
-                ambiguous.add(i);
-                continue;
+                omitted.add(i);
+//                continue;
             }
 
             DataSet dataSet = dataSets.get(i - 1);
@@ -1118,7 +1122,7 @@ public class CalibrationQuestion {
             boolean groundTruthDirection = category.equals("->");
 
             int estLeftRight = getFaskDirection(dataSet, delta, smoothSkewIntervals,
-                    smoothSkewMinCount, x0, y0);
+                    smoothSkewMinCount, x0, y0, omit.contains(i));
 
             boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
                     || ((!groundTruthDirection && estLeftRight == -1));
@@ -1130,7 +1134,7 @@ public class CalibrationQuestion {
             } else if (wrongDirection) {
                 selected.get(1).add(i);
             } else {
-                ambiguous.add(i);
+                omitted.add(i);
                 ambiguousCount += weight;
             }
 
@@ -1169,32 +1173,33 @@ public class CalibrationQuestion {
         System.out.println("Correct Direction: " + selected.get(0).size());
         System.out.println("Wrong Direction: " + selected.get(1).size());
 
-        System.out.println("Didn't classify: " + ambiguous.size());
+        System.out.println("Didn't classify: " + omitted.size());
     }
 
     private static int getFaskDirection(DataSet dataSet, double delta, int smoothSkewIntervals,
-                                        int smoothSkewMinCounts, int x, int y) {
+                                        int smoothSkewMinCounts, int x, int y, boolean omit) {
         Graph g = new EdgeListGraph(dataSet.getVariables());
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(x), nodes.get(y));
 
         Fask fask = new Fask(dataSet, g);//new IndTestCorrelationT(dataSet, 0.1));
-        fask.setAlpha(0.00);
+        fask.setAlpha(0);
         fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);
         fask.setDelta(delta);
         fask.setSmoothSkewIntervals(smoothSkewIntervals);
         fask.setSmoothSkewMinCount(smoothSkewMinCounts);
         fask.setRemoveNonlinearTrend(true);
+        fask.setOmit(omit);
         Graph out = fask.search();
 
         if (out.getEdges(nodes.get(x), nodes.get(y)).isEmpty()) {
-            System.out.println("INDEPENDENT");
+            System.out.println(" INDEPENDENT");
             return 0;
         }
 
         if (out.getEdges(nodes.get(x), nodes.get(y)).size() == 2) {
-            System.out.println("2-CYCLE");
+            System.out.println(" 2-CYCLE");
             return 0;
         }
 
@@ -1303,15 +1308,14 @@ public class CalibrationQuestion {
         double[] x = dataSet.copy().getDoubleData().transpose().toArray()[0];
         double[] y = dataSet.copy().getDoubleData().transpose().toArray()[1];
 
-        double[] rxy = Fask.residuals(x, y);
+        double[] r = Fask.residuals(y, x);
 
-
-        for (int j = 0; j < x.length; j++) y[j] -= rxy[j];
-        double[][] res = new double[][]{x, rxy};
+        for (int j = 0; j < x.length; j++) x[j] -= r[j];
+        double[][] res = new double[][]{x, r};
 
         List<Node> vars = new ArrayList<>();
-        vars.add(new ContinuousVariable("x"));
-        vars.add(new ContinuousVariable("rxy"));
+        vars.add(new ContinuousVariable("C1"));
+        vars.add(new ContinuousVariable("C2"));
 
         DataSet dataSet1 = new BoxDataSet(new VerticalDoubleDataBox(res), vars);
 

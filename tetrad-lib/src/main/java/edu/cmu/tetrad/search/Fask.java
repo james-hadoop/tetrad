@@ -21,15 +21,11 @@
 
 package edu.cmu.tetrad.search;
 
-import cern.jet.random.StudentT;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
-import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
-import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.util.*;
@@ -92,6 +88,7 @@ public final class Fask implements GraphSearch {
 
     private Map<NodePair, Double> confidence = new HashMap<>();
     private boolean removeNonlinearTrend = false;
+    private boolean omit = false;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -168,6 +165,8 @@ public final class Fask implements GraphSearch {
 
         SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
 
+//        System.out.println("Orientation");
+
         Graph graph = new EdgeListGraph(variables);
 
         for (int i = 0; i < variables.size(); i++) {
@@ -189,13 +188,21 @@ public final class Fask implements GraphSearch {
                         graph.addDirectedEdge(X, Y);
                     } else if (knowledgeOrients(Y, X)) {
                         graph.addDirectedEdge(Y, X);
-                    } else if (alpha > 0.0 && bidirected(x, y, G0, X, Y)) {
+                    } else if (alpha > 0.0 && bidirected(x, y, G0, X, Y) == 1) {
                         Edge edge1 = Edges.directedEdge(X, Y);
                         Edge edge2 = Edges.directedEdge(Y, X);
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else {
-                        if (leftRight2(x, y, X, Y)) {
+                        boolean lrxy;
+
+                        try {
+                            lrxy = leftRight2(x, y, X, Y);
+                        } catch (Exception e) {
+                            return graph;
+                        }
+
+                        if (lrxy) {
                             graph.addDirectedEdge(X, Y);
                         } else {
                             graph.addDirectedEdge(Y, X);
@@ -274,7 +281,7 @@ public final class Fask implements GraphSearch {
 //        return fges.search();
 //    }
 
-    private boolean bidirected(double[] x, double[] y, Graph G0, Node X, Node Y) {
+    private int bidirected(double[] x, double[] y, Graph G0, Node X, Node Y) {
 
         Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));
         adjSet.addAll(G0.getAdjacentNodes(Y));
@@ -304,9 +311,11 @@ public final class Fask implements GraphSearch {
                 pc1 = partialCorrelation(x, y, _Z, x, 0, +1);
                 pc2 = partialCorrelation(x, y, _Z, y, 0, +1);
             } catch (SingularMatrixException e) {
-                System.out.println("Singularity X = " + X + " Y = " + Y + " adj = " + adj);
-                TetradLogger.getInstance().log("info", "Singularity X = " + X + " Y = " + Y + " adj = " + adj);
-                continue;
+                System.out.println(" Singularity");
+                return 0;
+            } catch (org.apache.commons.math3.linear.NonPositiveDefiniteMatrixException e) {
+                System.out.println(" Not positive definite");
+                return 0;
             }
 
             int nc = StatUtils.getRows(x, Double.NEGATIVE_INFINITY, +1).size();
@@ -334,11 +343,11 @@ public final class Fask implements GraphSearch {
             }
 
             if (!possibleTwoCycle) {
-                return false;
+                return -1;
             }
         }
 
-        return true;
+        return 1;
     }
 
     private boolean leftRight(double[] x, double[] y) {
@@ -365,6 +374,7 @@ public final class Fask implements GraphSearch {
 
         boolean flipForAD = StatUtils.ad(x, false) > cutoff
                 && StatUtils.ad(y, false) > cutoff;
+
         double a = StatUtils.correlation(x, y);
 
         if (a < 0) {
@@ -372,10 +382,10 @@ public final class Fask implements GraphSearch {
         }
 
         if (isRemoveNonlinearTrend()) {
-            double[] res = residuals(x, y);
+            double[] res = residuals(y, x);
 
             for (int i = 0; i < x.length; i++) {
-                y[i] = y[i] - res[i];
+                x[i] = x[i] - res[i];
             }
         }
 
@@ -386,7 +396,7 @@ public final class Fask implements GraphSearch {
         final double cxxy = cov(x, x, y);
         final double cyyy = cov(y, y, y);
 
-        double lr = -((cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy)));
+        double lr = ((cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy)));
 
 //        double n1 = cov2(x, y, x)[1];
 //        double n2 = cov2(x, y, y)[1];
@@ -406,9 +416,14 @@ public final class Fask implements GraphSearch {
 
 //        System.out.println("\nConfidence = " + (1 - p));
 
-        if (a < 0) lr *= -1;
-
-        if (flipForAD) lr *= -1;
+//        if (a < delta) lr *= -1;
+//
+//        if (flipForAD) {
+//            System.out.println(" FLIP FOR AD");
+//            lr *= -1;
+//        }
+//
+//        if (isOmit()) lr *= -1;
 
         return lr > 0;
     }
@@ -742,11 +757,11 @@ public final class Fask implements GraphSearch {
 
         int N = y.length;
 
-        double[] residualsy = new double[N];
+        double[] residuals = new double[N];
 
-        double[] sumy = new double[N];
+        double[] sum = new double[N];
 
-        double[] totalWeighty = new double[N];
+        double[] totalWeight = new double[N];
 
         double h = h1(x);
 
@@ -756,16 +771,16 @@ public final class Fask implements GraphSearch {
             for (int i = 0; i < N; i++) {
                 double d = distance(x, i, j);
                 double k = kernelGaussian(d, 5, h);
-                sumy[i] += k * yj;
-                totalWeighty[i] += k;
+                sum[i] += k * yj;
+                totalWeight[i] += k;
             }
         }
 
         for (int i = 0; i < N; i++) {
-            residualsy[i] = y[i] - sumy[i] / totalWeighty[i];
+            residuals[i] = y[i] - sum[i] / totalWeight[i];
         }
 
-        return residualsy;
+        return residuals;
     }
 
     private static double h1(double[] xCol) {
@@ -806,6 +821,14 @@ public final class Fask implements GraphSearch {
 
     public void setRemoveNonlinearTrend(boolean removeNonlinearTrend) {
         this.removeNonlinearTrend = removeNonlinearTrend;
+    }
+
+    public boolean isOmit() {
+        return omit;
+    }
+
+    public void setOmit(boolean omit) {
+        this.omit = omit;
     }
 }
 
