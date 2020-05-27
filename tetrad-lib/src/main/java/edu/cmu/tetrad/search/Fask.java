@@ -21,6 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
+import cern.jet.random.StudentT;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
@@ -28,6 +29,7 @@ import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.util.*;
@@ -166,8 +168,6 @@ public final class Fask implements GraphSearch {
 
         SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
 
-//        System.out.println("Orientation");
-
         Graph graph = new EdgeListGraph(variables);
 
         for (int i = 0; i < variables.size(); i++) {
@@ -195,24 +195,7 @@ public final class Fask implements GraphSearch {
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else {
-                        boolean lrxy;
-                        try {
-                            lrxy = leftRight2(x, y, X, Y);
-                        } catch (Exception e) {
-//                            e.printStackTrace();
-                            return graph;
-                        }
-//                        boolean lryx = leftRight(y, x);
-
-//                        if (lrxy && !lryx) {
-//                            graph.addDirectedEdge(X, Y);
-//                        }
-//
-//                        if (lryx && !lrxy) {
-//                            graph.addDirectedEdge(Y, X);
-//                        }
-
-                        if (lrxy) {
+                        if (leftRight2(x, y, X, Y)) {
                             graph.addDirectedEdge(X, Y);
                         } else {
                             graph.addDirectedEdge(Y, X);
@@ -221,9 +204,6 @@ public final class Fask implements GraphSearch {
                 }
             }
         }
-
-//        System.out.println();
-//        System.out.println("Done");
 
         long stop = System.currentTimeMillis();
         this.elapsed = stop - start;
@@ -378,22 +358,24 @@ public final class Fask implements GraphSearch {
     }
 
     private boolean leftRight2(double[] x, double[] y, Node X, Node Y) {
-        double r = StatUtils.correlation(x, y);
+        x = Arrays.copyOf(x, x.length);
+        y = Arrays.copyOf(y, y.length);
 
-        if (r < 0) {
+        double cutoff = 25;
+
+        boolean flipForAD = StatUtils.ad(x, false) > cutoff
+                && StatUtils.ad(y, false) > cutoff;
+        double a = StatUtils.correlation(x, y);
+
+        if (a < 0) {
             for (int i = 0; i < x.length; i++) x[i] *= -1;
         }
 
-        boolean flipForAD = StatUtils.ad(x, false) > 20 && StatUtils.ad(y, false) > 20;
-
-        removeNonlinearTrend = true;
         if (isRemoveNonlinearTrend()) {
-            x = Arrays.copyOf(x, x.length);
-
-            double[] res = residuals(y, x);
+            double[] res = residuals(x, y);
 
             for (int i = 0; i < x.length; i++) {
-                x[i] = x[i] - res[i];
+                y[i] = y[i] - res[i];
             }
         }
 
@@ -404,26 +386,27 @@ public final class Fask implements GraphSearch {
         final double cxxy = cov(x, x, y);
         final double cyyy = cov(y, y, y);
 
-        double lr = (cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy));
+        double lr = -((cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy)));
 
-        if (r < delta) {
-            lr *= -1;
-        }
+//        double n1 = cov2(x, y, x)[1];
+//        double n2 = cov2(x, y, y)[1];
+//
+//        double c1 = cxyx / sqrt(cxxx * cyyx);
+//        double c2 = cxyy / sqrt(cxxy * cyyy);
+//
+//        double z1 = 0.5 * sqrt(n1) * (log(1 + c1) - log(1 - c1));
+//        double z2 = 0.5 * sqrt(n2) * (log(1 + c2) - log(1 - c2));
+//
+//        double zdiff = (z1 - z2) / sqrt((1. / (n1 - 3) + 1. / (n2 - 3)));
+//
+//        double p = 2.0 * (1 - new TDistribution(x.length - 1)
+//                .cumulativeProbability(abs(zdiff)));
+//
+//        confidence.put(new NodePair(X, Y), p);
 
-        double n1 = cov2(x, y, x)[1];
-        double n2 = cov2(x, y, y)[1];
+//        System.out.println("\nConfidence = " + (1 - p));
 
-        double c1 = cxyx / sqrt(cxxx * cyyx);
-        double c2 = cxyy / sqrt(cxxy * cyyy);
-
-        double z1 = 0.5 * sqrt(n1) * (log(1 + c1) - log(1 - c1));
-        double z2 = 0.5 * sqrt(n2) * (log(1 + c2) - log(1 - c2));
-
-        double zdiff = (z1 - z2) / sqrt((1. / (n1 - 3) + 1. / (n2 - 3)));
-
-        double p = 2.0 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(zdiff)));
-
-        confidence.put(new NodePair(X, Y), p);
+        if (a < 0) lr *= -1;
 
         if (flipForAD) lr *= -1;
 

@@ -1117,9 +1117,8 @@ public class CalibrationQuestion {
 
             boolean groundTruthDirection = category.equals("->");
 
-
             int estLeftRight = getFaskDirection(dataSet, delta, smoothSkewIntervals,
-                    smoothSkewMinCount, cutoffp, x0, y0);
+                    smoothSkewMinCount, x0, y0);
 
             boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
                     || ((!groundTruthDirection && estLeftRight == -1));
@@ -1174,7 +1173,7 @@ public class CalibrationQuestion {
     }
 
     private static int getFaskDirection(DataSet dataSet, double delta, int smoothSkewIntervals,
-                                        int smoothSkewMinCounts, double cutoffp, int x, int y) {
+                                        int smoothSkewMinCounts, int x, int y) {
         Graph g = new EdgeListGraph(dataSet.getVariables());
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(x), nodes.get(y));
