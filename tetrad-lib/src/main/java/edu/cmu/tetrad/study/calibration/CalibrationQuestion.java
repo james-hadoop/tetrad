@@ -1205,10 +1205,10 @@ public class CalibrationQuestion {
 
 //        System.out.println("Confidence = " + fask.getConfidence(nodes.get(x), nodes.get(y)));
 
-//        if (fask.getConfidence(nodes.get(x), nodes.get(y)) > 0.001) {
-//            System.out.println("No confidence");
+        if (fask.getConfidence(nodes.get(x), nodes.get(y)) < .9) {
+            System.out.println("No confidence");
 //            return 0;
-//        }
+        }
 
         boolean _estLeftRight = out.getEdge(nodes.get(x), nodes.get(y)).pointsTowards(nodes.get(1));
 
