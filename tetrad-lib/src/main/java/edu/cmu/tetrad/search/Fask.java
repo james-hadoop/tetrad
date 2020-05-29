@@ -186,6 +186,10 @@ public final class Fask implements GraphSearch {
 
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || abs(c1 - c2) > getExtraEdgeThreshold()) {
 //                    if (abs(lrxy) < delta) continue;
+
+                    System.out.print(X + " " +  Y + " ");
+                    effect(x, y);
+
                     if (edgeForbiddenByKnowledge(X, Y)) continue;
 
                     if (knowledgeOrients(X, Y)) {
@@ -391,6 +395,36 @@ public final class Fask implements GraphSearch {
         return 1;
     }
 
+    private boolean effect(double[] x, double[] y) {
+
+        double pc1;
+        double pc2;
+
+        try {
+            pc1 = partialCorrelation(x, y, new double[0][], x, 0, +1);
+            pc2 = partialCorrelation(x, y, new double[0][], y, 0, +1);
+        } catch (SingularMatrixException e) {
+            System.out.println(" Singularity");
+            return false;
+        } catch (org.apache.commons.math3.linear.NonPositiveDefiniteMatrixException e) {
+            System.out.println(" Not positive definite");
+            return false;
+        }
+
+        int nc1 = StatUtils.getRows(x, 0, +1).size();
+        int nc2 = StatUtils.getRows(y, 0, +1).size();
+
+
+        double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
+        double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
+
+        double zv1 = (z1 - z2) / sqrt((1.0 / ((double) nc1 - 3) + 1.0 / ((double) nc2 - 3)));
+
+        System.out.println("nc1 = " + nc1 + " nc2 = " + nc2 + " z1 = " + z1 + " z2 = " + z2 + " zv1 = " + zv1);
+
+        return abs(zv1) < cutoff;
+    }
+
     private boolean leftRight(double[] x, double[] y) {
         double left = cov(x, y, x) / (sqrt(cov(x, x, x) * cov(y, y, x)));
         double right = cov(x, y, y) / (sqrt(cov(x, x, y) * cov(y, y, y)));
@@ -449,6 +483,10 @@ public final class Fask implements GraphSearch {
 //                .cumulativeProbability(abs(zdiff)));
 //
 //        confidence.put(new NodePair(X, Y), p);
+
+//        if (a < delta) {
+//            lr *= -1;
+//        }
 
         return lr;
     }
