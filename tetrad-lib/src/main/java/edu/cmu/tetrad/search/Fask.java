@@ -182,33 +182,70 @@ public final class Fask implements GraphSearch {
                 double c1 = StatUtils.cov(x, y, x, 0, +1)[1];
                 double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
 
-                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (isUseSkewAdjacencies() && Math.abs(c1 - c2) > getExtraEdgeThreshold())) {
-                    if (edgeForbiddenByKnowledge(X, Y)) {
-                        // Don't add an edge.
-                    } else if (knowledgeOrients(X, Y)) {
+                double lrxy = leftRight2(x, y, X, Y);
+
+                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || abs(c1 - c2) > getExtraEdgeThreshold()) {
+//                    if (abs(lrxy) < delta) continue;
+                    if (edgeForbiddenByKnowledge(X, Y)) continue;
+
+                    if (knowledgeOrients(X, Y)) {
                         graph.addDirectedEdge(X, Y);
                     } else if (knowledgeOrients(Y, X)) {
                         graph.addDirectedEdge(Y, X);
-                    } else if (alpha > 0.0 && bidirected(x, y, G0, X, Y) == 1) {
-                        Edge edge1 = Edges.directedEdge(X, Y);
-                        Edge edge2 = Edges.directedEdge(Y, X);
-                        graph.addEdge(edge1);
-                        graph.addEdge(edge2);
-                    } else {
-                        boolean lrxy;
+                    }
+//                    else if (alpha > 0.0 && bidirected(x, y, G0, X, Y) == 1) {
+//                        Edge edge1 = Edges.directedEdge(X, Y);
+//                        Edge edge2 = Edges.directedEdge(Y, X);
+//                        graph.addEdge(edge1);
+//                        graph.addEdge(edge2);
+//                    }
+                    else {
 
-                        try {
-                            lrxy = leftRight2(x, y, X, Y);
-                        } catch (Exception e) {
-                            return graph;
-                        }
-
-                        if (lrxy) {
+                        if (lrxy > 0) {
                             graph.addDirectedEdge(X, Y);
                         } else {
                             graph.addDirectedEdge(Y, X);
                         }
                     }
+                }
+            }
+        }
+
+//        IndependenceTest ind = new IndTestCorrelationT(dataSet, 0.2);
+//
+//        for (Edge edge : graph.getEdges()) {
+//            Node x = edge.getNode1();
+//            Node y = edge.getNode2();
+//            List<Node> adjx = graph.getParents(x);
+//            List<Node> adjy = graph.getParents(y);
+//
+//            try {
+//                if (ind.isIndependent(x, y, adjx)) {
+//                    graph.removeEdge(x, y);
+//                } else if (ind.isIndependent(x, y, adjy)) {
+//                    graph.removeEdge(x, y);
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+
+        for (int i = 0; i < variables.size(); i++) {
+            for (int j = i + 1; j < variables.size(); j++) {
+                Node X = variables.get(i);
+                Node Y = variables.get(j);
+
+                if (!graph.isAdjacentTo(X, Y)) continue;
+
+                // Centered
+                final double[] x = colData[i];
+                final double[] y = colData[j];
+
+                if (alpha > 0.0 && bidirected(x, y, graph, X, Y) == 1) {
+                    Edge edge1 = Edges.directedEdge(X, Y);
+                    Edge edge2 = Edges.directedEdge(Y, X);
+                    graph.addEdge(edge1);
+                    graph.addEdge(edge2);
                 }
             }
         }
@@ -284,17 +321,20 @@ public final class Fask implements GraphSearch {
 
     private int bidirected(double[] x, double[] y, Graph G0, Node X, Node Y) {
 
-        Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));
-        adjSet.addAll(G0.getAdjacentNodes(Y));
+        Set<Node> adjSet = new HashSet<>(G0.getParents(X));
+        if (G0.getAdjacentNodes(Y).size() > adjSet.size()) {
+            adjSet = new HashSet<>(G0.getParents(Y));
+        }
+//        adjSet.addAll(G0.getParents(Y));
         List<Node> adj = new ArrayList<>(adjSet);
         adj.remove(X);
         adj.remove(Y);
 
-        DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), Math.min(depth, adj.size()));
-        int[] choice;
-
-        while ((choice = gen.next()) != null) {
-            List<Node> _adj = GraphUtils.asList(choice, adj);
+//        DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), Math.min(depth, adj.size()));
+//        int[] choice;
+//
+//        while ((choice = gen.next()) != null) {
+            List<Node> _adj = new ArrayList<>(adjSet);//GraphUtils.asList(choice, adj);
             double[][] _Z = new double[_adj.size()][];
 
             for (int f = 0; f < _adj.size(); f++) {
@@ -346,7 +386,7 @@ public final class Fask implements GraphSearch {
             if (!possibleTwoCycle) {
                 return -1;
             }
-        }
+//        }
 
         return 1;
     }
@@ -367,7 +407,7 @@ public final class Fask implements GraphSearch {
         return lr > 0;
     }
 
-    private boolean leftRight2(double[] x, double[] y, Node X, Node Y) {
+    private double leftRight2(double[] x, double[] y, Node X, Node Y) {
         x = Arrays.copyOf(x, x.length);
         y = Arrays.copyOf(y, y.length);
 
@@ -394,23 +434,23 @@ public final class Fask implements GraphSearch {
 
         double lr = ((cxyx / sqrt(cxxx * cyyx)) - (cxyy / sqrt(cxxy * cyyy)));
 
-        double n1 = cov2(x, y, x)[1];
-        double n2 = cov2(x, y, y)[1];
+//        double n1 = cov2(x, y, x)[1];
+//        double n2 = cov2(x, y, y)[1];
+//
+//        double c1 = cxyx / sqrt(cxxx * cyyx);
+//        double c2 = cxyy / sqrt(cxxy * cyyy);
+//
+//        double z1 = 0.5 * sqrt(n1) * (log(1 + c1) - log(1 - c1));
+//        double z2 = 0.5 * sqrt(n2) * (log(1 + c2) - log(1 - c2));
+//
+//        double zdiff = (z1 - z2) / sqrt((1. / (n1 - 3) + 1. / (n2 - 3)));
+//
+//        double p = 2.0 * (1 - new TDistribution(x.length - 1)
+//                .cumulativeProbability(abs(zdiff)));
+//
+//        confidence.put(new NodePair(X, Y), p);
 
-        double c1 = cxyx / sqrt(cxxx * cyyx);
-        double c2 = cxyy / sqrt(cxxy * cyyy);
-
-        double z1 = 0.5 * sqrt(n1) * (log(1 + c1) - log(1 - c1));
-        double z2 = 0.5 * sqrt(n2) * (log(1 + c2) - log(1 - c2));
-
-        double zdiff = (z1 - z2) / sqrt((1. / (n1 - 3) + 1. / (n2 - 3)));
-
-        double p = 2.0 * (1 - new TDistribution(x.length - 1)
-                .cumulativeProbability(abs(zdiff)));
-
-        confidence.put(new NodePair(X, Y), p);
-
-        return lr > 0;
+        return lr;
     }
 
     private boolean leftRightMinnesota(double[] x, double[] y) {
@@ -725,9 +765,9 @@ public final class Fask implements GraphSearch {
         return g;
     }
 
-    public double getConfidence(Node X, Node Y) {
-        return confidence.get(new NodePair(X, Y));
-    }
+//    public double getConfidence(Node X, Node Y) {
+//        return confidence.get(new NodePair(X, Y));
+//    }
 
     /**
      * Calculates the residuals of y regressed nonparametrically onto y. Left public
