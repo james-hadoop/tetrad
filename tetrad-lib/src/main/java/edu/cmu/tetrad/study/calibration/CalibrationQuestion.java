@@ -647,7 +647,7 @@ public class CalibrationQuestion {
                             IndependenceWrapper test = new FisherZ();
                             s = new Fask(data, test.getTest(data, parameters));
                             ((Fask) s).setUseSkewAdjacencies(true);
-                            ((Fask) s).setExtraEdgeThreshold(0.5);
+                            ((Fask) s).setSkewEdgeThreshold(0.5);
                             ((Fask) s).setAlpha(0.2);
                             break;
                     }
@@ -1185,13 +1185,10 @@ public class CalibrationQuestion {
 
         Fask fask = new Fask(dataSet, g);//new IndTestCorrelationT(dataSet, 0.1));
         fask.setAlpha(0.01);
-        fask.setExtraEdgeThreshold(0.05);
+        fask.setSkewEdgeThreshold(0.05);
         fask.setUseSkewAdjacencies(false);
-        fask.setDelta(0.);
-        fask.setSmoothSkewIntervals(smoothSkewIntervals);
-        fask.setSmoothSkewMinCount(smoothSkewMinCounts);
+        fask.setTwoCycleThreshold(0.);
         fask.setRemoveNonlinearTrend(true);
-        fask.setOmit(omit);
         Graph out = fask.search();
 
         if (out.getEdges(nodes.get(x), nodes.get(y)).isEmpty()) {
