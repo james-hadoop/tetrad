@@ -26,18 +26,16 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.util.StatUtils;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static edu.cmu.tetrad.util.StatUtils.correlation;
 import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 
 /**
- * Fast adjacency search followed by robust skew orientation. Checks are done for adding
- * two-cycles. The two-cycle checks do not require non-Gaussianity. The robust skew
- * orientation of edges left or right does.
+ * Runs the FASK (Fast Adjacency Skewnmess) algorithm.
  *
  * @author Joseph Ramsey
  */
@@ -54,18 +52,15 @@ public final class Fask implements GraphSearch {
 
     // The data sets being analyzed. They must all have the same variables and the same
     // number of records.
-    private DataSet dataSet = null;
+    private final DataSet dataSet;
 
     // For the Fast Adjacency Search.
     private int depth = -1;
 
-    // For the SEM BIC score, for the Fast Adjacency Search.
-    private double penaltyDiscount = 1;
-
     // Knowledge the the search will obey, of forbidden and required edges.
     private IKnowledge knowledge = new Knowledge2();
 
-    // A threshold for including extra adjacencies due to skewness. Defauls is 0 (no extra edges).
+    // A threshold for including extra adjacencies due to skewness. Default is 0 (no skew edges).
     private double skewEdgeThreshold = 0;
 
     // A theshold for making 2-cycles. Default is 0 (no 2-cycles.)
@@ -74,7 +69,7 @@ public final class Fask implements GraphSearch {
     // True if FAS adjacencies should be included in the output.
     private boolean useFasAdjacencies = true;
 
-//    private Map<NodePair, Double> confidence = new HashMap<>();
+    // True if the nonlinear trend between X and Y should be removed.
     private boolean removeNonlinearTrend = false;
 
     /**
@@ -113,7 +108,7 @@ public final class Fask implements GraphSearch {
     public Graph search() {
         long start = System.currentTimeMillis();
 
-        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
+        DataSet dataSet = DataUtils.center(this.dataSet);
 
         List<Node> variables = dataSet.getVariables();
         double[][] colData = dataSet.getDoubleData().transpose().toArray();
@@ -138,11 +133,6 @@ public final class Fask implements GraphSearch {
             fas.setVerbose(false);
             fas.setKnowledge(knowledge);
             G0 = fas.search();
-
-//            Fges fges = new Fges(new SemBicScore(new CovarianceMatrix(dataSet)));
-//            fges.setFaithfulnessAssumed(false);
-//            fges.setKnowledge(knowledge);
-//            G0 = fges.search();
         }
 
         SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
@@ -158,10 +148,8 @@ public final class Fask implements GraphSearch {
                 double[] x = colData[i];
                 double[] y = colData[j];
 
-                x = Arrays.copyOf(x, x.length);
-                y = Arrays.copyOf(y, y.length);
-
                 if (isRemoveNonlinearTrend()) {
+                    x = Arrays.copyOf(x, x.length);
                     double[] res = residuals(y, x);
 
                     for (int k = 0; k < x.length; k++) {
@@ -169,8 +157,8 @@ public final class Fask implements GraphSearch {
                     }
                 }
 
-                double[] corxyx = StatUtils.cov(x, y, x, 0, +1);
-                double[] corxyy = StatUtils.cov(x, y, y, 0, +1);
+                double[] corxyx = cov(x, y, x);
+                double[] corxyy = cov(x, y, y);
 
                 double c1 = corxyx[1];
                 double c2 = corxyy[1];
@@ -205,37 +193,16 @@ public final class Fask implements GraphSearch {
     }
 
     private double leftRight(double[] x, double[] y) {
-        double[] covx = StatUtils.cov(x, y, x, 0, +1);
-        double[] covy = StatUtils.cov(x, y, y, 0, +1);
+        double[] covx = cov(x, y, x);
+        double[] covy = cov(x, y, y);
 
-        double a = StatUtils.correlation(x, y);
+        double a = correlation(x, y);
 
         if (a < 0) {
             for (int i = 0; i < x.length; i++) x[i] *= -1;
         }
 
-        double lr = covx[8] - covy[8];
-
-//        double n1 = covx[4];
-//        double n2 = covy[4];
-//
-//        double s1 = covx[2];
-//        double s2 = covy[2];
-//
-//        double c1 = covx[8];
-//        double c2 = covy[8];
-//
-//        double z1 = 0.5 * (log(1 + c1) - log(1 - c1));
-//        double z2 = 0.5 * (log(1 + c2) - log(1 - c2));
-//
-//        double zdiff = (z1 - z2) / sqrt(((s1 * s1) / (n1 - 3)) + ((s2 * s2) / (n2 - 3)));
-//
-//        double p = 2.0 * (1 - new NormalDistribution(0, 1)
-//                .cumulativeProbability(abs(zdiff)));
-//
-//        confidence.put(new NodePair(X, Y), 1 - p);
-
-        return lr;
+        return covx[8] - covy[8];
     }
 
     /**
@@ -261,23 +228,6 @@ public final class Fask implements GraphSearch {
     }
 
     /**
-     * @return Returns the penalty discount used for the adjacency search. The default is 1,
-     * though a higher value is recommended, say, 2, 3, or 4.
-     */
-    public double getPenaltyDiscount() {
-        return penaltyDiscount;
-    }
-
-    /**
-     * @param penaltyDiscount Sets the penalty discount used for the adjacency search.
-     *                        The default is 1, though a higher value is recommended, say,
-     *                        2, 3, or 4.
-     */
-    public void setPenaltyDiscount(double penaltyDiscount) {
-        this.penaltyDiscount = penaltyDiscount;
-    }
-
-    /**
      * @return the current knowledge.
      */
     public IKnowledge getKnowledge() {
@@ -291,14 +241,12 @@ public final class Fask implements GraphSearch {
         this.knowledge = knowledge;
     }
 
-    //======================================== PRIVATE METHODS ====================================//
-
-    private boolean knowledgeOrients(Node left, Node right) {
-        return knowledge.isForbidden(right.getName(), left.getName()) || knowledge.isRequired(left.getName(), right.getName());
+    public boolean isRemoveNonlinearTrend() {
+        return removeNonlinearTrend;
     }
 
-    private boolean edgeForbiddenByKnowledge(Node left, Node right) {
-        return knowledge.isForbidden(right.getName(), left.getName()) && knowledge.isForbidden(left.getName(), right.getName());
+    public void setRemoveNonlinearTrend(boolean removeNonlinearTrend) {
+        this.removeNonlinearTrend = removeNonlinearTrend;
     }
 
     public Graph getInitialGraph() {
@@ -328,10 +276,6 @@ public final class Fask implements GraphSearch {
     public void setTwoCycleThreshold(double twoCycleThreshold) {
         this.twoCycleThreshold = twoCycleThreshold;
     }
-//
-//    public double getConfidence(Node X, Node Y) {
-//        return confidence.get(new NodePair(X, Y));
-//    }
 
     /**
      * Calculates the residuals of y regressed nonparametrically onto y. Left public
@@ -339,19 +283,13 @@ public final class Fask implements GraphSearch {
      * <p>
      * Here we want residuals of x regressed onto y. I'll tailor the method to that.
      *
-     * @return a double[2][] array. The first double[] array contains the residuals for y
-     * and the second double[] array contains the resituls for x.
+     * @return the nonlinear residuals of y regressed onto x.
      */
     public static double[] residuals(final double[] y, final double[] x) {
-
         int N = y.length;
-
         double[] residuals = new double[N];
-
         double[] sum = new double[N];
-
         double[] totalWeight = new double[N];
-
         double h = h1(x);
 
         for (int j = 0; j < N; j++) {
@@ -359,7 +297,7 @@ public final class Fask implements GraphSearch {
 
             for (int i = 0; i < N; i++) {
                 double d = distance(x, i, j);
-                double k = kernelGaussian(d, 50, h);
+                double k = kernelGaussian(d, h);
                 sum[i] += k * yj;
                 totalWeight[i] += k;
             }
@@ -370,6 +308,16 @@ public final class Fask implements GraphSearch {
         }
 
         return residuals;
+    }
+
+    //======================================== PRIVATE METHODS ====================================//
+
+    private boolean knowledgeOrients(Node left, Node right) {
+        return knowledge.isForbidden(right.getName(), left.getName()) || knowledge.isRequired(left.getName(), right.getName());
+    }
+
+    private boolean edgeForbiddenByKnowledge(Node left, Node right) {
+        return knowledge.isForbidden(right.getName(), left.getName()) && knowledge.isForbidden(left.getName(), right.getName());
     }
 
     private static double h1(double[] xCol) {
@@ -399,17 +347,43 @@ public final class Fask implements GraphSearch {
         return sqrt(sum);
     }
 
-    private static double kernelGaussian(double z, double width, double h) {
-        z /= width * h;
+    private static double kernelGaussian(double z, double h) {
+        z /= 50 * h;
         return Math.exp(-z * z);
     }
 
-    public boolean isRemoveNonlinearTrend() {
-        return removeNonlinearTrend;
-    }
+    private static double[] cov(double[] x, double[] y, double[] condition) {
+        double exy = 0.0;
+        double exx = 0.0;
+        double eyy = 0.0;
 
-    public void setRemoveNonlinearTrend(boolean removeNonlinearTrend) {
-        this.removeNonlinearTrend = removeNonlinearTrend;
+        double ex = 0.0;
+        double ey = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition[k] > 0) {
+                exy += x[k] * y[k];
+                exx += x[k] * x[k];
+                eyy += y[k] * y[k];
+                ex += x[k];
+                ey += y[k];
+                n++;
+            }
+        }
+
+        exy /= n;
+        exx /= n;
+        eyy /= n;
+        ex /= n;
+        ey /= n;
+
+        double sxy = exy - ex * ey;
+        double sx = exx - ex * ex;
+        double sy = eyy - ey * ey;
+
+        return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy)};
     }
 }
 

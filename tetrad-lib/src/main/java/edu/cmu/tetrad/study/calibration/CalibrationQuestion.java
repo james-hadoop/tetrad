@@ -646,9 +646,7 @@ public class CalibrationQuestion {
                             Parameters parameters = new Parameters();
                             IndependenceWrapper test = new FisherZ();
                             s = new Fask(data, test.getTest(data, parameters));
-                            ((Fask) s).setUseSkewAdjacencies(true);
                             ((Fask) s).setSkewEdgeThreshold(0.5);
-                            ((Fask) s).setAlpha(0.2);
                             break;
                     }
 
@@ -1004,18 +1002,10 @@ public class CalibrationQuestion {
         boolean useWeightsFromFile = false;
         int maxN = 500;
         int initialSegment = 100;
-        double delta = -1;
-        int smoothSkewIntervals = 20;
-        int smoothSkewMinCount = 8;
-        double cutoffp =  1;
 
-        int[] discrete = {47, 70, 71, 85, 107};//, 5, 6, 7, 8, 9, 10, 11};
+        int[] discrete = {47, 70, 71, 85, 107};
         int[] notScalar = {52, 53, 54, 55, 71, 105};
         int[] missingValues = {81, 82, 83};
-        List<Integer> omit = new ArrayList<>();
-//        for (int i : discrete) omit.add(i);
-//        for (int i : notScalar) omit.add(i);
-//        for (int i : missingValues) omit.add(i);
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
         DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
@@ -1058,13 +1048,8 @@ public class CalibrationQuestion {
         for (int i = 1; i <= initialSegment; i++) {
             System.out.print(i);
 
-            if (Arrays.binarySearch(discrete, i) > -1) {
-                System.out.println(" DISCRETE");
-                omitted.add(i);
-//                continue;
-            }
-//            else if (omitted.contains(i)) {
-//                System.out.println(" OMITTED");
+//            if (Arrays.binarySearch(discrete, i) > -1) {
+//                System.out.println(" DISCRETE");
 //                omitted.add(i);
 ////                continue;
 //            }
@@ -1122,8 +1107,7 @@ public class CalibrationQuestion {
 
             boolean groundTruthDirection = category.equals("->");
 
-            int estLeftRight = getFaskDirection(dataSet, delta, smoothSkewIntervals,
-                    smoothSkewMinCount, x0, y0, omit.contains(i));
+            int estLeftRight = getFaskDirection(dataSet, x0, y0);
 
             boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
                     || ((!groundTruthDirection && estLeftRight == -1));
@@ -1177,35 +1161,23 @@ public class CalibrationQuestion {
         System.out.println("Didn't classify: " + omitted);
     }
 
-    private static int getFaskDirection(DataSet dataSet, double delta, int smoothSkewIntervals,
-                                        int smoothSkewMinCounts, int x, int y, boolean omit) {
+    private static int getFaskDirection(DataSet dataSet, int x, int y) {
         Graph g = new EdgeListGraph(dataSet.getVariables());
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(x), nodes.get(y));
 
-        Fask fask = new Fask(dataSet, g);//new IndTestCorrelationT(dataSet, 0.1));
-        fask.setAlpha(0.01);
+        Fask fask = new Fask(dataSet, g);
         fask.setSkewEdgeThreshold(0.05);
-        fask.setUseSkewAdjacencies(false);
         fask.setTwoCycleThreshold(0.);
         fask.setRemoveNonlinearTrend(true);
         Graph out = fask.search();
 
         if (out.getEdges(nodes.get(x), nodes.get(y)).isEmpty()) {
             System.out.println(" INDEPENDENT");
-//            return 0;
         }
 
         if (out.getEdges(nodes.get(x), nodes.get(y)).size() == 2) {
             System.out.println(" 2-CYCLE");
-//            return 0;
-        }
-
-        System.out.println("Confidence = " + fask.getConfidence(nodes.get(x), nodes.get(y)));
-
-        if (fask.getConfidence(nodes.get(x), nodes.get(y)) < .85) {
-            System.out.println("No confidence ");
-//            return 0;
         }
 
         boolean _estLeftRight = out.getEdge(nodes.get(x), nodes.get(y)).pointsTowards(nodes.get(1));
