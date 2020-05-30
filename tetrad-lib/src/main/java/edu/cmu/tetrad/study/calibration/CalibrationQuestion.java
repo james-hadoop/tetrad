@@ -1062,11 +1062,12 @@ public class CalibrationQuestion {
                 System.out.println(" DISCRETE");
                 omitted.add(i);
 //                continue;
-            } else if (omitted.contains(i)) {
-                System.out.println(" OMITTED");
-                omitted.add(i);
-//                continue;
             }
+//            else if (omitted.contains(i)) {
+//                System.out.println(" OMITTED");
+//                omitted.add(i);
+////                continue;
+//            }
 
             DataSet dataSet = dataSets.get(i - 1);
 
@@ -1173,7 +1174,7 @@ public class CalibrationQuestion {
         System.out.println("Correct Direction: " + selected.get(0).size());
         System.out.println("Wrong Direction: " + selected.get(1).size());
 
-        System.out.println("Didn't classify: " + omitted.size());
+        System.out.println("Didn't classify: " + omitted);
     }
 
     private static int getFaskDirection(DataSet dataSet, double delta, int smoothSkewIntervals,
@@ -1183,10 +1184,10 @@ public class CalibrationQuestion {
         g.addUndirectedEdge(nodes.get(x), nodes.get(y));
 
         Fask fask = new Fask(dataSet, g);//new IndTestCorrelationT(dataSet, 0.1));
-        fask.setAlpha(0);
-        fask.setExtraEdgeThreshold(0);
+        fask.setAlpha(0.01);
+        fask.setExtraEdgeThreshold(0.05);
         fask.setUseSkewAdjacencies(false);
-        fask.setDelta(0.00004);
+        fask.setDelta(0.);
         fask.setSmoothSkewIntervals(smoothSkewIntervals);
         fask.setSmoothSkewMinCount(smoothSkewMinCounts);
         fask.setRemoveNonlinearTrend(true);
@@ -1195,20 +1196,20 @@ public class CalibrationQuestion {
 
         if (out.getEdges(nodes.get(x), nodes.get(y)).isEmpty()) {
             System.out.println(" INDEPENDENT");
-            return 0;
+//            return 0;
         }
 
         if (out.getEdges(nodes.get(x), nodes.get(y)).size() == 2) {
             System.out.println(" 2-CYCLE");
-            return 0;
+//            return 0;
         }
 
-//        System.out.println("Confidence = " + fask.getConfidence(nodes.get(x), nodes.get(y)));
+        System.out.println("Confidence = " + fask.getConfidence(nodes.get(x), nodes.get(y)));
 
-//        if (fask.getConfidence(nodes.get(x), nodes.get(y)) < .9) {
-//            System.out.println("No confidence");
-////            return 0;
-//        }
+        if (fask.getConfidence(nodes.get(x), nodes.get(y)) < .85) {
+            System.out.println("No confidence ");
+//            return 0;
+        }
 
         boolean _estLeftRight = out.getEdge(nodes.get(x), nodes.get(y)).pointsTowards(nodes.get(1));
 

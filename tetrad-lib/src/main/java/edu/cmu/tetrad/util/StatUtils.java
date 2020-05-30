@@ -2110,7 +2110,7 @@ public final class StatUtils {
         double sx = exx - ex * ex;
         double sy = eyy - ey * ey;
 
-        return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx};
+        return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy)};
     }
 
     public static double[][] covMatrix(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) {
