@@ -1186,7 +1186,7 @@ public class CalibrationQuestion {
         fask.setAlpha(0);
         fask.setExtraEdgeThreshold(0);
         fask.setUseSkewAdjacencies(false);
-        fask.setDelta(delta);
+        fask.setDelta(0.00004);
         fask.setSmoothSkewIntervals(smoothSkewIntervals);
         fask.setSmoothSkewMinCount(smoothSkewMinCounts);
         fask.setRemoveNonlinearTrend(true);
