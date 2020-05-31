@@ -26,7 +26,10 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.util.TetradLogger;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.List;
 
@@ -107,8 +110,9 @@ public final class Fask implements GraphSearch {
      */
     public Graph search() {
         long start = System.currentTimeMillis();
+        NumberFormat nf = new DecimalFormat("0.000");
 
-        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
+        DataSet dataSet = DataUtils.center(this.dataSet);
 
         List<Node> variables = dataSet.getVariables();
         double[][] colData = dataSet.getDoubleData().transpose().toArray();
@@ -139,6 +143,8 @@ public final class Fask implements GraphSearch {
 
         Graph graph = new EdgeListGraph(variables);
 
+        TetradLogger.getInstance().forceLogMessage("X\tY\tMethod\tLR\tEdge");
+
         for (int i = 0; i < variables.size(); i++) {
             for (int j = i + 1; j < variables.size(); j++) {
                 Node X = variables.get(i);
@@ -148,8 +154,10 @@ public final class Fask implements GraphSearch {
                 double[] x = colData[i];
                 double[] y = colData[j];
 
+                x = Arrays.copyOf(x, x.length);
+                y = Arrays.copyOf(y, y.length);
+
                 if (isRemoveNonlinearTrend()) {
-                    x = Arrays.copyOf(x, x.length);
                     double[] res = residuals(y, x);
 
                     for (int k = 0; k < x.length; k++) {
@@ -166,19 +174,45 @@ public final class Fask implements GraphSearch {
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(c1 - c2) > getSkewEdgeThreshold())) {
                     double lrxy = leftRight(x, y);
 
-                    if (edgeForbiddenByKnowledge(X, Y)) continue;
+                    if (edgeForbiddenByKnowledge(X, Y)) {
+                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tknowledge_forbidden"
+                                + "\t" + nf.format(lrxy)
+                                + "\t" + X + "<->" + Y
+                        );
+                        continue;
+                    }
 
                     if (knowledgeOrients(X, Y)) {
+                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tknowledge"
+                                + "\t" + nf.format(lrxy)
+                                + "\t" + X + "-->" + Y
+                        );
                         graph.addDirectedEdge(X, Y);
                     } else if (knowledgeOrients(Y, X)) {
+                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tknowledge"
+                                + "\t" + nf.format(lrxy)
+                                + "\t" + X + "<--" + Y
+                        );
                         graph.addDirectedEdge(Y, X);
                     } else if (abs(lrxy) < twoCycleThreshold) {
+                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
+                                + "\t" + nf.format(lrxy)
+                                + "\t" + X + "<=>" + Y
+                        );
                         graph.addDirectedEdge(X, Y);
                         graph.addDirectedEdge(Y, X);
                     } else {
                         if (lrxy > 0) {
+                            TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
+                                    + "\t" + nf.format(lrxy)
+                                    + "\t" + X + "-->" + Y
+                            );
                             graph.addDirectedEdge(X, Y);
                         } else {
+                            TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
+                                    + "\t" + nf.format(lrxy)
+                                    + "\t" + X + "<--" + Y
+                            );
                             graph.addDirectedEdge(Y, X);
                         }
                     }
