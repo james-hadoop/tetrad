@@ -1000,11 +1000,11 @@ public class CalibrationQuestion {
 
         // Parameters.
         boolean useWeightsFromFile = false;
-        int maxN = 500;
+        int maxN = 1000;
         int initialSegment = 100;
 
         int[] discrete = {47, 70, 71, 85, 107};
-        int[] notScalar = {52, 53, 54, 55, 71, 105};
+        int[] nonScalar = {52, 53, 54, 55, 71, 105};
         int[] missingValues = {81, 82, 83};
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
@@ -1048,11 +1048,17 @@ public class CalibrationQuestion {
         for (int i = 1; i <= initialSegment; i++) {
             System.out.print(i);
 
-//            if (Arrays.binarySearch(discrete, i) > -1) {
-//                System.out.println(" DISCRETE");
-//                omitted.add(i);
-////                continue;
-//            }
+            if (Arrays.binarySearch(discrete, i) > -1) {
+                System.out.println(" DISCRETE");
+                omitted.add(i);
+                continue;
+            }
+
+            if (Arrays.binarySearch(nonScalar, i) > -1) {
+                System.out.println(" NONSCALAR");
+                omitted.add(i);
+                continue;
+            }
 
             DataSet dataSet = dataSets.get(i - 1);
 
@@ -1166,9 +1172,9 @@ public class CalibrationQuestion {
         List<Node> nodes = dataSet.getVariables();
         g.addUndirectedEdge(nodes.get(x), nodes.get(y));
 
+        TetradLogger.getInstance().setLogging(false);
+
         Fask fask = new Fask(dataSet, g);
-        fask.setSkewEdgeThreshold(0.05);
-        fask.setTwoCycleThreshold(0.);
         fask.setRemoveNonlinearTrend(true);
         Graph out = fask.search();
 
@@ -1180,7 +1186,7 @@ public class CalibrationQuestion {
             System.out.println(" 2-CYCLE");
         }
 
-        boolean _estLeftRight = out.getEdge(nodes.get(x), nodes.get(y)).pointsTowards(nodes.get(1));
+        boolean _estLeftRight = out.getEdge(nodes.get(x), nodes.get(y)).pointsTowards(nodes.get(y));
 
         return _estLeftRight ? 1 : -1;
     }

@@ -146,8 +146,6 @@ public class FasStable implements IFas {
      * @return a SepSet, which indicates which variables are independent conditional on which other variables
      */
     public Graph search() {
-        this.logger.log("info", "Starting Fast Adjacency Search.");
-
         if (graph == null) graph = new EdgeListGraphSingleConnections(test.getVariables());
         graph.removeEdges(graph.getEdges());
 
@@ -193,8 +191,6 @@ public class FasStable implements IFas {
         }
 
 //        GraphUtils.checkMarkov(graph, test, depth);
-
-        this.logger.log("info", "Finishing Fast Adjacency Search.");
 
         return graph;
     }

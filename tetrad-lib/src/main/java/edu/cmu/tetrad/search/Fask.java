@@ -118,9 +118,20 @@ public final class Fask implements GraphSearch {
 
         List<Node> variables = dataSet.getVariables();
         double[][] colData = dataSet.getDoubleData().transpose().toArray();
+
+        TetradLogger.getInstance().forceLogMessage("FASK v. 2.0");
+        TetradLogger.getInstance().forceLogMessage("");
+        TetradLogger.getInstance().forceLogMessage("# variables = " + dataSet.getNumColumns());
+        TetradLogger.getInstance().forceLogMessage("N = " + dataSet.getNumRows());
+        TetradLogger.getInstance().forceLogMessage("Skewness edge threshold = " + skewEdgeThreshold);
+        TetradLogger.getInstance().forceLogMessage("2-cycle threshold = " + twoCycleThreshold);
+        TetradLogger.getInstance().forceLogMessage("");
+
         Graph G0;
 
         if (getInitialGraph() != null) {
+            TetradLogger.getInstance().forceLogMessage("Using initial graph.");
+
             Graph g1 = new EdgeListGraph(getInitialGraph().getNodes());
 
             for (Edge edge : getInitialGraph().getEdges()) {
@@ -134,12 +145,20 @@ public final class Fask implements GraphSearch {
 
             G0 = g1;
         } else {
+            TetradLogger.getInstance().forceLogMessage("Running FAS-Stable, alpha = " + test.getAlpha());
+
             FasStable fas = new FasStable(test);
             fas.setDepth(getDepth());
             fas.setVerbose(false);
             fas.setKnowledge(knowledge);
             G0 = fas.search();
         }
+
+        TetradLogger.getInstance().forceLogMessage("");
+
+//        if (isRemoveNonlinearTrend()) {
+//            TetradLogger.getInstance().forceLogMessage("Removing nonlinear trend.");
+//        }
 
         SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
 
