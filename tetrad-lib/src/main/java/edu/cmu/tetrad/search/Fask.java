@@ -175,17 +175,6 @@ public final class Fask implements GraphSearch {
                 double[] x = colData[i];
                 double[] y = colData[j];
 
-                x = Arrays.copyOf(x, x.length);
-                y = Arrays.copyOf(y, y.length);
-
-                if (isRemoveNonlinearTrend()) {
-                    double[] res = residuals(y, x);
-
-                    for (int k = 0; k < x.length; k++) {
-                        x[k] = x[k] - res[k];
-                    }
-                }
-
                 double[] corxyx = cov(x, y, x);
                 double[] corxyy = cov(x, y, y);
 
@@ -193,7 +182,17 @@ public final class Fask implements GraphSearch {
                 double c2 = corxyy[1];
 
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(c1 - c2) > getSkewEdgeThreshold())) {
-                    double lrxy = leftRight(x, y);
+                    double lrxy;
+
+                    if (isRemoveNonlinearTrend()) {
+
+                        // Will work either way, picking the one that's better for the causal pairs data.
+                        // The reason is that reversing gives the opposite direction, but taking the
+                        // residuals in the opposite direction reverses it again.
+                        lrxy = leftRight(y, x);
+                    } else {
+                        lrxy = leftRight(x, y);
+                    }
 
                     if (edgeForbiddenByKnowledge(X, Y)) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tknowledge_forbidden"
@@ -248,6 +247,17 @@ public final class Fask implements GraphSearch {
     }
 
     private double leftRight(double[] x, double[] y) {
+        x = Arrays.copyOf(x, x.length);
+        y = Arrays.copyOf(y, y.length);
+
+        if (isRemoveNonlinearTrend()) {
+            double[] res = residuals(y, x);
+
+            for (int k = 0; k < x.length; k++) {
+                x[k] = x[k] - res[k];
+            }
+        }
+
         double[] covx = cov(x, y, x);
         double[] covy = cov(x, y, y);
 

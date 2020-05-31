@@ -1512,7 +1512,7 @@ public class Lofs2 {
     }
 
     private double g(double x) {
-        return /*Math.log(Math.cosh(*/Math.max(x, 0)/*)*/;
+        return Math.log(Math.cosh(Math.max(x, 0)));
     }
 
     private double g2(double x) {
