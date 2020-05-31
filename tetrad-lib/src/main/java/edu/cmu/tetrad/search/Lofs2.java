@@ -1468,6 +1468,9 @@ public class Lofs2 {
             double[] xData = data[nodesHash.get(edge.getNode1())];
             double[] yData = data[nodesHash.get(edge.getNode2())];
 
+            xData = Arrays.copyOf(xData, xData.length);
+            yData = Arrays.copyOf(yData, yData.length);
+
             if (empirical) {
                 xData = correctSkewnesses(xData);
                 yData = correctSkewnesses(yData);

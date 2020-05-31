@@ -108,7 +108,7 @@ public final class Fask implements GraphSearch {
     public Graph search() {
         long start = System.currentTimeMillis();
 
-        DataSet dataSet = DataUtils.center(this.dataSet);
+        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
 
         List<Node> variables = dataSet.getVariables();
         double[][] colData = dataSet.getDoubleData().transpose().toArray();
