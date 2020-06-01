@@ -35,6 +35,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.util.StatUtils.correlation;
+import static edu.cmu.tetrad.util.StatUtils.skewness;
 import static java.lang.Math.*;
 
 /**
@@ -79,6 +80,10 @@ public final class Fask implements GraphSearch {
     // p-value of the proposition that the left-right statistic is equal to zero. Not that this
     // confidence overlaps with the 2-cycle judgment.
     private Map<NodePair, Double> confidence = new HashMap<>();
+
+    // Conditioned correlations are checked to make sure they are different from zero (since if they
+    // are zero, the FASK theory doesn't apply).
+    private double zeroAlpha = 0.2;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -216,6 +221,11 @@ public final class Fask implements GraphSearch {
                                 + "\t" + X + "<--" + Y
                         );
                         graph.addDirectedEdge(Y, X);
+                    } else if (abs(lrxy) == 0) {
+                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t0-coef"
+                                + "\t" + nf.format(lrxy)
+                                + "\t" + X + " " + Y
+                        );
                     } else if (abs(lrxy) < twoCycleThreshold) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
                                 + "\t" + nf.format(lrxy)
@@ -230,12 +240,14 @@ public final class Fask implements GraphSearch {
                                     + "\t" + X + "-->" + Y
                             );
                             graph.addDirectedEdge(X, Y);
-                        } else {
+                        } else if (lrxy < 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
                                     + "\t" + nf.format(lrxy)
                                     + "\t" + X + "<--" + Y
                             );
                             graph.addDirectedEdge(Y, X);
+                        } else {
+                            //
                         }
                     }
                 }
@@ -284,11 +296,19 @@ public final class Fask implements GraphSearch {
         double p = 1.0 - new TDistribution(n1 + n2 - 2)
                 .cumulativeProbability(abs(zdiff));
 
-//        System.out.println("\nLR = " + (covx[8] - covy[8]));
-
         confidence.put(new NodePair(X, Y), 1.0 - p);
 
+        if (/*abs(skewness(x)) < 0.01 || abs(skewness(y)) < 0.01 ||*/ isZero(correlation(x, y), n1, zeroAlpha) || p > zeroAlpha) {
+            return 0;
+        }
+
         return covx[8] - covy[8];
+    }
+
+    private boolean isZero(double r, double n, double alpha) {
+        double z = 0.5 * sqrt(n - 3) * (log(1 + r) - log(1 - r));
+        double p = 1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z));
+        return p > alpha;
     }
 
     /**
@@ -365,6 +385,10 @@ public final class Fask implements GraphSearch {
 
     public double getConfidence(Node X, Node Y) {
         return confidence.get(new NodePair(X, Y));
+    }
+
+    public void setZeroAlpha(double zeroAlpha) {
+        this.zeroAlpha = zeroAlpha;
     }
 
     /**
@@ -475,6 +499,7 @@ public final class Fask implements GraphSearch {
 
         return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy)};
     }
+
 }
 
 

@@ -1000,7 +1000,7 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
 
         // Parameters.
-        boolean useWeightsFromFile = true;
+        boolean useWeightsFromFile = false;
         int maxN = 1000;
         int initialSegment = 100;
 
@@ -1157,10 +1157,13 @@ public class CalibrationQuestion {
         NumberFormat nf2 = new DecimalFormat("0.00");
 
         System.out.println("\nSummary:\n");
-        System.out.println((useWeightsFromFile ? "Weighted accuracy = " : "Unweighted Accuracy = ") + nf2.format((correct / total)));
+        System.out.println("Unweighted Accuracy = "
+                + nf2.format((selected.get(0).size()
+                / (double) (selected.get(0).size() + selected.get(1).size()))));
+        System.out.println("Weighted accuracy = "
+                + nf2.format(correct / (total)));
         System.out.println("Total correct = " + selected.get(0));
         System.out.println("Total incorrect: " + selected.get(1));
-        System.out.println("Total = " + selected.get(0).size() + selected.get(1).size());
         System.out.println("Didn't classify: " + omitted);
         System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
     }
@@ -1172,7 +1175,7 @@ public class CalibrationQuestion {
 
         TetradLogger.getInstance().setLogging(false);
 
-        return faskVisit(dataSet, x, y, g, nodes, true, .97);
+        return faskVisit(dataSet, x, y, g, nodes, true, .0);
     }
 
     private static int faskVisit(DataSet dataSet, int x, int y, Graph g, List<Node> nodes, boolean nonlinear,
@@ -1188,15 +1191,15 @@ public class CalibrationQuestion {
             return 0;
         }
 
-//        if (out.getEdges(nodes.get(x), nodes.get(y)).isEmpty()) {
-//            System.out.println(" INDEPENDENT");
-//            return 0;
-//        }
+        if (out.getEdges(nodes.get(x), nodes.get(y)).isEmpty()) {
+            System.out.println(" UNCONNECTED");
+            return 0;
+        }
 //
-//        if (out.getEdges(nodes.get(x), nodes.get(y)).size() == 2) {
-//            System.out.println(" 2-CYCLE");
-//            return 0;
-//        }
+        if (out.getEdges(nodes.get(x), nodes.get(y)).size() == 2) {
+            System.out.println(" 2-CYCLE");
+            return 0;
+        }
 
         boolean _estLeftRight = out.getEdge(nodes.get(x), nodes.get(y)).pointsTowards(nodes.get(y));
 
