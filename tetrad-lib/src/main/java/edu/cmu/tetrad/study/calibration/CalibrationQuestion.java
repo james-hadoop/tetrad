@@ -14,6 +14,7 @@ import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDatasetFileReader;
+import org.apache.commons.collections4.list.TreeList;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -999,7 +1000,7 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
 
         // Parameters.
-        boolean useWeightsFromFile = false;
+        boolean useWeightsFromFile = true;
         int maxN = 1000;
         int initialSegment = 100;
 
@@ -1010,11 +1011,11 @@ public class CalibrationQuestion {
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
         DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
 
-        List<List<Integer>> selected = new ArrayList<>();
-        List<Integer> omitted = new ArrayList<>();
+        List<Set<Integer>> selected = new ArrayList<>();
+        Set<Integer> omitted = new TreeSet<>();
 
         for (int i = 0; i < 2; i++) {
-            selected.add(new ArrayList<>());
+            selected.add(new TreeSet<>());
         }
 
         List<DataSet> dataSets = new ArrayList<>();
@@ -1039,7 +1040,6 @@ public class CalibrationQuestion {
         // Counts
         double correct = 0;
         double total = 0;
-        double ambiguousCount = 0;
 
         long start = System.currentTimeMillis();
 
@@ -1124,9 +1124,6 @@ public class CalibrationQuestion {
                 selected.get(0).add(i);
             } else if (wrongDirection) {
                 selected.get(1).add(i);
-            } else {
-                omitted.add(i);
-                ambiguousCount += weight;
             }
 
             if (groundTruthDirection) System.out.print("\t-->");
@@ -1136,11 +1133,17 @@ public class CalibrationQuestion {
             else if (estLeftRight == -1) System.out.print("\t<--");
             else System.out.print("\t");
 
-            if ((estLeftRight == 0)) System.out.print("\tA");
-            else if (groundTruthDirection == (estLeftRight == 1)) System.out.print("\t1");
+            if ((estLeftRight == 0)) {
+                System.out.print("\tA");
+                omitted.add(i);
+            } else if (groundTruthDirection == (estLeftRight == 1)) System.out.print("\t1");
             else System.out.print("\t0");
 
             System.out.println();
+
+            if (estLeftRight == 0) {
+                continue;
+            }
 
             if (correctDirection) {
                 correct += weight;
@@ -1154,17 +1157,12 @@ public class CalibrationQuestion {
         NumberFormat nf2 = new DecimalFormat("0.00");
 
         System.out.println("\nSummary:\n");
-        System.out.println((useWeightsFromFile ? "Weighted accuracy = " : "Unweighted Accuracy = ") + nf2.format((correct / (double) total)));
-        System.out.println((useWeightsFromFile ? "Weighted precision = " : "Unweighted Precision = ") + nf2.format((correct / (double) (total - ambiguousCount))));
-        System.out.println("Total correct = " + correct);
-        System.out.println("Total = " + total);
-        System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
-
-        System.out.println();
-        System.out.println("Correct Direction: " + selected.get(0).size());
-        System.out.println("Wrong Direction: " + selected.get(1).size());
-
+        System.out.println((useWeightsFromFile ? "Weighted accuracy = " : "Unweighted Accuracy = ") + nf2.format((correct / total)));
+        System.out.println("Total correct = " + selected.get(0));
+        System.out.println("Total incorrect: " + selected.get(1));
+        System.out.println("Total = " + selected.get(0).size() + selected.get(1).size());
         System.out.println("Didn't classify: " + omitted);
+        System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
     }
 
     private static int getFaskDirection(DataSet dataSet, int x, int y) {
@@ -1174,17 +1172,31 @@ public class CalibrationQuestion {
 
         TetradLogger.getInstance().setLogging(false);
 
+        return faskVisit(dataSet, x, y, g, nodes, true, .97);
+    }
+
+    private static int faskVisit(DataSet dataSet, int x, int y, Graph g, List<Node> nodes, boolean nonlinear,
+                                 double confidence) {
         Fask fask = new Fask(dataSet, g);
-        fask.setRemoveNonlinearTrend(true);
+        fask.setRemoveNonlinearTrend(nonlinear);
+        fask.setTwoCycleThreshold(0.001);
         Graph out = fask.search();
 
-        if (out.getEdges(nodes.get(x), nodes.get(y)).isEmpty()) {
-            System.out.println(" INDEPENDENT");
+        if (fask.getConfidence(nodes.get(x), nodes.get(y)) < confidence) {
+            NumberFormat nf = new DecimalFormat("0.000");
+            System.out.println(" NO CONFIDENCE (" + nf.format(fask.getConfidence(nodes.get(x), nodes.get(y))) + ")");
+            return 0;
         }
 
-        if (out.getEdges(nodes.get(x), nodes.get(y)).size() == 2) {
-            System.out.println(" 2-CYCLE");
-        }
+//        if (out.getEdges(nodes.get(x), nodes.get(y)).isEmpty()) {
+//            System.out.println(" INDEPENDENT");
+//            return 0;
+//        }
+//
+//        if (out.getEdges(nodes.get(x), nodes.get(y)).size() == 2) {
+//            System.out.println(" 2-CYCLE");
+//            return 0;
+//        }
 
         boolean _estLeftRight = out.getEdge(nodes.get(x), nodes.get(y)).pointsTowards(nodes.get(y));
 

@@ -27,17 +27,15 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.TetradLogger;
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static edu.cmu.tetrad.util.StatUtils.correlation;
-import static java.lang.Math.abs;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 
 /**
  * Runs the FASK (Fast Adjacency Skewnmess) algorithm.
@@ -76,6 +74,11 @@ public final class Fask implements GraphSearch {
 
     // True if the nonlinear trend between X and Y should be removed.
     private boolean removeNonlinearTrend = false;
+
+    // Confidence of a node pair of a true judgment of left-right, equal to 1 - p, where p is the
+    // p-value of the proposition that the left-right statistic is equal to zero. Not that this
+    // confidence overlaps with the 2-cycle judgment.
+    private Map<NodePair, Double> confidence = new HashMap<>();
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -125,6 +128,9 @@ public final class Fask implements GraphSearch {
         TetradLogger.getInstance().forceLogMessage("N = " + dataSet.getNumRows());
         TetradLogger.getInstance().forceLogMessage("Skewness edge threshold = " + skewEdgeThreshold);
         TetradLogger.getInstance().forceLogMessage("2-cycle threshold = " + twoCycleThreshold);
+        if (isRemoveNonlinearTrend()) {
+            TetradLogger.getInstance().forceLogMessage("Removing nonlinear trend");
+        }
         TetradLogger.getInstance().forceLogMessage("");
 
         Graph G0;
@@ -156,10 +162,6 @@ public final class Fask implements GraphSearch {
 
         TetradLogger.getInstance().forceLogMessage("");
 
-//        if (isRemoveNonlinearTrend()) {
-//            TetradLogger.getInstance().forceLogMessage("Removing nonlinear trend.");
-//        }
-
         SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
 
         Graph graph = new EdgeListGraph(variables);
@@ -189,9 +191,9 @@ public final class Fask implements GraphSearch {
                         // Will work either way, picking the one that's better for the causal pairs data.
                         // The reason is that reversing gives the opposite direction, but taking the
                         // residuals in the opposite direction reverses it again.
-                        lrxy = leftRight(y, x);
+                        lrxy = leftRight(y, x, X, Y);
                     } else {
-                        lrxy = leftRight(x, y);
+                        lrxy = leftRight(x, y, X, Y);
                     }
 
                     if (edgeForbiddenByKnowledge(X, Y)) {
@@ -246,7 +248,7 @@ public final class Fask implements GraphSearch {
         return graph;
     }
 
-    private double leftRight(double[] x, double[] y) {
+    private double leftRight(double[] x, double[] y, Node X, Node Y) {
         x = Arrays.copyOf(x, x.length);
         y = Arrays.copyOf(y, y.length);
 
@@ -266,6 +268,25 @@ public final class Fask implements GraphSearch {
         if (a < 0) {
             for (int i = 0; i < x.length; i++) x[i] *= -1;
         }
+
+        double n1 = covx[4];
+        double n2 = covy[4];
+
+        double c1 = covx[1];
+        double c2 = covy[1];
+
+        double z1 = 0.5 * (log(1.0 + c1) - log(1.0 - c1));
+        double z2 = 0.5 * (log(1.0 + c2) - log(1.0 - c2));
+
+        double zdiff = (z1 - z2) / (1.0 / n1 + 1.0 / n2);
+
+        // One sided.
+        double p = 1.0 - new TDistribution(n1 + n2 - 2)
+                .cumulativeProbability(abs(zdiff));
+
+//        System.out.println("\nLR = " + (covx[8] - covy[8]));
+
+        confidence.put(new NodePair(X, Y), 1.0 - p);
 
         return covx[8] - covy[8];
     }
@@ -340,6 +361,10 @@ public final class Fask implements GraphSearch {
 
     public void setTwoCycleThreshold(double twoCycleThreshold) {
         this.twoCycleThreshold = twoCycleThreshold;
+    }
+
+    public double getConfidence(Node X, Node Y) {
+        return confidence.get(new NodePair(X, Y));
     }
 
     /**
