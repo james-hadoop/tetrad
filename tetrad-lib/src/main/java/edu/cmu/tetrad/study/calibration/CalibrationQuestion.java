@@ -1000,7 +1000,7 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
 
         // Parameters.
-        boolean useWeightsFromFile = false;
+        boolean useWeightsFromFile = true;
         int maxN = 1000;
         int initialSegment = 100;
 

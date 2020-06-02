@@ -298,7 +298,8 @@ public final class Fask implements GraphSearch {
 
         confidence.put(new NodePair(X, Y), 1.0 - p);
 
-        if (/*abs(skewness(x)) < 0.01 || abs(skewness(y)) < 0.01 ||*/ isZero(correlation(x, y), n1, zeroAlpha) || p > zeroAlpha) {
+        if (!(abs(skewness(x)) > 0.01 || abs(skewness(y)) > 0.01)
+                || isZero(correlation(x, y), n1, zeroAlpha) || p > zeroAlpha) {
             return 0;
         }
 
