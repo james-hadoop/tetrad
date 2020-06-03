@@ -16,7 +16,6 @@ import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDatasetFileReader;
-import org.apache.commons.collections4.list.TreeList;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -1000,25 +999,9 @@ public class CalibrationQuestion {
     }
 
     private static void scenario8() throws IOException {
-
-        // Parameters.
-        boolean useWeightsFromFile = true;
         int maxN = 1000;
+        boolean useWeightsFromFile = false;
         int initialSegment = 100;
-
-        int[] discrete = {47, 70, 71, 85, 107};
-        int[] nonScalar = {52, 53, 54, 55, 71, 105};
-        int[] missingValues = {81, 82, 83};
-
-        File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
-        DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
-
-        List<Set<Integer>> selected = new ArrayList<>();
-        Set<Integer> omitted = new TreeSet<>();
-
-        for (int i = 0; i < 2; i++) {
-            selected.add(new TreeSet<>());
-        }
 
         List<DataSet> dataSets = new ArrayList<>();
 
@@ -1038,174 +1021,205 @@ public class CalibrationQuestion {
             writeResData(dataSet, i);
         }
 
+        File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
+        DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
 
-        // Counts
-        double correct = 0;
-        double total = 0;
 
-        long start = System.currentTimeMillis();
+        List<Node> v = new ArrayList<>();
+        v.add(new ContinuousVariable("Alpha"));
+        v.add(new ContinuousVariable("FPR"));
+        v.add(new ContinuousVariable("TPR"));
+        v.add(new ContinuousVariable("ACC"));
 
-        System.out.println("i\tTrue\tEst");
+        DataSet tabulated = new BoxDataSet(new DoubleDataBox(11, v.size()), v);
 
-        for (int i = 1; i <= initialSegment; i++) {
-            System.out.print(i);
+        for (int e = 0; e <= 10; e++) {
 
-            if (Arrays.binarySearch(discrete, i) > -1) {
-                System.out.println(" DISCRETE");
-                omitted.add(i);
-                continue;
+            // Parameters.
+            double zeroAlpha = e / 10.0;
+
+            int[] discrete = {47, 70, 71, 85, 107};
+            int[] nonScalar = {52, 53, 54, 55, 71, 105};
+            int[] missingValues = {81, 82, 83};
+
+            List<Set<Integer>> selected = new ArrayList<>();
+            Set<Integer> omitted = new TreeSet<>();
+
+            for (int i = 0; i < 2; i++) {
+                selected.add(new TreeSet<>());
             }
 
-            if (Arrays.binarySearch(nonScalar, i) > -1) {
-                System.out.println(" NONSCALAR");
-                omitted.add(i);
-                continue;
+
+            // Counts
+            double tp = 0;
+            double fp = 0;
+            double tn = 0;
+            double fn = 0;
+
+            long start = System.currentTimeMillis();
+
+            System.out.println("i\tTrue\tEst");
+
+            for (int i = 1; i <= initialSegment; i++) {
+                System.out.print(i);
+
+                if (Arrays.binarySearch(discrete, i) > -1) {
+                    System.out.println(" DISCRETE");
+//                omitted.add(i);
+                    continue;
+                }
+
+                if (Arrays.binarySearch(nonScalar, i) > -1) {
+                    System.out.println(" NONSCALAR");
+//                omitted.add(i);
+//                    continue;
+                }
+
+                DataSet dataSet = dataSets.get(i - 1);
+
+                int x0 = 0;
+                int y0 = 1;
+
+                if (i == 52) {
+                    x0 = 0;
+                    y0 = 4;
+                }
+
+                if (i == 53) {
+                    x0 = 0;
+                    y0 = 3;
+                }
+
+                if (i == 54) {
+                    x0 = 1;
+                    y0 = 0;
+                }
+
+                if (i == 55) {
+                    x0 = 0;
+                    y0 = 16;
+                }
+
+                if (i == 71) {
+                    x0 = 2;
+                    y0 = 7;
+                }
+
+                if (i == 105) {
+                    x0 = 1;
+                    y0 = 9;
+                }
+
+                writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
+
+                List<Node> gtNodes = groundTruthData.getVariables();
+                DiscreteVariable c4 = (DiscreteVariable) gtNodes.get(4);
+                DiscreteVariable c5 = (DiscreteVariable) gtNodes.get(5);
+
+                String category = c4.getCategory(groundTruthData.getInt(i - 1, 4));
+
+                double weight;
+
+                if (useWeightsFromFile) {
+                    weight = Double.parseDouble(c5.getCategory(groundTruthData.getInt(i - 1, 5)));
+                } else {
+                    weight = 1;
+                }
+
+                boolean groundTruthDirection = category.equals("->");
+
+                int estLeftRight = 0;
+                Graph g = new EdgeListGraph(dataSet.getVariables());
+                List<Node> nodes = dataSet.getVariables();
+                g.addUndirectedEdge(nodes.get(x0), nodes.get(y0));
+
+                TetradLogger.getInstance().setLogging(false);
+
+                Fask fask = new Fask(dataSet, g);
+                fask.setRemoveNonlinearTrend(true);
+                fask.setTwoCycleThreshold(0.001);
+                fask.setZeroAlpha(zeroAlpha);
+                Graph out = fask.search();
+
+                if (!fask.isAssumptionsSatisfied()) {
+                    System.out.println("ASSUMPTIONS NOT SATISFIED");
+                    omitted.add(i);
+                }
+
+                if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
+                    System.out.println(" 2-CYCLE");
+                    omitted.add(i);
+                } else {
+                    boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
+                    estLeftRight = _estLeftRight ? 1 : -1;
+                }
+
+                boolean _true = (groundTruthDirection && estLeftRight == 1)
+                        || ((!groundTruthDirection && estLeftRight == -1));
+                boolean _false = (groundTruthDirection && estLeftRight == -1)
+                        || ((!groundTruthDirection && estLeftRight == 1));
+
+                if ((estLeftRight == 0)) {
+                    System.out.print("\t*");
+                    omitted.add(i);
+                } else if (groundTruthDirection == (estLeftRight == 1)) System.out.print("\t1");
+                else System.out.print("\t0");
+
+
+                boolean positive = !omitted.contains(i);
+                boolean negative = omitted.contains(i);
+
+                if (_true && positive) tp += weight;
+                if (_true && negative) tn += weight;
+                if (_false && positive) fp += weight;
+                if (_false && negative) fn += weight;
+
+                if (groundTruthDirection) System.out.print("\t-->");
+                else System.out.print("\t<--");
+
+                if (estLeftRight == 1) System.out.print("\t-->");
+                else if (estLeftRight == -1) System.out.print("\t<--");
+                else System.out.print("\t");
+
+                if (_true) {
+                    selected.get(0).add(i);
+                } else if (_false) {
+                    selected.get(1).add(i);
+                }
+
+                System.out.println();
             }
 
-            DataSet dataSet = dataSets.get(i - 1);
+            long stop = System.currentTimeMillis();
 
-            int x0 = 0;
-            int y0 = 1;
+            NumberFormat nf2 = new DecimalFormat("0.00");
 
-            if (i == 52) {
-                x0 = 0;
-                y0 = 4;
-            }
+            double accuracyUnweighted = selected.get(0).size()
+                    / (double) (selected.get(0).size() + selected.get(1).size());
 
-            if (i == 53) {
-                x0 = 0;
-                y0 = 3;
-            }
+            double tpr = tp / (tp + fn);
+            double fpr = fp / (fp + tn);
+            double acc = (tp + tn) / (tp + fp + tn + fn);
+            double fracDec = (initialSegment - omitted.size()) / (double) initialSegment;
 
-            if (i == 54) {
-                x0 = 1;
-                y0 = 0;
-            }
+            System.out.println("\nSummary:\n");
+            System.out.println("Unweighted Accuracy = " + nf2.format(accuracyUnweighted));
+            System.out.println("Weighted acc = " + nf2.format(tpr));
+            System.out.println("Total correct = " + selected.get(0));
+            System.out.println("Total incorrect: " + selected.get(1));
+            System.out.println("TPR: " + tpr);
+            System.out.println("FPR: " + fpr);
+            System.out.println("Didn't classify: " + omitted);
+            System.out.println("Fraction of Decisions: " + fracDec);
+            System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
 
-            if (i == 55) {
-                x0 = 0;
-                y0 = 16;
-            }
-
-            if (i == 71) {
-                x0 = 2;
-                y0 = 7;
-            }
-
-            if (i == 105) {
-                x0 = 1;
-                y0 = 9;
-            }
-
-            writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
-
-            List<Node> gtNodes = groundTruthData.getVariables();
-            DiscreteVariable c4 = (DiscreteVariable) gtNodes.get(4);
-            DiscreteVariable c5 = (DiscreteVariable) gtNodes.get(5);
-
-            String category = c4.getCategory(groundTruthData.getInt(i - 1, 4));
-
-            double weight;
-
-            if (useWeightsFromFile) {
-                weight = Double.parseDouble(c5.getCategory(groundTruthData.getInt(i - 1, 5)));
-            } else {
-                weight = 1;
-            }
-
-            boolean groundTruthDirection = category.equals("->");
-
-            int estLeftRight = getFaskDirection(dataSet, x0, y0);
-
-            boolean correctDirection = (groundTruthDirection && estLeftRight == 1)
-                    || ((!groundTruthDirection && estLeftRight == -1));
-            boolean wrongDirection = (groundTruthDirection && estLeftRight == -1)
-                    || ((!groundTruthDirection && estLeftRight == 1));
-
-            if (correctDirection) {
-                selected.get(0).add(i);
-            } else if (wrongDirection) {
-                selected.get(1).add(i);
-            }
-
-            if (groundTruthDirection) System.out.print("\t-->");
-            else System.out.print("\t<--");
-
-            if (estLeftRight == 1) System.out.print("\t-->");
-            else if (estLeftRight == -1) System.out.print("\t<--");
-            else System.out.print("\t");
-
-            if ((estLeftRight == 0)) {
-                System.out.print("\tA");
-                omitted.add(i);
-            } else if (groundTruthDirection == (estLeftRight == 1)) System.out.print("\t1");
-            else System.out.print("\t0");
-
-            System.out.println();
-
-            if (estLeftRight == 0) {
-                continue;
-            }
-
-            if (correctDirection) {
-                correct += weight;
-            }
-
-            total += weight;
+            tabulated.setDouble(e, 0, zeroAlpha);
+            tabulated.setDouble(e, 1, fpr);
+            tabulated.setDouble(e, 2, tpr);
+            tabulated.setDouble(e, 3, acc);
         }
 
-        long stop = System.currentTimeMillis();
-
-        NumberFormat nf2 = new DecimalFormat("0.00");
-
-        System.out.println("\nSummary:\n");
-        System.out.println("Unweighted Accuracy = "
-                + nf2.format((selected.get(0).size()
-                / (double) (selected.get(0).size() + selected.get(1).size()))));
-        System.out.println("Weighted accuracy = "
-                + nf2.format(correct / (total)));
-        System.out.println("Total correct = " + selected.get(0));
-        System.out.println("Total incorrect: " + selected.get(1));
-        System.out.println("Didn't classify: " + omitted);
-        System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
-    }
-
-    private static int getFaskDirection(DataSet dataSet, int x, int y) {
-        Graph g = new EdgeListGraph(dataSet.getVariables());
-        List<Node> nodes = dataSet.getVariables();
-        g.addUndirectedEdge(nodes.get(x), nodes.get(y));
-
-        TetradLogger.getInstance().setLogging(false);
-
-        return faskVisit(dataSet, x, y, g, nodes, true, 0);
-    }
-
-    private static int faskVisit(DataSet dataSet, int x, int y, Graph g, List<Node> nodes, boolean nonlinear,
-                                 double confidence) {
-        Fask fask = new Fask(dataSet, g);
-        fask.setRemoveNonlinearTrend(nonlinear);
-        fask.setTwoCycleThreshold(0.001);
-        Graph out = fask.search();
-
-        if (fask.getConfidence(nodes.get(x), nodes.get(y)) < confidence) {
-            NumberFormat nf = new DecimalFormat("0.000");
-            System.out.println(" NO CONFIDENCE (" + nf.format(fask.getConfidence(nodes.get(x), nodes.get(y))) + ")");
-            return 0;
-        }
-
-        if (out.getEdges(nodes.get(x), nodes.get(y)).isEmpty()) {
-            System.out.println(" UNCONNECTED");
-            return 0;
-        }
-//
-        if (out.getEdges(nodes.get(x), nodes.get(y)).size() == 2) {
-            System.out.println(" 2-CYCLE");
-            return 0;
-        }
-
-        boolean _estLeftRight = out.getEdge(nodes.get(x), nodes.get(y)).pointsTowards(nodes.get(y));
-
-        return _estLeftRight ? 1 : -1;
+        System.out.println("\n" + tabulated);
     }
 
     private static DataSet loadContinuousData(File data, boolean hasHeader, Delimiter delimiter) throws IOException {

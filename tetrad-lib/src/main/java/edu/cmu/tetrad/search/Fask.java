@@ -77,14 +77,11 @@ public final class Fask implements GraphSearch {
     // True if the nonlinear trend between X and Y should be removed.
     private boolean removeNonlinearTrend = false;
 
-    // Confidence of a node pair of a true judgment of left-right, equal to 1 - p, where p is the
-    // p-value of the proposition that the left-right statistic is equal to zero. Not that this
-    // confidence overlaps with the 2-cycle judgment.
-    private Map<NodePair, Double> confidence = new HashMap<>();
-
     // Conditioned correlations are checked to make sure they are different from zero (since if they
     // are zero, the FASK theory doesn't apply).
-    private double zeroAlpha = 0.2;
+    private double zeroAlpha = 0.1;
+    private boolean assumptionsSatisfied = false;
+    private boolean twoCycle = false;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -273,32 +270,22 @@ public final class Fask implements GraphSearch {
             }
         }
 
-//        if (isRemoveNonlinearTrend()) {
-//            double[] ry = residuals(y, x);
-//
-//            for (int k = 0; k < x.length; k++) {
-//                x[k] = x[k] - ry[k];
-//            }
-//
-//            if (consistentSkew(x, y) == 0) {
-//                for (int i = 0; i < x.length; i++) x[i] *= -1;
-//            }
-//
-//            return consistentSkew(x, y);
-//        }
-
         double[] covx = cov(x, y, x);
         double[] covy = cov(x, y, y);
 
-//        double a = correlation(x, y);
+        if (isRemoveNonlinearTrend()) {
+            if (!consistentSkew(x, y)) {
+                for (int i = 0; i < x.length; i++) x[i] *= -1;
+            }
+        } else {
+            double a = correlation(x, y);
 
-        if (consistentSkew(x, y) == 0) {
-            for (int i = 0; i < x.length; i++) x[i] *= -1;
+            if (a < 0) {
+                for (int i = 0; i < x.length; i++) x[i] *= -1;
+            }
         }
 
-//        if (a < 0) {
-//            for (int i = 0; i < x.length; i++) x[i] *= -1;
-//        }
+        boolean assumptionsSatisfied = true;
 
         double n1 = covx[4];
         double n2 = covy[4];
@@ -306,6 +293,26 @@ public final class Fask implements GraphSearch {
         double c1 = covx[1];
         double c2 = covy[1];
 
+        // Need to do this first.
+        if (isZeroDiff(n1, n2, c1, c2, zeroAlpha, X, Y)) {
+            assumptionsSatisfied = false;
+        }
+
+        if (isZero(correlation(x, y), n1, zeroAlpha)) {
+            assumptionsSatisfied = false;
+        }
+
+        if (isZeroSkewness(skewness(x), x.length, zeroAlpha)
+            && isZeroSkewness(skewness(y), y.length, zeroAlpha)) {
+            assumptionsSatisfied = false;
+        }
+
+        this.assumptionsSatisfied = assumptionsSatisfied;
+
+        return covx[8] - covy[8];
+    }
+
+    private boolean isZeroDiff(double n1, double n2, double c1, double c2, double alpha, Node X, Node Y) {
         double z1 = 0.5 * (log(1.0 + c1) - log(1.0 - c1));
         double z2 = 0.5 * (log(1.0 + c2) - log(1.0 - c2));
 
@@ -314,26 +321,20 @@ public final class Fask implements GraphSearch {
         // One sided.
         double p = 1.0 - new TDistribution(n1 + n2 - 2)
                 .cumulativeProbability(abs(zdiff));
-
-        confidence.put(new NodePair(X, Y), 1.0 - p);
-
-        if (!(abs(skewness(x)) > 0.01 || abs(skewness(y)) > 0.01) || isZero(correlation(x, y), n1, zeroAlpha) || p > zeroAlpha) {
-            return 0;
-        }
-
-//        double sum = smoothlySkewed(x, y, x, 11, 5);// - smoothlySkewed(x, y, y, 11, 5);
-//        if (sum == 0) {
-//            return 0;
-//        }
-
-//        System.out.println(sum > 0 ? "POSITIVE" : "NEGATIVE");
-
-        return covx[8] - covy[8];
+        return p > alpha;
     }
 
     private boolean isZero(double r, double n, double alpha) {
         double z = 0.5 * sqrt(n - 3) * (log(1 + r) - log(1 - r));
-        double p = 1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z));
+        double p = 2 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
+        return p > alpha;
+    }
+
+    private boolean isZeroSkewness(double g1, double n, double alpha) {
+        double G1 = (sqrt((n * (n - 1)) / (n - 2))) * g1;
+        double se = sqrt((6 * n * (n - 1)) / ((n - 2) * (n + 1) * (n + 3)));
+        double ratio = G1 / se;
+        double p = 2 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(ratio)));
         return p > alpha;
     }
 
@@ -407,10 +408,6 @@ public final class Fask implements GraphSearch {
 
     public void setTwoCycleThreshold(double twoCycleThreshold) {
         this.twoCycleThreshold = twoCycleThreshold;
-    }
-
-    public double getConfidence(Node X, Node Y) {
-        return confidence.get(new NodePair(X, Y));
     }
 
     public void setZeroAlpha(double zeroAlpha) {
@@ -526,11 +523,9 @@ public final class Fask implements GraphSearch {
         return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy)};
     }
 
-    private static double consistentSkew(double[] x, double[] y) {
+    private static boolean consistentSkew(double[] x, double[] y) {
         RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
         double[] ry = result.getResiduals().toArray();
-
-//        ry = residuals(y, x);
 
         double[] fx = new double[x.length];
         for (int i = 0; i < x.length; i++) fx[i] = y[i] - ry[i];
@@ -546,7 +541,15 @@ public final class Fask implements GraphSearch {
             if (x[i] > 0) sum2 += x[i] * ry[i];
         }
 
-        return signum(sum1) != signum(sum2) ? 0.0 : signum(sum1);
+        return signum(sum1) == signum(sum2);
+    }
+
+    public boolean isAssumptionsSatisfied() {
+        return assumptionsSatisfied;
+    }
+
+    public boolean isTwoCycle() {
+        return twoCycle;
     }
 }
 
