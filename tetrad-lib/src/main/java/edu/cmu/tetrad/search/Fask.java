@@ -26,6 +26,8 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.regression.RegressionDataset;
+import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.util.TetradLogger;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
@@ -34,8 +36,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static edu.cmu.tetrad.util.StatUtils.correlation;
-import static edu.cmu.tetrad.util.StatUtils.skewness;
+import static edu.cmu.tetrad.util.StatUtils.*;
 import static java.lang.Math.*;
 
 /**
@@ -272,14 +273,32 @@ public final class Fask implements GraphSearch {
             }
         }
 
+//        if (isRemoveNonlinearTrend()) {
+//            double[] ry = residuals(y, x);
+//
+//            for (int k = 0; k < x.length; k++) {
+//                x[k] = x[k] - ry[k];
+//            }
+//
+//            if (consistentSkew(x, y) == 0) {
+//                for (int i = 0; i < x.length; i++) x[i] *= -1;
+//            }
+//
+//            return consistentSkew(x, y);
+//        }
+
         double[] covx = cov(x, y, x);
         double[] covy = cov(x, y, y);
 
-        double a = correlation(x, y);
+//        double a = correlation(x, y);
 
-        if (a < 0) {
+        if (consistentSkew(x, y) == 0) {
             for (int i = 0; i < x.length; i++) x[i] *= -1;
         }
+
+//        if (a < 0) {
+//            for (int i = 0; i < x.length; i++) x[i] *= -1;
+//        }
 
         double n1 = covx[4];
         double n2 = covy[4];
@@ -298,10 +317,16 @@ public final class Fask implements GraphSearch {
 
         confidence.put(new NodePair(X, Y), 1.0 - p);
 
-        if (!(abs(skewness(x)) > 0.01 || abs(skewness(y)) > 0.01)
-                || isZero(correlation(x, y), n1, zeroAlpha) || p > zeroAlpha) {
+        if (!(abs(skewness(x)) > 0.01 || abs(skewness(y)) > 0.01) || isZero(correlation(x, y), n1, zeroAlpha) || p > zeroAlpha) {
             return 0;
         }
+
+//        double sum = smoothlySkewed(x, y, x, 11, 5);// - smoothlySkewed(x, y, y, 11, 5);
+//        if (sum == 0) {
+//            return 0;
+//        }
+
+//        System.out.println(sum > 0 ? "POSITIVE" : "NEGATIVE");
 
         return covx[8] - covy[8];
     }
@@ -463,7 +488,7 @@ public final class Fask implements GraphSearch {
     }
 
     private static double kernelGaussian(double z, double h) {
-        z /= 50 * h;
+        z /= 3 * h;
         return Math.exp(-z * z);
     }
 
@@ -501,6 +526,28 @@ public final class Fask implements GraphSearch {
         return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy)};
     }
 
+    private static double consistentSkew(double[] x, double[] y) {
+        RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
+        double[] ry = result.getResiduals().toArray();
+
+//        ry = residuals(y, x);
+
+        double[] fx = new double[x.length];
+        for (int i = 0; i < x.length; i++) fx[i] = y[i] - ry[i];
+
+        double sum1 = 0.0;
+        double sum2 = 0.0;
+
+        for (int i = 0; i < x.length; i++) {
+            if (ry[i] > -fx[i]) sum1 += x[i] * ry[i];
+        }
+
+        for (int i = 0; i < x.length; i++) {
+            if (x[i] > 0) sum2 += x[i] * ry[i];
+        }
+
+        return signum(sum1) != signum(sum2) ? 0.0 : signum(sum1);
+    }
 }
 
 

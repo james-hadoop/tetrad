@@ -5,6 +5,8 @@ import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.regression.RegressionDataset;
+import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.sem.SemIm;
@@ -1175,7 +1177,7 @@ public class CalibrationQuestion {
 
         TetradLogger.getInstance().setLogging(false);
 
-        return faskVisit(dataSet, x, y, g, nodes, true, .0);
+        return faskVisit(dataSet, x, y, g, nodes, true, 0);
     }
 
     private static int faskVisit(DataSet dataSet, int x, int y, Graph g, List<Node> nodes, boolean nonlinear,
@@ -1302,7 +1304,12 @@ public class CalibrationQuestion {
         double[] r = Fask.residuals(y, x);
 
         for (int j = 0; j < x.length; j++) x[j] -= r[j];
+
+        RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
+        r = result.getResiduals().toArray();
+
         double[][] res = new double[][]{x, r};
+
 
         List<Node> vars = new ArrayList<>();
         vars.add(new ContinuousVariable("C1"));
