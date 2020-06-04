@@ -31,6 +31,7 @@ import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.util.TetradLogger;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
+import org.omg.CORBA.DATA_CONVERSION;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -270,6 +271,9 @@ public final class Fask implements GraphSearch {
             }
         }
 
+        x = DataUtils.center(x);
+        y = DataUtils.center(y);
+
         double[] covx = cov(x, y, x);
         double[] covy = cov(x, y, y);
 
@@ -290,8 +294,8 @@ public final class Fask implements GraphSearch {
         double n1 = covx[4];
         double n2 = covy[4];
 
-        double c1 = covx[1];
-        double c2 = covy[1];
+        double c1 = covx[8];
+        double c2 = covy[8];
 
         // Need to do this first.
         if (isZeroDiff(n1, n2, c1, c2, zeroAlpha, X, Y)) {
@@ -319,14 +323,14 @@ public final class Fask implements GraphSearch {
         double zdiff = (z1 - z2) / (1.0 / n1 + 1.0 / n2);
 
         // One sided.
-        double p = 1.0 - new TDistribution(n1 + n2 - 2)
+        double p = 1.0 - new NormalDistribution(0, 2)
                 .cumulativeProbability(abs(zdiff));
         return p > alpha;
     }
 
     private boolean isZero(double r, double n, double alpha) {
         double z = 0.5 * sqrt(n - 3) * (log(1 + r) - log(1 - r));
-        double p = 2 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
+        double p = 2 * (1 - new NormalDistribution(0, 2).cumulativeProbability(abs(z)));
         return p > alpha;
     }
 
@@ -551,6 +555,64 @@ public final class Fask implements GraphSearch {
     public boolean isTwoCycle() {
         return twoCycle;
     }
+
+    private double nonparametricFisherZ(double[] _x, double[] _y) {
+
+        // Testing the hypothesis that _x and _y are uncorrelated and assuming that 4th moments of _x and _y
+        // are finite and that the sample is large.
+        double[] __x = standardize(_x);
+        double[] __y = standardize(_y);
+
+        double r = covariance(__x, __y); // correlation
+        int N = __x.length;
+
+        // Non-parametric Fisher Z test.
+        double z = 0.5 * sqrt(N) * (log(1.0 + r) - log(1.0 - r));
+
+        return z / (sqrt((moment22(__x, __y))));
+    }
+
+    private double moment22(double[] x, double[] y) {
+        int N = x.length;
+        double sum = 0.0;
+
+        for (int j = 0; j < x.length; j++) {
+            sum += x[j] * x[j] * y[j] * y[j];
+        }
+
+        return sum / N;
+    }
+
+    // Standardizes the given data array. No need to make a copy here.
+    private double[] standardize(double[] data) {
+        double sum = 0.0;
+
+        for (double d : data) {
+            sum += d;
+        }
+
+        double mean = sum / data.length;
+
+        for (int i = 0; i < data.length; i++) {
+            data[i] = data[i] - mean;
+        }
+
+        double var = 0.0;
+
+        for (double d : data) {
+            var += d * d;
+        }
+
+        var /= (data.length);
+        double sd = sqrt(var);
+
+        for (int i = 0; i < data.length; i++) {
+            data[i] /= sd;
+        }
+
+        return data;
+    }
+
 }
 
 

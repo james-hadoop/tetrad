@@ -1029,14 +1029,21 @@ public class CalibrationQuestion {
         v.add(new ContinuousVariable("Alpha"));
         v.add(new ContinuousVariable("FPR"));
         v.add(new ContinuousVariable("TPR"));
-        v.add(new ContinuousVariable("ACC"));
+        v.add(new ContinuousVariable("PREC"));
+        v.add(new ContinuousVariable("REC"));
+        v.add(new ContinuousVariable("TP"));
+        v.add(new ContinuousVariable("TN"));
+        v.add(new ContinuousVariable("FP"));
+        v.add(new ContinuousVariable("FN"));
 
-        DataSet tabulated = new BoxDataSet(new DoubleDataBox(11, v.size()), v);
+        DataSet tabulated = new BoxDataSet(new DoubleDataBox(21, v.size()), v);
 
-        for (int e = 0; e <= 10; e++) {
+        int numRows = 100;
+
+        for (int e = 0; e <= numRows; e++) {
 
             // Parameters.
-            double zeroAlpha = e / 10.0;
+            double zeroAlpha = e / (double) numRows;
 
             int[] discrete = {47, 70, 71, 85, 107};
             int[] nonScalar = {52, 53, 54, 55, 71, 105};
@@ -1199,7 +1206,9 @@ public class CalibrationQuestion {
 
             double tpr = tp / (tp + fn);
             double fpr = fp / (fp + tn);
-            double acc = (tp + tn) / (tp + fp + tn + fn);
+//            double acc = (tp + tn) / (tp + fp + tn + fn);
+            double precision = tp / (tp + fp);
+            double recall = tp / (tp + tn);
             double fracDec = (initialSegment - omitted.size()) / (double) initialSegment;
 
             System.out.println("\nSummary:\n");
@@ -1209,14 +1218,23 @@ public class CalibrationQuestion {
             System.out.println("Total incorrect: " + selected.get(1));
             System.out.println("TPR: " + tpr);
             System.out.println("FPR: " + fpr);
+            System.out.println("PREC: " + precision);
+            System.out.println("REC: " + recall);
             System.out.println("Didn't classify: " + omitted);
             System.out.println("Fraction of Decisions: " + fracDec);
             System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
 
-            tabulated.setDouble(e, 0, zeroAlpha);
-            tabulated.setDouble(e, 1, fpr);
-            tabulated.setDouble(e, 2, tpr);
-            tabulated.setDouble(e, 3, acc);
+            int l = 0;
+
+            tabulated.setDouble(e, l++, zeroAlpha);
+            tabulated.setDouble(e, l++, fpr);
+            tabulated.setDouble(e, l++, tpr);
+            tabulated.setDouble(e, l++, precision);
+            tabulated.setDouble(e, l++, recall);
+            tabulated.setDouble(e, l++, tp);
+            tabulated.setDouble(e, l++, tn);
+            tabulated.setDouble(e, l++, fp);
+            tabulated.setDouble(e, l++, fn);
         }
 
         System.out.println("\n" + tabulated);
