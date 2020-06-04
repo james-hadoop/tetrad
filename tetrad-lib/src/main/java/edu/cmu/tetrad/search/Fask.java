@@ -294,8 +294,11 @@ public final class Fask implements GraphSearch {
         double n1 = covx[4];
         double n2 = covy[4];
 
-        double c1 = covx[8];
-        double c2 = covy[8];
+        double c1 = covx[2];
+        double c2 = covy[2];
+
+//        double c1 = covx[8];
+//        double c2 = covy[8];
 
         // Need to do this first.
         if (isZeroDiff(n1, n2, c1, c2, zeroAlpha, X, Y)) {
@@ -323,14 +326,14 @@ public final class Fask implements GraphSearch {
         double zdiff = (z1 - z2) / (1.0 / n1 + 1.0 / n2);
 
         // One sided.
-        double p = 1.0 - new NormalDistribution(0, 2)
+        double p = 1.0 - new NormalDistribution(0, 1)
                 .cumulativeProbability(abs(zdiff));
         return p > alpha;
     }
 
     private boolean isZero(double r, double n, double alpha) {
         double z = 0.5 * sqrt(n - 3) * (log(1 + r) - log(1 - r));
-        double p = 2 * (1 - new NormalDistribution(0, 2).cumulativeProbability(abs(z)));
+        double p = 2 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
         return p > alpha;
     }
 

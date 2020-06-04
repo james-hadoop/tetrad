@@ -1031,6 +1031,8 @@ public class CalibrationQuestion {
         v.add(new ContinuousVariable("TPR"));
         v.add(new ContinuousVariable("PREC"));
         v.add(new ContinuousVariable("REC"));
+        v.add(new ContinuousVariable("FDR"));
+        v.add(new ContinuousVariable("ACC"));
         v.add(new ContinuousVariable("TP"));
         v.add(new ContinuousVariable("TN"));
         v.add(new ContinuousVariable("FP"));
@@ -1038,7 +1040,7 @@ public class CalibrationQuestion {
 
         DataSet tabulated = new BoxDataSet(new DoubleDataBox(21, v.size()), v);
 
-        int numRows = 100;
+        int numRows = 20;
 
         for (int e = 0; e <= numRows; e++) {
 
@@ -1062,6 +1064,8 @@ public class CalibrationQuestion {
             double fp = 0;
             double tn = 0;
             double fn = 0;
+
+            List<Integer> fps = new ArrayList<>();
 
             long start = System.currentTimeMillis();
 
@@ -1177,9 +1181,12 @@ public class CalibrationQuestion {
                 boolean negative = omitted.contains(i);
 
                 if (_true && positive) tp += weight;
-                if (_true && negative) tn += weight;
-                if (_false && positive) fp += weight;
-                if (_false && negative) fn += weight;
+                if (_true && negative) fn += weight;
+                if (_false && positive) {
+                    fp += weight;
+                    fps.add(i);
+                }
+                if (_false && negative) tn += weight;
 
                 if (groundTruthDirection) System.out.print("\t-->");
                 else System.out.print("\t<--");
@@ -1206,9 +1213,10 @@ public class CalibrationQuestion {
 
             double tpr = tp / (tp + fn);
             double fpr = fp / (fp + tn);
-//            double acc = (tp + tn) / (tp + fp + tn + fn);
             double precision = tp / (tp + fp);
-            double recall = tp / (tp + tn);
+            double recall = tp / (tp + fn);
+            double fdr = fp / (tp + fn);
+            double acc = (tp + tn) / (tp + fp + tn + fn);
             double fracDec = (initialSegment - omitted.size()) / (double) initialSegment;
 
             System.out.println("\nSummary:\n");
@@ -1224,6 +1232,8 @@ public class CalibrationQuestion {
             System.out.println("Fraction of Decisions: " + fracDec);
             System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
 
+            System.out.println("fps = " + fps);
+
             int l = 0;
 
             tabulated.setDouble(e, l++, zeroAlpha);
@@ -1231,6 +1241,8 @@ public class CalibrationQuestion {
             tabulated.setDouble(e, l++, tpr);
             tabulated.setDouble(e, l++, precision);
             tabulated.setDouble(e, l++, recall);
+            tabulated.setDouble(e, l++, fdr);
+            tabulated.setDouble(e, l++, acc);
             tabulated.setDouble(e, l++, tp);
             tabulated.setDouble(e, l++, tn);
             tabulated.setDouble(e, l++, fp);
