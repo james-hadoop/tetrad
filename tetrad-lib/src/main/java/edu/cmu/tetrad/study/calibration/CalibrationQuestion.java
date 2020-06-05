@@ -1034,13 +1034,18 @@ public class CalibrationQuestion {
         v.add(new ContinuousVariable("FDR"));
         v.add(new ContinuousVariable("ACC"));
         v.add(new ContinuousVariable("TP"));
-        v.add(new ContinuousVariable("TN"));
         v.add(new ContinuousVariable("FP"));
         v.add(new ContinuousVariable("FN"));
-
-        DataSet tabulated = new BoxDataSet(new DoubleDataBox(21, v.size()), v);
+        v.add(new ContinuousVariable("TN"));
 
         int numRows = 20;
+
+        TextTable tabulated = new TextTable(numRows + 2, v.size());
+
+        for (int j = 0; j < v.size(); j++) {
+            tabulated.setToken(0, j, v.get(j).getName());
+        }
+
 
         for (int e = 0; e <= numRows; e++) {
 
@@ -1165,28 +1170,20 @@ public class CalibrationQuestion {
                     estLeftRight = _estLeftRight ? 1 : -1;
                 }
 
-                boolean _true = (groundTruthDirection && estLeftRight == 1)
-                        || ((!groundTruthDirection && estLeftRight == -1));
-                boolean _false = (groundTruthDirection && estLeftRight == -1)
-                        || ((!groundTruthDirection && estLeftRight == 1));
+                if (omitted.contains(i)) continue;
 
-                if ((estLeftRight == 0)) {
-                    System.out.print("\t*");
-                    omitted.add(i);
-                } else if (groundTruthDirection == (estLeftRight == 1)) System.out.print("\t1");
-                else System.out.print("\t0");
+                // FASK assumptions hold.
+                boolean isADog = groundTruthDirection;
 
+                // FASK says left or right *correctly*.
+                boolean thinkItsADog = (estLeftRight == 1);
 
-                boolean positive = !omitted.contains(i);
-                boolean negative = omitted.contains(i);
-
-                if (_true && positive) tp += weight;
-                if (_true && negative) fn += weight;
-                if (_false && positive) {
+                if (isADog && thinkItsADog) tp += weight;
+                else if (!isADog && thinkItsADog) {
                     fp += weight;
                     fps.add(i);
-                }
-                if (_false && negative) tn += weight;
+                } else if (isADog && !thinkItsADog) fn += weight;
+                else if (!isADog && !thinkItsADog) tn += weight;
 
                 if (groundTruthDirection) System.out.print("\t-->");
                 else System.out.print("\t<--");
@@ -1195,9 +1192,9 @@ public class CalibrationQuestion {
                 else if (estLeftRight == -1) System.out.print("\t<--");
                 else System.out.print("\t");
 
-                if (_true) {
+                if (isADog) {
                     selected.get(0).add(i);
-                } else if (_false) {
+                } else {
                     selected.get(1).add(i);
                 }
 
@@ -1215,7 +1212,7 @@ public class CalibrationQuestion {
             double fpr = fp / (fp + tn);
             double precision = tp / (tp + fp);
             double recall = tp / (tp + fn);
-            double fdr = fp / (tp + fn);
+            double fdr = fp / (tp + fp); // false positives over positives
             double acc = (tp + tn) / (tp + fp + tn + fn);
             double fracDec = (initialSegment - omitted.size()) / (double) initialSegment;
 
@@ -1236,17 +1233,28 @@ public class CalibrationQuestion {
 
             int l = 0;
 
-            tabulated.setDouble(e, l++, zeroAlpha);
-            tabulated.setDouble(e, l++, fpr);
-            tabulated.setDouble(e, l++, tpr);
-            tabulated.setDouble(e, l++, precision);
-            tabulated.setDouble(e, l++, recall);
-            tabulated.setDouble(e, l++, fdr);
-            tabulated.setDouble(e, l++, acc);
-            tabulated.setDouble(e, l++, tp);
-            tabulated.setDouble(e, l++, tn);
-            tabulated.setDouble(e, l++, fp);
-            tabulated.setDouble(e, l++, fn);
+            System.out.println();
+            System.out.println("TPR = TP / (TP + FN) = RECALL");
+            System.out.println("FPR = FP / (FP + TN)");
+            System.out.println("PREC = TP / (TP + FP)");
+            System.out.println("REC = TP / (TP + FN) = TPR");
+            System.out.println("FDR = FP / (TP + FP)");
+            System.out.println("ACC = (TP + TN) / (TP + FP + TN + FN)");
+
+            NumberFormat nf3 = new DecimalFormat("0.00");
+            NumberFormat nf4 = new DecimalFormat("0");
+
+            tabulated.setToken(e + 1, l++, "" + nf3.format(zeroAlpha));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(fpr));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(tpr));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(precision));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(recall));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(fdr));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(acc));
+            tabulated.setToken(e + 1, l++, "" + nf4.format(tp));
+            tabulated.setToken(e + 1, l++, "" + nf4.format(fp));
+            tabulated.setToken(e + 1, l++, "" + nf4.format(fn));
+            tabulated.setToken(e + 1, l++, "" + nf4.format(tn));
         }
 
         System.out.println("\n" + tabulated);
