@@ -23,6 +23,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
+import static java.lang.Math.abs;
 
 public class CalibrationQuestion {
 
@@ -1000,7 +1001,7 @@ public class CalibrationQuestion {
 
     private static void scenario8() throws IOException {
         int maxN = 1000;
-        boolean useWeightsFromFile = false;
+        boolean useWeightsFromFile = true;
         int initialSegment = 100;
 
         List<DataSet> dataSets = new ArrayList<>();
@@ -1032,7 +1033,9 @@ public class CalibrationQuestion {
         v.add(new ContinuousVariable("PREC"));
         v.add(new ContinuousVariable("REC"));
         v.add(new ContinuousVariable("FDR"));
+        v.add(new ContinuousVariable("FRAC"));
         v.add(new ContinuousVariable("ACC"));
+        v.add(new ContinuousVariable("AUC"));
         v.add(new ContinuousVariable("TP"));
         v.add(new ContinuousVariable("FP"));
         v.add(new ContinuousVariable("FN"));
@@ -1046,14 +1049,13 @@ public class CalibrationQuestion {
             tabulated.setToken(0, j, v.get(j).getName());
         }
 
-
         for (int e = 0; e <= numRows; e++) {
 
             // Parameters.
             double zeroAlpha = e / (double) numRows;
 
             int[] discrete = {47, 70, 71, 85, 107};
-            int[] nonScalar = {52, 53, 54, 55, 71, 105};
+            int[] vector = {52, 53, 54, 55, 71, 105};
             int[] missingValues = {81, 82, 83};
 
             List<Set<Integer>> selected = new ArrayList<>();
@@ -1076,19 +1078,21 @@ public class CalibrationQuestion {
 
             System.out.println("i\tTrue\tEst");
 
+            boolean[] inCategory = new boolean[initialSegment];
+            double[] scores = new double[initialSegment];
+
+
             for (int i = 1; i <= initialSegment; i++) {
                 System.out.print(i);
 
                 if (Arrays.binarySearch(discrete, i) > -1) {
                     System.out.println(" DISCRETE");
-//                omitted.add(i);
-                    continue;
+                    omitted.add(i);
                 }
 
-                if (Arrays.binarySearch(nonScalar, i) > -1) {
+                if (Arrays.binarySearch(vector, i) > -1) {
                     System.out.println(" NONSCALAR");
-//                omitted.add(i);
-//                    continue;
+                    omitted.add(i);
                 }
 
                 DataSet dataSet = dataSets.get(i - 1);
@@ -1157,6 +1161,8 @@ public class CalibrationQuestion {
                 fask.setZeroAlpha(zeroAlpha);
                 Graph out = fask.search();
 
+                double lr = fask.getLr();
+
                 if (!fask.isAssumptionsSatisfied()) {
                     System.out.println("ASSUMPTIONS NOT SATISFIED");
                     omitted.add(i);
@@ -1184,6 +1190,12 @@ public class CalibrationQuestion {
                     fps.add(i);
                 } else if (isADog && !thinkItsADog) fn += weight;
                 else if (!isADog && !thinkItsADog) tn += weight;
+
+                double[] x = dataSet.getDoubleData().getColumn(0).toArray();
+                double[] y = dataSet.getDoubleData().getColumn(1).toArray();
+
+                inCategory[i - 1] = isADog;
+                scores[i - 1] = lr;//-cxy(x, y) + cxy(y,x);
 
                 if (groundTruthDirection) System.out.print("\t-->");
                 else System.out.print("\t<--");
@@ -1216,6 +1228,9 @@ public class CalibrationQuestion {
             double acc = (tp + tn) / (tp + fp + tn + fn);
             double fracDec = (initialSegment - omitted.size()) / (double) initialSegment;
 
+            RocCalculator roc = new RocCalculator(scores, inCategory, RocCalculator.ASCENDING);
+            double auc = roc.getAuc();
+
             System.out.println("\nSummary:\n");
             System.out.println("Unweighted Accuracy = " + nf2.format(accuracyUnweighted));
             System.out.println("Weighted acc = " + nf2.format(tpr));
@@ -1234,12 +1249,23 @@ public class CalibrationQuestion {
             int l = 0;
 
             System.out.println();
+            System.out.println("PER RUN:");
+            System.out.println();
+            System.out.println("RELEVANT CATEGORY = --> IN GROUND TRUTH");
+            System.out.println("SELECTED CATEGORY = RESIDUAL FASK JUDGED -->");
+
+            if (useWeightsFromFile) {
+                System.out.println("USING WEIGHTS FOR CASES FROM TABLE 4 IN MOOIJ ET AL.");
+            }
+
+            System.out.println();
             System.out.println("TPR = TP / (TP + FN) = RECALL");
             System.out.println("FPR = FP / (FP + TN)");
             System.out.println("PREC = TP / (TP + FP)");
             System.out.println("REC = TP / (TP + FN) = TPR");
             System.out.println("FDR = FP / (TP + FP)");
             System.out.println("ACC = (TP + TN) / (TP + FP + TN + FN)");
+            System.out.println("AUC = AREA UNDER ROC CURVE");
 
             NumberFormat nf3 = new DecimalFormat("0.00");
             NumberFormat nf4 = new DecimalFormat("0");
@@ -1250,7 +1276,9 @@ public class CalibrationQuestion {
             tabulated.setToken(e + 1, l++, "" + nf3.format(precision));
             tabulated.setToken(e + 1, l++, "" + nf3.format(recall));
             tabulated.setToken(e + 1, l++, "" + nf3.format(fdr));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(fracDec));
             tabulated.setToken(e + 1, l++, "" + nf3.format(acc));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(auc));
             tabulated.setToken(e + 1, l++, "" + nf4.format(tp));
             tabulated.setToken(e + 1, l++, "" + nf4.format(fp));
             tabulated.setToken(e + 1, l++, "" + nf4.format(fn));
@@ -1371,4 +1399,37 @@ public class CalibrationQuestion {
 
         writeDataSet(new File("/Users/user/Box/data/pairs/resdata"), i, dataSet1);
     }
+
+    private static double cxy(double[] x, double[] y) {
+        List<Integer> indices = new ArrayList<>();
+        for (int i = 0; i < x.length; i++) indices.add(i);
+
+        Collections.sort(indices, new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return Double.compare(x[o1], x[o2]);
+            }
+        });
+
+        double[] xSorted = new double[x.length];
+        double[] ySorted = new double[y.length];
+
+        for (int i = 0; i < x.length; i++) {
+            xSorted[i] = x[indices.get(i)];
+            ySorted[i] = y[indices.get(i)];
+        }
+
+
+        double sum = 0.0;
+
+        int N = xSorted.length;
+
+        for (int j = 0; j < N - 1; j++) {
+            sum += abs(ySorted[j + 1] - ySorted[j]) / (xSorted[j + 1] - xSorted[j]);
+        }
+
+        return sum / (N - 1);
+    }
+
+
 }

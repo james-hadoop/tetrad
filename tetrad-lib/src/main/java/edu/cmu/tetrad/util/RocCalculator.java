@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class RocCalculator {
     public static final int ASCENDING = 0;
-    private static final int DESCENDING = 1;
+    public static final int DESCENDING = 1;
 
     private int direction = ASCENDING;
 

@@ -30,8 +30,6 @@ import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.util.TetradLogger;
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.commons.math3.distribution.TDistribution;
-import org.omg.CORBA.DATA_CONVERSION;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -83,6 +81,8 @@ public final class Fask implements GraphSearch {
     private double zeroAlpha = 0.1;
     private boolean assumptionsSatisfied = false;
     private boolean twoCycle = false;
+    private double lr;
+    private double lrP;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -316,7 +316,9 @@ public final class Fask implements GraphSearch {
 
         this.assumptionsSatisfied = assumptionsSatisfied;
 
-        return covx[8] - covy[8];
+        double lr = covx[8] - covy[8];
+        this.lr = lr;
+        return lr;
     }
 
     private boolean isZeroDiff(double n1, double n2, double c1, double c2, double alpha, Node X, Node Y) {
@@ -328,6 +330,9 @@ public final class Fask implements GraphSearch {
         // One sided.
         double p = 1.0 - new NormalDistribution(0, 1)
                 .cumulativeProbability(abs(zdiff));
+
+        this.setLrP(p);
+
         return p > alpha;
     }
 
@@ -493,7 +498,7 @@ public final class Fask implements GraphSearch {
 
     private static double kernelGaussian(double z, double h) {
         z /= 3 * h;
-        return Math.exp(-z * z);
+        return exp(-z * z);
     }
 
     private static double[] cov(double[] x, double[] y, double[] condition) {
@@ -616,6 +621,21 @@ public final class Fask implements GraphSearch {
         return data;
     }
 
+    public double getLr() {
+        return lr;
+    }
+
+    public void setLr(double lr) {
+        this.lr = lr;
+    }
+
+    public double getLrP() {
+        return lrP;
+    }
+
+    public void setLrP(double lrP) {
+        this.lrP = lrP;
+    }
 }
 
 
