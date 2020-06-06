@@ -277,17 +277,16 @@ public final class Fask implements GraphSearch {
         double[] covx = cov(x, y, x);
         double[] covy = cov(x, y, y);
 
-//        if (isRemoveNonlinearTrend()) {
-            if (!consistentSkew(x, y)) {
-                for (int i = 0; i < x.length; i++) x[i] *= -1;
-            }
-//        } else {
-//            double a = correlation(x, y);
-//
-//            if (a < 0) {
-//                for (int i = 0; i < x.length; i++) x[i] *= -1;
-//            }
-//        }
+        double exxx = covx[9];
+        double exxy = covy[9];
+
+        double[] sums = consistentSkew(x, y);
+
+        double diff = sums[0] / exxx - sums[1] / exxy;
+
+
+
+//        if (sums == null) throw new RuntimeException("Couldn't make consistent");
 
         boolean assumptionsSatisfied = true;
 
@@ -310,15 +309,15 @@ public final class Fask implements GraphSearch {
         }
 
         if (isZeroSkewness(skewness(x), x.length, zeroAlpha)
-            && isZeroSkewness(skewness(y), y.length, zeroAlpha)) {
+                && isZeroSkewness(skewness(y), y.length, zeroAlpha)) {
             assumptionsSatisfied = false;
         }
 
         this.assumptionsSatisfied = assumptionsSatisfied;
 
-        double lr = covx[8] - covy[8];
-        this.lr = lr;
-        return lr;
+//        double lr = covx[8] - covy[8];
+        this.lr = diff;
+        return diff;
     }
 
     private boolean isZeroDiff(double n1, double n2, double c1, double c2, double alpha, Node X, Node Y) {
@@ -435,26 +434,29 @@ public final class Fask implements GraphSearch {
      * @return the nonlinear residuals of y regressed onto x.
      */
     public static double[] residuals(final double[] y, final double[] x) {
-        int N = y.length;
-        double[] residuals = new double[N];
-        double[] sum = new double[N];
-        double[] totalWeight = new double[N];
-        double h = h1(x);
-
-        for (int j = 0; j < N; j++) {
-            double yj = y[j];
-
-            for (int i = 0; i < N; i++) {
-                double d = distance(x, i, j);
-                double k = kernelGaussian(d, h);
-                sum[i] += k * yj;
-                totalWeight[i] += k;
-            }
-        }
-
-        for (int i = 0; i < N; i++) {
-            residuals[i] = y[i] - sum[i] / totalWeight[i];
-        }
+        RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
+        double[] residuals = result.getResiduals().toArray();
+//
+//        int N = y.length;
+//        double[] residuals = new double[N];
+//        double[] sum = new double[N];
+//        double[] totalWeight = new double[N];
+//        double h = h1(x);
+//
+//        for (int j = 0; j < N; j++) {
+//            double yj = y[j];
+//
+//            for (int i = 0; i < N; i++) {
+//                double d = distance(x, i, j);
+//                double k = kernelGaussian(d, h);
+//                sum[i] += k * yj;
+//                totalWeight[i] += k;
+//            }
+//        }
+//
+//        for (int i = 0; i < N; i++) {
+//            residuals[i] = y[i] - sum[i] / totalWeight[i];
+//        }
 
         return residuals;
     }
@@ -532,28 +534,22 @@ public final class Fask implements GraphSearch {
         double sx = exx - ex * ex;
         double sy = eyy - ey * ey;
 
-        return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy)};
+        return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy), exx, eyy};
     }
 
-    private static boolean consistentSkew(double[] x, double[] y) {
+    private static double[] consistentSkew(double[] x, double[] y) {
         RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
         double[] ry = result.getResiduals().toArray();
-
-        double[] fx = new double[x.length];
-        for (int i = 0; i < x.length; i++) fx[i] = y[i] - ry[i];
 
         double sum1 = 0.0;
         double sum2 = 0.0;
 
         for (int i = 0; i < x.length; i++) {
-            if (ry[i] > -fx[i]) sum1 += x[i] * ry[i];
+            if (x[i] > 0) sum1 += x[i] * ry[i];
+            if (y[i] > 0) sum2 += x[i] * ry[i];
         }
 
-        for (int i = 0; i < x.length; i++) {
-            if (x[i] > 0) sum2 += x[i] * ry[i];
-        }
-
-        return signum(sum1) == signum(sum2);
+        return new double[]{sum1, sum2};
     }
 
     public boolean isAssumptionsSatisfied() {

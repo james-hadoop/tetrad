@@ -1000,9 +1000,10 @@ public class CalibrationQuestion {
     }
 
     private static void scenario8() throws IOException {
-        int maxN = 1000;
-        boolean useWeightsFromFile = true;
+        int maxN = 100000;
+        boolean useWeightsFromFile = false;
         int initialSegment = 100;
+        boolean verbose = false;
 
         List<DataSet> dataSets = new ArrayList<>();
 
@@ -1056,7 +1057,7 @@ public class CalibrationQuestion {
 
             int[] discrete = {47, 70, 71, 85, 107};
             int[] vector = {52, 53, 54, 55, 71, 105};
-            int[] missingValues = {81, 82, 83};
+            int[] interpolatedValues = {81, 82, 83};
 
             List<Set<Integer>> selected = new ArrayList<>();
             Set<Integer> omitted = new TreeSet<>();
@@ -1073,26 +1074,41 @@ public class CalibrationQuestion {
             double fn = 0;
 
             List<Integer> fps = new ArrayList<>();
+            List<Integer> fns = new ArrayList<>();
 
             long start = System.currentTimeMillis();
 
-            System.out.println("i\tTrue\tEst");
+            if (verbose) {
+                System.out.println("i\tTrue\tEst");
+            }
 
             boolean[] inCategory = new boolean[initialSegment];
             double[] scores = new double[initialSegment];
 
-
             for (int i = 1; i <= initialSegment; i++) {
-                System.out.print(i);
+                if (verbose) {
+                    System.out.print(i);
+                }
 
                 if (Arrays.binarySearch(discrete, i) > -1) {
-                    System.out.println(" DISCRETE");
-                    omitted.add(i);
+                    if (verbose) {
+                        System.out.println(" DISCRETE");
+                    }
+//                    omitted.add(i);
                 }
 
                 if (Arrays.binarySearch(vector, i) > -1) {
-                    System.out.println(" VECTOR");
-                    omitted.add(i);
+                    if (verbose) {
+                        System.out.println(" VECTOR");
+                    }
+//                    omitted.add(i);
+                }
+
+                if (Arrays.binarySearch(interpolatedValues, i) > -1) {
+                    if (verbose) {
+                        System.out.println(" INTERPOLATED");
+                    }
+//                    omitted.add(i);
                 }
 
                 DataSet dataSet = dataSets.get(i - 1);
@@ -1130,7 +1146,9 @@ public class CalibrationQuestion {
                     y0 = 9;
                 }
 
-                writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
+                if (verbose) {
+                    writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
+                }
 
                 List<Node> gtNodes = groundTruthData.getVariables();
                 DiscreteVariable c4 = (DiscreteVariable) gtNodes.get(4);
@@ -1160,21 +1178,29 @@ public class CalibrationQuestion {
                 fask.setTwoCycleThreshold(0.001);
                 fask.setZeroAlpha(zeroAlpha);
                 Graph out = fask.search();
-
                 double lr = fask.getLr();
 
                 if (!fask.isAssumptionsSatisfied()) {
-                    System.out.println("ASSUMPTIONS NOT SATISFIED");
+                    if (verbose) {
+                        System.out.println("ASSUMPTIONS NOT SATISFIED");
+                    }
                     omitted.add(i);
                 }
 
                 if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
-                    System.out.println(" 2-CYCLE");
+                    if (verbose) {
+                        System.out.println(" 2-CYCLE");
+                    }
                     omitted.add(i);
                 } else {
                     boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
                     estLeftRight = _estLeftRight ? 1 : -1;
                 }
+
+//                if (Arrays.binarySearch(discrete, i) > 0) {
+//                    estLeftRight = -estLeftRight;
+//                    lr = -lr;
+//                }
 
                 if (omitted.contains(i)) continue;
 
@@ -1191,6 +1217,7 @@ public class CalibrationQuestion {
                     fps.add(i);
                 } else if (isADog && !thinkItsADog) {
                     fn += weight;
+                    fns.add(i);
                 } else if (!isADog && !thinkItsADog) {
                     tn += weight;
                 }
@@ -1198,12 +1225,17 @@ public class CalibrationQuestion {
                 inCategory[i - 1] = isADog;
                 scores[i - 1] = lr;//-cxy(x, y) + cxy(y,x);
 
-                if (groundTruthDirection) System.out.print("\t-->");
-                else System.out.print("\t<--");
 
-                if (estLeftRight == 1) System.out.print("\t-->");
-                else if (estLeftRight == -1) System.out.print("\t<--");
-                else System.out.print("\t");
+                if (verbose) {
+                    if (groundTruthDirection) System.out.print("\t-->");
+                    else System.out.print("\t<--");
+                }
+
+                if (verbose) {
+                    if (estLeftRight == 1) System.out.print("\t-->");
+                    else if (estLeftRight == -1) System.out.print("\t<--");
+                    else System.out.print("\t");
+                }
 
                 if (isADog) {
                     selected.get(0).add(i);
@@ -1211,7 +1243,9 @@ public class CalibrationQuestion {
                     selected.get(1).add(i);
                 }
 
-                System.out.println();
+                if (verbose) {
+                    System.out.println();
+                }
             }
 
             long stop = System.currentTimeMillis();
@@ -1246,6 +1280,7 @@ public class CalibrationQuestion {
             System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
 
             System.out.println("fps = " + fps);
+            System.out.println("fns = " + fns);
 
             int l = 0;
 
