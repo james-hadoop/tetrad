@@ -1184,15 +1184,16 @@ public class CalibrationQuestion {
                 // FASK says left or right *correctly*.
                 boolean thinkItsADog = (estLeftRight == 1);
 
-                if (isADog && thinkItsADog) tp += weight;
-                else if (!isADog && thinkItsADog) {
+                if (isADog && thinkItsADog) {
+                    tp += weight;
+                } else if (!isADog && thinkItsADog) {
                     fp += weight;
                     fps.add(i);
-                } else if (isADog && !thinkItsADog) fn += weight;
-                else if (!isADog && !thinkItsADog) tn += weight;
-
-                double[] x = dataSet.getDoubleData().getColumn(0).toArray();
-                double[] y = dataSet.getDoubleData().getColumn(1).toArray();
+                } else if (isADog && !thinkItsADog) {
+                    fn += weight;
+                } else if (!isADog && !thinkItsADog) {
+                    tn += weight;
+                }
 
                 inCategory[i - 1] = isADog;
                 scores[i - 1] = lr;//-cxy(x, y) + cxy(y,x);
@@ -1268,7 +1269,7 @@ public class CalibrationQuestion {
             System.out.println("AUC = AREA UNDER ROC CURVE");
 
             NumberFormat nf3 = new DecimalFormat("0.00");
-            NumberFormat nf4 = new DecimalFormat("0");
+            NumberFormat nf4 = new DecimalFormat("0.0");
 
             tabulated.setToken(e + 1, l++, "" + nf3.format(zeroAlpha));
             tabulated.setToken(e + 1, l++, "" + nf3.format(fpr));

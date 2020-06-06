@@ -277,17 +277,17 @@ public final class Fask implements GraphSearch {
         double[] covx = cov(x, y, x);
         double[] covy = cov(x, y, y);
 
-        if (isRemoveNonlinearTrend()) {
+//        if (isRemoveNonlinearTrend()) {
             if (!consistentSkew(x, y)) {
                 for (int i = 0; i < x.length; i++) x[i] *= -1;
             }
-        } else {
-            double a = correlation(x, y);
-
-            if (a < 0) {
-                for (int i = 0; i < x.length; i++) x[i] *= -1;
-            }
-        }
+//        } else {
+//            double a = correlation(x, y);
+//
+//            if (a < 0) {
+//                for (int i = 0; i < x.length; i++) x[i] *= -1;
+//            }
+//        }
 
         boolean assumptionsSatisfied = true;
 
