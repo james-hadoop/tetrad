@@ -1091,7 +1091,7 @@ public class CalibrationQuestion {
                 }
 
                 if (Arrays.binarySearch(vector, i) > -1) {
-                    System.out.println(" NONSCALAR");
+                    System.out.println(" VECTOR");
                     omitted.add(i);
                 }
 
