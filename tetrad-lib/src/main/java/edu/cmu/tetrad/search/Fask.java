@@ -263,13 +263,13 @@ public final class Fask implements GraphSearch {
         x = Arrays.copyOf(x, x.length);
         y = Arrays.copyOf(y, y.length);
 
-        if (isRemoveNonlinearTrend()) {
-            double[] res = residuals(y, x);
-
-            for (int k = 0; k < x.length; k++) {
-                x[k] = x[k] - res[k];
-            }
-        }
+//        if (isRemoveNonlinearTrend()) {
+//            double[] res = residuals(y, x);
+//
+//            for (int k = 0; k < x.length; k++) {
+//                x[k] = x[k] - res[k];
+//            }
+//        }
 
         x = DataUtils.center(x);
         y = DataUtils.center(y);
@@ -277,10 +277,10 @@ public final class Fask implements GraphSearch {
         double[] covx = cov(x, y, x);
         double[] covy = cov(x, y, y);
 
-        double exxx = covx[9];
-        double exxy = covy[9];
+        double exxx = covx[10];
+        double exxy = covy[10];
 
-        double[] sums = consistentSkew(x, y);
+        double[] sums = getSums(x, y);
 
         double diff = sums[0] / exxx - sums[1] / exxy;
 
@@ -537,16 +537,25 @@ public final class Fask implements GraphSearch {
         return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy), exx, eyy};
     }
 
-    private static double[] consistentSkew(double[] x, double[] y) {
-        RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
-        double[] ry = result.getResiduals().toArray();
+    private static double[] getSums(double[] y, double[] x) {
+        RegressionResult result = RegressionDataset.regress(x, new double[][]{y});
+        double[] rxy = result.getResiduals().toArray();
+
+        double[] y_minus_rxy = new double[x.length];
+
+        for (int k = 0; k < y_minus_rxy.length; k++) {
+            y_minus_rxy[k] = y[k] - rxy[k];
+        }
+
+        RegressionResult result3 = RegressionDataset.regress(x, new double[][]{y_minus_rxy});
+        double[] r_x_y_minus_rxy = result3.getResiduals().toArray();
 
         double sum1 = 0.0;
         double sum2 = 0.0;
 
-        for (int i = 0; i < x.length; i++) {
-            if (x[i] > 0) sum1 += x[i] * ry[i];
-            if (y[i] > 0) sum2 += x[i] * ry[i];
+        for (int i = 0; i < y_minus_rxy.length; i++) {
+            if (y_minus_rxy[i] > 0) sum1 += y_minus_rxy[i] * r_x_y_minus_rxy[i];
+            if (x[i] > 0) sum2 += y_minus_rxy[i] * r_x_y_minus_rxy[i];
         }
 
         return new double[]{sum1, sum2};

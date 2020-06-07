@@ -1017,7 +1017,7 @@ public class CalibrationQuestion {
             writeDataSet(new File("/Users/user/Box/data/pairs/data"), i, dataSet);
 
             dataSet = DataUtils.standardizeData(dataSet);
-            if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
+//            if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             dataSets.add(dataSet);
 
             writeResData(dataSet, i);
@@ -1237,9 +1237,9 @@ public class CalibrationQuestion {
                     else System.out.print("\t");
                 }
 
-                if (isADog) {
+                if ((isADog && thinkItsADog) || (!isADog && !thinkItsADog)) {
                     selected.get(0).add(i);
-                } else {
+                } else if ((isADog && !thinkItsADog) || (!isADog && thinkItsADog)) {
                     selected.get(1).add(i);
                 }
 
@@ -1284,24 +1284,26 @@ public class CalibrationQuestion {
 
             int l = 0;
 
-            System.out.println();
-            System.out.println("PER RUN:");
-            System.out.println();
-            System.out.println("RELEVANT CATEGORY = --> IN GROUND TRUTH");
-            System.out.println("SELECTED CATEGORY = RESIDUAL FASK JUDGED -->");
+            if (verbose) {
+                System.out.println();
+                System.out.println("PER RUN:");
+                System.out.println();
+                System.out.println("RELEVANT CATEGORY = --> IN GROUND TRUTH");
+                System.out.println("SELECTED CATEGORY = RESIDUAL FASK JUDGED -->");
 
-            if (useWeightsFromFile) {
-                System.out.println("USING WEIGHTS FOR CASES FROM TABLE 4 IN MOOIJ ET AL.");
+                if (useWeightsFromFile) {
+                    System.out.println("USING WEIGHTS FOR CASES FROM TABLE 4 IN MOOIJ ET AL.");
+                }
+
+                System.out.println();
+                System.out.println("TPR = TP / (TP + FN) = RECALL");
+                System.out.println("FPR = FP / (FP + TN)");
+                System.out.println("PREC = TP / (TP + FP)");
+                System.out.println("REC = TP / (TP + FN) = TPR");
+                System.out.println("FDR = FP / (TP + FP)");
+                System.out.println("ACC = (TP + TN) / (TP + FP + TN + FN)");
+                System.out.println("AUC = AREA UNDER ROC CURVE");
             }
-
-            System.out.println();
-            System.out.println("TPR = TP / (TP + FN) = RECALL");
-            System.out.println("FPR = FP / (FP + TN)");
-            System.out.println("PREC = TP / (TP + FP)");
-            System.out.println("REC = TP / (TP + FN) = TPR");
-            System.out.println("FDR = FP / (TP + FP)");
-            System.out.println("ACC = (TP + TN) / (TP + FP + TN + FN)");
-            System.out.println("AUC = AREA UNDER ROC CURVE");
 
             NumberFormat nf3 = new DecimalFormat("0.00");
             NumberFormat nf4 = new DecimalFormat("0.0");
