@@ -74,7 +74,7 @@ public final class Fask implements GraphSearch {
     private boolean useFasAdjacencies = true;
 
     // True if the nonlinear trend between X and Y should be removed.
-    private boolean removeNonlinearTrend = false;
+    private boolean removeResidualx = false;
 
     // Conditioned correlations are checked to make sure they are different from zero (since if they
     // are zero, the FASK theory doesn't apply).
@@ -132,7 +132,7 @@ public final class Fask implements GraphSearch {
         TetradLogger.getInstance().forceLogMessage("N = " + dataSet.getNumRows());
         TetradLogger.getInstance().forceLogMessage("Skewness edge threshold = " + skewEdgeThreshold);
         TetradLogger.getInstance().forceLogMessage("2-cycle threshold = " + twoCycleThreshold);
-        if (isRemoveNonlinearTrend()) {
+        if (isRemoveResidualx()) {
             TetradLogger.getInstance().forceLogMessage("Removing nonlinear trend");
         }
         TetradLogger.getInstance().forceLogMessage("");
@@ -190,12 +190,12 @@ public final class Fask implements GraphSearch {
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(c1 - c2) > getSkewEdgeThreshold())) {
                     double lrxy;
 
-                    if (isRemoveNonlinearTrend()) {
+                    if (isRemoveResidualx()) {
 
                         // Will work either way, picking the one that's better for the causal pairs data.
                         // The reason is that reversing gives the opposite direction, but taking the
                         // residuals in the opposite direction reverses it again.
-                        lrxy = leftRight(y, x, X, Y);
+                        lrxy = leftRight(x, y, X, Y);
                     } else {
                         lrxy = leftRight(x, y, X, Y);
                     }
@@ -264,24 +264,23 @@ public final class Fask implements GraphSearch {
         return graph;
     }
 
-    private double leftRight(double[] x, double[] yPlusRx, Node X, Node Y) {
+    private double leftRight(double[] x, double[] y, Node X, Node Y) {
+        y = Arrays.copyOf(y, y.length);
         x = Arrays.copyOf(x, x.length);
-        yPlusRx = Arrays.copyOf(yPlusRx, yPlusRx.length);
 
+        y = DataUtils.center(y);
         x = DataUtils.center(x);
-        yPlusRx = DataUtils.center(yPlusRx);
 
-        double b = 1;
+        double[] sums = getSums(x, y);
 
-        double[] sums = getSums(x, yPlusRx, b);
-
-        double[] covx = cov(x, yPlusRx, x);
-        double[] covy = cov(x, yPlusRx, yPlusRx);
+        double[] covx = cov(x, y, x);
+        double[] covy = cov(x, y, y);
 
         double exxx = covx[10];
         double exxy = covy[10];
 
         double diff = sums[0] / exxx - sums[1] / exxy;
+//        double diff = covx[8] - covy[8];
 
         boolean assumptionsSatisfied = true;
 
@@ -296,12 +295,12 @@ public final class Fask implements GraphSearch {
             assumptionsSatisfied = false;
         }
 
-        if (isNonzeroCoef(correlation(x, yPlusRx), n1, zeroAlpha)) {
+        if (isNonzeroCoef(correlation(y, x), n1, zeroAlpha)) {
             assumptionsSatisfied = false;
         }
 
-        if (isNonzeroSkewness(skewness(x), x.length, zeroAlpha)
-                && isNonzeroSkewness(skewness(yPlusRx), yPlusRx.length, zeroAlpha)) {
+        if (isNonzeroSkewness(skewness(y), y.length, zeroAlpha)
+                && isNonzeroSkewness(skewness(x), x.length, zeroAlpha)) {
             assumptionsSatisfied = false;
         }
 
@@ -376,12 +375,12 @@ public final class Fask implements GraphSearch {
         this.knowledge = knowledge;
     }
 
-    public boolean isRemoveNonlinearTrend() {
-        return removeNonlinearTrend;
+    public boolean isRemoveResidualx() {
+        return removeResidualx;
     }
 
-    public void setRemoveNonlinearTrend(boolean removeNonlinearTrend) {
-        this.removeNonlinearTrend = removeNonlinearTrend;
+    public void setRemoveResidualx(boolean removeResidualx) {
+        this.removeResidualx = removeResidualx;
     }
 
     public Graph getInitialGraph() {
@@ -534,29 +533,25 @@ public final class Fask implements GraphSearch {
         return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy), exx, eyy};
     }
 
-    private static double[] getSums(double[] yPlusRx, double[] x, double b) {
-//        yPlusRx = Arrays.copyOf(yPlusRx, yPlusRx.length);
-//        yPlusRx = residuals(yPlusRx, x, RegressionType.NONLINEAR);
-//        x = residuals(x, yPlusRx, RegressionType.NONLINEAR);
+    private double[] getSums(double[] x, double[] yPlusRx) {
+        double[] y = Arrays.copyOf(yPlusRx, yPlusRx.length);
 
-//        RegressionResult result = RegressionDataset.regress(x, new double[][]{yPlusRx});
-        double[] r_y_plux_rx = residuals(x, yPlusRx, RegressionType.LINEAR);// result.getResiduals().toArray();
+        if (isRemoveResidualx()) {
+            double[] r1 = residuals(x, yPlusRx, RegressionType.LINEAR);
 
-        double[] y = new double[x.length];
-
-        for (int k = 0; k < y.length; k++) {
-            y[k] = yPlusRx[k] - b * r_y_plux_rx[k];
+            for (int k = 0; k < y.length; k++) {
+                y[k] = yPlusRx[k] - r1[k];
+            }
         }
 
-//        RegressionResult result3 =  RegressionDataset.regress(x, new double[][]{y});
-        double[] rxy = residuals(x, y, RegressionType.LINEAR);// result3.getResiduals().toArray();
+        double[] rxy = residuals(x, y, RegressionType.LINEAR);
 
         double sum1 = 0.0;
         double sum2 = 0.0;
 
         for (int i = 0; i < y.length; i++) {
-            if (y[i] > 0) sum1 += y[i] * rxy[i];
-            if (x[i] > 0) sum2 += y[i] * rxy[i];
+            if (x[i] > 0) sum1 += isRemoveResidualx() ? -y[i] * rxy[i] : y[i] * rxy[i];
+            if (y[i] > 0) sum2 += isRemoveResidualx() ? -y[i] * rxy[i] : y[i] * rxy[i];
         }
 
         return new double[]{sum1, sum2};
