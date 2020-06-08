@@ -78,7 +78,7 @@ public final class Fask implements GraphSearch {
 
     // Conditioned correlations are checked to make sure they are different from zero (since if they
     // are zero, the FASK theory doesn't apply).
-    private double zeroAlpha = 0.1;
+    private double zeroAlpha = 0.01;
     private boolean assumptionsSatisfied = false;
     private boolean twoCycle = false;
     private double lr;
@@ -208,6 +208,11 @@ public final class Fask implements GraphSearch {
                         continue;
                     }
 
+                    if (!isAssumptionsSatisfied()) {
+                        System.out.println(X + "---" + Y + " Assumptions not satisfied");
+//                        continue;
+                    }
+
                     if (knowledgeOrients(X, Y)) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tknowledge"
                                 + "\t" + nf.format(lrxy)
@@ -259,34 +264,24 @@ public final class Fask implements GraphSearch {
         return graph;
     }
 
-    private double leftRight(double[] x, double[] y, Node X, Node Y) {
+    private double leftRight(double[] x, double[] yPlusRx, Node X, Node Y) {
         x = Arrays.copyOf(x, x.length);
-        y = Arrays.copyOf(y, y.length);
-
-//        if (isRemoveNonlinearTrend()) {
-//            double[] res = residuals(y, x);
-//
-//            for (int k = 0; k < x.length; k++) {
-//                x[k] = x[k] - res[k];
-//            }
-//        }
+        yPlusRx = Arrays.copyOf(yPlusRx, yPlusRx.length);
 
         x = DataUtils.center(x);
-        y = DataUtils.center(y);
+        yPlusRx = DataUtils.center(yPlusRx);
 
-        double[] covx = cov(x, y, x);
-        double[] covy = cov(x, y, y);
+        double b = 1;
+
+        double[] sums = getSums(x, yPlusRx, b);
+
+        double[] covx = cov(x, yPlusRx, x);
+        double[] covy = cov(x, yPlusRx, yPlusRx);
 
         double exxx = covx[10];
         double exxy = covy[10];
 
-        double[] sums = getSums(x, y);
-
         double diff = sums[0] / exxx - sums[1] / exxy;
-
-
-
-//        if (sums == null) throw new RuntimeException("Couldn't make consistent");
 
         boolean assumptionsSatisfied = true;
 
@@ -296,31 +291,27 @@ public final class Fask implements GraphSearch {
         double c1 = covx[2];
         double c2 = covy[2];
 
-//        double c1 = covx[8];
-//        double c2 = covy[8];
-
         // Need to do this first.
-        if (isZeroDiff(n1, n2, c1, c2, zeroAlpha, X, Y)) {
+        if (isNonzeroDiff(n1, n2, c1, c2, zeroAlpha, X, Y)) {
             assumptionsSatisfied = false;
         }
 
-        if (isZero(correlation(x, y), n1, zeroAlpha)) {
+        if (isNonzeroCoef(correlation(x, yPlusRx), n1, zeroAlpha)) {
             assumptionsSatisfied = false;
         }
 
-        if (isZeroSkewness(skewness(x), x.length, zeroAlpha)
-                && isZeroSkewness(skewness(y), y.length, zeroAlpha)) {
+        if (isNonzeroSkewness(skewness(x), x.length, zeroAlpha)
+                && isNonzeroSkewness(skewness(yPlusRx), yPlusRx.length, zeroAlpha)) {
             assumptionsSatisfied = false;
         }
 
         this.assumptionsSatisfied = assumptionsSatisfied;
 
-//        double lr = covx[8] - covy[8];
         this.lr = diff;
         return diff;
     }
 
-    private boolean isZeroDiff(double n1, double n2, double c1, double c2, double alpha, Node X, Node Y) {
+    private boolean isNonzeroDiff(double n1, double n2, double c1, double c2, double alpha, Node X, Node Y) {
         double z1 = 0.5 * (log(1.0 + c1) - log(1.0 - c1));
         double z2 = 0.5 * (log(1.0 + c2) - log(1.0 - c2));
 
@@ -335,13 +326,13 @@ public final class Fask implements GraphSearch {
         return p > alpha;
     }
 
-    private boolean isZero(double r, double n, double alpha) {
-        double z = 0.5 * sqrt(n - 3) * (log(1 + r) - log(1 - r));
+    private boolean isNonzeroCoef(double r, double n, double alpha) {
+        double z = 0.5 * sqrt(n) * (log(1 + r) - log(1 - r));
         double p = 2 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
         return p > alpha;
     }
 
-    private boolean isZeroSkewness(double g1, double n, double alpha) {
+    private boolean isNonzeroSkewness(double g1, double n, double alpha) {
         double G1 = (sqrt((n * (n - 1)) / (n - 2))) * g1;
         double se = sqrt((6 * n * (n - 1)) / ((n - 2) * (n + 1) * (n + 3)));
         double ratio = G1 / se;
@@ -425,6 +416,8 @@ public final class Fask implements GraphSearch {
         this.zeroAlpha = zeroAlpha;
     }
 
+    public enum RegressionType {LINEAR, NONLINEAR}
+
     /**
      * Calculates the residuals of y regressed nonparametrically onto y. Left public
      * so it can be accessed separately.
@@ -433,30 +426,34 @@ public final class Fask implements GraphSearch {
      *
      * @return the nonlinear residuals of y regressed onto x.
      */
-    public static double[] residuals(final double[] y, final double[] x) {
-        RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
-        double[] residuals = result.getResiduals().toArray();
-//
-//        int N = y.length;
-//        double[] residuals = new double[N];
-//        double[] sum = new double[N];
-//        double[] totalWeight = new double[N];
-//        double h = h1(x);
-//
-//        for (int j = 0; j < N; j++) {
-//            double yj = y[j];
-//
-//            for (int i = 0; i < N; i++) {
-//                double d = distance(x, i, j);
-//                double k = kernelGaussian(d, h);
-//                sum[i] += k * yj;
-//                totalWeight[i] += k;
-//            }
-//        }
-//
-//        for (int i = 0; i < N; i++) {
-//            residuals[i] = y[i] - sum[i] / totalWeight[i];
-//        }
+    public static double[] residuals(final double[] y, final double[] x, RegressionType regressionType) {
+        double[] residuals;
+
+        if (regressionType == RegressionType.LINEAR) {
+            RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
+            residuals = result.getResiduals().toArray();
+        } else {
+            int N = y.length;
+            residuals = new double[N];
+            double[] sum = new double[N];
+            double[] totalWeight = new double[N];
+            double h = h1(x);
+
+            for (int j = 0; j < N; j++) {
+                double yj = y[j];
+
+                for (int i = 0; i < N; i++) {
+                    double d = distance(x, i, j);
+                    double k = kernelGaussian(d, h);
+                    sum[i] += k * yj;
+                    totalWeight[i] += k;
+                }
+            }
+
+            for (int i = 0; i < N; i++) {
+                residuals[i] = y[i] - sum[i] / totalWeight[i];
+            }
+        }
 
         return residuals;
     }
@@ -537,25 +534,29 @@ public final class Fask implements GraphSearch {
         return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy), exx, eyy};
     }
 
-    private static double[] getSums(double[] y, double[] x) {
-        RegressionResult result = RegressionDataset.regress(x, new double[][]{y});
-        double[] rxy = result.getResiduals().toArray();
+    private static double[] getSums(double[] yPlusRx, double[] x, double b) {
+//        yPlusRx = Arrays.copyOf(yPlusRx, yPlusRx.length);
+//        yPlusRx = residuals(yPlusRx, x, RegressionType.NONLINEAR);
+//        x = residuals(x, yPlusRx, RegressionType.NONLINEAR);
 
-        double[] y_minus_rxy = new double[x.length];
+//        RegressionResult result = RegressionDataset.regress(x, new double[][]{yPlusRx});
+        double[] r_y_plux_rx = residuals(x, yPlusRx, RegressionType.LINEAR);// result.getResiduals().toArray();
 
-        for (int k = 0; k < y_minus_rxy.length; k++) {
-            y_minus_rxy[k] = y[k] - rxy[k];
+        double[] y = new double[x.length];
+
+        for (int k = 0; k < y.length; k++) {
+            y[k] = yPlusRx[k] - b * r_y_plux_rx[k];
         }
 
-        RegressionResult result3 = RegressionDataset.regress(x, new double[][]{y_minus_rxy});
-        double[] r_x_y_minus_rxy = result3.getResiduals().toArray();
+//        RegressionResult result3 =  RegressionDataset.regress(x, new double[][]{y});
+        double[] rxy = residuals(x, y, RegressionType.LINEAR);// result3.getResiduals().toArray();
 
         double sum1 = 0.0;
         double sum2 = 0.0;
 
-        for (int i = 0; i < y_minus_rxy.length; i++) {
-            if (y_minus_rxy[i] > 0) sum1 += y_minus_rxy[i] * r_x_y_minus_rxy[i];
-            if (x[i] > 0) sum2 += y_minus_rxy[i] * r_x_y_minus_rxy[i];
+        for (int i = 0; i < y.length; i++) {
+            if (y[i] > 0) sum1 += y[i] * rxy[i];
+            if (x[i] > 0) sum2 += y[i] * rxy[i];
         }
 
         return new double[]{sum1, sum2};

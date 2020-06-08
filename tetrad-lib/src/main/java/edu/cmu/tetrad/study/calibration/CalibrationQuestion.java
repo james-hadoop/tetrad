@@ -1001,20 +1001,24 @@ public class CalibrationQuestion {
 
     private static void scenario8() throws IOException {
         int maxN = 100000;
-        boolean useWeightsFromFile = false;
+        boolean useWeightsFromFile = true;
         int initialSegment = 100;
-        boolean verbose = false;
+        boolean verbose = true;
 
         List<DataSet> dataSets = new ArrayList<>();
 
         NumberFormat nf = new DecimalFormat("0000");
 
-        for (int i = 1; i <= 108; i++) {
+        for (int i = 1; i <= initialSegment; i++) {
             File data = new File("/Users/user/Box/data/pairs 4/pair" + nf.format(i) + ".txt");
             System.out.println(data.getAbsolutePath());
 
             DataSet dataSet = loadContinuousData(data, false, Delimiter.WHITESPACE);
             writeDataSet(new File("/Users/user/Box/data/pairs/data"), i, dataSet);
+
+            if (dataSet.getNumRows() > maxN) {
+                dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
+            }
 
             dataSet = DataUtils.standardizeData(dataSet);
 //            if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
@@ -1066,7 +1070,6 @@ public class CalibrationQuestion {
                 selected.add(new TreeSet<>());
             }
 
-
             // Counts
             double tp = 0;
             double fp = 0;
@@ -1094,22 +1097,22 @@ public class CalibrationQuestion {
                     if (verbose) {
                         System.out.println(" DISCRETE");
                     }
-//                    omitted.add(i);
+                    omitted.add(i);
                 }
 
                 if (Arrays.binarySearch(vector, i) > -1) {
                     if (verbose) {
                         System.out.println(" VECTOR");
                     }
-//                    omitted.add(i);
+                    omitted.add(i);
                 }
 
-                if (Arrays.binarySearch(interpolatedValues, i) > -1) {
-                    if (verbose) {
-                        System.out.println(" INTERPOLATED");
-                    }
-//                    omitted.add(i);
-                }
+//                if (Arrays.binarySearch(interpolatedValues, i) > -1) {
+//                    if (verbose) {
+//                        System.out.println(" INTERPOLATED");
+//                    }
+////                    omitted.add(i);
+//                }
 
                 DataSet dataSet = dataSets.get(i - 1);
 
@@ -1175,7 +1178,7 @@ public class CalibrationQuestion {
 
                 Fask fask = new Fask(dataSet, g);
                 fask.setRemoveNonlinearTrend(true);
-                fask.setTwoCycleThreshold(0.001);
+                fask.setTwoCycleThreshold(0.1);
                 fask.setZeroAlpha(zeroAlpha);
                 Graph out = fask.search();
                 double lr = fask.getLr();
@@ -1191,7 +1194,7 @@ public class CalibrationQuestion {
                     if (verbose) {
                         System.out.println(" 2-CYCLE");
                     }
-                    omitted.add(i);
+//                    omitted.add(i);
                 } else {
                     boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
                     estLeftRight = _estLeftRight ? 1 : -1;
@@ -1252,9 +1255,6 @@ public class CalibrationQuestion {
 
             NumberFormat nf2 = new DecimalFormat("0.00");
 
-            double accuracyUnweighted = selected.get(0).size()
-                    / (double) (selected.get(0).size() + selected.get(1).size());
-
             double tpr = tp / (tp + fn);
             double fpr = fp / (fp + tn);
             double precision = tp / (tp + fp);
@@ -1267,8 +1267,7 @@ public class CalibrationQuestion {
             double auc = roc.getAuc();
 
             System.out.println("\nSummary:\n");
-            System.out.println("Unweighted Accuracy = " + nf2.format(accuracyUnweighted));
-            System.out.println("Weighted acc = " + nf2.format(tpr));
+            System.out.println("Accuracy = " + nf2.format(acc));
             System.out.println("Total correct = " + selected.get(0));
             System.out.println("Total incorrect: " + selected.get(1));
             System.out.println("TPR: " + tpr);
@@ -1419,7 +1418,7 @@ public class CalibrationQuestion {
         double[] x = dataSet.copy().getDoubleData().transpose().toArray()[0];
         double[] y = dataSet.copy().getDoubleData().transpose().toArray()[1];
 
-        double[] r = Fask.residuals(y, x);
+        double[] r = Fask.residuals(y, x, Fask.RegressionType.LINEAR);
 
         for (int j = 0; j < x.length; j++) x[j] -= r[j];
 
