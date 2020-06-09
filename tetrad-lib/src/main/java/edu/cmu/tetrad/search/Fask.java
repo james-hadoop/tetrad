@@ -197,8 +197,8 @@ public final class Fask implements GraphSearch {
                         lrxy = leftRight(x, y, X, Y);
 //                        lrxy = leftRight2(x, y);
                     } else {
-//                        lrxy = leftRight(x, y, X, Y);
-                        lrxy = leftRight2(x, y);
+                        lrxy = leftRight(x, y, X, Y);
+//                        lrxy = leftRight2(x, y);
                     }
 
                     this.lr = lrxy;
@@ -273,6 +273,7 @@ public final class Fask implements GraphSearch {
 //        double a = correlation(x, y);
 
 //        if (a < 0) {
+//            x = Arrays.copyOf(x, x.length);
 //            for (int i = 0; i < x.length; i++) x[i] *= -1;
 //        }
 
@@ -280,6 +281,7 @@ public final class Fask implements GraphSearch {
         double[] covy = cov(x, y, y);
 
         return covx[8] - covy[8];
+//        return a < 0 ? -lr : lr;
     }
 
     private double leftRight(double[] x, double[] y, Node X, Node Y) {
