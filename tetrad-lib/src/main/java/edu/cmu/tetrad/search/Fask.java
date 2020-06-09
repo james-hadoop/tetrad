@@ -270,7 +270,7 @@ public final class Fask implements GraphSearch {
 
         double[] sums = getSums(x, y);
 
-        double diff = sums[0] / sums[2] - sums[1] / sums[3];
+        double diff = -sums[0] / sums[2] + sums[1] / sums[3];
 
         boolean assumptionsSatisfied = true;
 
@@ -525,10 +525,10 @@ public final class Fask implements GraphSearch {
 
         y = DataUtils.standardizeData(y);
 
-        double[] rxy = residuals(x, y, RegressionType.LINEAR);
+        double[] r2 = residuals(x, y, RegressionType.LINEAR);
 
-        double sum1 = 0.0;
-        double sum2 = 0.0;
+        double eyrxy = 0.0;
+        double eyrxx = 0.0;
         double eyyx = 0.0;
         double eyyy = 0.0;
         int n1 = 0;
@@ -536,14 +536,14 @@ public final class Fask implements GraphSearch {
 
         for (int i = 0; i < y.length; i++) {
             if (x[i] > 0) {
-                sum1 += isRemoveResidualx() ? -y[i] * rxy[i] : y[i] * rxy[i];
-                eyyx += y[i] * y[i];
+                eyrxy += isRemoveResidualx() ? y[i] * r2[i] : -y[i] * r2[i];
+                eyyx += x[i] * x[i];
                 n1++;
             }
 
             if (y[i] > 0) {
-                sum2 += isRemoveResidualx() ? -y[i] * rxy[i] : y[i] * rxy[i];
-                eyyy += y[i] * y[i];
+                eyrxx += isRemoveResidualx() ? y[i] * r2[i] : -y[i] * r2[i];
+                eyyy += x[i] * x[i];
                 n2++;
             }
         }
@@ -551,7 +551,7 @@ public final class Fask implements GraphSearch {
         eyyx /= n1;
         eyyy /= n2;
 
-        return new double[]{sum1, sum2, eyyx, eyyy, n1, n2};
+        return new double[]{eyrxy, eyrxx, eyyx, eyyy, n1, n2};
     }
 
     public boolean isAssumptionsSatisfied() {
