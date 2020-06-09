@@ -23,6 +23,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
+import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 
 public class CalibrationQuestion {
@@ -1004,6 +1005,8 @@ public class CalibrationQuestion {
         boolean useWeightsFromFile = true;
         int initialSegment = 100;
         boolean verbose = true;
+        boolean includeDiscrete = false;
+        boolean includeVector = false;
 
         List<DataSet> dataSets = new ArrayList<>();
 
@@ -1020,7 +1023,7 @@ public class CalibrationQuestion {
                 dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             }
 
-            dataSet = DataUtils.standardizeData(dataSet);
+//            dataSet = DataUtils.standardizeData(dataSet);
 //            if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             dataSets.add(dataSet);
 
@@ -1048,16 +1051,16 @@ public class CalibrationQuestion {
 
         int numRows = 20;
 
-        TextTable tabulated = new TextTable(numRows + 2, v.size());
+        TextTable tabulated = new TextTable(numRows + 1, v.size());
 
         for (int j = 0; j < v.size(); j++) {
             tabulated.setToken(0, j, v.get(j).getName());
         }
 
-        for (int e = 0; e <= numRows; e++) {
+        for (int e = 0; e <= 0; e++) {
 
             // Parameters.
-            double zeroAlpha = e / (double) numRows;
+            double zeroAlpha =1;// e / (double) numRows;
 
             int[] discrete = {47, 70, 71, 85, 107};
             int[] vector = {52, 53, 54, 55, 71, 105};
@@ -1097,14 +1100,20 @@ public class CalibrationQuestion {
                     if (verbose) {
                         System.out.println(" DISCRETE");
                     }
-                    omitted.add(i);
+
+                    if (!includeDiscrete) {
+                        omitted.add(i);
+                    }
                 }
 
                 if (Arrays.binarySearch(vector, i) > -1) {
                     if (verbose) {
                         System.out.println(" VECTOR");
                     }
-                    omitted.add(i);
+
+                    if (!includeVector) {
+                        omitted.add(i);
+                    }
                 }
 
 //                if (Arrays.binarySearch(interpolatedValues, i) > -1) {
@@ -1268,14 +1277,14 @@ public class CalibrationQuestion {
 
             System.out.println("\nSummary:\n");
             System.out.println("Accuracy = " + nf2.format(acc));
-            System.out.println("Total correct = " + selected.get(0));
-            System.out.println("Total incorrect: " + selected.get(1));
-            System.out.println("TPR: " + tpr);
-            System.out.println("FPR: " + fpr);
-            System.out.println("PREC: " + precision);
-            System.out.println("REC: " + recall);
+            System.out.println("Correct = " + selected.get(0));
+            System.out.println("Incorrect: " + selected.get(1));
+            System.out.println("TPR: " + nf2.format(tpr));
+            System.out.println("FPR: " + nf2.format(fpr));
+            System.out.println("PREC: " + nf2.format(precision));
+            System.out.println("REC: " + nf2.format(recall));
             System.out.println("Didn't classify: " + omitted);
-            System.out.println("Fraction of Decisions: " + fracDec);
+            System.out.println("Fraction of Decisions: " + nf2.format(fracDec));
             System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
 
             System.out.println("fps = " + fps);
@@ -1290,8 +1299,18 @@ public class CalibrationQuestion {
                 System.out.println("RELEVANT CATEGORY = --> IN GROUND TRUTH");
                 System.out.println("SELECTED CATEGORY = RESIDUAL FASK JUDGED -->");
 
+                if (!includeDiscrete) {
+                    System.out.println("EXCLUDING DISCRETE CASES");
+                }
+
+                if (!includeVector) {
+                    System.out.println("EXCLUDING VECTOR VARIABLE CASES");
+                }
+
                 if (useWeightsFromFile) {
                     System.out.println("USING WEIGHTS FOR CASES FROM TABLE 4 IN MOOIJ ET AL.");
+                } else {
+                    System.out.println("UNWEIGHTED");
                 }
 
                 System.out.println();

@@ -121,7 +121,7 @@ public final class Fask implements GraphSearch {
         long start = System.currentTimeMillis();
         NumberFormat nf = new DecimalFormat("0.000");
 
-        DataSet dataSet = DataUtils.center(this.dataSet);
+        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
 
         List<Node> variables = dataSet.getVariables();
         double[][] colData = dataSet.getDoubleData().transpose().toArray();
@@ -265,37 +265,16 @@ public final class Fask implements GraphSearch {
     }
 
     private double leftRight(double[] x, double[] y, Node X, Node Y) {
-        y = Arrays.copyOf(y, y.length);
         x = Arrays.copyOf(x, x.length);
-
-        y = DataUtils.center(y);
-        x = DataUtils.center(x);
+        y = Arrays.copyOf(y, y.length);
 
         double[] sums = getSums(x, y);
 
-        double[] covx = cov(x, y, x);
-        double[] covy = cov(x, y, y);
-
-        double exxx = covx[10];
-        double exxy = covy[10];
-
-        double diff = sums[0] / exxx - sums[1] / exxy;
-//        double diff = covx[8] - covy[8];
+        double diff = sums[0] / sums[2] - sums[1] / sums[3];
 
         boolean assumptionsSatisfied = true;
 
-        double n1 = covx[4];
-        double n2 = covy[4];
-
-        double c1 = covx[2];
-        double c2 = covy[2];
-
-        // Need to do this first.
-        if (isNonzeroDiff(n1, n2, c1, c2, zeroAlpha, X, Y)) {
-            assumptionsSatisfied = false;
-        }
-
-        if (isNonzeroCoef(correlation(y, x), n1, zeroAlpha)) {
+        if (isNonzeroCoef(correlation(y, x), x.length, zeroAlpha)) {
             assumptionsSatisfied = false;
         }
 
@@ -495,7 +474,7 @@ public final class Fask implements GraphSearch {
     }
 
     private static double kernelGaussian(double z, double h) {
-        z /= 3 * h;
+        z /= 2.5 * h;
         return exp(-z * z);
     }
 
@@ -540,21 +519,39 @@ public final class Fask implements GraphSearch {
             double[] r1 = residuals(x, yPlusRx, RegressionType.LINEAR);
 
             for (int k = 0; k < y.length; k++) {
-                y[k] = yPlusRx[k] - r1[k];
+                y[k] -= r1[k];
             }
         }
+
+        y = DataUtils.standardizeData(y);
 
         double[] rxy = residuals(x, y, RegressionType.LINEAR);
 
         double sum1 = 0.0;
         double sum2 = 0.0;
+        double eyyx = 0.0;
+        double eyyy = 0.0;
+        int n1 = 0;
+        int n2 = 0;
 
         for (int i = 0; i < y.length; i++) {
-            if (x[i] > 0) sum1 += isRemoveResidualx() ? -y[i] * rxy[i] : y[i] * rxy[i];
-            if (y[i] > 0) sum2 += isRemoveResidualx() ? -y[i] * rxy[i] : y[i] * rxy[i];
+            if (x[i] > 0) {
+                sum1 += isRemoveResidualx() ? -y[i] * rxy[i] : y[i] * rxy[i];
+                eyyx += y[i] * y[i];
+                n1++;
+            }
+
+            if (y[i] > 0) {
+                sum2 += isRemoveResidualx() ? -y[i] * rxy[i] : y[i] * rxy[i];
+                eyyy += y[i] * y[i];
+                n2++;
+            }
         }
 
-        return new double[]{sum1, sum2};
+        eyyx /= n1;
+        eyyy /= n2;
+
+        return new double[]{sum1, sum2, eyyx, eyyy, n1, n2};
     }
 
     public boolean isAssumptionsSatisfied() {
