@@ -23,7 +23,6 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
-import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 
 public class CalibrationQuestion {
@@ -1125,7 +1124,7 @@ public class CalibrationQuestion {
 
                 DataSet dataSet = dataSets.get(i - 1);
 
-                int x0 = 0;
+                 int x0 = 0;
                 int y0 = 1;
 
                 if (i == 52) {
@@ -1186,8 +1185,8 @@ public class CalibrationQuestion {
                 TetradLogger.getInstance().setLogging(false);
 
                 Fask fask = new Fask(dataSet, g);
-                fask.setRemoveResidualx(true);
-                fask.setTwoCycleThreshold(0.1);
+                fask.setRemoveResiduals(true);
+                fask.setTwoCycleThreshold(0.000);
                 fask.setZeroAlpha(zeroAlpha);
                 Graph out = fask.search();
                 double lr = fask.getLr();
@@ -1196,7 +1195,7 @@ public class CalibrationQuestion {
                     if (verbose) {
                         System.out.println("ASSUMPTIONS NOT SATISFIED");
                     }
-                    omitted.add(i);
+//                    omitted.add(i);
                 }
 
                 if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {

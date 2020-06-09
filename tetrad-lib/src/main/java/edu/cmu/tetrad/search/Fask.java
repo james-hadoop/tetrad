@@ -74,7 +74,7 @@ public final class Fask implements GraphSearch {
     private boolean useFasAdjacencies = true;
 
     // True if the nonlinear trend between X and Y should be removed.
-    private boolean removeResidualx = false;
+    private boolean removeResiduals = false;
 
     // Conditioned correlations are checked to make sure they are different from zero (since if they
     // are zero, the FASK theory doesn't apply).
@@ -82,7 +82,6 @@ public final class Fask implements GraphSearch {
     private boolean assumptionsSatisfied = false;
     private boolean twoCycle = false;
     private double lr;
-    private double lrP;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -132,7 +131,7 @@ public final class Fask implements GraphSearch {
         TetradLogger.getInstance().forceLogMessage("N = " + dataSet.getNumRows());
         TetradLogger.getInstance().forceLogMessage("Skewness edge threshold = " + skewEdgeThreshold);
         TetradLogger.getInstance().forceLogMessage("2-cycle threshold = " + twoCycleThreshold);
-        if (isRemoveResidualx()) {
+        if (isRemoveResiduals()) {
             TetradLogger.getInstance().forceLogMessage("Removing nonlinear trend");
         }
         TetradLogger.getInstance().forceLogMessage("");
@@ -190,15 +189,19 @@ public final class Fask implements GraphSearch {
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(c1 - c2) > getSkewEdgeThreshold())) {
                     double lrxy;
 
-                    if (isRemoveResidualx()) {
+                    if (isRemoveResiduals()) {
 
                         // Will work either way, picking the one that's better for the causal pairs data.
                         // The reason is that reversing gives the opposite direction, but taking the
                         // residuals in the opposite direction reverses it again.
                         lrxy = leftRight(x, y, X, Y);
+//                        lrxy = leftRight2(x, y);
                     } else {
-                        lrxy = leftRight(x, y, X, Y);
+//                        lrxy = leftRight(x, y, X, Y);
+                        lrxy = leftRight2(x, y);
                     }
+
+                    this.lr = lrxy;
 
                     if (edgeForbiddenByKnowledge(X, Y)) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tknowledge_forbidden"
@@ -230,14 +233,16 @@ public final class Fask implements GraphSearch {
                                 + "\t" + nf.format(lrxy)
                                 + "\t" + X + " " + Y
                         );
-                    } else if (abs(lrxy) < twoCycleThreshold) {
+                    }
+                    else if (abs(leftRight2(x, y)) < twoCycleThreshold) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
                                 + "\t" + nf.format(lrxy)
                                 + "\t" + X + "<=>" + Y
                         );
                         graph.addDirectedEdge(X, Y);
                         graph.addDirectedEdge(Y, X);
-                    } else {
+                    }
+                    else {
                         if (lrxy > 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
                                     + "\t" + nf.format(lrxy)
@@ -264,6 +269,19 @@ public final class Fask implements GraphSearch {
         return graph;
     }
 
+    private static double leftRight2(double[] x, double[] y) {
+//        double a = correlation(x, y);
+
+//        if (a < 0) {
+//            for (int i = 0; i < x.length; i++) x[i] *= -1;
+//        }
+
+        double[] covx = cov(x, y, x);
+        double[] covy = cov(x, y, y);
+
+        return covx[8] - covy[8];
+    }
+
     private double leftRight(double[] x, double[] y, Node X, Node Y) {
         x = Arrays.copyOf(x, x.length);
         y = Arrays.copyOf(y, y.length);
@@ -285,7 +303,6 @@ public final class Fask implements GraphSearch {
 
         this.assumptionsSatisfied = assumptionsSatisfied;
 
-        this.lr = diff;
         return diff;
     }
 
@@ -298,8 +315,6 @@ public final class Fask implements GraphSearch {
         // One sided.
         double p = 1.0 - new NormalDistribution(0, 1)
                 .cumulativeProbability(abs(zdiff));
-
-        this.setLrP(p);
 
         return p > alpha;
     }
@@ -354,12 +369,12 @@ public final class Fask implements GraphSearch {
         this.knowledge = knowledge;
     }
 
-    public boolean isRemoveResidualx() {
-        return removeResidualx;
+    public boolean isRemoveResiduals() {
+        return removeResiduals;
     }
 
-    public void setRemoveResidualx(boolean removeResidualx) {
-        this.removeResidualx = removeResidualx;
+    public void setRemoveResiduals(boolean removeResiduals) {
+        this.removeResiduals = removeResiduals;
     }
 
     public Graph getInitialGraph() {
@@ -515,7 +530,7 @@ public final class Fask implements GraphSearch {
     private double[] getSums(double[] x, double[] yPlusRx) {
         double[] y = Arrays.copyOf(yPlusRx, yPlusRx.length);
 
-        if (isRemoveResidualx()) {
+        if (isRemoveResiduals()) {
             double[] r1 = residuals(x, yPlusRx, RegressionType.LINEAR);
 
             for (int k = 0; k < y.length; k++) {
@@ -536,13 +551,13 @@ public final class Fask implements GraphSearch {
 
         for (int i = 0; i < y.length; i++) {
             if (x[i] > 0) {
-                eyrxy += isRemoveResidualx() ? y[i] * r2[i] : -y[i] * r2[i];
+                eyrxy += isRemoveResiduals() ? y[i] * r2[i] : -y[i] * r2[i];
                 eyyx += x[i] * x[i];
                 n1++;
             }
 
             if (y[i] > 0) {
-                eyrxx += isRemoveResidualx() ? y[i] * r2[i] : -y[i] * r2[i];
+                eyrxx += isRemoveResiduals() ? y[i] * r2[i] : -y[i] * r2[i];
                 eyyy += x[i] * x[i];
                 n2++;
             }
@@ -621,18 +636,6 @@ public final class Fask implements GraphSearch {
 
     public double getLr() {
         return lr;
-    }
-
-    public void setLr(double lr) {
-        this.lr = lr;
-    }
-
-    public double getLrP() {
-        return lrP;
-    }
-
-    public void setLrP(double lrP) {
-        this.lrP = lrP;
     }
 }
 
