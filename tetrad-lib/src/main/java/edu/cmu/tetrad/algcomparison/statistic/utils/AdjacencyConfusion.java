@@ -35,17 +35,17 @@ public class AdjacencyConfusion {
 
             if (this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
                     !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
-                adjTn++;
-            }
-
-            if (!this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
-                    this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
                 adjFp++;
             }
 
             if (!this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
-                    !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+                    this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
                 adjFn++;
+            }
+
+            if (!this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
+                    !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+                adjTn++;
             }
         }
 
@@ -59,17 +59,17 @@ public class AdjacencyConfusion {
 
             if (this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
                     !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
-                adjTn++;
-            }
-
-            if (!this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
-                    this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
                 adjFp++;
             }
 
             if (!this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
-                    !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+                    this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
                 adjFn++;
+            }
+
+            if (!this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
+                    !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+                adjTn++;
             }
         }
     }

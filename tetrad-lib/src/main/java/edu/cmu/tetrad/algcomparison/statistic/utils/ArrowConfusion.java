@@ -191,11 +191,11 @@ public class ArrowConfusion {
         }
 
         if (e1True == Endpoint.ARROW && e1Est != Endpoint.ARROW) {
-            arrowsTn++;
+            arrowsFn++;
         }
 
         if (e2True == Endpoint.ARROW && e2Est != Endpoint.ARROW) {
-            arrowsTn++;
+            arrowsFn++;
         }
 
         if (e1True != Endpoint.ARROW && e1Est == Endpoint.ARROW) {
@@ -207,11 +207,11 @@ public class ArrowConfusion {
         }
 
         if (e1True != Endpoint.ARROW && e1Est != Endpoint.ARROW) {
-            arrowsFn++;
+            arrowsTn++;
         }
 
         if (e2True != Endpoint.ARROW && e2Est != Endpoint.ARROW) {
-            arrowsFn++;
+            arrowsTn++;
         }
 
         boolean adj = truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) && est.isAdjacentTo(edge.getNode1(), edge.getNode2());
@@ -225,11 +225,11 @@ public class ArrowConfusion {
         }
 
         if (e1True == Endpoint.ARROW && e1Est != Endpoint.ARROW && adj) {
-            arrowsTnc++;
+            arrowsFnc++;
         }
 
         if (e2True == Endpoint.ARROW && e2Est != Endpoint.ARROW && adj) {
-            arrowsTnc++;
+            arrowsFnc++;
         }
 
         if (e1True != Endpoint.ARROW && e1Est == Endpoint.ARROW && adj) {
@@ -241,11 +241,11 @@ public class ArrowConfusion {
         }
 
         if (e1True != Endpoint.ARROW && e1Est != Endpoint.ARROW && adj) {
-            arrowsFnc++;
+            arrowsTnc++;
         }
 
         if (e2True != Endpoint.ARROW && e2Est != Endpoint.ARROW && adj) {
-            arrowsFnc++;
+            arrowsTnc++;
         }
     }
 
