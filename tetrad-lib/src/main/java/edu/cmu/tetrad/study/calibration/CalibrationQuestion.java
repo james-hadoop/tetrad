@@ -1002,7 +1002,7 @@ public class CalibrationQuestion {
         boolean useWeightsFromFile = false;
         int initialSegment = 100;
         boolean verbose = true;
-        boolean includeDiscrete = false;
+        boolean includeDiscrete = true;
         boolean includeVector = false;
         boolean useRFask = true;
 
@@ -1281,7 +1281,7 @@ public class CalibrationQuestion {
             double recall = tp / (tp + fn);
             double fdr = fp / (tp + fp); // false positives over positives
             double acc = (tp + tn) / (tp + fp + tn + fn);
-            double fracDec =((dataSets.size() - omitted.size()) / (double) dataSets.size()) / 0.81;
+            double fracDec =((dataSets.size() - omitted.size()) / (double) dataSets.size()) / 0.86;
 
             RocCalculator roc = new RocCalculator(scores, inCategory, RocCalculator.ASCENDING);
             double auc = roc.getAuc();
@@ -1362,14 +1362,16 @@ public class CalibrationQuestion {
 
         Arrays.sort(x);
         int count = 0;
-        int max = 3;
+        int max = 2;
+
+        boolean found = false;
 
         for (int k = 0; k < x.length - 1; k++) {
             if (x[k] == x[k + 1]) {
                 count++;
 
-                if (count > max) {
-                    return false;
+                if (count >= max) {
+                    found = true;
                 }
             } else {
                 count = 0;
@@ -1383,15 +1385,15 @@ public class CalibrationQuestion {
             if (y[k] == y[k + 1]) {
                 count++;
 
-                if (count > max) {
-                    return false;
+                if (count >= max) {
+                    found = true;
                 }
             } else {
                 count = 0;
             }
         }
 
-        return true;
+        return !found;
     }
 
     private static DataSet loadContinuousData(File data, boolean hasHeader, Delimiter delimiter) throws IOException {
