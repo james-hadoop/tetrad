@@ -272,6 +272,54 @@ public final class Fask implements GraphSearch {
         return covx[8] - covy[8];
     }
 
+    private double leftRight3(double[] xPlusRy, double[] yPlusRx, Node X, Node Y) {
+//        if (true) {
+////            return robustSkew(x, y);
+//            return skew(x, y);
+//        }
+
+//        x = Arrays.copyOf(x, x.length);
+        double[] x = Arrays.copyOf(xPlusRy, xPlusRy.length);
+        double[] y = Arrays.copyOf(yPlusRx, yPlusRx.length);
+
+        if (isRemoveResiduals()) {
+            double[] r1 = residuals(y, xPlusRy, RegressionType.LINEAR);
+
+            for (int k = 0; k < y.length; k++) {
+                x[k] -= r1[k];
+            }
+
+            return leftRight2(x, y);
+        }
+
+        return leftRight2(x, y);
+
+//        double[] sums;
+//
+//        if (isRemoveResiduals()) {
+//            sums = getSums(x, y);
+//        } else {
+//            sums = getSums(y, x);
+//        }
+//
+//        double diff = sums[0] / sums[2] - sums[1] / sums[3];
+//
+//        boolean assumptionsSatisfied = true;
+//
+//        if (isNonzeroCoef(correlation(y, x), x.length, zeroAlpha)) {
+//            assumptionsSatisfied = false;
+//        }
+//
+//        if (isNonzeroSkewness(skewness(y), y.length, zeroAlpha)
+//                && isNonzeroSkewness(skewness(x), x.length, zeroAlpha)) {
+//            assumptionsSatisfied = false;
+//        }
+//
+//        this.assumptionsSatisfied = assumptionsSatisfied;
+//
+//        return diff;
+    }
+
     private double leftRight(double[] x, double[] y, Node X, Node Y) {
 //        if (true) {
 ////            return robustSkew(x, y);
