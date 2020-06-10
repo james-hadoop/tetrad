@@ -76,7 +76,6 @@ public class StatsListEditor extends JPanel {
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new AdjacencyTN());
-        statistics.add(new AdjacencyTN());
         statistics.add(new AdjacencyTP());
         statistics.add(new AdjacencyTPR());
         statistics.add(new AdjacencyFN());

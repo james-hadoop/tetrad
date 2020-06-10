@@ -1199,7 +1199,7 @@ public class CalibrationQuestion {
                 Graph out = fask.search();
                 double lr = fask.getLr();
 
-                if (abs(lr) <= e / 20.) {
+                if (abs(lr) <= e / 60.) {
                     omitted.add(i);
                 }
 
@@ -1337,7 +1337,7 @@ public class CalibrationQuestion {
             NumberFormat nf3 = new DecimalFormat("0.00");
             NumberFormat nf4 = new DecimalFormat("0.0");
 
-            tabulated.setToken(e + 1, l++, "" + nf3.format(e / 20.));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(e / 60.));
             tabulated.setToken(e + 1, l++, "" + nf3.format(fpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(tpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(precision));
@@ -1355,7 +1355,7 @@ public class CalibrationQuestion {
         System.out.println("\n" + tabulated);
     }
 
-    private static boolean nonscalar(DataSet dataSet) {
+    private static boolean hasRepeats(DataSet dataSet) {
         double[] x = dataSet.getDoubleData().getColumn(0).toArray();
         double[] y = dataSet.getDoubleData().getColumn(1).toArray();
 
