@@ -28,6 +28,7 @@ import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.regression.RegressionResult;
+import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
@@ -195,10 +196,8 @@ public final class Fask implements GraphSearch {
                         // The reason is that reversing gives the opposite direction, but taking the
                         // residuals in the opposite direction reverses it again.
                         lrxy = leftRight(x, y, X, Y);
-//                        lrxy = leftRight2(x, y);
                     } else {
                         lrxy = leftRight(x, y, X, Y);
-//                        lrxy = leftRight2(x, y);
                     }
 
                     this.lr = lrxy;
@@ -233,16 +232,14 @@ public final class Fask implements GraphSearch {
                                 + "\t" + nf.format(lrxy)
                                 + "\t" + X + " " + Y
                         );
-                    }
-                    else if (abs(leftRight2(x, y)) < twoCycleThreshold) {
+                    } else if (abs(leftRight2(x, y)) < twoCycleThreshold) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
                                 + "\t" + nf.format(lrxy)
                                 + "\t" + X + "<=>" + Y
                         );
                         graph.addDirectedEdge(X, Y);
                         graph.addDirectedEdge(Y, X);
-                    }
-                    else {
+                    } else {
                         if (lrxy > 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
                                     + "\t" + nf.format(lrxy)
@@ -270,27 +267,29 @@ public final class Fask implements GraphSearch {
     }
 
     private static double leftRight2(double[] x, double[] y) {
-//        double a = correlation(x, y);
-
-//        if (a < 0) {
-//            x = Arrays.copyOf(x, x.length);
-//            for (int i = 0; i < x.length; i++) x[i] *= -1;
-//        }
-
         double[] covx = cov(x, y, x);
         double[] covy = cov(x, y, y);
-
         return covx[8] - covy[8];
-//        return a < 0 ? -lr : lr;
     }
 
     private double leftRight(double[] x, double[] y, Node X, Node Y) {
+//        if (true) {
+////            return robustSkew(x, y);
+//            return skew(x, y);
+//        }
+
         x = Arrays.copyOf(x, x.length);
         y = Arrays.copyOf(y, y.length);
 
-        double[] sums = getSums(x, y);
+        double[] sums;
 
-        double diff = -sums[0] / sums[2] + sums[1] / sums[3];
+        if (isRemoveResiduals()) {
+            sums = getSums(x, y);
+        } else {
+            sums = getSums(y, x);
+        }
+
+        double diff = sums[0] / sums[2] - sums[1] / sums[3];
 
         boolean assumptionsSatisfied = true;
 
@@ -306,6 +305,83 @@ public final class Fask implements GraphSearch {
         this.assumptionsSatisfied = assumptionsSatisfied;
 
         return diff;
+    }
+
+    private double robustSkew(double[] xData, double[] yData) {
+//        if (true) {
+//            xData = correctSkewnesses(xData);
+//            yData = correctSkewnesses(yData);
+//        }
+
+        xData = Arrays.copyOf(xData, xData.length);
+        yData = Arrays.copyOf(yData, yData.length);
+
+        double[] xx = new double[xData.length];
+        double[] yy = new double[yData.length];
+
+        for (int i = 0; i < xData.length; i++) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+
+            double xi = xData[i];
+            double yi = yData[i];
+
+            double s1 = g(xi) * yi;
+            double s2 = xi * g(yi);
+
+            xx[i] = s1;
+            yy[i] = s2;
+        }
+
+        double mxx = mean(xx);
+        double myy = mean(yy);
+
+        return mxx - myy;
+    }
+
+    private double skew(double[] xData, double[] yData) {
+//        if (true) {
+//            xData = correctSkewnesses(xData);
+//            yData = correctSkewnesses(yData);
+//        }
+
+        xData = Arrays.copyOf(xData, xData.length);
+        yData = Arrays.copyOf(yData, yData.length);
+
+        double[] xx = new double[xData.length];
+        double[] yy = new double[yData.length];
+
+        for (int i = 0; i < xData.length; i++) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+
+            double xi = xData[i];
+            double yi = yData[i];
+
+            double s1 = xi * xi * yi;
+            double s2 = xi * yi * yi;
+
+            xx[i] = s1;
+            yy[i] = s2;
+        }
+
+        double mxx = mean(xx);
+        double myy = mean(yy);
+
+        return mxx - myy;
+    }
+
+    private double g(double x) {
+        return Math.log(Math.cosh(Math.max(x, 0)));
+    }
+
+    private double[] correctSkewnesses(double[] data) {
+        double skewness = StatUtils.skewness(data);
+        double[] data2 = new double[data.length];
+        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
+        return data2;
     }
 
     private boolean isNonzeroDiff(double n1, double n2, double c1, double c2, double alpha, Node X, Node Y) {
@@ -540,8 +616,6 @@ public final class Fask implements GraphSearch {
             }
         }
 
-        y = DataUtils.standardizeData(y);
-
         double[] r2 = residuals(x, y, RegressionType.LINEAR);
 
         double eyrxy = 0.0;
@@ -553,22 +627,24 @@ public final class Fask implements GraphSearch {
 
         for (int i = 0; i < y.length; i++) {
             if (x[i] > 0) {
-                eyrxy += isRemoveResiduals() ? y[i] * r2[i] : -y[i] * r2[i];
-                eyyx += x[i] * x[i];
+                eyrxx += y[i] * r2[i];
+                eyyx += y[i] * y[i];
                 n1++;
             }
 
             if (y[i] > 0) {
-                eyrxx += isRemoveResiduals() ? y[i] * r2[i] : -y[i] * r2[i];
-                eyyy += x[i] * x[i];
+                eyrxy += y[i] * r2[i];
+                eyyy += y[i] * y[i];
                 n2++;
             }
         }
 
+        eyrxx /= n1;
+        eyrxy /= n2;
         eyyx /= n1;
         eyyy /= n2;
 
-        return new double[]{eyrxy, eyrxx, eyyx, eyyy, n1, n2};
+        return new double[]{eyrxy, eyrxx, eyyy, eyyx, n1, n2};
     }
 
     public boolean isAssumptionsSatisfied() {

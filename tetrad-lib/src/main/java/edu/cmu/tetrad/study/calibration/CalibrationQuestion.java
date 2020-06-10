@@ -5,8 +5,6 @@ import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.regression.RegressionDataset;
-import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.sem.SemIm;
@@ -1001,22 +999,30 @@ public class CalibrationQuestion {
 
     private static void scenario8() throws IOException {
         int maxN = 100000;
-        boolean useWeightsFromFile = true;
+        boolean useWeightsFromFile = false;
         int initialSegment = 100;
         boolean verbose = true;
         boolean includeDiscrete = false;
         boolean includeVector = false;
+        boolean useRFask = true;
+
+        int[] discrete = {47, 70, 71, 85, 107};
+        int[] vector = {52, 53, 54, 55, 71, 105};
+        int[] interpolatedValues = {81, 82, 83};
+
 
         List<DataSet> dataSets = new ArrayList<>();
 
         NumberFormat nf = new DecimalFormat("0000");
 
+        D:
         for (int i = 1; i <= initialSegment; i++) {
             File data = new File("/Users/user/Box/data/pairs 4/pair" + nf.format(i) + ".txt");
             System.out.println(data.getAbsolutePath());
 
             DataSet dataSet = loadContinuousData(data, false, Delimiter.WHITESPACE);
             writeDataSet(new File("/Users/user/Box/data/pairs/data"), i, dataSet);
+
 
             if (dataSet.getNumRows() > maxN) {
                 dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
@@ -1029,12 +1035,14 @@ public class CalibrationQuestion {
             writeResData(dataSet, i);
         }
 
+        System.out.println("# datasets = " + dataSets.size());
+
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
         DataSet groundTruthData = loadDiscreteData(gtFile, false, Delimiter.TAB);
 
 
         List<Node> v = new ArrayList<>();
-        v.add(new ContinuousVariable("Alpha"));
+        v.add(new ContinuousVariable("Cutoff"));
         v.add(new ContinuousVariable("FPR"));
         v.add(new ContinuousVariable("TPR"));
         v.add(new ContinuousVariable("PREC"));
@@ -1050,20 +1058,16 @@ public class CalibrationQuestion {
 
         int numRows = 20;
 
-        TextTable tabulated = new TextTable(numRows + 1, v.size());
+        TextTable tabulated = new TextTable(numRows + 2, v.size());
 
         for (int j = 0; j < v.size(); j++) {
             tabulated.setToken(0, j, v.get(j).getName());
         }
 
-        for (int e = 0; e <= 0; e++) {
+        for (int e = 0; e <= numRows; e++) {
 
             // Parameters.
-            double zeroAlpha =1;// e / (double) numRows;
-
-            int[] discrete = {47, 70, 71, 85, 107};
-            int[] vector = {52, 53, 54, 55, 71, 105};
-            int[] interpolatedValues = {81, 82, 83};
+            double zeroAlpha = 1;// e / (double) numRows;
 
             List<Set<Integer>> selected = new ArrayList<>();
             Set<Integer> omitted = new TreeSet<>();
@@ -1091,8 +1095,12 @@ public class CalibrationQuestion {
             double[] scores = new double[initialSegment];
 
             for (int i = 1; i <= initialSegment; i++) {
+                if (nonscalar(dataSets.get(i - 1))) {
+                    omitted.add(i);
+                }
+
                 if (verbose) {
-                    System.out.print(i);
+                    System.out.print(i + " ");
                 }
 
                 if (Arrays.binarySearch(discrete, i) > -1) {
@@ -1124,7 +1132,7 @@ public class CalibrationQuestion {
 
                 DataSet dataSet = dataSets.get(i - 1);
 
-                 int x0 = 0;
+                int x0 = 0;
                 int y0 = 1;
 
                 if (i == 52) {
@@ -1185,11 +1193,15 @@ public class CalibrationQuestion {
                 TetradLogger.getInstance().setLogging(false);
 
                 Fask fask = new Fask(dataSet, g);
-                fask.setRemoveResiduals(true);
+                fask.setRemoveResiduals(useRFask);
                 fask.setTwoCycleThreshold(0.000);
-                fask.setZeroAlpha(zeroAlpha);
+                fask.setZeroAlpha(1);
                 Graph out = fask.search();
                 double lr = fask.getLr();
+
+                if (abs(lr) <= e / 20.) {
+                    omitted.add(i);
+                }
 
                 if (!fask.isAssumptionsSatisfied()) {
                     if (verbose) {
@@ -1269,7 +1281,7 @@ public class CalibrationQuestion {
             double recall = tp / (tp + fn);
             double fdr = fp / (tp + fp); // false positives over positives
             double acc = (tp + tn) / (tp + fp + tn + fn);
-            double fracDec = (initialSegment - omitted.size()) / (double) initialSegment;
+            double fracDec =((dataSets.size() - omitted.size()) / (double) dataSets.size()) / 0.81;
 
             RocCalculator roc = new RocCalculator(scores, inCategory, RocCalculator.ASCENDING);
             double auc = roc.getAuc();
@@ -1325,7 +1337,7 @@ public class CalibrationQuestion {
             NumberFormat nf3 = new DecimalFormat("0.00");
             NumberFormat nf4 = new DecimalFormat("0.0");
 
-            tabulated.setToken(e + 1, l++, "" + nf3.format(zeroAlpha));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(e / 20.));
             tabulated.setToken(e + 1, l++, "" + nf3.format(fpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(tpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(precision));
@@ -1341,6 +1353,45 @@ public class CalibrationQuestion {
         }
 
         System.out.println("\n" + tabulated);
+    }
+
+    private static boolean nonscalar(DataSet dataSet) {
+        double[] x = dataSet.getDoubleData().getColumn(0).toArray();
+        double[] y = dataSet.getDoubleData().getColumn(1).toArray();
+
+
+        Arrays.sort(x);
+        int count = 0;
+        int max = 3;
+
+        for (int k = 0; k < x.length - 1; k++) {
+            if (x[k] == x[k + 1]) {
+                count++;
+
+                if (count > max) {
+                    return false;
+                }
+            } else {
+                count = 0;
+            }
+        }
+
+        Arrays.sort(y);
+        count = 0;
+
+        for (int k = 0; k < y.length - 1; k++) {
+            if (y[k] == y[k + 1]) {
+                count++;
+
+                if (count > max) {
+                    return false;
+                }
+            } else {
+                count = 0;
+            }
+        }
+
+        return true;
     }
 
     private static DataSet loadContinuousData(File data, boolean hasHeader, Delimiter delimiter) throws IOException {
@@ -1436,13 +1487,14 @@ public class CalibrationQuestion {
         double[] x = dataSet.copy().getDoubleData().transpose().toArray()[0];
         double[] y = dataSet.copy().getDoubleData().transpose().toArray()[1];
 
-        double[] r = Fask.residuals(y, x, Fask.RegressionType.LINEAR);
+        double[] r1 = Fask.residuals(x, y, Fask.RegressionType.LINEAR);
 
-        for (int j = 0; j < x.length; j++) x[j] -= r[j];
+        for (int k = 0; k < y.length; k++) {
+            y[k] -= r1[k];
+        }
 
-        RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
-        r = result.getResiduals().toArray();
-
+        double[] r = Fask.residuals(x, y, Fask.RegressionType.LINEAR);
+//
         double[][] res = new double[][]{x, r};
 
 
