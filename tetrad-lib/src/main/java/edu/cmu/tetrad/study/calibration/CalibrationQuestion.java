@@ -1000,7 +1000,7 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
         int maxN = 100000;
         boolean useWeightsFromFile = false;
-        int initialSegment = 100;
+        int initialSegment = 87;
         boolean verbose = true;
         boolean includeDiscrete = true;
         boolean includeVector = false;
@@ -1095,9 +1095,9 @@ public class CalibrationQuestion {
             double[] scores = new double[initialSegment];
 
             for (int i = 1; i <= initialSegment; i++) {
-                if (nonscalar(dataSets.get(i - 1))) {
-                    omitted.add(i);
-                }
+//                if (nonscalar(dataSets.get(i - 1))) {
+//                    omitted.add(i);
+//                }
 
                 if (verbose) {
                     System.out.print(i + " ");
@@ -1281,20 +1281,20 @@ public class CalibrationQuestion {
             double recall = tp / (tp + fn);
             double fdr = fp / (tp + fp); // false positives over positives
             double acc = (tp + tn) / (tp + fp + tn + fn);
-            double fracDec =((dataSets.size() - omitted.size()) / (double) dataSets.size()) / 0.86;
+            double fracDec = ((initialSegment - omitted.size()) / (double) 100) / 0.82;
 
             RocCalculator roc = new RocCalculator(scores, inCategory, RocCalculator.ASCENDING);
             double auc = roc.getAuc();
 
             System.out.println("\nSummary:\n");
             System.out.println("Accuracy = " + nf2.format(acc));
-            System.out.println("Correct = " + selected.get(0));
-            System.out.println("Incorrect: " + selected.get(1));
             System.out.println("TPR: " + nf2.format(tpr));
             System.out.println("FPR: " + nf2.format(fpr));
             System.out.println("PREC: " + nf2.format(precision));
             System.out.println("REC: " + nf2.format(recall));
-            System.out.println("Didn't classify: " + omitted);
+            System.out.println("Omitted: " + omitted.size());
+            System.out.println("Correct = " + selected.get(0).size());
+            System.out.println("Incorrect: " + selected.get(1).size());
             System.out.println("Fraction of Decisions: " + nf2.format(fracDec));
             System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
 
@@ -1367,6 +1367,10 @@ public class CalibrationQuestion {
         boolean found = false;
 
         for (int k = 0; k < x.length - 1; k++) {
+            if (Double.isNaN(x[k]) || Double.isNaN(x[k+1])) {
+                found = true;
+            }
+
             if (x[k] == x[k + 1]) {
                 count++;
 
@@ -1382,6 +1386,10 @@ public class CalibrationQuestion {
         count = 0;
 
         for (int k = 0; k < y.length - 1; k++) {
+            if (Double.isNaN(y[k]) || Double.isNaN(y[k+1])) {
+                found = true;
+            }
+
             if (y[k] == y[k + 1]) {
                 count++;
 
