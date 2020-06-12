@@ -80,7 +80,7 @@ public final class Fask implements GraphSearch {
     // Conditioned correlations are checked to make sure they are different from zero (since if they
     // are zero, the FASK theory doesn't apply).
     private double zeroAlpha = 0.01;
-    private boolean assumptionsSatisfied = false;
+    private boolean assumptionsSatisfied = true;
     private boolean twoCycle = false;
     private double lr;
 
@@ -333,26 +333,33 @@ public final class Fask implements GraphSearch {
 
         if (isRemoveResiduals()) {
             sums = getSums(x, y);
+            double diff1 = sums[0] / sums[2] - sums[1] / sums[3];
+            sums = getSums(y, x);
+            double diff2 = sums[0] / sums[2] - sums[1] / sums[3];
+            double bias = 0;
+            if (diff1 > bias == diff2 > bias) return diff2;
+            return 0;
         } else {
             sums = getSums(y, x);
+            return sums[0] / sums[2] - sums[1] / sums[3];
         }
 
-        double diff = sums[0] / sums[2] - sums[1] / sums[3];
 
-        boolean assumptionsSatisfied = true;
 
-        if (isNonzeroCoef(correlation(y, x), x.length, zeroAlpha)) {
-            assumptionsSatisfied = false;
-        }
-
-        if (isNonzeroSkewness(skewness(y), y.length, zeroAlpha)
-                && isNonzeroSkewness(skewness(x), x.length, zeroAlpha)) {
-            assumptionsSatisfied = false;
-        }
-
-        this.assumptionsSatisfied = assumptionsSatisfied;
-
-        return diff;
+//        boolean assumptionsSatisfied = true;
+//
+//        if (isNonzeroCoef(correlation(y, x), x.length, zeroAlpha)) {
+//            assumptionsSatisfied = false;
+//        }
+//
+//        if (isNonzeroSkewness(skewness(y), y.length, zeroAlpha)
+//                && isNonzeroSkewness(skewness(x), x.length, zeroAlpha)) {
+//            assumptionsSatisfied = false;
+//        }
+//
+//        this.assumptionsSatisfied = assumptionsSatisfied;
+//
+//        return diff;
     }
 
     private double robustSkew(double[] xData, double[] yData) {
@@ -653,15 +660,22 @@ public final class Fask implements GraphSearch {
         return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy), exx, eyy};
     }
 
-    private double[] getSums(double[] x, double[] yPlusRx) {
+    private double[] getSums(double[] xPlusRy, double[] yPlusRx) {
+        double[] x = Arrays.copyOf(xPlusRy, xPlusRy.length);
         double[] y = Arrays.copyOf(yPlusRx, yPlusRx.length);
 
         if (isRemoveResiduals()) {
-            double[] r1 = residuals(x, yPlusRx, RegressionType.LINEAR);
+            double[] r1 = residuals(xPlusRy, yPlusRx, RegressionType.LINEAR);
 
             for (int k = 0; k < y.length; k++) {
                 y[k] -= r1[k];
             }
+
+//            double[] r3 = residuals(yPlusRx, xPlusRy, RegressionType.LINEAR);
+//
+//            for (int k = 0; k < x.length; k++) {
+//                x[k] -= r3[k];
+//            }
         }
 
         double[] r2 = residuals(x, y, RegressionType.LINEAR);

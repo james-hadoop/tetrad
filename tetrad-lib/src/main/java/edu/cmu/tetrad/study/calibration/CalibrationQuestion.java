@@ -1000,7 +1000,7 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
         int maxN = 100000;
         boolean useWeightsFromFile = false;
-        int initialSegment = 87;
+        int initialSegment = 100;
         boolean verbose = true;
         boolean includeDiscrete = true;
         boolean includeVector = false;
@@ -1064,7 +1064,7 @@ public class CalibrationQuestion {
             tabulated.setToken(0, j, v.get(j).getName());
         }
 
-        for (int e = 0; e <= numRows; e++) {
+        for (int e = 0; e <= 0; e++) {
 
             // Parameters.
             double zeroAlpha = 1;// e / (double) numRows;
@@ -1210,14 +1210,19 @@ public class CalibrationQuestion {
 //                    omitted.add(i);
                 }
 
-                if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
-                    if (verbose) {
-                        System.out.println(" 2-CYCLE");
-                    }
-//                    omitted.add(i);
+                if (!out.isAdjacentTo(nodes.get(x0), nodes.get(y0))) {
+                    System.out.println("NONADJACENT");
+                    omitted.add(i);
                 } else {
-                    boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
-                    estLeftRight = _estLeftRight ? 1 : -1;
+                    if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
+                        if (verbose) {
+                            System.out.println(" 2-CYCLE");
+                        }
+//                    omitted.add(i);
+                    } else {
+                        boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
+                        estLeftRight = _estLeftRight ? 1 : -1;
+                    }
                 }
 
 //                if (Arrays.binarySearch(discrete, i) > 0) {
@@ -1225,7 +1230,9 @@ public class CalibrationQuestion {
 //                    lr = -lr;
 //                }
 
-                if (omitted.contains(i)) continue;
+                if (omitted.contains(i)) {
+                    continue;
+                }
 
                 // FASK assumptions hold.
                 boolean isADog = groundTruthDirection;
@@ -1281,7 +1288,7 @@ public class CalibrationQuestion {
             double recall = tp / (tp + fn);
             double fdr = fp / (tp + fp); // false positives over positives
             double acc = (tp + tn) / (tp + fp + tn + fn);
-            double fracDec = ((initialSegment - omitted.size()) / (double) 100) / 0.82;
+            double fracDec = ((initialSegment - 5) - (omitted.size() - 5)) / (double) (initialSegment - 5);
 
             RocCalculator roc = new RocCalculator(scores, inCategory, RocCalculator.ASCENDING);
             double auc = roc.getAuc();
