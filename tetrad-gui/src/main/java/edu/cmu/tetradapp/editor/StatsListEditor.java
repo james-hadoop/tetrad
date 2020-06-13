@@ -83,6 +83,8 @@ public class StatsListEditor extends JPanel {
         statistics.add(new AdjacencyFN());
         statistics.add(new ArrowheadTN());
         statistics.add(new ArrowheadTP());
+        statistics.add(new DensityTrueGraph());
+        statistics.add(new DensityEstGraph());
         statistics.add(new F1Adj());
         statistics.add(new F1All());
         statistics.add(new F1Arrow());
