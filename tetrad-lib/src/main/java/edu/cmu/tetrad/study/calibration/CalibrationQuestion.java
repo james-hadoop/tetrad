@@ -1058,7 +1058,7 @@ public class CalibrationQuestion {
 
         int numRows = 20;
 
-        TextTable tabulated = new TextTable(numRows + 2, v.size());
+        TextTable tabulated = new TextTable(2, v.size());
 
         for (int j = 0; j < v.size(); j++) {
             tabulated.setToken(0, j, v.get(j).getName());
@@ -1094,6 +1094,8 @@ public class CalibrationQuestion {
             boolean[] inCategory = new boolean[initialSegment];
             double[] scores = new double[initialSegment];
 
+            int total = 0;
+
             for (int i = 1; i <= initialSegment; i++) {
 //                if (nonscalar(dataSets.get(i - 1))) {
 //                    omitted.add(i);
@@ -1115,12 +1117,10 @@ public class CalibrationQuestion {
 
                 if (Arrays.binarySearch(vector, i) > -1) {
                     if (verbose) {
-                        System.out.println(" VECTOR");
+                        System.out.println(" VECTOR - SKIPPING");
                     }
 
-                    if (!includeVector) {
-                        omitted.add(i);
-                    }
+                    continue;
                 }
 
 //                if (Arrays.binarySearch(interpolatedValues, i) > -1) {
@@ -1129,6 +1129,8 @@ public class CalibrationQuestion {
 //                    }
 ////                    omitted.add(i);
 //                }
+
+                total++;
 
                 DataSet dataSet = dataSets.get(i - 1);
 
@@ -1288,7 +1290,7 @@ public class CalibrationQuestion {
             double recall = tp / (tp + fn);
             double fdr = fp / (tp + fp); // false positives over positives
             double acc = (tp + tn) / (tp + fp + tn + fn);
-            double fracDec = ((initialSegment - 5) - (omitted.size() - 5)) / (double) (initialSegment - 5);
+            double fracDec = (total - omitted.size()) / (double) (total);
 
             RocCalculator roc = new RocCalculator(scores, inCategory, RocCalculator.ASCENDING);
             double auc = roc.getAuc();
