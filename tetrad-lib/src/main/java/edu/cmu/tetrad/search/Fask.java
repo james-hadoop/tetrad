@@ -199,16 +199,22 @@ public final class Fask implements GraphSearch {
 
                 double zz = (z1 - z2) / sd;
 
+                double pzz = 2 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(zz));
+
+
                 double t1 = Math.sqrt(n1 - 2) * (c1 / Math.sqrt(1. - c1 * c1));
                 double t2 = Math.sqrt(n2 - 2) * (c2 / Math.sqrt(1. - c2 * c2));
                 double p1 = 2 * (1.0 - new TDistribution(n1 - 2).cumulativeProbability(t1));
                 double p2 = 2 * (1.0 - new TDistribution(n2 - 2).cumulativeProbability(t2));
 
-                System.out.println(X + "---" + Y + " p1 = " + p2 + " p2 = " + p2 + " p2 - p1 = " + (p2 - p1));
+                System.out.println(X + "---" + Y + " p1 = " + p1 + " p2 = " + p2 + " p2 - p1 = " + (p2 - p1));
 
 
 //                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || abs(c1) > getSkewEdgeThreshold() != abs(c2) > getSkewEdgeThreshold()) {
-                    if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || abs(p1) < getSkewEdgeThreshold() != abs(p2) < getSkewEdgeThreshold()) {//  abs(p1 - p2) < getSkewEdgeThreshold())) {// && abs(c1 - c2) > getSkewEdgeThreshold())) {
+                boolean P1 = abs(p1) < getSkewEdgeThreshold();
+                boolean P2 = abs(p2) < getSkewEdgeThreshold();
+
+                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || pzz < getSkewEdgeThreshold()) {//  abs(p1 - p2) < getSkewEdgeThreshold())) {// && abs(c1 - c2) > getSkewEdgeThreshold())) {
                     double lrxy = leftRight(x, y, X, Y);
                     this.lr = lrxy;
 
