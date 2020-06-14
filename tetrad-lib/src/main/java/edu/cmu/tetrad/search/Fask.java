@@ -207,7 +207,8 @@ public final class Fask implements GraphSearch {
                 System.out.println(X + "---" + Y + " p1 = " + p2 + " p2 = " + p2 + " p2 - p1 = " + (p2 - p1));
 
 
-                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || ( abs(p1 - p2) < getSkewEdgeThreshold())) {// && abs(c1 - c2) > getSkewEdgeThreshold())) {
+//                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || abs(c1) > getSkewEdgeThreshold() != abs(c2) > getSkewEdgeThreshold()) {
+                    if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || abs(p1) < getSkewEdgeThreshold() != abs(p2) < getSkewEdgeThreshold()) {//  abs(p1 - p2) < getSkewEdgeThreshold())) {// && abs(c1 - c2) > getSkewEdgeThreshold())) {
                     double lrxy = leftRight(x, y, X, Y);
                     this.lr = lrxy;
 
@@ -308,19 +309,19 @@ public final class Fask implements GraphSearch {
 //            if (lr1 > bias == lr2 > bias) return lr1;
             return lr1 + lr2;
         } else {
-//            return leftRightMinnesota(x, y);
+            return leftRightMinnesota(x, y);
+
+//            if (correlation(x, y) < 0) {
+//                for (int i = 0; i < x.length; i++) x[i] *= -1;
+//            }
 //
-            if (correlation(x, y) < 0) {
-                for (int i = 0; i < x.length; i++) x[i] *= -1;
-            }
-
-            sums = getSums(x, y);
-
-            double lr = sums[0] / sums[2] - sums[1] / sums[3];
-
-            if (correlation(x, y) < 0) lr *= -1;
-
-            return lr;
+//            sums = getSums(x, y);
+//
+//            double lr = sums[0] / sums[2] - sums[1] / sums[3];
+//
+//            if (correlation(x, y) < 0) lr *= -1;
+//
+//            return lr;
         }
 
 //        boolean assumptionsSatisfied = true;
