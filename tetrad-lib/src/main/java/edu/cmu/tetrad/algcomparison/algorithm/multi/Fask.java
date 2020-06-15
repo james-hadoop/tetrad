@@ -70,7 +70,6 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
             search.setUseFasAdjacencies(parameters.getBoolean(Params.USE_FAS_ADJACENCIES));
             search.setSkewEdgeThreshold(parameters.getDouble(Params.SKEW_EDGE_THRESHOLD));
             search.setTwoCycleThreshold(parameters.getDouble(Params.TWO_CYCLE_THRESHOLD));
-            search.setRemoveResiduals(false);
             search.setZeroAlpha(0.05);
             search.setKnowledge(knowledge);
             return getGraph(search);

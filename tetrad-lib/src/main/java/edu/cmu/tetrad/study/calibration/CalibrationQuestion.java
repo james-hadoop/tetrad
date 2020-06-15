@@ -1002,7 +1002,7 @@ public class CalibrationQuestion {
         boolean useWeightsFromFile = false;
         int initialSegment = 100;
         boolean verbose = true;
-        boolean includeDiscrete = true;
+        boolean includeDiscrete = false;
         boolean includeVector = false;
         boolean useRFask = true;
 
@@ -1058,13 +1058,13 @@ public class CalibrationQuestion {
 
         int numRows = 20;
 
-        TextTable tabulated = new TextTable(2, v.size());
+        TextTable tabulated = new TextTable(numRows + 2, v.size());
 
         for (int j = 0; j < v.size(); j++) {
             tabulated.setToken(0, j, v.get(j).getName());
         }
 
-        for (int e = 0; e <= 0; e++) {
+        for (int e = 0; e <= numRows; e++) {
 
             // Parameters.
             double zeroAlpha = 1;// e / (double) numRows;
@@ -1094,12 +1094,10 @@ public class CalibrationQuestion {
             boolean[] inCategory = new boolean[initialSegment];
             double[] scores = new double[initialSegment];
 
-            int total = 0;
-
             for (int i = 1; i <= initialSegment; i++) {
-//                if (nonscalar(dataSets.get(i - 1))) {
-//                    omitted.add(i);
-//                }
+                if (nonscalar(dataSets.get(i - 1))) {
+                    omitted.add(i);
+                }
 
                 if (verbose) {
                     System.out.print(i + " ");
@@ -1117,10 +1115,12 @@ public class CalibrationQuestion {
 
                 if (Arrays.binarySearch(vector, i) > -1) {
                     if (verbose) {
-                        System.out.println(" VECTOR - SKIPPING");
+                        System.out.println(" VECTOR");
                     }
 
-                    continue;
+                    if (!includeVector) {
+                        omitted.add(i);
+                    }
                 }
 
 //                if (Arrays.binarySearch(interpolatedValues, i) > -1) {
@@ -1129,8 +1129,6 @@ public class CalibrationQuestion {
 //                    }
 ////                    omitted.add(i);
 //                }
-
-                total++;
 
                 DataSet dataSet = dataSets.get(i - 1);
 
@@ -1201,7 +1199,7 @@ public class CalibrationQuestion {
                 Graph out = fask.search();
                 double lr = fask.getLr();
 
-                if (abs(lr) <= e / 60.) {
+                if (abs(lr) <= e / 20.) {
                     omitted.add(i);
                 }
 
@@ -1212,19 +1210,14 @@ public class CalibrationQuestion {
 //                    omitted.add(i);
                 }
 
-                if (!out.isAdjacentTo(nodes.get(x0), nodes.get(y0))) {
-                    System.out.println("NONADJACENT");
-                    omitted.add(i);
-                } else {
-                    if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
-                        if (verbose) {
-                            System.out.println(" 2-CYCLE");
-                        }
-//                    omitted.add(i);
-                    } else {
-                        boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
-                        estLeftRight = _estLeftRight ? 1 : -1;
+                if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
+                    if (verbose) {
+                        System.out.println(" 2-CYCLE");
                     }
+//                    omitted.add(i);
+                } else {
+                    boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
+                    estLeftRight = _estLeftRight ? 1 : -1;
                 }
 
 //                if (Arrays.binarySearch(discrete, i) > 0) {
@@ -1232,9 +1225,7 @@ public class CalibrationQuestion {
 //                    lr = -lr;
 //                }
 
-                if (omitted.contains(i)) {
-                    continue;
-                }
+                if (omitted.contains(i)) continue;
 
                 // FASK assumptions hold.
                 boolean isADog = groundTruthDirection;
@@ -1290,20 +1281,20 @@ public class CalibrationQuestion {
             double recall = tp / (tp + fn);
             double fdr = fp / (tp + fp); // false positives over positives
             double acc = (tp + tn) / (tp + fp + tn + fn);
-            double fracDec = (total - omitted.size()) / (double) (total);
+            double fracDec =((dataSets.size() - omitted.size()) / (double) dataSets.size()) / 0.81;
 
             RocCalculator roc = new RocCalculator(scores, inCategory, RocCalculator.ASCENDING);
             double auc = roc.getAuc();
 
             System.out.println("\nSummary:\n");
             System.out.println("Accuracy = " + nf2.format(acc));
+            System.out.println("Correct = " + selected.get(0));
+            System.out.println("Incorrect: " + selected.get(1));
             System.out.println("TPR: " + nf2.format(tpr));
             System.out.println("FPR: " + nf2.format(fpr));
             System.out.println("PREC: " + nf2.format(precision));
             System.out.println("REC: " + nf2.format(recall));
-            System.out.println("Omitted: " + omitted.size());
-            System.out.println("Correct = " + selected.get(0).size());
-            System.out.println("Incorrect: " + selected.get(1).size());
+            System.out.println("Didn't classify: " + omitted);
             System.out.println("Fraction of Decisions: " + nf2.format(fracDec));
             System.out.println("Elapsed time = " + ((stop - start) / (double) 1000) + "s");
 
@@ -1346,7 +1337,7 @@ public class CalibrationQuestion {
             NumberFormat nf3 = new DecimalFormat("0.00");
             NumberFormat nf4 = new DecimalFormat("0.0");
 
-            tabulated.setToken(e + 1, l++, "" + nf3.format(e / 60.));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(e / 20.));
             tabulated.setToken(e + 1, l++, "" + nf3.format(fpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(tpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(precision));
@@ -1364,27 +1355,21 @@ public class CalibrationQuestion {
         System.out.println("\n" + tabulated);
     }
 
-    private static boolean hasRepeats(DataSet dataSet) {
+    private static boolean nonscalar(DataSet dataSet) {
         double[] x = dataSet.getDoubleData().getColumn(0).toArray();
         double[] y = dataSet.getDoubleData().getColumn(1).toArray();
 
 
         Arrays.sort(x);
         int count = 0;
-        int max = 2;
-
-        boolean found = false;
+        int max = 3;
 
         for (int k = 0; k < x.length - 1; k++) {
-            if (Double.isNaN(x[k]) || Double.isNaN(x[k+1])) {
-                found = true;
-            }
-
             if (x[k] == x[k + 1]) {
                 count++;
 
-                if (count >= max) {
-                    found = true;
+                if (count > max) {
+                    return false;
                 }
             } else {
                 count = 0;
@@ -1395,22 +1380,18 @@ public class CalibrationQuestion {
         count = 0;
 
         for (int k = 0; k < y.length - 1; k++) {
-            if (Double.isNaN(y[k]) || Double.isNaN(y[k+1])) {
-                found = true;
-            }
-
             if (y[k] == y[k + 1]) {
                 count++;
 
-                if (count >= max) {
-                    found = true;
+                if (count > max) {
+                    return false;
                 }
             } else {
                 count = 0;
             }
         }
 
-        return !found;
+        return true;
     }
 
     private static DataSet loadContinuousData(File data, boolean hasHeader, Delimiter delimiter) throws IOException {
