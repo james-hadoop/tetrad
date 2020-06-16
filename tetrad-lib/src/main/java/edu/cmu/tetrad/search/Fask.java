@@ -181,7 +181,7 @@ public final class Fask implements GraphSearch {
                 double[] x = colData[i];
                 double[] y = colData[j];
 
-                double lrOrig = leftRightOrig(x, y) - leftRightOrig(y, x);
+                double lrOrig =  leftRight(x, y, X, Y) - leftRight(y, x, Y, X);//leftRightOrig(x, y) - leftRightOrig(y, x);
 
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(lrOrig) > getSkewEdgeThreshold())) {
                     double lrxy;
@@ -193,7 +193,8 @@ public final class Fask implements GraphSearch {
                         // residuals in the opposite direction reverses it again.
                         lrxy = leftRight(x, y, X, Y);
                     } else {
-                        lrxy = lrOrig;
+                        lrxy = leftRight(x, y, X, Y) - leftRight(y, x, Y, X);
+//                        lrxy = lrOrig;
                     }
 
                     this.lr = lrxy;
