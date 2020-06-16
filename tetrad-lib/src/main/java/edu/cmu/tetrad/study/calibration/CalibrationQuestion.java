@@ -1067,7 +1067,7 @@ public class CalibrationQuestion {
         for (int e = 0; e <= numRows; e++) {
 
             // Parameters.
-            double zeroAlpha = 1;// e / (double) numRows;
+            double zeroAlpha = .0001;// e / (double) numRows;
 
             List<Set<Integer>> selected = new ArrayList<>();
             Set<Integer> omitted = new TreeSet<>();
@@ -1194,30 +1194,32 @@ public class CalibrationQuestion {
 
                 Fask fask = new Fask(dataSet, g);
                 fask.setRemoveResiduals(useRFask);
-                fask.setTwoCycleThreshold(0.000);
-                fask.setZeroAlpha(1);
+                fask.setSkewEdgeThreshold(0.0);
+                fask.setTwoCycleThreshold(0.0);
+//                fask.setZeroAlpha(zeroAlpha);
                 Graph out = fask.search();
                 double lr = fask.getLr();
 
-                if (abs(lr) <= e / 20.) {
+                if (abs(lr) <= e / 30.) {
                     omitted.add(i);
                 }
 
-                if (!fask.isAssumptionsSatisfied()) {
+                if (out.getEdges(nodes.get(x0), nodes.get(y0)).isEmpty()) {
                     if (verbose) {
-                        System.out.println("ASSUMPTIONS NOT SATISFIED");
+                        System.out.println(" NO EDGE");
                     }
-//                    omitted.add(i);
-                }
-
-                if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
-                    if (verbose) {
-                        System.out.println(" 2-CYCLE");
-                    }
-//                    omitted.add(i);
+                    omitted.add(i);
                 } else {
-                    boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
-                    estLeftRight = _estLeftRight ? 1 : -1;
+
+                    if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
+                        if (verbose) {
+                            System.out.println(" 2-CYCLE");
+                        }
+//                    omitted.add(i);
+                    } else {
+                        boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
+                        estLeftRight = _estLeftRight ? 1 : -1;
+                    }
                 }
 
 //                if (Arrays.binarySearch(discrete, i) > 0) {
