@@ -20,6 +20,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
+import static com.sun.tools.javac.jvm.ByteCodes.swap;
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
 import static java.lang.Math.abs;
 
@@ -1003,7 +1004,7 @@ public class CalibrationQuestion {
         int initialSegment = 100;
         boolean verbose = true;
         boolean includeDiscrete = false;
-        boolean includeVector = false;
+        boolean includeNonscalar = false;
         boolean useRFask = true;
 
         int[] discrete = {47, 70, 71, 85, 107};
@@ -1056,7 +1057,7 @@ public class CalibrationQuestion {
         v.add(new ContinuousVariable("FN"));
         v.add(new ContinuousVariable("TN"));
 
-        int numRows = 20;
+        int numRows = 40;
 
         TextTable tabulated = new TextTable(numRows + 2, v.size());
 
@@ -1065,6 +1066,8 @@ public class CalibrationQuestion {
         }
 
         for (int e = 0; e <= numRows; e++) {
+
+            double cutoff = e / 30.;
 
             // Parameters.
             double zeroAlpha = .0001;// e / (double) numRows;
@@ -1095,9 +1098,9 @@ public class CalibrationQuestion {
             double[] scores = new double[initialSegment];
 
             for (int i = 1; i <= initialSegment; i++) {
-                if (nonscalar(dataSets.get(i - 1))) {
-                    omitted.add(i);
-                }
+//                if (nonscalar(dataSets.get(i - 1))) {
+//                    omitted.add(i);
+//                }
 
                 if (verbose) {
                     System.out.print(i + " ");
@@ -1109,16 +1112,16 @@ public class CalibrationQuestion {
                     }
 
                     if (!includeDiscrete) {
-                        omitted.add(i);
+//                        omitted.add(i);
                     }
                 }
 
                 if (Arrays.binarySearch(vector, i) > -1) {
                     if (verbose) {
-                        System.out.println(" VECTOR");
+                        System.out.println(" NONSCALAR");
                     }
 
-                    if (!includeVector) {
+                    if (!includeNonscalar) {
                         omitted.add(i);
                     }
                 }
@@ -1185,6 +1188,25 @@ public class CalibrationQuestion {
 
                 boolean groundTruthDirection = category.equals("->");
 
+                // Randomize the orientations to remove bias in reporting.
+                if (!groundTruthDirection) {
+                    dataSet = swapColumns(dataSet, x0, y0);
+
+                    int z = x0;
+                    x0 = y0;
+                    y0 = z;
+
+                    groundTruthDirection = true;
+                }
+
+//                if (RandomUtil.getInstance().nextDouble() < 0.5) {
+//                    dataSet = swapColumns(dataSet, x0, y0);
+//                    int z = x0;
+//                    x0 = y0;
+//                    y0 = z;
+//                    groundTruthDirection = false;
+//                }
+
                 int estLeftRight = 0;
                 Graph g = new EdgeListGraph(dataSet.getVariables());
                 List<Node> nodes = dataSet.getVariables();
@@ -1200,7 +1222,7 @@ public class CalibrationQuestion {
                 Graph out = fask.search();
                 double lr = fask.getLr();
 
-                if (abs(lr) <= e / 30.) {
+                if (abs(lr) < cutoff) {
                     omitted.add(i);
                 }
 
@@ -1283,7 +1305,7 @@ public class CalibrationQuestion {
             double recall = tp / (tp + fn);
             double fdr = fp / (tp + fp); // false positives over positives
             double acc = (tp + tn) / (tp + fp + tn + fn);
-            double fracDec =((dataSets.size() - omitted.size()) / (double) dataSets.size()) / 0.81;
+            double fracDec = ((dataSets.size() - omitted.size()) / (double) dataSets.size()) / 0.81;
 
             RocCalculator roc = new RocCalculator(scores, inCategory, RocCalculator.ASCENDING);
             double auc = roc.getAuc();
@@ -1316,7 +1338,7 @@ public class CalibrationQuestion {
                     System.out.println("EXCLUDING DISCRETE CASES");
                 }
 
-                if (!includeVector) {
+                if (!includeNonscalar) {
                     System.out.println("EXCLUDING VECTOR VARIABLE CASES");
                 }
 
@@ -1339,7 +1361,7 @@ public class CalibrationQuestion {
             NumberFormat nf3 = new DecimalFormat("0.00");
             NumberFormat nf4 = new DecimalFormat("0.0");
 
-            tabulated.setToken(e + 1, l++, "" + nf3.format(e / 20.));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(cutoff));
             tabulated.setToken(e + 1, l++, "" + nf3.format(fpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(tpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(precision));
@@ -1355,6 +1377,17 @@ public class CalibrationQuestion {
         }
 
         System.out.println("\n" + tabulated);
+    }
+
+    private static DataSet swapColumns(DataSet dataSet, int x0, int y0) {
+        DataSet dataSet1 = dataSet.copy();
+
+        for (int i = 0; i < dataSet1.getNumRows(); i++) {
+            dataSet1.setDouble(i, x0, dataSet.getDouble(i, y0));
+            dataSet1.setDouble(i, y0, dataSet.getDouble(i, x0));
+        }
+
+        return dataSet1;
     }
 
     private static boolean nonscalar(DataSet dataSet) {
