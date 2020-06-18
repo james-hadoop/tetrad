@@ -125,7 +125,7 @@ public final class Fask implements GraphSearch {
         long start = System.currentTimeMillis();
         NumberFormat nf = new DecimalFormat("0.000");
 
-        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
+//        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
         this.data = dataSet.getDoubleData().transpose().toArray();
 
         List<Node> variables = dataSet.getVariables();
@@ -186,7 +186,7 @@ public final class Fask implements GraphSearch {
                 double[] x = colData[i];
                 double[] y = colData[j];
 
-                double lrOrig = leftRightOrig(x, y) - leftRightOrig(y, x);
+                double lrOrig =  leftRight(x, y, X, Y);//leftRightOrig(x, y) - leftRightOrig(y, x);
 
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(lrOrig) > getSkewEdgeThreshold())) {
                     double lrxy = leftRight(x, y, X, Y);
@@ -280,6 +280,10 @@ public final class Fask implements GraphSearch {
     }
 
     private double leftRight(double[] x, double[] y, Node X, Node Y) {
+        x = DataUtils.standardizeData(x);
+        y = DataUtils.standardizeData(y);
+
+
 //        if (true) {
 ////            return robustSkew(x, y);
 //            return skew(x, y);
@@ -297,12 +301,18 @@ public final class Fask implements GraphSearch {
     }
 
     private double leftRightOrig(double[] x, double[] y) {
+        x = DataUtils.standardizeData(x);
+        y = DataUtils.standardizeData(y);
+
         double[] cx = cov(x, y, x);
         double[] cy = cov(x, y, y);
         return cx[8] - cy[8];
     }
 
     private double leftRightMinnesota(double[] x, double[] y) {
+        x = DataUtils.standardizeData(x);
+        y = DataUtils.standardizeData(y);
+
         x = correctSkewness(x);
         y = correctSkewness(y);
 
@@ -339,6 +349,8 @@ public final class Fask implements GraphSearch {
     }
 
     private boolean bidirected(double[] x, double[] y, Graph G0, Node X, Node Y) {
+        x = DataUtils.standardizeData(x);
+        y = DataUtils.standardizeData(y);
 
         if (G0.isAdjacentTo(X, Y)) return false;
 

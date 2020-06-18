@@ -20,7 +20,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static com.sun.tools.javac.jvm.ByteCodes.swap;
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
 import static java.lang.Math.abs;
 
@@ -1005,19 +1004,19 @@ public class CalibrationQuestion {
         boolean verbose = true;
         boolean includeDiscrete = false;
         boolean includeNonscalar = false;
+        boolean includeInterpolated = false;
         boolean useRFask = true;
 
-        int[] discrete = {47, 70, 71, 85, 107};
-        int[] vector = {52, 53, 54, 55, 71, 105};
-        int[] interpolatedValues = {81, 82, 83};
+//        int[] discrete = {47, 70, 71, 85, 107};
+        int[] nonscalar = {52, 53, 54, 55, 71, 105};
+//        int[] interpolatedValues = {81, 82, 83};
 
 
         List<DataSet> dataSets = new ArrayList<>();
 
         NumberFormat nf = new DecimalFormat("0000");
 
-        D:
-        for (int i = 1; i <= initialSegment; i++) {
+        for (int i = 1; i <= 6; i++) {
             File data = new File("/Users/user/Box/data/pairs 4/pair" + nf.format(i) + ".txt");
             System.out.println(data.getAbsolutePath());
 
@@ -1065,7 +1064,7 @@ public class CalibrationQuestion {
             tabulated.setToken(0, j, v.get(j).getName());
         }
 
-        for (int e = 0; e <= numRows; e++) {
+        for (int e = 0; e <= 0; e++) {
 
             double cutoff = e / 30.;
 
@@ -1099,38 +1098,40 @@ public class CalibrationQuestion {
 
             int total = 0;
 
-            for (int i = 1; i <= initialSegment; i++) {
+            for (int i = 6; i <= 6; i++) {
                 if (verbose) {
                     System.out.print(i + " ");
                 }
 
-                if (Arrays.binarySearch(discrete, i) > -1) {
-                    if (verbose) {
-                        System.out.println(" DISCRETE");
-                    }
 
-                    if (!includeDiscrete) {
-//                        omitted.add(i);
-                    }
-                }
+//                if (Arrays.binarySearch(discrete, i) > -1) {
+//                    if (verbose) {
+//                        System.out.println(" DISCRETE");
+//                    }
+//
+//                    if (!includeDiscrete) {
+////                        omitted.add(i);
+//                    }
+//                }
 
-                if (Arrays.binarySearch(vector, i) > -1) {
+                if (Arrays.binarySearch(nonscalar, i) > -1) {
                     if (verbose) {
                         System.out.println(" NONSCALAR");
                     }
 
-                    if (!includeNonscalar) {
-                        continue;
-                    }
+//                    if (!includeNonscalar) {
+                    continue;
+//                    }
                 }
-
-                total++;
 
 //                if (Arrays.binarySearch(interpolatedValues, i) > -1) {
 //                    if (verbose) {
 //                        System.out.println(" INTERPOLATED");
 //                    }
-////                    omitted.add(i);
+//
+//                    if (!includeInterpolated) {
+//                        continue;
+//                    }
 //                }
 
                 DataSet dataSet = dataSets.get(i - 1);
@@ -1168,6 +1169,12 @@ public class CalibrationQuestion {
                     y0 = 9;
                 }
 
+//                if (repeatedValues(dataSets.get(i - 1), x0, y0)) {
+//                    continue;
+//                }
+
+                total++;
+
                 if (verbose) {
                     writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
                 }
@@ -1186,7 +1193,9 @@ public class CalibrationQuestion {
                     weight = 1;
                 }
 
-                boolean groundTruthDirection = category.equals("->");
+                boolean groundTruthDirection = "->".equals(category);
+
+
 
                 // Randomize the orientations to remove bias in reporting.
                 if (!groundTruthDirection) {
@@ -1196,16 +1205,20 @@ public class CalibrationQuestion {
                     x0 = y0;
                     y0 = z;
 
-                    groundTruthDirection = true;
+                    groundTruthDirection = !groundTruthDirection;
                 }
 
-//                if (RandomUtil.getInstance().nextDouble() < 0.5) {
-//                    dataSet = swapColumns(dataSet, x0, y0);
-//                    int z = x0;
-//                    x0 = y0;
-//                    y0 = z;
-//                    groundTruthDirection = false;
-//                }
+                if (RandomUtil.getInstance().nextDouble() < 0.5) {
+                    dataSet = swapColumns(dataSet, x0, y0);
+
+                    int z = x0;
+                    x0 = y0;
+                    y0 = z;
+
+                    groundTruthDirection = !groundTruthDirection;
+                }
+
+                System.out.println(dataSet);
 
                 int estLeftRight = 0;
                 Graph g = new EdgeListGraph(dataSet.getVariables());
@@ -1380,7 +1393,17 @@ public class CalibrationQuestion {
     }
 
     private static DataSet swapColumns(DataSet dataSet, int x0, int y0) {
-        DataSet dataSet1 = dataSet.copy();
+        List<Node> vars = dataSet.getVariables();
+        List<Node> vars1 = new ArrayList<>(vars);
+        vars1.set(y0, vars.get(x0));
+        vars1.set(x0, vars.get(y0));
+
+        DataSet dataSet1 = new BoxDataSet(new DoubleDataBox(dataSet.getNumRows(), dataSet.getNumColumns()), vars1);
+
+        for (int i = 0; i < dataSet1.getNumRows(); i++) {
+            dataSet1.setDouble(i, x0, dataSet.getDouble(i, x0));
+            dataSet1.setDouble(i, y0, dataSet.getDouble(i, y0));
+        }
 
         for (int i = 0; i < dataSet1.getNumRows(); i++) {
             dataSet1.setDouble(i, x0, dataSet.getDouble(i, y0));
@@ -1390,20 +1413,19 @@ public class CalibrationQuestion {
         return dataSet1;
     }
 
-    private static boolean nonscalar(DataSet dataSet) {
-        double[] x = dataSet.getDoubleData().getColumn(0).toArray();
-        double[] y = dataSet.getDoubleData().getColumn(1).toArray();
-
+    private static boolean repeatedValues(DataSet dataSet, int x0, int y0) {
+        double[] x = dataSet.getDoubleData().getColumn(x0).toArray();
+        double[] y = dataSet.getDoubleData().getColumn(y0).toArray();
 
         Arrays.sort(x);
         int count = 0;
-        int max = 3;
+        int max = 2;
 
         for (int k = 0; k < x.length - 1; k++) {
             if (x[k] == x[k + 1]) {
                 count++;
 
-                if (count > max) {
+                if (count >= max) {
                     return false;
                 }
             } else {
@@ -1418,7 +1440,7 @@ public class CalibrationQuestion {
             if (y[k] == y[k + 1]) {
                 count++;
 
-                if (count > max) {
+                if (count >= max) {
                     return false;
                 }
             } else {
