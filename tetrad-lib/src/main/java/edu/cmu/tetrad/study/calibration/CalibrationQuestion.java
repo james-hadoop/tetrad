@@ -1097,11 +1097,9 @@ public class CalibrationQuestion {
             boolean[] inCategory = new boolean[initialSegment];
             double[] scores = new double[initialSegment];
 
-            for (int i = 1; i <= initialSegment; i++) {
-//                if (nonscalar(dataSets.get(i - 1))) {
-//                    omitted.add(i);
-//                }
+            int total = 0;
 
+            for (int i = 1; i <= initialSegment; i++) {
                 if (verbose) {
                     System.out.print(i + " ");
                 }
@@ -1122,9 +1120,11 @@ public class CalibrationQuestion {
                     }
 
                     if (!includeNonscalar) {
-                        omitted.add(i);
+                        continue;
                     }
                 }
+
+                total++;
 
 //                if (Arrays.binarySearch(interpolatedValues, i) > -1) {
 //                    if (verbose) {
@@ -1305,7 +1305,7 @@ public class CalibrationQuestion {
             double recall = tp / (tp + fn);
             double fdr = fp / (tp + fp); // false positives over positives
             double acc = (tp + tn) / (tp + fp + tn + fn);
-            double fracDec = ((dataSets.size() - omitted.size()) / (double) dataSets.size()) / 0.81;
+            double fracDec = ((total - omitted.size()) / (double) total);
 
             RocCalculator roc = new RocCalculator(scores, inCategory, RocCalculator.ASCENDING);
             double auc = roc.getAuc();
