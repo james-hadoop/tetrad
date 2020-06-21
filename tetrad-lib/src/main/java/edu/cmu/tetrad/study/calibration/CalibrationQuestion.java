@@ -1016,9 +1016,9 @@ public class CalibrationQuestion {
 
         NumberFormat nf = new DecimalFormat("0000");
 
-        for (int i = 1; i <= 6; i++) {
+        for (int i = 1; i <= 100; i++) {
             File data = new File("/Users/user/Box/data/pairs 4/pair" + nf.format(i) + ".txt");
-            System.out.println(data.getAbsolutePath());
+//            System.out.println(data.getAbsolutePath());
 
             DataSet dataSet = loadContinuousData(data, false, Delimiter.WHITESPACE);
             writeDataSet(new File("/Users/user/Box/data/pairs/data"), i, dataSet);
@@ -1058,7 +1058,7 @@ public class CalibrationQuestion {
 
         int numRows = 40;
 
-        TextTable tabulated = new TextTable(numRows + 2, v.size());
+        TextTable tabulated = new TextTable(0 + 2, v.size());
 
         for (int j = 0; j < v.size(); j++) {
             tabulated.setToken(0, j, v.get(j).getName());
@@ -1098,7 +1098,7 @@ public class CalibrationQuestion {
 
             int total = 0;
 
-            for (int i = 6; i <= 6; i++) {
+            for (int i = 1; i <= 100; i++) {
                 if (verbose) {
                     System.out.print(i + " ");
                 }
@@ -1195,8 +1195,6 @@ public class CalibrationQuestion {
 
                 boolean groundTruthDirection = "->".equals(category);
 
-
-
                 // Randomize the orientations to remove bias in reporting.
                 if (!groundTruthDirection) {
                     dataSet = swapColumns(dataSet, x0, y0);
@@ -1218,7 +1216,7 @@ public class CalibrationQuestion {
                     groundTruthDirection = !groundTruthDirection;
                 }
 
-                System.out.println(dataSet);
+//                System.out.println(dataSet);
 
                 int estLeftRight = 0;
                 Graph g = new EdgeListGraph(dataSet.getVariables());
@@ -1228,7 +1226,7 @@ public class CalibrationQuestion {
                 TetradLogger.getInstance().setLogging(false);
 
                 Fask fask = new Fask(dataSet, g);
-                fask.setRemoveResiduals(useRFask);
+                fask.setRemoveResiduals(true);
                 fask.setSkewEdgeThreshold(0.0);
                 fask.setTwoCycleThreshold(0.0);
 //                fask.setZeroAlpha(zeroAlpha);
@@ -1239,22 +1237,26 @@ public class CalibrationQuestion {
                     omitted.add(i);
                 }
 
+                System.out.println(out.getEdges(nodes.get(x0), nodes.get(y0)));
+
                 if (out.getEdges(nodes.get(x0), nodes.get(y0)).isEmpty()) {
                     if (verbose) {
                         System.out.println(" NO EDGE");
                     }
                     omitted.add(i);
-                } else {
-
-                    if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
-                        if (verbose) {
-                            System.out.println(" 2-CYCLE");
-                        }
-//                    omitted.add(i);
-                    } else {
-                        boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
-                        estLeftRight = _estLeftRight ? 1 : -1;
+                } else if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
+                    if (verbose) {
+                        System.out.println(" 2-CYCLE");
                     }
+                    omitted.add(i);
+                } else if (Edges.isUndirectedEdge(out.getEdge(nodes.get(x0), nodes.get(y0)))) {
+                    if (verbose) {
+                        System.out.println(" UNDIRECTED");
+                    }
+                    omitted.add(i);
+                } else {
+                    boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
+                    estLeftRight = _estLeftRight ? 1 : -1;
                 }
 
 //                if (Arrays.binarySearch(discrete, i) > 0) {
