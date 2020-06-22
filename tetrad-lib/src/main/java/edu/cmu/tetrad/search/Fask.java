@@ -28,12 +28,10 @@ import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.regression.RegressionResult;
-import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -61,8 +59,6 @@ public final class Fask implements GraphSearch {
     // The data sets being analyzed. They must all have the same variables and the same
     // number of records.
     private final DataSet dataSet;
-
-    private double[][] data;
 
     // For the Fast Adjacency Search.
     private int depth = -1;
@@ -126,7 +122,6 @@ public final class Fask implements GraphSearch {
         NumberFormat nf = new DecimalFormat("0.000");
 
         DataSet dataSet = DataUtils.standardizeData(this.dataSet);
-        this.data = dataSet.getDoubleData().transpose().toArray();
 
         List<Node> variables = dataSet.getVariables();
         double[][] colData = dataSet.getDoubleData().transpose().toArray();
@@ -177,6 +172,8 @@ public final class Fask implements GraphSearch {
 
         TetradLogger.getInstance().forceLogMessage("X\tY\tMethod\tLR\tEdge");
 
+        removeResiduals = false;
+
         for (int i = 0; i < variables.size(); i++) {
             for (int j = i + 1; j < variables.size(); j++) {
                 Node X = variables.get(i);
@@ -186,16 +183,16 @@ public final class Fask implements GraphSearch {
                 double[] x = colData[i];
                 double[] y = colData[j];
 
-                double lrOrig = leftRightOrig(x, y);//leftRightOrig(x, y) - leftRightOrig(y, x);
+                double lrxy = leftRightOrig(x, y);
 
-                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(lrOrig) > getSkewEdgeThreshold())) {
-                    double lrxy1 = leftRightMinnesota(x, y);
-                    double lrxy2 = leftRightMinnesota(y, x);
-                    this.lr = -lrxy1;
+                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(lrxy) > getSkewEdgeThreshold())) {
+                    if (isUseFasAdjacencies()) System.out.println("*");
+
+                    this.lr = lrxy;
 
                     if (edgeForbiddenByKnowledge(X, Y)) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tknowledge_forbidden"
-                                + "\t" + nf.format(lrxy1)
+                                + "\t" + nf.format(lrxy)
                                 + "\t" + X + "<->" + Y
                         );
                         continue;
@@ -203,19 +200,19 @@ public final class Fask implements GraphSearch {
 
                     if (knowledgeOrients(X, Y)) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tknowledge"
-                                + "\t" + nf.format(lrxy1)
+                                + "\t" + nf.format(lrxy)
                                 + "\t" + X + "-->" + Y
                         );
                         graph.addDirectedEdge(X, Y);
                     } else if (knowledgeOrients(Y, X)) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tknowledge"
-                                + "\t" + nf.format(lrxy1)
+                                + "\t" + nf.format(lrxy)
                                 + "\t" + X + "<--" + Y
                         );
                         graph.addDirectedEdge(Y, X);
-                    } else if (abs(lrxy1) == 0) {
+                    } else if (abs(lrxy) == 0) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t0-coef"
-                                + "\t" + nf.format(lrxy1)
+                                + "\t" + nf.format(lrxy)
                                 + "\t" + X + " " + Y
                         );
                     }
@@ -227,31 +224,23 @@ public final class Fask implements GraphSearch {
 ////                        graph.addDirectedEdge(X, Y);
 ////                        graph.addDirectedEdge(Y, X);
 //                    }
-                    else if (abs(lrOrig) < twoCycleThreshold) {
+                    else if (abs(lrxy) < twoCycleThreshold) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
-                                + "\t" + nf.format(abs(lrOrig))
+                                + "\t" + nf.format(abs(lrxy))
                                 + "\t" + X + "<=>" + Y
                         );
                         graph.addDirectedEdge(X, Y);
                         graph.addDirectedEdge(Y, X);
                     } else {
-//                        if (lrxy1 > 0 == lrxy2 > 0) {
-//                            TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
-//                                    + "\t" + nf.format(lrxy1)
-//                                    + "\t" + X + "-->" + Y
-//                            );
-//                            graph.addUndirectedEdge(X, Y);
-//                        }
-//                        else
-                            if (lrxy1 > 0) {
+                        if (lrxy > 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
-                                    + "\t" + nf.format(lrxy1)
+                                    + "\t" + nf.format(lrxy)
                                     + "\t" + X + "-->" + Y
                             );
                             graph.addDirectedEdge(X, Y);
-                        } else if (lrxy1 < 0) {
+                        } else if (lrxy < 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
-                                    + "\t" + nf.format(lrxy1)
+                                    + "\t" + nf.format(lrxy)
                                     + "\t" + X + "<--" + Y
                             );
                             graph.addDirectedEdge(Y, X);
@@ -260,26 +249,6 @@ public final class Fask implements GraphSearch {
                 }
             }
         }
-
-//        Graph G1 = new EdgeListGraph(graph);
-//
-//        for (int i = 0; i < variables.size(); i++) {
-//            for (int j = i + 1; j < variables.size(); j++) {
-//                Node X = variables.get(i);
-//                Node Y = variables.get(j);
-//
-//                // Centered
-//                double[] x = colData[i];
-//                double[] y = colData[j];
-//
-//                if (bidirected(x, y, G1, X, Y)) {
-//                    graph.removeEdges(X, Y);
-//                    graph.addDirectedEdge(X, Y);
-//                    graph.addDirectedEdge(Y, X);
-//                }
-//
-//            }
-//        }
 
         long stop = System.currentTimeMillis();
         this.elapsed = stop - start;
@@ -293,41 +262,82 @@ public final class Fask implements GraphSearch {
 //            return skew(x, y);
 //        }
 
+        if (skewness(x) < 0) {
+            for (int i = 0; i < y.length; i++) x[i] *= -1;
+        }
+
+//        if (true) {
+////            return robustSkew(x, y);
+//            return skew(x, y);
+//        }
+
+
         double diff;
 
-        if (isRemoveResiduals()) {
-            diff = getDiff(x, y) + getDiff(y, x);
-        } else {
-            diff = getDiff(y, x) - getDiff(x, y);
-        }
+//        if (isRemoveResiduals()) {
+//            diff = getDiff(x, y, false);// - getDiff(y, x, false);
+//        } else {
+            diff = getDiff(x, y, true);// - getDiff(x, y, true);
+//        }
+
 
         return diff;
     }
 
     private double leftRightOrig(double[] x, double[] y) {
-        final double a = correlation(x, y);
+//        if (true) return leftRight(x, y);
 
-//        if (a < 0) {// && sk_ey > 0) {
-//            for (int i = 0; i < x.length; i++) x[i] *= -1;
+        double prod = -1;
+
+        NumberFormat nf = new DecimalFormat("0.00");
+
+        System.out.println("corr = " + nf.format(correlation(x, y))
+            + " skewx = " + nf.format(skewness(x)) + " skewy = " + nf.format(skewness(y)));
+
+        if (abs(skewness(x)) < 0.1) {
+            System.out.println("0");
+            return 0;
+        }
+
+        if (abs(skewness(y)) < 0.1) {
+            System.out.println("0");
+            return 0;
+        }
+
+//        if (repeatedValue(x, x.length * 0.2)) {
+//            System.out.println("Repeated");
+//            return 0;
 //        }
-
-//        x = correctSkewness(x);
-//        y = correctSkewness(y);
+//
+//        if (repeatedValue(y, y.length * 0.2)) {
+//            System.out.println("Repeated");
+//            return 0;
+//        }
+//
+        if (skewness(y) < 0) {
+            for (int i = 0; i < y.length; i++) y[i] = -y[i];
+            prod *= -1;
+        }
 
         double[] cx = cov(x, y, x);
         double[] cy = cov(x, y, y);
-        double lr = cx[8] - cy[8];
+        double lr = signum(prod) * (cx[8] - cy[8]);
 
-//        if (correlation(x, y) < 0) {
-//            lr *= -1;
-//        }
+        if (Double.isNaN(lr)) {
+            System.out.println("0");
+            return 0;
+        }
 
         return lr;
     }
 
     private double leftRightMinnesota(double[] x, double[] y) {
-        x = correctSkewness(x);
-        y = correctSkewness(y);
+//        if (correlation(x, y) > 0) {
+//            for (int i = 0; i < x.length; i++) x[i] = -x[i];
+//        }
+
+//        x = correctSkewness(x);
+//        y = correctSkewness(y);
 
         final double cxyx = cov2(x, y, x);
         final double cxyy = cov2(x, y, y);
@@ -346,100 +356,20 @@ public final class Fask implements GraphSearch {
 
         double lr = Q - R;
 
-        final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
-
-        if (sk_ey < 0) {
-            lr *= -1;
-        }
-
-        final double a = correlation(x, y);
-
+//        final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
+//
+//        if (sk_ey < 0) {
+//            lr *= -1;
+//        }
+//
+//        final double a = correlation(x, y);
+//
 //        if (a < 0) {// && sk_ey > 0) {
 //            lr *= -1;
 //        }
 
-        return -lr;
+        return lr;
     }
-
-    private boolean bidirected(double[] x, double[] y, Graph G0, Node X, Node Y) {
-        x = DataUtils.standardizeData(x);
-        y = DataUtils.standardizeData(y);
-
-        if (G0.isAdjacentTo(X, Y)) return false;
-
-        Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));
-        adjSet.addAll(G0.getAdjacentNodes(Y));
-        List<Node> adj = new ArrayList<>(adjSet);
-        adj.remove(X);
-        adj.remove(Y);
-
-        depth = 3;
-
-        DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), Math.min(depth, adj.size()));
-        int[] choice;
-
-        while ((choice = gen.next()) != null) {
-            List<Node> _adj = GraphUtils.asList(choice, adj);
-            double[][] _Z = new double[_adj.size()][];
-
-            for (int f = 0; f < _adj.size(); f++) {
-                Node _z = _adj.get(f);
-                int column = dataSet.getColumn(_z);
-                _Z[f] = data[column];//dataSet.getDoubleData().getColumn(column).toArray();
-            }
-
-            double pc = 0;
-            double pc1 = 0;
-            double pc2 = 0;
-
-            try {
-                pc = partialCorrelation(x, y, _Z, x, Double.NEGATIVE_INFINITY, +1);
-                pc1 = partialCorrelation(x, y, _Z, x, 0, +1);
-                pc2 = partialCorrelation(x, y, _Z, y, 0, +1);
-            } catch (SingularMatrixException e) {
-                System.out.println("Singularity X = " + X + " Y = " + Y + " adj = " + adj);
-                TetradLogger.getInstance().log("info", "Singularity X = " + X + " Y = " + Y + " adj = " + adj);
-                continue;
-            }
-
-            int nc = StatUtils.getRows(x, Double.NEGATIVE_INFINITY, +1).size();
-            int nc1 = StatUtils.getRows(x, 0, +1).size();
-            int nc2 = StatUtils.getRows(y, 0, +1).size();
-
-            double z = 0.5 * (log(1.0 + pc) - log(1.0 - pc));
-            double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
-            double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
-
-            double zv1 = (z - z1) / sqrt((1.0 / ((double) nc - 3) + 1.0 / ((double) nc1 - 3)));
-            double zv2 = (z - z2) / sqrt((1.0 / ((double) nc - 3) + 1.0 / ((double) nc2 - 3)));
-
-            boolean rejected1 = abs(zv1) > twoCycleThreshold;
-            boolean rejected2 = abs(zv2) > twoCycleThreshold;
-
-            boolean possibleTwoCycle = false;
-
-            if (zv1 < 0 && zv2 > 0 && rejected1) {
-                possibleTwoCycle = true;
-            } else if (zv1 > 0 && zv2 < 0 && rejected2) {
-                possibleTwoCycle = true;
-            } else if (rejected1 && rejected2) {
-                possibleTwoCycle = true;
-            }
-
-            if (!possibleTwoCycle) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) throws SingularMatrixException {
-        double[][] cv = StatUtils.covMatrix(x, y, z, condition, threshold, direction);
-        TetradMatrix m = new TetradMatrix(cv).transpose();
-        return StatUtils.partialCorrelation(m);
-    }
-
 
     private double robustSkew(double[] xData, double[] yData) {
 //        if (true) {
@@ -755,30 +685,42 @@ public final class Fask implements GraphSearch {
         return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy), exx, eyy};
     }
 
-    private double getDiff(double[] x, double[] y) {
-        double[] yPrime = Arrays.copyOf(y, y.length);
+    private double getDiff(double[] xPlusRy, double[] yPlusRx, boolean dir) {
+        double[] x = Arrays.copyOf(xPlusRy, xPlusRy.length);
+        double[] y = Arrays.copyOf(yPlusRx, yPlusRx.length);
+
+        double[] r2 = residuals(y, x, RegressionType.LINEAR);
 
         if (isRemoveResiduals()) {
-            if (correlation(x, y) < 0) {
-                for (int i = 0; i < x.length; i++) x[i] *= -1;
+            if (dir) {
+                double[] r1 = residuals(xPlusRy, yPlusRx, RegressionType.LINEAR);
+
+                for (int k = 0; k < y.length; k++) {
+                    y[k] -= r1[k];
+                }
+
+                r2 = residuals(x, y, RegressionType.LINEAR);
+
+                y = DataUtils.standardizeData(x);
+//                r2 = DataUtils.standardizeData(r2);
+
+            } else {
+                double[] r1 = residuals(yPlusRx, xPlusRy, RegressionType.LINEAR);
+
+                for (int k = 0; k < x.length; k++) {
+                    x[k] -= r1[k];
+                }
+
+                r2 = residuals(y, x, RegressionType.LINEAR);
+
+                x = DataUtils.standardizeData(x);
+//                r2 = DataUtils.standardizeData(r2);
+
             }
-
-            double[] r = residuals(x, y, RegressionType.LINEAR);
-
-            for (int k = 0; k < yPrime.length; k++) {
-                yPrime[k] -= r[k];
-            }
-
-//            yPrime = DataUtils.standardizeData(yPrime);
-
         }
 
-        x = DataUtils.standardizeData(x);
-        yPrime = DataUtils.standardizeData(yPrime);
+//        double[] r2 = residuals(y, x, RegressionType.LINEAR);
 
-        double[] rPrime = residuals(x, yPrime, RegressionType.LINEAR);
-
-        rPrime = DataUtils.standardizeData(rPrime);
 
         double eyrxy = 0.0;
         double eyrxx = 0.0;
@@ -787,16 +729,16 @@ public final class Fask implements GraphSearch {
         int n1 = 0;
         int n2 = 0;
 
-        for (int i = 0; i < yPrime.length; i++) {
+        for (int i = 0; i < y.length; i++) {
             if (x[i] > 0) {
-                eyrxx += yPrime[i] * rPrime[i];
-                eyyx += yPrime[i] * yPrime[i];
+                eyrxx += x[i] * r2[i];
+                eyyx += x[i] * x[i];
                 n1++;
             }
 
-            if (yPrime[i] > 0) {
-                eyrxy += yPrime[i] * rPrime[i];
-                eyyy += yPrime[i] * yPrime[i];
+            if (y[i] > 0) {
+                eyrxy += x[i] * r2[i];
+                eyyy += x[i] * x[i];
                 n2++;
             }
         }
@@ -806,8 +748,8 @@ public final class Fask implements GraphSearch {
         eyyx /= n1;
         eyyy /= n2;
 
-//        double[] sums = new double[]{eyrxy, eyrxx, eyyy, eyyx, n2, n1};
-        return eyrxy / eyyy - eyrxx / eyyx;
+        double[] sums = new double[]{eyrxy, eyrxx, eyyy, eyyx, n1, n2};
+        return sums[0] / sums[2] - sums[1] / sums[3];
     }
 
     public boolean isTwoCycle() {
@@ -898,7 +840,24 @@ public final class Fask implements GraphSearch {
         return lr;
     }
 
+    private static boolean repeatedValue(double[] x, double max) {
+        Arrays.sort(x);
+        int count = 0;
 
+        for (int k = 0; k < x.length - 1; k++) {
+            if (x[k] == x[k + 1]) {
+                count++;
+
+                if (count >= max) {
+                    return true;
+                }
+            } else {
+                count = 0;
+            }
+        }
+
+        return false;
+    }
 }
 
 

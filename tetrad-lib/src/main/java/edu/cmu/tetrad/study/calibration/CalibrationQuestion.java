@@ -1004,24 +1004,25 @@ public class CalibrationQuestion {
         boolean verbose = true;
         boolean includeDiscrete = false;
         boolean includeNonscalar = false;
-        boolean includeInterpolated = false;
         boolean useRFask = true;
 
-//        int[] discrete = {47, 70, 71, 85, 107};
+        int[] discrete = {47, 70, 71, 85, 107};
         int[] nonscalar = {52, 53, 54, 55, 71, 105};
-//        int[] interpolatedValues = {81, 82, 83};
+        int[] interpolatedValues = {81, 82, 83};
 
 
         List<DataSet> dataSets = new ArrayList<>();
 
         NumberFormat nf = new DecimalFormat("0000");
 
-        for (int i = 1; i <= 100; i++) {
+        D:
+        for (int i = 1; i <= initialSegment; i++) {
             File data = new File("/Users/user/Box/data/pairs 4/pair" + nf.format(i) + ".txt");
-//            System.out.println(data.getAbsolutePath());
+            System.out.println(data.getAbsolutePath());
 
             DataSet dataSet = loadContinuousData(data, false, Delimiter.WHITESPACE);
             writeDataSet(new File("/Users/user/Box/data/pairs/data"), i, dataSet);
+
 
 
             if (dataSet.getNumRows() > maxN) {
@@ -1029,7 +1030,6 @@ public class CalibrationQuestion {
             }
 
 //            dataSet = DataUtils.standardizeData(dataSet);
-//            if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             dataSets.add(dataSet);
 
             writeResData(dataSet, i);
@@ -1056,20 +1056,15 @@ public class CalibrationQuestion {
         v.add(new ContinuousVariable("FN"));
         v.add(new ContinuousVariable("TN"));
 
-        int numRows = 40;
+        int numRows = 20;
 
-        TextTable tabulated = new TextTable(0 + 2, v.size());
+        TextTable tabulated = new TextTable(numRows + 2, v.size());
 
         for (int j = 0; j < v.size(); j++) {
             tabulated.setToken(0, j, v.get(j).getName());
         }
 
-        for (int e = 0; e <= 0; e++) {
-
-            double cutoff = e / 30.;
-
-            // Parameters.
-            double zeroAlpha = .0001;// e / (double) numRows;
+        for (int e = 0; e <= numRows; e++) {
 
             List<Set<Integer>> selected = new ArrayList<>();
             Set<Integer> omitted = new TreeSet<>();
@@ -1097,41 +1092,44 @@ public class CalibrationQuestion {
             double[] scores = new double[initialSegment];
 
             int total = 0;
+            double cutoff = e / 20.;
 
-            for (int i = 1; i <= 100; i++) {
+            for (int i = 1; i <= initialSegment; i++) {
                 if (verbose) {
                     System.out.print(i + " ");
                 }
 
+                if (repeatedValue(dataSets.get(i - 1))) {
+                    System.out.println("REPEATED VALUES");
+                    continue;
+                }
 
-//                if (Arrays.binarySearch(discrete, i) > -1) {
-//                    if (verbose) {
-//                        System.out.println(" DISCRETE");
-//                    }
-//
-//                    if (!includeDiscrete) {
-////                        omitted.add(i);
-//                    }
-//                }
+                if (Arrays.binarySearch(discrete, i) > -1) {
+                    if (verbose) {
+                        System.out.println(" DISCRETE");
+                    }
+
+                    if (!includeDiscrete) {
+//                        omitted.add(i);
+                    }
+                }
 
                 if (Arrays.binarySearch(nonscalar, i) > -1) {
                     if (verbose) {
-                        System.out.println(" NONSCALAR");
+                        System.out.println(" nonscalar");
                     }
 
-//                    if (!includeNonscalar) {
-                    continue;
-//                    }
+                    if (!includeNonscalar) {
+//                        omitted.add(i);
+                        continue;
+                    }
                 }
 
 //                if (Arrays.binarySearch(interpolatedValues, i) > -1) {
 //                    if (verbose) {
 //                        System.out.println(" INTERPOLATED");
 //                    }
-//
-//                    if (!includeInterpolated) {
-//                        continue;
-//                    }
+////                    omitted.add(i);
 //                }
 
                 DataSet dataSet = dataSets.get(i - 1);
@@ -1169,10 +1167,6 @@ public class CalibrationQuestion {
                     y0 = 9;
                 }
 
-//                if (repeatedValues(dataSets.get(i - 1), x0, y0)) {
-//                    continue;
-//                }
-
                 total++;
 
                 if (verbose) {
@@ -1193,30 +1187,7 @@ public class CalibrationQuestion {
                     weight = 1;
                 }
 
-                boolean groundTruthDirection = "->".equals(category);
-
-                // Randomize the orientations to remove bias in reporting.
-                if (!groundTruthDirection) {
-                    dataSet = swapColumns(dataSet, x0, y0);
-
-                    int z = x0;
-                    x0 = y0;
-                    y0 = z;
-
-                    groundTruthDirection = !groundTruthDirection;
-                }
-
-                if (RandomUtil.getInstance().nextDouble() < 0.5) {
-                    dataSet = swapColumns(dataSet, x0, y0);
-
-                    int z = x0;
-                    x0 = y0;
-                    y0 = z;
-
-                    groundTruthDirection = !groundTruthDirection;
-                }
-
-//                System.out.println(dataSet);
+                boolean groundTruthDirection = category.equals("->");
 
                 int estLeftRight = 0;
                 Graph g = new EdgeListGraph(dataSet.getVariables());
@@ -1233,30 +1204,26 @@ public class CalibrationQuestion {
                 Graph out = fask.search();
                 double lr = fask.getLr();
 
-                if (abs(lr) < cutoff) {
+                if (abs(lr) <= cutoff) {
                     omitted.add(i);
                 }
-
-                System.out.println(out.getEdges(nodes.get(x0), nodes.get(y0)));
 
                 if (out.getEdges(nodes.get(x0), nodes.get(y0)).isEmpty()) {
                     if (verbose) {
                         System.out.println(" NO EDGE");
                     }
                     omitted.add(i);
-                } else if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
-                    if (verbose) {
-                        System.out.println(" 2-CYCLE");
-                    }
-                    omitted.add(i);
-                } else if (Edges.isUndirectedEdge(out.getEdge(nodes.get(x0), nodes.get(y0)))) {
-                    if (verbose) {
-                        System.out.println(" UNDIRECTED");
-                    }
-                    omitted.add(i);
                 } else {
-                    boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
-                    estLeftRight = _estLeftRight ? 1 : -1;
+
+                    if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
+                        if (verbose) {
+                            System.out.println(" 2-CYCLE");
+                        }
+//                    omitted.add(i);
+                    } else {
+                        boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
+                        estLeftRight = _estLeftRight ? 1 : -1;
+                    }
                 }
 
 //                if (Arrays.binarySearch(discrete, i) > 0) {
@@ -1354,7 +1321,7 @@ public class CalibrationQuestion {
                 }
 
                 if (!includeNonscalar) {
-                    System.out.println("EXCLUDING VECTOR VARIABLE CASES");
+                    System.out.println("EXCLUDING nonscalar VARIABLE CASES");
                 }
 
                 if (useWeightsFromFile) {
@@ -1394,41 +1361,21 @@ public class CalibrationQuestion {
         System.out.println("\n" + tabulated);
     }
 
-    private static DataSet swapColumns(DataSet dataSet, int x0, int y0) {
-        List<Node> vars = dataSet.getVariables();
-        List<Node> vars1 = new ArrayList<>(vars);
-        vars1.set(y0, vars.get(x0));
-        vars1.set(x0, vars.get(y0));
+    private static boolean repeatedValue(DataSet dataSet) {
+        double[] x = dataSet.getDoubleData().getColumn(0).toArray();
+        double[] y = dataSet.getDoubleData().getColumn(1).toArray();
 
-        DataSet dataSet1 = new BoxDataSet(new DoubleDataBox(dataSet.getNumRows(), dataSet.getNumColumns()), vars1);
-
-        for (int i = 0; i < dataSet1.getNumRows(); i++) {
-            dataSet1.setDouble(i, x0, dataSet.getDouble(i, x0));
-            dataSet1.setDouble(i, y0, dataSet.getDouble(i, y0));
-        }
-
-        for (int i = 0; i < dataSet1.getNumRows(); i++) {
-            dataSet1.setDouble(i, x0, dataSet.getDouble(i, y0));
-            dataSet1.setDouble(i, y0, dataSet.getDouble(i, x0));
-        }
-
-        return dataSet1;
-    }
-
-    private static boolean repeatedValues(DataSet dataSet, int x0, int y0) {
-        double[] x = dataSet.getDoubleData().getColumn(x0).toArray();
-        double[] y = dataSet.getDoubleData().getColumn(y0).toArray();
 
         Arrays.sort(x);
         int count = 0;
-        int max = 2;
+        double max = 0.2 * dataSet.getNumRows();
 
         for (int k = 0; k < x.length - 1; k++) {
             if (x[k] == x[k + 1]) {
                 count++;
 
                 if (count >= max) {
-                    return false;
+                    return true;
                 }
             } else {
                 count = 0;
@@ -1443,14 +1390,14 @@ public class CalibrationQuestion {
                 count++;
 
                 if (count >= max) {
-                    return false;
+                    return true;
                 }
             } else {
                 count = 0;
             }
         }
 
-        return true;
+        return false;
     }
 
     private static DataSet loadContinuousData(File data, boolean hasHeader, Delimiter delimiter) throws IOException {
