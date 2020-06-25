@@ -181,6 +181,33 @@ public final class Fask implements GraphSearch {
                 double[] x = colData[i];
                 double[] y = colData[j];
 
+                double b = (skewness(y) * skewness(x));
+
+                double thresh = 1;
+
+                if (abs(kurtosis(x)) > thresh) b *= -1;
+                if (abs(kurtosis(y)) > thresh) b *= -1;
+
+
+                if (b < 0) {
+                    double[] z = x;
+                    x = y;
+                    y = z;
+
+                    Node Z = X;
+                    X = Y;
+                    Y = Z;
+                }
+
+//                *(kurtosis(y) - kurtosis(x)) > 0;
+//                if (correlation(x, y) < 0) b = !b;
+
+                System.out.println("sk x, y = " + skewness(x) + " " + skewness(y)
+                    + " corr = " + correlation(x, y)
+                        + " kurt = " + kurtosis(x) + " " + kurtosis(y));
+                System.out.println("b = " + (b > 0));
+
+
                 double lrOrig = leftRightOrig(x, y) - leftRightOrig(y, x);
 
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(lrOrig) > getSkewEdgeThreshold())) {
@@ -362,7 +389,7 @@ public final class Fask implements GraphSearch {
 //            yData = correctSkewnesses(yData);
 //        }
 
-        xData = Arrays.copyOf(xData, xData.length);
+       xData = Arrays.copyOf(xData, xData.length);
         yData = Arrays.copyOf(yData, yData.length);
 
         double[] xx = new double[xData.length];
