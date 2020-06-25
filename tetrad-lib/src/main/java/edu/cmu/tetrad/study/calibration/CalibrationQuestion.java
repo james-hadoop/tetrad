@@ -1003,11 +1003,11 @@ public class CalibrationQuestion {
         int initialSegment = 100;
         boolean verbose = true;
         boolean includeDiscrete = false;
-        boolean includeVector = false;
+        boolean includeNonscalar = false;
         boolean useRFask = true;
 
         int[] discrete = {47, 70, 71, 85, 107};
-        int[] vector = {52, 53, 54, 55, 71, 105};
+        int[] nonscalar = {52, 53, 54, 55, 71, 105};
         int[] interpolatedValues = {81, 82, 83};
 
 
@@ -1024,12 +1024,12 @@ public class CalibrationQuestion {
             writeDataSet(new File("/Users/user/Box/data/pairs/data"), i, dataSet);
 
 
+
             if (dataSet.getNumRows() > maxN) {
                 dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             }
 
 //            dataSet = DataUtils.standardizeData(dataSet);
-//            if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             dataSets.add(dataSet);
 
             writeResData(dataSet, i);
@@ -1066,9 +1066,6 @@ public class CalibrationQuestion {
 
         for (int e = 0; e <= numRows; e++) {
 
-            // Parameters.
-            double zeroAlpha = .0001;// e / (double) numRows;
-
             List<Set<Integer>> selected = new ArrayList<>();
             Set<Integer> omitted = new TreeSet<>();
 
@@ -1094,13 +1091,17 @@ public class CalibrationQuestion {
             boolean[] inCategory = new boolean[initialSegment];
             double[] scores = new double[initialSegment];
 
-            for (int i = 1; i <= initialSegment; i++) {
-                if (nonscalar(dataSets.get(i - 1))) {
-                    omitted.add(i);
-                }
+            int total = 0;
+            double cutoff = e / 20.;
 
+            for (int i = 1; i <= initialSegment; i++) {
                 if (verbose) {
                     System.out.print(i + " ");
+                }
+
+                if (repeatedValue(dataSets.get(i - 1))) {
+                    System.out.println("REPEATED VALUES");
+                    continue;
                 }
 
                 if (Arrays.binarySearch(discrete, i) > -1) {
@@ -1109,17 +1110,18 @@ public class CalibrationQuestion {
                     }
 
                     if (!includeDiscrete) {
-                        omitted.add(i);
+//                        omitted.add(i);
                     }
                 }
 
-                if (Arrays.binarySearch(vector, i) > -1) {
+                if (Arrays.binarySearch(nonscalar, i) > -1) {
                     if (verbose) {
-                        System.out.println(" VECTOR");
+                        System.out.println(" nonscalar");
                     }
 
-                    if (!includeVector) {
-                        omitted.add(i);
+                    if (!includeNonscalar) {
+//                        omitted.add(i);
+                        continue;
                     }
                 }
 
@@ -1165,6 +1167,8 @@ public class CalibrationQuestion {
                     y0 = 9;
                 }
 
+                total++;
+
                 if (verbose) {
                     writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
                 }
@@ -1193,14 +1197,14 @@ public class CalibrationQuestion {
                 TetradLogger.getInstance().setLogging(false);
 
                 Fask fask = new Fask(dataSet, g);
-                fask.setRemoveResiduals(useRFask);
+                fask.setRemoveResiduals(true);
                 fask.setSkewEdgeThreshold(0.0);
                 fask.setTwoCycleThreshold(0.0);
 //                fask.setZeroAlpha(zeroAlpha);
                 Graph out = fask.search();
                 double lr = fask.getLr();
 
-                if (abs(lr) <= e / 30.) {
+                if (abs(lr) <= cutoff) {
                     omitted.add(i);
                 }
 
@@ -1283,7 +1287,7 @@ public class CalibrationQuestion {
             double recall = tp / (tp + fn);
             double fdr = fp / (tp + fp); // false positives over positives
             double acc = (tp + tn) / (tp + fp + tn + fn);
-            double fracDec =((dataSets.size() - omitted.size()) / (double) dataSets.size()) / 0.81;
+            double fracDec = ((total - omitted.size()) / (double) total);
 
             RocCalculator roc = new RocCalculator(scores, inCategory, RocCalculator.ASCENDING);
             double auc = roc.getAuc();
@@ -1316,8 +1320,8 @@ public class CalibrationQuestion {
                     System.out.println("EXCLUDING DISCRETE CASES");
                 }
 
-                if (!includeVector) {
-                    System.out.println("EXCLUDING VECTOR VARIABLE CASES");
+                if (!includeNonscalar) {
+                    System.out.println("EXCLUDING nonscalar VARIABLE CASES");
                 }
 
                 if (useWeightsFromFile) {
@@ -1339,7 +1343,7 @@ public class CalibrationQuestion {
             NumberFormat nf3 = new DecimalFormat("0.00");
             NumberFormat nf4 = new DecimalFormat("0.0");
 
-            tabulated.setToken(e + 1, l++, "" + nf3.format(e / 20.));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(cutoff));
             tabulated.setToken(e + 1, l++, "" + nf3.format(fpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(tpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(precision));
@@ -1357,21 +1361,21 @@ public class CalibrationQuestion {
         System.out.println("\n" + tabulated);
     }
 
-    private static boolean nonscalar(DataSet dataSet) {
+    private static boolean repeatedValue(DataSet dataSet) {
         double[] x = dataSet.getDoubleData().getColumn(0).toArray();
         double[] y = dataSet.getDoubleData().getColumn(1).toArray();
 
 
         Arrays.sort(x);
         int count = 0;
-        int max = 3;
+        double max = 0.2 * dataSet.getNumRows();
 
         for (int k = 0; k < x.length - 1; k++) {
             if (x[k] == x[k + 1]) {
                 count++;
 
-                if (count > max) {
-                    return false;
+                if (count >= max) {
+                    return true;
                 }
             } else {
                 count = 0;
@@ -1385,15 +1389,15 @@ public class CalibrationQuestion {
             if (y[k] == y[k + 1]) {
                 count++;
 
-                if (count > max) {
-                    return false;
+                if (count >= max) {
+                    return true;
                 }
             } else {
                 count = 0;
             }
         }
 
-        return true;
+        return false;
     }
 
     private static DataSet loadContinuousData(File data, boolean hasHeader, Delimiter delimiter) throws IOException {
