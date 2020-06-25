@@ -203,7 +203,7 @@ public final class Fask implements GraphSearch {
 //                if (correlation(x, y) < 0) b = !b;
 
                 System.out.println("sk x, y = " + skewness(x) + " " + skewness(y)
-                    + " corr = " + correlation(x, y)
+                        + " corr = " + correlation(x, y)
                         + " kurt = " + kurtosis(x) + " " + kurtosis(y));
                 System.out.println("b = " + (b > 0));
 
@@ -389,7 +389,7 @@ public final class Fask implements GraphSearch {
 //            yData = correctSkewnesses(yData);
 //        }
 
-       xData = Arrays.copyOf(xData, xData.length);
+        xData = Arrays.copyOf(xData, xData.length);
         yData = Arrays.copyOf(yData, yData.length);
 
         double[] xx = new double[xData.length];
