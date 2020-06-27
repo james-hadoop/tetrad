@@ -1001,8 +1001,8 @@ public class CalibrationQuestion {
 
     private static void scenario8() throws IOException {
         int maxN = 100000;
-        boolean useWeightsFromFile = true;
-        int initialSegment = 100;
+        boolean useWeightsFromFile = false;
+        int initialSegment = 87;
         boolean verbose = true;
 
         List<DataSet> dataSets = new ArrayList<>();
@@ -1032,7 +1032,7 @@ public class CalibrationQuestion {
 
 
         List<Node> v = new ArrayList<>();
-        v.add(new ContinuousVariable("Alpha"));
+        v.add(new ContinuousVariable("Cutoff"));
         v.add(new ContinuousVariable("FPR"));
         v.add(new ContinuousVariable("TPR"));
         v.add(new ContinuousVariable("PREC"));
@@ -1055,9 +1055,6 @@ public class CalibrationQuestion {
         }
 
         for (int e = 0; e <= numRows; e++) {
-
-            // Parameters.
-            double zeroAlpha = e / (double) numRows;
 
             int[] discrete = {47, 70, 71, 85, 107};
             int[] vector = {52, 53, 54, 55, 71, 105};
@@ -1085,6 +1082,8 @@ public class CalibrationQuestion {
                 System.out.println("i\tTrue\tEst");
             }
 
+            double cutoff = e / 80.;
+
             boolean[] inCategory = new boolean[initialSegment];
             double[] scores = new double[initialSegment];
 
@@ -1097,22 +1096,14 @@ public class CalibrationQuestion {
                     if (verbose) {
                         System.out.println(" DISCRETE");
                     }
-                    omitted.add(i);
                 }
 
                 if (Arrays.binarySearch(vector, i) > -1) {
                     if (verbose) {
                         System.out.println(" VECTOR");
                     }
-                    omitted.add(i);
+                    continue;
                 }
-
-//                if (Arrays.binarySearch(interpolatedValues, i) > -1) {
-//                    if (verbose) {
-//                        System.out.println(" INTERPOLATED");
-//                    }
-////                    omitted.add(i);
-//                }
 
                 DataSet dataSet = dataSets.get(i - 1);
 
@@ -1149,10 +1140,6 @@ public class CalibrationQuestion {
                     y0 = 9;
                 }
 
-                if (verbose) {
-                    writeDataSet(new File("/Users/user/Box/data/pairs/skewcorrected"), i, dataSet);
-                }
-
                 List<Node> gtNodes = groundTruthData.getVariables();
                 DiscreteVariable c4 = (DiscreteVariable) gtNodes.get(4);
                 DiscreteVariable c5 = (DiscreteVariable) gtNodes.get(5);
@@ -1177,11 +1164,15 @@ public class CalibrationQuestion {
                 TetradLogger.getInstance().setLogging(false);
 
                 Fask fask = new Fask(dataSet, g);
-                fask.setRemoveResidualx(true);
+                fask.setRemoveResidualx(false);
                 fask.setTwoCycleThreshold(0.1);
-                fask.setZeroAlpha(zeroAlpha);
+//                fask.setZeroAlpha(zeroAlpha);
                 Graph out = fask.search();
                 double lr = fask.getLr();
+
+                if (abs(lr) < cutoff) {
+                    omitted.add(i);
+                }
 
                 if (!fask.isAssumptionsSatisfied()) {
                     if (verbose) {
@@ -1196,8 +1187,13 @@ public class CalibrationQuestion {
                     }
 //                    omitted.add(i);
                 } else {
-                    boolean _estLeftRight = out.getEdge(nodes.get(x0), nodes.get(y0)).pointsTowards(nodes.get(y0));
-                    estLeftRight = _estLeftRight ? 1 : -1;
+                    Edge edge = out.getEdge(nodes.get(x0), nodes.get(y0));
+                    if (edge != null) {
+                        boolean _estLeftRight = edge.pointsTowards(nodes.get(y0));
+                        estLeftRight = _estLeftRight ? 1 : -1;
+                    } else {
+                        omitted.add(i);
+                    }
                 }
 
 //                if (Arrays.binarySearch(discrete, i) > 0) {
@@ -1226,7 +1222,7 @@ public class CalibrationQuestion {
                 }
 
                 inCategory[i - 1] = isADog;
-                scores[i - 1] = lr;//-cxy(x, y) + cxy(y,x);
+                scores[i - 1] = lr;
 
 
                 if (verbose) {
@@ -1307,7 +1303,7 @@ public class CalibrationQuestion {
             NumberFormat nf3 = new DecimalFormat("0.00");
             NumberFormat nf4 = new DecimalFormat("0.0");
 
-            tabulated.setToken(e + 1, l++, "" + nf3.format(zeroAlpha));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(cutoff));
             tabulated.setToken(e + 1, l++, "" + nf3.format(fpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(tpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(precision));
