@@ -221,8 +221,7 @@ public final class Fask implements GraphSearch {
                                 + "\t" + X + "<--" + Y
                         );
                         graph.addDirectedEdge(Y, X);
-                    }
-                    else if (abs(lrxy) == 0) {
+                    } else if (abs(lrxy) == 0) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t0-coef"
                                 + "\t" + nf.format(lrxy)
                                 + "\t" + X + " " + Y
@@ -238,21 +237,22 @@ public final class Fask implements GraphSearch {
 //                        graph.addDirectedEdge(Y, X);
 //                    }
                     else {
-                        if (leftRight(y, x) < 0) {
+                        if (leftRight(x, y) > 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
                                     + "\t" + nf.format(lrxy)
                                     + "\t" + X + "-->" + Y
                             );
                             graph.addDirectedEdge(X, Y);
-                        } else if (leftRight(x, y) < 0) {
+                        } else if (leftRight(y, x) > 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
                                     + "\t" + nf.format(lrxy)
                                     + "\t" + X + "<--" + Y
                             );
                             graph.addDirectedEdge(Y, X);
-                        } else {
-                            //
                         }
+//                        else {
+
+//                        }
                     }
                 }
             }
@@ -265,14 +265,47 @@ public final class Fask implements GraphSearch {
     }
 
     private double leftRight(double[] x, double[] y) {
-        x = correctSkewness(x);
+        double corr = correlation(x, y);
+        double skx = StatUtils.skewness(x);
+        double sky = StatUtils.skewness(y);
+
+//        x = correctSkewness(x);
+        y = correctSkewness(y);
         y = correctSense(x, y);
 
         double left = cu(x, y, x);
         double right = cu(x, y, y);
 
-        return left - right;
+        double lr = left - right;
+
+        lr *= signum(corr) * signum(sky);
+
+        double r = StatUtils.correlation(x, y);
+        double sx = StatUtils.skewness(x);
+        double sy = StatUtils.skewness(y);
+
+        r *= signum(sx) * signum(sy);
+        lr *= signum(r);
+        if (r < -twoCycleThreshold) lr *= -1;
+
+        return lr;
     }
+
+//    private boolean leftright(double[] x, double[] y) {
+//        double left = cu(x, y, x) / (sqrt(cu(x, x, x) * cu(y, y, x)));
+//        double right = cu(x, y, y) / (sqrt(cu(x, x, y) * cu(y, y, y)));
+//        double lr = left - right;
+//
+//        double r = StatUtils.correlation(x, y);
+//        double sx = StatUtils.skewness(x);
+//        double sy = StatUtils.skewness(y);
+//
+//        r *= signum(sx) * signum(sy);
+//        lr *= signum(r);
+//        if (r < getDelta()) lr *= -1;
+//
+//        return lr > 0;
+//    }
 
     private double[] correctSense(double[] x, double[] y) {
         y = Arrays.copyOf(y, y.length);
