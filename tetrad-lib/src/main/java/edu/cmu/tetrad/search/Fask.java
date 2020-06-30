@@ -182,25 +182,17 @@ public final class Fask implements GraphSearch {
                 double[] x = colData[i];
                 double[] y = colData[j];
 
-                double[] corxyx = cov(x, y, x);
-                double[] corxyy = cov(x, y, y);
+//                double[] corxyx = cov(x, y, x);
+//                double[] corxyy = cov(x, y, y);
 
-                double c1 = corxyx[1];
-                double c2 = corxyy[1];
+//                double c1 = corxyx[1];
+//                double c2 = corxyy[1];
+
+                double c1 = StatUtils.cov(x, y, x, 0, +1)[1];
+                double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
 
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(c1 - c2) > getSkewEdgeThreshold())) {
-                    double lrxy;
-
-//                    if (isRemoveResidualx()) {
-//
-//                        // Will work either way, picking the one that's better for the causal pairs data.
-//                        // The reason is that reversing gives the opposite direction, but taking the
-//                        // residuals in the opposite direction reverses it again.
-//                        lrxy = leftRight(x, y, X, Y);
-//                    } else {
-                    lrxy = leftRight(x, y, X, Y);
-//                    lrxy = leftRightMinnesota(x, y);
-//                    }
+                    double lrxy = leftRight(x, y);
 
                     this.lr = lrxy;
 
@@ -230,13 +222,13 @@ public final class Fask implements GraphSearch {
                         );
                         graph.addDirectedEdge(Y, X);
                     }
-//                    else if (abs(lrxy) == 0) {
-//                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t0-coef"
-//                                + "\t" + nf.format(lrxy)
-//                                + "\t" + X + " " + Y
-//                        );
-//                        continue;
-//                    }
+                    else if (abs(lrxy) == 0) {
+                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t0-coef"
+                                + "\t" + nf.format(lrxy)
+                                + "\t" + X + " " + Y
+                        );
+                        System.out.println("Zero coef");
+                    }
 //                    else if (abs(lrxy) < twoCycleThreshold) {
 //                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
 //                                + "\t" + nf.format(lrxy)
@@ -246,26 +238,19 @@ public final class Fask implements GraphSearch {
 //                        graph.addDirectedEdge(Y, X);
 //                    }
                     else {
-                        System.out.println("lrxy = " + leftRight(y, x, X, Y));
-                        double threshold = -0.15;
-
-                        if (leftRight(x, y, X, Y) > threshold) {// || leftRight(y, x, Y, X) < 0) {
+                        if (leftRight(y, x) < 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
                                     + "\t" + nf.format(lrxy)
                                     + "\t" + X + "-->" + Y
                             );
                             graph.addDirectedEdge(X, Y);
-                        }
-                        else
-                        if (leftRight(x, y, X, Y) < threshold /* leftRight(y, x, Y, X) > 0*/) {
-
+                        } else if (leftRight(x, y) < 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
                                     + "\t" + nf.format(lrxy)
                                     + "\t" + X + "<--" + Y
                             );
                             graph.addDirectedEdge(Y, X);
-                        }
-                        else {
+                        } else {
                             //
                         }
                     }
@@ -279,53 +264,45 @@ public final class Fask implements GraphSearch {
         return graph;
     }
 
-    private double leftRight(double[] x, double[] y, Node X, Node Y) {
-//        x = correctSkewness(x);
-//        y = correctSkewness(y);
+    private double leftRight(double[] x, double[] y) {
+        x = correctSkewness(x);
+        y = correctSense(x, y);
 
+        double left = cu(x, y, x);
+        double right = cu(x, y, y);
+
+        return left - right;
+    }
+
+    private double[] correctSense(double[] x, double[] y) {
         y = Arrays.copyOf(y, y.length);
-        x = Arrays.copyOf(x, x.length);
 
-        y = DataUtils.center(y);
-        x = DataUtils.center(x);
+        if (correlation(x, y) < 0) {
+            for (int i = 0; i < y.length; i++) y[i] *= -1;
+        }
 
-//        double[] sums = getSums(x, y);
+//        for (int i = 0; i < y.length; i++) y[i] *= -1;
 
-        double[] covx = cov(x, y, x);
-        double[] covy = cov(x, y, y);
+        return y;
+    }
 
-//        double exxx = covx[10];
-//        double exxy = covy[10];
-
-//        double diff = sums[0] / sums[2] - sums[1] / sums[3];
-        double diff = covx[8] - covy[8];
-
-//        boolean assumptionsSatisfied = true;
-
-//        double n1 = covx[4];
-//        double n2 = covy[4];
+//    private double leftRight2(double[] x, double[] y) {
 //
-//        double c1 = covx[2];
-//        double c2 = covy[2];
+//    }
 
-        // Need to do this first.
-//        if (isNonzeroDiff(n1, n2, c1, c2, zeroAlpha, X, Y)) {
-//            assumptionsSatisfied = false;
-//        }
-//
-//        if (isNonzeroCoef(correlation(y, x), n1, zeroAlpha)) {
-//            assumptionsSatisfied = false;
-//        }
-//
-//        if (isNonzeroSkewness(skewness(y), y.length, zeroAlpha)
-//                && isNonzeroSkewness(skewness(x), x.length, zeroAlpha)) {
-//            assumptionsSatisfied = false;
-//        }
+    private static double cu(double[] x, double[] y, double[] condition) {
+        double exy = 0.0;
 
-//        this.assumptionsSatisfied = assumptionsSatisfied;
+        int n = 0;
 
-        this.lr = diff;
-        return diff;
+        for (int k = 0; k < x.length; k++) {
+            if (condition[k] > 0) {
+                exy += x[k] * y[k];
+                n++;
+            }
+        }
+
+        return exy / n;
     }
 
     private double leftRightMinnesota(double[] x, double[] y) {
@@ -379,7 +356,7 @@ public final class Fask implements GraphSearch {
         return p > alpha;
     }
 
-    private boolean isNonzeroCoef(double r, double n, double alpha) {
+    private boolean isZeroCoef(double r, double n, double alpha) {
         double z = 0.5 * sqrt(n) * (log(1 + r) - log(1 - r));
         double p = 2 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
         return p > alpha;
@@ -549,7 +526,7 @@ public final class Fask implements GraphSearch {
     }
 
     private static double kernelGaussian(double z, double h) {
-        z /= 3 * h;
+        z /= 1 * h;
         return exp(-z * z);
     }
 
@@ -588,18 +565,7 @@ public final class Fask implements GraphSearch {
     }
 
     private double[] getSums(double[] x, double[] y) {
-
-//        double[] y = Arrays.copyOf(yPlusRx, yPlusRx.length);
-
-//        if (isRemoveResidualx()) {
-//            double[] r1 = residuals(x, yPlusRx, RegressionType.LINEAR);
-//
-//            for (int k = 0; k < y.length; k++) {
-//                y[k] = yPlusRx[k] - r1[k];
-//            }
-//        }
-
-        double[] ry = residuals(y, x, RegressionType.LINEAR);
+        double[] ry = residuals(y, x, RegressionType.NONLINEAR);
 
         double sum1 = 0.0;
         double sum2 = 0.0;
@@ -610,10 +576,10 @@ public final class Fask implements GraphSearch {
 
 
         for (int i = 0; i < y.length; i++) {
-            if (x[i] > 0) sum1 += /*isRemoveResidualx() ? -y[i] * ry[i] :*/ x[i] * ry[i];
-            if (y[i] > 0) sum2 += /*isRemoveResidualx() ? -y[i] * ry[i] :*/ x[i] * ry[i];
-            if (x[i] > 0) sum3 += /*isRemoveResidualx() ? -y[i] * ry[i] :*/ x[i] * x[i];
-            if (y[i] > 0) sum4 += /*isRemoveResidualx() ? -y[i] * ry[i] :*/ x[i] * x[i];
+            if (x[i] > 0) sum1 += x[i] * ry[i];
+            if (y[i] > 0) sum2 += x[i] * ry[i];
+            if (x[i] > 0) sum3 += x[i] * x[i];
+            if (y[i] > 0) sum4 += x[i] * x[i];
             if (x[i] > 0) n1++;
             if (y[i] > 0) n2++;
         }
@@ -708,6 +674,7 @@ public final class Fask implements GraphSearch {
 
 
     private double[] correctSkewness(double[] data) {
+        data = Arrays.copyOf(data, data.length);
         double skewness = StatUtils.skewness(data);
         double[] data2 = new double[data.length];
         for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);

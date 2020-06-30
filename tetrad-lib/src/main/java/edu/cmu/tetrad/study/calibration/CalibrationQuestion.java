@@ -1002,7 +1002,7 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
         int maxN = 100000;
         boolean useWeightsFromFile = false;
-        int initialSegment = 87;
+        int initialSegment = 100;
         boolean verbose = true;
 
         List<DataSet> dataSets = new ArrayList<>();
@@ -1024,7 +1024,7 @@ public class CalibrationQuestion {
 //            if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             dataSets.add(dataSet);
 
-            writeResData(dataSet, i);
+//            writeResData(dataSet, i);
         }
 
         File gtFile = new File(new File("/Users/user/Box/data/pairs/"), "Readme3.txt");
@@ -1036,6 +1036,7 @@ public class CalibrationQuestion {
         v.add(new ContinuousVariable("FPR"));
         v.add(new ContinuousVariable("TPR"));
         v.add(new ContinuousVariable("PREC"));
+        v.add(new ContinuousVariable("NPV"));
         v.add(new ContinuousVariable("REC"));
         v.add(new ContinuousVariable("FDR"));
         v.add(new ContinuousVariable("FRAC"));
@@ -1254,6 +1255,7 @@ public class CalibrationQuestion {
             double tpr = tp / (tp + fn);
             double fpr = fp / (fp + tn);
             double precision = tp / (tp + fp);
+            double npv = tn / (tn + fn);
             double recall = tp / (tp + fn);
             double fdr = fp / (tp + fp); // false positives over positives
             double acc = (tp + tn) / (tp + fp + tn + fn);
@@ -1269,6 +1271,7 @@ public class CalibrationQuestion {
             System.out.println("TPR: " + tpr);
             System.out.println("FPR: " + fpr);
             System.out.println("PREC: " + precision);
+            System.out.println("NPV: " + npv);
             System.out.println("REC: " + recall);
             System.out.println("Didn't classify: " + omitted);
             System.out.println("Fraction of Decisions: " + fracDec);
@@ -1294,6 +1297,7 @@ public class CalibrationQuestion {
                 System.out.println("TPR = TP / (TP + FN) = RECALL");
                 System.out.println("FPR = FP / (FP + TN)");
                 System.out.println("PREC = TP / (TP + FP)");
+                System.out.println("NPV = TN / (TN + FN)");
                 System.out.println("REC = TP / (TP + FN) = TPR");
                 System.out.println("FDR = FP / (TP + FP)");
                 System.out.println("ACC = (TP + TN) / (TP + FP + TN + FN)");
@@ -1307,6 +1311,7 @@ public class CalibrationQuestion {
             tabulated.setToken(e + 1, l++, "" + nf3.format(fpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(tpr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(precision));
+            tabulated.setToken(e + 1, l++, "" + nf3.format(npv));
             tabulated.setToken(e + 1, l++, "" + nf3.format(recall));
             tabulated.setToken(e + 1, l++, "" + nf3.format(fdr));
             tabulated.setToken(e + 1, l++, "" + nf3.format(fracDec));
@@ -1414,12 +1419,12 @@ public class CalibrationQuestion {
         double[] x = dataSet.copy().getDoubleData().transpose().toArray()[0];
         double[] y = dataSet.copy().getDoubleData().transpose().toArray()[1];
 
-        double[] r = Fask.residuals(y, x, Fask.RegressionType.LINEAR);
+        double[] r = Fask.residuals(y, x, Fask.RegressionType.NONLINEAR);
 
-        for (int j = 0; j < x.length; j++) x[j] -= r[j];
+//        for (int j = 0; j < x.length; j++) x[j] -= r[j];
 
-        RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
-        r = result.getResiduals().toArray();
+//        RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
+//        r = result.getResiduals().toArray();
 
         double[][] res = new double[][]{x, r};
 
