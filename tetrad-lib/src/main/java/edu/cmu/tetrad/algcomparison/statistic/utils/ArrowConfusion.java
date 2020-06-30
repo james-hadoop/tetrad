@@ -92,7 +92,7 @@ public class ArrowConfusion {
                 e2True = edge2.getProximalEndpoint(edge.getNode2());
             }
 
-            count(truth, est, edge, edge1, e1Est, e2Est, edge2, e1True, e2True);
+            count(truth, est, edge, e1Est, e2Est, e1True, e2True);
         }
 
         // Get edges from the estimated graph to compute only FalsePositives for adjacencies not in truth.
@@ -137,10 +137,10 @@ public class ArrowConfusion {
 
             if (isTruthAdj()) {
                 if (truth.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
-                    count(truth, est, edge, edge1, e1Est, e2Est, edge2, e1True, e2True);
+                    count(truth, est, edge, e1Est, e2Est, e1True, e2True);
                 }
             } else {
-                count(truth, est, edge, edge1, e1Est, e2Est, edge2, e1True, e2True);
+                count(truth, est, edge, e1Est, e2Est, e1True, e2True);
             }
         }
 
@@ -181,7 +181,7 @@ public class ArrowConfusion {
 
     }
 
-    private void count(Graph truth, Graph est, Edge edge, Edge edge1, Endpoint e1Est, Endpoint e2Est, Edge edge2, Endpoint e1True, Endpoint e2True) {
+    private void count(Graph truth, Graph est, Edge edge, Endpoint e1Est, Endpoint e2Est, Endpoint e1True, Endpoint e2True) {
         if (e1True == Endpoint.ARROW && e1Est == Endpoint.ARROW) {
             arrowsTp++;
         }
@@ -191,11 +191,11 @@ public class ArrowConfusion {
         }
 
         if (e1True == Endpoint.ARROW && e1Est != Endpoint.ARROW) {
-            arrowsTn++;
+            arrowsFn++;
         }
 
         if (e2True == Endpoint.ARROW && e2Est != Endpoint.ARROW) {
-            arrowsTn++;
+            arrowsFn++;
         }
 
         if (e1True != Endpoint.ARROW && e1Est == Endpoint.ARROW) {
@@ -207,11 +207,11 @@ public class ArrowConfusion {
         }
 
         if (e1True != Endpoint.ARROW && e1Est != Endpoint.ARROW) {
-            arrowsFn++;
+            arrowsTn++;
         }
 
         if (e2True != Endpoint.ARROW && e2Est != Endpoint.ARROW) {
-            arrowsFn++;
+            arrowsTn++;
         }
 
         boolean adj = truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) && est.isAdjacentTo(edge.getNode1(), edge.getNode2());
@@ -225,11 +225,11 @@ public class ArrowConfusion {
         }
 
         if (e1True == Endpoint.ARROW && e1Est != Endpoint.ARROW && adj) {
-            arrowsTnc++;
+            arrowsFnc++;
         }
 
         if (e2True == Endpoint.ARROW && e2Est != Endpoint.ARROW && adj) {
-            arrowsTnc++;
+            arrowsFnc++;
         }
 
         if (e1True != Endpoint.ARROW && e1Est == Endpoint.ARROW && adj) {
@@ -241,11 +241,11 @@ public class ArrowConfusion {
         }
 
         if (e1True != Endpoint.ARROW && e1Est != Endpoint.ARROW && adj) {
-            arrowsFnc++;
+            arrowsTnc++;
         }
 
         if (e2True != Endpoint.ARROW && e2Est != Endpoint.ARROW && adj) {
-            arrowsFnc++;
+            arrowsTnc++;
         }
     }
 

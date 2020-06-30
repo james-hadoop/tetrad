@@ -805,9 +805,10 @@ public final class LargeScaleSimulation {
                 sample *= sd;
 
                 if (!errorsNormal) {
-                    sample = sample * sample;
+//                    sample *= 2;
+//                    sample = sample * sample;
 //
-//                    sample = RandomUtil.getInstance().nextGamma(1, 2);
+                    sample = abs(sample);
                 }
 
                 shocks[i][j] = sample;

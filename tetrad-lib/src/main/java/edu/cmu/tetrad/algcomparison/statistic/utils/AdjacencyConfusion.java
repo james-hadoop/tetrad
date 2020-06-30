@@ -20,6 +20,10 @@ public class AdjacencyConfusion {
     private int adjFn;
     private int adjTn;
 
+    public AdjacencyConfusion() {
+        super();
+    }
+
     public AdjacencyConfusion(Graph truth, Graph est) {
         this.truth = truth;
         this.est = est;
@@ -35,7 +39,7 @@ public class AdjacencyConfusion {
 
             if (this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
                     !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
-                adjTn++;
+                adjFn++;
             }
 
             if (!this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
@@ -45,7 +49,7 @@ public class AdjacencyConfusion {
 
             if (!this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
                     !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
-                adjFn++;
+                adjTn++;
             }
         }
 
@@ -59,7 +63,7 @@ public class AdjacencyConfusion {
 
             if (this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
                     !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
-                adjTn++;
+                adjFn++;
             }
 
             if (!this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
@@ -69,7 +73,7 @@ public class AdjacencyConfusion {
 
             if (!this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
                     !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
-                adjFn++;
+                adjTn++;
             }
         }
     }

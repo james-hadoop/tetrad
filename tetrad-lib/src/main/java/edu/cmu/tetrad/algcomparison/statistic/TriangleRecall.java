@@ -25,7 +25,7 @@ public class TriangleRecall implements Statistic {
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
         TriangleConfusion confusion = new TriangleConfusion(trueGraph, estGraph, 0, 0);
-        return confusion.getTp() / (double) (confusion.getTp() + confusion.getFp());
+        return confusion.getTp() / (double) (confusion.getTp() + confusion.getFn());
     }
 
     @Override

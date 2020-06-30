@@ -30,12 +30,12 @@ public class ArrowheadRecall implements Statistic {
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
         ArrowConfusion adjConfusion = new ArrowConfusion(trueGraph, estGraph);
         double arrowsTp = adjConfusion.getArrowsTp();
-        double arrowsTn = adjConfusion.getArrowsTn();
+        double arrowsFn = adjConfusion.getArrowsFn();
 
-        if (arrowsTp == 0 && arrowsTn != 0) return Double.NaN;
+        if (arrowsTp == 0 && arrowsFn != 0) return Double.NaN;
 
 
-        double den = arrowsTp + arrowsTn;
+        double den = arrowsTp + arrowsFn;
         return arrowsTp / den;
     }
 
