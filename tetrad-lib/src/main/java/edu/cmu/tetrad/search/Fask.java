@@ -75,7 +75,7 @@ public final class Fask implements GraphSearch {
     private boolean useFasAdjacencies = true;
 
     // True if the nonlinear trend between X and Y should be removed.
-    private boolean removeResidualx = false;
+    private boolean removeResiduals = false;
 
     // Conditioned correlations are checked to make sure they are different from zero (since if they
     // are zero, the FASK theory doesn't apply).
@@ -133,7 +133,7 @@ public final class Fask implements GraphSearch {
         TetradLogger.getInstance().forceLogMessage("N = " + dataSet.getNumRows());
         TetradLogger.getInstance().forceLogMessage("Skewness edge threshold = " + skewEdgeThreshold);
         TetradLogger.getInstance().forceLogMessage("2-cycle threshold = " + twoCycleThreshold);
-        if (isRemoveResidualx()) {
+        if (isRemoveResiduals()) {
             TetradLogger.getInstance().forceLogMessage("Removing nonlinear trend");
         }
         TetradLogger.getInstance().forceLogMessage("");
@@ -169,7 +169,7 @@ public final class Fask implements GraphSearch {
 
         SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
 
-        Graph graph = new EdgeListGraph(variables);
+        Graph graph = new EdgeListGraph(G0.getNodes());
 
         TetradLogger.getInstance().forceLogMessage("X\tY\tMethod\tLR\tEdge");
 
@@ -193,8 +193,9 @@ public final class Fask implements GraphSearch {
 
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(c1 - c2) > getSkewEdgeThreshold())) {
                     double lrxy = leftRight(x, y);
+                    double lryx = leftRight(y, x);
 
-                    this.lr = lrxy;
+                    lr = 0;
 
                     if (edgeForbiddenByKnowledge(X, Y)) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tknowledge_forbidden"
@@ -237,22 +238,23 @@ public final class Fask implements GraphSearch {
 //                        graph.addDirectedEdge(Y, X);
 //                    }
                     else {
-                        if (leftRight(x, y) > 0) {
+                        if (lryx < 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
-                                    + "\t" + nf.format(lrxy)
+                                    + "\t" + nf.format(lryx)
                                     + "\t" + X + "-->" + Y
                             );
+                            this.lr = lrxy;
                             graph.addDirectedEdge(X, Y);
-                        } else if (leftRight(y, x) > 0) {
+                        } else if (lrxy < 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
                                     + "\t" + nf.format(lrxy)
                                     + "\t" + X + "<--" + Y
                             );
+                            this.lr = lryx;
                             graph.addDirectedEdge(Y, X);
+                        } else {
+                            graph.addUndirectedEdge(Y, X);
                         }
-//                        else {
-
-//                        }
                     }
                 }
             }
@@ -266,27 +268,18 @@ public final class Fask implements GraphSearch {
 
     private double leftRight(double[] x, double[] y) {
         double corr = correlation(x, y);
-        double skx = StatUtils.skewness(x);
-        double sky = StatUtils.skewness(y);
+        double sx = StatUtils.skewness(x);
+        double sy = StatUtils.skewness(y);
 
-//        x = correctSkewness(x);
-        y = correctSkewness(y);
-        y = correctSense(x, y);
+        x = correctSkewness(x, sx);
+        y = correctSkewness(y, sy);
 
         double left = cu(x, y, x);
         double right = cu(x, y, y);
 
         double lr = left - right;
 
-        lr *= signum(corr) * signum(sky);
-
-        double r = StatUtils.correlation(x, y);
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
-
-        r *= signum(sx) * signum(sy);
-        lr *= signum(r);
-        if (r < -twoCycleThreshold) lr *= -1;
+        lr *= signum(corr) * signum(sx) * signum(sy);
 
         return lr;
     }
@@ -339,8 +332,8 @@ public final class Fask implements GraphSearch {
     }
 
     private double leftRightMinnesota(double[] x, double[] y) {
-        x = correctSkewness(x);
-        y = correctSkewness(y);
+        x = correctSkewness(x, skewness(x));
+        y = correctSkewness(y, skewness(y));
 
         final double cxyx = cov2(x, y, x);
         final double cxyy = cov2(x, y, y);
@@ -439,12 +432,12 @@ public final class Fask implements GraphSearch {
         this.knowledge = knowledge;
     }
 
-    public boolean isRemoveResidualx() {
-        return removeResidualx;
+    public boolean isRemoveResiduals() {
+        return removeResiduals;
     }
 
-    public void setRemoveResidualx(boolean removeResidualx) {
-        this.removeResidualx = removeResidualx;
+    public void setRemoveResiduals(boolean removeResiduals) {
+        this.removeResiduals = removeResiduals;
     }
 
     public Graph getInitialGraph() {
@@ -706,11 +699,10 @@ public final class Fask implements GraphSearch {
     }
 
 
-    private double[] correctSkewness(double[] data) {
+    private double[] correctSkewness(double[] data, double sk) {
         data = Arrays.copyOf(data, data.length);
-        double skewness = StatUtils.skewness(data);
         double[] data2 = new double[data.length];
-        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
+        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(sk);
         return data2;
     }
 

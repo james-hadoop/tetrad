@@ -5,8 +5,6 @@ import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.regression.RegressionDataset;
-import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.sem.SemIm;
@@ -22,6 +20,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
+import static com.sun.tools.internal.xjc.reader.Ring.add;
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
 import static java.lang.Math.abs;
 
@@ -1002,7 +1001,7 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
         int maxN = 100000;
         boolean useWeightsFromFile = false;
-        int initialSegment = 100;
+        int initialSegment = 87;
         boolean verbose = true;
 
         List<DataSet> dataSets = new ArrayList<>();
@@ -1020,7 +1019,7 @@ public class CalibrationQuestion {
                 dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             }
 
-            dataSet = DataUtils.standardizeData(dataSet);
+//            dataSet = DataUtils.standardizeData(dataSet);
 //            if (dataSet.getNumRows() > maxN) dataSet = DataUtils.getBootstrapSample(dataSet, maxN);
             dataSets.add(dataSet);
 
@@ -1083,10 +1082,10 @@ public class CalibrationQuestion {
                 System.out.println("i\tTrue\tEst");
             }
 
-            double cutoff = e / 80.;
+            double cutoff = e * 20.;
 
-            boolean[] inCategory = new boolean[initialSegment];
-            double[] scores = new double[initialSegment];
+            List<Boolean> inCategory = new ArrayList<>();
+            List<Double> scores = new ArrayList<>();
 
             for (int i = 1; i <= initialSegment; i++) {
                 if (verbose) {
@@ -1157,6 +1156,22 @@ public class CalibrationQuestion {
 
                 boolean groundTruthDirection = category.equals("->");
 
+                if (!groundTruthDirection) {
+                    int z0 = x0;
+                    x0 = y0;
+                    y0 = z0;
+
+                    groundTruthDirection = !groundTruthDirection;
+                }
+
+                if (RandomUtil.getInstance().nextDouble() > 0.5) {
+                    int z0 = x0;
+                    x0 = y0;
+                    y0 = z0;
+
+                    groundTruthDirection = !groundTruthDirection;
+                }
+
                 int estLeftRight = 0;
                 Graph g = new EdgeListGraph(dataSet.getVariables());
                 List<Node> nodes = dataSet.getVariables();
@@ -1165,7 +1180,7 @@ public class CalibrationQuestion {
                 TetradLogger.getInstance().setLogging(false);
 
                 Fask fask = new Fask(dataSet, g);
-                fask.setRemoveResidualx(false);
+                fask.setRemoveResiduals(false);
                 fask.setTwoCycleThreshold(0.1);
 //                fask.setZeroAlpha(zeroAlpha);
                 Graph out = fask.search();
@@ -1222,8 +1237,8 @@ public class CalibrationQuestion {
                     tn += weight;
                 }
 
-                inCategory[i - 1] = isADog;
-                scores[i - 1] = lr;
+                inCategory.add(isADog);
+                scores.add(lr);
 
 
                 if (verbose) {
@@ -1261,7 +1276,13 @@ public class CalibrationQuestion {
             double acc = (tp + tn) / (tp + fp + tn + fn);
             double fracDec = (initialSegment - omitted.size()) / (double) initialSegment;
 
-            RocCalculator roc = new RocCalculator(scores, inCategory, RocCalculator.ASCENDING);
+            boolean[] _inCategory = new boolean[inCategory.size()];
+            for (int i = 0; i < inCategory.size(); i++) _inCategory[i] = inCategory.get(i);
+
+            double[] _scores = new double[scores.size()];
+            for (int i = 0; i < scores.size(); i++) _scores[i] = scores.get(i);
+
+            RocCalculator roc = new RocCalculator(_scores, _inCategory, RocCalculator.ASCENDING);
             double auc = roc.getAuc();
 
             System.out.println("\nSummary:\n");

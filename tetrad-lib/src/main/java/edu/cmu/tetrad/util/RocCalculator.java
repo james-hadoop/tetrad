@@ -21,6 +21,8 @@
 
 package edu.cmu.tetrad.util;
 
+import edu.cmu.tetrad.search.Score;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -164,7 +166,15 @@ public class RocCalculator {
 
     private void sortCases() {
         //Sort the score-category pairs.  They will be in increasing order by score.
-        Arrays.sort(scoreCatPairs);
+        try {
+            Arrays.sort(scoreCatPairs);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        for (ScoreCategoryPair pair : scoreCatPairs) {
+            System.out.println(pair.getHasProperty() + " " + pair.getScore());
+        }
 
         //If a higher score implies a lower probability that the case has property P
         //reverse the order.
