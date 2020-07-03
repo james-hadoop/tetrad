@@ -1471,6 +1471,8 @@ public class Lofs2 {
             xData = Arrays.copyOf(xData, xData.length);
             yData = Arrays.copyOf(yData, yData.length);
 
+            double cor = correlation(xData, yData);
+
             if (empirical) {
                 xData = correctSkewnesses(xData);
                 yData = correctSkewnesses(yData);
@@ -1499,9 +1501,11 @@ public class Lofs2 {
 
             graph.removeEdge(edge);
 
-            if (mxx > myy) {
+            double r = cor * (mxx - myy);
+
+            if (r > 0) {
                 graph.addDirectedEdge(x, y);
-            } else if (myy > mxx) {
+            } else if (r < 0) {
                 graph.addDirectedEdge(y, x);
             } else {
                 graph.addUndirectedEdge(x, y);

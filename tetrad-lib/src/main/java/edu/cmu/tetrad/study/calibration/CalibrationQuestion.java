@@ -5,7 +5,10 @@ import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.Fask;
+import edu.cmu.tetrad.search.GraphSearch;
+import edu.cmu.tetrad.search.IndTestFisherZ;
+import edu.cmu.tetrad.search.PcAll;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
@@ -20,7 +23,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static com.sun.tools.internal.xjc.reader.Ring.add;
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
 import static java.lang.Math.abs;
 
@@ -1082,7 +1084,7 @@ public class CalibrationQuestion {
                 System.out.println("i\tTrue\tEst");
             }
 
-            double cutoff = e * 20.;
+            double cutoff = e / 80.;
 
             List<Boolean> inCategory = new ArrayList<>();
             List<Double> scores = new ArrayList<>();
@@ -1181,19 +1183,12 @@ public class CalibrationQuestion {
 
                 Fask fask = new Fask(dataSet, g);
                 fask.setRemoveResiduals(false);
-                fask.setTwoCycleThreshold(0.1);
+                fask.setTwoCycleThreshold(0);
 //                fask.setZeroAlpha(zeroAlpha);
                 Graph out = fask.search();
                 double lr = fask.getLr();
 
                 if (abs(lr) < cutoff) {
-                    omitted.add(i);
-                }
-
-                if (!fask.isAssumptionsSatisfied()) {
-                    if (verbose) {
-                        System.out.println("ASSUMPTIONS NOT SATISFIED");
-                    }
                     omitted.add(i);
                 }
 

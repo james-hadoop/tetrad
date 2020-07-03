@@ -30,7 +30,6 @@ import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
-import org.apache.commons.math3.distribution.NormalDistribution;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -79,11 +78,8 @@ public final class Fask implements GraphSearch {
 
     // Conditioned correlations are checked to make sure they are different from zero (since if they
     // are zero, the FASK theory doesn't apply).
-    private double zeroAlpha = 1;
-    private boolean assumptionsSatisfied = true;
-    private boolean twoCycle = false;
     private double lr;
-    private double lrP;
+    private double delta = 0;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -122,7 +118,7 @@ public final class Fask implements GraphSearch {
         long start = System.currentTimeMillis();
         NumberFormat nf = new DecimalFormat("0.000");
 
-        DataSet dataSet = DataUtils.center(this.dataSet);
+        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
 
         List<Node> variables = dataSet.getVariables();
         double[][] colData = dataSet.getDoubleData().transpose().toArray();
@@ -182,12 +178,6 @@ public final class Fask implements GraphSearch {
                 double[] x = colData[i];
                 double[] y = colData[j];
 
-//                double[] corxyx = cov(x, y, x);
-//                double[] corxyy = cov(x, y, y);
-
-//                double c1 = corxyx[1];
-//                double c2 = corxyy[1];
-
                 double c1 = StatUtils.cov(x, y, x, 0, +1)[1];
                 double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
 
@@ -205,11 +195,6 @@ public final class Fask implements GraphSearch {
                         continue;
                     }
 
-                    if (!isAssumptionsSatisfied()) {
-                        System.out.println(X + "---" + Y + " Assumptions not satisfied");
-//                        continue;
-                    }
-
                     if (knowledgeOrients(X, Y)) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tknowledge"
                                 + "\t" + nf.format(lrxy)
@@ -222,21 +207,15 @@ public final class Fask implements GraphSearch {
                                 + "\t" + X + "<--" + Y
                         );
                         graph.addDirectedEdge(Y, X);
-                    } else if (abs(lrxy) == 0) {
-                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t0-coef"
-                                + "\t" + nf.format(lrxy)
-                                + "\t" + X + " " + Y
-                        );
-                        System.out.println("Zero coef");
                     }
-//                    else if (abs(lrxy) < twoCycleThreshold) {
-//                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
-//                                + "\t" + nf.format(lrxy)
-//                                + "\t" + X + "<=>" + Y
-//                        );
-//                        graph.addDirectedEdge(X, Y);
-//                        graph.addDirectedEdge(Y, X);
-//                    }
+                    else if (abs(lrxy) < twoCycleThreshold) {
+                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
+                                + "\t" + nf.format(lrxy)
+                                + "\t" + X + "<=>" + Y
+                        );
+                        graph.addDirectedEdge(X, Y);
+                        graph.addDirectedEdge(Y, X);
+                    }
                     else {
                         if (lryx < 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
@@ -252,7 +231,8 @@ public final class Fask implements GraphSearch {
                             );
                             this.lr = lryx;
                             graph.addDirectedEdge(Y, X);
-                        } else {
+                        }
+                        else {
                             graph.addUndirectedEdge(Y, X);
                         }
                     }
@@ -267,56 +247,20 @@ public final class Fask implements GraphSearch {
     }
 
     private double leftRight(double[] x, double[] y) {
-        double corr = correlation(x, y);
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
+        double skx = skewness(x);
+        double sky = skewness(y);
+        double r = correlation(x, y);
 
-        x = correctSkewness(x, sx);
-        y = correctSkewness(y, sy);
+        double lr = (E(x, y, x) - E(x, y, y));
 
-        double left = cu(x, y, x);
-        double right = cu(x, y, y);
-
-        double lr = left - right;
-
-        lr *= signum(corr) * signum(sx) * signum(sy);
+        if (r * signum(skx) * signum(sky) < getDelta()) {
+            lr *= -1;
+        }
 
         return lr;
     }
 
-//    private boolean leftright(double[] x, double[] y) {
-//        double left = cu(x, y, x) / (sqrt(cu(x, x, x) * cu(y, y, x)));
-//        double right = cu(x, y, y) / (sqrt(cu(x, x, y) * cu(y, y, y)));
-//        double lr = left - right;
-//
-//        double r = StatUtils.correlation(x, y);
-//        double sx = StatUtils.skewness(x);
-//        double sy = StatUtils.skewness(y);
-//
-//        r *= signum(sx) * signum(sy);
-//        lr *= signum(r);
-//        if (r < getDelta()) lr *= -1;
-//
-//        return lr > 0;
-//    }
-
-    private double[] correctSense(double[] x, double[] y) {
-        y = Arrays.copyOf(y, y.length);
-
-        if (correlation(x, y) < 0) {
-            for (int i = 0; i < y.length; i++) y[i] *= -1;
-        }
-
-//        for (int i = 0; i < y.length; i++) y[i] *= -1;
-
-        return y;
-    }
-
-//    private double leftRight2(double[] x, double[] y) {
-//
-//    }
-
-    private static double cu(double[] x, double[] y, double[] condition) {
+    private static double E(double[] x, double[] y, double[] condition) {
         double exy = 0.0;
 
         int n = 0;
@@ -331,69 +275,44 @@ public final class Fask implements GraphSearch {
         return exy / n;
     }
 
-    private double leftRightMinnesota(double[] x, double[] y) {
-        x = correctSkewness(x, skewness(x));
-        y = correctSkewness(y, skewness(y));
+    private double robustSkew(double[] xData, double[] yData) {
 
-        final double cxyx = cov2(x, y, x);
-        final double cxyy = cov2(x, y, y);
-        final double cxxx = cov2(x, x, x);
-        final double cyyx = cov2(y, y, x);
-        final double cxxy = cov2(x, x, y);
-        final double cyyy = cov2(y, y, y);
-
-        double a1 = cxyx / cxxx;
-        double a2 = cxyy / cxxy;
-        double b1 = cxyy / cyyy;
-        double b2 = cxyx / cyyx;
-
-        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
-        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
-
-        double lr = Q - R;
-
-        final double sk_ey = StatUtils.skewness(residuals(y, x, RegressionType.LINEAR));
-
-        if (sk_ey < 0) {
-            lr *= -1;
+        if (true) {
+            xData = correctSkewness(xData, skewness(xData));
+            yData = correctSkewness(yData, skewness(yData));
         }
 
-        final double a = correlation(x, y);
+        double rho = correlation(xData, yData);
 
-        if (a < 0) {// && sk_ey > 0) {
-            lr *= -1;
+        xData = Arrays.copyOf(xData, xData.length);
+        yData = Arrays.copyOf(yData, yData.length);
+
+        double[] xx = new double[xData.length];
+        double[] yy = new double[yData.length];
+
+        for (int i = 0; i < xData.length; i++) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+
+            double xi = xData[i];
+            double yi = yData[i];
+
+            double s1 = g(xi) * yi;
+            double s2 = xi * g(yi);
+
+            xx[i] = s1;
+            yy[i] = s2;
         }
 
-        return lr;
+        double mxx = mean(xx);
+        double myy = mean(yy);
+
+        return rho * (mxx - myy);
     }
 
-    private boolean isNonzeroDiff(double n1, double n2, double c1, double c2, double alpha, Node X, Node Y) {
-        double z1 = 0.5 * (log(1.0 + c1) - log(1.0 - c1));
-        double z2 = 0.5 * (log(1.0 + c2) - log(1.0 - c2));
-
-        double zdiff = (z1 - z2) / (1.0 / n1 + 1.0 / n2);
-
-        // One sided.
-        double p = 1.0 - new NormalDistribution(0, 1)
-                .cumulativeProbability(abs(zdiff));
-
-        this.setLrP(p);
-
-        return p > alpha;
-    }
-
-    private boolean isZeroCoef(double r, double n, double alpha) {
-        double z = 0.5 * sqrt(n) * (log(1 + r) - log(1 - r));
-        double p = 2 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
-        return p > alpha;
-    }
-
-    private boolean isNonzeroSkewness(double g1, double n, double alpha) {
-        double G1 = (sqrt((n * (n - 1)) / (n - 2))) * g1;
-        double se = sqrt((6 * n * (n - 1)) / ((n - 2) * (n + 1) * (n + 3)));
-        double ratio = G1 / se;
-        double p = 2 * (1 - new NormalDistribution(0, 1).cumulativeProbability(abs(ratio)));
-        return p > alpha;
+    private double g(double x) {
+        return Math.log(Math.cosh(Math.max(x, 0)));
     }
 
     /**
@@ -468,8 +387,12 @@ public final class Fask implements GraphSearch {
         this.twoCycleThreshold = twoCycleThreshold;
     }
 
-    public void setZeroAlpha(double zeroAlpha) {
-        this.zeroAlpha = zeroAlpha;
+    public double getDelta() {
+        return delta;
+    }
+
+    public void setDelta(double delta) {
+        this.delta = delta;
     }
 
     public enum RegressionType {LINEAR, NONLINEAR}
@@ -556,177 +479,15 @@ public final class Fask implements GraphSearch {
         return exp(-z * z);
     }
 
-    private static double[] cov(double[] x, double[] y, double[] condition) {
-        double exy = 0.0;
-        double exx = 0.0;
-        double eyy = 0.0;
-
-        double ex = 0.0;
-        double ey = 0.0;
-
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            if (condition[k] > 0) {
-                exy += x[k] * y[k];
-                exx += x[k] * x[k];
-                eyy += y[k] * y[k];
-                ex += x[k];
-                ey += y[k];
-                n++;
-            }
-        }
-
-        exy /= n;
-        exx /= n;
-        eyy /= n;
-        ex /= n;
-        ey /= n;
-
-        double sxy = exy - ex * ey;
-        double sx = exx - ex * ex;
-        double sy = eyy - ey * ey;
-
-        return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy), exx, eyy};
+    public double getLr() {
+        return lr;
     }
-
-    private double[] getSums(double[] x, double[] y) {
-        double[] ry = residuals(y, x, RegressionType.NONLINEAR);
-
-        double sum1 = 0.0;
-        double sum2 = 0.0;
-        double sum3 = 0.0;
-        double sum4 = 0.0;
-        int n1 = 0;
-        int n2 = 0;
-
-
-        for (int i = 0; i < y.length; i++) {
-            if (x[i] > 0) sum1 += x[i] * ry[i];
-            if (y[i] > 0) sum2 += x[i] * ry[i];
-            if (x[i] > 0) sum3 += x[i] * x[i];
-            if (y[i] > 0) sum4 += x[i] * x[i];
-            if (x[i] > 0) n1++;
-            if (y[i] > 0) n2++;
-        }
-
-        sum1 /= n1;
-        sum2 /= n2;
-        sum3 /= n1;
-        sum4 /= n2;
-
-        return new double[]{sum1, sum2, sum3, sum4};
-    }
-
-    public boolean isAssumptionsSatisfied() {
-        return assumptionsSatisfied;
-    }
-
-    public boolean isTwoCycle() {
-        return twoCycle;
-    }
-
-    private double nonparametricFisherZ(double[] _x, double[] _y) {
-
-        // Testing the hypothesis that _x and _y are uncorrelated and assuming that 4th moments of _x and _y
-        // are finite and that the sample is large.
-        double[] __x = standardize(_x);
-        double[] __y = standardize(_y);
-
-        double r = covariance(__x, __y); // correlation
-        int N = __x.length;
-
-        // Non-parametric Fisher Z test.
-        double z = 0.5 * sqrt(N) * (log(1.0 + r) - log(1.0 - r));
-
-        return z / (sqrt((moment22(__x, __y))));
-    }
-
-    private double moment22(double[] x, double[] y) {
-        int N = x.length;
-        double sum = 0.0;
-
-        for (int j = 0; j < x.length; j++) {
-            sum += x[j] * x[j] * y[j] * y[j];
-        }
-
-        return sum / N;
-    }
-
-    // Standardizes the given data array. No need to make a copy here.
-    private double[] standardize(double[] data) {
-        double sum = 0.0;
-
-        for (double d : data) {
-            sum += d;
-        }
-
-        double mean = sum / data.length;
-
-        for (int i = 0; i < data.length; i++) {
-            data[i] = data[i] - mean;
-        }
-
-        double var = 0.0;
-
-        for (double d : data) {
-            var += d * d;
-        }
-
-        var /= (data.length);
-        double sd = sqrt(var);
-
-        for (int i = 0; i < data.length; i++) {
-            data[i] /= sd;
-        }
-
-        return data;
-    }
-
-    private static double cov2(double[] x, double[] y, double[] condition) {
-        double exy = 0.0;
-
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            if (condition[k] > 0) {
-                exy += x[k] * y[k];
-                n++;
-            }
-        }
-
-        return exy / n;
-    }
-
 
     private double[] correctSkewness(double[] data, double sk) {
         data = Arrays.copyOf(data, data.length);
         double[] data2 = new double[data.length];
         for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(sk);
         return data2;
-    }
-
-    private double[] correctKurtosis(double[] data) {
-        double skewness = StatUtils.kurtosis(data);
-        double[] data2 = new double[data.length];
-        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
-        return data2;
-    }
-
-    public double getLr() {
-        return lr;
-    }
-
-    public void setLr(double lr) {
-        this.lr = lr;
-    }
-
-    public double getLrP() {
-        return lrP;
-    }
-
-    public void setLrP(double lrP) {
-        this.lrP = lrP;
     }
 }
 
