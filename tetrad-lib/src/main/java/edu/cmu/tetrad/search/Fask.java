@@ -181,6 +181,8 @@ public final class Fask implements GraphSearch {
                 double c1 = StatUtils.cov(x, y, x, 0, +1)[1];
                 double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
 
+                double lrOrig =  leftRightOrig(x, y) - leftRightOrig(y, x);//leftRightOrig(x, y) - leftRightOrig(y, x);
+
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (skewEdgeThreshold > 0 && abs(c1 - c2) > getSkewEdgeThreshold())) {
                     double lrxy = leftRight(x, y);
                     double lryx = leftRight(y, x);
@@ -208,7 +210,7 @@ public final class Fask implements GraphSearch {
                         );
                         graph.addDirectedEdge(Y, X);
                     }
-                    else if (abs(lrxy) < twoCycleThreshold) {
+                    else if (abs(lrOrig) < twoCycleThreshold) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
                                 + "\t" + nf.format(lrxy)
                                 + "\t" + X + "<=>" + Y
@@ -258,6 +260,12 @@ public final class Fask implements GraphSearch {
         }
 
         return lr;
+    }
+
+    private double leftRightOrig(double[] x, double[] y) {
+        double[] cx = cov(x, y, x);
+        double[] cy = cov(x, y, y);
+        return cx[8] - cy[8];
     }
 
     private static double E(double[] x, double[] y, double[] condition) {
@@ -395,6 +403,10 @@ public final class Fask implements GraphSearch {
         this.delta = delta;
     }
 
+    public double getLr() {
+        return lr;
+    }
+
     public enum RegressionType {LINEAR, NONLINEAR}
 
     /**
@@ -479,8 +491,38 @@ public final class Fask implements GraphSearch {
         return exp(-z * z);
     }
 
-    public double getLr() {
-        return lr;
+    private static double[] cov(double[] x, double[] y, double[] condition) {
+        double exy = 0.0;
+        double exx = 0.0;
+        double eyy = 0.0;
+
+        double ex = 0.0;
+        double ey = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition[k] > 0) {
+                exy += x[k] * y[k];
+                exx += x[k] * x[k];
+                eyy += y[k] * y[k];
+                ex += x[k];
+                ey += y[k];
+                n++;
+            }
+        }
+
+        exy /= n;
+        exx /= n;
+        eyy /= n;
+        ex /= n;
+        ey /= n;
+
+        double sxy = exy - ex * ey;
+        double sx = exx - ex * ex;
+        double sy = eyy - ey * ey;
+
+        return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy), exx, eyy};
     }
 
     private double[] correctSkewness(double[] data, double sk) {
