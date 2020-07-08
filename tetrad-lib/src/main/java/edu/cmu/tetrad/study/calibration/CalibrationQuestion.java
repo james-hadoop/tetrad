@@ -1003,7 +1003,7 @@ public class CalibrationQuestion {
     private static void scenario8() throws IOException {
         int maxN = 100000;
         boolean useWeightsFromFile = false;
-        int initialSegment = 87;
+        int initialSegment = 100;
         boolean verbose = true;
 
         List<DataSet> dataSets = new ArrayList<>();
@@ -1182,9 +1182,8 @@ public class CalibrationQuestion {
                 TetradLogger.getInstance().setLogging(false);
 
                 Fask fask = new Fask(dataSet, g);
-                fask.setRemoveResiduals(false);
-                fask.setTwoCycleThreshold(0);
-//                fask.setZeroAlpha(zeroAlpha);
+                fask.setTwoCycleThreshold(0.001);
+                fask.setLinearityAssumed(true);
                 Graph out = fask.search();
                 double lr = fask.getLr();
 

@@ -154,7 +154,6 @@ public class RocCalculator {
         double[][] pointsDouble = new double[numPoints][2];
 
         for (int i = 0; i < numPoints; i++) {
-            //System.out.println(plot[i][0] + " " + plot[i][1]);
             pointsDouble[i][0] = ((double) points[i][0]) /
                     ((double) points[numPoints - 1][0]);
             pointsDouble[i][1] = ((double) points[i][1]) /
@@ -170,10 +169,6 @@ public class RocCalculator {
             Arrays.sort(scoreCatPairs);
         } catch (Exception e) {
             e.printStackTrace();
-        }
-
-        for (ScoreCategoryPair pair : scoreCatPairs) {
-            System.out.println(pair.getHasProperty() + " " + pair.getScore());
         }
 
         //If a higher score implies a lower probability that the case has property P
