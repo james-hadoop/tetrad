@@ -26,6 +26,7 @@ import cern.jet.stat.Descriptive;
 import edu.cmu.tetrad.data.AndersonDarlingTest;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.CholeskyDecomposition;
 
 import java.util.*;
@@ -2017,6 +2018,11 @@ public final class StatUtils {
 
     public static double getZForAlpha(double alpha) {
         NormalDistribution dist = new NormalDistribution(0, 1);
+        return dist.inverseCumulativeProbability(1.0 - alpha / 2.0);
+    }
+
+    public static double getZForAlphaT(double alpha, int df) {
+        ChiSquaredDistribution dist = new ChiSquaredDistribution(df);
         return dist.inverseCumulativeProbability(1.0 - alpha / 2.0);
     }
 

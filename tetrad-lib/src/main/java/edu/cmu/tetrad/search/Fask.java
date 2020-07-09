@@ -33,8 +33,7 @@ import edu.cmu.tetrad.util.TetradLogger;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static edu.cmu.tetrad.util.StatUtils.*;
 import static java.lang.Math.*;
@@ -47,7 +46,7 @@ import static java.lang.Math.*;
 public final class Fask implements GraphSearch {
 
     // The score to be used for the FAS adjacency search.
-    private IndependenceTest test;
+    private final IndependenceTest test;
 
     // An initial graph to orient, skipping the adjacency step.
     private Graph initialGraph = null;
@@ -172,8 +171,6 @@ public final class Fask implements GraphSearch {
         int V = variables.size();
 
         double[] ee = new double[2 * (V * (V - 1) / 2)];
-        double sum = 0.0;
-
         int count = 0;
 
         for (int i = 0; i < V; i++) {
@@ -183,32 +180,31 @@ public final class Fask implements GraphSearch {
                 // Centered
                 double[] x = colData[i];
                 double[] y = colData[j];
-                ee[count++] = E(x, y, x);
+                ee[count++] = cov(x, y, x)[8];
             }
         }
 
-        double mean = mean(ee);
+        double mean = 0;//mean(ee);
         double sd = variables.size() * sd(ee);
-        int N = dataSet.getNumRows();
         double zStar = StatUtils.getZForAlpha(skewEdgeThreshold);
+        double thresh = zStar * sd / sqrt(count);
 
         for (int i = 0; i < V; i++) {
-            for (int j = i + 1; j < V; j++) {
+            for (int j = 0; j < V; j++) {
+                if (i == j) continue;
+
                 Node X = variables.get(i);
                 Node Y = variables.get(j);
+
+                if (graph.isAdjacentTo(X, Y)) continue;
 
                 // Centered
                 double[] x = colData[i];
                 double[] y = colData[j];
 
-                double c1 = E(x, y, x);
-                double c2 = E(x, y, y);
+                double c = cov(x, y, x)[11];
 
-                // Check confidence interval.
-                double thresh1 = zStar * sd / sqrt(count);
-                double thresh2 = zStar * sd / sqrt(count);
-
-                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (abs(c1 - mean) > thresh1 || abs(c2 - mean) > thresh2)) {
+                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (abs(c - mean) > thresh)) {
                     double lrxy;
 
                     if (linearityAssumed) {
@@ -240,14 +236,14 @@ public final class Fask implements GraphSearch {
                         );
                         graph.addDirectedEdge(Y, X);
                     }
-//                    else if (abs(lrxy) < twoCycleThreshold) {
-//                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
-//                                + "\t" + nf.format(lrxy)
-//                                + "\t" + X + "<=>" + Y
-//                        );
-//                        graph.addDirectedEdge(X, Y);
-//                        graph.addDirectedEdge(Y, X);
-//                    }
+                    else if (abs(lrxy) < twoCycleThreshold) {
+                        TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
+                                + "\t" + nf.format(lrxy)
+                                + "\t" + X + "<=>" + Y
+                        );
+                        graph.addDirectedEdge(X, Y);
+                        graph.addDirectedEdge(Y, X);
+                    }
                     else {
                         if (lrxy > 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
@@ -267,29 +263,38 @@ public final class Fask implements GraphSearch {
             }
         }
 
+        for (int d = 1; d < 10; d++) {
+            for (Edge edge : graph.getEdges()) {
+                Node X = edge.getNode1();
+                Node Y = edge.getNode2();
+
+                double[] x = colData[variables.indexOf(X)];
+                double[] y = colData[variables.indexOf(Y)];
+
+                double c = cov(x, y, x)[11];
+
+                Node h = Edges.getDirectedEdgeHead(edge);
+
+                if (graph.isAncestorOf(X, Y)) {
+                    List<Node> par = graph.getParents(h);
+                    int p = par.size() - 1;
+
+                    if (p == d) {
+                        double zStar2 = StatUtils.getZForAlphaT(skewEdgeThreshold, p);
+                        double thresh2 = zStar2 * sd / sqrt(count);
+
+                        if (abs(c - mean) < thresh2) {
+                            graph.removeEdges(X, Y);
+                        }
+                    }
+                }
+            }
+        }
+
         long stop = System.currentTimeMillis();
         this.elapsed = stop - start;
 
         return graph;
-    }
-
-    private boolean fork(Node x, Node y, Graph graph) {
-        List<Node> parX = graph.getParents(x);
-        List<Node> parY = graph.getParents(y);
-
-        parX.retainAll(parY);
-
-        return !parX.isEmpty();
-    }
-
-    private boolean pathCheck(Node X, Node Y, Graph initialGraph) {
-        List<Node> chx = initialGraph.getChildren(X);
-
-        for (Node W : chx) {
-            if (initialGraph.isParentOf(W, Y)) return true;
-        }
-
-        return false;
     }
 
     private double leftRight(double[] x, double[] y) {
@@ -298,7 +303,8 @@ public final class Fask implements GraphSearch {
         double r = correlation(x, y);
 
         // E(x, y | x > 0) - E(x, y | y > 0)
-        double lr = E(x, y, x) - E(x, y, y);
+//        double lr = E(x, y, x) - E(x, y, y);
+        double lr = cov(x, y, x)[11] - cov(x, y, y)[11];
 
         if (signum(skx) * signum(sky) * signum(r) < 0 && (signum(skx) > 0 == signum(sky) > 0)) {
             lr *= -1;
@@ -324,55 +330,55 @@ public final class Fask implements GraphSearch {
         return lr;
     }
 
-    private static double E(double[] x, double[] y, double[] condition) {
-        double exy = 0.0;
+//    private static double E(double[] x, double[] y, double[] condition) {
+//        double exy = 0.0;
+//
+//        int n = 0;
+//
+//        for (int k = 0; k < x.length; k++) {
+//            if (condition[k] > 0) {
+//                exy += x[k] * y[k];
+//                n++;
+//            }
+//        }
+//
+//        return exy / n;
+//    }
 
-        int n = 0;
+//    private double robustSkew(double[] x, double[] y) {
+////        if (true) {
+////            x = correctSkewness(x, skewness(x));
+////            y = correctSkewness(y, skewness(y));
+////        }
+//
+//        double rho = correlation(x, y);
+//
+//        x = Arrays.copyOf(x, x.length);
+//        y = Arrays.copyOf(y, y.length);
+//
+//        double[] xx = new double[x.length];
+//
+//        for (int i = 0; i < x.length; i++) {
+//            if (Thread.currentThread().isInterrupted()) {
+//                break;
+//            }
+//
+//            double xi = x[i];
+//            double yi = y[i];
+//
+//            double s1 = (g(xi) * yi) - (xi * g(yi));
+//
+//            xx[i] = s1;
+//        }
+//
+//        double mxx = mean(xx);
+//
+//        return rho * mxx;
+//    }
 
-        for (int k = 0; k < x.length; k++) {
-            if (condition[k] > 0) {
-                exy += x[k] * y[k];
-                n++;
-            }
-        }
-
-        return exy / n;
-    }
-
-    private double robustSkew(double[] x, double[] y) {
-        if (true) {
-            x = correctSkewness(x, skewness(x));
-            y = correctSkewness(y, skewness(y));
-        }
-
-        double rho = correlation(x, y);
-
-        x = Arrays.copyOf(x, x.length);
-        y = Arrays.copyOf(y, y.length);
-
-        double[] xx = new double[x.length];
-
-        for (int i = 0; i < x.length; i++) {
-            if (Thread.currentThread().isInterrupted()) {
-                break;
-            }
-
-            double xi = x[i];
-            double yi = y[i];
-
-            double s1 = (g(xi) * yi) - (xi * g(yi));
-
-            xx[i] = s1;
-        }
-
-        double mxx = mean(xx);
-
-        return rho * mxx;
-    }
-
-    private double g(double x) {
-        return Math.log(Math.cosh(Math.max(x, 0)));
-    }
+//    private double g(double x) {
+//        return Math.log(Math.cosh(Math.max(x, 0)));
+//    }
 
     /**
      * @return The depth of search for the Fast Adjacency Search (FAS).
@@ -416,10 +422,6 @@ public final class Fask implements GraphSearch {
 
     public void setInitialGraph(Graph initialGraph) {
         this.initialGraph = initialGraph;
-    }
-
-    public double getSkewEdgeThreshold() {
-        return skewEdgeThreshold;
     }
 
     public void setSkewEdgeThreshold(double skewEdgeThreshold) {
@@ -561,15 +563,15 @@ public final class Fask implements GraphSearch {
         double sx = exx - ex * ex;
         double sy = eyy - ey * ey;
 
-        return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy), exx, eyy};
+        return new double[]{sxy, sxy / sqrt(sx * sy), sx, sy, (double) n, ex, ey, sxy / sx, exy / sqrt(exx * eyy), exx, eyy, exy};
     }
 
-    private double[] correctSkewness(double[] data, double sk) {
-        data = Arrays.copyOf(data, data.length);
-        double[] data2 = new double[data.length];
-        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(sk);
-        return data2;
-    }
+//    private double[] correctSkewness(double[] data, double sk) {
+//        data = Arrays.copyOf(data, data.length);
+//        double[] data2 = new double[data.length];
+//        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(sk);
+//        return data2;
+//    }
 }
 
 
