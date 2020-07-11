@@ -169,6 +169,7 @@ public final class Fask implements GraphSearch {
         TetradLogger.getInstance().forceLogMessage("X\tY\tMethod\tLR\tEdge");
 
         int V = variables.size();
+        int method = linearityAssumed ? 8 : 11;
 
         double[] ee = new double[2 * (V * (V - 1) / 2)];
         int count = 0;
@@ -180,12 +181,12 @@ public final class Fask implements GraphSearch {
                 // Centered
                 double[] x = colData[i];
                 double[] y = colData[j];
-                ee[count++] = cov(x, y, x)[8];
+                ee[count++] = cov(x, y, x)[method];
             }
         }
 
-        double mean = 0;//mean(ee);
-        double sd = variables.size() * sd(ee);
+        double mean = 0;
+        double sd = sd(ee);
         double zStar = StatUtils.getZForAlpha(skewEdgeThreshold);
         double thresh = zStar * sd / sqrt(count);
 
@@ -202,16 +203,10 @@ public final class Fask implements GraphSearch {
                 double[] x = colData[i];
                 double[] y = colData[j];
 
-                double c = cov(x, y, x)[11];
+                double c = cov(x, y, x)[method] / V;
 
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (abs(c - mean) > thresh)) {
-                    double lrxy;
-
-                    if (linearityAssumed) {
-                        lrxy = leftRightScaled(x, y);
-                    } else {
-                        lrxy = leftRight(x, y);
-                    }
+                    double lrxy = leftRight(x, y, method);
 
                     this.lr = lrxy;
 
@@ -235,16 +230,14 @@ public final class Fask implements GraphSearch {
                                 + "\t" + X + "<--" + Y
                         );
                         graph.addDirectedEdge(Y, X);
-                    }
-                    else if (abs(lrxy) < twoCycleThreshold) {
+                    } else if (abs(lrxy) < twoCycleThreshold) {
                         TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\t2-cycle"
                                 + "\t" + nf.format(lrxy)
                                 + "\t" + X + "<=>" + Y
                         );
                         graph.addDirectedEdge(X, Y);
                         graph.addDirectedEdge(Y, X);
-                    }
-                    else {
+                    } else {
                         if (lrxy > 0) {
                             TetradLogger.getInstance().forceLogMessage(X + "\t" + Y + "\tleft-right"
                                     + "\t" + nf.format(lrxy)
@@ -263,31 +256,41 @@ public final class Fask implements GraphSearch {
             }
         }
 
+        double zStar2 = StatUtils.getZForAlpha(skewEdgeThreshold / (10));
+        double thresh2 = zStar2 * sd / sqrt(count);
+
         for (int d = 1; d < 10; d++) {
+            List<Edge> toRemove = new ArrayList<>();
+
             for (Edge edge : graph.getEdges()) {
                 Node X = edge.getNode1();
                 Node Y = edge.getNode2();
 
-                double[] x = colData[variables.indexOf(X)];
-                double[] y = colData[variables.indexOf(Y)];
-
-                double c = cov(x, y, x)[11];
-
-                Node h = Edges.getDirectedEdgeHead(edge);
+                graph.removeEdge(edge);
 
                 if (graph.isAncestorOf(X, Y)) {
+                    double[] x = colData[variables.indexOf(X)];
+                    double[] y = colData[variables.indexOf(Y)];
+
+                    double c = cov(x, y, x)[method] / V;
+
+                    Node h = Edges.getDirectedEdgeHead(edge);
+
                     List<Node> par = graph.getParents(h);
-                    int p = par.size() - 1;
+                    int p = par.size();
 
-                    if (p == d) {
-                        double zStar2 = StatUtils.getZForAlphaT(skewEdgeThreshold, p);
-                        double thresh2 = zStar2 * sd / sqrt(count);
-
+                    if (p > 0 && p <= d) {
                         if (abs(c - mean) < thresh2) {
-                            graph.removeEdges(X, Y);
+                            toRemove.add(edge);
                         }
                     }
                 }
+
+                graph.addEdge(edge);
+            }
+
+            for (Edge edge : toRemove) {
+                graph.removeEdge(edge);
             }
         }
 
@@ -297,14 +300,14 @@ public final class Fask implements GraphSearch {
         return graph;
     }
 
-    private double leftRight(double[] x, double[] y) {
+    private double leftRight(double[] x, double[] y, int method) {
         double skx = skewness(x);
         double sky = skewness(y);
         double r = correlation(x, y);
 
         // E(x, y | x > 0) - E(x, y | y > 0)
 //        double lr = E(x, y, x) - E(x, y, y);
-        double lr = cov(x, y, x)[11] - cov(x, y, y)[11];
+        double lr = cov(x, y, x)[method] - cov(x, y, y)[method];
 
         if (signum(skx) * signum(sky) * signum(r) < 0 && (signum(skx) > 0 == signum(sky) > 0)) {
             lr *= -1;
@@ -313,22 +316,22 @@ public final class Fask implements GraphSearch {
         return lr;
     }
 
-    private double leftRightScaled(double[] x, double[] y) {
-        double skx = skewness(x);
-        double sky = skewness(y);
-        double r = correlation(x, y);
-
-        // E(x, y | x > 0) / sqrt(E(x, x | x > 0) E(x, x | y > 0))
-        //      - E(x, x | y > 0) / sqrt(E(y, y | x > 0) E(y, y | y > 0))
-        // Assumes linearity
-        double lr = cov(x, y, x)[8] - cov(x, y, y)[8];
-
-        if (signum(skx) * signum(sky) * signum(r) < 0 && (signum(skx) > 0 == signum(sky) > 0)) {
-            lr *= -1;
-        }
-
-        return lr;
-    }
+//    private double leftRightScaled(double[] x, double[] y) {
+//        double skx = skewness(x);
+//        double sky = skewness(y);
+//        double r = correlation(x, y);
+//
+//        // E(x, y | x > 0) / sqrt(E(x, x | x > 0) E(x, x | y > 0))
+//        //      - E(x, x | y > 0) / sqrt(E(y, y | x > 0) E(y, y | y > 0))
+//        // Assumes linearity
+//        double lr = cov(x, y, x)[8] - cov(x, y, y)[8];
+//
+//        if (signum(skx) * signum(sky) * signum(r) < 0 && (signum(skx) > 0 == signum(sky) > 0)) {
+//            lr *= -1;
+//        }
+//
+//        return lr;
+//    }
 
 //    private static double E(double[] x, double[] y, double[] condition) {
 //        double exy = 0.0;

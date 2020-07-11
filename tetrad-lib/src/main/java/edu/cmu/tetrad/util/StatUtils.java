@@ -2022,7 +2022,7 @@ public final class StatUtils {
     }
 
     public static double getZForAlphaT(double alpha, int df) {
-        ChiSquaredDistribution dist = new ChiSquaredDistribution(df);
+        TDistribution dist = new TDistribution(df);
         return dist.inverseCumulativeProbability(1.0 - alpha / 2.0);
     }
 
