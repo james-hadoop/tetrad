@@ -30,6 +30,8 @@ import edu.cmu.tetrad.util.dist.Distribution;
 import edu.cmu.tetrad.util.dist.Split;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+
+import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 import java.rmi.MarshalledObject;
 import java.util.*;
@@ -267,6 +269,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
     private Map<Node, Integer> variablesHash;
     private TetradMatrix sampleCovInv;
     private static Collection<? extends String> parameterNames;
+    private boolean errorsNormal = true;
 
     public static List<String> getParameterNames() {
         List<String> parameters = new ArrayList<>();
@@ -1358,7 +1361,13 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                     if (parent.getNodeType() == NodeType.ERROR) {
                         Node child = semGraph.getChildren(parent).get(0);
                         double paramValue = getParamValue(child, child);
-                        sum += RandomUtil.getInstance().nextNormal(0.0, paramValue);
+                        double sample = RandomUtil.getInstance().nextNormal(0.0, paramValue);
+
+                        if (!errorsNormal) {
+                            sample = abs(sample);
+                        }
+
+                        sum += sample;
                     } else {
                         TimeLagGraph.NodeId id = timeSeriesGraph.getNodeId(parent);
                         int fromIndex = nodeIndices.get(timeSeriesGraph.getNode(id.getName(), 0));
@@ -1368,7 +1377,13 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                             double fromValue = fullData.getDouble(currentStep - lag, fromIndex);
                             sum += coef * fromValue;
                         } else {
-                            sum += RandomUtil.getInstance().nextNormal(0.0, 0.5);
+                            double sample = RandomUtil.getInstance().nextNormal(0.0, 0.5);
+
+                            if (!errorsNormal) {
+                                sample = abs(sample);
+                            }
+
+                            sum += sample;
                         }
                     }
                 }
@@ -1446,6 +1461,10 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
             for (int i = 0; i < exoData.length; i++) {
                 exoData[i] = RandomUtil.getInstance().nextNormal(0, 1);
                 //            exoData[i] = randomUtil.nextUniform(-1, 1);
+
+                if (!errorsNormal) {
+                    exoData[i] = abs(exoData[i]);
+                }
             }
 
             // Step 2. Multiply by cholesky to get correct covariance.
@@ -1559,6 +1578,10 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
 
             for (int i = 0; i < exoData.length; i++) {
                 exoData[i] = RandomUtil.getInstance().nextNormal(0, 1);
+
+                if (!errorsNormal) {
+                    exoData[i] = abs(exoData[i]);
+                }
             }
 
             // Step 2. Multiply by cholesky to get correct covariance.
@@ -1677,7 +1700,13 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
             TetradVector e = new TetradVector(edgeCoef.columns());
 
             for (int i = 0; i < e.size(); i++) {
-                e.set(i, RandomUtil.getInstance().nextNormal(0, sqrt(errCovar.get(i, i))));
+                double sample = RandomUtil.getInstance().nextNormal(0, sqrt(errCovar.get(i, i)));
+
+                if (!errorsNormal) {
+                    sample = abs(sample);
+                }
+
+                e.set(i, sample);
             }
 
             // Step 3. Calculate the new rows in the data.

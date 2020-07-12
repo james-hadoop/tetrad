@@ -131,7 +131,15 @@ public final class Fask implements GraphSearch {
 
         Graph G0;
 
-        if (getInitialGraph() != null) {
+        if (isUseFasAdjacencies()) {
+            TetradLogger.getInstance().forceLogMessage("Running FAS-Stable, alpha = " + test.getAlpha());
+
+            FasStable fas = new FasStable(test);
+            fas.setDepth(getDepth());
+            fas.setVerbose(false);
+            fas.setKnowledge(knowledge);
+            G0 = fas.search();
+        } else if (getInitialGraph() != null) {
             TetradLogger.getInstance().forceLogMessage("Using initial graph.");
 
             Graph g1 = new EdgeListGraph(getInitialGraph().getNodes());
@@ -147,17 +155,7 @@ public final class Fask implements GraphSearch {
 
             G0 = g1;
         } else {
-            TetradLogger.getInstance().forceLogMessage("Running FAS-Stable, alpha = " + test.getAlpha());
-
-            if (isUseFasAdjacencies()) {
-                FasStable fas = new FasStable(test);
-                fas.setDepth(getDepth());
-                fas.setVerbose(false);
-                fas.setKnowledge(knowledge);
-                G0 = fas.search();
-            } else {
-                G0 = new EdgeListGraph(dataSet.getVariables());
-            }
+            G0 = new EdgeListGraph(dataSet.getVariables());
         }
 
         TetradLogger.getInstance().forceLogMessage("");
@@ -256,41 +254,43 @@ public final class Fask implements GraphSearch {
             }
         }
 
-        double zStar2 = StatUtils.getZForAlpha(skewEdgeThreshold / (10));
-        double thresh2 = zStar2 * sd / sqrt(count);
+        if (!useFasAdjacencies) {
+            double zStar2 = StatUtils.getZForAlpha(skewEdgeThreshold / (10));
+            double thresh2 = zStar2 * sd / sqrt(count);
 
-        for (int d = 1; d < 10; d++) {
-            List<Edge> toRemove = new ArrayList<>();
+            for (int d = 1; d < 10; d++) {
+                List<Edge> toRemove = new ArrayList<>();
 
-            for (Edge edge : graph.getEdges()) {
-                Node X = edge.getNode1();
-                Node Y = edge.getNode2();
+                for (Edge edge : graph.getEdges()) {
+                    Node X = edge.getNode1();
+                    Node Y = edge.getNode2();
 
-                graph.removeEdge(edge);
+                    graph.removeEdge(edge);
 
-                if (graph.isAncestorOf(X, Y)) {
-                    double[] x = colData[variables.indexOf(X)];
-                    double[] y = colData[variables.indexOf(Y)];
+                    if (graph.isAncestorOf(X, Y)) {
+                        double[] x = colData[variables.indexOf(X)];
+                        double[] y = colData[variables.indexOf(Y)];
 
-                    double c = cov(x, y, x)[method] / V;
+                        double c = cov(x, y, x)[method] / V;
 
-                    Node h = Edges.getDirectedEdgeHead(edge);
+                        Node h = Edges.getDirectedEdgeHead(edge);
 
-                    List<Node> par = graph.getParents(h);
-                    int p = par.size();
+                        List<Node> par = graph.getParents(h);
+                        int p = par.size();
 
-                    if (p > 0 && p <= d) {
-                        if (abs(c - mean) < thresh2) {
-                            toRemove.add(edge);
+                        if (p > 0 && p <= d) {
+                            if (abs(c - mean) < thresh2) {
+                                toRemove.add(edge);
+                            }
                         }
                     }
+
+                    graph.addEdge(edge);
                 }
 
-                graph.addEdge(edge);
-            }
-
-            for (Edge edge : toRemove) {
-                graph.removeEdge(edge);
+                for (Edge edge : toRemove) {
+                    graph.removeEdge(edge);
+                }
             }
         }
 

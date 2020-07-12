@@ -57,13 +57,13 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             edu.cmu.tetrad.search.Fask search;
 
-            if (algorithm != null) {
-                initialGraph = algorithm.search(dataSet, parameters);
-                search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, initialGraph);
-                search.setInitialGraph(initialGraph);
-            } else {
+//            if (algorithm != null) {
+//                initialGraph = algorithm.search(dataSet, parameters);
+//                search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, initialGraph);
+//                search.setInitialGraph(initialGraph);
+//            } else {
                 search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, test.getTest(dataSet, parameters));
-            }
+//            }
 
 //            edu.cmu.tetrad.search.Fask search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, test.getTest(dataSet, parameters));
             search.setDepth(parameters.getInt(Params.DEPTH));

@@ -805,9 +805,6 @@ public final class LargeScaleSimulation {
                 sample *= sd;
 
                 if (!errorsNormal) {
-//                    sample *= 2;
-//                    sample = sample * sample;
-//
                     sample = abs(sample);
                 }
 
