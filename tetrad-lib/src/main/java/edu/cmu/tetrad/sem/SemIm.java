@@ -278,7 +278,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         parameters.add("covLow");
         parameters.add("covHigh");
         parameters.add("varLow");
-        parameters.add("varHigh");
+        parameters.add("varHigh"); 
         parameters.add("coefSymmetric");
         parameters.add("covSymmetric");
         return parameters;
