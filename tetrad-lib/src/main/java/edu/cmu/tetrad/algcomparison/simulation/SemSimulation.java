@@ -124,6 +124,7 @@ public class SemSimulation implements Simulation {
             parameters.addAll(SemIm.getParameterNames());
         }
 
+        parameters.add(Params.ERRORS_NORMAL);
         parameters.add(Params.MEASUREMENT_VARIANCE);
         parameters.add(Params.NUM_RUNS);
         parameters.add(Params.DIFFERENT_GRAPHS);
@@ -156,14 +157,17 @@ public class SemSimulation implements Simulation {
             if (pm == null) {
                 pm = new SemPm(graph);
                 im = new SemIm(pm, parameters);
+                im.setErrorsNormal(parameters.getBoolean(Params.ERRORS_NORMAL));
                 ims.add(im);
                 return im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), saveLatentVars);
             } else {
                 im = new SemIm(pm, parameters);
+                im.setErrorsNormal(parameters.getBoolean(Params.ERRORS_NORMAL));
                 ims.add(im);
                 return im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), saveLatentVars);
             }
         } else {
+            im.setErrorsNormal(parameters.getBoolean(Params.ERRORS_NORMAL));
             ims.add(im);
             return im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), saveLatentVars);
         }

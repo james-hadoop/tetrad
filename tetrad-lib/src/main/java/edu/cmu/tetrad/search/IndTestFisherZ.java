@@ -31,8 +31,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 import static java.lang.StrictMath.log;
 
 /**
@@ -192,8 +191,8 @@ public final class IndTestFisherZ implements IndependenceTest {
             return false;
         }
 
-        double q = 0.5 * (log(1.0 + r) - Math.log(1.0 - r));
-        double fisherZ = sqrt((double) (n - 3 - z.size())) * abs(q);
+        double q = 0.5 * (log(abs(1.0 + r)) - Math.log(abs(1.0 - r)))       ;
+        double fisherZ = sqrt(n - 3 - z.size()) * abs(q);
         this.fisherZ = fisherZ;
 
         if (isSellke()) {
