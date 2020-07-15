@@ -124,8 +124,6 @@ public class FasStablePcp implements IFas {
 
     private Map<NodePair, Set<Object>> I = new HashMap<>();
 
-    private Set<NodePair> A = new HashSet<>();
-
 
     //==========================CONSTRUCTORS=============================//
 
@@ -594,10 +592,6 @@ public class FasStablePcp implements IFas {
 
     public Map<NodePair, Set<Object>> getI() {
         return I;
-    }
-
-    public Set<NodePair> getA() {
-        return A;
     }
 }
 

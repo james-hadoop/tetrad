@@ -221,7 +221,8 @@ public class TetradMatrix implements TetradSerializable {
             TetradMatrix m = new TetradMatrix(1, 1);
             m.set(0, 0, 1.0 / apacheData.getEntry(0, 0));
             return m;
-        } else if (rows() == 2) {
+        }
+        else if (rows() == 2) {
             double a = apacheData.getEntry(0, 0);
             double b = apacheData.getEntry(0, 1);
             double c = apacheData.getEntry(1, 0);

@@ -195,8 +195,10 @@ public final class IndTestFisherZ implements IndependenceTest {
         double fisherZ = sqrt(n - 3 - z.size()) * abs(q);
         this.fisherZ = fisherZ;
 
+        double p = 2.0 * (1.0 - normal.cumulativeProbability(abs(fisherZ)));
+
         if (isSellke()) {
-            double p = getPValue();
+//            double p = getPValue();
 
             double alpha = 1.0 / (1.0 + (1.0 / (-this.alpha * p * log(p))));
 //        double alpha = -this.alpha * p * log(p);
@@ -204,10 +206,11 @@ public final class IndTestFisherZ implements IndependenceTest {
             if (Double.isNaN(alpha)) alpha = 0;
 
 //        System.out.println("alpha = " + alpha);
-//
             return p > alpha;
-        } else {
-            return fisherZ < cutoff;
+//
+        }
+        else {
+            return p > alpha;// fisherZ < cutoff;
         }
     }
 
@@ -216,7 +219,7 @@ public final class IndTestFisherZ implements IndependenceTest {
         indices[0] = indexMap.get(x);
         indices[1] = indexMap.get(y);
 
-//        if (z.isEmpty()) return cov.getValue(indices[0], indices[1]);
+        if (z.isEmpty()) return cov.getValue(indices[0], indices[1]);
 
         for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i));
         TetradMatrix submatrix = cov.getSubmatrix(indices).getMatrix();

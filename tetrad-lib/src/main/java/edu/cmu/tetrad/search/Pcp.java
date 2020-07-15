@@ -124,7 +124,7 @@ public class Pcp implements GraphSearch {
     private Map<NodePair, Set<Object>> I = new HashMap<>();
 
     //
-    private Set<NodePair> A;
+    private Set<NodePair> Amb;
 
 
     //=============================CONSTRUCTORS==========================//
@@ -290,7 +290,6 @@ public class Pcp implements GraphSearch {
 
         P1 = fas.getP1();
         I = fas.getI();
-        A = fas.getA();
 
         this.numIndependenceTests = fas.getNumIndependenceTests();
         this.numFalseDependenceJudgements = fas.getNumFalseDependenceJudgments();
@@ -298,7 +297,7 @@ public class Pcp implements GraphSearch {
 
 //        enumerateTriples();
 
-        SearchGraphUtils.pcOrientbk(knowledge, graph, nodes);
+//        SearchGraphUtils.pcOrientbk(knowledge, graph, nodes);
         orientCollidersUsingSepsets(this.sepsets, knowledge, graph, verbose, false);
 
         for (Edge edge : graph.getEdges()) {
@@ -308,7 +307,7 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        MeekRulesPcp rules = new MeekRulesPcp(P1, P2, A);
+        MeekRulesPcp rules = new MeekRulesPcp(P1, P2, Amb);
         rules.setAggressivelyPreventCycles(false);
         rules.setKnowledge(knowledge);
         rules.setUndirectUnforcedEdges(false);
@@ -556,16 +555,37 @@ public class Pcp implements GraphSearch {
                     TetradLogger.getInstance().log("colliderOrientations", SearchLogUtils.colliderOrientedMsg(a, c, b, sepset));
 
                     // Now add all p-values to Ppp that would have been considered by CPC
-                    List<Double> Ppp = getPpp(a, b, c, graph);
+                    List<Double> Ppp = getP2(a, b, c, graph);
 
                     Pp.computeIfAbsent(new NodePair(b, c), k -> new ArrayList<>());
                     Pp.computeIfAbsent(new NodePair(a, c), k -> new ArrayList<>());
 
-                    Pp.get(new NodePair(b, c)).add(max(max(getP1(c, a)), max(Ppp)));
-                    Pp.get(new NodePair(a, c)).add(max(max(getP1(c, b)), max(Ppp)));
+                    Pp.get(new NodePair(b, c)).add(max(getP1(c, a).get(0), max(Ppp)));
+                    Pp.get(new NodePair(a, c)).add(max(getP1(c, b).get(0), max(Ppp)));
                 }
             }
         }
+
+        for (Edge edge : graph.getEdges()) {
+            final Node x = edge.getNode1();
+            final Node y = edge.getNode2();
+
+            if (Edges.isBidirectedEdge(edge)) {
+                graph.removeEdge(edge);
+                graph.addUndirectedEdge(x, y);
+                Amb.add(new NodePair(x, y));
+            }
+
+            for (Node parent : graph.getParents(x)) {
+                Amb.add(new NodePair(parent, x));
+            }
+
+            for (Node parent : graph.getParents(y)) {
+                Amb.add(new NodePair(parent, y));
+            }
+        }
+
+        // Remove p-values for the ambiguous edges after we figure out all the ambiguous edges.
 
         for (Edge edge : graph.getEdges()) {
             if (Edges.isDirectedEdge(edge)) {
@@ -573,7 +593,7 @@ public class Pcp implements GraphSearch {
                 Node c = Edges.getDirectedEdgeHead(edge);
 
                 final List<Double> ppac = Pp.get(new NodePair(a, c));
-                P2.put(new NodePair(a, c), max(max(getP1(c, a)), sum(ppac)));
+                P2.put(new NodePair(a, c), max(getP1(c, a).get(0), sum(ppac)));
 
                 final Object o = new Object();
 
@@ -591,24 +611,6 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        for (Edge edge : graph.getEdges()) {
-            final Node x = edge.getNode1();
-            final Node y = edge.getNode2();
-
-            if (Edges.isBidirectedEdge(edge)) {
-                graph.removeEdge(edge);
-                graph.addUndirectedEdge(x, y);
-                A.add(new NodePair(x, y));
-            }
-
-            for (Node parent : graph.getParents(x)) {
-                A.add(new NodePair(parent, x));
-            }
-
-            for (Node parent : graph.getParents(y)) {
-                A.add(new NodePair(parent, y));
-            }
-        }
 
         TetradLogger.getInstance().log("details", "Finishing Collider Orientation.");
 
@@ -751,14 +753,14 @@ public class Pcp implements GraphSearch {
         return null;
     }
 
-    private List<Double> getPpp(Node i, Node k, Node c, Graph g) {
+    private List<Double> getP2(Node i, Node k, Node c, Graph g) {
         List<Node> adji = g.getAdjacentNodes(i);
         List<Node> adjk = g.getAdjacentNodes(k);
 
         List<Double> p2 = new ArrayList<>();
 
         for (int d = 0; d <= Math.max(adji.size(), adjk.size()); d++) {
-            if (adji.size() >= 2 && d <= adji.size()) {
+            if (d <= adji.size()) {
                 ChoiceGenerator gen = new ChoiceGenerator(adji.size(), d);
                 int[] choice;
 
@@ -772,7 +774,7 @@ public class Pcp implements GraphSearch {
                 }
             }
 
-            if (adjk.size() >= 2 && d <= adjk.size()) {
+            if (d <= adjk.size()) {
                 ChoiceGenerator gen = new ChoiceGenerator(adjk.size(), d);
                 int[] choice;
 
