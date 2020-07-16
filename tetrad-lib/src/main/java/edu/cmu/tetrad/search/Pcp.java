@@ -124,7 +124,7 @@ public class Pcp implements GraphSearch {
     private Map<NodePair, Set<Object>> I = new HashMap<>();
 
     //
-    private Set<NodePair> Amb;
+    private Set<NodePair> Amb = new HashSet<>();
 
 
     //=============================CONSTRUCTORS==========================//
