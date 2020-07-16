@@ -559,41 +559,12 @@ public class Comparison {
 
         File dir0 = new File(dataPath);
         File dir;
-        //int i = 0;
 
         dir = new File(dir0, "save");
 
-//
-//        do {
-//            dir = new File(dir0, "Simulation" + (++i));
-//        } while (dir.exists());
-//        if (dir.exists()) {
-//            JOptionPane.showMessageDialog(JOptionUtils.centeringComp(),
-//                    "A file already exists named 'Simulation' in directory '" + dir0.getPath() + "'; \n" +
-//                            "please remove it first or move it out of the way.");
-//        }
         deleteFilesThenDirectory(dir);
 
-        //if(!dir.exists()){
-        //	dir.mkdirs();
-        //}
         try {
-//            int numDataSets = simulation.getNumDataModels();
-//            if (numDataSets <= 0) {
-//
-//                File dir1 = new File(dir, "graph");
-//                File dir2 = new File(dir, "data");
-//
-//                dir1.mkdirs();
-//                dir2.mkdirs();
-//
-//                PrintStream out = new PrintStream(new FileOutputStream(new File(dir, "parameters.txt")));
-//                out.println(simulation.getDescription());
-//                out.println(parameters);
-//                out.close();
-//
-//                return;
-//            }
             List<SimulationWrapper> simulationWrappers = getSimulationWrappers(simulation, parameters);
 
             int index = 0;
@@ -603,9 +574,7 @@ public class Comparison {
                     parameters.set(param, simulationWrapper.getValue(param));
                 }
 
-                if (simulationWrapper.getSimulation().getNumDataModels() == 0) {
-                    simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters());
-                }
+                simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters());
 
                 File subdir = dir;
                 if (simulationWrappers.size() > 1) {

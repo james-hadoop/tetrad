@@ -21,6 +21,7 @@ import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -143,8 +144,11 @@ public class ImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = new Fges(new SemBicScore(), false).getParameters();
+        List<String> parameters = new LinkedList<>();
         parameters.addAll(new SemBicScore().getParameters());
+
+        parameters.addAll((new Fges()).getParameters());
+        parameters.add(Params.PENALTY_DISCOUNT);
         parameters.add(Params.NUM_RUNS);
         parameters.add(Params.RANDOM_SELECTION_SIZE);
 
