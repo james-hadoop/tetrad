@@ -101,6 +101,10 @@ public final class IndTestIndependenceFacts implements IndependenceTest {
         return Double.NaN;
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return Double.NaN;
+    }
+
     public List<Node> getVariables() {
         return facts.getVariables();
     }

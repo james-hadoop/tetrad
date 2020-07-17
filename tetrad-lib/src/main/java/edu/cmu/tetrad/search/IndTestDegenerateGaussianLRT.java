@@ -310,6 +310,10 @@ public class IndTestDegenerateGaussianLRT implements IndependenceTest {
         return this.pValue;
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return this.pValue;
+    }
+
     /**
      * @return the list of searchVariables over which this independence checker is capable of determinining independence
      * relations.

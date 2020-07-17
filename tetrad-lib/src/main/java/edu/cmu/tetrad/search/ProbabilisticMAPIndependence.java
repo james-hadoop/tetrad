@@ -172,6 +172,10 @@ public class ProbabilisticMAPIndependence implements IndependenceTest {
         return posterior;
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     @Override
     public List<Node> getVariables() {
         return nodes;

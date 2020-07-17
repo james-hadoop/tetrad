@@ -270,6 +270,10 @@ public final class IndTestFisherZGeneralizedInverse implements IndependenceTest 
 //        return 1.0 - q;
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     /**
      * Sets the significance level at which independence judgments should be made.  Affects the cutoff for partial
      * correlations to be considered statistically equal to zero.

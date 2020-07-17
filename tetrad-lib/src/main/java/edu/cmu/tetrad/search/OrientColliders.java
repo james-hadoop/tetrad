@@ -473,7 +473,7 @@ public class OrientColliders {
 
                 if (true) {
                     test.isIndependent(a, c, s);
-                    __p = test.getPValue();
+                    __p = ((IndTestFisherZ) test).getPValue(a, c, s);
 //                    store.put(key, __p);
                 }
 

@@ -171,6 +171,10 @@ public final class IndTestChiSquare implements IndependenceTest {
         return pValue;
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     /**
      * Determines whether variable x is independent of variable y given a list of conditioning varNames z.
      *

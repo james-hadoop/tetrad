@@ -219,6 +219,10 @@ public final class IndTestPositiveCorr implements IndependenceTest {
         return 2.0 * (1.0 - normal.cumulativeProbability(abs(fisherZ)));
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     /**
      * Sets the significance level at which independence judgments should be made.  Affects the cutoff for partial
      * correlations to be considered statistically equal to zero.

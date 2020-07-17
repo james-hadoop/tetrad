@@ -243,6 +243,10 @@ public class Kci implements IndependenceTest, ScoreForFact {
         return p;
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     /**
      * Returns the list of variables over which this independence checker is capable of determinining independence
      * relations.

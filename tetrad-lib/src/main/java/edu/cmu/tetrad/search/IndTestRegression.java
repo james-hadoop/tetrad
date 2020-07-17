@@ -412,6 +412,10 @@ public final class IndTestRegression implements IndependenceTest {
         return getPValue();
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     public boolean isVerbose() {
         return verbose;
     }

@@ -129,6 +129,10 @@ public class IndTestFisherZBootstrap implements IndependenceTest {
         return 0;
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     /**
      * @return the list of variables over which this independence checker is capable of determinine independence
      * relations-- that is, all the variables in the given graph or the given data set.

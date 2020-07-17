@@ -53,6 +53,8 @@ import java.util.Set;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 
+import static java.lang.StrictMath.log;
+
 /**
  * Graph utilities for search algorithm. Lots of orientation method, for
  * instance.
@@ -3241,6 +3243,15 @@ public final class SearchGraphUtils {
             }
         }
         return error;
+    }
+
+    public static double getSelkeAlpha(double p, double alpha) {
+        if (p == 0) {
+            return 0;
+        } else {
+            return 1.0 / (1.0 + (1.0 / (-alpha * p * log(p))));
+//              alpha = -this.alpha * p * log(p);
+        }
     }
 
 

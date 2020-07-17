@@ -769,7 +769,7 @@ public class Pcp implements GraphSearch {
 
                     if (v.contains(c)) {
                         getIndependenceTest().isIndependent(i, k, v);
-                        p2.add(getIndependenceTest().getPValue());
+                        p2.add(((IndTestFisherZ) getIndependenceTest()).getPValue(i, k, v));
                     }
                 }
             }
@@ -783,7 +783,7 @@ public class Pcp implements GraphSearch {
 
                     if (v.contains(c)) {
                         getIndependenceTest().isIndependent(i, k, v);
-                        p2.add(getIndependenceTest().getPValue());
+                        p2.add(((IndTestFisherZ) getIndependenceTest()).getPValue(i, k, v));
                     }
                 }
             }

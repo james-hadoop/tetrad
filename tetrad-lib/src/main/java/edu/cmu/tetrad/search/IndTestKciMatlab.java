@@ -167,6 +167,10 @@ public final class IndTestKciMatlab implements IndependenceTest {
         return 0.0;
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     /**
      * Sets the significance level at which independence judgments should be made.  Affects the cutoff for partial
      * correlations to be considered statistically equal to zero.

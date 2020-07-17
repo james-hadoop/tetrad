@@ -279,6 +279,10 @@ public final class IndTestCramerT implements IndependenceTest {
         return 2.0 * Integrator.getArea(pdf(), Math.abs(storedR), 1.0, 100);
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     /**
      * Sets the significance level for future tests.
      */

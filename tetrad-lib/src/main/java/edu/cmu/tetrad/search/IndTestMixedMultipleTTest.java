@@ -486,6 +486,10 @@ public class IndTestMixedMultipleTTest implements IndependenceTest {
         return this.lastP; //STUB
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     /**
      * @return the list of searchVariables over which this independence checker is capable of determinining independence
      * relations.

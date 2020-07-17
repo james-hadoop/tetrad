@@ -33,11 +33,11 @@ public class FisherZ implements IndependenceWrapper {
 
         if (dataSet instanceof ICovarianceMatrix) {
             IndTestFisherZ indTestFisherZ = new IndTestFisherZ((ICovarianceMatrix) dataSet, alpha);
-//            indTestFisherZ.setSellke(parameters.getBoolean("useSellkeAdjustment"));
+            indTestFisherZ.setSellke(parameters.getBoolean("useSellkeAdjustment"));
             return indTestFisherZ;
         } else if (dataSet instanceof DataSet) {
             IndTestFisherZ indTestFisherZ = new IndTestFisherZ((DataSet) dataSet, alpha);
-//            indTestFisherZ.setSellke(parameters.getBoolean("useSellkeAdjustment"));
+            indTestFisherZ.setSellke(parameters.getBoolean("useSellkeAdjustment"));
             return indTestFisherZ;
         }
 
@@ -58,7 +58,7 @@ public class FisherZ implements IndependenceWrapper {
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
         params.add(Params.ALPHA);
-//        params.add(Params.USE_SELLKE_ADJUSTMENT);
+        params.add(Params.USE_SELLKE_ADJUSTMENT);
         return params;
     }
 }

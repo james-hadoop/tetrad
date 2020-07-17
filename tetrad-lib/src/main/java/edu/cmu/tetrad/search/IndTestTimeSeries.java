@@ -371,6 +371,10 @@ public final class IndTestTimeSeries implements IndependenceTest {
         return Double.NaN;
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     //==========================PRIVATE METHODS============================//
 
     private void reset() {

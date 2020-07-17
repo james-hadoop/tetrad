@@ -23,6 +23,7 @@ package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.IndTestDSep;
+import edu.cmu.tetrad.search.IndTestFisherZ;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.NumberFormatUtil;
@@ -608,7 +609,7 @@ public class IndependenceFactsAction extends AbstractAction {
                         }
 
                         try {
-                            pValue = getIndependenceTest().getPValue();
+                            pValue = ((IndTestFisherZ) getIndependenceTest()).getPValue(x, y, z);
                         } catch (Exception e) {
                             pValue = Double.NaN;
                         }

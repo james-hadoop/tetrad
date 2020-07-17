@@ -169,6 +169,10 @@ public final class IndTestMulti implements IndependenceTest {
         return p;
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     /**
      * @throws UnsupportedOperationException
      */

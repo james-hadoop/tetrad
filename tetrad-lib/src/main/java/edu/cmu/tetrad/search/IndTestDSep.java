@@ -217,6 +217,10 @@ public class IndTestDSep implements IndependenceTest {
         return this.pvalue;
     }
 
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
+    }
+
     /**
      * @return the list of TetradNodes over which this independence checker is capable of determinine independence
      * relations-- that is, all the variables in the given graph or the given data set.
