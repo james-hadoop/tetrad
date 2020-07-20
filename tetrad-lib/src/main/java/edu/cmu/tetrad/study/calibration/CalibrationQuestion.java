@@ -1182,8 +1182,10 @@ public class CalibrationQuestion {
                 TetradLogger.getInstance().setLogging(false);
 
                 Fask fask = new Fask(dataSet, g);
-                fask.setTwoCycleThreshold(0.001);
-                fask.setLinearityAssumed(true);
+                fask.setTwoCycleThreshold(0);
+                fask.setLinearityAssumed(false);
+                fask.setUseFasAdjacencies(false);
+                fask.setSkewEdgeThreshold(0.0);
                 Graph out = fask.search();
                 double lr = fask.getLr();
 
