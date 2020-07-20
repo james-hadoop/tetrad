@@ -158,6 +158,8 @@ public final class Fask implements GraphSearch {
             G0 = new EdgeListGraph(dataSet.getVariables());
         }
 
+        G0 = GraphUtils.replaceNodes(G0, dataSet.getVariables());
+
         TetradLogger.getInstance().forceLogMessage("");
 
         SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
@@ -195,6 +197,9 @@ public final class Fask implements GraphSearch {
                 Node X = variables.get(i);
                 Node Y = variables.get(j);
 
+//                System.out.println("G0 = " + G0);
+
+//                if (!G0.isAdjacentTo(X, Y)) continue;
                 if (graph.isAdjacentTo(X, Y)) continue;
 
                 // Centered
@@ -203,7 +208,9 @@ public final class Fask implements GraphSearch {
 
                 double c = cov(x, y, x)[method] / V;
 
-                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (abs(c - mean) > thresh)) {
+                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) ||
+                        (initialGraph != null && initialGraph.isAdjacentTo (X, Y))
+                        || abs(c - mean) > thresh) {
                     double lrxy = leftRight(x, y, method);
 
                     this.lr = lrxy;
