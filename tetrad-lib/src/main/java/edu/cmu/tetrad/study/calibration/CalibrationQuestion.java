@@ -1183,7 +1183,7 @@ public class CalibrationQuestion {
 
                 Fask fask = new Fask(dataSet, g);
                 fask.setTwoCycleThreshold(0);
-                fask.setLinearityAssumed(false);
+                fask.setLinearityAssumed(true  );
                 fask.setUseFasAdjacencies(false);
                 fask.setSkewEdgeThreshold(0.0);
                 Graph out = fask.search();

@@ -218,9 +218,12 @@ public final class OrientCollidersMaxP {
             }
 
             List<Node> s = GraphUtils.asList(comb2, adja);
+            double _p;
 
-            independenceTest.isIndependent(a, c, s);
-            double _p = ((IndTestFisherZ) independenceTest).getPValue(a, c, s);
+            synchronized (independenceTest) {
+                independenceTest.isIndependent(a, c, s);
+                _p = independenceTest.getPValue();
+            }
 
             if (_p > p) {
                 p = _p;
@@ -248,8 +251,12 @@ public final class OrientCollidersMaxP {
 
             List<Node> s = GraphUtils.asList(comb3, adjc);
 
-            independenceTest.isIndependent(a, c, s);
-            double _p = ((IndTestFisherZ) independenceTest).getPValue(a, c, s);
+            double _p;
+
+            synchronized (independenceTest) {
+                independenceTest.isIndependent(a, c, s);
+                _p = independenceTest.getPValue();
+            }
 
             if (_p > p) {
                 p = _p;

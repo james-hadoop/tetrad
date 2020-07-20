@@ -23,6 +23,8 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.regression.RegressionDataset;
+import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.StatUtils;
 import org.apache.commons.math3.distribution.NormalDistribution;
@@ -297,6 +299,23 @@ public final class ConditionalCorrelationIndependence {
      * and the second double[] array contains the resituls for y.
      */
     public double[] residuals(String x, List<String> z) {
+        if (true) {
+            int N = data[0].length;
+            int[] _z = new int[z.size()];
+            double[][] __z = new double[_z.length][];
+
+
+            for (int m = 0; m < z.size(); m++) {
+                _z[m] = indices.get(z.get(m));
+                __z[m] = data[_z[m]];
+            }
+
+            RegressionResult result = RegressionDataset.regress(data[indices.get(x)], __z);
+
+            return result.getResiduals().toArray();
+        }
+
+
         if (z.isEmpty()) {
             return depth0Residuals[indices.get(x)];
         }

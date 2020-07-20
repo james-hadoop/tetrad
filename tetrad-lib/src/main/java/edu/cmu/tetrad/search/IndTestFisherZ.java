@@ -66,7 +66,7 @@ public final class IndTestFisherZ implements IndependenceTest {
     private final Map<Node, Integer> indexMap;
     private final Map<String, Node> nameMap;
     private boolean verbose = true;
-    private final double p = Double.NaN;
+    private double p = Double.NaN;
     private final NormalDistribution normal = new NormalDistribution(0, 1);
     private boolean sellke = false;
     private double r = Double.NaN;
@@ -176,7 +176,6 @@ public final class IndTestFisherZ implements IndependenceTest {
         }
     }
 
-
     public boolean isIndependent(Node x, Node y, Node... z) {
         return isIndependent(x, y, Arrays.asList(z));
     }
@@ -203,7 +202,9 @@ public final class IndTestFisherZ implements IndependenceTest {
         this.r = r;
         double q = 0.5 * (log(1.0 + abs(r)) - log(1.0 - abs(r)));
         double fisherZ = sqrt(n + 3 + z.size()) * q;
-        return 2.0 * (1.0 - normal.cumulativeProbability(abs(fisherZ)));
+        double p = 2.0 * (1.0 - normal.cumulativeProbability(abs(fisherZ)));
+        this.p = p;
+        return p;
     }
 
     //======================PRIVATE==========================//

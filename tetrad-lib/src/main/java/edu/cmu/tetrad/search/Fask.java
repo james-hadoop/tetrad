@@ -312,11 +312,9 @@ public final class Fask implements GraphSearch {
         double sky = skewness(y);
         double r = correlation(x, y);
 
-        // E(x, y | x > 0) - E(x, y | y > 0)
-//        double lr = E(x, y, x) - E(x, y, y);
         double lr = cov(x, y, x)[method] - cov(x, y, y)[method];
 
-        if (signum(skx) * signum(sky) * signum(r) < 0 && (signum(skx) > 0 == signum(sky) > 0)) {
+        if (skx * sky * r < 0 && (skx > 0 == sky > 0)) {
             lr *= -1;
         }
 
