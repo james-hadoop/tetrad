@@ -208,9 +208,12 @@ public final class Fask implements GraphSearch {
 
                 double c = cov(x, y, x)[method] / V;
 
+                double c1 = cov(x, y, x)[1];
+                double c2 = cov(x, y, y)[1];
+
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) ||
                         (initialGraph != null && initialGraph.isAdjacentTo (X, Y))
-                        || abs(c - mean) > thresh) {
+                        || abs(c1 - c2) > skewEdgeThreshold) {//  abs(c - mean) > thresh) {
                     double lrxy = leftRight(x, y, method);
 
                     this.lr = lrxy;
@@ -308,13 +311,17 @@ public final class Fask implements GraphSearch {
     }
 
     private double leftRight(double[] x, double[] y, int method) {
+//        if (true) {
+//            return robustSkew(x, y);
+//        }
+
         double skx = skewness(x);
         double sky = skewness(y);
         double r = correlation(x, y);
 
         double lr = cov(x, y, x)[method] - cov(x, y, y)[method];
 
-        if (skx * sky * r < 0 && (skx > 0 == sky > 0)) {
+        if ((skx > 0 == sky > 0) && r < 0) {
             lr *= -1;
         }
 
@@ -353,40 +360,48 @@ public final class Fask implements GraphSearch {
 //        return exy / n;
 //    }
 
-//    private double robustSkew(double[] x, double[] y) {
-////        if (true) {
-////            x = correctSkewness(x, skewness(x));
-////            y = correctSkewness(y, skewness(y));
-////        }
-//
-//        double rho = correlation(x, y);
-//
-//        x = Arrays.copyOf(x, x.length);
-//        y = Arrays.copyOf(y, y.length);
-//
-//        double[] xx = new double[x.length];
-//
-//        for (int i = 0; i < x.length; i++) {
-//            if (Thread.currentThread().isInterrupted()) {
-//                break;
-//            }
-//
-//            double xi = x[i];
-//            double yi = y[i];
-//
-//            double s1 = (g(xi) * yi) - (xi * g(yi));
-//
-//            xx[i] = s1;
+    private double robustSkew(double[] x, double[] y) {
+//        if (true) {
+//            x = correctSkewness(x, skewness(x));
+//            y = correctSkewness(y, skewness(y));
 //        }
-//
-//        double mxx = mean(xx);
-//
-//        return rho * mxx;
-//    }
 
-//    private double g(double x) {
-//        return Math.log(Math.cosh(Math.max(x, 0)));
-//    }
+        double rho = correlation(x, y);
+
+        x = Arrays.copyOf(x, x.length);
+        y = Arrays.copyOf(y, y.length);
+
+        double[] LR = new double[x.length];
+
+        for (int i = 0; i < x.length; i++) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+
+            double xi = x[i];
+            double yi = y[i];
+
+            double s1 = (g(xi) * yi) - (xi * g(yi));
+
+            LR[i] = s1;
+        }
+
+        double lr = mean(LR);
+
+        double skx = skewness(x);
+        double sky = skewness(y);
+        double r = correlation(x, y);
+
+        if ((skx > 0 == sky > 0) && r < 0) {
+            lr *= -1;
+        }
+
+        return lr;
+    }
+
+    private double g(double x) {
+        return Math.log(Math.cosh(Math.max(x, 0)));
+    }
 
     /**
      * @return The depth of search for the Fast Adjacency Search (FAS).

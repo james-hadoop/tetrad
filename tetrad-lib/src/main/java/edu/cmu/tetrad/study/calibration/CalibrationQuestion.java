@@ -1,14 +1,17 @@
 package edu.cmu.tetrad.study.calibration;
 
+import edu.cmu.tetrad.algcomparison.Comparison;
+import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
+import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
+import edu.cmu.tetrad.algcomparison.simulation.Simulation;
+import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.Fask;
-import edu.cmu.tetrad.search.GraphSearch;
-import edu.cmu.tetrad.search.IndTestFisherZ;
-import edu.cmu.tetrad.search.PcAll;
+import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
@@ -24,16 +27,17 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
+import static edu.cmu.tetrad.graph.GraphUtils.treks;
 import static java.lang.Math.abs;
 
 public class CalibrationQuestion {
 
     public static void main(String... args) {
-        try {
-            scenario8();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+            scenario9();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private static void scenario1() {
@@ -1486,5 +1490,38 @@ public class CalibrationQuestion {
         return sum / (N - 1);
     }
 
+    public static void scenario9() {
+
+        Parameters parameters = new Parameters();
+        parameters.set("numVars", 50);
+        parameters.set("numRuns", 50);
+        parameters.set("averageDegree", 4);
+        parameters.set("errorsNormal", true, false);
+        parameters.set("skewEdgeThreshold", 0.3);
+        parameters.set("colliderDiscoveryRule", 1, 2, 3);
+        parameters.set("faskLinearityAssumed", false);
+        parameters.set("alpha", 0.05);
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new FisherZ()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask(new FisherZ()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LinearFisherModel(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+
+        Comparison comparison = new Comparison();
+        comparison.setShowAlgorithmIndices(true);
+
+        comparison.compareFromSimulations("comparison2", simulations, algorithms, statistics, parameters);
+
+
+
+    }
 
 }
