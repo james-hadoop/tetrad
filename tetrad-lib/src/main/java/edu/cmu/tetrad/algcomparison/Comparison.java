@@ -1744,11 +1744,11 @@ public class Comparison {
                         table.setToken(t + 1, initialColumn + statIndex, "-");
 
                         if (mode == Mode.Average) {
-                            table.setToken(t + 1, 2 + statIndex, "0");
+                            visualizationTable.setToken(t + 1, 2 + statIndex, "0");
                         }
 
                         if (mode == Mode.StandardDeviation) {
-                            table.setToken(t + 1, 2 + statIndex, "0");
+                            visualizationTable.setToken(t + 1, 2 + statIndex, "0");
                         }
                     } else if (stat == Double.POSITIVE_INFINITY) {
                         table.setToken(t + 1, initialColumn + statIndex, "Yes");
