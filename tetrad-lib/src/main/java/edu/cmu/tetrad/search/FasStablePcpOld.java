@@ -31,6 +31,7 @@ import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Implements the "fast adjacency search" used in several causal algorithm in this package. In the fast adjacency
@@ -43,18 +44,13 @@ import java.util.*;
  *
  * @author Joseph Ramsey.
  */
-public class Fas implements IFas {
+public class FasStablePcpOld implements IFas {
 
     /**
      * The search graph. It is assumed going in that all of the true adjacencies of x are in this graph for every node
      * x. It is hoped (i.e. true in the large sample limit) that true adjacencies are never removed.
      */
     private Graph graph;
-
-    /**
-     * The search nodes.
-     */
-    private List<Node> nodes;
 
     /**
      * The independence test. This should be appropriate to the types
@@ -123,24 +119,24 @@ public class Fas implements IFas {
     private boolean verbose = false;
 
     private PrintStream out = System.out;
-    private boolean sepsetsReturnEmptyIfNotFixed;
+
+    private Map<NodePair, List<Double>> P1 = new HashMap<>();
+
+    private Map<NodePair, Set<Object>> I = new HashMap<>();
+
 
     //==========================CONSTRUCTORS=============================//
 
     /**
      * Constructs a new FastAdjacencySearch.
      */
-    public Fas(Graph initialGraph, IndependenceTest test) {
-        if (initialGraph != null) {
-            this.initialGraph = new EdgeListGraph(initialGraph);
-        }
+    public FasStablePcpOld(Graph graph, IndependenceTest test) {
+        this.graph = graph;
         this.test = test;
-        this.nodes = test.getVariables();
     }
 
-    public Fas(IndependenceTest test) {
+    public FasStablePcpOld(IndependenceTest test) {
         this.test = test;
-        this.nodes = test.getVariables();
     }
 
     //==========================PUBLIC METHODS===========================//
@@ -158,8 +154,10 @@ public class Fas implements IFas {
     public Graph search() {
         this.logger.log("info", "Starting Fast Adjacency Search.");
 
+        if (graph == null) graph = new EdgeListGraphSingleConnections(test.getVariables());
+        graph.removeEdges(graph.getEdges());
+
         sepset = new SepsetMap();
-//        sepset.setReturnEmptyIfNotSet(sepsetsReturnEmptyIfNotFixed);
 
         int _depth = depth;
 
@@ -167,7 +165,10 @@ public class Fas implements IFas {
             _depth = 1000;
         }
 
-        Map<Node, Set<Node>> adjacencies = new HashMap<>();
+
+
+        Map<Node, Set<Node>> adjacencies = new ConcurrentHashMap<>();
+        List<Node> nodes = graph.getNodes();
 
         for (Node node : nodes) {
             adjacencies.put(node, new TreeSet<Node>());
@@ -187,22 +188,48 @@ public class Fas implements IFas {
             }
         }
 
-        graph = new EdgeListGraph(nodes);
-
         for (int i = 0; i < nodes.size(); i++) {
             for (int j = i + 1; j < nodes.size(); j++) {
                 Node x = nodes.get(i);
                 Node y = nodes.get(j);
 
-                if (adjacencies.get(x).contains(y)) {
+                if (adjacencies.get(x).contains(y) && !graph.isAdjacentTo(x, y)) {
                     graph.addUndirectedEdge(x, y);
                 }
             }
         }
 
+        for (NodePair key : P1.keySet()) {
+            List<Double> value = P1.get(key);
+            if (value != null && !value.isEmpty()) {
+                double max = max(value);
+                value.clear();
+                value.add(max);
+            }
+
+            insertI(key, new Object());
+        }
+
+//        GraphUtils.checkMarkov(graph, test, depth);
+
         this.logger.log("info", "Finishing Fast Adjacency Search.");
 
         return graph;
+    }
+
+    private void insertI(NodePair key, Object o) {
+        I.computeIfAbsent(key, k -> new HashSet<>());
+        I.get(key).add(o);
+    }
+
+    private double max(List<Double> p) {
+        double max = Double.NEGATIVE_INFINITY;
+
+        for (double d : p) {
+            if (d > max) max = d;
+        }
+
+        return max;
     }
 
     public Map<Node, Set<Node>> searchMapOnly() {
@@ -217,7 +244,8 @@ public class Fas implements IFas {
             _depth = 1000;
         }
 
-        Map<Node, Set<Node>> adjacencies = new HashMap<>();
+
+        Map<Node, Set<Node>> adjacencies = new ConcurrentHashMap<>();
         List<Node> nodes = graph.getNodes();
 
         for (Node node : nodes) {
@@ -314,31 +342,38 @@ public class Fas implements IFas {
 
 
                 if (independent && noEdgeRequired) {
-//                    if (!getSepsets().isReturnEmptyIfNotSet()) {
                     getSepsets().set(x, y, empty);
-//                    }
 
                     if (verbose) {
-                        TetradLogger.getInstance().forceLogMessage(
-                                SearchLogUtils.independenceFact(x, y, empty) + " score = " +
-                                        nf.format(test.getScore()));
-                        out.println(SearchLogUtils.independenceFact(x, y, empty) + " score = " +
-                                nf.format(test.getScore()));
+                        TetradLogger.getInstance().forceLogMessage(SearchLogUtils.independenceFact(x, y, empty) + " p = " +
+                                nf.format(test.getPValue()));
+                        out.println(SearchLogUtils.independenceFact(x, y, empty) + " p = " +
+                                nf.format(test.getPValue()));
                     }
+
+                    nullify(x, y);
 
                 } else if (!forbiddenEdge(x, y)) {
                     adjacencies.get(x).add(y);
                     adjacencies.get(y).add(x);
 
+                    insert(x, y, test.getPValue());
+
+
 //                    if (verbose) {
-//                        TetradLogger.getInstance().log("dependencies", SearchLogUtils.independenceFact(x, y, empty) + " score = " +
-//                                nf.format(test.getScore()));
+//                        TetradLogger.getInstance().log("dependencies", SearchLogUtils.independenceFact(x, y, empty) + " p = " +
+//                                nf.format(test.getPValue()));
 //                    }
                 }
             }
         }
 
         return freeDegree(nodes, adjacencies) > 0;
+    }
+
+    private void insert(Node x, Node y, double p) {
+        getP1().computeIfAbsent(new NodePair(x, y), k -> new ArrayList<>());
+        getP1().get(new NodePair(x, y)).add(p);
     }
 
     private int freeDegree(List<Node> nodes, Map<Node, Set<Node>> adjacencies) {
@@ -366,9 +401,7 @@ public class Fas implements IFas {
 
         if (knowledge.isForbidden(name1, name2) &&
                 knowledge.isForbidden(name2, name1)) {
-//            this.logger.log("edgeRemoved", "Removed " + Edges.undirectedEdge(x, y) + " because it was " +
-//                    "forbidden by background knowledge.");
-            System.out.println(Edges.undirectedEdge(x, y) + " because it was " +
+            this.logger.log("edgeRemoved", "Removed " + Edges.undirectedEdge(x, y) + " because it was " +
                     "forbidden by background knowledge.");
 
             return true;
@@ -380,33 +413,30 @@ public class Fas implements IFas {
     private boolean searchAtDepth(List<Node> nodes, final IndependenceTest test, Map<Node, Set<Node>> adjacencies, int depth) {
         int count = 0;
 
+        final Map<Node, Set<Node>> adjacenciesCopy = new ConcurrentHashMap<>();
+
+        for (Node node : adjacencies.keySet()) {
+            adjacenciesCopy.put(node, new HashSet<>(adjacencies.get(node)));
+        }
+
         for (Node x : nodes) {
             if (verbose) {
                 if (++count % 100 == 0) out.println("count " + count + " of " + nodes.size());
             }
 
-            if (Thread.currentThread().isInterrupted()) {
-                break;
-            }
-
-            List<Node> adjx = new ArrayList<>(adjacencies.get(x));
+            List<Node> adjx = new ArrayList<>(adjacenciesCopy.get(x));
 
             EDGE:
             for (Node y : adjx) {
-                List<Node> _adjx = new ArrayList<>(adjacencies.get(x));
+                List<Node> _adjx = new ArrayList<>(adjx);
                 _adjx.remove(y);
-                List<Node> ppx = possibleParents(x, _adjx, knowledge, y);
-//                ppx.removeAll(graph.getChildren(x));
+                List<Node> ppx = possibleParents(x, _adjx, knowledge);
 
                 if (ppx.size() >= depth) {
                     ChoiceGenerator cg = new ChoiceGenerator(ppx.size(), depth);
                     int[] choice;
 
                     while ((choice = cg.next()) != null) {
-                        if (Thread.currentThread().isInterrupted()) {
-                            break;
-                        }
-
                         if (Thread.currentThread().isInterrupted()) {
                             break;
                         }
@@ -436,14 +466,17 @@ public class Fas implements IFas {
                             adjacencies.get(y).remove(x);
 
                             getSepsets().set(x, y, condSet);
+                            nullify(x, y);
 
                             if (verbose) {
-                                TetradLogger.getInstance().forceLogMessage(SearchLogUtils.independenceFact(x, y, condSet) +
-                                        " score = " + nf.format(test.getScore()));
-                                out.println(SearchLogUtils.independenceFactMsg(x, y, condSet, test.getScore()));
+                                TetradLogger.getInstance().forceLogMessage(SearchLogUtils.independenceFact(x, y, condSet) + " p = " +
+                                        nf.format(test.getPValue()));
+                                out.println(SearchLogUtils.independenceFactMsg(x, y, condSet, test.getPValue()));
                             }
 
                             continue EDGE;
+                        } else {
+                            insert(x, y, test.getPValue());
                         }
                     }
                 }
@@ -453,13 +486,16 @@ public class Fas implements IFas {
         return freeDegree(nodes, adjacencies) > depth;
     }
 
+    private void nullify(Node x, Node y) {
+        getP1().put(new NodePair(x, y), null);
+    }
+
     private List<Node> possibleParents(Node x, List<Node> adjx,
-                                       IKnowledge knowledge, Node y) {
+                                       IKnowledge knowledge) {
         List<Node> possibleParents = new LinkedList<>();
         String _x = x.getName();
 
         for (Node z : adjx) {
-            if (z == y) continue;
             String _z = z.getName();
 
             if (possibleParentOf(_z, _x, knowledge)) {
@@ -492,6 +528,10 @@ public class Fas implements IFas {
 
     public SepsetMap getSepsets() {
         return sepset;
+    }
+
+    public void setInitialGraph(Graph initialGraph) {
+        this.initialGraph = initialGraph;
     }
 
     public boolean isVerbose() {
@@ -546,12 +586,12 @@ public class Fas implements IFas {
         this.out = out;
     }
 
-    public boolean isSepsetsReturnEmptyIfNotFixed() {
-        return sepsetsReturnEmptyIfNotFixed;
+    public Map<NodePair, List<Double>> getP1() {
+        return P1;
     }
 
-    public void setSepsetsReturnEmptyIfNotFixed(boolean sepsetsReturnEmptyIfNotFixed) {
-        this.sepsetsReturnEmptyIfNotFixed = sepsetsReturnEmptyIfNotFixed;
+    public Map<NodePair, Set<Object>> getI() {
+        return I;
     }
 }
 
