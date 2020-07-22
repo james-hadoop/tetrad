@@ -47,14 +47,6 @@ public class Pcp implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             edu.cmu.tetrad.search.Pcp search = new edu.cmu.tetrad.search.Pcp(test.getTest(dataSet, parameters));
             search.setDepth(parameters.getInt(Params.DEPTH));
-            search.setKnowledge(knowledge);
-            search.setVerbose(parameters.getBoolean(Params.VERBOSE));
-
-//            Object obj = parameters.get(Params.PRINT_STREAM);
-//            if (obj instanceof PrintStream) {
-//                search.setOut((PrintStream) obj);
-//            }
-
             return search.search();
         } else {
             Pcp algorithm = new Pcp(test);
@@ -77,11 +69,11 @@ public class Pcp implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
                 case 2:
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
             }
+
             search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
 
             search.setParameters(parameters);
-            search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             return search.search();
         }
     }
