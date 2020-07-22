@@ -56,6 +56,8 @@ import java.util.Set;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 
+import static java.lang.Math.log;
+
 /**
  * Graph utilities for search algorithm. Lots of orientation method, for
  * instance.
@@ -1588,17 +1590,16 @@ public final class SearchGraphUtils {
             final Node y = triple.getY();
             final Node z = triple.getZ();
 
+            if (!graph.isAdjacentTo(x, y)) continue;
+            if (!graph.isAdjacentTo(y, z)) continue;
+
             if (!graph.isAdjacentTo(x, y) || !graph.isAdjacentTo(y, x)) {
                 graph.removeAmbiguousTriple(x, y, z);
                 ambiguousTriples.remove(triple);
-            }
-
-            if (graph.isDefCollider(x, y, z)) {
+            } else if (graph.isDefCollider(x, y, z)) {
                 graph.removeAmbiguousTriple(x, y, z);
                 ambiguousTriples.remove(triple);
-            }
-
-            if (graph.getEdge(x, y).pointsTowards(x) || graph.getEdge(y, z).pointsTowards(z)) {
+            } else if (graph.getEdge(x, y).pointsTowards(x) || graph.getEdge(y, z).pointsTowards(z)) {
                 graph.removeAmbiguousTriple(x, y, z);
                 ambiguousTriples.remove(triple);
             }
@@ -1642,7 +1643,7 @@ public final class SearchGraphUtils {
             Graph dag = chooseDagInPattern(_ePattern);
             double bic = SemBicScorer.scoreDag(dag, dataSet);
 
-            if (bic > bestBIC){
+            if (bic > bestBIC) {
                 bestBIC = bic;
                 out = _ePattern;
             }
@@ -3241,6 +3242,16 @@ public final class SearchGraphUtils {
         }
         return error;
     }
+
+    public static double getSelkeAlpha(double p, double alpha) {
+        if (p == 0) {
+            return 0;
+        } else {
+            return 1.0 / (1.0 + (1.0 / (-alpha * p * log(p))));
+//              alpha = -this.alpha * p * log(p);
+        }
+    }
+
 
     private static class AhdCounts {
 
