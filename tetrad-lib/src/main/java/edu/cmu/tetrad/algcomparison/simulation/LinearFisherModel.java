@@ -11,6 +11,7 @@ import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.RandomUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
@@ -106,7 +107,6 @@ public class LinearFisherModel implements Simulation, TakesData {
 
             if (shocks == null) {
                 dataSet = simulator.simulateDataFisher(
-                        parameters.getInt(Params.INTERVAL_BETWEEN_SHOCKS),
                         parameters.getInt(Params.INTERVAL_BETWEEN_RECORDINGS),
                         parameters.getInt(Params.SAMPLE_SIZE),
                         parameters.getDouble(Params.FISHER_EPSILON),
@@ -117,9 +117,9 @@ public class LinearFisherModel implements Simulation, TakesData {
 
                 dataSet = simulator.simulateDataFisher(
                         _shocks.getDoubleData().toArray(),
-                        parameters.getInt(Params.INTERVAL_BETWEEN_SHOCKS),
-                        parameters.getDouble(Params.FISHER_EPSILON)
-                );
+                        parameters.getInt(Params.INTERVAL_BETWEEN_RECORDINGS),
+                        parameters.getDouble(Params.FISHER_EPSILON),
+                        parameters.getBoolean(Params.SAVE_LATENT_VARS));
             }
 
             double variance = parameters.getDouble(Params.MEASUREMENT_VARIANCE);

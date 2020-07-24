@@ -52,9 +52,9 @@ public final class LargeScaleSimulation {
     private double[][] coefs;
     private double[] errorVars;
     private double[] means;
-    private transient TetradAlgebra algebra;
-    private List<Node> variableNodes;
-    private Graph graph;
+    private final transient TetradAlgebra algebra = new TetradAlgebra();
+    private final List<Node> variableNodes;
+    private final Graph graph;
     private double coefLow = .2;
     private double coefHigh = 1.5;
     private double varLow = 1.0;
@@ -258,7 +258,7 @@ public final class LargeScaleSimulation {
      *                   integer.
      */
     public DataSet simulateDataFisher(int sampleSize) {
-        return simulateDataFisher(getSoCalledPoissonShocks(sampleSize), 50, 1e-5);
+        return simulateDataFisher(getSoCalledPoissonShocks(sampleSize), 50, 1e-5, false);
     }
 
     /**
@@ -272,14 +272,14 @@ public final class LargeScaleSimulation {
      *
      * @param shocks                A matrix of shocks. The value at shocks[i][j] is the shock
      *                              for the i'th time step, for the j'th variables.
-     * @param intervalBetweenShocks External shock is applied every this many
+     * @param intervalBetweenRecordings External shock is applied every this many
      *                              steps. Must be positive integer.
      * @param epsilon               The convergence criterion; |xi.t - xi.t-1| < epsilon.
      */
-    public DataSet simulateDataFisher(double[][] shocks, int intervalBetweenShocks, double epsilon) {
-        if (intervalBetweenShocks < 1) {
+    public DataSet simulateDataFisher(double[][] shocks, int intervalBetweenRecordings, double epsilon, boolean saveLatentVars) {
+        if (intervalBetweenRecordings < 1) {
             throw new IllegalArgumentException(
-                    "Interval between shocks must be >= 1: " + intervalBetweenShocks);
+                    "Interval between shocks must be >= 1: " + intervalBetweenRecordings);
         }
         if (epsilon <= 0.0) {
             throw new IllegalArgumentException(
@@ -287,76 +287,7 @@ public final class LargeScaleSimulation {
         }
 
         int size = variableNodes.size();
-        if (shocks[0].length != size) {
-            throw new IllegalArgumentException("The number of columns in the shocks matrix does not equal "
-                    + "the number of variables.");
-        }
-
-        setupModel(size);
-
-        double[] t1 = new double[variableNodes.size()];
-        double[] t2 = new double[variableNodes.size()];
-        double[][] all = new double[variableNodes.size()][shocks.length];
-
-        // Do the simulation.
-        for (int row = 0; row < shocks.length; row++) {
-            for (int j = 0; j < t1.length; j++) {
-                t2[j] = shocks[row][j];
-            }
-
-            for (int i = 0; i < intervalBetweenShocks; i++) {
-                for (int j = 0; j < t1.length; j++) {
-                    for (int k = 0; k < parents[j].length; k++) {
-                        t2[j] += t1[parents[j][k]] * coefs[j][k];
-                    }
-                }
-
-                boolean converged = true;
-
-                for (int j = 0; j < t1.length; j++) {
-                    if (abs(t2[j] - t1[j]) > epsilon) {
-                        converged = false;
-                        break;
-                    }
-                }
-
-                double[] t3 = t1;
-                t1 = t2;
-                t2 = t3;
-
-                if (converged) {
-                    break;
-                }
-            }
-
-            for (int j = 0; j < t1.length; j++) {
-                all[j][row] = t1[j];
-            }
-        }
-
-        List<Node> continuousVars = new ArrayList<>();
-
-        for (Node node : getVariableNodes()) {
-            final ContinuousVariable var = new ContinuousVariable(node.getName());
-            var.setNodeType(node.getNodeType());
-            continuousVars.add(var);
-        }
-
-        BoxDataSet boxDataSet = new BoxDataSet(new VerticalDoubleDataBox(all), continuousVars);
-        return DataUtils.restrictToMeasured(boxDataSet);
-    }
-
-    public DataSet simulateDataFisher(int intervalBetweenShocks, int intervalBetweenRecordings, int sampleSize, double epsilon, boolean saveLatentVars) {
-        if (intervalBetweenShocks < 1) {
-            throw new IllegalArgumentException(
-                    "Interval between shocks must be >= 1: " + intervalBetweenShocks);
-        }
-        if (epsilon <= 0.0) {
-            throw new IllegalArgumentException(
-                    "Epsilon must be > 0: " + epsilon);
-        }
-
-        int size = variableNodes.size();
+        int sampleSize = shocks.length;
 
         setupModel(size);
 
@@ -365,15 +296,11 @@ public final class LargeScaleSimulation {
         double[][] all = new double[variableNodes.size()][sampleSize];
 
         int s = 0;
-        int shockIndex = 0;
         int recordingIndex = 0;
-        double[] shock = getUncorrelatedShocks(1)[0];
-
-        for (int j = 0; j < t1.length; j++) {
-            t1[j] = shock[j];
-        }
 
         while (s < sampleSize) {
+            double[] shock = shocks[s];
+
             if ((++recordingIndex) % intervalBetweenRecordings == 0) {
                 for (int j = 0; j < t1.length; j++) {
                     all[j][s] += t1[j];
@@ -382,17 +309,8 @@ public final class LargeScaleSimulation {
                 s++;
             }
 
-            if ((++shockIndex) % intervalBetweenShocks == 0) {
-                shock = getUncorrelatedShocks(1)[0];
-
-                for (int j = 0; j < t1.length; j++) {
-                    t1[j] += shock[j];
-                }
-            }
-
             for (int j = 0; j < t1.length; j++) {
                 t2[j] = shock[j];
-                t2[j] += getSelfLoopCoef() * t1[j];
 
                 for (int k = 0; k < parents[j].length; k++) {
                     t2[j] += (t1[parents[j][k]] * coefs[j][k]);
@@ -413,8 +331,13 @@ public final class LargeScaleSimulation {
         }
 
         BoxDataSet boxDataSet = new BoxDataSet(new VerticalDoubleDataBox(all), continuousVars);
-
         return saveLatentVars ? boxDataSet : DataUtils.restrictToMeasured(boxDataSet);
+    }
+
+    public DataSet simulateDataFisher(int intervalBetweenRecordings,
+                                      int sampleSize, double epsilon, boolean saveLatentVars) {
+        return simulateDataFisher(getUncorrelatedShocks(sampleSize),
+                intervalBetweenRecordings, epsilon, saveLatentVars);
     }
 
     private void setupModel(int size) {
@@ -518,10 +441,6 @@ public final class LargeScaleSimulation {
     }
 
     public TetradAlgebra getAlgebra() {
-        if (algebra == null) {
-            algebra = new TetradAlgebra();
-        }
-
         return algebra;
     }
 

@@ -6,7 +6,7 @@ import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
-import edu.cmu.tetrad.algcomparison.simulation.Simulation;
+import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.*;
@@ -27,7 +27,6 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadGraphTxt;
-import static edu.cmu.tetrad.graph.GraphUtils.treks;
 import static java.lang.Math.abs;
 
 public class CalibrationQuestion {
@@ -619,7 +618,7 @@ public class CalibrationQuestion {
 
                     lgs.setErrorsNormal(false);
 
-                    DataSet data = lgs.simulateDataFisher(100, 100, sampleSize, 1e-3, false);
+                    DataSet data = lgs.simulateDataFisher(100, sampleSize, 1e-3, false);
 
                     data = DataUtils.shuffleColumns(data);
 
@@ -1493,14 +1492,25 @@ public class CalibrationQuestion {
     public static void scenario9() {
 
         Parameters parameters = new Parameters();
-        parameters.set("numVars", 50);
+
+        parameters.set("averageDegree", 2);
+        parameters.set("numVars", 10);
         parameters.set("numRuns", 50);
-        parameters.set("averageDegree", 4);
-        parameters.set("errorsNormal", true, false);
+        parameters.set("errorsNormal", false);
         parameters.set("skewEdgeThreshold", 0.3);
+        parameters.set("twoCycleThreshold", 0);
         parameters.set("colliderDiscoveryRule", 1, 2, 3);
         parameters.set("faskLinearityAssumed", false);
-        parameters.set("alpha", 0.05);
+        parameters.set("alpha", 0.01);
+        parameters.set("sampleSise", 1000);
+
+        parameters.set(Params.COEF_LOW, 0.2);
+        parameters.set(Params.COEF_HIGH, .7);
+
+
+        parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 100);
+        parameters.set(Params.INTERVAL_BETWEEN_RECORDINGS, 100);
+
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pcp(new FisherZ()));
@@ -1508,7 +1518,7 @@ public class CalibrationQuestion {
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask(new FisherZ()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new LinearFisherModel(new RandomForward()));
+        simulations.add(new SemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
         statistics.add(new AdjacencyPrecision());
