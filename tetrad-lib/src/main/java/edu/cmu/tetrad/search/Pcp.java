@@ -68,7 +68,7 @@ public class Pcp implements GraphSearch {
     private boolean aggressivelyPreventCycles = false;
 
     // P-values from adjacency search
-    private Map<NodePair, List<Double>> p1 = new HashMap<>();
+    private Map<NodePair, List<Double>> p1 = null;//new HashMap<>();
 
     // P-values from collider orientation
     private final Map<NodePair, Double> p2 = new HashMap<>();
@@ -304,18 +304,37 @@ public class Pcp implements GraphSearch {
                 List<Node> sepset = set.get(x, z);
 
                 if (!sepset.contains(y)) {
-                    graph.removeEdge(x, y);
-                    graph.removeEdge(z, y);
+//                    graph.removeEdge(x, y);
+//                    graph.removeEdge(z, y);
 
-                    graph.addDirectedEdge(x, y);
-                    graph.addDirectedEdge(z, y);
+                    graph.setEndpoint(x, y, Endpoint.ARROW);
+                    graph.setEndpoint(z, y, Endpoint.ARROW);
+
+//                    graph.addDirectedEdge(x, y);
+//                    graph.addDirectedEdge(z, y);
 
                     r0.add(new Triple(x, y, z));
 
                     TetradLogger.getInstance().log("colliderOrientations", SearchLogUtils.colliderOrientedMsg(x, y, z, sepset));
 
                     List<Node> adj = graph.getAdjacentNodes(x);
-                    adj.addAll(graph.getAdjacentNodes(y));
+
+                    for (int i = 0; i <= depth; i++) {
+                        DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), depth);
+                        int[] choice;
+
+                        while ((choice = gen.next()) != null) {
+                            List<Node> c = GraphUtils.asList(choice, adj);
+
+                            // We synchronize so that the p-value of the result of the test is necessarily returned.
+                            synchronized (independenceTest) {
+                                independenceTest.isIndependent(x, z, c);
+                                Ppp.add(independenceTest.getPValue());
+                            }
+                        }
+                    }
+
+                    adj = graph.getAdjacentNodes(z);
 
                     for (int i = 0; i <= depth; i++) {
                         DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), depth);
@@ -334,8 +353,8 @@ public class Pcp implements GraphSearch {
 
                     // Now add all p-values to Ppp that would have been considered by CPC
                     // Node "NodePair" is an unordered pairs of nodes, {X, Y}.
-                    pp.put(new NodePair(z, y), max(p1.get(new NodePair(z, y)), Ppp));
-                    pp.put(new NodePair(x, y), max(p1.get(new NodePair(x, y)), Ppp));
+                    pp.put(new NodePair(z, y), max(p1.get(new NodePair(x, y)), Ppp));
+                    pp.put(new NodePair(x, y), max(p1.get(new NodePair(z, y)), Ppp));
 
                     Ppp.clear();
                 }
@@ -349,6 +368,7 @@ public class Pcp implements GraphSearch {
             if (Edges.isBidirectedEdge(edge)) {
                 graph.removeEdge(edge);
                 graph.addUndirectedEdge(x, y);
+                Amb.add(new NodePair(x, y));
 
                 for (Node parent : graph.getParents(x)) {
                     graph.removeEdge(x, parent);

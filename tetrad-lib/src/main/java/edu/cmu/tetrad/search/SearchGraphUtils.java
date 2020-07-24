@@ -37,7 +37,10 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.Triple;
-import edu.cmu.tetrad.util.*;
+import edu.cmu.tetrad.util.ChoiceGenerator;
+import edu.cmu.tetrad.util.CombinationGenerator;
+import edu.cmu.tetrad.util.StatUtils;
+import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
 import java.text.DecimalFormat;
@@ -53,7 +56,7 @@ import java.util.Set;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 
-import static java.lang.StrictMath.log;
+import static java.lang.Math.log;
 
 /**
  * Graph utilities for search algorithm. Lots of orientation method, for
@@ -1572,12 +1575,7 @@ public final class SearchGraphUtils {
 //                ePattern.addDirectedEdge(z, y);
 //            }
 
-            List<Node> nodes = new ArrayList<>();
-            nodes.add(x);
-            nodes.add(y);
-            nodes.add(z);
-
-            rules.orientImplied(ePattern, nodes);
+            rules.orientImplied(ePattern);
             removeExtraAmbiguousTriples(ePattern, ambiguousTriples);
         }
 
@@ -3560,5 +3558,4 @@ public final class SearchGraphUtils {
 
         throw new IllegalStateException("Can do that that reorientation.");
     }
-
 }
