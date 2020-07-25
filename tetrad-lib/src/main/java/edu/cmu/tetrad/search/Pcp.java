@@ -152,7 +152,7 @@ public class Pcp implements GraphSearch {
         graph = fas.algorithm1();
         sepsets = fas.getSepsets();
 
-        p1 = fas.getP1();
+        this.p1 = fas.getP1();
         I = fas.getI();
 
         // Algorithm 2, orient colliders using sepsets, recording statistics.
@@ -502,7 +502,7 @@ public class Pcp implements GraphSearch {
             }
 
             for (Node d : graph.getParents(b)) {
-                increment(b, c, p2.get(new NodePair(d, b)));
+                increment(b, d, p2.get(new NodePair(d, b)));
             }
 
             changed = direct(b, c, graph);
