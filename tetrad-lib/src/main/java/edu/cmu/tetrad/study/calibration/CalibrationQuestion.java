@@ -1493,10 +1493,10 @@ public class CalibrationQuestion {
 
         Parameters parameters = new Parameters();
 
-        parameters.set("numVars", 20);
-        parameters.set("averageDegree", 2);
-        parameters.set("numRuns", 50);
-        parameters.set("errorsNormal", true);
+        parameters.set("numVars", 50);
+        parameters.set("averageDegree", 4);
+        parameters.set("numRuns", 100);
+        parameters.set("errorsNormal", true, false);
         parameters.set("skewEdgeThreshold", 0.3);
         parameters.set("twoCycleThreshold", 0);
         parameters.set("colliderDiscoveryRule", 1, 2, 3);
@@ -1519,8 +1519,12 @@ public class CalibrationQuestion {
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearFisherModel(new RandomForward()));
+        simulations.add(new SemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
+
+
+        statistics.add(new ParameterColumn("errorsNormal"));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
@@ -1528,6 +1532,7 @@ public class CalibrationQuestion {
 
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
+        comparison.setShowSimulationIndices(true);
 
         comparison.compareFromSimulations("comparison2", simulations, algorithms, statistics, parameters);
 

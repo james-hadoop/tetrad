@@ -1323,17 +1323,11 @@ public final class StatUtils {
     }
 
     public static double[] removeNaN(double[] x1) {
-        int i;
-
-        for (i = 0; i < x1.length; i++) {
-            if (Double.isNaN(x1[i])) {
-                break;
-            }
-        }
-
-        i = i > x1.length ? x1.length : i;
-
-        return Arrays.copyOf(x1, i);
+        List<Double> xx = new ArrayList<>();
+        for (double d : x1) if (!Double.isNaN(d)) xx.add(d);
+        double[] x2 = new double[xx.size()];
+        for (int i = 0; i < xx.size(); i++) x2[i] = xx.get(i);
+        return x2;
     }
 
     /**

@@ -497,12 +497,12 @@ public class Pcp implements GraphSearch {
 
         if (!graph.isAdjacentTo(a, c) && graph.isDirectedFromTo(a, b)
                 && graph.isAdjacentTo(b, c) && doesntPointToward(b, c, graph)) {
-            if (isNotshieldedNoncollider(a, b, c, graph)) {
+            if (!isUnshieldedNoncollider(a, b, c, graph)) {
                 return false;
             }
 
             for (Node d : graph.getParents(b)) {
-                increment(b, d, p2.get(new NodePair(d, b)));
+                set(b, d, p2.get(new NodePair(b, d)));
             }
 
             changed = direct(b, c, graph);
@@ -511,9 +511,12 @@ public class Pcp implements GraphSearch {
         return changed;
     }
 
-    private void increment(Node x, Node y, double pp) {
-        this.pp.putIfAbsent(new NodePair(x, y), 0.0);
-        this.pp.put(new NodePair(x, y), pp);
+    private void set(Node x, Node y, Double pp) {
+        if (pp == null) {
+            this.pp.put(new NodePair(x, y), 0.0);
+        } else {
+            this.pp.put(new NodePair(x, y), pp);
+        }
     }
 
     /**
@@ -557,7 +560,7 @@ public class Pcp implements GraphSearch {
                     double p1 = p2.get(new NodePair(a, d));
                     double p2 = this.p2.get(new NodePair(d, c));
 
-                    increment(a, c, Math.max(p1, p2));
+                    set(a, c, Math.max(p1, p2));
                 }
             }
 
@@ -600,7 +603,7 @@ public class Pcp implements GraphSearch {
                     boolean isKite = isKite(a, d, b, c, graph);
 
                     if (isKite) {
-                        if (isNotshieldedNoncollider(c, d, b, graph)) {
+                        if (!isUnshieldedNoncollider(c, d, b, graph)) {
                             continue;
                         }
 
@@ -609,7 +612,7 @@ public class Pcp implements GraphSearch {
                                 double p1 = max(this.p1.get(new NodePair(d, e)));
                                 double p2 = this.p2.get(new NodePair(e, a));
 
-                                increment(a, c, Math.max(p1, p2));
+                                set(a, c, Math.max(p1, p2));
                             }
                         }
 
@@ -650,8 +653,8 @@ public class Pcp implements GraphSearch {
         return true;
     }
 
-    private static boolean isNotshieldedNoncollider(Node a, Node b, Node c,
-                                                    Graph graph) {
+    private static boolean isUnshieldedNoncollider(Node a, Node b, Node c,
+                                                   Graph graph) {
         if (!graph.isAdjacentTo(a, b)) {
             return true;
         }
@@ -668,8 +671,8 @@ public class Pcp implements GraphSearch {
             return true;
         }
 
-        return graph.getEndpoint(a, b) == Endpoint.ARROW &&
-                graph.getEndpoint(c, b) == Endpoint.ARROW;
+        return !(graph.getEndpoint(a, b) == Endpoint.ARROW &&
+                graph.getEndpoint(c, b) == Endpoint.ARROW);
 
     }
 }
