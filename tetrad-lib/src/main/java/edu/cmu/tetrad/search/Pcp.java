@@ -138,14 +138,69 @@ public class Pcp implements GraphSearch {
             throw new NullPointerException();
         }
 
-        List<Node> allNodes = getIndependenceTest().getVariables();
+//        List<Node> nodes = getIndependenceTest().getVariables();
+//
+//        if (!nodes.containsAll(nodes)) {
+//            throw new IllegalArgumentException("All of the given nodes must " +
+//                    "be in the domain of the independence test provided.");
+//        }
+//
+//         Fast adjacency search, recording some stats. Algorithm 1.
+//        Graph G1 = GraphUtils.completeGraph(new EdgeListGraph(nodes));
+//
+//        Map<OrderedPair<Node>, List<List<Node>>> S = new HashMap<>();
+//        Map<OrderedPair<Node>, Set<Double>> V = new HashMap<>();
+//        Map<OrderedPair<Node>, Double> P1 = new HashMap<>();
+//
+//        int l = -1;
 
-        if (!allNodes.containsAll(nodes)) {
-            throw new IllegalArgumentException("All of the given nodes must " +
-                    "be in the domain of the independence test provided.");
-        }
+//        do {
+//            l = l + 1;
+//            Map<Node, List<Node>> a = new HashMap<>();
+//
+//            for (Node X : nodes) {
+//                List<Node> adj = G1.getAdjacentNodes(X);
+//            }
+//
+//            do {
+//                for (Edge e : G1.getEdges()) {
+//                    Node x = e.getNode1();
+//                    Node y = e.getNode2();
+//
+//                    List<Node> aa = a.get(x);
+//                    aa.remove(y);
+//
+//                    ChoiceGenerator gen = new ChoiceGenerator(aa.size(), l);
+//                    int[] choice;
+//
+//                    while ((choice = gen.next()) != null) {
+//                        List<Node> SS = GraphUtils.asList(choice, aa);
+//
+//                        double p = pvalue(x, y, aa);
+//
+//                        if (p <= independenceTest.getAlpha()) {
+//                            V.computeIfAbsent(new OrderedPair<>(x, y), k -> new HashSet<>());
+//                            V.get(new OrderedPair<>(x, y)).add(p);
+//                        } else {
+//                            G1.removeEdge(e);
+//                            S.computeIfAbsent(new OrderedPair<>(x, y), k -> new HashSet<>());
+//                            S.get(new OrderedPair<>(x, y)).add(SS);
+//                            S.get(new OrderedPair<>(y, x)).add(SS);
+//
+//                            V.get(new OrderedPair<>(x, y)).clear();
+//                            V.get(new OrderedPair<>(y, x)).clear();
+//
+//                            break;
+//                        }
+//                    }
+//                }
+//            } while ().
+//
+//        } while ();
 
-        // Fast adjacency search, recording some stats. Algorithm 1.
+
+
+
 
         fas.setDepth(getDepth());
 
@@ -182,6 +237,13 @@ public class Pcp implements GraphSearch {
         this.elapsedTime = System.currentTimeMillis() - startTime;
 
         return graph;
+    }
+
+    private double pvalue(Node x, Node y, List<Node> aa) {
+        synchronized (independenceTest) {
+            independenceTest.isIndependent(x, y, aa);
+            return independenceTest.getPValue();
+        }
     }
 
 
