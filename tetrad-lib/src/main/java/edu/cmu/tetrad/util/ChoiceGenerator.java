@@ -22,6 +22,8 @@
 package edu.cmu.tetrad.util;
 
 
+import java.util.logging.Logger;
+
 import static edu.cmu.tetrad.util.ProbUtils.lngamma;
 import static java.lang.Math.exp;
 import static java.lang.Math.round;
@@ -85,9 +87,9 @@ public final class ChoiceGenerator {
      * @param b the number of objects in the desired selection.
      */
     public ChoiceGenerator(int a, int b) {
-        if ((a < 0) || (b < 0) || (a < b)) {
-            throw new IllegalArgumentException(
-                    "For 'a choose b', a and b must be " +
+        if ((b < 0) || (a < b)) {
+            TetradLogger.getInstance().forceLogMessage(
+                    "For 'a choose b', a and b should be " +
                             "nonnegative with a >= b: " + "a = " + a +
                             ", b = " + b);
         }
@@ -118,6 +120,8 @@ public final class ChoiceGenerator {
      * finished.
      */
     public synchronized int[] next() {
+        if (a < b || a < 0 || b < 0) return null;
+
         int i = getB();
 
         // Scan from the right for the first index whose value is less than
