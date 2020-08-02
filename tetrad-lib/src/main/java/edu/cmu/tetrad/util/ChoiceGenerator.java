@@ -87,39 +87,32 @@ public final class ChoiceGenerator {
      * @param b the number of objects in the desired selection.
      */
     public ChoiceGenerator(int a, int b) {
-//        if ((b < 0) || (a < b)) {
-//            throw new RuntimeException(
-//                    "For 'a choose b', a and b should be " +
-//                            "nonnegative with a >= b: " + "a = " + a +
-//                            ", b = " + b);
-//        }
-
-        if (a >= 0 && b >= 0 && a >= b) {
-
-            this.a = a;
-            this.b = b;
-            choiceLocal = new int[b];
-            choiceReturned = new int[b];
-            diff = a - b;
-
-            // Initialize the choice array with successive integers [0 1 2 ...].
-            // Set the value at the last index one less than it would be in such
-            // a series, ([0 1 2 ... b - 2]) so that on the first call to next()
-            // the first combination ([0 1 2 ... b - 1]) is returned correctly.
-            for (int i = 0; i < b - 1; i++) {
-                choiceLocal[i] = i;
-            }
-
-            if (b > 0) {
-                choiceLocal[b - 1] = b - 2;
-            }
-
-            begun = false;
-
-        } else {
-            choiceReturned = new int[0];
+        if ((b < 0) || (a < b)) {
+            TetradLogger.getInstance().forceLogMessage(
+                    "For 'a choose b', a and b should be " +
+                            "nonnegative with a >= b: " + "a = " + a +
+                            ", b = " + b);
         }
 
+        this.a = a;
+        this.b = b;
+        choiceLocal = new int[b];
+        choiceReturned = new int[b];
+        diff = a - b;
+
+        // Initialize the choice array with successive integers [0 1 2 ...].
+        // Set the value at the last index one less than it would be in such
+        // a series, ([0 1 2 ... b - 2]) so that on the first call to next()
+        // the first combination ([0 1 2 ... b - 1]) is returned correctly.
+        for (int i = 0; i < b - 1; i++) {
+            choiceLocal[i] = i;
+        }
+
+        if (b > 0) {
+            choiceLocal[b - 1] = b - 2;
+        }
+
+        begun = false;
     }
 
     /**
@@ -150,14 +143,9 @@ public final class ChoiceGenerator {
         if (this.begun) {
             return null;
         } else {
-            try {
-                begun = true;
-                System.arraycopy(choiceLocal, 0, choiceReturned, 0, b);
-                return choiceReturned;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return choiceReturned;
-            }
+            begun = true;
+            System.arraycopy(choiceLocal, 0, choiceReturned, 0, b);
+            return choiceReturned;
         }
     }
 
