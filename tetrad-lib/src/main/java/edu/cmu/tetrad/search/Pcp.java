@@ -24,7 +24,6 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
-import edu.cmu.tetrad.util.TetradLogger;
 
 import java.util.*;
 
@@ -120,11 +119,11 @@ public class Pcp implements GraphSearch {
                 a.put(X, adj);
             }
 
-            for (Edge e : G1.getEdges()) {
+            for (Edge e : new HashSet<>(G1.getEdges())) {
                 Node x = e.getNode1();
                 Node y = e.getNode2();
 
-                List<Node> aa = new ArrayList<Node>(a.get(x));
+                List<Node> aa = new ArrayList<>(a.get(x));
                 aa.remove(y);
 
                 if (aa.size() < l) continue;
@@ -135,7 +134,7 @@ public class Pcp implements GraphSearch {
                 while ((choice = gen.next()) != null) {
                     List<Node> SS = GraphUtils.asList(choice, aa);
 
-                    double p = pvalue(x, y, aa);
+                    double p = pvalue(x, y, SS);
 
                     if (p <= alpha) {
                         addP(Vp, x, y, p);
@@ -150,7 +149,7 @@ public class Pcp implements GraphSearch {
                     }
                 }
             }
-        } while (degree(G1) - 1 >= l);
+        } while (degree(G1) >= l + 2);
 
         for (OrderedPair<Node> pair : new HashSet<>(Vp.keySet())) {
             if (!Vp.get(pair).isEmpty()) {
@@ -213,7 +212,7 @@ public class Pcp implements GraphSearch {
 
                 List<Node> adjy = graph.getAdjacentNodes(x);
 
-                DepthChoiceGenerator geny = new DepthChoiceGenerator(adjx.size(), adjx.size());
+                DepthChoiceGenerator geny = new DepthChoiceGenerator(adjy.size(), adjy.size());
                 int[] choicey;
 
                 while ((choicey = geny.next()) != null) {
@@ -262,12 +261,16 @@ public class Pcp implements GraphSearch {
         return G1;
     }
 
-    private void addRecord(List<List<Node>> R, Node x, Node y, Node z) {
+    private void addRecord(List<List<Node>> R, Node...x) {
         List<Node> l = new ArrayList<>();
-        l.add(x);
-        l.add(y);
-        l.add(z);
+        Collections.addAll(l, x);
         R.add(l);
+    }
+
+    private boolean existsRecord(List<List<Node>> R, Node...x) {
+        List<Node> l = new ArrayList<>();
+        Collections.addAll(l, x);
+        return R.contains(l);
     }
 
     private Graph completeGraph(List<Node> nodes) {
