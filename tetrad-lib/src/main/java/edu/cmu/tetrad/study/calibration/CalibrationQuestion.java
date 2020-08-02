@@ -33,7 +33,7 @@ public class CalibrationQuestion {
 
     public static void main(String... args) {
 //        try {
-            scenario9();
+        scenario9();
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
@@ -1186,7 +1186,7 @@ public class CalibrationQuestion {
 
                 Fask fask = new Fask(dataSet, g);
                 fask.setTwoCycleThreshold(0);
-                fask.setLinearityAssumed(true  );
+                fask.setLinearityAssumed(true);
                 fask.setUseFasAdjacencies(false);
                 fask.setSkewEdgeThreshold(0.0);
                 Graph out = fask.search();
@@ -1493,19 +1493,22 @@ public class CalibrationQuestion {
 
         Parameters parameters = new Parameters();
 
-        parameters.set("numVars", 50);
-        parameters.set("averageDegree", 4);
-        parameters.set("numRuns", 100);
-        parameters.set("errorsNormal", true, false);
-        parameters.set("skewEdgeThreshold", 0.3);
-        parameters.set("twoCycleThreshold", 0);
-        parameters.set("colliderDiscoveryRule", 1, 2, 3);
-        parameters.set("faskLinearityAssumed", false);
-        parameters.set("alpha", 0.01);
-        parameters.set("sampleSise", 1000);
+        parameters.set(Params.NUM_MEASURES, 50);
+        parameters.set(Params.AVG_DEGREE, 4);
+        parameters.set(Params.NUM_RUNS, 10);
+//        parameters.set(Params.DEPTH, 3);
+        parameters.set(Params.ERRORS_NORMAL, true, false);
+        parameters.set(Params.SKEW_EDGE_THRESHOLD, 0.3);
+        parameters.set(Params.TWO_CYCLE_THRESHOLD, 0);
+        parameters.set(Params.COLLIDER_DISCOVERY_RULE, 1, 2, 3);
+        parameters.set(Params.FASK_LINEARITY_ASSUMED, false);
+        parameters.set(Params.ALPHA, 0.01);
+        parameters.set(Params.SAMPLE_SIZE, 1000);
 
         parameters.set(Params.COEF_LOW, 0.2);
         parameters.set(Params.COEF_HIGH, .7);
+        parameters.set(Params.VAR_LOW, 1);
+        parameters.set(Params.VAR_HIGH, 3);
 
 
         parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 100);
@@ -1514,15 +1517,14 @@ public class CalibrationQuestion {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pcp(new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask(new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask(new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearFisherModel(new RandomForward()));
         simulations.add(new SemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
-
 
         statistics.add(new ParameterColumn("errorsNormal"));
         statistics.add(new AdjacencyPrecision());
@@ -1535,7 +1537,6 @@ public class CalibrationQuestion {
         comparison.setShowSimulationIndices(true);
 
         comparison.compareFromSimulations("comparison2", simulations, algorithms, statistics, parameters);
-
 
 
     }
