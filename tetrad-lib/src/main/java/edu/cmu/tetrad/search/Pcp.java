@@ -27,6 +27,8 @@ import edu.cmu.tetrad.util.DepthChoiceGenerator;
 
 import java.util.*;
 
+import static java.util.Collections.addAll;
+
 /**
  * Implements the PCP algorithm. The original idea fior this was due to Eric Strobl and significantly revised by '
  * Wayne Lam and Peter Spirtes.
@@ -258,18 +260,18 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        return G1;
+        return G2;
     }
 
     private void addRecord(List<List<Node>> R, Node...x) {
         List<Node> l = new ArrayList<>();
-        Collections.addAll(l, x);
+        addAll(l, x);
         R.add(l);
     }
 
     private boolean existsRecord(List<List<Node>> R, Node...x) {
         List<Node> l = new ArrayList<>();
-        Collections.addAll(l, x);
+        addAll(l, x);
         return R.contains(l);
     }
 
@@ -291,7 +293,7 @@ public class Pcp implements GraphSearch {
         v.get(new OrderedPair<>(x, y)).add(p);
     }
 
-    private void setP(Map<OrderedPair<Node>, Double> V, OrderedPair pair, double p) {
+    private void setP(Map<OrderedPair<Node>, Double> V, OrderedPair<Node> pair, double p) {
         V.put(pair, p);
     }
 

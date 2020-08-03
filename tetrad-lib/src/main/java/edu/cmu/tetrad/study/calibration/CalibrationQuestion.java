@@ -1502,13 +1502,13 @@ public class CalibrationQuestion {
         parameters.set(Params.TWO_CYCLE_THRESHOLD, 0);
         parameters.set(Params.COLLIDER_DISCOVERY_RULE, 1, 2, 3);
         parameters.set(Params.FASK_LINEARITY_ASSUMED, false);
-        parameters.set(Params.ALPHA, 0.01);
+        parameters.set(Params.ALPHA, 0.001);
         parameters.set(Params.SAMPLE_SIZE, 1000);
 
         parameters.set(Params.COEF_LOW, 0.2);
-        parameters.set(Params.COEF_HIGH, .7);
+        parameters.set(Params.COEF_HIGH, 1.5);
         parameters.set(Params.VAR_LOW, 1);
-        parameters.set(Params.VAR_HIGH, 3);
+        parameters.set(Params.VAR_HIGH, 2);
 
 
         parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 100);
