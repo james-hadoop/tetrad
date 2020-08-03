@@ -104,7 +104,7 @@ public class Pcp implements GraphSearch {
         Graph G1 = completeGraph(nodes);
 
         Map<OrderedPair<Node>, List<Node>> S = new HashMap<>();
-        Map<OrderedPair<Node>, Set<Double>> Vp = new HashMap<>();
+        Map<OrderedPair<Node>, Set<Double>> V = new HashMap<>();
         Map<OrderedPair<Node>, Double> P1 = new HashMap<>();
 
         int l = -1;
@@ -119,43 +119,45 @@ public class Pcp implements GraphSearch {
                 a.put(X, adj);
             }
 
-            for (Edge e : new HashSet<>(G1.getEdges())) {
-                Node x = e.getNode1();
-                Node y = e.getNode2();
+            for (int i = 0; i < nodes.size(); i++) {
+                Node x = nodes.get(i);
 
-                List<Node> aa = new ArrayList<>(a.get(x));
-                aa.remove(y);
+                for (Node y : a.get(x)) {
 
-                if (aa.size() < l) continue;
+                    List<Node> aa = new ArrayList<>(a.get(x));
+                    aa.remove(y);
 
-                ChoiceGenerator gen = new ChoiceGenerator(aa.size(), l);
-                int[] choice;
+                    if (aa.size() < l) continue;
 
-                while ((choice = gen.next()) != null) {
-                    List<Node> SS = GraphUtils.asList(choice, aa);
+                    ChoiceGenerator gen = new ChoiceGenerator(aa.size(), l);
+                    int[] choice;
 
-                    double p = pvalue(x, y, SS);
+                    while ((choice = gen.next()) != null) {
+                        List<Node> SS = GraphUtils.asList(choice, aa);
 
-                    if (p <= alpha) {
-                        addP(Vp, x, y, p);
-                        addP(Vp, y, x, p);
-                    } else {
-                        G1.removeEdge(e);
-                        setList(S, x, y, SS);
-                        setList(S, y, x, SS);
-                        clear(Vp, x, y);
-                        clear(Vp, y, x);
-                        break;
+                        double p = pvalue(x, y, SS);
+
+                        if (p <= alpha) {
+                            addP(V, x, y, p);
+                            addP(V, y, x, p);
+                        } else {
+                            G1.removeEdge(x, y);
+                            setList(S, x, y, SS);
+                            setList(S, y, x, SS);
+                            clear(V, x, y);
+                            clear(V, y, x);
+                            break;
+                        }
                     }
                 }
             }
         } while (degree(G1) >= l + 2);
 
-        for (OrderedPair<Node> pair : new HashSet<>(Vp.keySet())) {
-            if (!Vp.get(pair).isEmpty()) {
-                setP(P1, pair, max(Vp.get(pair)));
+        for (OrderedPair<Node> pair : new HashSet<>(V.keySet())) {
+            if (!V.get(pair).isEmpty()) {
+                setP(P1, pair, max(V.get(pair)));
             } else {
-                Vp.remove(pair);
+                V.remove(pair);
             }
         }
 
@@ -164,6 +166,7 @@ public class Pcp implements GraphSearch {
         // algorithm 2
 
         Set<Triple> ut = new HashSet<>();
+        Map<OrderedPair<Node>, Set<Double>> Vp = new HashMap<>();
 
         for (Node y : nodes) {
             List<Node> adj = G1.getAdjacentNodes(y);
@@ -228,46 +231,49 @@ public class Pcp implements GraphSearch {
 
         // unorientation procedure for A2
         Graph G2 = new EdgeListGraph(G1);
+        List<List<Node>> amb = new ArrayList<>();
 
         for (Edge edge : G1.getEdges()) {
+            if (!Edges.isBidirectedEdge(edge)) continue;
+
             Node x = edge.getNode1();
             Node y = edge.getNode2();
 
             List<Node> intox = G1.getNodesInTo(x, Endpoint.ARROW);
             for (Node w : intox) {
-                if (G1.getEndpoint(x, w) == Endpoint.CIRCLE) {
-                    G2.removeEdge(x, w);
-                    G2.addUndirectedEdge(x, w);
-                }
+                G2.removeEdge(x, w);
+                G2.addUndirectedEdge(x, w);
+                addRecord(amb, w, x);
+                addRecord(amb, x, w);
             }
 
             List<Node> intoy = G1.getNodesInTo(y, Endpoint.ARROW);
             for (Node w : intoy) {
-                if (G1.getEndpoint(y, w) == Endpoint.CIRCLE) {
-                    G2.removeEdge(y, w);
-                    G2.addUndirectedEdge(y, w);
-                }
+                G2.removeEdge(y, w);
+                G2.addUndirectedEdge(y, w);
+                addRecord(amb, w, y);
+                addRecord(amb, y, w);
             }
 
             for (Edge edgexy : graph.getEdges()) {
                 if (!Edges.isDirectedEdge(edgexy)) continue;
 
                 if (edgexy.pointsTowards(y)) {
-                    setP(P2, new OrderedPair<>(x, y), sum(Vp.get(new OrderedPair<>(x, y))));
+                    setP(P2, new OrderedPair<>(x, y), sum(V.get(new OrderedPair<>(x, y))));
                 }
             }
         }
 
-        return G1;
+        return G2;
     }
 
-    private void addRecord(List<List<Node>> R, Node...x) {
+    private void addRecord(List<List<Node>> R, Node... x) {
         List<Node> l = new ArrayList<>();
         Collections.addAll(l, x);
         R.add(l);
     }
 
-    private boolean existsRecord(List<List<Node>> R, Node...x) {
+    private boolean existsRecord(List<List<Node>> R, Node... x) {
         List<Node> l = new ArrayList<>();
         Collections.addAll(l, x);
         return R.contains(l);
