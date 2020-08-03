@@ -27,8 +27,6 @@ import edu.cmu.tetrad.util.DepthChoiceGenerator;
 
 import java.util.*;
 
-import static java.util.Collections.addAll;
-
 /**
  * Implements the PCP algorithm. The original idea fior this was due to Eric Strobl and significantly revised by '
  * Wayne Lam and Peter Spirtes.
@@ -106,7 +104,7 @@ public class Pcp implements GraphSearch {
         Graph G1 = completeGraph(nodes);
 
         Map<OrderedPair<Node>, List<Node>> S = new HashMap<>();
-        Map<OrderedPair<Node>, Set<Double>> Vp = new HashMap<>();
+        Map<OrderedPair<Node>, Set<Double>> V = new HashMap<>();
         Map<OrderedPair<Node>, Double> P1 = new HashMap<>();
 
         int l = -1;
@@ -114,54 +112,52 @@ public class Pcp implements GraphSearch {
         do {
             l = l + 1;
 
-            Map<Node, List<Node>> A = new HashMap<>();
+            Map<Node, List<Node>> a = new HashMap<>();
 
             for (Node X : nodes) {
                 List<Node> adj = G1.getAdjacentNodes(X);
-                A.put(X, adj);
+                a.put(X, adj);
             }
 
-            for (Edge e : new HashSet<>(G1.getEdges())) {
-                Node x = e.getNode1();
-                Node y = e.getNode2();
+            for (int i = 0; i < nodes.size(); i++) {
+                Node x = nodes.get(i);
 
-                List<Node> a = new ArrayList<>(A.get(x));
-                a.remove(y);
+                for (Node y : a.get(x)) {
 
-                if (a.size() < l) continue;
+                    List<Node> aa = new ArrayList<>(a.get(x));
+                    aa.remove(y);
 
-                ChoiceGenerator gen = new ChoiceGenerator(a.size(), l);
-                int[] choice;
+                    if (aa.size() < l) continue;
 
-                while ((choice = gen.next()) != null) {
-                    List<Node> aChoice = GraphUtils.asList(choice, a);
+                    ChoiceGenerator gen = new ChoiceGenerator(aa.size(), l);
+                    int[] choice;
 
-                    double p = pvalue(x, y, aChoice);
+                    while ((choice = gen.next()) != null) {
+                        List<Node> SS = GraphUtils.asList(choice, aa);
 
-                    if (p <= alpha) {
-                        addP(Vp, x, y, p);
-                        addP(Vp, y, x, p);
-                    } else {
-                        G1.removeEdge(e);
-                        setList(S, x, y, aChoice);
-                        setList(S, y, x, aChoice);
-                        clear(Vp, x, y);
-                        clear(Vp, y, x);
-                        break;
+                        double p = pvalue(x, y, SS);
+
+                        if (p <= alpha) {
+                            addP(V, x, y, p);
+                            addP(V, y, x, p);
+                        } else {
+                            G1.removeEdge(x, y);
+                            setList(S, x, y, SS);
+                            setList(S, y, x, SS);
+                            clear(V, x, y);
+                            clear(V, y, x);
+                            break;
+                        }
                     }
                 }
             }
         } while (degree(G1) >= l + 2);
 
-        Set<Triple> ut = getUT(G1);
-
-        maxPAdjustment(G1, S, Vp, ut);
-
-        for (OrderedPair<Node> pair : new HashSet<>(Vp.keySet())) {
-            if (!Vp.get(pair).isEmpty()) {
-                setP(P1, pair, max(Vp.get(pair)));
+        for (OrderedPair<Node> pair : new HashSet<>(V.keySet())) {
+            if (!V.get(pair).isEmpty()) {
+                setP(P1, pair, max(V.get(pair)));
             } else {
-                Vp.remove(pair);
+                V.remove(pair);
             }
         }
 
@@ -169,6 +165,25 @@ public class Pcp implements GraphSearch {
 
         // algorithm 2
 
+        Set<Triple> ut = new HashSet<>();
+        Map<OrderedPair<Node>, Set<Double>> Vp = new HashMap<>();
+
+        for (Node y : nodes) {
+            List<Node> adj = G1.getAdjacentNodes(y);
+
+            if (adj.size() < 2) continue;
+
+            ChoiceGenerator gen = new ChoiceGenerator(adj.size(), 2);
+            int[] choice;
+
+            while ((choice = gen.next()) != null) {
+                Node x = adj.get(choice[0]);
+                Node z = adj.get(choice[1]);
+
+                if (G1.isAdjacentTo(x, z)) continue;
+                ut.add(new Triple(x, y, z));
+            }
+        }
 
         Map<OrderedPair<Node>, Double> P2 = new HashMap<>();
         List<List<Node>> R0 = new ArrayList<>();
@@ -214,36 +229,37 @@ public class Pcp implements GraphSearch {
             }
         }
 
-//        if (true) return G1;
-
         // unorientation procedure for A2
         Graph G2 = new EdgeListGraph(G1);
+        List<List<Node>> amb = new ArrayList<>();
 
         for (Edge edge : G1.getEdges()) {
+            if (!Edges.isBidirectedEdge(edge)) continue;
+
             Node x = edge.getNode1();
             Node y = edge.getNode2();
 
             List<Node> intox = G1.getNodesInTo(x, Endpoint.ARROW);
             for (Node w : intox) {
-                if (G1.getEndpoint(x, w) == Endpoint.CIRCLE) {
-                    G2.removeEdge(x, w);
-                    G2.addUndirectedEdge(x, w);
-                }
+                G2.removeEdge(x, w);
+                G2.addUndirectedEdge(x, w);
+                addRecord(amb, w, x);
+                addRecord(amb, x, w);
             }
 
             List<Node> intoy = G1.getNodesInTo(y, Endpoint.ARROW);
             for (Node w : intoy) {
-                if (G1.getEndpoint(y, w) == Endpoint.CIRCLE) {
-                    G2.removeEdge(y, w);
-                    G2.addUndirectedEdge(y, w);
-                }
+                G2.removeEdge(y, w);
+                G2.addUndirectedEdge(y, w);
+                addRecord(amb, w, y);
+                addRecord(amb, y, w);
             }
 
             for (Edge edgexy : graph.getEdges()) {
                 if (!Edges.isDirectedEdge(edgexy)) continue;
 
                 if (edgexy.pointsTowards(y)) {
-                    setP(P2, new OrderedPair<>(x, y), sum(Vp.get(new OrderedPair<>(x, y))));
+                    setP(P2, new OrderedPair<>(x, y), sum(V.get(new OrderedPair<>(x, y))));
                 }
             }
         }
@@ -251,88 +267,15 @@ public class Pcp implements GraphSearch {
         return G2;
     }
 
-    private Set<Triple> getUT(Graph G) {
-        List<Node> nodes = G.getNodes();
-
-        Set<Triple> ut = new HashSet<>();
-
-        for (Node y : nodes) {
-            List<Node> adj = G.getAdjacentNodes(y);
-
-            if (adj.size() < 2) continue;
-
-            ChoiceGenerator gen = new ChoiceGenerator(adj.size(), 2);
-            int[] choice;
-
-            while ((choice = gen.next()) != null) {
-                Node x = adj.get(choice[0]);
-                Node z = adj.get(choice[1]);
-
-                if (G.isAdjacentTo(x, z)) continue;
-                ut.add(new Triple(x, y, z));
-            }
-        }
-        return ut;
-    }
-
-    private void maxPAdjustment(Graph g1, Map<OrderedPair<Node>, List<Node>> s, Map<OrderedPair<Node>, Set<Double>> vp, Set<Triple> ut) {
-        for (Triple triple : ut) {
-            Node x = triple.getX();
-            Node z = triple.getZ();
-
-            List<Node> ax = new ArrayList<>(g1.getAdjacentNodes(x));
-            ax.remove(z);
-
-            double maxp = max(vp.get(new OrderedPair<>(x, z)));
-
-            DepthChoiceGenerator gen = new DepthChoiceGenerator(ax.size(), ax.size());
-            int[] choicex;
-
-            while ((choicex = gen.next()) != null) {
-                List<Node> aChoice = GraphUtils.asList(choicex, ax);
-
-                double p = pvalue(x, z, aChoice);
-
-                addP(vp, x, z, p);
-
-                if (p >= maxp) {
-                    setList(s, x, z, aChoice);
-                    setList(s, z, x, aChoice);
-                    maxp = p;
-                }
-            }
-
-            List<Node> az = new ArrayList<>(g1.getAdjacentNodes(z));
-            az.remove(x);
-
-            DepthChoiceGenerator genz = new DepthChoiceGenerator(az.size(), az.size());
-            int[] choicez;
-
-            while ((choicez = genz.next()) != null) {
-                List<Node> aChoice = GraphUtils.asList(choicez, az);
-
-                double p = pvalue(x, z, aChoice);
-
-                addP(vp, x, z, p);
-
-                if (p >= maxp) {
-                    setList(s, x, z, aChoice);
-                    setList(s, z, x, aChoice);
-                    maxp = p;
-                }
-            }
-        }
-    }
-
     private void addRecord(List<List<Node>> R, Node... x) {
         List<Node> l = new ArrayList<>();
-        addAll(l, x);
+        Collections.addAll(l, x);
         R.add(l);
     }
 
     private boolean existsRecord(List<List<Node>> R, Node... x) {
         List<Node> l = new ArrayList<>();
-        addAll(l, x);
+        Collections.addAll(l, x);
         return R.contains(l);
     }
 
@@ -354,7 +297,7 @@ public class Pcp implements GraphSearch {
         v.get(new OrderedPair<>(x, y)).add(p);
     }
 
-    private void setP(Map<OrderedPair<Node>, Double> V, OrderedPair<Node> pair, double p) {
+    private void setP(Map<OrderedPair<Node>, Double> V, OrderedPair pair, double p) {
         V.put(pair, p);
     }
 

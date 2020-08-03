@@ -263,7 +263,7 @@ public class MeekRulesPcp implements ImpliedOrientation {
 
             if (isArrowpointAllowed(b, c, knowledge)) {
                 for (Node d : graph.getParents(b)) {
-                    increment(b, c, P2.get(new NodePair(d, b)));
+                    increment(b, d, P2.get(new NodePair(d, b)));
                 }
 
                 direct(b, c, graph);
