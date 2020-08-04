@@ -43,24 +43,9 @@ public class Pcp implements GraphSearch {
     private final IndependenceTest independenceTest;
 
     /**
-     * Sepset information accumulated in the search.
-     */
-    private SepsetMap sepsets;
-
-    /**
      * The maximum number of nodes conditioned on in the search. The default it 1000.
      */
     private int depth = 1000;
-
-    /**
-     * The graph that's constructed during the search.
-     */
-    private Graph graph;
-
-    /**
-     * Elapsed time of the most recent search.
-     */
-    private long elapsedTime;
 
     /**
      * True if cycles are to be aggressively prevented. May be expensive for large graphs (but also useful for large
@@ -111,7 +96,7 @@ public class Pcp implements GraphSearch {
 
         int l = -1;
 
-        do {
+        while (degree(G1) - 1 >= l) {
             l = l + 1;
 
             Map<Node, List<Node>> a = new HashMap<>();
@@ -123,7 +108,6 @@ public class Pcp implements GraphSearch {
 
             for (Node x : nodes) {
                 for (Node y : a.get(x)) {
-
                     List<Node> aa = new ArrayList<>(a.get(x));
                     aa.remove(y);
 
@@ -151,70 +135,53 @@ public class Pcp implements GraphSearch {
                     }
                 }
             }
-        } while (degree(G1) >= l + 2);
+        }
 
         for (OrderedPair<Node> pair : new HashSet<>(V.keySet())) {
             if (!V.get(pair).isEmpty()) {
                 setP(P1, pair, max(V.get(pair)));
             } else {
-                V.remove(pair);
+                P1.remove(pair);
             }
         }
 
-        this.graph = G1;
-
         // algorithm 2
 
-        List<List<Node>> ut = getUT(G1);
-        Map<OrderedPair<Node>, Set<Double>> Vp = new HashMap<>();
-
-        Map<OrderedPair<Node>, Double> P2 = new HashMap<>();
         List<List<Node>> R0 = new ArrayList<>();
+        Set<Double> T = new HashSet<>();
+        Map<OrderedPair<Node>, Set<Double>> Tp = new HashMap<>();
+        Map<OrderedPair<Node>, Double> P2 = new HashMap<>();
+        List<List<Node>> amb = new ArrayList<>();
+        List<Triple> ut = getUT(G1);
 
-        for (List<Node> list : ut) {
-            Node x = list.get(0);
-            Node y = list.get(1);
-            Node z = list.get(2);
+        for (Triple triple : ut) {
+            Node x = triple.getX();
+            Node y = triple.getY();
+            Node z = triple.getZ();
 
-            List<Double> _V = new ArrayList<>();
+            if (G1.isAdjacentTo(x, z)) continue;
 
             if (!S.get(new OrderedPair<>(x, z)).contains(y)) {
-                graph.setEndpoint(x, y, Endpoint.ARROW);
-                graph.setEndpoint(z, y, Endpoint.ARROW);
+                G1.setEndpoint(x, y, Endpoint.ARROW);
+                G1.setEndpoint(z, y, Endpoint.ARROW);
 
                 addRecord(R0, x, y, z);
                 addRecord(R0, z, y, x);
 
-                List<Node> adjx = graph.getAdjacentNodes(x);
+                List<List<Node>> c = getC(x, z, G1);
 
-                DepthChoiceGenerator genx = new DepthChoiceGenerator(adjx.size(), adjx.size());
-                int[] choicex;
-
-                while ((choicex = genx.next()) != null) {
-                    List<Node> cond = GraphUtils.asList(choicex, adjx);
-                    double px = pvalue(x, z, cond);
-                    _V.add(px);
+                for (List<Node> cond : c) {
+                    double p = pvalue(x, z, cond);
+                    T.add(p);
                 }
 
-                List<Node> adjy = graph.getAdjacentNodes(x);
-
-                DepthChoiceGenerator geny = new DepthChoiceGenerator(adjy.size(), adjy.size());
-                int[] choicey;
-
-                while ((choicey = geny.next()) != null) {
-                    List<Node> cond = GraphUtils.asList(choicey, adjy);
-                    double px = pvalue(x, z, cond);
-                    _V.add(px);
-                }
-
-                addP(Vp, z, y, max(P1.get(new OrderedPair<>(x, y)), max(_V)));
-                addP(Vp, x, y, max(P1.get(new OrderedPair<>(z, y)), max(_V)));
+                addP(Tp, z, y, max(P1.get(new OrderedPair<>(x, y)), max(T)));
+                addP(Tp, x, y, max(P1.get(new OrderedPair<>(z, y)), max(T)));
             }
         }
 
         // unorientation procedure for A2
         Graph G2 = new EdgeListGraph(G1);
-        List<List<Node>> amb = new ArrayList<>();
 
         for (Edge edge : G1.getEdges()) {
             if (!Edges.isBidirectedEdge(edge)) continue;
@@ -238,11 +205,11 @@ public class Pcp implements GraphSearch {
                 addRecord(amb, y, w);
             }
 
-            for (Edge edgexy : graph.getEdges()) {
+            for (Edge edgexy : G1.getEdges()) {
                 if (!Edges.isDirectedEdge(edgexy)) continue;
 
                 if (edgexy.pointsTowards(y)) {
-                    setP(P2, new OrderedPair<>(x, y), sum(V.get(new OrderedPair<>(x, y))));
+                    setP(P2, new OrderedPair<>(x, y), sum(Tp.get(new OrderedPair<>(x, y))));
                 }
             }
         }
@@ -260,16 +227,17 @@ public class Pcp implements GraphSearch {
         while (loop) {
             loop = false;
 
-            for (List<Node> list : ut) {
-                Node x = list.get(0);
-                Node y = list.get(1);
-                Node z = list.get(2);
+            for (Triple triple : ut) {
+                Node x = triple.getX();
+                Node y = triple.getY();
+                Node z = triple.getZ();
 
                 if (G2.containsEdge(Edges.directedEdge(x, y))
                         && !existsRecord(amb, y, z)
                         && !existsRecord(union(R0, R1), y, x, z)) {
                     G2.setEndpoint(y, z, Endpoint.ARROW);
                     addRecord(R1, x, y, z);
+                    addRecord(R1, z, y, x);
                     loop = true;
                 }
             }
@@ -317,7 +285,8 @@ public class Pcp implements GraphSearch {
 
             if (existsRecord(R2, y, x, z) || existsRecord(R2, y, w, z)) {
 
-                // Worried there might be multiple coppies list R3 of list.
+                // Worried there might be multiple coppies list R3 of list. You're
+                // right these should be sets. I'll convert them.
                 while (R3.contains(list)) {
                     R3.remove(list);
                 }
@@ -331,8 +300,38 @@ public class Pcp implements GraphSearch {
         Map<List<Node>, Set<Node>> eAll = new HashMap<>();
 
 
-
         return G2;
+    }
+
+    @Override
+    public long getElapsedTime() {
+        return 0;
+    }
+
+    private List<List<Node>> getC(Node x, Node y, Graph G) {
+        List<List<Node>> c = new ArrayList<>();
+
+        List<Node> adjx = G.getAdjacentNodes(x);
+
+        DepthChoiceGenerator genx = new DepthChoiceGenerator(adjx.size(), adjx.size());
+        int[] choicex;
+
+        while ((choicex = genx.next()) != null) {
+            List<Node> cond = GraphUtils.asList(choicex, adjx);
+            c.add(cond);
+        }
+
+        List<Node> adjy = G.getAdjacentNodes(y);
+
+        DepthChoiceGenerator geny = new DepthChoiceGenerator(adjy.size(), adjy.size());
+        int[] choicey;
+
+        while ((choicey = geny.next()) != null) {
+            List<Node> cond = GraphUtils.asList(choicey, adjy);
+            c.add(cond);
+        }
+
+        return c;
     }
 
     @SafeVarargs
@@ -370,19 +369,36 @@ public class Pcp implements GraphSearch {
 //        return ut;
 //    }
 
-    private List<List<Node>> getUT(Graph g1) {
-        List<Node> nodes = g1.getNodes();
-        List<List<Node>> ut = new ArrayList<>();
+    private List<Triple> getUT(Graph G1) {
+//        List<Node> nodes = g1.getNodes();
+        List<Triple> ut = new ArrayList<>();
+//
+//        for (Node x : nodes) {
+//            for (Node y : nodes) {
+//                for (Node z : nodes) {
+//                    if (g1.isAdjacentTo(x, y) && g1.isAdjacentTo(y, z) && !g1.isAdjacentTo(x, x)) {
+//                        ut.add(new Triple(x, y, z));
+//                    }
+//                }
+//            }
+//        }
+//
+//        return ut;
 
-        for (Node x : nodes) {
-            for (Node y : nodes) {
-                for (Node z : nodes) {
-                    if (g1.isAdjacentTo(x, z)) continue;
+        for (Node y : G1.getNodes()) {
+            List<Node> adj = G1.getAdjacentNodes(y);
 
-                    if (g1.isAdjacentTo(y, z) && g1.isAdjacentTo(x, z) && g1.isAdjacentTo(y, z)) {
-                        addRecord(ut, y, x, z);
-                    }
-                }
+            if (adj.size() < 2) continue;
+
+            ChoiceGenerator gen = new ChoiceGenerator(adj.size(), 2);
+            int[] choice;
+
+            while ((choice = gen.next()) != null) {
+                Node x = adj.get(choice[0]);
+                Node z = adj.get(choice[1]);
+
+                if (G1.isAdjacentTo(x, z)) continue;
+                ut.add(new Triple(x, y, z));
             }
         }
 
@@ -560,13 +576,6 @@ public class Pcp implements GraphSearch {
     }
 
     /**
-     * @return the sepset map from the most recent search. Non-null after the first call to <code>search()</code>.
-     */
-    public SepsetMap getSepsets() {
-        return this.sepsets;
-    }
-
-    /**
      * @return the current depth of search--that is, the maximum number of conditioning nodes for any conditional
      * independence checked.
      */
@@ -592,31 +601,6 @@ public class Pcp implements GraphSearch {
         }
 
         this.depth = depth;
-    }
-
-    /**
-     * @return the elapsed time of the search, in milliseconds.
-     */
-    public long getElapsedTime() {
-        return elapsedTime;
-    }
-
-    public Set<Edge> getAdjacencies() {
-        return new HashSet<>(graph.getEdges());
-    }
-
-    public Set<Edge> getNonadjacencies() {
-        Graph complete = GraphUtils.completeGraph(graph);
-        Set<Edge> nonAdjacencies = complete.getEdges();
-        Graph undirected = GraphUtils.undirectedGraph(graph);
-        nonAdjacencies.removeAll(undirected.getEdges());
-        return new HashSet<>(nonAdjacencies);
-    }
-
-    //===============================PRIVATE METHODS=======================//
-
-    public List<Node> getNodes() {
-        return graph.getNodes();
     }
 }
 

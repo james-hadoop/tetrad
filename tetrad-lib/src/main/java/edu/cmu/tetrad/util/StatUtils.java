@@ -1792,6 +1792,8 @@ public final class StatUtils {
     }
 
     public static synchronized double partialCorrelationPrecisionMatrix(TetradMatrix submatrix) {
+//        if (true) return partialCorrelationWhittaker(submatrix);
+
         TetradMatrix inverse = submatrix.inverse();
 //        TetradMatrix inverse = new TetradMatrix(new CholeskyDecomposition(submatrix.getRealMatrix()).getSolver().getInverse());
         return (-inverse.get(0, 1)) / sqrt(inverse.get(0, 0) * inverse.get(1, 1));
