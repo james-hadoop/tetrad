@@ -168,7 +168,7 @@ public class Pcp implements GraphSearch {
                 addRecord(R0, x, y, z);
                 addRecord(R0, z, y, x);
 
-                List<List<Node>> c = getC(x, z, G1);
+                List<List<Node>> c = getC(x, z, y, G1);
 
                 for (List<Node> cond : c) {
                     double p = pvalue(x, z, cond);
@@ -306,7 +306,7 @@ public class Pcp implements GraphSearch {
         return 0;
     }
 
-    private List<List<Node>> getC(Node x, Node y, Graph G) {
+    private List<List<Node>> getC(Node x, Node y, Node z, Graph G) {
         List<List<Node>> c = new ArrayList<>();
 
         List<Node> adjx = G.getAdjacentNodes(x);
@@ -316,7 +316,9 @@ public class Pcp implements GraphSearch {
 
         while ((choicex = genx.next()) != null) {
             List<Node> cond = GraphUtils.asList(choicex, adjx);
-            c.add(cond);
+            if (c.contains(z)) {
+                c.add(cond);
+            }
         }
 
         List<Node> adjy = G.getAdjacentNodes(y);
@@ -326,7 +328,9 @@ public class Pcp implements GraphSearch {
 
         while ((choicey = geny.next()) != null) {
             List<Node> cond = GraphUtils.asList(choicey, adjy);
-            c.add(cond);
+            if (c.contains(z)) {
+                c.add(cond);
+            }
         }
 
         return c;
