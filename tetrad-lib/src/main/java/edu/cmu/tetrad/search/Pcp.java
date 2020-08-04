@@ -294,13 +294,96 @@ public class Pcp implements GraphSearch {
 
         // defining evidence of orientation
 
-        Map<List<Node>, Set<Node>> e0 = new HashMap<>();
-        Map<List<Node>, Set<Node>> e1 = new HashMap<>();
-        Map<List<Node>, Set<Node>> e2 = new HashMap<>();
-        Map<List<Node>, Set<Node>> e3 = new HashMap<>();
-        Map<List<Node>, Set<Node>> eAll = new HashMap<>();
+        Map<OrderedPair<Node>, Set<List<Node>>> e0 = new HashMap<>();
+        Map<OrderedPair<Node>, Set<List<Node>>> e1 = new HashMap<>();
+        Map<OrderedPair<Node>, Set<List<Node>>> e2 = new HashMap<>();
+        Map<OrderedPair<Node>, Set<List<Node>>> e3 = new HashMap<>();
+        Map<OrderedPair<Node>, Set<List<Node>>> eAll = new HashMap<>();
 
-        return G2;
+        for (List<Node> record : R0) {
+            Node y = record.get(0);
+            Node z = record.get(1);
+            Node x = record.get(2);
+
+            addList(e0, y, z, list(z, y));
+        }
+
+        for (List<Node> record : R1) {
+            Node x = record.get(0);
+            Node y = record.get(1);
+            Node z = record.get(2);
+
+            addList(e0, y, z, list(x, y));
+
+            addList(eAll, y, z, list(x, y));
+        }
+
+        for (List<Node> record : R2) {
+            Node y = record.get(0);
+            Node x = record.get(1);
+            Node z = record.get(2);
+
+            addList(e0, y, z, list(y, x));
+            addList(e0, y, z, list(x, z));
+
+            addList(eAll, y, z, list(y, x));
+            addList(eAll, y, z, list(x, z));
+
+        }
+
+        for (List<Node> record : R2) {
+            Node y = record.get(0);
+            Node x = record.get(1);
+            Node w = record.get(1);
+            Node z = record.get(2);
+
+            addList(e0, y, z, list(y, x));
+            addList(e0, y, z, list(y, w));
+            addList(e0, y, z, list(x, z));
+            addList(e0, y, z, list(w, z));
+
+            addList(eAll, y, z, list(y, x));
+            addList(eAll, y, z, list(y, w));
+            addList(eAll, y, z, list(x, z));
+            addList(eAll, y, z, list(w, z));
+        }
+
+        Graph G3 = new EdgeListGraph(G2);
+
+        for (Edge edge : G2.getEdges()) {
+            if (!Edges.isBidirectedEdge(edge)) {
+                continue;
+            }
+
+            Node y = edge.getNode1();
+            Node z = edge.getNode2();
+
+            G3.removeEdge(y, z);
+            G3.addUndirectedEdge(y, z);
+
+            addRecord(amb, y, z);
+            addRecord(amb, z, y);
+
+            for (List<Node> record : union(eAll.get(new OrderedPair<>(y, z)),
+                    eAll.get(new OrderedPair<>(z, y)))) {
+                Node x = record.get(0);
+                Node w = record.get(1);
+
+                G3.removeEdge(x, w);
+                G3.addUndirectedEdge(x, w);
+
+                addRecord(amb, x, w);
+                addRecord(amb, w, x);
+            }
+        }
+
+        return G3;
+    }
+
+    private List<Node> list(Node...x) {
+        List<Node> l = new ArrayList<>();
+        addAll(l, x);
+        return l;
     }
 
     @Override
@@ -436,6 +519,11 @@ public class Pcp implements GraphSearch {
 
     private void setList(Map<OrderedPair<Node>, List<Node>> s, Node x, Node y, List<Node> SS) {
         s.put(new OrderedPair<>(x, y), SS);
+    }
+
+    private void addList(Map<OrderedPair<Node>, Set<List<Node>>> s, Node x, Node y, List<Node> SS) {
+        s.computeIfAbsent(new OrderedPair<>(x, y), k -> new HashSet<>());
+        s.get(new OrderedPair<>(x, y)).add(SS);
     }
 
     private void addP(Map<OrderedPair<Node>, Set<Double>> v, Node x, Node y, double p) {
