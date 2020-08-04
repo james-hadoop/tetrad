@@ -316,7 +316,7 @@ public class Pcp implements GraphSearch {
 
         while ((choicex = genx.next()) != null) {
             List<Node> cond = GraphUtils.asList(choicex, adjx);
-            if (c.contains(z)) {
+            if (cond.contains(z)) {
                 c.add(cond);
             }
         }
@@ -328,7 +328,7 @@ public class Pcp implements GraphSearch {
 
         while ((choicey = geny.next()) != null) {
             List<Node> cond = GraphUtils.asList(choicey, adjy);
-            if (c.contains(z)) {
+            if (cond.contains(z)) {
                 c.add(cond);
             }
         }
@@ -441,7 +441,7 @@ public class Pcp implements GraphSearch {
         v.get(new OrderedPair<>(x, y)).add(p);
     }
 
-    private void setP(Map<OrderedPair<Node>, Double> V, OrderedPair pair, double p) {
+    private void setP(Map<OrderedPair<Node>, Double> V, OrderedPair<Node> pair, double p) {
         V.put(pair, p);
     }
 
