@@ -345,45 +345,8 @@ public class Pcp implements GraphSearch {
         return union;
     }
 
-//    private Set<Triple> getUT(Graph g1) {
-//        List<Node> nodes = g1.getNodes();
-//        Set<Triple> ut = new HashSet<>();
-//
-//        for (Node y : nodes) {
-//            List<Node> adj = g1.getAdjacentNodes(y);
-//
-//            if (adj.size() < 2) continue;
-//
-//            ChoiceGenerator gen = new ChoiceGenerator(adj.size(), 2);
-//            int[] choice;
-//
-//            while ((choice = gen.next()) != null) {
-//                Node x = adj.get(choice[0]);
-//                Node z = adj.get(choice[1]);
-//
-//                if (g1.isAdjacentTo(x, z)) continue;
-//                ut.add(new Triple(x, y, z));
-//            }
-//        }
-//
-//        return ut;
-//    }
-
     private List<Triple> getUT(Graph G1) {
-//        List<Node> nodes = g1.getNodes();
         List<Triple> ut = new ArrayList<>();
-//
-//        for (Node x : nodes) {
-//            for (Node y : nodes) {
-//                for (Node z : nodes) {
-//                    if (g1.isAdjacentTo(x, y) && g1.isAdjacentTo(y, z) && !g1.isAdjacentTo(x, x)) {
-//                        ut.add(new Triple(x, y, z));
-//                    }
-//                }
-//            }
-//        }
-//
-//        return ut;
 
         for (Node y : G1.getNodes()) {
             List<Node> adj = G1.getAdjacentNodes(y);
