@@ -292,6 +292,8 @@ public class Pcp implements GraphSearch {
             }
         }
 
+        // defining evidence of orientation
+
         Map<List<Node>, Set<Node>> e0 = new HashMap<>();
         Map<List<Node>, Set<Node>> e1 = new HashMap<>();
         Map<List<Node>, Set<Node>> e2 = new HashMap<>();
