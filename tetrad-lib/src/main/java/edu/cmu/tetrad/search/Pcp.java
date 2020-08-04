@@ -27,6 +27,8 @@ import edu.cmu.tetrad.util.DepthChoiceGenerator;
 
 import java.util.*;
 
+import static java.util.Collections.addAll;
+
 /**
  * Implements the PCP algorithm. The original idea fior this was due to Eric Strobl and significantly revised by '
  * Wayne Lam and Peter Spirtes.
@@ -119,9 +121,7 @@ public class Pcp implements GraphSearch {
                 a.put(X, adj);
             }
 
-            for (int i = 0; i < nodes.size(); i++) {
-                Node x = nodes.get(i);
-
+            for (Node x : nodes) {
                 for (Node y : a.get(x)) {
 
                     List<Node> aa = new ArrayList<>(a.get(x));
@@ -165,33 +165,16 @@ public class Pcp implements GraphSearch {
 
         // algorithm 2
 
-        Set<Triple> ut = new HashSet<>();
+        List<List<Node>> ut = getUT(G1);
         Map<OrderedPair<Node>, Set<Double>> Vp = new HashMap<>();
-
-        for (Node y : nodes) {
-            List<Node> adj = G1.getAdjacentNodes(y);
-
-            if (adj.size() < 2) continue;
-
-            ChoiceGenerator gen = new ChoiceGenerator(adj.size(), 2);
-            int[] choice;
-
-            while ((choice = gen.next()) != null) {
-                Node x = adj.get(choice[0]);
-                Node z = adj.get(choice[1]);
-
-                if (G1.isAdjacentTo(x, z)) continue;
-                ut.add(new Triple(x, y, z));
-            }
-        }
 
         Map<OrderedPair<Node>, Double> P2 = new HashMap<>();
         List<List<Node>> R0 = new ArrayList<>();
 
-        for (Triple triple : ut) {
-            Node x = triple.getX();
-            Node y = triple.getY();
-            Node z = triple.getZ();
+        for (List<Node> list : ut) {
+            Node x = list.get(0);
+            Node y = list.get(1);
+            Node z = list.get(2);
 
             List<Double> _V = new ArrayList<>();
 
@@ -264,18 +247,198 @@ public class Pcp implements GraphSearch {
             }
         }
 
+        // algorithm 3
+        List<List<Node>> R1 = new ArrayList<>();
+        List<List<Node>> R2 = new ArrayList<>();
+        List<List<Node>> R3 = new ArrayList<>();
+
+        List<List<Node>> tri = getTri(G1);
+        List<List<Node>> kite = getKite(G1);
+
+        boolean loop = true;
+
+        while (loop) {
+            loop = false;
+
+            for (List<Node> list : ut) {
+                Node x = list.get(0);
+                Node y = list.get(1);
+                Node z = list.get(2);
+
+                if (G2.containsEdge(Edges.directedEdge(x, y))
+                        && !existsRecord(amb, y, z)
+                        && !existsRecord(union(R0, R1), y, x, z)) {
+                    G2.setEndpoint(y, z, Endpoint.ARROW);
+                    addRecord(R1, x, y, z);
+                    loop = true;
+                }
+            }
+
+            for (List<Node> list : tri) {
+                Node x = list.get(0);
+                Node y = list.get(1);
+                Node z = list.get(2);
+
+                if (G2.containsEdge(Edges.directedEdge(y, x))
+                        && G2.containsEdge(Edges.directedEdge(x, z))
+                        && !existsRecord(amb, y, z)
+                        && !existsRecord(R2, y, x, z)) {
+                    G2.setEndpoint(y, z, Endpoint.ARROW);
+                    addRecord(R2, x, y, z);
+                    loop = true;
+                }
+            }
+
+            for (List<Node> list : kite) {
+                Node x = list.get(0);
+                Node y = list.get(1);
+                Node z = list.get(2);
+                Node w = list.get(3);
+
+                if (G2.containsEdge(Edges.undirectedEdge(y, x))
+                        && G2.containsEdge(Edges.undirectedEdge(y, w))
+                        && G2.containsEdge(Edges.directedEdge(x, z))
+                        && G2.containsEdge(Edges.directedEdge(w, z))
+                        && !existsRecord(amb, y, z)
+                        && !existsRecord(R3, y, x, w, z)) {
+                    G2.setEndpoint(y, z, Endpoint.ARROW);
+                    addRecord(R3, y, x, w, z);
+                    addRecord(R3, y, w, x, z);
+                    loop = true;
+                }
+            }
+        }
+
+        for (List<Node> list : R3) {
+            Node x = list.get(0);
+            Node y = list.get(1);
+            Node z = list.get(2);
+            Node w = list.get(3);
+
+            if (existsRecord(R2, y, x, z) || existsRecord(R2, y, w, z)) {
+
+                // Worried there might be multiple coppies list R3 of list.
+                while (R3.contains(list)) {
+                    R3.remove(list);
+                }
+            }
+        }
+
+        Map<List<Node>, Set<Node>> e0 = new HashMap<>();
+        Map<List<Node>, Set<Node>> e1 = new HashMap<>();
+        Map<List<Node>, Set<Node>> e2 = new HashMap<>();
+        Map<List<Node>, Set<Node>> e3 = new HashMap<>();
+        Map<List<Node>, Set<Node>> eAll = new HashMap<>();
+
+
+
         return G2;
+    }
+
+    @SafeVarargs
+    private final List<List<Node>> union(List<List<Node>>... r) {
+        List<List<Node>> union = new ArrayList<>();
+
+        for (List<List<Node>> _r : r) {
+            union.addAll(_r);
+        }
+
+        return union;
+    }
+
+//    private Set<Triple> getUT(Graph g1) {
+//        List<Node> nodes = g1.getNodes();
+//        Set<Triple> ut = new HashSet<>();
+//
+//        for (Node y : nodes) {
+//            List<Node> adj = g1.getAdjacentNodes(y);
+//
+//            if (adj.size() < 2) continue;
+//
+//            ChoiceGenerator gen = new ChoiceGenerator(adj.size(), 2);
+//            int[] choice;
+//
+//            while ((choice = gen.next()) != null) {
+//                Node x = adj.get(choice[0]);
+//                Node z = adj.get(choice[1]);
+//
+//                if (g1.isAdjacentTo(x, z)) continue;
+//                ut.add(new Triple(x, y, z));
+//            }
+//        }
+//
+//        return ut;
+//    }
+
+    private List<List<Node>> getUT(Graph g1) {
+        List<Node> nodes = g1.getNodes();
+        List<List<Node>> ut = new ArrayList<>();
+
+        for (Node x : nodes) {
+            for (Node y : nodes) {
+                for (Node z : nodes) {
+                    if (g1.isAdjacentTo(x, z)) continue;
+
+                    if (g1.isAdjacentTo(y, z) && g1.isAdjacentTo(x, z) && g1.isAdjacentTo(y, z)) {
+                        addRecord(ut, y, x, z);
+                    }
+                }
+            }
+        }
+
+        return ut;
+    }
+
+    private List<List<Node>> getTri(Graph g1) {
+        List<Node> nodes = g1.getNodes();
+        List<List<Node>> tri = new ArrayList<>();
+
+        for (Node x : nodes) {
+            for (Node y : nodes) {
+                for (Node z : nodes) {
+                    if (g1.isAdjacentTo(y, z) && g1.isAdjacentTo(x, z) && g1.isAdjacentTo(y, z)) {
+                        addRecord(tri, y, x, z);
+                    }
+                }
+            }
+        }
+
+        return tri;
+    }
+
+    private List<List<Node>> getKite(Graph g1) {
+        List<Node> nodes = g1.getNodes();
+        List<List<Node>> tri = new ArrayList<>();
+
+        for (Node x : nodes) {
+            for (Node y : nodes) {
+                for (Node z : nodes) {
+                    for (Node w : nodes) {
+                        if (g1.isAdjacentTo(y, x)
+                                && g1.isAdjacentTo(y, w)
+                                && g1.isAdjacentTo(x, z)
+                                && g1.isAdjacentTo(w, z)
+                                && g1.isAdjacentTo(y, z)
+                        ) {
+                            addRecord(tri, y, x, w, z);
+                        }
+                    }
+                }
+            }
+        }
+
+        return tri;
     }
 
     private void addRecord(List<List<Node>> R, Node... x) {
         List<Node> l = new ArrayList<>();
-        Collections.addAll(l, x);
+        addAll(l, x);
         R.add(l);
     }
 
     private boolean existsRecord(List<List<Node>> R, Node... x) {
         List<Node> l = new ArrayList<>();
-        Collections.addAll(l, x);
+        addAll(l, x);
         return R.contains(l);
     }
 
