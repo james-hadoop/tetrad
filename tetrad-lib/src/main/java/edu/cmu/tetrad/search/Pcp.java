@@ -380,6 +380,7 @@ public class Pcp implements GraphSearch {
             }
         }
 
+
         Map<List<Node>, Double> P3 = new HashMap<>();
 
         for (List<Node> pairyz : undirected) {
@@ -413,67 +414,18 @@ public class Pcp implements GraphSearch {
         }
 
         for (List<Node> pairyz : directed) {
-            if (e0.get(pairyz).isEmpty()) {
+            if (e0.get(pairyz) == null) {
                 P2.put(pairyz, 0.0);
             }
         }
 
         Set<List<Node>> considered3 = new HashSet<>();
-        Set<List<Node>> visited = new HashSet<>();
 
-        while (!complement(directed, visited).isEmpty()) {
-            for (List<Node> pairyz : complement(directed, visited)) {
-                if (listComplement(eAll.get(pairyz), P3.keySet()).isEmpty()) {
-                    Set<Double> U = new HashSet<>();
-
-                    for (List<Node> R : R1) {
-                        Node _x = R.get(0);
-                        Node _y = R.get(1);
-
-                        List<Node> pairxy = list(_x, _y);
-
-                        U.add(P3.get(pairxy));
-                    }
-
-                    for (List<Node> R : R2) {
-                        Node _y = R.get(0);
-                        Node _x = R.get(1);
-                        Node _z = R.get(2);
-
-                        List<Node> pairyx = list(_y, _x);
-                        List<Node> pairxz = list(_x, _z);
-
-                        U.add(max(P3.get(pairyx), P3.get(pairxz)));
-                    }
-
-                    for (List<Node> R : R3) {
-                        Node _y = R.get(0);
-                        Node _x = R.get(1);
-                        Node _w = R.get(2);
-                        Node _z = R.get(3);
-
-                        if (!existsRecord(considered3, _y, _x, _w, _z)) {
-                            List<Node> pairyx = list(_y, _x);
-                            List<Node> pairyw = list(_y, _w);
-                            List<Node> pairxz = list(_x, _z);
-                            List<Node> pairwz = list(_w, _z);
-
-                            U.add(max(
-                                    P3.get(pairyx),
-                                    P3.get(pairyw),
-                                    P3.get(pairxz),
-                                    P3.get(pairwz)
-                            ));
-
-                            addRecord(considered3, _y, _x, _w, _z);
-                        }
-                    }
-
-                    P3.put(pairyz, max(P1.get(pairyz), P2.get(pairyz), sum(U)));
-                    visited.add(pairyz);
-                }
-            }
+        for (List<Node> pairyz : directed) {
+            P3.put(pairyz, getP3(pairyz, P1, P2, P3, R1, R2, R3, considered3));
         }
+
+        Graph GStar = new EdgeListGraph(G3);
 
         for (List<Node> pairyz : undirected) {
             Node y = pairyz.get(0);
@@ -526,8 +478,6 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        Graph GStar = new EdgeListGraph(G3);
-
         if (i > 0) {
             double aStar = P3.get(Pp.get(i - 1));
 
@@ -541,6 +491,85 @@ public class Pcp implements GraphSearch {
         }
 
         return GStar;
+    }
+
+    private double getP3(List<Node> pairyz,
+                         Map<List<Node>, Double> P1,
+                         Map<List<Node>, Double> P2,
+                         Map<List<Node>, Double> P3,
+                         Set<List<Node>> R1,
+                         Set<List<Node>> R2,
+                         Set<List<Node>> R3,
+                         Set<List<Node>> considered3) {
+        if (P3.containsKey(pairyz)) return P3.get(pairyz);
+
+        Set<Double> U = new HashSet<>();
+
+        for (List<Node> R : R1) {
+            Node _x = R.get(0);
+            Node _y = R.get(1);
+
+            List<Node> pairxy = list(_x, _y);
+
+            if (pairxy.equals(pairyz)) break;
+
+            U.add(getP3(pairxy, P1, P2, P3, R1, R2, R3, considered3));
+        }
+
+        for (List<Node> R : R2) {
+            Node _y = R.get(0);
+            Node _x = R.get(1);
+            Node _z = R.get(2);
+
+            List<Node> pairyx = list(_y, _x);
+            List<Node> pairxz = list(_x, _z);
+
+            if (pairyx.equals(pairyz)) break;
+            if (pairxz.equals(pairyz)) break;
+
+            U.add(max(
+                    getP3(pairyx, P1, P2, P3, R1, R2, R3, considered3),
+                    getP3(pairxz, P1, P2, P3, R1, R2, R3, considered3)
+                    )
+            );
+        }
+
+        for (List<Node> R : R3) {
+            Node _y = R.get(0);
+            Node _x = R.get(1);
+            Node _w = R.get(2);
+            Node _z = R.get(3);
+
+            if (!existsRecord(considered3, _y, _x, _w, _z)) {
+                List<Node> pairyx = list(_y, _x);
+                List<Node> pairyw = list(_y, _w);
+                List<Node> pairxz = list(_x, _z);
+                List<Node> pairwz = list(_w, _z);
+
+                if (pairyx.equals(pairyz)) break;
+                if (pairyw.equals(pairyz)) break;
+                if (pairxz.equals(pairyz)) break;
+                if (pairwz.equals(pairyz)) break;
+
+                U.add(max(
+                        getP3(pairyx, P1, P2, P3, R1, R2, R3, considered3),
+                        getP3(pairyw, P1, P2, P3, R1, R2, R3, considered3),
+                        getP3(pairxz, P1, P2, P3, R1, R2, R3, considered3),
+                        getP3(pairwz, P1, P2, P3, R1, R2, R3, considered3)
+                ));
+
+                addRecord(considered3, _y, _x, _w, _z);
+            }
+        }
+
+        double max = 0.0;
+
+        if (P1.containsKey(pairyz) && P1.get(pairyz) > max) max = P1.get(pairyz);
+        if (P2.containsKey(pairyz) && P2.get(pairyz) > max) max = P2.get(pairyz);
+
+        P3.put(pairyz, max(max, sum(U)));
+
+        return P3.get(pairyz);
     }
 
     private Node findR1X(Set<List<Node>> r0, Node y, Node z) {
