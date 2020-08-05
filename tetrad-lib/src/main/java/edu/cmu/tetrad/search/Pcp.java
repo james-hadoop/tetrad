@@ -30,7 +30,7 @@ import java.util.*;
 import static java.util.Collections.addAll;
 
 /**
- * Implements the PCP algorithm. The original idea fior this was due to Eric Strobl and significantly revised by '
+ * Implements the PCP algorithm. The original idea for this was due to Eric Strobl and significantly revised by '
  * Wayne Lam and Peter Spirtes.
  *
  * @author Wayne Lam
