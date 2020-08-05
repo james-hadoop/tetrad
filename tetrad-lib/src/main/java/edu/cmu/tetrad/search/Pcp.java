@@ -21,7 +21,6 @@
 
 package edu.cmu.tetrad.search;
 
-import com.google.gson.Gson;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
@@ -161,7 +160,6 @@ public class Pcp implements GraphSearch {
             Node z = triple.get(2);
 
             if (G1.isAdjacentTo(x, z)) continue;
-//            if (G1.isDefCollider(x, y, z)) continue;
 
             System.out.println("S = " + S);
             System.out.println("x = " + x + " z = " + z + " S.get(list(x, z)) = " + S.get(list(x, z)));
@@ -395,7 +393,7 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        Set<List<Node>> dup1 = new HashSet<>();
+        Set<List<Node>> dup = new HashSet<>();
 
         for (List<Node> pairyz1 : directed) {
             Node y1 = pairyz1.get(0);
@@ -404,19 +402,17 @@ public class Pcp implements GraphSearch {
             if (e0.containsKey(pairyz1) && !e123.containsKey(pairyz1) && P1.containsKey(pairyz1) && P2.containsKey(pairyz1)) {
                 P3.put(pairyz1, max(P1.get(pairyz1), P2.get(pairyz1)));
 
-                if (e0.get(pairyz1).size() == 1 && !dup1.contains(pairyz1)) {
+                if (e0.get(pairyz1).size() == 1 && !dup.contains(pairyz1)) {
                     Node x = findR1X(R0, z1, y1);
 
                     List<Node> pairxz1 = list(x, z1);
 
                     if (e0.get(pairxz1).size() == 1) {
-                        dup1.add(pairxz1);
+                        dup.add(pairxz1);
                     }
                 }
             }
         }
-
-        Set<List<Node>> dup = dup1;
 
         for (List<Node> pairyz : directed) {
             if (e0.get(pairyz).isEmpty()) {
@@ -572,12 +568,6 @@ public class Pcp implements GraphSearch {
     private Set<List<Node>> listComplement(Set<List<Node>> A, Set<List<Node>> B) {
         Set<List<Node>> K = new HashSet<>(A);
         K.removeAll(B);
-        return K;
-    }
-
-    private Set<List<Node>> intersect(Set<List<Node>> A, Set<List<Node>> B) {
-        Set<List<Node>> K = new HashSet<>(A);
-        K.retainAll(B);
         return K;
     }
 
