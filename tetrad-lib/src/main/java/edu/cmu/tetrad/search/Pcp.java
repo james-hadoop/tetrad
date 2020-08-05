@@ -539,7 +539,7 @@ public class Pcp implements GraphSearch {
 
             for (Node x : nodes) {
                 for (Node y : nodes) {
-                    if (P3.containsKey(list(x, y)) && P3.get(list(x, y)) < aStar) {
+                    if (P3.containsKey(list(x, y)) && P3.get(list(x, y)) > aStar) {
                         GStar.removeEdge(x, y);
                     }
                 }
