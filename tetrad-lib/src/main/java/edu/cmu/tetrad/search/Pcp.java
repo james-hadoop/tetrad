@@ -162,9 +162,6 @@ public class Pcp implements GraphSearch {
 
             if (G1.isAdjacentTo(x, z)) continue;
 
-            System.out.println("S = " + S);
-            System.out.println("x = " + x + " z = " + z + " S.get(list(x, z)) = " + S.get(list(x, z)));
-
             if (!S.get(list(x, z)).contains(y)) {
                 G1.setEndpoint(x, y, Endpoint.ARROW);
                 G1.setEndpoint(z, y, Endpoint.ARROW);
@@ -268,12 +265,12 @@ public class Pcp implements GraphSearch {
                 Node w = record.get(2);
                 Node z = record.get(3);
 
-                if (G2.getEndpoint(y, z) != Endpoint.ARROW
-                        && G2.containsEdge(Edges.undirectedEdge(y, x))
+                if (G2.containsEdge(Edges.undirectedEdge(y, x))
                         && G2.containsEdge(Edges.undirectedEdge(y, w))
                         && G2.containsEdge(Edges.directedEdge(x, z))
                         && G2.containsEdge(Edges.directedEdge(w, z))
                         && G2.containsEdge(Edges.undirectedEdge(x, w))
+                        && G2.getEndpoint(y, z) != Endpoint.ARROW
                         && !existsRecord(amb, y, z)
                         && !existsRecord(R3, y, x, w, z)) {
                     G2.setEndpoint(y, z, Endpoint.ARROW);
@@ -285,12 +282,12 @@ public class Pcp implements GraphSearch {
         }
 
         for (List<Node> record : R3) {
-            Node x = record.get(0);
-            Node y = record.get(1);
-            Node z = record.get(2);
-            Node w = record.get(3);
+            Node y = record.get(0);
+            Node x = record.get(1);
+            Node w = record.get(2);
+            Node z = record.get(3);
 
-            if (existsRecord(R2, x, y, w) || existsRecord(R2, x, z, w)) {
+            if (existsRecord(R2, y, x, z) || existsRecord(R2, y, w, z)) {
                 R3.remove(record);
             }
         }
