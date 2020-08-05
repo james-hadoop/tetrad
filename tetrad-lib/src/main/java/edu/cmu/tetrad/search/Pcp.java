@@ -422,7 +422,7 @@ public class Pcp implements GraphSearch {
         }
 
         Set<List<Node>> considered3 = new HashSet<>();
-        Set<List<Node>> visited = new HashSet<>(directed);
+        Set<List<Node>> visited = new HashSet<>();
 
         while (!complement(directed, visited).isEmpty()) {
             for (List<Node> pairyz : complement(directed, visited)) {
