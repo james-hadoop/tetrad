@@ -33,6 +33,7 @@ import static java.util.Collections.addAll;
  * Implements the PCP algorithm. The original idea fior this was due to Eric Strobl and significantly revised by '
  * Wayne Lam and Peter Spirtes.
  *
+ * @author Wayne Lam
  * @author Joseph Ramsey.
  */
 public class Pcp implements GraphSearch {
