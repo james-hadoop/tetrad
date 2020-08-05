@@ -421,6 +421,8 @@ public class Pcp implements GraphSearch {
 
         Set<List<Node>> considered3 = new HashSet<>();
 
+        // ... this is the magic line of code...
+
         for (List<Node> pairyz : directed) {
             P3.put(pairyz, getP3(pairyz, P1, P2, P3, R1, R2, R3, considered3));
         }
