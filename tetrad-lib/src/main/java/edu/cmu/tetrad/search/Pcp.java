@@ -384,25 +384,25 @@ public class Pcp implements GraphSearch {
 
         Map<List<Node>, Double> P3 = new HashMap<>();
 
-        for (List<Node> pairyz1 : undirected) {
-            Node y1 = pairyz1.get(0);
-            Node z1 = pairyz1.get(1);
+        for (List<Node> pairyz : undirected) {
+            Node y1 = pairyz.get(0);
+            Node z1 = pairyz.get(1);
 
             if (!existsRecord(amb, y1, z1)) {
-                P3.put(pairyz1, P1.get(pairyz1));
+                P3.put(pairyz, P1.get(pairyz));
             }
         }
 
         Set<List<Node>> dup = new HashSet<>();
 
-        for (List<Node> pairyz1 : directed) {
-            Node y1 = pairyz1.get(0);
-            Node z1 = pairyz1.get(1);
+        for (List<Node> pairyz : directed) {
+            Node y1 = pairyz.get(0);
+            Node z1 = pairyz.get(1);
 
-            if (e0.containsKey(pairyz1) && !e123.containsKey(pairyz1) && P1.containsKey(pairyz1) && P2.containsKey(pairyz1)) {
-                P3.put(pairyz1, max(P1.get(pairyz1), P2.get(pairyz1)));
+            if (e0.containsKey(pairyz) && !e123.containsKey(pairyz) && P1.containsKey(pairyz) && P2.containsKey(pairyz)) {
+                P3.put(pairyz, max(P1.get(pairyz), P2.get(pairyz)));
 
-                if (e0.get(pairyz1).size() == 1 && !dup.contains(pairyz1)) {
+                if (e0.get(pairyz).size() == 1 && !dup.contains(pairyz)) {
                     Node x = findR1X(R0, z1, y1);
 
                     List<Node> pairxz1 = list(x, z1);
