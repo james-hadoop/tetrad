@@ -425,8 +425,6 @@ public class Pcp implements GraphSearch {
             P3.put(pairyz, getP3(pairyz, P1, P2, P3, R1, R2, R3, considered3));
         }
 
-        Graph GStar = new EdgeListGraph(G3);
-
         for (List<Node> pairyz : undirected) {
             Node y = pairyz.get(0);
             Node z = pairyz.get(1);
@@ -477,6 +475,8 @@ public class Pcp implements GraphSearch {
                 i = k;
             }
         }
+
+        Graph GStar = new EdgeListGraph(G3);
 
         if (i > 0) {
             double aStar = P3.get(Pp.get(i - 1));
