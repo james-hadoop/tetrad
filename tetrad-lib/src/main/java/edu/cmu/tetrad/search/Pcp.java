@@ -451,6 +451,12 @@ public class Pcp implements GraphSearch {
         int m = Pp.size();
         Pp.sort(Comparator.comparingDouble(P3::get));
 
+        double sum = 0;
+
+        for (int i = 1; i < m; i++) {
+            sum += 1. / i;
+        }
+
 //        int R = Integer.MAX_VALUE;
 //
 //        for (int i = m; i >= 1; i--) {
@@ -459,13 +465,7 @@ public class Pcp implements GraphSearch {
 //                break;
 //            }
 //        }
-
-        double sum = 0;
-
-        for (int i = 1; i < m; i++) {
-            sum += 1. / i;
-        }
-
+//
 //        double fdr = m * alpha * sum / max(R, 1);
 
         double[] q = new double[m + 1];
