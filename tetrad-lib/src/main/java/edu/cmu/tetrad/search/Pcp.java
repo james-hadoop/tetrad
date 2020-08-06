@@ -219,14 +219,6 @@ public class Pcp implements GraphSearch {
                     }
                 }
             }
-
-//            for (Edge edgexy : G1.getEdges()) {
-//                if (!Edges.isDirectedEdge(edgexy)) continue;
-//
-//                if (edgexy.pointsTowards(y)) {
-//                    setP(P2, list(x, y), sum(Tp.get(list(x, y))));
-//                }
-//            }
         }
 
         // algorithm 3
@@ -382,7 +374,6 @@ public class Pcp implements GraphSearch {
 
         Set<List<Node>> directed = new HashSet<>();
         Set<List<Node>> undirected = new HashSet<>();
-        Set<List<Node>> all = new HashSet<>();
 
         for (Node y : nodes) {
             for (Node z : nodes) {
@@ -390,7 +381,6 @@ public class Pcp implements GraphSearch {
 
                 if (G3.containsEdge(Edges.directedEdge(y, z))) directed.add(list(y, z));
                 if (G3.containsEdge(Edges.undirectedEdge(y, z))) undirected.add(list(y, z));
-                all.add(list(y, z));
             }
         }
 
@@ -461,14 +451,14 @@ public class Pcp implements GraphSearch {
         int m = Pp.size();
         Pp.sort(Comparator.comparingDouble(P3::get));
 
-        int R = Integer.MAX_VALUE;
-
-        for (int i = m; i >= 1; i--) {
-            if (P3.get(Pp.get(i - 1)) < alpha) {
-                R = i;
-                break;
-            }
-        }
+//        int R = Integer.MAX_VALUE;
+//
+//        for (int i = m; i >= 1; i--) {
+//            if (P3.get(Pp.get(i - 1)) < alpha) {
+//                R = i;
+//                break;
+//            }
+//        }
 
         double sum = 0;
 
@@ -476,7 +466,7 @@ public class Pcp implements GraphSearch {
             sum += 1. / i;
         }
 
-        double fdr = m * alpha * sum / max(R, 1);
+//        double fdr = m * alpha * sum / max(R, 1);
 
         double[] q = new double[m + 1];
         double max = 0;
