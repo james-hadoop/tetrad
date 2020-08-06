@@ -36,6 +36,7 @@ import static java.util.Collections.addAll;
  * Wayne Lam and Peter Spirtes.
  *
  * @author Wayne Lam
+ * @author Peter Spirtes
  * @author Joseph Ramsey.
  */
 public class Pcp implements GraphSearch {
