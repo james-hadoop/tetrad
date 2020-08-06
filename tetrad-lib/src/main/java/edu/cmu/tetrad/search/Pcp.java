@@ -132,10 +132,8 @@ public class Pcp implements GraphSearch {
                             addP(V, y, x, p);
                         } else {
                             G1.removeEdge(x, y);
-                            S.get(list(x, y)).addAll(SS);
-                            S.get(list(y, x)).addAll(SS);
-//                            setList(S, x, y, SS);
-//                            setList(S, y, x, SS);
+                            includeSet(S, x, y, SS);
+                            includeSet(S, y, x, SS);
                             clear(V, x, y);
                             clear(V, y, x);
                             break;
@@ -764,6 +762,12 @@ public class Pcp implements GraphSearch {
 
     private void setList(Map<List<Node>, List<Node>> s, Node x, Node y, List<Node> SS) {
         s.put(list(x, y), SS);
+    }
+
+    private void includeSet(Map<List<Node>, Set<Node>> s, Node x, Node y, List<Node> SS) {
+        s.computeIfAbsent(list(x, y), k -> new HashSet<>());
+        Set<Node> u = s.get(list(x, y));
+        u.addAll(SS);
     }
 
     private void addList(Map<List<Node>, Set<List<Node>>> s, Node x, Node y, List<Node> SS) {
