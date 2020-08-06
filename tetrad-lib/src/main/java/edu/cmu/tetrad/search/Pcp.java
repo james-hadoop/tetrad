@@ -36,7 +36,7 @@ import static java.util.Collections.addAll;
  * Wayne Lam and Peter Spirtes.
  *
  * @author Wayne Lam
- * @author Peter Spirtes
+ * @author
  * @author Joseph Ramsey.
  */
 public class Pcp implements GraphSearch {
@@ -94,7 +94,7 @@ public class Pcp implements GraphSearch {
 
         Graph G1 = completeGraph(nodes);
 
-        Map<List<Node>, List<Node>> S = new HashMap<>();
+        Map<List<Node>, Set<Node>> S = new HashMap<>();
         Map<List<Node>, Set<Double>> V = new HashMap<>();
         Map<List<Node>, Double> P1 = new HashMap<>();
 
@@ -132,8 +132,10 @@ public class Pcp implements GraphSearch {
                             addP(V, y, x, p);
                         } else {
                             G1.removeEdge(x, y);
-                            setList(S, x, y, SS);
-                            setList(S, y, x, SS);
+                            S.get(list(x, y)).addAll(SS);
+                            S.get(list(y, x)).addAll(SS);
+//                            setList(S, x, y, SS);
+//                            setList(S, y, x, SS);
                             clear(V, x, y);
                             clear(V, y, x);
                             break;
