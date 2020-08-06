@@ -25,7 +25,9 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 import static java.util.Collections.addAll;
 
@@ -246,7 +248,6 @@ public class Pcp implements GraphSearch {
                 Node z = triple.get(2);
 
                 if (G2.containsEdge(Edges.directedEdge(x, y))
-                        && G2.getEndpoint(z, y) != Endpoint.ARROW
                         && !existsRecord(amb, y, z)
                         && !existsRecord(union(R0, R1), x, y, z)) {
                     G2.setEndpoint(y, z, Endpoint.ARROW);
@@ -262,7 +263,6 @@ public class Pcp implements GraphSearch {
 
                 if (G2.containsEdge(Edges.directedEdge(y, x))
                         && G2.containsEdge(Edges.directedEdge(x, z))
-                        && G2.getEndpoint(z, x) != Endpoint.ARROW
                         && !existsRecord(amb, y, z)
                         && !existsRecord(R2, y, x, z)) {
                     G2.setEndpoint(y, z, Endpoint.ARROW);
@@ -281,7 +281,6 @@ public class Pcp implements GraphSearch {
                         && G2.containsEdge(Edges.undirectedEdge(y, w))
                         && G2.containsEdge(Edges.directedEdge(x, z))
                         && G2.containsEdge(Edges.directedEdge(w, z))
-                        && G2.getEndpoint(y, z) != Endpoint.ARROW
                         && !existsRecord(amb, y, z)
                         && !existsRecord(R3, y, x, w, z)) {
                     G2.setEndpoint(y, z, Endpoint.ARROW);
@@ -503,6 +502,18 @@ public class Pcp implements GraphSearch {
                         GStar.removeEdge(x, y);
                     }
                 }
+            }
+        }
+
+        for (List<Node> list : union(directed, undirected)) {
+            Node x = list.get(0);
+            Node y = list.get(1);
+
+            if (amb.contains(list)) {
+                System.out.println(GStar.getEdge(x, y) + " p = ambiguous");
+                GStar.getEdge(x, y).setLineColor(Color.RED);
+            } else {
+                System.out.println(GStar.getEdge(x, y) + " p = " + P3.get(list));
             }
         }
 
