@@ -87,7 +87,7 @@ public class Pcp implements GraphSearch {
         List<Node> nodes = getIndependenceTest().getVariables();
         double alpha = independenceTest.getAlpha();
 
-        // Algorithm 1
+        // algorithm 1
 
         Graph G1 = completeGraph(nodes);
 
@@ -109,6 +109,8 @@ public class Pcp implements GraphSearch {
 
             for (Node x : nodes) {
                 for (Node y : a.get(x)) {
+                    if (x == y) continue;
+
                     List<Node> aa = new ArrayList<>(a.get(x));
                     aa.remove(y);
 
@@ -206,13 +208,23 @@ public class Pcp implements GraphSearch {
                 addRecord(amb, y, w);
             }
 
-            for (Edge edgexy : G1.getEdges()) {
-                if (!Edges.isDirectedEdge(edgexy)) continue;
+            for (Node _x : nodes) {
+                for (Node _y : nodes) {
+                    if (x == y) continue;
 
-                if (edgexy.pointsTowards(y)) {
-                    setP(P2, list(x, y), sum(Tp.get(list(x, y))));
+                    if (G1.containsEdge(Edges.directedEdge(_x, _y))) {
+                        setP(P2, list(_x,  _y), sum(Tp.get(list(_x, _y))));
+                    }
                 }
             }
+
+//            for (Edge edgexy : G1.getEdges()) {
+//                if (!Edges.isDirectedEdge(edgexy)) continue;
+//
+//                if (edgexy.pointsTowards(y)) {
+//                    setP(P2, list(x, y), sum(Tp.get(list(x, y))));
+//                }
+//            }
         }
 
         // algorithm 3
@@ -269,7 +281,6 @@ public class Pcp implements GraphSearch {
                         && G2.containsEdge(Edges.undirectedEdge(y, w))
                         && G2.containsEdge(Edges.directedEdge(x, z))
                         && G2.containsEdge(Edges.directedEdge(w, z))
-                        && G2.containsEdge(Edges.undirectedEdge(x, w))
                         && G2.getEndpoint(y, z) != Endpoint.ARROW
                         && !existsRecord(amb, y, z)
                         && !existsRecord(R3, y, x, w, z)) {
@@ -300,9 +311,9 @@ public class Pcp implements GraphSearch {
         Map<List<Node>, Set<List<Node>>> e3 = new HashMap<>();
 
         for (List<Node> record : R0) {
-            Node y = record.get(0);
-            Node z = record.get(1);
-            Node x = record.get(2);
+            Node x = record.get(0);
+            Node y = record.get(1);
+            Node z = record.get(2);
 
             addList(e0, y, z, list(x, z));
         }
@@ -372,22 +383,25 @@ public class Pcp implements GraphSearch {
 
         Set<List<Node>> directed = new HashSet<>();
         Set<List<Node>> undirected = new HashSet<>();
+        Set<List<Node>> all = new HashSet<>();
 
         for (Node y : nodes) {
             for (Node z : nodes) {
+                if (y == z) continue;
+
                 if (G3.containsEdge(Edges.directedEdge(y, z))) directed.add(list(y, z));
                 if (G3.containsEdge(Edges.undirectedEdge(y, z))) undirected.add(list(y, z));
+                all.add(list(y, z));
             }
         }
-
 
         Map<List<Node>, Double> P3 = new HashMap<>();
 
         for (List<Node> pairyz : undirected) {
-            Node y1 = pairyz.get(0);
-            Node z1 = pairyz.get(1);
+            Node y = pairyz.get(0);
+            Node z = pairyz.get(1);
 
-            if (!existsRecord(amb, y1, z1)) {
+            if (!existsRecord(amb, y, z)) {
                 P3.put(pairyz, P1.get(pairyz));
             }
         }
@@ -398,7 +412,7 @@ public class Pcp implements GraphSearch {
             Node y1 = pairyz.get(0);
             Node z1 = pairyz.get(1);
 
-            if (e0.containsKey(pairyz) && !e123.containsKey(pairyz) && P1.containsKey(pairyz) && P2.containsKey(pairyz)) {
+            if (e0.containsKey(pairyz) && !e123.containsKey(pairyz)) {
                 P3.put(pairyz, max(P1.get(pairyz), P2.get(pairyz)));
 
                 if (e0.get(pairyz).size() == 1 && !dup.contains(pairyz)) {
@@ -505,15 +519,19 @@ public class Pcp implements GraphSearch {
                          Set<List<Node>> considered3) {
         if (P3.containsKey(pairyz)) return P3.get(pairyz);
 
+        Node y = pairyz.get(0);
+        Node z = pairyz.get(1);
+
         Set<Double> U = new HashSet<>();
 
         for (List<Node> R : R1) {
             Node _x = R.get(0);
             Node _y = R.get(1);
+            Node _z = R.get(2);
+
+            if (!(y == _y && z == _z)) continue;
 
             List<Node> pairxy = list(_x, _y);
-
-            if (pairxy.equals(pairyz)) break;
 
             U.add(getP3(pairxy, P1, P2, P3, R1, R2, R3, considered3));
         }
@@ -523,11 +541,10 @@ public class Pcp implements GraphSearch {
             Node _x = R.get(1);
             Node _z = R.get(2);
 
+            if (!(y == _y && z == _z)) continue;
+
             List<Node> pairyx = list(_y, _x);
             List<Node> pairxz = list(_x, _z);
-
-            if (pairyx.equals(pairyz)) break;
-            if (pairxz.equals(pairyz)) break;
 
             U.add(max(
                     getP3(pairyx, P1, P2, P3, R1, R2, R3, considered3),
@@ -542,16 +559,13 @@ public class Pcp implements GraphSearch {
             Node _w = R.get(2);
             Node _z = R.get(3);
 
+            if (!(y == _y && z == _z)) continue;
+
             if (!existsRecord(considered3, _y, _x, _w, _z)) {
                 List<Node> pairyx = list(_y, _x);
                 List<Node> pairyw = list(_y, _w);
                 List<Node> pairxz = list(_x, _z);
                 List<Node> pairwz = list(_w, _z);
-
-                if (pairyx.equals(pairyz)) break;
-                if (pairyw.equals(pairyz)) break;
-                if (pairxz.equals(pairyz)) break;
-                if (pairwz.equals(pairyz)) break;
 
                 U.add(max(
                         getP3(pairyx, P1, P2, P3, R1, R2, R3, considered3),
@@ -586,18 +600,6 @@ public class Pcp implements GraphSearch {
         }
 
         throw new IllegalStateException();
-    }
-
-    private Set<List<Node>> complement(Set<List<Node>> A, Set<List<Node>> B) {
-        Set<List<Node>> K = new HashSet<>(A);
-        K.removeAll(B);
-        return K;
-    }
-
-    private Set<List<Node>> listComplement(Set<List<Node>> A, Set<List<Node>> B) {
-        Set<List<Node>> K = new HashSet<>(A);
-        K.removeAll(B);
-        return K;
     }
 
     private List<Node> list(Node... x) {
@@ -677,7 +679,7 @@ public class Pcp implements GraphSearch {
         for (Node x : nodes) {
             for (Node y : nodes) {
                 for (Node z : nodes) {
-                    if (x == z) continue;
+                    if (x == y || x == z || y == z) continue;
 
                     if (g.isAdjacentTo(x, y) && g.isAdjacentTo(y, z) && !g.isAdjacentTo(x, z)) {
                         addRecord(ut, x, y, z);
@@ -696,6 +698,8 @@ public class Pcp implements GraphSearch {
         for (Node x : nodes) {
             for (Node y : nodes) {
                 for (Node z : nodes) {
+                    if (x == y || x == z || y == z) continue;
+
                     if (g.isAdjacentTo(y, z) && g.isAdjacentTo(x, z) && g.isAdjacentTo(y, z)) {
                         addRecord(tri, y, x, z);
                     }
@@ -714,12 +718,11 @@ public class Pcp implements GraphSearch {
             for (Node y : nodes) {
                 for (Node z : nodes) {
                     for (Node w : nodes) {
-                        if (x == w) continue;
-                        if (y == z) continue;
+                        if (x == y || x == z || x == w || y == z || y == w || z == w) continue;
 
-                        if (g.isAdjacentTo(x, y)
-                                && g.isAdjacentTo(y, x)
+                        if (g.isAdjacentTo(y, x)
                                 && g.isAdjacentTo(y, w)
+                                && g.isAdjacentTo(x, z)
                                 && g.isAdjacentTo(w, z)
                                 && g.isAdjacentTo(y, z)
                                 && !g.isAdjacentTo(x, w)
