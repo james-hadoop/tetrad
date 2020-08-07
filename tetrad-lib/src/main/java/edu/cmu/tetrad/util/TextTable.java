@@ -69,7 +69,6 @@ public class TextTable {
         }
 
         this.tokens = new String[rows][columns];
-
         for (int i = 0; i < tokens.length; i++) {
             for (int j = 0; j < tokens[0].length; j++) {
                 tokens[i][j] = "";
