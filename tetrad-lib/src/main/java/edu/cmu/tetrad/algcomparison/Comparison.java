@@ -602,14 +602,6 @@ public class Comparison {
                     dir4.mkdirs();
                 }
 
-                File dir5 = null;
-
-                if (isSaveSemModels()) {
-                    dir5 = new File(subdir, "sem.models");
-                    dir5.mkdirs();
-                }
-
-
 //                File dir5 = null;
 //
 //                if (isSaveTrueDags()) {
@@ -622,6 +614,13 @@ public class Comparison {
                 if (simulationWrapper.getSimulation() instanceof SemSimulation) {
                     SemSimulation semSimulation = (SemSimulation) simulationWrapper.getSimulation();
                     semIms = semSimulation.getSemIms();
+                }
+
+                File dir5 = null;
+
+                if (semIms != null) {
+                    dir5 = new File(subdir, "sem.models");
+                    dir5.mkdirs();
                 }
 
                 for (int j = 0; j < simulationWrapper.getNumDataModels(); j++) {
@@ -656,10 +655,14 @@ public class Comparison {
                     }
                 }
 
-                PrintStream out = new PrintStream(new FileOutputStream(new File(subdir, "parameters.txt")));
-                out.println(simulationWrapper.getDescription());
-                out.println(simulationWrapper.getSimulationSpecificParameters());
-                out.close();
+                if (semIms != null) {
+                    for (int j = 0; j < semIms.size(); j++) {
+                        File file5 = new File(dir5, "sem.im." + (j + 1) + ".txt");
+                        PrintWriter out = new PrintWriter(new FileOutputStream(file5));
+                        out.println(semIms.get(j));
+                        out.close();
+                    }
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -1843,7 +1846,8 @@ public class Comparison {
         }
     }
 
-    private AlgorithmSimulationWrapper getAlgorithmSimulationWrapper(List<AlgorithmSimulationWrapper> algorithmSimulationWrappers, int t) {
+    private AlgorithmSimulationWrapper getAlgorithmSimulationWrapper
+            (List<AlgorithmSimulationWrapper> algorithmSimulationWrappers, int t) {
         return algorithmSimulationWrappers.get(t);
     }
 

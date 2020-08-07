@@ -1516,12 +1516,12 @@ public class CalibrationQuestion {
 
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pcp(new FisherZ()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pcp(new FisherZ()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask(new FisherZ()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new LinearFisherModel(new RandomForward()));
+        simulations.add(new SemSimulation(new RandomForward()));
         simulations.add(new SemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
@@ -1535,6 +1535,7 @@ public class CalibrationQuestion {
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
+        comparison.setSaveSemModels(true);
 
         comparison.compareFromSimulations("comparison2", simulations, algorithms, statistics, parameters);
 
