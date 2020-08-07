@@ -46,16 +46,7 @@ public class Pcp implements GraphSearch {
      */
     private final IndependenceTest independenceTest;
 
-    /**
-     * The maximum number of nodes conditioned on in the search. The default it 1000.
-     */
-    private int depth = 1000;
-
-    /**
-     * True if cycles are to be aggressively prevented. May be expensive for large graphs (but also useful for large
-     * graphs).
-     */
-    private boolean aggressivelyPreventCycles = false;
+    private double q = 1.0;
 
     //=============================CONSTRUCTORS==========================//
 
@@ -471,25 +462,25 @@ public class Pcp implements GraphSearch {
             sum += 1. / i;
         }
 
-//        int R = Integer.MAX_VALUE;
-//
-//        for (int i = m; i >= 1; i--) {
-//            if (P3.get(Pp.get(i - 1)) < alpha) {
-//                R = i;
-//                break;
-//            }
-//        }
-//
-//        double fdr = m * alpha * sum / max(R, 1);
+        int R = Integer.MAX_VALUE;
+
+        for (int i = m; i >= 1; i--) {
+            if (P3.get(Pp.get(i - 1)) < alpha) {
+                R = i;
+                break;
+            }
+        }
+
+        double fdr = m * this.q * sum / max(R, 1);
 
         double[] q = new double[m + 1];
         double max = 0;
-        int i = 0;
+        int i = 1;
 
         for (int k = 1; k <= m; k++) {
             q[k] = m * P3.get(Pp.get(k - 1)) * sum / max(k, 1);
 
-            if (q[k] > max) {
+            if (q[k] > max && q[k] <= this.q) {
                 max = q[k];
                 i = k;
             }
@@ -497,7 +488,7 @@ public class Pcp implements GraphSearch {
 
         Graph GStar = new EdgeListGraph(G3);
 
-        if (i > 0) {
+        if (!Pp.isEmpty()) {
             double aStar = P3.get(Pp.get(i - 1));
 
             for (Node x : nodes) {
@@ -507,18 +498,21 @@ public class Pcp implements GraphSearch {
                     }
                 }
             }
-        }
 
-        for (List<Node> list : union(directed, undirected)) {
-            Node x = list.get(0);
-            Node y = list.get(1);
+            for (List<Node> list : union(directed, undirected)) {
+                Node x = list.get(0);
+                Node y = list.get(1);
 
-            if (amb.contains(list)) {
-                System.out.println(GStar.getEdge(x, y) + " p = ambiguous");
-                GStar.getEdge(x, y).setLineColor(Color.RED);
-            } else {
-                System.out.println(GStar.getEdge(x, y) + " p = " + P3.get(list));
+                if (amb.contains(list)) {
+                    System.out.println(GStar.getEdge(x, y) + " p = ambiguous");
+                    GStar.getEdge(x, y).setLineColor(Color.RED);
+                } else {
+                    System.out.println(GStar.getEdge(x, y) + " p = " + P3.get(list));
+                }
             }
+
+            System.out.println("\nFDR = " + fdr);
+            System.out.println("\naStar = " + aStar);
         }
 
         return GStar;
@@ -665,7 +659,7 @@ public class Pcp implements GraphSearch {
     }
 
     @SafeVarargs
-    private final Map<List<Node>, Set<List<Node>>>  union(Map<List<Node>, Set<List<Node>>>... r) {
+    private final Map<List<Node>, Set<List<Node>>> union(Map<List<Node>, Set<List<Node>>>... r) {
         Map<List<Node>, Set<List<Node>>> union = new HashMap<>();
 
         for (Map<List<Node>, Set<List<Node>>> _r : r) {
@@ -852,21 +846,6 @@ public class Pcp implements GraphSearch {
         }
     }
 
-
-    /**
-     * @return true iff edges will not be added if they would create cycles.
-     */
-    public boolean isAggressivelyPreventCycles() {
-        return this.aggressivelyPreventCycles;
-    }
-
-    /**
-     * @param aggressivelyPreventCycles Set to true just in case edges will not be addeds if they would create cycles.
-     */
-    public void setAggressivelyPreventCycles(boolean aggressivelyPreventCycles) {
-        this.aggressivelyPreventCycles = aggressivelyPreventCycles;
-    }
-
     /**
      * @return the independence test being used in the search.
      */
@@ -874,32 +853,14 @@ public class Pcp implements GraphSearch {
         return independenceTest;
     }
 
-    /**
-     * @return the current depth of search--that is, the maximum number of conditioning nodes for any conditional
-     * independence checked.
-     */
-    public int getDepth() {
-        return depth;
+    public double getQ() {
+        return q;
     }
 
-    /**
-     * Sets the depth of the search--that is, the maximum number of conditioning nodes for any conditional independence
-     * checked.
-     *
-     * @param depth The depth of the search. The default is 1000. A value of -1 may be used to indicate that the depth
-     *              should be high (1000). A value of Integer.MAX_VALUE may not be used, due to a bug on multi-core
-     *              machines.
-     */
-    public void setDepth(int depth) {
-        if (depth < -1) {
-            throw new IllegalArgumentException("Depth must be -1 or >= 0: " + depth);
-        }
+    public void setQ(double q) {
+        if (!(q >= 0 && q <= 1)) throw new IllegalStateException("Q should be in [0, 1].");
 
-        if (depth > 1000) {
-            throw new IllegalArgumentException("Depth must be <= 1000.");
-        }
-
-        this.depth = depth;
+        this.q = q;
     }
 }
 

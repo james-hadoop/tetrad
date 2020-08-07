@@ -46,7 +46,7 @@ public class Pcp implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             edu.cmu.tetrad.search.Pcp search = new edu.cmu.tetrad.search.Pcp(test.getTest(dataSet, parameters));
-            search.setDepth(parameters.getInt(Params.DEPTH));
+            search.setQ(parameters.getDouble(Params.FDR_Q));
             return search.search();
         } else {
             Pcp algorithm = new Pcp(test);
