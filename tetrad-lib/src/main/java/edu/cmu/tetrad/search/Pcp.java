@@ -85,7 +85,7 @@ public class Pcp implements GraphSearch {
 
         Graph G1 = completeGraph(nodes);
 
-        Map<List<Node>, Set<Node>> S = new HashMap<>();
+        Map<List<Node>, Set<Node>> Shat = new HashMap<>();
         Map<List<Node>, Set<Double>> V = new HashMap<>();
         Map<List<Node>, Double> P1 = new HashMap<>();
 
@@ -94,39 +94,32 @@ public class Pcp implements GraphSearch {
         while (degree(G1) - 1 >= l) {
             l = l + 1;
 
-//            Map<Node, List<Node>> a = new HashMap<>();
-//
-//            for (Node X : nodes) {
-//                List<Node> adj = G1.getAdjacentNodes(X);
-//                a.put(X, adj);
-//            }
-
             List<List<Node>> del = new ArrayList<>();
-            List<List<Node>> delSS = new ArrayList<>();
+            List<List<Node>> delS = new ArrayList<>();
 
             for (Node x : nodes) {
-                for (Node y : G1.getAdjacentNodes(x)) {
-                    if (x == y) continue;
+                List<Node> adjx = G1.getAdjacentNodes(x);
 
-                    List<Node> aa = new ArrayList<>(G1.getAdjacentNodes(x));
-                    aa.remove(y);
+                for (Node y : adjx) {
+                    List<Node> _adjx = new ArrayList<>(adjx);
+                    _adjx.remove(y);
 
-                    if (aa.size() < l) continue;
+                    if (_adjx.size() < l) continue;
 
-                    ChoiceGenerator gen = new ChoiceGenerator(aa.size(), l);
+                    ChoiceGenerator gen = new ChoiceGenerator(_adjx.size(), l);
                     int[] choice;
 
                     while ((choice = gen.next()) != null) {
-                        List<Node> SS = GraphUtils.asList(choice, aa);
+                        List<Node> S = GraphUtils.asList(choice, _adjx);
 
-                        double p = pvalue(x, y, SS);
+                        double p = pvalue(x, y, S);
 
                         if (p <= alpha) {
                             addP(V, x, y, p);
                             addP(V, y, x, p);
                         } else {
                             del.add(list(x, y));
-                            delSS.add(SS);
+                            delS.add(S);
                         }
                     }
                 }
@@ -134,14 +127,14 @@ public class Pcp implements GraphSearch {
 
             for (int i = 0; i < del.size(); i++) {
                 List<Node> list = del.get(i);
-                List<Node> SS = delSS.get(i);
+                List<Node> S = delS.get(i);
 
                 Node x = list.get(0);
                 Node y = list.get(1);
 
                 G1.removeEdge(x, y);
-                includeSet(S, x, y, SS);
-                includeSet(S, y, x, SS);
+                includeSet(Shat, x, y, S);
+                includeSet(Shat, y, x, S);
                 clear(V, x, y);
                 clear(V, y, x);
             }
@@ -171,7 +164,7 @@ public class Pcp implements GraphSearch {
 
             if (G1.isAdjacentTo(x, z)) continue;
 
-            if (!S.get(list(x, z)).contains(y)) {
+            if (!Shat.get(list(x, z)).contains(y)) {
                 G1.setEndpoint(x, y, Endpoint.ARROW);
                 G1.setEndpoint(z, y, Endpoint.ARROW);
 
