@@ -445,21 +445,24 @@ public class Pcp implements GraphSearch {
             sum += 1. / i;
         }
 
-        int R = Integer.MAX_VALUE;
+        int R = 1;
 
-        for (int i = m; i >= 1; i--) {
-            if (P3.get(Pp.get(i - 1)) < alpha) {
+        for (int i = 1; i <= m; i++) {
+            if (P3.get(Pp.get(i - 1)) < getQ()) {
                 R = i;
-                break;
             }
         }
 
-        double fdr = m * getQ() * sum / max(R, 1);
+        // pr here is the alpha value for tests that yields the minimum FDR.
+        double pr = P3.get(Pp.get(R - 1));
+
+        double fdr = m * pr * sum / max(R, 1);
 
         double[] q = new double[m + 1];
 
         for (int k = 1; k <= m; k++) {
-            q[k] = (m * P3.get(Pp.get(k - 1)) * sum) / max(k, 1);
+            double pk = P3.get(Pp.get(k - 1));
+            q[k] = (m * pk * sum) / max(k, 1);
         }
 
         double max = 0;
@@ -480,13 +483,13 @@ public class Pcp implements GraphSearch {
 
         Set<Edge> fdrRemove = new TreeSet<>();
 
-        for (List<Node> list : Pp) {
+        for (int s = R + 1; s <= Pp.size(); s++) {
+            List<Node> list = Pp.get(s - 1);
+
             Node x = list.get(0);
             Node y = list.get(1);
 
-            if (P3.containsKey(list(x, y)) && P3.get(list(x, y)) > alphaStar) {
-                fdrRemove.add(GStar.getEdge(x, y));
-            }
+            fdrRemove.add(GStar.getEdge(x, y));
         }
 
         for (Edge edge : fdrRemove) {
