@@ -21,6 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
+import com.google.gson.Gson;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
@@ -36,7 +37,6 @@ import static java.util.Collections.addAll;
  * Wayne Lam and Peter Spirtes.
  *
  * @author Wayne Lam
- * @author Peter Spirtes
  * @author Joseph Ramsey.
  */
 public class Pcp implements GraphSearch {
@@ -120,6 +120,11 @@ public class Pcp implements GraphSearch {
                         } else {
                             del.add(list(x, y));
                             delS.add(S);
+
+                            includeSet(Shat, x, y, S);
+                            includeSet(Shat, y, x, S);
+                            clear(V, x, y);
+                            clear(V, y, x);
                         }
                     }
                 }
@@ -127,16 +132,13 @@ public class Pcp implements GraphSearch {
 
             for (int i = 0; i < del.size(); i++) {
                 List<Node> list = del.get(i);
-                List<Node> S = delS.get(i);
+//                List<Node> S = delS.get(i);
 
                 Node x = list.get(0);
                 Node y = list.get(1);
 
                 G1.removeEdge(x, y);
-                includeSet(Shat, x, y, S);
-                includeSet(Shat, y, x, S);
-                clear(V, x, y);
-                clear(V, y, x);
+
             }
         }
 
@@ -577,10 +579,7 @@ public class Pcp implements GraphSearch {
 
         double max = 0.0;
 
-        if (P1.containsKey(pairyz) && P1.get(pairyz) > max) max = P1.get(pairyz);
-        if (P2.containsKey(pairyz) && P2.get(pairyz) > max) max = P2.get(pairyz);
-
-        P3.put(pairyz, max(max, sum(U)));
+        P3.put(pairyz, max(sum(U), max(P1.get(pairyz), P2.get(pairyz))));
 
         return P3.get(pairyz);
     }
