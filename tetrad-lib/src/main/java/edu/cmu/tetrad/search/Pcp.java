@@ -21,14 +21,13 @@
 
 package edu.cmu.tetrad.search;
 
-import com.google.gson.Gson;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static java.util.Collections.addAll;
 
@@ -95,7 +94,6 @@ public class Pcp implements GraphSearch {
             l = l + 1;
 
             List<List<Node>> del = new ArrayList<>();
-            List<List<Node>> delS = new ArrayList<>();
 
             for (Node x : nodes) {
                 List<Node> adjx = G1.getAdjacentNodes(x);
@@ -119,8 +117,6 @@ public class Pcp implements GraphSearch {
                             addP(V, y, x, p);
                         } else {
                             del.add(list(x, y));
-                            delS.add(S);
-
                             includeSet(Shat, x, y, S);
                             includeSet(Shat, y, x, S);
                             clear(V, x, y);
@@ -130,15 +126,11 @@ public class Pcp implements GraphSearch {
                 }
             }
 
-            for (int i = 0; i < del.size(); i++) {
-                List<Node> list = del.get(i);
-//                List<Node> S = delS.get(j);
-
+            for (List<Node> list : del) {
                 Node x = list.get(0);
                 Node y = list.get(1);
 
                 G1.removeEdge(x, y);
-
             }
         }
 
@@ -605,10 +597,7 @@ public class Pcp implements GraphSearch {
             ));
         }
 
-        double max = 0.0;
-
         P3.put(pairyz, max(sum(U), max(P1.get(pairyz), P2.get(pairyz))));
-
         return P3.get(pairyz);
     }
 
