@@ -457,9 +457,7 @@ public class Pcp implements GraphSearch {
             }
 
             // pr here is the alpha value for tests that yields the minimum FDR.
-            double pr = P3.get(Pp.get(R - 1));
-
-            double fdr = m * pr * sum / max(R, 1);
+            double fdr = m * alpha * sum / max(R, 1);
 
             double[] q = new double[m + 1];
 
