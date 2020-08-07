@@ -36,7 +36,7 @@ import static java.util.Collections.addAll;
  * Wayne Lam and Peter Spirtes.
  *
  * @author Wayne Lam
- * @author
+ * @author Peter Spirtes
  * @author Joseph Ramsey.
  */
 public class Pcp implements GraphSearch {
@@ -103,18 +103,21 @@ public class Pcp implements GraphSearch {
         while (degree(G1) - 1 >= l) {
             l = l + 1;
 
-            Map<Node, List<Node>> a = new HashMap<>();
+//            Map<Node, List<Node>> a = new HashMap<>();
+//
+//            for (Node X : nodes) {
+//                List<Node> adj = G1.getAdjacentNodes(X);
+//                a.put(X, adj);
+//            }
 
-            for (Node X : nodes) {
-                List<Node> adj = G1.getAdjacentNodes(X);
-                a.put(X, adj);
-            }
+            List<List<Node>> del = new ArrayList<>();
+            List<List<Node>> delSS = new ArrayList<>();
 
             for (Node x : nodes) {
-                for (Node y : a.get(x)) {
+                for (Node y : G1.getAdjacentNodes(x)) {
                     if (x == y) continue;
 
-                    List<Node> aa = new ArrayList<>(a.get(x));
+                    List<Node> aa = new ArrayList<>(G1.getAdjacentNodes(x));
                     aa.remove(y);
 
                     if (aa.size() < l) continue;
@@ -131,15 +134,25 @@ public class Pcp implements GraphSearch {
                             addP(V, x, y, p);
                             addP(V, y, x, p);
                         } else {
-                            G1.removeEdge(x, y);
-                            includeSet(S, x, y, SS);
-                            includeSet(S, y, x, SS);
-                            clear(V, x, y);
-                            clear(V, y, x);
-                            break;
+                            del.add(list(x, y));
+                            delSS.add(SS);
                         }
                     }
                 }
+            }
+
+            for (int i = 0; i < del.size(); i++) {
+                List<Node> list = del.get(i);
+                List<Node> SS = delSS.get(i);
+
+                Node x = list.get(0);
+                Node y = list.get(1);
+
+                G1.removeEdge(x, y);
+                includeSet(S, x, y, SS);
+                includeSet(S, y, x, SS);
+                clear(V, x, y);
+                clear(V, y, x);
             }
         }
 
@@ -216,7 +229,7 @@ public class Pcp implements GraphSearch {
                     if (x == y) continue;
 
                     if (G1.containsEdge(Edges.directedEdge(_x, _y))) {
-                        setP(P2, list(_x,  _y), sum(Tp.get(list(_x, _y))));
+                        setP(P2, list(_x, _y), sum(Tp.get(list(_x, _y))));
                     }
                 }
             }
@@ -275,7 +288,9 @@ public class Pcp implements GraphSearch {
                         && G2.containsEdge(Edges.directedEdge(x, z))
                         && G2.containsEdge(Edges.directedEdge(w, z))
                         && !existsRecord(amb, y, z)
-                        && !existsRecord(R3, y, x, w, z)) {
+                        && !existsRecord(R3, y, x, w, z)
+                        && !existsRecord(R3, y, w, x, z)
+                ) {
                     G2.setEndpoint(y, z, Endpoint.ARROW);
                     addRecord(R3, y, x, w, z);
                     addRecord(R3, y, w, x, z);
@@ -423,12 +438,10 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        Set<List<Node>> considered3 = new HashSet<>();
-
         // ... this is the magic line of code...
 
         for (List<Node> pairyz : directed) {
-            P3.put(pairyz, getP3(pairyz, P1, P2, P3, R1, R2, R3, considered3));
+            P3.put(pairyz, getP3(pairyz, P1, P2, P3, R1, R2, R3));
         }
 
         for (List<Node> pairyz : undirected) {
@@ -517,8 +530,7 @@ public class Pcp implements GraphSearch {
                          Map<List<Node>, Double> P3,
                          Set<List<Node>> R1,
                          Set<List<Node>> R2,
-                         Set<List<Node>> R3,
-                         Set<List<Node>> considered3) {
+                         Set<List<Node>> R3) {
         if (P3.containsKey(pairyz)) return P3.get(pairyz);
 
         Node y = pairyz.get(0);
@@ -535,7 +547,7 @@ public class Pcp implements GraphSearch {
 
             List<Node> pairxy = list(_x, _y);
 
-            U.add(getP3(pairxy, P1, P2, P3, R1, R2, R3, considered3));
+            U.add(getP3(pairxy, P1, P2, P3, R1, R2, R3));
         }
 
         for (List<Node> R : R2) {
@@ -549,8 +561,8 @@ public class Pcp implements GraphSearch {
             List<Node> pairxz = list(_x, _z);
 
             U.add(max(
-                    getP3(pairyx, P1, P2, P3, R1, R2, R3, considered3),
-                    getP3(pairxz, P1, P2, P3, R1, R2, R3, considered3)
+                    getP3(pairyx, P1, P2, P3, R1, R2, R3),
+                    getP3(pairxz, P1, P2, P3, R1, R2, R3)
                     )
             );
         }
@@ -563,21 +575,17 @@ public class Pcp implements GraphSearch {
 
             if (!(y == _y && z == _z)) continue;
 
-            if (!existsRecord(considered3, _y, _x, _w, _z)) {
-                List<Node> pairyx = list(_y, _x);
-                List<Node> pairyw = list(_y, _w);
-                List<Node> pairxz = list(_x, _z);
-                List<Node> pairwz = list(_w, _z);
+            List<Node> pairyx = list(_y, _x);
+            List<Node> pairyw = list(_y, _w);
+            List<Node> pairxz = list(_x, _z);
+            List<Node> pairwz = list(_w, _z);
 
-                U.add(max(
-                        getP3(pairyx, P1, P2, P3, R1, R2, R3, considered3),
-                        getP3(pairyw, P1, P2, P3, R1, R2, R3, considered3),
-                        getP3(pairxz, P1, P2, P3, R1, R2, R3, considered3),
-                        getP3(pairwz, P1, P2, P3, R1, R2, R3, considered3)
-                ));
-
-                addRecord(considered3, _y, _x, _w, _z);
-            }
+            U.add(max(
+                    getP3(pairyx, P1, P2, P3, R1, R2, R3),
+                    getP3(pairyw, P1, P2, P3, R1, R2, R3),
+                    getP3(pairxz, P1, P2, P3, R1, R2, R3),
+                    getP3(pairwz, P1, P2, P3, R1, R2, R3)
+            ));
         }
 
         double max = 0.0;
@@ -657,7 +665,7 @@ public class Pcp implements GraphSearch {
     }
 
     @SafeVarargs
-    private final Map<List<Node>, Set<List<Node>>> union(Map<List<Node>, Set<List<Node>>>... r) {
+    private final Map<List<Node>, Set<List<Node>>>  union(Map<List<Node>, Set<List<Node>>>... r) {
         Map<List<Node>, Set<List<Node>>> union = new HashMap<>();
 
         for (Map<List<Node>, Set<List<Node>>> _r : r) {
@@ -758,10 +766,6 @@ public class Pcp implements GraphSearch {
     private void clear(Map<List<Node>, Set<Double>> v, Node x, Node y) {
         v.computeIfAbsent(list(x, y), k -> new HashSet<>());
         v.get(list(x, y)).clear();
-    }
-
-    private void setList(Map<List<Node>, List<Node>> s, Node x, Node y, List<Node> SS) {
-        s.put(list(x, y), SS);
     }
 
     private void includeSet(Map<List<Node>, Set<Node>> s, Node x, Node y, List<Node> SS) {
