@@ -96,7 +96,7 @@ public class Pcp implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.add(Params.DEPTH);
+        parameters.add(Params.FDR_Q);
         parameters.add(Params.VERBOSE);
         return parameters;
     }
