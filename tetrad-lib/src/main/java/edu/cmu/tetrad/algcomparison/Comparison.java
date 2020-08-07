@@ -28,6 +28,7 @@ import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
+import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.ElapsedTime;
@@ -52,6 +53,7 @@ import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.search.SearchGraphUtils;
+import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.util.CombinationGenerator;
 import edu.cmu.tetrad.util.Experimental;
 import edu.cmu.tetrad.util.ForkJoinPoolInstance;
@@ -62,13 +64,7 @@ import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TextTable;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.Writer;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -113,6 +109,7 @@ public class Comparison {
     private boolean parallelized = false;
     private boolean savePatterns = false;
     private boolean savePags = false;
+    private boolean saveSemModels = false;
     //    private boolean saveTrueDags = false;
     private ArrayList<String> dirs = null;
     private ComparisonGraph comparisonGraph = ComparisonGraph.true_DAG;
@@ -561,6 +558,7 @@ public class Comparison {
                 dir2.mkdirs();
 
                 File dir3 = null;
+                File disk5 = null;
 
                 if (isSavePatterns()) {
                     dir3 = new File(subdir, "patterns");
@@ -574,15 +572,33 @@ public class Comparison {
                     dir4.mkdirs();
                 }
 
+                File dir5 = null;
+
+                if (isSaveSemModels()) {
+                    dir5 = new File(subdir, "sem.models");
+                    dir5.mkdirs();
+                }
+
+
 //                File dir5 = null;
 //
 //                if (isSaveTrueDags()) {
 //                    dir5 = new File(subdir, "truedags");
 //                    dir5.mkdirs();
 //                }
+
+                List<SemIm> semIms = null;
+
+                if (simulationWrapper.getSimulation() instanceof SemSimulation) {
+                    SemSimulation semSimulation = (SemSimulation) simulationWrapper.getSimulation();
+                    semIms = semSimulation.getSemIms();
+                }
+
                 for (int j = 0; j < simulationWrapper.getNumDataModels(); j++) {
                     File file2 = new File(dir1, "graph." + (j + 1) + ".txt");
                     Graph graph = simulationWrapper.getTrueGraph(j);
+
+                    simulationWrapper.getDataModel(j);
 
                     GraphUtils.saveGraph(graph, file2, false);
 
@@ -602,11 +618,12 @@ public class Comparison {
                         GraphUtils.saveGraph(new DagToPag2(graph).convert(), file4, false);
                     }
 
-//                    if (isSaveTrueDags()) {
-//                        File file5 = new File(dir5, "truedag." + (j + 1) + ".txt");
-//                        GraphUtils.saveGraph(graph, file5, false);
-//
-//                    }
+                    if (isSaveSemModels()) {
+                        File file5 = new File(dir4, "sem.im." + (j + 1) + ".txt");
+                        PrintWriter _out = new PrintWriter(new FileOutputStream(file5));
+                        _out.println(semIms.get(j));
+                        _out.close();
+                    }
                 }
 
                 PrintStream out = new PrintStream(new FileOutputStream(new File(subdir, "parameters.txt")));
@@ -1177,6 +1194,17 @@ public class Comparison {
      */
     public boolean isSaveGraphs() {
         return saveGraphs;
+    }
+
+    public boolean isSaveSemModels() {
+        return saveSemModels;
+    }
+
+    /**
+     * Set to true if for SEM IM models the model should be printed ot a file.
+     */
+    public void setSaveSemModels(boolean saveSemModels) {
+        this.saveSemModels = saveSemModels;
     }
 
     /**
