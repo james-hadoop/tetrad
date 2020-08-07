@@ -1,6 +1,7 @@
 package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
@@ -14,7 +15,6 @@ import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +36,7 @@ public class Pcp implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     private IKnowledge knowledge = new Knowledge2();
 
     public Pcp() {
+        this.test = new FisherZ();
     }
 
     public Pcp(IndependenceWrapper test) {
@@ -46,7 +47,7 @@ public class Pcp implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             edu.cmu.tetrad.search.Pcp search = new edu.cmu.tetrad.search.Pcp(test.getTest(dataSet, parameters));
-            search.setDepth(parameters.getInt(Params.DEPTH));
+            search.setQ(parameters.getDouble(Params.FDR_Q));
             return search.search();
         } else {
             Pcp algorithm = new Pcp(test);
@@ -96,7 +97,7 @@ public class Pcp implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.add(Params.DEPTH);
+        parameters.add(Params.FDR_Q);
         parameters.add(Params.VERBOSE);
         return parameters;
     }
