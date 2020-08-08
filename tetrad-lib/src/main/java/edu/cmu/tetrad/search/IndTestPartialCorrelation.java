@@ -286,7 +286,7 @@ public final class IndTestPartialCorrelation implements IndependenceTest {
         return indexMap;
     }
 
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         throw new UnsupportedOperationException();
     }
 

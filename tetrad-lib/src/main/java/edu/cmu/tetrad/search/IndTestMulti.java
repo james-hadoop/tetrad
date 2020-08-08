@@ -237,7 +237,7 @@ public final class IndTestMulti implements IndependenceTest {
     }
 
     @Override
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return null;
     }
 

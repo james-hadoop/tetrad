@@ -201,7 +201,7 @@ public class IndTestScore implements IndependenceTest {
         return data;
     }
 
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return ((SemBicScore) score).getCovariances();
     }
 

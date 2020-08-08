@@ -137,7 +137,7 @@ public class FasFdr implements IFas {
         this.graph = new EdgeListGraph(test.getVariables());
         this.test = test;
         this.alpha = test.getAlpha();
-        this.cov = test.getCov().getMatrix();
+        this.cov = test.getCor().getMatrix();
     }
 
     //==========================PUBLIC METHODS===========================//
@@ -390,7 +390,7 @@ public class FasFdr implements IFas {
         }
 
         TetradMatrix inv = cov.getSelection(n, n).inverse();
-        int sampleSize = test.getCov().getSampleSize();
+        int sampleSize = test.getCor().getSampleSize();
 
         for (int i = 0; i < nodes.size(); i++) {
             for (int j = i + 1; j < nodes.size(); j++) {

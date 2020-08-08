@@ -272,7 +272,7 @@ public final class IndTestFisherZFisherPValue implements IndependenceTest {
         return (DataSet) tests.get(0).getData();
     }
 
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         List<DataSet> _dataSets = new ArrayList<>();
 
         for (DataSet d : dataSets) {

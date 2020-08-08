@@ -144,7 +144,7 @@ public final class IndTestIndependenceFacts implements IndependenceTest {
     }
 
     @Override
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return null;
     }
 

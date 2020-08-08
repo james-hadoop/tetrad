@@ -84,13 +84,13 @@ public class Pcp implements GraphSearch {
 
         Graph G1 = completeGraph(nodes);
 
-        Map<List<Node>, Set<Node>> Shat = Collections.synchronizedMap(new HashMap<>());
+        Map<List<Node>, Set<Node>> S_hat = Collections.synchronizedMap(new HashMap<>());
         Map<List<Node>, Set<Double>> V = Collections.synchronizedMap(new HashMap<>());
         Map<List<Node>, Double> P1 = Collections.synchronizedMap(new HashMap<>());
 
         int l = -1;
 
-        while (degree(G1) - 1 >= l) {
+        while (degree(G1) - 1 > l) {
             l = l + 1;
 
             List<List<Node>> del = new ArrayList<>();
@@ -117,8 +117,8 @@ public class Pcp implements GraphSearch {
                             addP(V, y, x, p);
                         } else {
                             del.add(list(x, y));
-                            includeSet(Shat, x, y, S);
-                            includeSet(Shat, y, x, S);
+                            includeSet(S_hat, x, y, S);
+                            includeSet(S_hat, y, x, S);
                             clear(V, x, y);
                             clear(V, y, x);
                         }
@@ -134,7 +134,7 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        for (List<Node> pair : new HashSet<>(V.keySet())) {
+        for (List<Node> pair : V.keySet()) {
             if (!V.get(pair).isEmpty()) {
                 setP(P1, pair, max(V.get(pair)));
             } else {
@@ -144,12 +144,12 @@ public class Pcp implements GraphSearch {
 
         // algorithm 2
 
-        Set<List<Node>> R0 = new HashSet<>();
-        Set<Double> T = new HashSet<>();
+        Set<List<Node>> R0 = Collections.synchronizedSet(new HashSet<>());
+        Set<Double> T = Collections.synchronizedSet(new HashSet<>());
         Map<List<Node>, Set<Double>> Tp = Collections.synchronizedMap(new HashMap<>());
         Map<List<Node>, Double> P2 = Collections.synchronizedMap(new HashMap<>());
-        Set<List<Node>> amb = new HashSet<>();
-        Set<List<Node>> ut = getUT(G1);
+        Set<List<Node>> amb = Collections.synchronizedSet(new HashSet<>());
+        Set<List<Node>> ut = Collections.synchronizedSet(getUT(G1));
 
         for (List<Node> triple : ut) {
             Node x = triple.get(0);
@@ -158,7 +158,7 @@ public class Pcp implements GraphSearch {
 
             if (G1.isAdjacentTo(x, z)) continue;
 
-            if (!Shat.get(list(x, z)).contains(y)) {
+            if (!S_hat.get(list(x, z)).contains(y)) {
                 G1.setEndpoint(x, y, Endpoint.ARROW);
                 G1.setEndpoint(z, y, Endpoint.ARROW);
 
@@ -291,10 +291,10 @@ public class Pcp implements GraphSearch {
 
         // defining evidence of orientation
 
-        Map<List<Node>, Set<List<Node>>> e0 = new HashMap<>();
-        Map<List<Node>, Set<List<Node>>> e1 = new HashMap<>();
-        Map<List<Node>, Set<List<Node>>> e2 = new HashMap<>();
-        Map<List<Node>, Set<List<Node>>> e3 = new HashMap<>();
+        Map<List<Node>, Set<List<Node>>> e0 = Collections.synchronizedMap(new HashMap<>());
+        Map<List<Node>, Set<List<Node>>> e1 = Collections.synchronizedMap(new HashMap<>());
+        Map<List<Node>, Set<List<Node>>> e2 = Collections.synchronizedMap(new HashMap<>());
+        Map<List<Node>, Set<List<Node>>> e3 = Collections.synchronizedMap(new HashMap<>());
 
         for (List<Node> record : R0) {
             Node x = record.get(0);
@@ -390,7 +390,7 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        Set<List<Node>> dup = new HashSet<>();
+        Set<List<Node>> dup = Collections.synchronizedSet(new HashSet<>());
 
         for (List<Node> pairyz : directed) {
             Node y = pairyz.get(0);
@@ -419,7 +419,7 @@ public class Pcp implements GraphSearch {
 
         // ...recursive
         for (List<Node> pairyz : directed) {
-            P3.put(pairyz, getP3(pairyz, P1, P2, P3, R1, R2, R3));
+            P3.put(pairyz, getP3(pairyz, P1, P2, P3, R1, R2, R3, G3));
         }
 
         for (List<Node> pairyz : undirected) {
@@ -508,7 +508,9 @@ public class Pcp implements GraphSearch {
                 Node x = list.get(0);
                 Node y = list.get(1);
 
-                _amb.add(GStar.getEdge(x, y));
+                if (GStar.isAdjacentTo(x, y)) {
+                    _amb.add(GStar.getEdge(x, y));
+                }
             }
 
             for (Edge edge : _amb) {
@@ -541,20 +543,19 @@ public class Pcp implements GraphSearch {
         return G3;
     }
 
-    //
     private double getP3(List<Node> pairyz,
                          Map<List<Node>, Double> P1,
                          Map<List<Node>, Double> P2,
                          Map<List<Node>, Double> P3,
                          Set<List<Node>> R1,
                          Set<List<Node>> R2,
-                         Set<List<Node>> R3) {
+                         Set<List<Node>> R3, Graph G) {
         if (P3.containsKey(pairyz)) return P3.get(pairyz);
 
         Node y = pairyz.get(0);
         Node z = pairyz.get(1);
 
-        Set<Double> U = new HashSet<>();
+        Set<Double> U = Collections.synchronizedSet(new HashSet<>());
 
         for (List<Node> R : R1) {
             Node _x = R.get(0);
@@ -565,7 +566,9 @@ public class Pcp implements GraphSearch {
 
             List<Node> pairxy = list(_x, _y);
 
-            U.add(getP3(pairxy, P1, P2, P3, R1, R2, R3));
+            if (G.isAncestorOf(_y, _x)) continue;
+
+            U.add(getP3(pairxy, P1, P2, P3, R1, R2, R3, G));
         }
 
         for (List<Node> R : R2) {
@@ -579,8 +582,8 @@ public class Pcp implements GraphSearch {
             List<Node> pairxz = list(_x, _z);
 
             U.add(max(
-                    getP3(pairyx, P1, P2, P3, R1, R2, R3),
-                    getP3(pairxz, P1, P2, P3, R1, R2, R3)
+                    getP3(pairyx, P1, P2, P3, R1, R2, R3, G),
+                    getP3(pairxz, P1, P2, P3, R1, R2, R3, G)
                     )
             );
         }
@@ -599,10 +602,10 @@ public class Pcp implements GraphSearch {
             List<Node> pairwz = list(_w, _z);
 
             U.add(max(
-                    getP3(pairyx, P1, P2, P3, R1, R2, R3),
-                    getP3(pairyw, P1, P2, P3, R1, R2, R3),
-                    getP3(pairxz, P1, P2, P3, R1, R2, R3),
-                    getP3(pairwz, P1, P2, P3, R1, R2, R3)
+                    getP3(pairyx, P1, P2, P3, R1, R2, R3, G),
+                    getP3(pairyw, P1, P2, P3, R1, R2, R3, G),
+                    getP3(pairxz, P1, P2, P3, R1, R2, R3, G),
+                    getP3(pairwz, P1, P2, P3, R1, R2, R3, G)
             ));
         }
 
@@ -672,7 +675,7 @@ public class Pcp implements GraphSearch {
 
     @SafeVarargs
     private final Set<List<Node>> union(Set<List<Node>>... r) {
-        Set<List<Node>> union = new HashSet<>();
+        Set<List<Node>> union = Collections.synchronizedSet(new HashSet<>());
 
         for (Set<List<Node>> _r : r) {
             if (_r == null) continue;
@@ -685,7 +688,7 @@ public class Pcp implements GraphSearch {
 
     @SafeVarargs
     private final Map<List<Node>, Set<List<Node>>> union(Map<List<Node>, Set<List<Node>>>... r) {
-        Map<List<Node>, Set<List<Node>>> union = new HashMap<>();
+        Map<List<Node>, Set<List<Node>>> union = Collections.synchronizedMap(new HashMap<>());
 
         for (Map<List<Node>, Set<List<Node>>> _r : r) {
             for (List<Node> pair : _r.keySet()) {
@@ -703,7 +706,7 @@ public class Pcp implements GraphSearch {
 
     private Set<List<Node>> getUT(Graph g) {
         List<Node> nodes = g.getNodes();
-        Set<List<Node>> ut = new HashSet<>();
+        Set<List<Node>> ut = Collections.synchronizedSet(new HashSet<>());
 
         for (Node x : nodes) {
             for (Node y : nodes) {
@@ -722,7 +725,7 @@ public class Pcp implements GraphSearch {
 
     private Set<List<Node>> getTri(Graph g) {
         List<Node> nodes = g.getNodes();
-        Set<List<Node>> tri = new HashSet<>();
+        Set<List<Node>> tri = Collections.synchronizedSet(new HashSet<>());
 
         for (Node x : nodes) {
             for (Node y : nodes) {
@@ -741,7 +744,7 @@ public class Pcp implements GraphSearch {
 
     private Set<List<Node>> getKite(Graph g) {
         List<Node> nodes = g.getNodes();
-        Set<List<Node>> kite = new HashSet<>();
+        Set<List<Node>> kite = Collections.synchronizedSet(new HashSet<>());
 
         for (Node x : nodes) {
             for (Node y : nodes) {
@@ -864,9 +867,9 @@ public class Pcp implements GraphSearch {
         return max;
     }
 
-    private double pvalue(Node x, Node y, List<Node> aa) {
+    private double pvalue(Node x, Node y, List<Node> cond) {
         synchronized (independenceTest) {
-            independenceTest.isIndependent(x, y, aa);
+            independenceTest.isIndependent(x, y, cond);
             return independenceTest.getPValue();
         }
     }
@@ -884,7 +887,6 @@ public class Pcp implements GraphSearch {
 
     public void setQ(double q) {
         if (!(q >= 0 && q <= 1)) throw new IllegalStateException("Q should be in [0, 1].");
-
         this.q = q;
     }
 }

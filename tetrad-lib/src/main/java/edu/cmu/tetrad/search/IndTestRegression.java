@@ -388,7 +388,7 @@ public final class IndTestRegression implements IndependenceTest {
     }
 
     @Override
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return null;
     }
 

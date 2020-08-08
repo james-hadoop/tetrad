@@ -367,7 +367,7 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
         covMatrix.setVariables(variables);
     }
 
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return covMatrix;
     }
 

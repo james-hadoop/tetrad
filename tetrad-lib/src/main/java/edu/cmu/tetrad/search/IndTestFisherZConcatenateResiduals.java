@@ -324,7 +324,7 @@ public final class IndTestFisherZConcatenateResiduals implements IndependenceTes
     }
 
     @Override
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         List<DataSet> _dataSets = new ArrayList<>();
 
         for (DataSet d : dataSets) {

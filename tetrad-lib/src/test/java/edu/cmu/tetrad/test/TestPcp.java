@@ -69,13 +69,13 @@ public class TestPcp {
         statistics.add(new ArrowheadRecall());
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 100);
-        parameters.set(Params.FDR_Q, 0.1);
+        parameters.set(Params.NUM_RUNS, 500);
+        parameters.set(Params.FDR_Q, 0.05);
         parameters.set(Params.COEF_LOW, 0.2);
         parameters.set(Params.COEF_HIGH, 0.7);
         parameters.set(Params.ALPHA, 0.01);
         parameters.set(Params.NUM_MEASURES, 20);
-        parameters.set(Params.AVG_DEGREE, 3);
+        parameters.set(Params.AVG_DEGREE, 2);
 
         Comparison comparison = new Comparison();
 
