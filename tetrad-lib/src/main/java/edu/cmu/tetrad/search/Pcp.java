@@ -47,6 +47,8 @@ public class Pcp implements GraphSearch {
 
     private double q = 1.0;
 
+    private double fdr = Double.NaN;
+
     //=============================CONSTRUCTORS==========================//
 
     /**
@@ -458,6 +460,8 @@ public class Pcp implements GraphSearch {
 
             // pr here is the alpha value for tests that yields the minimum FDR.
             double fdr = m * alpha * sum / max(R, 1);
+
+            this.fdr = fdr;
 
             double[] q = new double[m + 1];
 
@@ -888,6 +892,10 @@ public class Pcp implements GraphSearch {
     public void setQ(double q) {
         if (!(q >= 0 && q <= 1)) throw new IllegalStateException("Q should be in [0, 1].");
         this.q = q;
+    }
+
+    public double getFdr() {
+        return fdr;
     }
 }
 
