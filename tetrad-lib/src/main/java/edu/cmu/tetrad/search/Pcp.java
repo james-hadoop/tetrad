@@ -49,6 +49,10 @@ public class Pcp implements GraphSearch {
 
     private double fdr = Double.NaN;
 
+    private double alphaStar = Double.NaN;
+
+    private long elapsed = 0;
+
     //=============================CONSTRUCTORS==========================//
 
     /**
@@ -78,6 +82,8 @@ public class Pcp implements GraphSearch {
         if (getIndependenceTest() == null) {
             throw new NullPointerException();
         }
+
+        long start = System.currentTimeMillis();
 
         List<Node> nodes = getIndependenceTest().getVariables();
         double alpha = independenceTest.getAlpha();
@@ -482,6 +488,8 @@ public class Pcp implements GraphSearch {
 
             double alphaStar = P3.get(Pp.get(j - 1));
 
+            this.alphaStar = alphaStar;
+
             Graph GStar = new EdgeListGraph(G3);
 
             System.out.println("\nEdges removed by FDR:\n");
@@ -544,8 +552,44 @@ public class Pcp implements GraphSearch {
             System.out.println("Not doing FDR; there are no edges with p-values.");
         }
 
+        this.elapsed = start - System.currentTimeMillis();
+
         return G3;
     }
+
+
+    //============================PUBLIC============================//
+
+    /**
+     * @return the independence test being used in the search.
+     */
+    public IndependenceTest getIndependenceTest() {
+        return independenceTest;
+    }
+
+    public double getQ() {
+        return q;
+    }
+
+    public void setQ(double q) {
+        if (!(q >= 0 && q <= 1)) throw new IllegalStateException("Q should be in [0, 1].");
+        this.q = q;
+    }
+
+    public double getFdr() {
+        return fdr;
+    }
+
+    public double getAlphaStar() {
+        return alphaStar;
+    }
+
+    @Override
+    public long getElapsedTime() {
+        return elapsed;
+    }
+
+    //============================PRIVATE============================//\
 
     private double getP3(List<Node> pairyz,
                          Map<List<Node>, Double> P1,
@@ -640,11 +684,6 @@ public class Pcp implements GraphSearch {
         List<Node> l = new ArrayList<>();
         addAll(l, x);
         return l;
-    }
-
-    @Override
-    public long getElapsedTime() {
-        return 0;
     }
 
     private List<List<Node>> getC(Node x, Node y, Node z, Graph G) {
@@ -847,7 +886,7 @@ public class Pcp implements GraphSearch {
     /**
      * @return the string in nodelist which matches string in BK.
      */
-    public static Node translate(String a, List<Node> nodes) {
+    private static Node translate(String a, List<Node> nodes) {
         for (Node node : nodes) {
             if ((node.getName()).equals(a)) {
                 return node;
@@ -876,26 +915,6 @@ public class Pcp implements GraphSearch {
             independenceTest.isIndependent(x, y, cond);
             return independenceTest.getPValue();
         }
-    }
-
-    /**
-     * @return the independence test being used in the search.
-     */
-    public IndependenceTest getIndependenceTest() {
-        return independenceTest;
-    }
-
-    public double getQ() {
-        return q;
-    }
-
-    public void setQ(double q) {
-        if (!(q >= 0 && q <= 1)) throw new IllegalStateException("Q should be in [0, 1].");
-        this.q = q;
-    }
-
-    public double getFdr() {
-        return fdr;
     }
 }
 
