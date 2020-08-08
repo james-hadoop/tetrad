@@ -459,7 +459,7 @@ public class Pcp implements GraphSearch {
             int R = 1;
 
             for (int i = 1; i <= m; i++) {
-                if (P3.get(Pp.get(i - 1)) < getQ()) {
+                if (P3.get(Pp.get(i - 1)) < alpha) {
                     R = i;
                 }
             }
