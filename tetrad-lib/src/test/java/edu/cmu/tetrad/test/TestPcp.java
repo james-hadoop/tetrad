@@ -67,6 +67,7 @@ public class TestPcp {
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
+        statistics.add(new ElapsedTime());
 
         Parameters parameters = new Parameters();
         parameters.set(Params.NUM_RUNS, 500);
