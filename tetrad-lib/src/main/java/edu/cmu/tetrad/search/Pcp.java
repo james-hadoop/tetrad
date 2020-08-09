@@ -432,7 +432,7 @@ public class Pcp implements GraphSearch {
 
         // ...recursive
         for (List<Node> pairyz : directed) {
-            P3.put(pairyz, getP3(pairyz, P1, P2, P3, R1, R2, R3, trail, G3));
+            P3.put(pairyz, getP3(pairyz, P1, P2, P3, R1, R2, R3, trail));
         }
 
         for (List<Node> pairyz : undirected) {
@@ -603,8 +603,7 @@ public class Pcp implements GraphSearch {
                          Set<List<Node>> R1,
                          Set<List<Node>> R2,
                          Set<List<Node>> R3,
-                         Set<List<Node>> trail,
-                         Graph G) {
+                         Set<List<Node>> trail) {
         if (P3.containsKey(pairyz)) return P3.get(pairyz);
         trail.add(pairyz);
 
@@ -623,7 +622,7 @@ public class Pcp implements GraphSearch {
             List<Node> pairxy = list(_x, _y);
             if (trail.contains(pairxy)) continue;
 
-            U.add(getP3(pairxy, P1, P2, P3, R1, R2, R3, trail, G));
+            U.add(getP3(pairxy, P1, P2, P3, R1, R2, R3, trail));
         }
 
         for (List<Node> R : R2) {
@@ -637,8 +636,8 @@ public class Pcp implements GraphSearch {
             List<Node> pairxz = list(_x, _z);
 
             U.add(max(
-                    getP3(pairyx, P1, P2, P3, R1, R2, R3, trail, G),
-                    getP3(pairxz, P1, P2, P3, R1, R2, R3, trail, G)
+                    getP3(pairyx, P1, P2, P3, R1, R2, R3, trail),
+                    getP3(pairxz, P1, P2, P3, R1, R2, R3, trail)
                     )
             );
         }
@@ -657,10 +656,10 @@ public class Pcp implements GraphSearch {
             List<Node> pairwz = list(_w, _z);
 
             U.add(max(
-                    getP3(pairyx, P1, P2, P3, R1, R2, R3, trail, G),
-                    getP3(pairyw, P1, P2, P3, R1, R2, R3, trail, G),
-                    getP3(pairxz, P1, P2, P3, R1, R2, R3, trail, G),
-                    getP3(pairwz, P1, P2, P3, R1, R2, R3, trail, G)
+                    getP3(pairyx, P1, P2, P3, R1, R2, R3, trail),
+                    getP3(pairyw, P1, P2, P3, R1, R2, R3, trail),
+                    getP3(pairxz, P1, P2, P3, R1, R2, R3, trail),
+                    getP3(pairwz, P1, P2, P3, R1, R2, R3, trail)
             ));
         }
 
