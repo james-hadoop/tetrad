@@ -36,7 +36,6 @@ import static java.util.Collections.addAll;
  * Wayne Lam and Peter Spirtes.
  *
  * @author Wayne Lam
- * @author Joseph Ramsey.
  */
 public class Pcp implements GraphSearch {
 
@@ -46,6 +45,12 @@ public class Pcp implements GraphSearch {
     private final IndependenceTest independenceTest;
 
     private double q = 1.0;
+
+    private double fdr = Double.NaN;
+
+    private double alphaStar = Double.NaN;
+
+    private long elapsed = 0;
 
     //=============================CONSTRUCTORS==========================//
 
@@ -77,6 +82,8 @@ public class Pcp implements GraphSearch {
             throw new NullPointerException();
         }
 
+        long start = System.currentTimeMillis();
+
         List<Node> nodes = getIndependenceTest().getVariables();
         double alpha = independenceTest.getAlpha();
 
@@ -84,13 +91,13 @@ public class Pcp implements GraphSearch {
 
         Graph G1 = completeGraph(nodes);
 
-        Map<List<Node>, Set<Node>> Shat = new HashMap<>();
+        Map<List<Node>, Set<Node>> S_hat = new HashMap<>();
         Map<List<Node>, Set<Double>> V = new HashMap<>();
         Map<List<Node>, Double> P1 = new HashMap<>();
 
         int l = -1;
 
-        while (degree(G1) - 1 >= l) {
+        while (degree(G1) - 1 > l) {
             l = l + 1;
 
             List<List<Node>> del = new ArrayList<>();
@@ -111,16 +118,18 @@ public class Pcp implements GraphSearch {
                         List<Node> S = GraphUtils.asList(choice, _adjx);
 
                         double p = pvalue(x, y, S);
+                        if (Double.isNaN(p)) continue;
 
                         if (p <= alpha) {
                             addP(V, x, y, p);
                             addP(V, y, x, p);
                         } else {
                             del.add(list(x, y));
-                            includeSet(Shat, x, y, S);
-                            includeSet(Shat, y, x, S);
+                            includeSet(S_hat, x, y, S);
+                            includeSet(S_hat, y, x, S);
                             clear(V, x, y);
                             clear(V, y, x);
+                            break;
                         }
                     }
                 }
@@ -134,7 +143,7 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        for (List<Node> pair : new HashSet<>(V.keySet())) {
+        for (List<Node> pair : V.keySet()) {
             if (!V.get(pair).isEmpty()) {
                 setP(P1, pair, max(V.get(pair)));
             } else {
@@ -158,7 +167,7 @@ public class Pcp implements GraphSearch {
 
             if (G1.isAdjacentTo(x, z)) continue;
 
-            if (!Shat.get(list(x, z)).contains(y)) {
+            if (!S_hat.get(list(x, z)).contains(y)) {
                 G1.setEndpoint(x, y, Endpoint.ARROW);
                 G1.setEndpoint(z, y, Endpoint.ARROW);
 
@@ -169,6 +178,7 @@ public class Pcp implements GraphSearch {
 
                 for (List<Node> cond : c) {
                     double p = pvalue(x, z, cond);
+                    if (Double.isNaN(p)) continue;
                     T.add(p);
                 }
 
@@ -236,6 +246,7 @@ public class Pcp implements GraphSearch {
                         && !existsRecord(union(R0, R1), x, y, z)) {
                     G2.setEndpoint(y, z, Endpoint.ARROW);
                     addRecord(R1, x, y, z);
+
                     loop = true;
                 }
             }
@@ -378,7 +389,7 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        Map<List<Node>, Double> P3 = new HashMap<>();
+        Map<List<Node>, Double> P3 = Collections.synchronizedMap(new HashMap<>());
 
         for (List<Node> pairyz : undirected) {
             Node y = pairyz.get(0);
@@ -389,7 +400,7 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        Set<List<Node>> dup = new HashSet<>();
+        Set<List<Node>> dup = (new HashSet<>());
 
         for (List<Node> pairyz : directed) {
             Node y = pairyz.get(0);
@@ -416,9 +427,12 @@ public class Pcp implements GraphSearch {
             }
         }
 
+        // Avoids R1 cycles.
+        Set<List<Node>> trail = new HashSet<>();
+
         // ...recursive
         for (List<Node> pairyz : directed) {
-            P3.put(pairyz, getP3(pairyz, P1, P2, P3, R1, R2, R3));
+            P3.put(pairyz, getP3(pairyz, P1, P2, P3, R1, R2, R3, trail));
         }
 
         for (List<Node> pairyz : undirected) {
@@ -437,118 +451,166 @@ public class Pcp implements GraphSearch {
         Pp.removeAll(dup);
         int m = Pp.size();
 
-        Pp.sort(Comparator.comparingDouble(P3::get));
+        if (m > 0) {
 
-        double sum = 0;
+            Pp.sort(Comparator.comparingDouble(P3::get));
 
-        for (int i = 1; i <= m; i++) {
-            sum += 1. / i;
-        }
+            double sum = 0;
 
-        int R = 1;
-
-        for (int i = 1; i <= m; i++) {
-            if (P3.get(Pp.get(i - 1)) < getQ()) {
-                R = i;
+            for (int i = 1; i <= m; i++) {
+                sum += 1. / i;
             }
-        }
 
-        // pr here is the alpha value for tests that yields the minimum FDR.
-        double pr = P3.get(Pp.get(R - 1));
+            int R = 1;
 
-        double fdr = m * pr * sum / max(R, 1);
-
-        double[] q = new double[m + 1];
-
-        for (int k = 1; k <= m; k++) {
-            double pk = P3.get(Pp.get(k - 1));
-            q[k] = (m * pk * sum) / max(k, 1);
-        }
-
-        double max = 0;
-        int j = 1;
-
-        for (int k = 1; k <= m; k++) {
-            if (q[k] >= max && q[k] <= getQ()) {
-                max = q[k];
-                j = k;
+            for (int i = 1; i <= m; i++) {
+                if (P3.get(Pp.get(i - 1)) < alpha) {
+                    R = i;
+                }
             }
+
+            // pr here is the alpha value for tests that yields the minimum FDR.
+            double fdr = m * alpha * sum / max(R, 1);
+
+            this.fdr = fdr;
+
+            double[] q = new double[m + 1];
+
+            for (int k = 1; k <= m; k++) {
+                double pk = P3.get(Pp.get(k - 1));
+                q[k] = (m * pk * sum) / max(k, 1);
+            }
+
+            double max = 0;
+            int j = 1;
+
+            for (int k = 1; k <= m; k++) {
+                if (q[k] >= max && q[k] <= getQ()) {
+                    max = q[k];
+                    j = k;
+                }
+            }
+
+            double alphaStar = P3.get(Pp.get(j - 1));
+
+            this.alphaStar = alphaStar;
+
+            Graph GStar = new EdgeListGraph(G3);
+
+            System.out.println("\nEdges removed by FDR:\n");
+
+            Set<Edge> fdrRemove = new TreeSet<>();
+
+            for (int s = R + 1; s <= Pp.size(); s++) {
+                List<Node> list = Pp.get(s - 1);
+
+                Node x = list.get(0);
+                Node y = list.get(1);
+
+                fdrRemove.add(GStar.getEdge(x, y));
+            }
+
+            for (Edge edge : fdrRemove) {
+                System.out.println(edge);
+                GStar.removeEdge(edge);
+            }
+
+            if (fdrRemove.isEmpty()) System.out.println("--NONE--");
+
+            System.out.println("\nAmbiguous edges:");
+
+            Set<Edge> _amb = new TreeSet<>();
+
+            for (List<Node> list : amb) {
+                Node x = list.get(0);
+                Node y = list.get(1);
+
+                if (GStar.isAdjacentTo(x, y)) {
+                    _amb.add(GStar.getEdge(x, y));
+                }
+            }
+
+            for (Edge edge : _amb) {
+                System.out.println(edge);
+                edge.setLineColor(Color.RED);
+            }
+
+            if (_amb.isEmpty()) System.out.println("\n--NONE--");
+
+            System.out.println("\nP-values for non-ambiguous edges");
+
+            for (List<Node> list : Pp) {
+                Node x = list.get(0);
+                Node y = list.get(1);
+
+                System.out.println(GStar.getEdge(x, y) + " p = " + P3.get(list));
+            }
+
+            if (Pp.isEmpty()) System.out.println("\n--NONE--");
+
+            System.out.println("\nFDR = " + fdr);
+            System.out.println("alphaStar = " + alphaStar);
+            System.out.println();
+
+            return GStar;
+        } else {
+            System.out.println("Not doing FDR; there are no edges with p-values.");
         }
 
-        double alphaStar = P3.get(Pp.get(j - 1));
+        this.elapsed = start - System.currentTimeMillis();
 
-        Graph GStar = new EdgeListGraph(G3);
-
-        System.out.println("\nEdges removed by FDR:\n");
-
-        Set<Edge> fdrRemove = new TreeSet<>();
-
-        for (int s = R + 1; s <= Pp.size(); s++) {
-            List<Node> list = Pp.get(s - 1);
-
-            Node x = list.get(0);
-            Node y = list.get(1);
-
-            fdrRemove.add(GStar.getEdge(x, y));
-        }
-
-        for (Edge edge : fdrRemove) {
-            System.out.println(edge);
-            GStar.removeEdge(edge);
-        }
-
-        if (fdrRemove.isEmpty()) System.out.println("--NONE--");
-
-        System.out.println("\nAmbiguous edges:");
-
-        Set<Edge> _amb = new TreeSet<>();
-
-        for (List<Node> list : amb) {
-            Node x = list.get(0);
-            Node y = list.get(1);
-
-            _amb.add(GStar.getEdge(x, y));
-        }
-
-        for (Edge edge : _amb) {
-            System.out.println(edge);
-            edge.setLineColor(Color.RED);
-        }
-
-        if (_amb.isEmpty()) System.out.println("\n--NONE--");
-
-        System.out.println("\nP-values for non-ambiguous edges");
-
-        for (List<Node> list : Pp) {
-            Node x = list.get(0);
-            Node y = list.get(1);
-
-            System.out.println(GStar.getEdge(x, y) + " p = " + P3.get(list));
-        }
-
-        if (Pp.isEmpty()) System.out.println("\n--NONE--");
-
-        System.out.println("\nFDR = " + fdr);
-        System.out.println("alphaStar = " + alphaStar);
-        System.out.println();
-
-        return GStar;
+        return G3;
     }
 
-    //
+
+    //============================PUBLIC============================//
+
+    /**
+     * @return the independence test being used in the search.
+     */
+    public IndependenceTest getIndependenceTest() {
+        return independenceTest;
+    }
+
+    public double getQ() {
+        return q;
+    }
+
+    public void setQ(double q) {
+        if (!(q >= 0 && q <= 1)) throw new IllegalStateException("Q should be in [0, 1].");
+        this.q = q;
+    }
+
+    public double getFdr() {
+        return fdr;
+    }
+
+    public double getAlphaStar() {
+        return alphaStar;
+    }
+
+    @Override
+    public long getElapsedTime() {
+        return elapsed;
+    }
+
+    //============================PRIVATE============================//\
+
     private double getP3(List<Node> pairyz,
                          Map<List<Node>, Double> P1,
                          Map<List<Node>, Double> P2,
                          Map<List<Node>, Double> P3,
                          Set<List<Node>> R1,
                          Set<List<Node>> R2,
-                         Set<List<Node>> R3) {
+                         Set<List<Node>> R3,
+                         Set<List<Node>> trail) {
         if (P3.containsKey(pairyz)) return P3.get(pairyz);
+        trail.add(pairyz);
 
         Node y = pairyz.get(0);
         Node z = pairyz.get(1);
 
-        Set<Double> U = new HashSet<>();
+        Set<Double> U = (new HashSet<>());
 
         for (List<Node> R : R1) {
             Node _x = R.get(0);
@@ -558,8 +620,9 @@ public class Pcp implements GraphSearch {
             if (!(y == _y && z == _z)) continue;
 
             List<Node> pairxy = list(_x, _y);
+            if (trail.contains(pairxy)) continue;
 
-            U.add(getP3(pairxy, P1, P2, P3, R1, R2, R3));
+            U.add(getP3(pairxy, P1, P2, P3, R1, R2, R3, trail));
         }
 
         for (List<Node> R : R2) {
@@ -573,8 +636,8 @@ public class Pcp implements GraphSearch {
             List<Node> pairxz = list(_x, _z);
 
             U.add(max(
-                    getP3(pairyx, P1, P2, P3, R1, R2, R3),
-                    getP3(pairxz, P1, P2, P3, R1, R2, R3)
+                    getP3(pairyx, P1, P2, P3, R1, R2, R3, trail),
+                    getP3(pairxz, P1, P2, P3, R1, R2, R3, trail)
                     )
             );
         }
@@ -593,14 +656,20 @@ public class Pcp implements GraphSearch {
             List<Node> pairwz = list(_w, _z);
 
             U.add(max(
-                    getP3(pairyx, P1, P2, P3, R1, R2, R3),
-                    getP3(pairyw, P1, P2, P3, R1, R2, R3),
-                    getP3(pairxz, P1, P2, P3, R1, R2, R3),
-                    getP3(pairwz, P1, P2, P3, R1, R2, R3)
+                    getP3(pairyx, P1, P2, P3, R1, R2, R3, trail),
+                    getP3(pairyw, P1, P2, P3, R1, R2, R3, trail),
+                    getP3(pairxz, P1, P2, P3, R1, R2, R3, trail),
+                    getP3(pairwz, P1, P2, P3, R1, R2, R3, trail)
             ));
         }
 
-        P3.put(pairyz, max(sum(U), max(P1.get(pairyz), P2.get(pairyz))));
+        double max = 0.0;
+
+        if (P1.containsKey(pairyz) && P1.get(pairyz) > max) max = P1.get(pairyz);
+        if (P2.containsKey(pairyz) && P2.get(pairyz) > max) max = P2.get(pairyz);
+
+        P3.put(pairyz, max(sum(U), max));
+        trail.remove(pairyz);
         return P3.get(pairyz);
     }
 
@@ -622,11 +691,6 @@ public class Pcp implements GraphSearch {
         List<Node> l = new ArrayList<>();
         addAll(l, x);
         return l;
-    }
-
-    @Override
-    public long getElapsedTime() {
-        return 0;
     }
 
     private List<List<Node>> getC(Node x, Node y, Node z, Graph G) {
@@ -661,9 +725,11 @@ public class Pcp implements GraphSearch {
 
     @SafeVarargs
     private final Set<List<Node>> union(Set<List<Node>>... r) {
-        Set<List<Node>> union = new HashSet<>();
+        Set<List<Node>> union = (new HashSet<>());
 
         for (Set<List<Node>> _r : r) {
+            if (_r == null) continue;
+
             union.addAll(_r);
         }
 
@@ -672,7 +738,7 @@ public class Pcp implements GraphSearch {
 
     @SafeVarargs
     private final Map<List<Node>, Set<List<Node>>> union(Map<List<Node>, Set<List<Node>>>... r) {
-        Map<List<Node>, Set<List<Node>>> union = new HashMap<>();
+        Map<List<Node>, Set<List<Node>>> union = (new HashMap<>());
 
         for (Map<List<Node>, Set<List<Node>>> _r : r) {
             for (List<Node> pair : _r.keySet()) {
@@ -690,7 +756,7 @@ public class Pcp implements GraphSearch {
 
     private Set<List<Node>> getUT(Graph g) {
         List<Node> nodes = g.getNodes();
-        Set<List<Node>> ut = new HashSet<>();
+        Set<List<Node>> ut = (new HashSet<>());
 
         for (Node x : nodes) {
             for (Node y : nodes) {
@@ -709,14 +775,14 @@ public class Pcp implements GraphSearch {
 
     private Set<List<Node>> getTri(Graph g) {
         List<Node> nodes = g.getNodes();
-        Set<List<Node>> tri = new HashSet<>();
+        Set<List<Node>> tri = (new HashSet<>());
 
         for (Node x : nodes) {
             for (Node y : nodes) {
                 for (Node z : nodes) {
                     if (x == y || x == z || y == z) continue;
 
-                    if (g.isAdjacentTo(y, z) && g.isAdjacentTo(x, z) && g.isAdjacentTo(y, z)) {
+                    if (g.isAdjacentTo(y, x) && g.isAdjacentTo(x, z) && g.isAdjacentTo(y, z)) {
                         addRecord(tri, y, x, z);
                     }
                 }
@@ -728,7 +794,7 @@ public class Pcp implements GraphSearch {
 
     private Set<List<Node>> getKite(Graph g) {
         List<Node> nodes = g.getNodes();
-        Set<List<Node>> kite = new HashSet<>();
+        Set<List<Node>> kite = (new HashSet<>());
 
         for (Node x : nodes) {
             for (Node y : nodes) {
@@ -824,19 +890,6 @@ public class Pcp implements GraphSearch {
         return sum;
     }
 
-    /**
-     * @return the string in nodelist which matches string in BK.
-     */
-    public static Node translate(String a, List<Node> nodes) {
-        for (Node node : nodes) {
-            if ((node.getName()).equals(a)) {
-                return node;
-            }
-        }
-
-        return null;
-    }
-
     private int degree(Graph graph) {
         int max = 0;
 
@@ -851,28 +904,11 @@ public class Pcp implements GraphSearch {
         return max;
     }
 
-    private double pvalue(Node x, Node y, List<Node> aa) {
+    private double pvalue(Node x, Node y, List<Node> cond) {
         synchronized (independenceTest) {
-            independenceTest.isIndependent(x, y, aa);
+            independenceTest.isIndependent(x, y, cond);
             return independenceTest.getPValue();
         }
-    }
-
-    /**
-     * @return the independence test being used in the search.
-     */
-    public IndependenceTest getIndependenceTest() {
-        return independenceTest;
-    }
-
-    public double getQ() {
-        return q;
-    }
-
-    public void setQ(double q) {
-        if (!(q >= 0 && q <= 1)) throw new IllegalStateException("Q should be in [0, 1].");
-
-        this.q = q;
     }
 }
 

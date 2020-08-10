@@ -471,7 +471,7 @@ public class IndTestMultinomialLogisticRegressionWald implements IndependenceTes
     }
 
     @Override
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return null;
     }
 

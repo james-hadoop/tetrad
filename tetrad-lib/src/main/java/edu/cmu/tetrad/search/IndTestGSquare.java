@@ -380,7 +380,7 @@ public final class IndTestGSquare implements IndependenceTest {
     }
 
     @Override
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return null;
     }
 

@@ -246,7 +246,7 @@ public final class IndTestFisherZPercentIndependent implements IndependenceTest 
         return DataUtils.concatenate(dataSets);
     }
 
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         List<DataSet> _dataSets = new ArrayList<>();
 
         for (DataSet d : dataSets) {

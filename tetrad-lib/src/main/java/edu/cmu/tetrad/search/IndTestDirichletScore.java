@@ -270,7 +270,7 @@ public final class IndTestDirichletScore implements IndependenceTest {
         covMatrix.setVariables(variables);
     }
 
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return covMatrix;
     }
 

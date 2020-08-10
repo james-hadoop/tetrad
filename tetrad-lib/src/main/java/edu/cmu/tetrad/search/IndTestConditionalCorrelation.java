@@ -289,7 +289,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest, Sc
     }
 
     @Override
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return null;
     }
 

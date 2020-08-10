@@ -285,7 +285,7 @@ public final class GPc implements GraphSearch {
         double penaltyDiscount = getPenaltyDiscount();
 
         DataSet dataSet = (DataSet) independenceTest.getData();
-        ICovarianceMatrix cov = independenceTest.getCov();
+        ICovarianceMatrix cov = independenceTest.getCor();
         Score score;
 
         if (independenceTest instanceof IndTestDSep) {

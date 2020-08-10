@@ -1143,6 +1143,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         List<Edge> edges = getEdges(from, to);
         ancestors = null;
 
+        if (!isAdjacentTo(from, to)) throw new IllegalArgumentException("Not adjacent");
+
         if (endPoint == null) {
             throw new NullPointerException();
         } else if (edges.size() == 0) {

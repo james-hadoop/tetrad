@@ -300,7 +300,7 @@ public class Kci implements IndependenceTest, ScoreForFact {
     }
 
 
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         throw new UnsupportedOperationException();
     }
 

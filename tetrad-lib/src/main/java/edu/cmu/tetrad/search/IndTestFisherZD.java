@@ -390,7 +390,7 @@ public final class IndTestFisherZD implements IndependenceTest {
         covMatrix.setVariables(variables);
     }
 
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return covMatrix;
     }
 

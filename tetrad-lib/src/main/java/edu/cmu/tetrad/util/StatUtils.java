@@ -1791,12 +1791,11 @@ public final class StatUtils {
         return StatUtils.partialCorrelationPrecisionMatrix(submatrix);
     }
 
+    // submatrix is a submatrix is a submatrix of a *correlation* (not covariance) matrix.
     public static synchronized double partialCorrelationPrecisionMatrix(TetradMatrix submatrix) {
 //        if (true) return partialCorrelationWhittaker(submatrix);
-
-        TetradMatrix inverse = submatrix.inverse();
-//        TetradMatrix inverse = new TetradMatrix(new CholeskyDecomposition(submatrix.getRealMatrix()).getSolver().getInverse());
-        return (-inverse.get(0, 1)) / sqrt(inverse.get(0, 0) * inverse.get(1, 1));
+        TetradMatrix prec = submatrix.inverse();
+        return (-prec.get(0, 1)) / sqrt(prec.get(0, 0) * prec.get(1, 1));
     }
 
     public static synchronized double partialCorrelationWhittaker(TetradMatrix submatrix) {

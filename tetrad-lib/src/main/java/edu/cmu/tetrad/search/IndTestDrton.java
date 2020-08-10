@@ -315,7 +315,7 @@ public final class IndTestDrton implements IndependenceTest {
     }
 
     @Override
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return null;
     }
 

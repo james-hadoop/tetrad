@@ -380,7 +380,7 @@ public final class IndTestCorrelationT implements IndependenceTest {
         covMatrix.setVariables(variables);
     }
 
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return covMatrix;
     }
 

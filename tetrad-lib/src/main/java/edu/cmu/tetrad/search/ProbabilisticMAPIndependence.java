@@ -221,7 +221,7 @@ public class ProbabilisticMAPIndependence implements IndependenceTest {
     }
 
     @Override
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return null;
     }
 
