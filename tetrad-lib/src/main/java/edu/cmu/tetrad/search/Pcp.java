@@ -120,16 +120,16 @@ public class Pcp implements GraphSearch {
                         double p = pvalue(x, y, S);
                         if (Double.isNaN(p)) continue;
 
-                        if (p <= alpha) {
-                            addP(V, x, y, p);
-                            addP(V, y, x, p);
-                        } else {
+                        if (p > alpha) {
                             del.add(list(x, y));
                             includeSet(S_hat, x, y, S);
                             includeSet(S_hat, y, x, S);
                             clear(V, x, y);
                             clear(V, y, x);
                             break;
+                        } else {
+                            addP(V, x, y, p);
+                            addP(V, y, x, p);
                         }
                     }
                 }
@@ -148,6 +148,33 @@ public class Pcp implements GraphSearch {
                 setP(P1, pair, max(V.get(pair)));
             } else {
                 P1.remove(pair);
+            }
+        }
+
+        for (List<Node> triple : getUT(G1)) {
+            Node x = triple.get(0);
+            Node y = triple.get(1);
+            Node z = triple.get(2);
+
+            if (G1.isAdjacentTo(x, z)) continue;
+
+            double pMax = Double.NEGATIVE_INFINITY;
+            List<Node> sMax = null;
+
+            for (List<Node> S : getC(x, z, G1)) {
+                double _p = pvalue(x, z, S);
+                if (Double.isNaN(_p)) continue;
+
+                if (_p > pMax) {
+                    pMax = _p;
+                    sMax = S;
+                }
+            }
+
+            if (pMax > Double.NEGATIVE_INFINITY) {
+                addP(V, x, z, pMax);
+                addP(V, z, x, pMax);
+                includeSet(S_hat, x, z, sMax);
             }
         }
 
@@ -223,6 +250,10 @@ public class Pcp implements GraphSearch {
             }
         }
 
+
+        if (true) return G2;
+
+
         // algorithm 3
         Set<List<Node>> R1 = new HashSet<>();
         Set<List<Node>> R2 = new HashSet<>();
@@ -242,7 +273,7 @@ public class Pcp implements GraphSearch {
                 Node z = triple.get(2);
 
                 if (G2.containsEdge(Edges.directedEdge(x, y))
-                        && !existsRecord(amb, y, z)
+                        && !(existsRecord(amb, y, z) && Edges.isBidirectedEdge(G1.getEdge(y, z)))
                         && !existsRecord(union(R0, R1), x, y, z)) {
                     G2.setEndpoint(y, z, Endpoint.ARROW);
                     addRecord(R1, x, y, z);
@@ -258,7 +289,7 @@ public class Pcp implements GraphSearch {
 
                 if (G2.containsEdge(Edges.directedEdge(y, x))
                         && G2.containsEdge(Edges.directedEdge(x, z))
-                        && !existsRecord(amb, y, z)
+                        && !(existsRecord(amb, y, z) && Edges.isBidirectedEdge(G1.getEdge(y, z)))
                         && !existsRecord(R2, y, x, z)) {
                     G2.setEndpoint(y, z, Endpoint.ARROW);
                     addRecord(R2, y, x, z);
@@ -276,7 +307,7 @@ public class Pcp implements GraphSearch {
                         && G2.containsEdge(Edges.undirectedEdge(y, w))
                         && G2.containsEdge(Edges.directedEdge(x, z))
                         && G2.containsEdge(Edges.directedEdge(w, z))
-                        && !existsRecord(amb, y, z)
+                        && !(existsRecord(amb, y, z) && Edges.isBidirectedEdge(G1.getEdge(y, z)))
                         && !existsRecord(R3, y, x, w, z)
                         && !existsRecord(R3, y, w, x, z)
                 ) {
@@ -718,6 +749,34 @@ public class Pcp implements GraphSearch {
             if (cond.contains(z)) {
                 c.add(cond);
             }
+        }
+
+        return c;
+    }
+
+    private List<List<Node>> getC(Node x, Node y, Graph G) {
+        List<List<Node>> c = new ArrayList<>();
+
+        List<Node> adjx = G.getAdjacentNodes(x);
+        adjx.remove(y);
+
+        DepthChoiceGenerator genx = new DepthChoiceGenerator(adjx.size(), 3);
+        int[] choicex;
+
+        while ((choicex = genx.next()) != null) {
+            List<Node> cond = GraphUtils.asList(choicex, adjx);
+            c.add(cond);
+        }
+
+        List<Node> adjy = G.getAdjacentNodes(y);
+        adjy.remove(x);
+
+        DepthChoiceGenerator geny = new DepthChoiceGenerator(adjy.size(), 3);
+        int[] choicey;
+
+        while ((choicey = geny.next()) != null) {
+            List<Node> cond = GraphUtils.asList(choicey, adjy);
+            c.add(cond);
         }
 
         return c;
