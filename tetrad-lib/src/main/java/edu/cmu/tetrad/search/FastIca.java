@@ -231,11 +231,13 @@ public class FastIca {
      * two arguments that cannot be defaulted: the data matrix itself and the
      * number of components to be extracted.
      *
-     * @param X A 2D matrix, rows being cases, columns being
-     *          variables. It is assumed that there are no missing
+     * @param X A 2D matrix, rows being variables, columns being
+     *          cases. It is assumed that there are no missing
      *          values.
      */
     public FastIca(TetradMatrix X, int numComponents) {
+        System.out.println("rows = " + X.rows() + " cols = " + X.columns());
+
         this.X = X;
         this.numComponents = numComponents;
     }
@@ -705,7 +707,8 @@ public class FastIca {
 
     private TetradMatrix scale(TetradMatrix x) {
         for (int i = 0; i < x.rows(); i++) {
-            TetradVector u = x.getRow(i).scalarMult(1.0 / rms(x.getRow(i)));
+            TetradVector row = x.getRow(i);
+            TetradVector u = row.scalarMult(1.0 / rms(row));
             x.assignRow(i, u);
         }
 

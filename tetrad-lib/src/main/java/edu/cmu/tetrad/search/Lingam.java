@@ -42,7 +42,7 @@ import static java.lang.StrictMath.abs;
 public class Lingam {
     private double penaltyDiscount = 2;
     private double fastIcaA = 1.1;
-    private int fastIcaMaxIter = 2000;
+    private int fastIcaMaxIter = 100;
     private double fastIcaTolerance = 1e-6;
 
     //================================CONSTRUCTORS==========================//
@@ -54,14 +54,14 @@ public class Lingam {
     }
 
     public Graph search(DataSet data) {
-        TetradMatrix X = data.getDoubleData();
-        X = DataUtils.centerData(X).transpose();
+        TetradMatrix X = data.getDoubleData().transpose();
+//        X = DataUtils.centerData(X).transpose();
         FastIca fastIca = new FastIca(X, X.rows());
         fastIca.setVerbose(false);
         fastIca.setMaxIterations(fastIcaMaxIter);
         fastIca.setAlgorithmType(FastIca.PARALLEL);
         fastIca.setTolerance(fastIcaTolerance);
-        fastIca.setFunction(FastIca.EXP);
+        fastIca.setFunction(FastIca.LOGCOSH);
         fastIca.setRowNorm(false);
         fastIca.setAlpha(fastIcaA);
         FastIca.IcaResult result11 = fastIca.findComponents();
@@ -138,6 +138,7 @@ public class Lingam {
 
         for (int i = 0; i < variables.size(); i++) {
             knowledge.addToTier(i, variables.get(perm2[i]).getName());
+            System.out.println("i = " + (i + 1) + " " + variables.get(perm2[i]));
         }
 
         fges.setKnowledge(knowledge);
