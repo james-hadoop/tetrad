@@ -78,8 +78,8 @@ public class TestPcp {
         parameters.set(Params.COEF_LOW, 0.2);
         parameters.set(Params.COEF_HIGH, 0.7);
         parameters.set(Params.ALPHA, 0.01);
-        parameters.set(Params.NUM_MEASURES, 20);
-        parameters.set(Params.AVG_DEGREE, 2);
+        parameters.set(Params.NUM_MEASURES, 50);
+        parameters.set(Params.AVG_DEGREE, 4);
         parameters.set(Params.COLLIDER_DISCOVERY_RULE, 3);
 
         Comparison comparison = new Comparison();
