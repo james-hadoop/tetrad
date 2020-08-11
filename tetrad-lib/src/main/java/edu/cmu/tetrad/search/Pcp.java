@@ -172,8 +172,8 @@ public class Pcp implements GraphSearch {
             }
 
             if (pMax > Double.NEGATIVE_INFINITY) {
-                addP(V, x, z, pMax);
-                addP(V, z, x, pMax);
+//                addP(V, x, z, pMax);
+//                addP(V, z, x, pMax);
                 includeSet(S_hat, x, z, sMax);
             }
         }
@@ -273,7 +273,7 @@ public class Pcp implements GraphSearch {
                 Node z = triple.get(2);
 
                 if (G2.containsEdge(Edges.directedEdge(x, y))
-                        && !(existsRecord(amb, y, z) && Edges.isBidirectedEdge(G1.getEdge(y, z)))
+                        && !(existsRecord(amb, y, z)) // && Edges.isBidirectedEdge(G1.getEdge(y, z)))
                         && !existsRecord(union(R0, R1), x, y, z)) {
                     G2.setEndpoint(y, z, Endpoint.ARROW);
                     addRecord(R1, x, y, z);
@@ -289,7 +289,7 @@ public class Pcp implements GraphSearch {
 
                 if (G2.containsEdge(Edges.directedEdge(y, x))
                         && G2.containsEdge(Edges.directedEdge(x, z))
-                        && !(existsRecord(amb, y, z) && Edges.isBidirectedEdge(G1.getEdge(y, z)))
+                        && !(existsRecord(amb, y, z)) // && Edges.isBidirectedEdge(G1.getEdge(y, z)))
                         && !existsRecord(R2, y, x, z)) {
                     G2.setEndpoint(y, z, Endpoint.ARROW);
                     addRecord(R2, y, x, z);
@@ -307,7 +307,7 @@ public class Pcp implements GraphSearch {
                         && G2.containsEdge(Edges.undirectedEdge(y, w))
                         && G2.containsEdge(Edges.directedEdge(x, z))
                         && G2.containsEdge(Edges.directedEdge(w, z))
-                        && !(existsRecord(amb, y, z) && Edges.isBidirectedEdge(G1.getEdge(y, z)))
+                        && !(existsRecord(amb, y, z)) // && Edges.isBidirectedEdge(G1.getEdge(y, z)))
                         && !existsRecord(R3, y, x, w, z)
                         && !existsRecord(R3, y, w, x, z)
                 ) {
