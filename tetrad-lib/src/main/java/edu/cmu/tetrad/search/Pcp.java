@@ -151,32 +151,32 @@ public class Pcp implements GraphSearch {
             }
         }
 
-        for (List<Node> triple : getUT(G1)) {
-            Node x = triple.get(0);
-            Node y = triple.get(1);
-            Node z = triple.get(2);
-
-            if (G1.isAdjacentTo(x, z)) continue;
-
-            double pMax = Double.NEGATIVE_INFINITY;
-            List<Node> sMax = null;
-
-            for (List<Node> S : getC(x, z, G1)) {
-                double _p = pvalue(x, z, S);
-                if (Double.isNaN(_p)) continue;
-
-                if (_p > pMax) {
-                    pMax = _p;
-                    sMax = S;
-                }
-            }
-
-            if (pMax > Double.NEGATIVE_INFINITY) {
-                addP(V, x, z, pMax);
-                addP(V, z, x, pMax);
-                includeSet(S_hat, x, z, sMax);
-            }
-        }
+//        for (List<Node> triple : getUT(G1)) {
+//            Node x = triple.get(0);
+//            Node y = triple.get(1);
+//            Node z = triple.get(2);
+//
+//            if (G1.isAdjacentTo(x, z)) continue;
+//
+//            double pMax = Double.NEGATIVE_INFINITY;
+//            List<Node> sMax = null;
+//
+//            for (List<Node> S : getC(x, z, G1)) {
+//                double _p = pvalue(x, z, S);
+//                if (Double.isNaN(_p)) continue;
+//
+//                if (_p > pMax) {
+//                    pMax = _p;
+//                    sMax = S;
+//                }
+//            }
+//
+//            if (pMax > Double.NEGATIVE_INFINITY) {
+//                addP(V, x, z, pMax);
+//                addP(V, z, x, pMax);
+//                includeSet(S_hat, x, z, sMax);
+//            }
+//        }
 
         // algorithm 2
 
