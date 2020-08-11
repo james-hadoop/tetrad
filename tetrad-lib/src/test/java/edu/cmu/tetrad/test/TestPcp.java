@@ -23,6 +23,8 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcStableMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pcp;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
@@ -61,6 +63,7 @@ public class TestPcp {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new Pcp(new FisherZ()));
+        algorithms.add(new PcAll(new FisherZ()));
 
         Statistics statistics = new Statistics();
         statistics.add(new AdjacencyPrecision());
@@ -70,13 +73,14 @@ public class TestPcp {
         statistics.add(new ElapsedTime());
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 500);
+        parameters.set(Params.NUM_RUNS, 10);
         parameters.set(Params.FDR_Q, 0.05);
         parameters.set(Params.COEF_LOW, 0.2);
         parameters.set(Params.COEF_HIGH, 0.7);
         parameters.set(Params.ALPHA, 0.01);
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 2);
+        parameters.set(Params.COLLIDER_DISCOVERY_RULE, 3);
 
         Comparison comparison = new Comparison();
 
