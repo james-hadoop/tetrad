@@ -128,7 +128,9 @@ public class Parameters implements TetradSerializable {
      * @return The integer value of this parameter.
      */
     public int getInt(String name, int defaultValue) {
-        return ((Number) get(name, defaultValue)).intValue();
+        Object o = get(name, defaultValue);
+        if (!(o instanceof Number)) return -1;
+        return ((Number) o).intValue();
     }
 
     /**
