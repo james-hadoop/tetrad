@@ -30,7 +30,7 @@ import java.util.List;
         dataType = DataType.Continuous
 )
 @Bootstrapping
-@Experimental
+//@Experimental
 public class Ling implements Algorithm {
 
     static final long serialVersionUID = 23L;

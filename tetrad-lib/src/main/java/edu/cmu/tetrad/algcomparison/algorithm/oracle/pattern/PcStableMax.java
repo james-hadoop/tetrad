@@ -19,6 +19,7 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +37,6 @@ import java.util.List;
 public class PcStableMax implements Algorithm, TakesInitialGraph, HasKnowledge, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
-    private boolean compareToTrue = false;
     private IndependenceWrapper test;
     private Algorithm algorithm = null;
     private Graph initialGraph = null;
@@ -45,9 +45,8 @@ public class PcStableMax implements Algorithm, TakesInitialGraph, HasKnowledge, 
     public PcStableMax() {
     }
 
-    public PcStableMax(IndependenceWrapper test, boolean compareToTrue) {
+    public PcStableMax(IndependenceWrapper test) {
         this.test = test;
-        this.compareToTrue = compareToTrue;
     }
 
     @Override
@@ -70,7 +69,7 @@ public class PcStableMax implements Algorithm, TakesInitialGraph, HasKnowledge, 
             search.setMaxPathLength(parameters.getInt(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH));
             return search.search();
         } else {
-            PcStableMax pcStableMax = new PcStableMax(test, compareToTrue);
+            PcStableMax pcStableMax = new PcStableMax(test);
 
             if (initialGraph != null) {
                 pcStableMax.setInitialGraph(initialGraph);
@@ -104,11 +103,7 @@ public class PcStableMax implements Algorithm, TakesInitialGraph, HasKnowledge, 
 
     @Override
     public Graph getComparisonGraph(Graph graph) {
-        if (compareToTrue) {
-            return new EdgeListGraph(graph);
-        } else {
-            return SearchGraphUtils.patternForDag(new EdgeListGraph(graph));
-        }
+        return new EdgeListGraph(graph);
     }
 
     @Override
@@ -143,10 +138,6 @@ public class PcStableMax implements Algorithm, TakesInitialGraph, HasKnowledge, 
     @Override
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
-    }
-
-    public boolean isCompareToTrue() {
-        return compareToTrue;
     }
 
     @Override

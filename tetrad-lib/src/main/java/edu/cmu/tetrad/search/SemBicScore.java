@@ -21,6 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.data.CorrelationMatrix;
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
@@ -97,7 +98,7 @@ public class SemBicScore implements Score {
 
         this.dataSet = dataSet;
 
-        ICovarianceMatrix cov = new CovarianceMatrix(dataSet, true);
+        ICovarianceMatrix cov = new CovarianceMatrix(dataSet);
         setCovariances(cov);
 
         this.variables = covariances.getVariables();
@@ -111,7 +112,7 @@ public class SemBicScore implements Score {
         double sp1 = getStructurePrior(z.length + 1);
         double sp2 = getStructurePrior(z.length);
 
-        if (false) {
+        if (true) {
             int n = covariances.getSampleSize();
             Node _x = variables.get(x);
             Node _y = variables.get(y);
@@ -158,7 +159,7 @@ public class SemBicScore implements Score {
             }
 
             return -n * log(s2) - getPenaltyDiscount() * k * log(n)
-                    + signum(getStructurePrior(parents.length)) * getStructurePrior(parents.length);
+                    + /*signum(getStructurePrior(parents.length)) **/ getStructurePrior(parents.length);
         } catch (Exception e) {
             return Double.NaN;
         }

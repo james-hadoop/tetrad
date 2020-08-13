@@ -22,26 +22,29 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import edu.cmu.tetrad.util.TetradMatrix;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.StrictMath.abs;
 
 /**
  * Implements the LiNGAM algorithm in Shimizu, Hoyer, Hyvarinen, and Kerminen, A linear nongaussian acyclic model for
  * causal discovery, JMLR 7 (2006). Largely follows the Matlab code.
- *
+ * <p>
  * We use FGES with knowledge of causal order for the pruning step.
  *
  * @author Joseph Ramsey
  */
 public class Lingam {
     private double penaltyDiscount = 2;
-    private double fastIcaA = 1.1;
+    private double fastIcaA = .9;
     private int fastIcaMaxIter = 100;
     private double fastIcaTolerance = 1e-6;
 
@@ -54,33 +57,48 @@ public class Lingam {
     }
 
     public Graph search(DataSet data) {
+        fastIcaMaxIter = 2000;
+        int parallel = FastIca.DEFLATION;
+        double fastIcaTolerance = 0.0001;
+
+        data = DataUtils.center(data);
+
         TetradMatrix X = data.getDoubleData().transpose();
-//        X = DataUtils.centerData(X).transpose();
         FastIca fastIca = new FastIca(X, X.rows());
         fastIca.setVerbose(false);
         fastIca.setMaxIterations(fastIcaMaxIter);
-        fastIca.setAlgorithmType(FastIca.PARALLEL);
+        fastIca.setAlgorithmType(parallel);
         fastIca.setTolerance(fastIcaTolerance);
-        fastIca.setFunction(FastIca.LOGCOSH);
+        fastIca.setFunction(FastIca.EXP);
         fastIca.setRowNorm(false);
         fastIca.setAlpha(fastIcaA);
         FastIca.IcaResult result11 = fastIca.findComponents();
-        TetradMatrix W = result11.getW();
 
-        PermutationGenerator gen1 = new PermutationGenerator(W.columns());
+        TetradMatrix A = result11.getA();
+        TetradMatrix S = result11.getS();
+
+//        System.out.println("X = " + X);
+//        System.out.println("AS = " + A.times(S));
+//        System.out.println("S = " + S);
+
+        TetradMatrix W = A.inverse();
+
+//        System.out.println("W = " + W);
+
+        PermutationGenerator gen1 = new PermutationGenerator(W.rows());
         int[] perm1 = new int[0];
-        double sum1 = Double.NEGATIVE_INFINITY;
+        double sum1 = Double.POSITIVE_INFINITY;
         int[] choice1;
 
         while ((choice1 = gen1.next()) != null) {
             double sum = 0.0;
 
-            for (int i = 0; i < W.columns(); i++) {
+            for (int i = 0; i < W.rows(); i++) {
                 final double wii = W.get(choice1[i], i);
-                sum += abs(wii);
+                sum += abs(1.0 / wii);
             }
 
-            if (sum > sum1) {
+            if (sum < sum1) {
                 sum1 = sum;
                 perm1 = Arrays.copyOf(choice1, choice1.length);
             }
@@ -89,37 +107,44 @@ public class Lingam {
         int[] cols = new int[W.columns()];
         for (int i = 0; i < cols.length; i++) cols[i] = i;
 
+        // zeroless diagonal.
         TetradMatrix WTilde = W.getSelection(perm1, cols);
 
-        TetradMatrix WPrime = WTilde.copy();
+        System.out.println("WTilde = " + WTilde);
 
-        for (int i = 0; i < WPrime.rows(); i++) {
-            for (int j = 0; j < WPrime.columns(); j++) {
-                WPrime.assignRow(i, WTilde.getRow(i).scalarMult(1.0 / WTilde.get(i, i)));
-            }
+//        TetradMatrix WPrime = WTilde.copy();
+
+        for (int i = 0; i < WTilde.rows(); i++) {
+            WTilde.assignRow(i, WTilde.getRow(i).scalarMult(1.0 / WTilde.get(i, i)));
         }
 
-//        System.out.println("WPrime = " + WPrime);
+        // scaled
+        System.out.println("WPrime = " + WTilde);
 
         final int m = data.getNumColumns();
-        TetradMatrix BHat = TetradMatrix.identity(m).minus(WPrime);
+        TetradMatrix BHat = TetradMatrix.identity(m).minus(WTilde);
+
+        // beta weights
+        System.out.println("BHat = " + BHat);
+
+
 
         PermutationGenerator gen2 = new PermutationGenerator(BHat.rows());
         int[] perm2 = new int[0];
-        double sum2 = Double.NEGATIVE_INFINITY;
+        double sum2 = Double.POSITIVE_INFINITY;
         int[] choice2;
 
         while ((choice2 = gen2.next()) != null) {
             double sum = 0.0;
 
-            for (int i = 0; i < W.rows(); i++) {
-                for (int j = 0; j < i; j++) {
+            for (int j = 0; j < W.rows(); j++) {
+                for (int i = 0; i <= j; i++) {
                     final double c = BHat.get(choice2[i], choice2[j]);
-                    sum += abs(c);
+                    sum += c * c;
                 }
             }
 
-            if (sum > sum2) {
+            if (sum < sum2) {
                 sum2 = sum;
                 perm2 = Arrays.copyOf(choice2, choice2.length);
             }
@@ -131,19 +156,39 @@ public class Lingam {
 
         final SemBicScore score = new SemBicScore(new CovarianceMatrix(data));
         score.setPenaltyDiscount(penaltyDiscount);
-        Fges fges = new Fges(score);
 
-        IKnowledge knowledge = new Knowledge2();
+//        Fges fges = new Fges(score);
+
+//        IKnowledge knowledge = new Knowledge2();
         final List<Node> variables = data.getVariables();
-
+//
         for (int i = 0; i < variables.size(); i++) {
-            knowledge.addToTier(i, variables.get(perm2[i]).getName());
+//            knowledge.addToTier(i, variables.get(perm2[i]).getName());
             System.out.println("i = " + (i + 1) + " " + variables.get(perm2[i]));
         }
 
-        fges.setKnowledge(knowledge);
+        FasStable pc = new FasStable(new IndTestFisherZ(data, 0.01));
+        final Graph graph = pc.search();
 
-        final Graph graph = fges.search();
+        List<Node> order = new ArrayList<>();
+
+        for (int i = 0; i < variables.size(); i++) {
+            order.add(variables.get(perm2[i]));
+        }
+
+        for (Edge edge : new ArrayList<>(graph.getEdges())) {
+            Node x = edge.getNode1();
+            Node y = edge.getNode2();
+
+            graph.removeEdge(edge);
+
+            if (order.indexOf(y) > order.indexOf(x)) {
+                graph.addDirectedEdge(x, y);
+            } else if (order.indexOf(y) < order.indexOf(x)) {
+                graph.addDirectedEdge(y, x);
+            }
+        }
+
         System.out.println("graph Returning this graph: " + graph);
         return graph;
     }

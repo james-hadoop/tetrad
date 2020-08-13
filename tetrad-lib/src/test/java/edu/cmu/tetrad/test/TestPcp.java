@@ -23,32 +23,14 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcStableMax;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pcp;
+import edu.cmu.tetrad.algcomparison.algorithm.continuous.dag.Lingam;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.regression.RegressionDataset;
-import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
-import edu.cmu.tetrad.util.*;
-import org.junit.Test;
-
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
+import edu.cmu.tetrad.util.PermutationGenerator;
 
 /**
  * Tests the PC search.
@@ -62,8 +44,11 @@ public class TestPcp {
         simulations.add(new SemSimulation(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new Pcp(new FisherZ()));
-        algorithms.add(new PcAll(new FisherZ()));
+//        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new Pcp(new FisherZ()));
+        algorithms.add(new Lingam());
+//        algorithms.add(new Fask(new FisherZ()));
+//        algorithms.add(new PcStableMax(new FisherZ()));
 
         Statistics statistics = new Statistics();
         statistics.add(new AdjacencyPrecision());
@@ -73,20 +58,29 @@ public class TestPcp {
         statistics.add(new ElapsedTime());
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 10);
+        parameters.set(Params.NUM_RUNS, 1);
+        parameters.set(Params.NUM_MEASURES, 10);
         parameters.set(Params.FDR_Q, 0.05);
         parameters.set(Params.COEF_LOW, 0.2);
         parameters.set(Params.COEF_HIGH, 0.7);
         parameters.set(Params.ALPHA, 0.01);
-        parameters.set(Params.NUM_MEASURES, 50);
-        parameters.set(Params.AVG_DEGREE, 4);
+        parameters.set(Params.SAMPLE_SIZE, 1000);
+        parameters.set(Params.AVG_DEGREE, 2);
         parameters.set(Params.COLLIDER_DISCOVERY_RULE, 3);
+
+        parameters.set(Params.ERRORS_NORMAL, false);
+        parameters.set(Params.PENALTY_DISCOUNT, 4);
+        parameters.set(Params.SKEW_EDGE_THRESHOLD, 0.3);
 
         Comparison comparison = new Comparison();
 
-
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
         comparison.compareFromSimulations("comparison3", simulations, algorithms,
                 statistics, parameters);
+    }
+
+    public void test2() {
+        PermutationGenerator.testPrint(5);
     }
 
     public static  void main(String...args) {
