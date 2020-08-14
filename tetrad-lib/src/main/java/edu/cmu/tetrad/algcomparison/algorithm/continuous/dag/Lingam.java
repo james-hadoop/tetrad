@@ -37,7 +37,6 @@ public class Lingam implements Algorithm {
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             edu.cmu.tetrad.search.Lingam lingam = new edu.cmu.tetrad.search.Lingam();
-            lingam.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
             lingam.setFastIcaA(parameters.getDouble(Params.FAST_ICA_A));
             lingam.setFastMaxIter(parameters.getInt(Params.FAST_ICA_MAX_ITER));
             lingam.setFastIcaTolerance(parameters.getDouble(Params.FAST_ICA_TOLERANCE));

@@ -140,7 +140,11 @@ public final class Knowledge2 implements TetradSerializable, IKnowledge {
      * Makes a shallow copy.
      */
     private Knowledge2(Knowledge2 knowledge) {
-        this.namesToVars = new HashMap<>(knowledge.namesToVars);
+        Map<String, MyNode> names = knowledge.namesToVars;
+        if (knowledge.namesToVars == null) {
+            names = new HashMap<>();
+        }
+        this.namesToVars = new HashMap<>(names);
         this.myNodes = new HashSet<>(knowledge.myNodes);
 
         this.forbiddenRulesSpecs = new HashSet<>(knowledge.forbiddenRulesSpecs);

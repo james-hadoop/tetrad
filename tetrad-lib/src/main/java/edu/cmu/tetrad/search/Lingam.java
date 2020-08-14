@@ -23,19 +23,17 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.graph.EdgeListGraph;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.PermutationGenerator;
-import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradMatrix;
-import edu.cmu.tetrad.util.TetradVector;
 import org.apache.commons.math3.linear.QRDecomposition;
+import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static edu.cmu.tetrad.util.StatUtils.*;
 import static edu.cmu.tetrad.util.TetradMatrix.identity;
 import static java.lang.StrictMath.abs;
 
@@ -51,7 +49,7 @@ public class Lingam {
     private double fastIcaA = .9;
     private int fastIcaMaxIter = 100;
     private double fastIcaTolerance = 1e-6;
-    private double pruneFactor = 3;
+    private double pruneFactor = 1;
 
     //================================CONSTRUCTORS==========================//
 
@@ -64,93 +62,133 @@ public class Lingam {
     //================================PUBLIC METHODS========================//
 
     public Graph search(DataSet data) {
-        fastIcaMaxIter = 2000;
-        int parallel = FastIca.DEFLATION;
-        double fastIcaTolerance = 0.0001;
+        int parallel = FastIca.PARALLEL;
 
         data = DataUtils.center(data);
 
         TetradMatrix X = data.getDoubleData().transpose();
-        FastIca fastIca = new FastIca(X, X.rows());
-        fastIca.setVerbose(false);
-        fastIca.setMaxIterations(fastIcaMaxIter);
-        fastIca.setAlgorithmType(parallel);
-        fastIca.setTolerance(fastIcaTolerance);
-        fastIca.setFunction(FastIca.EXP);
-        fastIca.setRowNorm(false);
-        fastIca.setAlpha(fastIcaA);
-        FastIca.IcaResult result11 = fastIca.findComponents();
-
-        TetradMatrix A = result11.getA();
-        TetradMatrix W = A.inverse();
-
-        PermutationGenerator gen1 = new PermutationGenerator(W.rows());
-        int[] perm1 = null;
-        double sum1 = Double.POSITIVE_INFINITY;
-        int[] r;
-
-        while ((r = gen1.next()) != null) {
-            double sum = 0.0;
-
-            for (int i = 0; i < W.rows(); i++) {
-                sum += abs(1.0 / W.get(r[i], i));
-            }
-
-            if (sum < sum1) {
-                sum1 = sum;
-                perm1 = copy(r);
-            }
-        }
-
-        if (perm1 == null) throw new IllegalStateException();
-
-        TetradMatrix WTilde = W.getSelection(perm1, range(W.rows()));
-
-        for (int i = 0; i < WTilde.rows(); i++) {
-            WTilde.assignRow(i, WTilde.getRow(i).scalarMult(1.0 / WTilde.get(i, i)));
-        }
-
-        final int m = X.rows();
-        TetradMatrix BHat = identity(m).minus(WTilde);
-
-        PermutationGenerator gen2 = new PermutationGenerator(X.rows());
-        int[] k = null;
-        double sum2 = Double.POSITIVE_INFINITY;
-        int[] q;
-
-        while ((q = gen2.next()) != null) {
-            double sum = 0.0;
-
-            for (int j = 0; j < W.rows(); j++) {
-                for (int i = 0; i <= j; i++) {
-                    final double c = BHat.get(q[i], q[j]);
-                    sum += c * c;
-                }
-            }
-
-            if (sum < sum2) {
-                sum2 = sum;
-                k = copy(q);
-            }
-        }
-
-        if (k == null) throw new IllegalStateException();
-
-        TetradMatrix bFinal = pruneEdgesByResampling(X, k);
+//        FastIca fastIca = new FastIca(X, X.rows());
+//        fastIca.setVerbose(false);
+//        fastIca.setMaxIterations(fastIcaMaxIter);
+//        fastIca.setAlgorithmType(parallel);
+//        fastIca.setTolerance(fastIcaTolerance);
+//        fastIca.setFunction(FastIca.EXP);
+//        fastIca.setRowNorm(false);
+//        fastIca.setAlpha(fastIcaA);
+//        FastIca.IcaResult result11 = fastIca.findComponents();
+//
+//        TetradMatrix A = result11.getA();
+//        TetradMatrix W = A.inverse();
+//
+//        PermutationGenerator gen1 = new PermutationGenerator(W.rows());
+//        int[] perm1 = null;
+//        double sum1 = Double.POSITIVE_INFINITY;
+//        int[] r;
+//
+//        while ((r = gen1.next()) != null) {
+//            double sum = 0.0;
+//
+//            for (int i = 0; i < W.rows(); i++) {
+//                sum += abs(1.0 / W.get(r[i], i));
+//            }
+//
+//            if (sum < sum1) {
+//                sum1 = sum;
+//                perm1 = copy(r);
+//            }
+//        }
+//
+//        if (perm1 == null) throw new IllegalStateException();
+//
+//        TetradMatrix WTilde = W.getSelection(perm1, range(W.rows()));
+//
+//        for (int i = 0; i < WTilde.rows(); i++) {
+//            for (int j = 0; j < WTilde.columns(); j++) {
+//                WTilde.set(i, j, WTilde.get(i, j) / WTilde.get(i, i));
+//            }
+//        }
+//
+//        final int m = X.rows();
+//        TetradMatrix BHat = identity(m).minus(WTilde);
+//
+//        PermutationGenerator gen2 = new PermutationGenerator(X.rows());
+//        int[] k = null;
+//        double sum2 = Double.POSITIVE_INFINITY;
+//        int[] q;
+//
+//        while ((q = gen2.next()) != null) {
+//            double sum = 0.0;
+//
+//            for (int j = 0; j < W.rows(); j++) {
+//                for (int i = 0; i < j; i++) {
+//                    final double c = BHat.get(q[i], q[j]);
+//                    sum += c * c;
+//                }
+//            }
+//
+//            if (sum < sum2) {
+//                sum2 = sum;
+//                k = copy(q);
+//            }
+//        }
+//
+//        if (k == null) throw new IllegalStateException();
 
         final List<Node> variables = data.getVariables();
 
+        System.out.println("Variables = " + variables);
+
+//        FasStable fas = new FasStable(new IndTestFisherZ(data, 0.01));
+//        final Graph graph = fas.search();
+//
+//        for (Edge edge : new ArrayList<>(graph.getEdges())) {
+//            Node x = edge.getNode1();
+//            Node y = edge.getNode2();
+//
+//            if (order.indexOf(y) > order.indexOf(x)) {
+//                graph.setEndpoint(x, y, Endpoint.ARROW);
+//            } else {
+//                graph.setEndpoint(y, x, Endpoint.ARROW);
+//            }
+//        }
+
+        int[] k = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+
         Graph graph = new EdgeListGraph(variables);
 
-        for (int j = 0; j < X.rows(); j++) {
-            for (int i = 0; i < X.rows(); i++) {
+        for (int i = 0; i < k.length; i++) {
+            System.out.println("k[" + i + "] = " + k[i] + " " + variables.get(k[i]));
+        }
+
+        TetradMatrix bFinal = pruneEdgesByResampling(X, k);
+
+        for (int i = 0; i < X.rows(); i++) {
+            for (int j = 0; j < X.rows(); j++) {
+                if (i == j) continue;
                 if (bFinal.get(i, j) != 0.0) {
-                    graph.addDirectedEdge(variables.get(j), variables.get(i));
+                    graph.addDirectedEdge(variables.get(i), variables.get(j));
                 }
             }
         }
 
         return graph;
+    }
+
+    // Inverse permutation, restores original order.
+    private int[] inverse(int[] k) {
+        int[] ki = new int[k.length];
+
+        for (int i = 0; i < ki.length; i++) {
+            ki[k[i]] = i;
+        }
+
+//        int[] kj = new int[k.length];
+//
+//        for (int i = 0; i < k.length; i++) {
+//            kj[i] = ki[k[i]];
+//        }
+
+        return ki;
     }
 
     public void setFastIcaA(double fastIcaA) {
@@ -189,43 +227,41 @@ public class Lingam {
      * This is the method used in Patrik's code.
      */
     private TetradMatrix pruneEdgesByResampling(TetradMatrix X, int[] k) {
-        if (k.length != X.rows()) {
-            throw new IllegalArgumentException("Expecting a permutation.");
-        }
-
         int npieces = 20;
         int piecesize = (int) Math.floor(X.columns() / (double) npieces);
+        int[] ki = k;//inverse(k);
 
         List<TetradMatrix> bpieces = new ArrayList<>();
 
-        PIECES:
         for (int p = 0; p < npieces; p++) {
             TetradMatrix Xp = X.getSelection(k, range((p) * piecesize, (p + 1) * piecesize - 1));
 
             Xp = DataUtils.centerData(Xp);
             TetradMatrix cov = Xp.times(Xp.transpose()).scalarMult(1.0 / Xp.columns());
 
-            TetradMatrix invSqrt = cov.sqrt().inverse();
+            TetradMatrix invSqrt;
+
+            try {
+                invSqrt = cov.sqrt().inverse();
+            } catch (SingularMatrixException e) {
+                continue;
+            }
 
             QRDecomposition qr = new QRDecomposition(invSqrt.getRealMatrix());
             TetradMatrix R = new TetradMatrix(qr.getR());
 
-            TetradVector newestdisturbancestd = new TetradVector(X.rows());
-
-            for (int t = 0; t < X.rows(); t++) {
-                if (R.get(t, t) == 0) continue PIECES;
-                newestdisturbancestd.set(t, 1.0 / Math.abs(R.get(t, t)));
-            }
-
             for (int s = 0; s < Xp.rows(); s++) {
                 for (int t = 0; t < Xp.rows(); t++) {
-                    if (R.get(s, s) == 0) continue PIECES;
                     R.set(s, t, R.get(s, t) / R.get(s, s));
                 }
             }
 
+            if (checkNaN(R)) continue;
+
             TetradMatrix bnewest = identity(X.rows()).minus(R);
-            bpieces.add(bnewest);
+            bpieces.add(bnewest);//.getSelection(ki, ki));
+
+            System.out.println("piece = " + bnewest);
         }
 
         TetradMatrix means = new TetradMatrix(X.rows(), X.rows());
@@ -238,21 +274,36 @@ public class Lingam {
                 double[] b = new double[bpieces.size()];
 
                 for (int y = 0; y < bpieces.size(); y++) {
-                    b[y] = bpieces.get(y).get(i, j);
+                    b[y] = abs(bpieces.get(y).get(i, j));
                 }
 
-                means.set(i, j, StatUtils.mean(b));
-                stds.set(i, j, StatUtils.sd(b));
+                means.set(i, j, mean(b));
 
-                if (Math.abs(StatUtils.mean(b)) < pruneFactor * StatUtils.sd(b)) {
-                    BFinal.set(i, j, 0);
-                } else {
-                    BFinal.set(i, j, StatUtils.mean(b));
-                }
+//                if (means.get(i, j) != 0) {
+                    stds.set(i, j, sd(b));
+
+                    if (abs(means.get(i, j)) < pruneFactor * stds.get(i, j)) {
+                        BFinal.set(i, j, means.get(i, j));
+                    }
+//                }
             }
         }
 
+        System.out.println("means = " + means);
+        System.out.println("stds = " + stds);
+
+        System.out.println("BFinal = " + BFinal);
+
         return BFinal;
+    }
+
+    private boolean checkNaN(TetradMatrix r) {
+        for (int i = 0; i < r.rows(); i++) {
+            for (int j = 0; j < r.rows(); j++) {
+                if (Double.isNaN(r.get(i, j))) return true;
+            }
+        }
+        return false;
     }
 
     private int[] range(int i1, int i2) {

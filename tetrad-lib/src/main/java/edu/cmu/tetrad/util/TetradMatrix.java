@@ -113,6 +113,19 @@ public class TetradMatrix implements TetradSerializable {
     }
 
     public TetradMatrix sqrt() {
+//        for (int i = 0; i < getRealMatrix().getRowDimension(); i++) {
+//            for (int j = 0; j <= i; j++) {
+//                getRealMatrix().setEntry(i, j, getRealMatrix().getEntry(j, i));
+//            }
+//        }
+
+//        if (getRealMatrix().getRowDimension() != getRealMatrix().getColumnDimension()) {
+//            throw new IllegalStateException();
+//        }
+//
+//        EigenDecomposition eigen = new EigenDecomposition(getRealMatrix());
+//        return new TetradMatrix(eigen.getSquareRoot());
+
         SingularValueDecomposition svd = new SingularValueDecomposition(getRealMatrix());
         RealMatrix U = svd.getU();
         RealMatrix V = svd.getV();
