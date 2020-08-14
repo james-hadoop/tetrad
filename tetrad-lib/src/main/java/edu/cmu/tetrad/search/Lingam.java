@@ -64,112 +64,113 @@ public class Lingam {
     public Graph search(DataSet data) {
         int parallel = FastIca.PARALLEL;
 
-        data = DataUtils.center(data);
+        TetradMatrix X = DataUtils.center(data).getDoubleData().transpose();
+        FastIca fastIca = new FastIca(X, X.rows());
+        fastIca.setVerbose(false);
+        fastIca.setMaxIterations(fastIcaMaxIter);
+        fastIca.setAlgorithmType(parallel);
+        fastIca.setTolerance(fastIcaTolerance);
+        fastIca.setFunction(FastIca.EXP);
+        fastIca.setRowNorm(false);
+        fastIca.setAlpha(fastIcaA);
+        FastIca.IcaResult result11 = fastIca.findComponents();
 
-        TetradMatrix X = data.getDoubleData().transpose();
-//        FastIca fastIca = new FastIca(X, X.rows());
-//        fastIca.setVerbose(false);
-//        fastIca.setMaxIterations(fastIcaMaxIter);
-//        fastIca.setAlgorithmType(parallel);
-//        fastIca.setTolerance(fastIcaTolerance);
-//        fastIca.setFunction(FastIca.EXP);
-//        fastIca.setRowNorm(false);
-//        fastIca.setAlpha(fastIcaA);
-//        FastIca.IcaResult result11 = fastIca.findComponents();
-//
-//        TetradMatrix A = result11.getA();
-//        TetradMatrix W = A.inverse();
-//
-//        PermutationGenerator gen1 = new PermutationGenerator(W.rows());
-//        int[] perm1 = null;
-//        double sum1 = Double.POSITIVE_INFINITY;
-//        int[] r;
-//
-//        while ((r = gen1.next()) != null) {
-//            double sum = 0.0;
-//
-//            for (int i = 0; i < W.rows(); i++) {
-//                sum += abs(1.0 / W.get(r[i], i));
-//            }
-//
-//            if (sum < sum1) {
-//                sum1 = sum;
-//                perm1 = copy(r);
-//            }
-//        }
-//
-//        if (perm1 == null) throw new IllegalStateException();
-//
-//        TetradMatrix WTilde = W.getSelection(perm1, range(W.rows()));
-//
-//        for (int i = 0; i < WTilde.rows(); i++) {
-//            for (int j = 0; j < WTilde.columns(); j++) {
-//                WTilde.set(i, j, WTilde.get(i, j) / WTilde.get(i, i));
-//            }
-//        }
-//
-//        final int m = X.rows();
-//        TetradMatrix BHat = identity(m).minus(WTilde);
-//
-//        PermutationGenerator gen2 = new PermutationGenerator(X.rows());
-//        int[] k = null;
-//        double sum2 = Double.POSITIVE_INFINITY;
-//        int[] q;
-//
-//        while ((q = gen2.next()) != null) {
-//            double sum = 0.0;
-//
-//            for (int j = 0; j < W.rows(); j++) {
-//                for (int i = 0; i < j; i++) {
-//                    final double c = BHat.get(q[i], q[j]);
-//                    sum += c * c;
-//                }
-//            }
-//
-//            if (sum < sum2) {
-//                sum2 = sum;
-//                k = copy(q);
-//            }
-//        }
-//
-//        if (k == null) throw new IllegalStateException();
+        TetradMatrix A = result11.getA();
+        TetradMatrix W = A.inverse();
+
+        PermutationGenerator gen1 = new PermutationGenerator(W.rows());
+        int[] perm1 = null;
+        double sum1 = Double.POSITIVE_INFINITY;
+        int[] r;
+
+        while ((r = gen1.next()) != null) {
+            double sum = 0.0;
+
+            for (int i = 0; i < W.rows(); i++) {
+                sum += abs(1.0 / W.get(r[i], i));
+            }
+
+            if (sum < sum1) {
+                sum1 = sum;
+                perm1 = copy(r);
+            }
+        }
+
+        if (perm1 == null) throw new IllegalStateException();
+
+        TetradMatrix WTilde = W.getSelection(perm1, range(W.rows()));
+
+        for (int i = 0; i < WTilde.rows(); i++) {
+            for (int j = 0; j < WTilde.columns(); j++) {
+                WTilde.set(i, j, WTilde.get(i, j) / WTilde.get(i, i));
+            }
+        }
+
+        final int m = X.rows();
+        TetradMatrix BHat = identity(m).minus(WTilde);
+
+        PermutationGenerator gen2 = new PermutationGenerator(X.rows());
+        int[] k = null;
+        double sum2 = Double.POSITIVE_INFINITY;
+        int[] q;
+
+        while ((q = gen2.next()) != null) {
+            double sum = 0.0;
+
+            for (int j = 0; j < W.rows(); j++) {
+                for (int i = 0; i < j; i++) {
+                    final double c = BHat.get(q[i], q[j]);
+                    sum += c * c;
+                }
+            }
+
+            if (sum < sum2) {
+                sum2 = sum;
+                k = copy(q);
+            }
+        }
+
+        if (k == null) throw new IllegalStateException();
 
         final List<Node> variables = data.getVariables();
 
         System.out.println("Variables = " + variables);
 
-//        FasStable fas = new FasStable(new IndTestFisherZ(data, 0.01));
-//        final Graph graph = fas.search();
-//
-//        for (Edge edge : new ArrayList<>(graph.getEdges())) {
-//            Node x = edge.getNode1();
-//            Node y = edge.getNode2();
-//
-//            if (order.indexOf(y) > order.indexOf(x)) {
-//                graph.setEndpoint(x, y, Endpoint.ARROW);
-//            } else {
-//                graph.setEndpoint(y, x, Endpoint.ARROW);
-//            }
-//        }
+        FasStable fas = new FasStable(new IndTestFisherZ(data, 0.01));
+        final Graph graph = fas.search();
 
-        int[] k = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        List<Node> order = new ArrayList<>();
+        for (int i = 0; i < variables.size(); i++) order.add(variables.get(k[i]));
 
-        Graph graph = new EdgeListGraph(variables);
+        for (Edge edge : new ArrayList<>(graph.getEdges())) {
+            Node x = edge.getNode1();
+            Node y = edge.getNode2();
 
-        for (int i = 0; i < k.length; i++) {
-            System.out.println("k[" + i + "] = " + k[i] + " " + variables.get(k[i]));
-        }
-
-        TetradMatrix bFinal = pruneEdgesByResampling(X, k);
-
-        for (int i = 0; i < X.rows(); i++) {
-            for (int j = 0; j < X.rows(); j++) {
-                if (i == j) continue;
-                if (bFinal.get(i, j) != 0.0) {
-                    graph.addDirectedEdge(variables.get(i), variables.get(j));
-                }
+            if (order.indexOf(y) > order.indexOf(x)) {
+                graph.setEndpoint(x, y, Endpoint.ARROW);
+            } else {
+                graph.setEndpoint(y, x, Endpoint.ARROW);
             }
         }
+
+//        int[] k = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+//        Graph graph = new EdgeListGraph(variables);
+//
+//        for (int i = 0; i < k.length; i++) {
+//            System.out.println("k[" + i + "] = " + k[i] + " " + variables.get(k[i]));
+//        }
+//
+//        TetradMatrix bFinal = pruneEdgesByResampling(X, k);
+//
+//        for (int i = 0; i < bFinal.rows(); i++) {
+//            for (int j = 0; j < bFinal.columns(); j++) {
+//                if (i == j) continue;
+//                if (bFinal.get(i, j) != 0.0) {
+//                    graph.addDirectedEdge(variables.get(i), variables.get(j));
+//                }
+//            }
+//        }
 
         return graph;
     }
@@ -229,12 +230,14 @@ public class Lingam {
     private TetradMatrix pruneEdgesByResampling(TetradMatrix X, int[] k) {
         int npieces = 20;
         int piecesize = (int) Math.floor(X.columns() / (double) npieces);
-        int[] ki = k;//inverse(k);
+        int[] ki = inverse(k);
 
         List<TetradMatrix> bpieces = new ArrayList<>();
 
         for (int p = 0; p < npieces; p++) {
             TetradMatrix Xp = X.getSelection(k, range((p) * piecesize, (p + 1) * piecesize - 1));
+
+//            System.out.println("Xp = " + Xp);
 
             Xp = DataUtils.centerData(Xp);
             TetradMatrix cov = Xp.times(Xp.transpose()).scalarMult(1.0 / Xp.columns());
@@ -243,7 +246,7 @@ public class Lingam {
 
             try {
                 invSqrt = cov.sqrt().inverse();
-            } catch (SingularMatrixException e) {
+            } catch (Exception e) {
                 continue;
             }
 
@@ -258,8 +261,8 @@ public class Lingam {
 
             if (checkNaN(R)) continue;
 
-            TetradMatrix bnewest = identity(X.rows()).minus(R);
-            bpieces.add(bnewest);//.getSelection(ki, ki));
+            TetradMatrix bnewest = identity(Xp.rows()).minus(R);
+            bpieces.add(bnewest.getSelection(ki, ki));
 
             System.out.println("piece = " + bnewest);
         }

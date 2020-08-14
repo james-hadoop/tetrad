@@ -22,8 +22,11 @@
 package edu.cmu.tetrad.util;
 
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
+import edu.cmu.tetrad.search.Tetrad;
 import org.apache.commons.math3.analysis.function.Sin;
+import org.apache.commons.math3.exception.MathUnsupportedOperationException;
 import org.apache.commons.math3.linear.*;
+import org.apache.commons.math3.util.FastMath;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -113,28 +116,18 @@ public class TetradMatrix implements TetradSerializable {
     }
 
     public TetradMatrix sqrt() {
-//        for (int i = 0; i < getRealMatrix().getRowDimension(); i++) {
-//            for (int j = 0; j <= i; j++) {
-//                getRealMatrix().setEntry(i, j, getRealMatrix().getEntry(j, i));
-//            }
-//        }
-
-//        if (getRealMatrix().getRowDimension() != getRealMatrix().getColumnDimension()) {
-//            throw new IllegalStateException();
-//        }
-//
-//        EigenDecomposition eigen = new EigenDecomposition(getRealMatrix());
-//        return new TetradMatrix(eigen.getSquareRoot());
-
-        SingularValueDecomposition svd = new SingularValueDecomposition(getRealMatrix());
+        SingularValueDecomposition svd = new SingularValueDecomposition(getRealMatrix().transpose());
         RealMatrix U = svd.getU();
         RealMatrix V = svd.getV();
         double[] s = svd.getSingularValues();
-        for (int i = 0; i < s.length; i++) s[i] = 1.0 / s[i];
-        RealMatrix S = new BlockRealMatrix(s.length, s.length);
-        for (int i = 0; i < s.length; i++) S.setEntry(i, i, s[i]);
-        RealMatrix sqrt = U.multiply(S).multiply(V);
-        return new TetradMatrix(sqrt);
+
+        TetradMatrix U2 = new TetradMatrix(U);
+        TetradMatrix V2 = new TetradMatrix(V);
+
+        TetradMatrix S = new TetradMatrix(rows(), columns());
+        for (int i = 0; i < rows(); i++) S.set(i, i, 1.0 / s[i]);
+
+        return U2.times(S).times(V2);
     }
 
     public int rows() {

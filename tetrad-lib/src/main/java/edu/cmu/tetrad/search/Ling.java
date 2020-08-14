@@ -477,7 +477,6 @@ public class Ling {
             }
 
             TetradMatrix sqrt = cov.sqrt();
-            ;
 
             TetradMatrix I = TetradMatrix.identity(rows);
             TetradMatrix AI = I.copy();
@@ -798,7 +797,7 @@ public class Ling {
 
         if (approximateZeros) {
 //            setInsignificantEntriesToZero(ica_W);
-            pruneEdgesByResampling(dataSet.getDoubleData());
+//            pruneEdgesByResampling(dataSet.getDoubleData());
             ica_W = removeZeroRowsAndCols(ica_W, vars);
         }
 
