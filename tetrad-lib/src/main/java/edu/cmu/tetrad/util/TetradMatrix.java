@@ -406,7 +406,7 @@ public class TetradMatrix implements TetradSerializable {
         return new TetradMatrix(MatrixUtils.pseudoInverse(data));
     }
 
-    public static TetradMatrix identity(int rows) {
+    public static TetradMatrix eye(int rows) {
         TetradMatrix m = new TetradMatrix(rows, rows);
         for (int i = 0; i < rows; i++) m.set(i, i, 1);
         return m;

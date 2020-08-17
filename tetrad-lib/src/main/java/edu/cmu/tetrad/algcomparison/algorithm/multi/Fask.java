@@ -18,6 +18,8 @@ import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 import java.util.ArrayList;
 import java.util.List;
 
+import static edu.cmu.tetrad.util.Params.*;
+
 /**
  * Wraps the IMaGES algorithm for continuous variables.
  * </p>
@@ -36,10 +38,11 @@ import java.util.List;
 public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, TakesInitialGraph {
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test = null;
-    private Graph initialGraph = null;
+//    private Graph initialGraph = null;
     private IKnowledge knowledge = new Knowledge2();
     private Algorithm algorithm = null;
 
+    // Don't delete.
     public Fask() {
 
     }
@@ -57,20 +60,25 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             edu.cmu.tetrad.search.Fask search;
 
-//            if (algorithm != null) {
-//                initialGraph = algorithm.search(dataSet, parameters);
-//                search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, initialGraph);
-//                search.setInitialGraph(initialGraph);
-//            } else {
-                search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, test.getTest(dataSet, parameters));
-//            }
+            search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, test.getTest(dataSet, parameters));
 
-//            edu.cmu.tetrad.search.Fask search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, test.getTest(dataSet, parameters));
-            search.setDepth(parameters.getInt(Params.DEPTH));
-            search.setUseFasAdjacencies(parameters.getBoolean(Params.USE_FAS_ADJACENCIES));
-            search.setSkewEdgeThreshold(parameters.getDouble(Params.SKEW_EDGE_THRESHOLD));
-            search.setTwoCycleThreshold(parameters.getDouble(Params.TWO_CYCLE_THRESHOLD));
-            search.setLinearityAssumed(parameters.getBoolean(Params.FASK_LINEARITY_ASSUMED));
+            search.setDepth(parameters.getInt(DEPTH));
+            search.setUseFasAdjacencies(parameters.getBoolean(USE_FAS_ADJACENCIES));
+            search.setSkewEdgeThreshold(parameters.getDouble(SKEW_EDGE_THRESHOLD));
+            search.setTwoCycleThreshold(parameters.getDouble(TWO_CYCLE_THRESHOLD));
+
+            int lrRule = parameters.getInt(FASK_LEFT_RIGHT_RULE);
+
+            if (lrRule == 1) {
+                search.setLeftRight(edu.cmu.tetrad.search.Fask.LeftRight.FASK);
+            } else if (lrRule == 2) {
+                search.setLeftRight(edu.cmu.tetrad.search.Fask.LeftRight.RSkew);
+            } else if (lrRule == 3) {
+                search.setLeftRight(edu.cmu.tetrad.search.Fask.LeftRight.Skew);
+            } else {
+                throw new IllegalStateException("Unconfigured left right rule index: " + lrRule);
+            }
+
             search.setKnowledge(knowledge);
 //            search.setRemoveResiduals(false);
             return getGraph(search);
@@ -99,7 +107,7 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
             search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
 
             search.setParameters(parameters);
-            search.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            search.setVerbose(parameters.getBoolean(VERBOSE));
             return search.search();
         }
     }
@@ -133,18 +141,12 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
             parameters.addAll(algorithm.getParameters());
         }
 
-//        if (test != null) {
-//            parameters.addAll(test.getParameters());
-//        }
-
-        parameters.add(Params.USE_FAS_ADJACENCIES);
-        parameters.add(Params.DEPTH);
-        parameters.add(Params.SKEW_EDGE_THRESHOLD);
-        parameters.add(Params.TWO_CYCLE_THRESHOLD);
-        parameters.add(Params.FASK_LINEARITY_ASSUMED);
-
-        parameters.add(Params.VERBOSE);
-
+        parameters.add(USE_FAS_ADJACENCIES);
+        parameters.add(DEPTH);
+        parameters.add(SKEW_EDGE_THRESHOLD);
+        parameters.add(TWO_CYCLE_THRESHOLD);
+        parameters.add(FASK_LEFT_RIGHT_RULE);
+        parameters.add(VERBOSE);
         return parameters;
     }
 
@@ -176,7 +178,8 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
 
     @Override
     public void setInitialGraph(Graph initialGraph) {
-        this.initialGraph = initialGraph;
+//        this.initialGraph = initialGraph;
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -663,7 +663,7 @@ public class MimbuildTrek {
 
             TetradMatrix implied = impliedCovariance(indicatorIndices, loadings, measurescov, latentscov, delta);
 
-            TetradMatrix I = TetradMatrix.identity(implied.rows());
+            TetradMatrix I = TetradMatrix.eye(implied.rows());
             TetradMatrix diff = I.minus((implied.times(measuresCovInverse)));
 
             return 0.5 * (diff.times(diff)).trace();
@@ -708,7 +708,7 @@ public class MimbuildTrek {
 
             TetradMatrix implied = impliedCovariance(indicatorIndices, loadings, measurescov, latentscov, delta);
 
-            TetradMatrix I = TetradMatrix.identity(implied.rows());
+            TetradMatrix I = TetradMatrix.eye(implied.rows());
             TetradMatrix diff = I.minus((implied.times(measuresCovInverse)));
 
             return 0.5 * (diff.times(diff)).trace();
@@ -783,7 +783,7 @@ public class MimbuildTrek {
 
             TetradMatrix implied = impliedCovariance(indicatorIndices, loadings, measurescov, latentscov, delta);
 
-            TetradMatrix I = TetradMatrix.identity(implied.rows());
+            TetradMatrix I = TetradMatrix.eye(implied.rows());
             TetradMatrix diff = I.minus((implied.times(measuresCovInverse)));  // time hog. times().
 
             return 0.5 * (diff.times(diff)).trace();

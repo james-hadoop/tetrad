@@ -459,8 +459,7 @@ public class FastIca {
 
         TetradMatrix w = b.times(K);
         TetradMatrix S = w.times(X);
-        TetradMatrix A = w.inverse();
-        return new IcaResult(X, K, w, A, S);
+        return new IcaResult(X, K, w, S);
 
     }
 
@@ -750,14 +749,12 @@ public class FastIca {
         private final TetradMatrix K;
         private final TetradMatrix W;
         private final TetradMatrix S;
-        private final TetradMatrix A;
 
         public IcaResult(TetradMatrix X, TetradMatrix K, TetradMatrix W,
-                         TetradMatrix A, TetradMatrix S) {
+                         TetradMatrix S) {
             this.X = X;
             this.K = K;
             this.W = W;
-            this.A = A;
             this.S = S;
         }
 
@@ -777,10 +774,6 @@ public class FastIca {
             return S;
         }
 
-        public TetradMatrix getA() {
-            return A;
-        }
-
         public String toString() {
             StringBuilder buf = new StringBuilder();
 
@@ -792,9 +785,6 @@ public class FastIca {
 
             buf.append("\n\nW:\n");
             buf.append(W);
-
-            buf.append("\n\nA:\n");
-            buf.append(A);
 
             buf.append("\n\nS:\n");
             buf.append(S);

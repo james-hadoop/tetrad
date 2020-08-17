@@ -6,7 +6,6 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
@@ -116,12 +115,12 @@ public class Kci implements IndependenceTest, ScoreForFact {
         this.variables = data.getVariables();
         this._data = this.data.getDoubleData().transpose().toArray();
         this.N = this.data.getNumRows();
-        this.I = TetradMatrix.identity(N);
+        this.I = TetradMatrix.eye(N);
 
         TetradMatrix Ones = new TetradMatrix(N, 1);
         for (int j = 0; j < N; j++) Ones.set(j, 0, 1);
 
-        this.H = TetradMatrix.identity(N).minus(Ones.times(Ones.transpose()).scalarMult(1.0 / N));
+        this.H = TetradMatrix.eye(N).minus(Ones.times(Ones.transpose()).scalarMult(1.0 / N));
 
         this.alpha = alpha;
         this.p = -1;

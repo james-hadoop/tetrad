@@ -478,7 +478,7 @@ public class Ling {
 
             TetradMatrix sqrt = cov.sqrt();
 
-            TetradMatrix I = TetradMatrix.identity(rows);
+            TetradMatrix I = TetradMatrix.eye(rows);
             TetradMatrix AI = I.copy();
             TetradMatrix invSqrt = sqrt.inverse();
 
@@ -506,7 +506,7 @@ public class Ling {
 //          % Calculate corresponding B
 //          bnewest = eye(dims)-L;
 
-            TetradMatrix bnewest = TetradMatrix.identity(rows);
+            TetradMatrix bnewest = TetradMatrix.eye(rows);
             bnewest = bnewest.minus(new TetradMatrix(r));
 
             TetradVector cnewest = new TetradMatrix(r).times(Xpm);
@@ -625,7 +625,7 @@ public class Ling {
         TetradMatrix graphMatrix = new TetradMatrix(graph.getGraphMatrix().getDoubleData().toArray());
         int n = graphMatrix.rows();
 //        TetradMatrix identityMinusGraphTetradMatrix = TetradMatrixUtils.linearCombination(TetradMatrixUtils.identityTetradMatrix(n), 1, graphTetradMatrix, -1);
-        TetradMatrix identityMinusGraphTetradMatrix = TetradMatrix.identity(n).minus(graphMatrix);
+        TetradMatrix identityMinusGraphTetradMatrix = TetradMatrix.eye(n).minus(graphMatrix);
         return identityMinusGraphTetradMatrix.inverse();
     }
 
@@ -974,7 +974,7 @@ public class Ling {
 
     private static DataSet computeBhatTetradMatrix(TetradMatrix normalizedZldW, List<Node> nodes) {//, List<Integer> perm) {
         int size = normalizedZldW.rows();
-        TetradMatrix mat = TetradMatrix.identity(size).minus(normalizedZldW);
+        TetradMatrix mat = TetradMatrix.eye(size).minus(normalizedZldW);
         return new BoxDataSet(new DoubleDataBox(mat.toArray()), nodes);
     }
 

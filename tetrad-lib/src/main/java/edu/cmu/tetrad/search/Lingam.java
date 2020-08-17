@@ -27,15 +27,15 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.linear.QRDecomposition;
-import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static edu.cmu.tetrad.util.StatUtils.*;
-import static edu.cmu.tetrad.util.TetradMatrix.identity;
+import static edu.cmu.tetrad.util.TetradMatrix.eye;
 import static java.lang.StrictMath.abs;
+import static java.lang.StrictMath.scalb;
 
 /**
  * Implements the LiNGAM algorithm in Shimizu, Hoyer, Hyvarinen, and Kerminen, A linear nongaussian acyclic model for
@@ -46,8 +46,8 @@ import static java.lang.StrictMath.abs;
  * @author Joseph Ramsey
  */
 public class Lingam {
-    private double fastIcaA = .9;
-    private int fastIcaMaxIter = 100;
+    private double fastIcaA = 2;
+    private int fastIcaMaxIter = 200;
     private double fastIcaTolerance = 1e-6;
     private double pruneFactor = 1;
 
@@ -70,57 +70,75 @@ public class Lingam {
         fastIca.setMaxIterations(fastIcaMaxIter);
         fastIca.setAlgorithmType(parallel);
         fastIca.setTolerance(fastIcaTolerance);
-        fastIca.setFunction(FastIca.EXP);
+        fastIca.setFunction(FastIca.LOGCOSH);
         fastIca.setRowNorm(false);
         fastIca.setAlpha(fastIcaA);
-        FastIca.IcaResult result11 = fastIca.findComponents();
+        FastIca.IcaResult result = fastIca.findComponents();
 
-        TetradMatrix A = result11.getA();
-        TetradMatrix W = A.inverse();
+        TetradMatrix W = result.getW();
+        TetradMatrix A = W.inverse();
+        TetradMatrix S = result.getS();
+
+        // X = AS, S consists of independent rows.
+
+        TetradMatrix sCov = S.times(S.transpose()).scalarMult(1.0 / S.columns());
+//        System.out.println(sCov);
+
+        System.out.println("cov(S) = I? " + sCov.equals(eye(sCov.rows()), 1e-3));
+
+//        System.out.println("X = " + X);
+//        System.out.println("AS = " + A.times(S));
+
+        System.out.println("X = AS? " + X.equals(A.times(S), 1e-3));
 
         PermutationGenerator gen1 = new PermutationGenerator(W.rows());
-        int[] perm1 = null;
+        int[] r = null;
         double sum1 = Double.POSITIVE_INFINITY;
-        int[] r;
+        int[] p;
 
-        while ((r = gen1.next()) != null) {
+        while ((p = gen1.next()) != null) {
+            TetradMatrix Wt2 = W.getSelection(p, p);
+
             double sum = 0.0;
 
-            for (int i = 0; i < W.rows(); i++) {
-                sum += abs(1.0 / W.get(r[i], i));
+            for (int i = 0; i < Wt2.rows(); i++) {
+                sum += 1.0 / abs(Wt2.get(i, i));
             }
 
             if (sum < sum1) {
                 sum1 = sum;
-                perm1 = copy(r);
+                r = copy(p);
             }
         }
 
-        if (perm1 == null) throw new IllegalStateException();
+        if (r == null) throw new IllegalStateException();
 
-        TetradMatrix WTilde = W.getSelection(perm1, range(W.rows()));
+        TetradMatrix Wt = W.getSelection(r, r);
+        TetradMatrix Wtp = Wt.copy();
 
-        for (int i = 0; i < WTilde.rows(); i++) {
-            for (int j = 0; j < WTilde.columns(); j++) {
-                WTilde.set(i, j, WTilde.get(i, j) / WTilde.get(i, i));
+        for (int i = 0; i < Wtp.rows(); i++) {
+            for (int j = 0; j < Wtp.columns(); j++) {
+                Wtp.set(i, j, Wtp.get(i, j) / Wtp.get(i, i));
             }
         }
 
         final int m = X.rows();
-        TetradMatrix BHat = identity(m).minus(WTilde);
+        TetradMatrix BHat = eye(m).minus(Wtp);
 
-        PermutationGenerator gen2 = new PermutationGenerator(X.rows());
+        PermutationGenerator gen2 = new PermutationGenerator(BHat.rows());
         int[] k = null;
         double sum2 = Double.POSITIVE_INFINITY;
         int[] q;
 
         while ((q = gen2.next()) != null) {
+            TetradMatrix Bt = BHat.getSelection(q, q);
+
             double sum = 0.0;
 
-            for (int j = 0; j < W.rows(); j++) {
-                for (int i = 0; i < j; i++) {
-                    final double c = BHat.get(q[i], q[j]);
-                    sum += c * c;
+            for (int i = 0; i < Bt.rows(); i++) {
+                for (int j = i; j < Bt.columns(); j++) {
+                    final double c = Bt.get(i, j);
+                    sum += abs(c);
                 }
             }
 
@@ -142,6 +160,8 @@ public class Lingam {
         List<Node> order = new ArrayList<>();
         for (int i = 0; i < variables.size(); i++) order.add(variables.get(k[i]));
 
+        System.out.println("order = " + order);
+
         for (Edge edge : new ArrayList<>(graph.getEdges())) {
             Node x = edge.getNode1();
             Node y = edge.getNode2();
@@ -153,8 +173,8 @@ public class Lingam {
             }
         }
 
-//        int[] k = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-
+////        int[] k = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+//
 //        Graph graph = new EdgeListGraph(variables);
 //
 //        for (int i = 0; i < k.length; i++) {
@@ -167,7 +187,7 @@ public class Lingam {
 //            for (int j = 0; j < bFinal.columns(); j++) {
 //                if (i == j) continue;
 //                if (bFinal.get(i, j) != 0.0) {
-//                    graph.addDirectedEdge(variables.get(i), variables.get(j));
+//                    graph.addDirectedEdge(variables.get(j), variables.get(i));
 //                }
 //            }
 //        }
@@ -251,7 +271,7 @@ public class Lingam {
             }
 
             QRDecomposition qr = new QRDecomposition(invSqrt.getRealMatrix());
-            TetradMatrix R = new TetradMatrix(qr.getR());
+            TetradMatrix R = new TetradMatrix(qr.getR());//.transpose();
 
             for (int s = 0; s < Xp.rows(); s++) {
                 for (int t = 0; t < Xp.rows(); t++) {
@@ -261,7 +281,7 @@ public class Lingam {
 
             if (checkNaN(R)) continue;
 
-            TetradMatrix bnewest = identity(Xp.rows()).minus(R);
+            TetradMatrix bnewest = eye(Xp.rows()).minus(R);
             bpieces.add(bnewest.getSelection(ki, ki));
 
             System.out.println("piece = " + bnewest);
@@ -283,11 +303,11 @@ public class Lingam {
                 means.set(i, j, mean(b));
 
 //                if (means.get(i, j) != 0) {
-                    stds.set(i, j, sd(b));
+                stds.set(i, j, sd(b));
 
-                    if (abs(means.get(i, j)) < pruneFactor * stds.get(i, j)) {
-                        BFinal.set(i, j, means.get(i, j));
-                    }
+                if (abs(means.get(i, j)) < pruneFactor * stds.get(i, j)) {
+                    BFinal.set(i, j, means.get(i, j));
+                }
 //                }
             }
         }

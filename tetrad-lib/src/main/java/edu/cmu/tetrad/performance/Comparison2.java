@@ -1,6 +1,5 @@
 package edu.cmu.tetrad.performance;
 
-import cern.colt.list.adapter.DoubleListAdapter;
 import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.bayes.MlBayesIm;
 import edu.cmu.tetrad.data.*;
@@ -315,7 +314,7 @@ public class Comparison2 {
                         TetradMatrix coefMat = new TetradMatrix(sim.getCoefficientMatrix());
                         TetradMatrix B = coefMat.getSelection(sub, sub);
                         TetradMatrix Gamma1 = coefMat.getSelection(sub2, sub);
-                        TetradMatrix Gamma0 = TetradMatrix.identity(tierSize).minus(B);
+                        TetradMatrix Gamma0 = TetradMatrix.eye(tierSize).minus(B);
                         TetradMatrix A1 = Gamma0.inverse().times(Gamma1);
 
 //                        TetradMatrix B2 = coefMat.getSelection(sub2, sub2);

@@ -20,10 +20,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetrad.util;
 
-import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix1D;
-import cern.colt.matrix.impl.DenseDoubleMatrix2D;
-import cern.colt.matrix.linalg.CholeskyDecomposition;
 import cern.colt.matrix.linalg.Property;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -499,7 +496,7 @@ public final class MatrixUtils {
 //        return g.times(errCovar).times(g.transpose());
 //        return g.transpose().times(errCovar).times(g);
         // I - B
-        TetradMatrix m1 = TetradMatrix.identity(edgeCoef.rows()).minus(edgeCoef);
+        TetradMatrix m1 = TetradMatrix.eye(edgeCoef.rows()).minus(edgeCoef);
 //
 //        // (I - B) ^ -1
         TetradMatrix m3 = m1.inverse();

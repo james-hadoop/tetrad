@@ -39,7 +39,6 @@ import static java.lang.Math.sqrt;
 import java.rmi.MarshalledObject;
 import java.util.*;
 
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.math3.distribution.AbstractRealDistribution;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
@@ -1162,7 +1161,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
             this.sampleCovInv = sampleCovar.inverse();
         }
 
-        TetradMatrix I = TetradMatrix.identity(implCovarMeas.rows());
+        TetradMatrix I = TetradMatrix.eye(implCovarMeas.rows());
         TetradMatrix diff = I.minus((implCovarMeas.times(sampleCovInv)));
 
         return 0.5 * (diff.times(diff)).trace();
