@@ -367,7 +367,7 @@ public final class IndTestFisherZ implements IndependenceTest {
         cor.setVariables(variables);
     }
 
-    public ICovarianceMatrix getCov() {
+    public ICovarianceMatrix getCor() {
         return cor;
     }
 

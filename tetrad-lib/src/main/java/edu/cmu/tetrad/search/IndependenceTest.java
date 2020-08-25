@@ -116,7 +116,7 @@ public interface IndependenceTest {
      */
     DataModel getData();
 
-    ICovarianceMatrix getCov();
+    ICovarianceMatrix getCor();
 
     List<DataSet> getDataSets();
 

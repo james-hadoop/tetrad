@@ -171,7 +171,7 @@ public class WaynesWorld implements Algorithm, TakesInitialGraph, HasKnowledge, 
         parameters.add(Params.COLLIDER_DISCOVERY_RULE);
         parameters.add(Params.CONFLICT_RULE);
         parameters.add(Params.USE_FDR_FOR_INDEPENDENCE);
-        parameters.add(Params.DO_MARKOV_LOOP);
+//        parameters.add(Params.DO_MARKOV_LOOP);
         parameters.add(Params.DEPTH);
         parameters.add(Params.ORIENTATION_ALPHA);
 

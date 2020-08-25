@@ -104,7 +104,7 @@ public class Lingam {
 //        System.out.println("WPrime = " + WPrime);
 
         final int m = data.getNumColumns();
-        TetradMatrix BHat = TetradMatrix.identity(m).minus(WPrime);
+        TetradMatrix BHat = TetradMatrix.eye(m).minus(WPrime);
 
         PermutationGenerator gen2 = new PermutationGenerator(BHat.rows());
         int[] perm2 = new int[0];

@@ -251,6 +251,11 @@ public final class IndTestPartialCorrelation implements IndependenceTest {
         return dataSet;
     }
 
+    @Override
+    public ICovarianceMatrix getCor() {
+        return cov;
+    }
+
     public void shuffleVariables() {
         ArrayList<Node> nodes = new ArrayList<>(this.variables);
         Collections.shuffle(nodes);
@@ -286,7 +291,7 @@ public final class IndTestPartialCorrelation implements IndependenceTest {
         return indexMap;
     }
 
-    public ICovarianceMatrix getCor() {
+    public ICovarianceMatrix getCov() {
         throw new UnsupportedOperationException();
     }
 

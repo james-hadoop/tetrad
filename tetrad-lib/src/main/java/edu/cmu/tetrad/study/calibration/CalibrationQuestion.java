@@ -1184,16 +1184,16 @@ public class CalibrationQuestion {
 
                 TetradLogger.getInstance().setLogging(false);
 
-                Fask fask = new Fask(dataSet, g);
-                fask.setTwoCycleThreshold(0);
+                Fask fask = new Fask(dataSet, new IndTestFisherZ(dataSet, 0.01));
                 fask.setUseFasAdjacencies(false);
                 fask.setSkewEdgeThreshold(0.0);
+                fask.setExternalGraph(g);
                 Graph out = fask.search();
-                double lr = fask.getLr();
-
-                if (abs(lr) < cutoff) {
-                    omitted.add(i);
-                }
+//                double lr = fask.getLr();
+//
+//                if (abs(lr) < cutoff) {
+//                    omitted.add(i);
+//                }
 
                 if (out.getEdges(nodes.get(x0), nodes.get(y0)).size() == 2) {
                     if (verbose) {
@@ -1236,7 +1236,7 @@ public class CalibrationQuestion {
                 }
 
                 inCategory.add(isADog);
-                scores.add(lr);
+//                scores.add(lr);
 
 
                 if (verbose) {
@@ -1434,28 +1434,28 @@ public class CalibrationQuestion {
         return newDataSet;
     }
 
-    private static void writeResData(DataSet dataSet, int i) {
-        double[] x = dataSet.copy().getDoubleData().transpose().toArray()[0];
-        double[] y = dataSet.copy().getDoubleData().transpose().toArray()[1];
-
-        double[] r = Fask.residuals(y, x, Fask.RegressionType.NONLINEAR);
-
-//        for (int j = 0; j < x.length; j++) x[j] -= r[j];
-
-//        RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
-//        r = result.getResiduals().toArray();
-
-        double[][] res = new double[][]{x, r};
-
-
-        List<Node> vars = new ArrayList<>();
-        vars.add(new ContinuousVariable("C1"));
-        vars.add(new ContinuousVariable("C2"));
-
-        DataSet dataSet1 = new BoxDataSet(new VerticalDoubleDataBox(res), vars);
-
-        writeDataSet(new File("/Users/user/Box/data/pairs/resdata"), i, dataSet1);
-    }
+//    private static void writeResData(DataSet dataSet, int i) {
+//        double[] x = dataSet.copy().getDoubleData().transpose().toArray()[0];
+//        double[] y = dataSet.copy().getDoubleData().transpose().toArray()[1];
+//
+////        double[] r = Fask.residuals(y, x, Fask.RegressionType.NONLINEAR);
+//
+////        for (int j = 0; j < x.length; j++) x[j] -= r[j];
+//
+////        RegressionResult result = RegressionDataset.regress(y, new double[][]{x});
+////        r = result.getResiduals().toArray();
+//
+//        double[][] res = new double[][]{x, r};
+//
+//
+//        List<Node> vars = new ArrayList<>();
+//        vars.add(new ContinuousVariable("C1"));
+//        vars.add(new ContinuousVariable("C2"));
+//
+//        DataSet dataSet1 = new BoxDataSet(new VerticalDoubleDataBox(res), vars);
+//
+//        writeDataSet(new File("/Users/user/Box/data/pairs/resdata"), i, dataSet1);
+//    }
 
     private static double cxy(double[] x, double[] y) {
         List<Integer> indices = new ArrayList<>();
@@ -1498,7 +1498,7 @@ public class CalibrationQuestion {
 //        parameters.set(Params.DEPTH, 3);
         parameters.set(Params.ERRORS_NORMAL, true, false);
         parameters.set(Params.SKEW_EDGE_THRESHOLD, 0.3);
-        parameters.set(Params.TWO_CYCLE_THRESHOLD, 0);
+//        parameters.set(Params.TWO_CYCLE_THRESHOLD, 0);
         parameters.set(Params.COLLIDER_DISCOVERY_RULE, 1, 2, 3);
         parameters.set(Params.FASK_LINEARITY_ASSUMED, false);
         parameters.set(Params.ALPHA, 0.001);
