@@ -243,7 +243,6 @@ public final class Fask implements GraphSearch {
 
         TetradLogger.getInstance().forceLogMessage("");
 
-        assert G != null;
         SearchGraphUtils.pcOrientbk(knowledge, G, G.getNodes());
 
         Graph graph = new EdgeListGraph(G.getNodes());
