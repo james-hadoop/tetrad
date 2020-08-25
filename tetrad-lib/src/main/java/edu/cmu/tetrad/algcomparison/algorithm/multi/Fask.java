@@ -38,7 +38,7 @@ import static edu.cmu.tetrad.util.Params.*;
 public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, TakesInitialGraph {
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test = null;
-//    private Graph initialGraph = null;
+    private Graph initialGraph = null;
     private IKnowledge knowledge = new Knowledge2();
     private Algorithm algorithm = null;
 
@@ -63,24 +63,49 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
             search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, test.getTest(dataSet, parameters));
 
             search.setDepth(parameters.getInt(DEPTH));
-            search.setUseFasAdjacencies(parameters.getBoolean(USE_FAS_ADJACENCIES));
             search.setSkewEdgeThreshold(parameters.getDouble(SKEW_EDGE_THRESHOLD));
-            search.setTwoCycleThreshold(parameters.getDouble(TWO_CYCLE_THRESHOLD));
+            search.setTwoCycleScreeningThreshold(parameters.getDouble(TWO_CYCLE_SCREENING_THRESHOLD));
+            search.setTwoCycleTestingAlpha(parameters.getDouble(TWO_CYCLE_TESTING_ALPHA));
+            search.setDelta(parameters.getDouble(FASK_DELTA));
+            search.setEmpirical(!parameters.getBoolean(FASK_NONEMPIRICAL));
+
+            if (initialGraph != null) {
+                search.setExternalGraph(initialGraph);
+            } else if (algorithm != null) {
+                search.setExternalGraph(algorithm.search(dataSet, parameters));
+            }
 
             int lrRule = parameters.getInt(FASK_LEFT_RIGHT_RULE);
 
             if (lrRule == 1) {
-                search.setLeftRight(edu.cmu.tetrad.search.Fask.LeftRight.FASK);
+                search.setLeftRight(edu.cmu.tetrad.search.Fask.LeftRight.FASK1);
             } else if (lrRule == 2) {
-                search.setLeftRight(edu.cmu.tetrad.search.Fask.LeftRight.RSkew);
+                search.setLeftRight(edu.cmu.tetrad.search.Fask.LeftRight.FASK2);
             } else if (lrRule == 3) {
-                search.setLeftRight(edu.cmu.tetrad.search.Fask.LeftRight.Skew);
+                search.setLeftRight(edu.cmu.tetrad.search.Fask.LeftRight.RSKEW);
+            } else if (lrRule == 4) {
+                search.setLeftRight(edu.cmu.tetrad.search.Fask.LeftRight.SKEW);
+            } else if (lrRule == 5) {
+                search.setLeftRight(edu.cmu.tetrad.search.Fask.LeftRight.TANH);
+            } else {
+                throw new IllegalStateException("Unconfigured left right rule index: " + lrRule);
+            }
+
+            int adjacencyMethod = parameters.getInt(FASK_ADJACENCY_METHOD);
+
+            if (adjacencyMethod == 1) {
+                search.setAdjacencyMethod(edu.cmu.tetrad.search.Fask.AdjacencyMethod.FAS_STABLE);
+            } else if (adjacencyMethod == 2) {
+                search.setAdjacencyMethod(edu.cmu.tetrad.search.Fask.AdjacencyMethod.FAS_STABLE_CONCURRENT);
+            } else if (adjacencyMethod == 3) {
+                search.setAdjacencyMethod(edu.cmu.tetrad.search.Fask.AdjacencyMethod.FGES);
+            } else if (adjacencyMethod == 4) {
+                search.setAdjacencyMethod(edu.cmu.tetrad.search.Fask.AdjacencyMethod.EXTERNAL_GRAPH);
             } else {
                 throw new IllegalStateException("Unconfigured left right rule index: " + lrRule);
             }
 
             search.setKnowledge(knowledge);
-//            search.setRemoveResiduals(false);
             return getGraph(search);
         } else {
             Fask fask = new Fask(test);
@@ -141,11 +166,14 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
             parameters.addAll(algorithm.getParameters());
         }
 
-        parameters.add(USE_FAS_ADJACENCIES);
         parameters.add(DEPTH);
         parameters.add(SKEW_EDGE_THRESHOLD);
-        parameters.add(TWO_CYCLE_THRESHOLD);
+        parameters.add(TWO_CYCLE_SCREENING_THRESHOLD);
+        parameters.add(TWO_CYCLE_TESTING_ALPHA);
+        parameters.add(FASK_DELTA);
         parameters.add(FASK_LEFT_RIGHT_RULE);
+        parameters.add(FASK_ADJACENCY_METHOD);
+        parameters.add(FASK_NONEMPIRICAL);
         parameters.add(VERBOSE);
         return parameters;
     }
@@ -160,7 +188,6 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
         this.knowledge = knowledge;
     }
 
-
     @Override
     public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
         this.test = independenceWrapper;
@@ -173,13 +200,12 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
 
     @Override
     public Graph getInitialGraph() {
-        return null;
+        return initialGraph;
     }
 
     @Override
     public void setInitialGraph(Graph initialGraph) {
-//        this.initialGraph = initialGraph;
-        throw new UnsupportedOperationException();
+        this.initialGraph = initialGraph;
     }
 
     @Override

@@ -173,7 +173,7 @@ public final class IndTestFisherZ implements IndependenceTest {
 //        if (isSellke()) {
 //            return p > SearchGraphUtils.getSelkeAlpha(p, this.alpha);
 //        } else {
-            return p > alpha;
+        return p > alpha;
 //        }
     }
 
@@ -367,7 +367,7 @@ public final class IndTestFisherZ implements IndependenceTest {
         cor.setVariables(variables);
     }
 
-    public ICovarianceMatrix getCor() {
+    public ICovarianceMatrix getCov() {
         return cor;
     }
 

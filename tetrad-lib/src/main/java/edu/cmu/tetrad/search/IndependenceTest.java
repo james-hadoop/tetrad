@@ -77,7 +77,7 @@ public interface IndependenceTest {
      */
     double getPValue();
 
-    double getPValue(Node x, Node y, List<Node> z);
+//    double getPValue(Node x, Node y, List<Node> z);
 
     /**
      * @return the list of variables over which this independence checker is capable of determinining independence
@@ -116,7 +116,7 @@ public interface IndependenceTest {
      */
     DataModel getData();
 
-    ICovarianceMatrix getCor();
+    ICovarianceMatrix getCov();
 
     List<DataSet> getDataSets();
 

@@ -351,7 +351,7 @@ public class TestSimulatedFmri {
         comparison.compareFromSimulations("comparison", simulations, algorithms, statistics, parameters);
     }
 
-//    @Test
+    //    @Test
     public void testClark() {
 
         double f = .1;
@@ -441,7 +441,7 @@ public class TestSimulatedFmri {
     }
 
 
-//    @Test
+    //    @Test
     public void testClark2() {
 
         Node x = new ContinuousVariable("X");

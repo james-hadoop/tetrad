@@ -1,22 +1,26 @@
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.algcomparison.algorithm.multi.ImagesSemBic;
+import edu.cmu.tetrad.algcomparison.independence.FisherZ;
+import edu.cmu.tetrad.algcomparison.independence.SemBicDTest;
+import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.EdgeListGraph;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by user on 3/29/18.
- */
-public class MultiFask {
+import static edu.cmu.tetrad.util.Params.*;
 
-    private final SemBicScoreMultiFas score;
+/**
+ *
+ */
+public class FaskVote {
 
     // An initial graph to orient, skipping the adjacency step.
     private Graph initialGraph = null;
@@ -43,10 +47,10 @@ public class MultiFask {
     private double delta = -0.2;
 
     private final List<DataSet> dataSets;
+    private Parameters parameters;
 
-    public MultiFask(List<DataSet> dataSets, SemBicScoreMultiFas score) {
+    public FaskVote(List<DataSet> dataSets) {
         this.dataSets = dataSets;
-        this.score = score;
     }
 
     //======================================== PUBLIC METHODS ====================================//
@@ -54,49 +58,65 @@ public class MultiFask {
     public Graph search() {
         long start = System.currentTimeMillis();
 
-        IndependenceTest test = new IndTestScore(score);
-
-        FasStable fas = new FasStable(test);
-        fas.setDepth(getDepth());
-        fas.setVerbose(false);
-        fas.setKnowledge(knowledge);
-        Graph G0 = fas.search();
-
         List<Graph> graphs = new ArrayList<>();
+        List<Fask> fasks = new ArrayList<>();
+
+        ImagesSemBic imagesSemBic = new ImagesSemBic();
+
+        List<DataModel> _dataSets = new ArrayList<>();
+        for (DataSet dataSet : dataSets) _dataSets.add((DataModel) dataSet);
+        Graph external = imagesSemBic.search(_dataSets, parameters);
 
         for (DataSet dataSet1 : dataSets) {
-            Fask fask = new Fask(dataSet1, test);
-            fask.setExternalGraph(G0);
-            fask.setAdjacencyMethod(Fask.AdjacencyMethod.EXTERNAL_GRAPH);
-            fask.setSkewEdgeThreshold(0.3);
-            fask.setLeftRight(Fask.LeftRight.FASK2);
-            graphs.add(fask.search());
+            Fask fask;
+
+            if (parameters.getInt(FASK_ADJACENCY_METHOD) != 3) {
+                fask = new Fask(dataSet1, new FisherZ().getTest(dataSet1, parameters));
+            } else if (parameters.getInt(FASK_ADJACENCY_METHOD) == 3) {
+                fask = new Fask(dataSet1, new SemBicTest().getTest(dataSet1, parameters));
+            } else {
+                throw new IllegalStateException("That adacency method for FASK was not configured: "
+                        + parameters.getInt(FASK_ADJACENCY_METHOD));
+            }
+
+            fask.setDepth(parameters.getInt(DEPTH));
+            fask.setAdjacencyMethod(Fask.AdjacencyMethod.FAS_STABLE);
+            fask.setSkewEdgeThreshold(parameters.getDouble(SKEW_EDGE_THRESHOLD));
+            fask.setTwoCycleScreeningThreshold(parameters.getDouble(TWO_CYCLE_SCREENING_THRESHOLD));
+            fask.setTwoCycleTestingAlpha(parameters.getDouble(TWO_CYCLE_TESTING_ALPHA));
+            fask.setDelta(parameters.getDouble(FASK_DELTA));
+            fask.setEmpirical(!parameters.getBoolean(FASK_NONEMPIRICAL));
+//            fask.setExternalGraph(external);
+            fask.setAdjacencyMethod(Fask.AdjacencyMethod.FGES);
+            fasks.add(fask);
+            Graph search = fask.search();
+            search = GraphUtils.replaceNodes(search, dataSets.get(0).getVariables());
+            graphs.add(search);
         }
 
         List<Node> nodes = dataSets.get(0).getVariables();
         Graph out = new EdgeListGraph(nodes);
+        int total = dataSets.size();
 
         for (int i = 0; i < nodes.size(); i++) {
-            for (int j = i + 1; j < nodes.size(); j++) {
+            for (int j = 0; j < nodes.size(); j++) {
+                if (i == j) continue;
+                Edge edge = Edges.directedEdge(nodes.get(i), nodes.get(j));
                 int count = 0;
+//                int total = 0;
 
                 for (Graph graph : graphs) {
-                    if (!graph.isAdjacentTo(nodes.get(i), nodes.get(j))) continue;
-                    Edge edge = graph.getEdge(nodes.get(i), nodes.get(j));
-
-                    if (edge.pointsTowards(nodes.get(j))) {
+                    if (graph.containsEdge(edge)) {
                         count++;
                     }
+
+//                    if (graph.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+//                        total++;
+//                    }
                 }
 
-                if (count == 0) continue;
-
-                if (count > graphs.size() / 2.0) {
-                    out.addDirectedEdge(nodes.get(i), nodes.get(j));
-                } else if (count < graphs.size() / 2) {
-                    out.addDirectedEdge(nodes.get(j), nodes.get(i));
-                } else {
-                    out.addUndirectedEdge(nodes.get(i), nodes.get(j));
+                if (count / (double) total > parameters.getDouble(ACCEPTANCE_PROPORTION)) {
+                    out.addEdge(edge);
                 }
             }
         }
@@ -183,5 +203,9 @@ public class MultiFask {
 
     public void setDelta(double delta) {
         this.delta = delta;
+    }
+
+    public void setParameters(Parameters parameters) {
+        this.parameters = parameters;
     }
 }

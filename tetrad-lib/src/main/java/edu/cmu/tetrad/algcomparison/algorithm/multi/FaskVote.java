@@ -1,25 +1,29 @@
 package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
+import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
-import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
-import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
+import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.Fask;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
-import java.text.DecimalFormat;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
+import static edu.cmu.tetrad.util.Params.*;
+
 /**
- * Wraps the IMaGES algorithm for continuous variables.
+ * Wraps the MultiFask algorithm for continuous variables.
  * </p>
  * Requires that the parameter 'randomSelectionSize' be set to indicate how many
  * datasets should be taken at a time (randomly). This cannot given multiple
@@ -27,54 +31,56 @@ import java.util.List;
  *
  * @author jdramsey
  */
-//@edu.cmu.tetrad.annotation.Algorithm(
-//        name = "FASK Concatenated",
-//        command = "fask-concatenated",
-//        algoType = AlgType.forbid_latent_common_causes
-//)
+@edu.cmu.tetrad.annotation.Algorithm(
+        name = "FaskVote",
+        command = "fask-vote",
+        algoType = AlgType.forbid_latent_common_causes,
+        dataType = DataType.Continuous
+)
 @Bootstrapping
-public class FaskConcatenated implements MultiDataSetAlgorithm, HasKnowledge, TakesIndependenceWrapper {
+public class FaskVote implements MultiDataSetAlgorithm, HasKnowledge, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
-    private IndependenceWrapper test;
     private IKnowledge knowledge = new Knowledge2();
+    private Graph initialGraph = null;
+    private Algorithm initialAlg = null;
 
-    public FaskConcatenated() {
-
-    }
-
-    public FaskConcatenated(IndependenceWrapper test) {
-        this.test = test;
+    public FaskVote() {
     }
 
     @Override
     public Graph search(List<DataModel> dataSets, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            List<DataSet> centered = new ArrayList<>();
-
-            for (DataModel dataSet : dataSets) {
-                centered.add(DataUtils.standardizeData((DataSet) dataSet));
+            List<DataSet> _dataSets = new ArrayList<>();
+            for (DataModel d : dataSets) {
+                _dataSets.add((DataSet) d);
             }
 
-            DataSet dataSet = DataUtils.concatenate(centered);
+//            if (initialAlg != null && initialGraph == null) {
+//                initialGraph = initialAlg.search(dataSets.get(0), parameters);
+//            }
+//
+//            if (initialGraph == null) {
+//                ImagesSemBic images = new ImagesSemBic();
+//                images.setKnowledge(knowledge);
+//                initialGraph = images.search(dataSets, parameters);
+//            }
 
-            dataSet.setNumberFormat(new DecimalFormat("0.000000000000000000"));
+            edu.cmu.tetrad.search.FaskVote search = new edu.cmu.tetrad.search.FaskVote(_dataSets);
+//            search.setInitialGraph(initialGraph);
 
-            Fask search = new Fask(dataSet, test.getTest(dataSet, parameters));
-            search.setDepth(parameters.getInt(Params.DEPTH));
-            search.setSkewEdgeThreshold(parameters.getDouble(Params.SKEW_EDGE_THRESHOLD));
+            search.setParameters(parameters);
             search.setKnowledge(knowledge);
-
             return search.search();
         } else {
-            FaskConcatenated algorithm = new FaskConcatenated(test);
+            FaskVote imagesSemBic = new FaskVote();
 
             List<DataSet> datasets = new ArrayList<>();
 
             for (DataModel dataModel : dataSets) {
                 datasets.add((DataSet) dataModel);
             }
-            GeneralResamplingTest search = new GeneralResamplingTest(datasets, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
+            GeneralResamplingTest search = new GeneralResamplingTest(datasets, imagesSemBic, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(knowledge);
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
@@ -105,10 +111,10 @@ public class FaskConcatenated implements MultiDataSetAlgorithm, HasKnowledge, Ta
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             return search(Collections.singletonList((DataModel) DataUtils.getContinuousDataSet(dataSet)), parameters);
         } else {
-            FaskConcatenated algorithm = new FaskConcatenated(test);
+            FaskVote imagesSemBic = new FaskVote();
 
             List<DataSet> dataSets = Collections.singletonList(DataUtils.getContinuousDataSet(dataSet));
-            GeneralResamplingTest search = new GeneralResamplingTest(dataSets, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
+            GeneralResamplingTest search = new GeneralResamplingTest(dataSets, imagesSemBic, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(knowledge);
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
@@ -137,11 +143,13 @@ public class FaskConcatenated implements MultiDataSetAlgorithm, HasKnowledge, Ta
     @Override
     public Graph getComparisonGraph(Graph graph) {
         return new EdgeListGraph(graph);
+//        return SearchGraphUtils.patternForDag(graph);
+//        return new TsDagToPag(new EdgeListGraph(graph)).convert();
     }
 
     @Override
     public String getDescription() {
-        return "FASK Concatenated";
+        return "MultiFASK";
     }
 
     @Override
@@ -151,14 +159,15 @@ public class FaskConcatenated implements MultiDataSetAlgorithm, HasKnowledge, Ta
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = new ArrayList<>();
-        parameters.add(Params.DEPTH);
-        parameters.add(Params.TWO_CYCLE_ALPHA);
-        parameters.add(Params.SKEW_EDGE_THRESHOLD);
-
-        parameters.add(Params.NUM_RUNS);
+        // MultiFask uses SemBicScore internally, so we'll need to add the score parameters too - Zhou
+        List<String> parameters = new LinkedList<>();
+//        parameters.addAll((new ImagesSemBic()).getParameters());
+        parameters.addAll((new Fask()).getParameters());
+//        parameters.addAll((new SemBicScore()).getParameters());
+        parameters.add(PENALTY_DISCOUNT);
+        parameters.add(ALPHA);
+        parameters.add(ACCEPTANCE_PROPORTION);
         parameters.add(Params.RANDOM_SELECTION_SIZE);
-
         parameters.add(Params.VERBOSE);
 
         return parameters;
@@ -175,12 +184,17 @@ public class FaskConcatenated implements MultiDataSetAlgorithm, HasKnowledge, Ta
     }
 
     @Override
-    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
-        this.test = independenceWrapper;
+    public Graph getInitialGraph() {
+        return initialGraph;
     }
 
     @Override
-    public IndependenceWrapper getIndependenceWrapper() {
-        return test;
+    public void setInitialGraph(Graph initialGraph) {
+        this.initialGraph = initialGraph;
+    }
+
+    @Override
+    public void setInitialGraph(Algorithm algorithm) {
+        this.initialAlg = algorithm;
     }
 }
