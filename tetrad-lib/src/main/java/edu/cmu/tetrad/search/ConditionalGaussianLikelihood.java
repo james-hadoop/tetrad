@@ -19,19 +19,19 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA //
 ///////////////////////////////////////////////////////////////////////////////
 
-        package edu.cmu.tetrad.search;
+package edu.cmu.tetrad.search;
 
-        import edu.cmu.tetrad.data.*;
-        import edu.cmu.tetrad.graph.Node;
-        import edu.cmu.tetrad.util.TetradMatrix;
-        import org.apache.commons.math3.linear.RealMatrix;
-        import org.apache.commons.math3.stat.correlation.Covariance;
-        import org.apache.commons.math3.util.FastMath;
+import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.TetradMatrix;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.stat.correlation.Covariance;
+import org.apache.commons.math3.util.FastMath;
 
-        import java.util.*;
+import java.util.*;
 
-        import static edu.cmu.tetrad.data.Discretizer.*;
-        import static java.lang.Math.log;
+import static edu.cmu.tetrad.data.Discretizer.*;
+import static java.lang.Math.log;
 
 /**
  * Implements a conditional Gaussian likelihood. Please note that this this likelihood will be maximal only if the
@@ -67,21 +67,29 @@ public class ConditionalGaussianLikelihood {
     private double penaltyDiscount = 1;
 
     // "Cell" consisting of all rows.
-    private final ArrayList<Integer> all;
+    private ArrayList<Integer> all;
 
     // Discretize the parents
     private boolean discretize = false;
 
     // A constant.
-    private static double LOG2PI = log(2.0 * Math.PI);
+    private static final double LOG2PI = log(2.0 * Math.PI);
+
+    // A list of indices for missing values for each variable--that is, missing.get(i) is a list of indices for
+    // missing values for variable i.
+    private List<List<Integer>> missing = new ArrayList<>();
+
+    // True if testwise deletion should be done for missing values.
+    private boolean doTestwiseDeletion = true;
+
 
     /**
      * A return value for a likelihood--returns a likelihood value and the degrees of freedom
      * for it.
      */
-    public class Ret {
-        private double lik;
-        private int dof;
+    public static class Ret {
+        private final double lik;
+        private final int dof;
 
         private Ret(double lik, int dof) {
             this.lik = lik;
@@ -141,6 +149,27 @@ public class ConditionalGaussianLikelihood {
         all = new ArrayList<>();
         for (int i = 0; i < dataSet.getNumRows(); i++) all.add(i);
 
+        List<List<Integer>> missing = new ArrayList<>();
+
+        for (int j = 0; j < dataSet.getNumColumns(); j++) {
+            List<Integer> _missing = new ArrayList<>();
+
+            for (int i = 0; i < dataSet.getNumRows(); i++) {
+                if (dataSet.getVariable(j) instanceof ContinuousVariable) {
+                    if (Double.isNaN(dataSet.getDouble(i, j))) {
+                        _missing.add(i);
+                    }
+                } else if (dataSet.getVariable(j) instanceof DiscreteVariable) {
+                    if (dataSet.getInt(i, j) == -99) {
+                        _missing.add(i);
+                    }
+                }
+            }
+
+            missing.add(_missing);
+        }
+
+        this.missing = missing;
     }
 
     private DataSet useErsatzVariables() {
@@ -239,6 +268,10 @@ public class ConditionalGaussianLikelihood {
         this.numCategoriesToDiscretize = numCategoriesToDiscretize;
     }
 
+    public void setDoTestwiseDeletion(boolean doTestwiseDeletion) {
+        this.doTestwiseDeletion = doTestwiseDeletion;
+    }
+
     // The likelihood of the joint over all of these mixedVariables, assuming conditional Gaussian,
     // continuous and discrete.
     private Ret likelihoodJoint(List<ContinuousVariable> X, List<DiscreteVariable> A, Node target) {
@@ -269,6 +302,20 @@ public class ConditionalGaussianLikelihood {
         List<List<Integer>> cells = adTree.getCellLeaves(A);
 
         for (List<Integer> cell : cells) {
+            if (doTestwiseDeletion) {
+                cell = new ArrayList<>(cell);
+
+                for (ContinuousVariable var : X) {
+                    int j = nodesHash.get(var);
+                    cell.removeAll(missing.get(j));
+                }
+
+                for (DiscreteVariable var : A) {
+                    int j = nodesHash.get(var);
+                    cell.removeAll(missing.get(j));
+                }
+            }
+
             int a = cell.size();
             if (a == 0) continue;
 

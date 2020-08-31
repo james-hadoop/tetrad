@@ -3,7 +3,6 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DiscreteVariable;
 import edu.cmu.tetrad.graph.Node;
-import org.apache.commons.collections4.iterators.CollatingIterator;
 import org.apache.commons.collections4.map.HashedMap;
 
 import java.util.*;
@@ -20,19 +19,19 @@ import java.util.*;
 public class AdLeafTree {
 
     // The data set the tree is for.
-    private DataSet dataSet;
+    private final DataSet dataSet;
 
     // Contains the root of the tree.
     private List<Vary> baseCase;
 
     // Indices of variables.
-    private Map<Node, Integer> nodesHash;
+    private final Map<Node, Integer> nodesHash;
 
     // Discrete data only.
-    private int[][] discreteData;
+    private final int[][] discreteData;
 
     // Dimensions of the discrete variables (otherwise 0).
-    private int[] dims;
+    private final int[] dims;
 
     public AdLeafTree(DataSet dataSet) {
         this.dataSet = dataSet;
@@ -73,13 +72,7 @@ public class AdLeafTree {
      * and so on, to the last variable.
      */
     public List<List<Integer>> getCellLeaves(List<DiscreteVariable> A) {
-        Collections.sort(A, new Comparator<DiscreteVariable>() {
-
-            @Override
-            public int compare(DiscreteVariable o1, DiscreteVariable o2) {
-                return Integer.compare(nodesHash.get(o1), nodesHash.get(o2));
-            }
-        });
+        A.sort(Comparator.comparingInt(nodesHash::get));
 
         if (baseCase == null) {
             Vary vary = new Vary();
@@ -111,13 +104,7 @@ public class AdLeafTree {
      * and so on, to the last variable.
      */
     public List<List<List<Integer>>> getCellLeaves(List<DiscreteVariable> A, DiscreteVariable B) {
-        Collections.sort(A, new Comparator<DiscreteVariable>() {
-
-            @Override
-            public int compare(DiscreteVariable o1, DiscreteVariable o2) {
-                return Integer.compare(nodesHash.get(o1), nodesHash.get(o2));
-            }
-        });
+        A.sort(Comparator.comparingInt(nodesHash::get));
 
         if (baseCase == null) {
             Vary vary = new Vary();
@@ -172,11 +159,11 @@ public class AdLeafTree {
                 _rows.add(i);
             }
 
-            subVaries.add(new HashMap<Integer, Vary>());
+            subVaries.add(new HashMap<>());
             numCategories = 1;
             rows.add(_rows);
             subVaries = new ArrayList<>();
-            subVaries.add(new HashMap<Integer, Vary>());
+            subVaries.add(new HashMap<>());
         }
 
         public Vary(int col, int numCategories, List<Integer> supRows, int[][] discreteData) {
@@ -184,11 +171,11 @@ public class AdLeafTree {
             this.numCategories = numCategories;
 
             for (int i = 0; i < numCategories; i++) {
-                rows.add(new ArrayList<Integer>());
+                rows.add(new ArrayList<>());
             }
 
             for (int i = 0; i < numCategories; i++) {
-                subVaries.add(new HashedMap<Integer, Vary>());
+                subVaries.add(new HashedMap<>());
             }
 
             for (int i : supRows) {
