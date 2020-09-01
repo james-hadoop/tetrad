@@ -62,7 +62,6 @@ public final class Params {
     public static final String DETERMINISM_THRESHOLD = "determinismThreshold";
     public static final String DIFFERENT_GRAPHS = "differentGraphs";
     public static final String DISCRETIZE = "discretize";
-    public static final String TESTWISE_DELETION = "testwiseDeletion";
     public static final String DO_COLLIDER_ORIENTATION = "doColliderOrientation";
     public static final String ERRORS_NORMAL = "errorsNormal";
     public static final String EXTRA_EDGE_THRESHOLD = "extraEdgeThreshold";
