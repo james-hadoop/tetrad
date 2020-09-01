@@ -43,31 +43,31 @@ import static java.lang.Math.log;
 public class ConditionalGaussianLikelihood {
 
     // The data set. May contain continuous and/or discrete mixedVariables.
-    private DataSet mixedDataSet;
+    private final DataSet mixedDataSet;
 
     // The data set with all continuous mixedVariables discretized.
-    private DataSet dataSet;
+    private final DataSet dataSet;
 
     // Number of categories to use to discretize continuous mixedVariables.
     private int numCategoriesToDiscretize = 3;
 
-    // The mixedVariables of the mixed data set.
-    private List<Node> mixedVariables;
+    // The variables of the mixed data set.
+    private final List<Node> variables;
 
     // Indices of mixedVariables.
-    private Map<Node, Integer> nodesHash;
+    private final Map<Node, Integer> nodesHash;
 
     // Continuous data only.
-    private double[][] continuousData;
+    private final double[][] continuousData;
 
     // The AD Tree used to count discrete cells.
-    private AdLeafTree adTree;
+    private final AdLeafTree adTree;
 
     // Multiplier on degrees of freedom for the continuous portion of those degrees.
     private double penaltyDiscount = 1;
 
     // "Cell" consisting of all rows.
-    private ArrayList<Integer> all;
+    private final ArrayList<Integer> all;
 
     // Discretize the parents
     private boolean discretize = false;
@@ -77,7 +77,7 @@ public class ConditionalGaussianLikelihood {
 
     // A list of indices for missing values for each variable--that is, missing.get(i) is a list of indices for
     // missing values for variable i.
-    private List<List<Integer>> missing = new ArrayList<>();
+    private final List<List<Integer>> missing;
 
     // True if testwise deletion should be done for missing values.
     private boolean doTestwiseDeletion = true;
@@ -118,7 +118,7 @@ public class ConditionalGaussianLikelihood {
         }
 
         this.mixedDataSet = dataSet;
-        this.mixedVariables = dataSet.getVariables();
+        this.variables = dataSet.getVariables();
 
         continuousData = new double[dataSet.getNumColumns()][];
 
@@ -138,12 +138,12 @@ public class ConditionalGaussianLikelihood {
 
         nodesHash = new HashMap<>();
 
-        for (int j = 0; j < dataSet.getNumColumns(); j++) {
-            Node v = dataSet.getVariable(j);
-            nodesHash.put(v, j);
+        for (int j = 0; j < variables.size(); j++) {
+            nodesHash.put(variables.get(j), j);
         }
 
         this.dataSet = useErsatzVariables();
+
         this.adTree = new AdLeafTree(this.dataSet);
 
         all = new ArrayList<>();
@@ -155,11 +155,11 @@ public class ConditionalGaussianLikelihood {
             List<Integer> _missing = new ArrayList<>();
 
             for (int i = 0; i < dataSet.getNumRows(); i++) {
-                if (dataSet.getVariable(j) instanceof ContinuousVariable) {
+                if (variables.get(j) instanceof ContinuousVariable) {
                     if (Double.isNaN(dataSet.getDouble(i, j))) {
                         _missing.add(i);
                     }
-                } else if (dataSet.getVariable(j) instanceof DiscreteVariable) {
+                } else if (variables.get(j) instanceof DiscreteVariable) {
                     if (dataSet.getInt(i, j) == -99) {
                         _missing.add(i);
                     }
@@ -176,7 +176,7 @@ public class ConditionalGaussianLikelihood {
         List<Node> nodes = new ArrayList<>();
         int numCategories = numCategoriesToDiscretize;
 
-        for (Node x : mixedVariables) {
+        for (Node x : variables) {
             if (x instanceof ContinuousVariable) {
                 nodes.add(new DiscreteVariable(x.getName(), numCategories));
             } else {
@@ -186,8 +186,8 @@ public class ConditionalGaussianLikelihood {
 
         DataSet replaced = new BoxDataSet(new VerticalIntDataBox(mixedDataSet.getNumRows(), mixedDataSet.getNumColumns()), nodes);
 
-        for (int j = 0; j < mixedVariables.size(); j++) {
-            if (mixedVariables.get(j) instanceof DiscreteVariable) {
+        for (int j = 0; j < variables.size(); j++) {
+            if (variables.get(j) instanceof DiscreteVariable) {
                 for (int i = 0; i < mixedDataSet.getNumRows(); i++) {
                     replaced.setInt(i, j, mixedDataSet.getInt(i, j));
                 }
@@ -202,7 +202,7 @@ public class ConditionalGaussianLikelihood {
                     categoryNames.add("" + i);
                 }
 
-                Discretization d = discretize(column, breakpoints, mixedVariables.get(j).getName(), categoryNames);
+                Discretization d = discretize(column, breakpoints, variables.get(j).getName(), categoryNames);
 
                 for (int i = 0; i < mixedDataSet.getNumRows(); i++) {
                     replaced.setInt(i, j, d.getData()[i]);
@@ -222,13 +222,13 @@ public class ConditionalGaussianLikelihood {
      * @return The likelihood.
      */
     public Ret getLikelihood(int i, int[] parents) {
-        Node target = mixedVariables.get(i);
+        Node target = variables.get(i);
 
         List<ContinuousVariable> X = new ArrayList<>();
         List<DiscreteVariable> A = new ArrayList<>();
 
         for (int p : parents) {
-            Node parent = mixedVariables.get(p);
+            Node parent = variables.get(p);
 
             if (parent instanceof ContinuousVariable) {
                 X.add((ContinuousVariable) parent);
@@ -268,7 +268,7 @@ public class ConditionalGaussianLikelihood {
         this.numCategoriesToDiscretize = numCategoriesToDiscretize;
     }
 
-    public void setDoTestwiseDeletion(boolean doTestwiseDeletion) {
+    public void setTestwiseDeletion(boolean doTestwiseDeletion) {
         this.doTestwiseDeletion = doTestwiseDeletion;
     }
 
@@ -305,14 +305,24 @@ public class ConditionalGaussianLikelihood {
             if (doTestwiseDeletion) {
                 cell = new ArrayList<>(cell);
 
-                for (ContinuousVariable var : X) {
+                for (Node var : X) {
                     int j = nodesHash.get(var);
                     cell.removeAll(missing.get(j));
                 }
 
-                for (DiscreteVariable var : A) {
-                    int j = nodesHash.get(var);
-                    cell.removeAll(missing.get(j));
+                for (Node var : A) {
+                    if (nodesHash.containsKey(var)) {
+                        int j = nodesHash.get(var);
+                        cell.removeAll(missing.get(j));
+                    } else {
+                        List<Node> vars = dataSet.getVariables();
+
+                        for (int j = 0; j < vars.size(); j++) {
+                            if (vars.get(j).getName().equals(var.getName())) {
+                                cell.removeAll(missing.get(j));
+                            }
+                        }
+                    }
                 }
             }
 
