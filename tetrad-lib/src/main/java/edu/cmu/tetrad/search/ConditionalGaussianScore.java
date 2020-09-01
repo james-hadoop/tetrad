@@ -46,6 +46,7 @@ public class ConditionalGaussianScore implements Score {
     private double penaltyDiscount = 1;
     private int numCategoriesToDiscretize = 3;
     private double sp;
+    private boolean testwiseDeletion = false;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -70,6 +71,7 @@ public class ConditionalGaussianScore implements Score {
     public double localScore(int i, int... parents) {
         likelihood.setNumCategoriesToDiscretize(numCategoriesToDiscretize);
         likelihood.setPenaltyDiscount(penaltyDiscount);
+        likelihood.setTestwiseDeletion(testwiseDeletion);
 
         ConditionalGaussianLikelihood.Ret ret = likelihood.getLikelihood(i, parents);
 
@@ -173,6 +175,9 @@ public class ConditionalGaussianScore implements Score {
         return "Conditional Gaussian Score Penalty " + nf.format(penaltyDiscount);
     }
 
+    public void setTestwiseDeletion(boolean aBoolean) {
+        this.testwiseDeletion = aBoolean;
+    }
 }
 
 

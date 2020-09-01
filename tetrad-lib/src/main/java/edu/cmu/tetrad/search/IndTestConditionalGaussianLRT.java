@@ -33,8 +33,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.util.MathUtils.logChoose;
-import static java.lang.Math.exp;
-import static java.lang.Math.log;
+import static java.lang.Math.*;
 
 /**
  * Performs a test of conditional independence X _||_ Y | Z1...Zn where all searchVariables are either continuous or discrete.
@@ -56,6 +55,7 @@ public class IndTestConditionalGaussianLRT implements IndependenceTest {
 
     private boolean verbose = false;
     private boolean fastFDR = false;
+    private boolean testwiseDeletion = false;
 
     public IndTestConditionalGaussianLRT(DataSet data, double alpha, boolean discretize) {
         this.data = data;
@@ -86,6 +86,7 @@ public class IndTestConditionalGaussianLRT implements IndependenceTest {
      */
     public boolean isIndependent(Node x, Node y, List<Node> z) {
         likelihood.setNumCategoriesToDiscretize(numCategoriesToDiscretize);
+        likelihood.setTestwiseDeletion(testwiseDeletion);
 
         int _x = nodesHash.get(x);
         int _y = nodesHash.get(y);
@@ -286,5 +287,9 @@ public class IndTestConditionalGaussianLRT implements IndependenceTest {
 
     public void setFastFDR(boolean fastFDR) {
         this.fastFDR = fastFDR;
+    }
+
+    public void setTestwiseDeletion(boolean aBoolean) {
+        this.testwiseDeletion = aBoolean;
     }
 }

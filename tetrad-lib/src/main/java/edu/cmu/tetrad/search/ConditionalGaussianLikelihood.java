@@ -67,7 +67,7 @@ public class ConditionalGaussianLikelihood {
     private double penaltyDiscount = 1;
 
     // "Cell" consisting of all rows.
-    private ArrayList<Integer> all;
+    private final ArrayList<Integer> all;
 
     // Discretize the parents
     private boolean discretize = false;
@@ -80,16 +80,16 @@ public class ConditionalGaussianLikelihood {
     private List<List<Integer>> missing = new ArrayList<>();
 
     // True if testwise deletion should be done for missing values.
-    private boolean doTestwiseDeletion = true;
+    private boolean testwiseDeletion = false;
 
 
     /**
      * A return value for a likelihood--returns a likelihood value and the degrees of freedom
      * for it.
      */
-    public static class Ret {
-        private final double lik;
-        private final int dof;
+    public class Ret {
+        private double lik;
+        private int dof;
 
         private Ret(double lik, int dof) {
             this.lik = lik;
@@ -268,8 +268,8 @@ public class ConditionalGaussianLikelihood {
         this.numCategoriesToDiscretize = numCategoriesToDiscretize;
     }
 
-    public void setDoTestwiseDeletion(boolean doTestwiseDeletion) {
-        this.doTestwiseDeletion = doTestwiseDeletion;
+    public void setTestwiseDeletion(boolean testwiseDeletion) {
+        this.testwiseDeletion = testwiseDeletion;
     }
 
     // The likelihood of the joint over all of these mixedVariables, assuming conditional Gaussian,
@@ -295,29 +295,45 @@ public class ConditionalGaussianLikelihood {
 
         int[] continuousCols = new int[k];
         for (int j = 0; j < k; j++) continuousCols[j] = nodesHash.get(X.get(j));
-        int N = mixedDataSet.getNumRows();
+//        int N = mixedDataSet.getNumRows();
 
         double c1 = 0, c2 = 0;
 
         List<List<Integer>> cells = adTree.getCellLeaves(A);
+        List<Integer> all = new ArrayList<>();
+        for (int i = 0; i < mixedDataSet.getNumRows(); i++) all.add(i);
 
-        for (List<Integer> cell : cells) {
-            if (doTestwiseDeletion) {
-                cell = new ArrayList<>(cell);
 
-                for (ContinuousVariable var : X) {
-                    int j = nodesHash.get(var);
+        for (List<Integer> _cell : cells) {
+            List<Integer> cell = new ArrayList<>(_cell);
+
+            if (testwiseDeletion) {
+                int _j = mixedDataSet.getColumn(target);
+                cell.removeAll(missing.get(_j));
+                all.removeAll(missing.get(_j));
+
+                for (Node var : X) {
+                    int j = mixedDataSet.getColumn(var);
                     cell.removeAll(missing.get(j));
+                    all.removeAll(missing.get(j));
                 }
 
-                for (DiscreteVariable var : A) {
-                    int j = nodesHash.get(var);
+                for (Node var : A) {
+                    int j = mixedDataSet.getColumn(var);
+
+                    if (j == -1) {
+                        j = dataSet.getColumn(var);
+                    }
+
                     cell.removeAll(missing.get(j));
+                    all.removeAll(missing.get(j));
                 }
             }
 
+            int N = all.size();
+
+            if (cell.isEmpty()) continue;
             int a = cell.size();
-            if (a == 0) continue;
 
             if (A.size() > 0) {
                 c1 += a * multinomialLikelihood(a, N);

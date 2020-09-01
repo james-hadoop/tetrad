@@ -126,13 +126,7 @@ public final class DataUtils {
      */
     public static DataSet addMissingData(
             DataSet inData, double[] probs) {
-        DataSet outData;
-
-        try {
-            outData = new MarshalledObject<>(inData).get();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        DataSet outData = inData.copy();
 
         if (probs.length != outData.getNumColumns()) {
             throw new IllegalArgumentException(
@@ -146,14 +140,15 @@ public final class DataUtils {
         }
 
         for (int j = 0; j < outData.getNumColumns(); j++) {
-            Node variable = outData.getVariable(j);
-
             for (int i = 0; i < outData.getNumRows(); i++) {
                 double test = RandomUtil.getInstance().nextDouble();
 
                 if (test < probs[j]) {
-                    outData.setObject(i, j,
-                            ((Variable) variable).getMissingValueMarker());
+                    if (outData.getVariable(j) instanceof ContinuousVariable) {
+                        outData.setDouble(i, j, Double.NaN);
+                    } else if (outData.getVariable(j) instanceof DiscreteVariable) {
+                        outData.setInt(i, j, -99);
+                    }
                 }
             }
         }
