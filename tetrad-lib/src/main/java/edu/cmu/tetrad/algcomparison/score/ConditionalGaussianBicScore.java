@@ -58,7 +58,7 @@ public class ConditionalGaussianBicScore implements ScoreWrapper {
         parameters.add("penaltyDiscount");
         parameters.add("structurePrior");
         parameters.add("discretize");
-        parameters.add(Params.TESTWISE_DELETION);
+//        parameters.add(Params.TESTWISE_DELETION);
         return parameters;
     }
 

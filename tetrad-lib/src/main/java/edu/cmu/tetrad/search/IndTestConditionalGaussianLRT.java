@@ -57,7 +57,7 @@ public class IndTestConditionalGaussianLRT implements IndependenceTest {
     private boolean fastFDR = false;
     private boolean testwiseDeletion = false;
 
-    public IndTestConditionalGaussianLRT(DataSet data, double alpha, boolean discretize) {
+    public  IndTestConditionalGaussianLRT(DataSet data, double alpha, boolean discretize) {
         this.data = data;
         this.likelihood = new ConditionalGaussianLikelihood(data);
         this.likelihood.setDiscretize(discretize);
@@ -86,7 +86,7 @@ public class IndTestConditionalGaussianLRT implements IndependenceTest {
      */
     public boolean isIndependent(Node x, Node y, List<Node> z) {
         likelihood.setNumCategoriesToDiscretize(numCategoriesToDiscretize);
-        likelihood.setTestwiseDeletion(testwiseDeletion);
+//        likelihood.setTestwiseDeletion(testwiseDeletion);
 
         int _x = nodesHash.get(x);
         int _y = nodesHash.get(y);

@@ -73,15 +73,7 @@ public class ConditionalGaussianLikelihood {
     private boolean discretize = false;
 
     // A constant.
-    private static final double LOG2PI = log(2.0 * Math.PI);
-
-    // A list of indices for missing values for each variable--that is, missing.get(i) is a list of indices for
-    // missing values for variable i.
-    private List<List<Integer>> missing = new ArrayList<>();
-
-    // True if testwise deletion should be done for missing values.
-    private boolean testwiseDeletion = false;
-
+    private static double LOG2PI = log(2.0 * Math.PI);
 
     /**
      * A return value for a likelihood--returns a likelihood value and the degrees of freedom
@@ -149,27 +141,6 @@ public class ConditionalGaussianLikelihood {
         all = new ArrayList<>();
         for (int i = 0; i < dataSet.getNumRows(); i++) all.add(i);
 
-        List<List<Integer>> missing = new ArrayList<>();
-
-        for (int j = 0; j < dataSet.getNumColumns(); j++) {
-            List<Integer> _missing = new ArrayList<>();
-
-            for (int i = 0; i < dataSet.getNumRows(); i++) {
-                if (dataSet.getVariable(j) instanceof ContinuousVariable) {
-                    if (Double.isNaN(dataSet.getDouble(i, j))) {
-                        _missing.add(i);
-                    }
-                } else if (dataSet.getVariable(j) instanceof DiscreteVariable) {
-                    if (dataSet.getInt(i, j) == -99) {
-                        _missing.add(i);
-                    }
-                }
-            }
-
-            missing.add(_missing);
-        }
-
-        this.missing = missing;
     }
 
     private DataSet useErsatzVariables() {
@@ -268,10 +239,6 @@ public class ConditionalGaussianLikelihood {
         this.numCategoriesToDiscretize = numCategoriesToDiscretize;
     }
 
-    public void setTestwiseDeletion(boolean testwiseDeletion) {
-        this.testwiseDeletion = testwiseDeletion;
-    }
-
     // The likelihood of the joint over all of these mixedVariables, assuming conditional Gaussian,
     // continuous and discrete.
     private Ret likelihoodJoint(List<ContinuousVariable> X, List<DiscreteVariable> A, Node target) {
@@ -295,45 +262,15 @@ public class ConditionalGaussianLikelihood {
 
         int[] continuousCols = new int[k];
         for (int j = 0; j < k; j++) continuousCols[j] = nodesHash.get(X.get(j));
-//        int N = mixedDataSet.getNumRows();
+        int N = mixedDataSet.getNumRows();
 
         double c1 = 0, c2 = 0;
 
         List<List<Integer>> cells = adTree.getCellLeaves(A);
-        List<Integer> all = new ArrayList<>();
-        for (int i = 0; i < mixedDataSet.getNumRows(); i++) all.add(i);
 
-
-        for (List<Integer> _cell : cells) {
-            List<Integer> cell = new ArrayList<>(_cell);
-
-            if (testwiseDeletion) {
-                int _j = mixedDataSet.getColumn(target);
-                cell.removeAll(missing.get(_j));
-                all.removeAll(missing.get(_j));
-
-                for (Node var : X) {
-                    int j = mixedDataSet.getColumn(var);
-                    cell.removeAll(missing.get(j));
-                    all.removeAll(missing.get(j));
-                }
-
-                for (Node var : A) {
-                    int j = mixedDataSet.getColumn(var);
-
-                    if (j == -1) {
-                        j = dataSet.getColumn(var);
-                    }
-
-                    cell.removeAll(missing.get(j));
-                    all.removeAll(missing.get(j));
-                }
-            }
-
-            int N = all.size();
-
-            if (cell.isEmpty()) continue;
+        for (List<Integer> cell : cells) {
             int a = cell.size();
+            if (a == 0) continue;
 
             if (A.size() > 0) {
                 c1 += a * multinomialLikelihood(a, N);

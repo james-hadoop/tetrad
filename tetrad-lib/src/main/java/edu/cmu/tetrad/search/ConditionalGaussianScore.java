@@ -71,7 +71,7 @@ public class ConditionalGaussianScore implements Score {
     public double localScore(int i, int... parents) {
         likelihood.setNumCategoriesToDiscretize(numCategoriesToDiscretize);
         likelihood.setPenaltyDiscount(penaltyDiscount);
-        likelihood.setTestwiseDeletion(testwiseDeletion);
+//        likelihood.setTestwiseDeletion(testwiseDeletion);
 
         ConditionalGaussianLikelihood.Ret ret = likelihood.getLikelihood(i, parents);
 
