@@ -19,8 +19,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import static edu.cmu.tetrad.util.Params.*;
-
 /**
  * Wraps the MultiFask algorithm for continuous variables.
  * </p>
@@ -147,7 +145,6 @@ public class MultiFask implements MultiDataSetAlgorithm, HasKnowledge {
         // MultiFask uses SemBicScore internally, so we'll need to add the score parameters too - Zhou
         List<String> parameters = new LinkedList<>();
         parameters.addAll((new Fges()).getParameters());
-        parameters.addAll((new Fask()).getParameters());
         parameters.addAll((new SemBicScore()).getParameters());
         parameters.add(Params.NUM_RUNS);
         parameters.add(Params.RANDOM_SELECTION_SIZE);
