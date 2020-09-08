@@ -14,6 +14,7 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -35,12 +36,12 @@ import java.util.List;
         dataType = DataType.Continuous
 )
 @Bootstrapping
-public class MultiFask implements MultiDataSetAlgorithm, HasKnowledge {
+public class MultiFaskV1 implements MultiDataSetAlgorithm, HasKnowledge {
 
     static final long serialVersionUID = 23L;
     private IKnowledge knowledge = new Knowledge2();
 
-    public MultiFask() {
+    public MultiFaskV1() {
     }
 
     @Override
@@ -52,11 +53,11 @@ public class MultiFask implements MultiDataSetAlgorithm, HasKnowledge {
             }
             final SemBicScoreMultiFas score = new SemBicScoreMultiFas(dataSets);
             score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
-            edu.cmu.tetrad.search.MultiFask search = new edu.cmu.tetrad.search.MultiFask(_dataSets, score);
+            edu.cmu.tetrad.search.MultiFaskV1 search = new edu.cmu.tetrad.search.MultiFaskV1(_dataSets, score);
             search.setKnowledge(knowledge);
             return search.search();
         } else {
-            MultiFask imagesSemBic = new MultiFask();
+            MultiFaskV1 imagesSemBic = new MultiFaskV1();
 
             List<DataSet> datasets = new ArrayList<>();
 
@@ -94,7 +95,7 @@ public class MultiFask implements MultiDataSetAlgorithm, HasKnowledge {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             return search(Collections.singletonList((DataModel) DataUtils.getContinuousDataSet(dataSet)), parameters);
         } else {
-            MultiFask imagesSemBic = new MultiFask();
+            MultiFaskV1 imagesSemBic = new MultiFaskV1();
 
             List<DataSet> dataSets = Collections.singletonList(DataUtils.getContinuousDataSet(dataSet));
             GeneralResamplingTest search = new GeneralResamplingTest(dataSets, imagesSemBic, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -132,7 +133,7 @@ public class MultiFask implements MultiDataSetAlgorithm, HasKnowledge {
 
     @Override
     public String getDescription() {
-        return "MultiFASK";
+        return "IMaGES for continuous variables (using the SEM BIC score)";
     }
 
     @Override

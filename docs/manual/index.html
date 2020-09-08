@@ -1432,8 +1432,8 @@ raf mek pip2    erk akt cd3_s   cd3_v   icam
         tests and singularities. Annals of Statistics 37(2):979-1012. arXiv:math.ST/0703360. </p>
 
     <p>When the EM algorithm is used with latent variable models, we recommend multiple random restarts. The number of
-        restarts can be set in the lower right hand corner of the Estimator Box. 
-        
+        restarts can be set in the lower right hand corner of the Estimator Box.
+
        <!-- The figure on the left shows the EM
         results for a SEM model with 1 restart. The figure on the right shows the EM results with 20 restarts. The
         results are very different. The estimates with 20 restarts are much closer to the true values. 100 restarts
@@ -2869,11 +2869,9 @@ there is a single latent for each output cluster. For MimBuild, a pattern over t
     <h4>Description</h4>
 
     <div id="multi-fask">
-        <p>Multi-FASK is a metascript that learns a model from a list of datasets in a method similar to
-            IMaGES (see). For adjacencies, it uses FAS-Stable with the voting-based score from IMaGES used as
-            a test (using all of the datasets, standardized), producing a single undirected graph G. It then
-            orients each edge X--Y in G for each dataset using the FASK (see) left-right rule and orient X->Y if
-            that rule orients X--Y as such in at least half of the datasets. The final graph is returned.
+        <p>Multi-FASK is a metascript that learns a model from a list of datasets. It then orients each
+            edge X->Y in the final graph if the number of datasets for which either the FASK rule or the 2-cycle
+            rule orients X->Y is counted to be more than half. The final graph is returned.
         </p>
 
         <p>For FASK, See Sanchez-Romero R, Ramsey JD, Zhang K, Glymour MR, Huang B, Glymour C. Causal discovery
@@ -2887,6 +2885,19 @@ there is a single latent for each output cluster. For MimBuild, a pattern over t
     <h4>Output Format</h4>
 
     <p>Same as FASK.</p>
+
+    <h4>Parameters</h4>
+
+    <p>
+        <a href="#depth">depth</a>
+        <a href="#structurePrior">structurePrior</a>
+        <a href="#twoCycleScreeningThreshold">twoCycleScreeningThreshold</a>
+        <a href="#twoCycleTestingAlpha">twoCycleTestingAlpha</a>
+        <a href="#penaltyDiscount">penaltyDiscount</a>
+        <a href="#randomSelectionSize">randomSelectionSize</a>
+        <a href="#structurePrior">structurePrior</a>
+    </p>
+
 
     <h3>Orientation Algorithms (R3, RSkew, Skew)</h3>
 
@@ -3514,7 +3525,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
 
         <h3 id="faskDelta" class="parameter_description">faskDelta</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="faskDelta_short_desc">For FASK v1, the bias for orienting with negative coefficients (Set to zero for no bias.)</span>
+            <li>Short Description: <span id="faskDelta_short_desc">For FASK v1 and v2, the bias for orienting with negative coefficients (Set to zero for no bias.)</span>
             </li>
             <li>Long Description: <span id="faskDelta_long_desc">The bias procedure for v1 is given in the published description.</span>
             </li>
