@@ -22,7 +22,6 @@
 package edu.cmu.tetrad.graph;
 
 import java.io.ObjectStreamException;
-import java.io.Serializable;
 
 /**
  * A typesafe enum of the types of the types of nodes in a graph (MEASURED,
@@ -30,9 +29,7 @@ import java.io.Serializable;
  *
  * @author Joseph Ramsey
  */
-public final class NodeType implements Serializable {
-    static final long serialVersionUID = 23L;
-
+public final class NodeType {
     public static final NodeType MEASURED = new NodeType("Measured");
     public static final NodeType LATENT = new NodeType("Latent");
     public static final NodeType ERROR = new NodeType("Error");
@@ -52,13 +49,6 @@ public final class NodeType implements Serializable {
      */
     private NodeType(String name) {
         this.name = name;
-    }
-
-    /**
-     * Generates a simple exemplar of this class to test serialization.
-     */
-    public static NodeType serializableInstance() {
-        return NodeType.MEASURED;
     }
 
     /**

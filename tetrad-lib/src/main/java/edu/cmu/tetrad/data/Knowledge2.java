@@ -25,18 +25,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.OrderedPair;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -63,9 +52,7 @@ import java.util.stream.Collectors;
  * @author Joseph Ramsey
  * @author Kevin V. Bui (kvb2@pitt.edu)
  */
-public final class Knowledge2 implements IKnowledge, Serializable {
-
-    private static final long serialVersionUID = 23L;
+public final class Knowledge2 implements IKnowledge {
 
     private static final Pattern VARNAME_PATTERN = Pattern.compile("[A-Za-z0-9:_\\-\\.]+");
     private static final Pattern SPEC_PATTERN = Pattern.compile("[A-Za-z0-9:-_,\\-\\.*]+");
@@ -937,15 +924,6 @@ public final class Knowledge2 implements IKnowledge, Serializable {
                 forbiddenRulesSpecs.remove(new OrderedPair<>(varsInTier, varsInTierN));
             }
         }
-    }
-
-    /**
-     * Generates a simple exemplar of this class to test serialization.
-     *
-     * @return
-     */
-    public static Knowledge2 serializableInstance() {
-        return new Knowledge2();
     }
 
     /**

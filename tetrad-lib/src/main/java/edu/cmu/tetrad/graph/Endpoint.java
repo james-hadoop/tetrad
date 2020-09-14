@@ -22,7 +22,6 @@
 package edu.cmu.tetrad.graph;
 
 import java.io.ObjectStreamException;
-import java.io.Serializable;
 
 /**
  * A typesafe enumeration of the types of endpoints that are permitted in
@@ -30,8 +29,7 @@ import java.io.Serializable;
  *
  * @author Joseph Ramsey
  */
-public final class Endpoint implements Serializable {
-    static final long serialVersionUID = 23L;
+public final class Endpoint {
 
     public static final Endpoint TAIL = new Endpoint("Tail");
     public static final Endpoint ARROW = new Endpoint("Arrow");
@@ -50,13 +48,6 @@ public final class Endpoint implements Serializable {
      */
     private Endpoint(String name) {
         this.name = name;
-    }
-
-    /**
-     * Generates a simple exemplar of this class to test serialization.
-     */
-    public static Endpoint serializableInstance() {
-        return Endpoint.TAIL;
     }
 
     /**

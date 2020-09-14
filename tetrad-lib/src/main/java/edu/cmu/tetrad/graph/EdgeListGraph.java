@@ -44,26 +44,19 @@ import static edu.cmu.tetrad.graph.Edges.directedEdge;
  * @see edu.cmu.tetrad.graph.Endpoint
  */
 public class EdgeListGraph implements Graph, TripleClassifier {
-    static final long serialVersionUID = 23L;
 
     /**
      * A list of the nodes in the graph, in the order in which they were added.
-     *
-     * @serial
      */
     protected List<Node> nodes;
 
     /**
      * The edges in the graph.
-     *
-     * @serial
      */
     Set<Edge> edgesSet;
 
     /**
      * Map from each node to the List of edges connected to that node.
-     *
-     * @serial
      */
     Map<Node, List<Edge>> edgeLists;
 
@@ -78,14 +71,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     protected Set<Triple> ambiguousTriples = Collections.newSetFromMap(new ConcurrentHashMap<Triple, Boolean>());
 
-    /**
-     * @serial
-     */
     Set<Triple> underLineTriples = Collections.newSetFromMap(new ConcurrentHashMap<Triple, Boolean>());
 
-    /**
-     * @serial
-     */
     Set<Triple> dottedUnderLineTriples = Collections.newSetFromMap(new ConcurrentHashMap<Triple, Boolean>());
 
     /**
@@ -223,13 +210,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         _graph.getAllAttributes().putAll(graph.getAllAttributes());
 
         return _graph;
-    }
-
-    /**
-     * Generates a simple exemplar of this class to test serialization.
-     */
-    public static EdgeListGraph serializableInstance() {
-        return new EdgeListGraph();
     }
 
     //===============================PUBLIC METHODS========================//
@@ -2008,52 +1988,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
     public boolean isTimeLagModel() {
         return false;
-    }
-
-    /**
-     * Adds semantic checks to the default deserialization method. This method
-     * must have the standard signature for a readObject method, and the body of
-     * the method must begin with "s.defaultReadObject();". Other than that, any
-     * semantic checks can be specified and do not need to stay the same from
-     * version to version. A readObject method of this form may be added to any
-     * class, even if Tetrad sessions were previously saved out using a version
-     * of the class that didn't include it. (That's what the
-     * "s.defaultReadObject();" is for. See J. Bloch, Effective Java, for help.
-     *
-     * @throws java.io.IOException
-     * @throws ClassNotFoundException
-     */
-    private void readObject(ObjectInputStream s)
-            throws IOException, ClassNotFoundException {
-        s.defaultReadObject();
-
-        if (nodes == null) {
-            throw new NullPointerException();
-        }
-
-        if (edgesSet == null) {
-            throw new NullPointerException();
-        }
-
-        if (edgeLists == null) {
-            throw new NullPointerException();
-        }
-
-        if (ambiguousTriples == null) {
-            ambiguousTriples = new HashSet<>();
-        }
-
-        if (highlightedEdges == null) {
-            highlightedEdges = new HashSet<>();
-        }
-
-        if (underLineTriples == null) {
-            underLineTriples = new HashSet<>();
-        }
-
-        if (dottedUnderLineTriples == null) {
-            dottedUnderLineTriples = new HashSet<>();
-        }
     }
 
     public void changeName(String name, String newName) {

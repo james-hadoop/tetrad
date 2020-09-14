@@ -21,8 +21,6 @@
 
 package edu.cmu.tetrad.data;
 
-import java.io.Serializable;
-
 /**
  * Interface implemented by classes that are capable of participating in the
  * transfer of knowledge objects.
@@ -30,8 +28,7 @@ import java.io.Serializable;
  * @author Joseph Ramsey
  * @see Knowledge2
  */
-public interface KnowledgeTransferable extends Serializable {
-    long serialVersionUID = 23L;
+public interface KnowledgeTransferable {
 
     /**
      * @return a copy of the knowledge for this class.

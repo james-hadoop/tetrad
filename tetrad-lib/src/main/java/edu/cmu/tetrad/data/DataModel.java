@@ -22,8 +22,6 @@ package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Node;
 
-import java.io.Serializable;
-
 /**
  * <p>
  * Interface implemented by classes, instantiations of which can serve as data
@@ -38,9 +36,7 @@ import java.io.Serializable;
  * @author Joseph Ramsey jdramsey@andrew.cmu.edu
  */
 public interface DataModel
-        extends KnowledgeTransferable, VariableSource, Serializable {
-
-    long serialVersionUID = 23L;
+        extends KnowledgeTransferable, VariableSource {
 
     /**
      * @return the name of the data model (may be null).

@@ -22,7 +22,6 @@
 package edu.cmu.tetrad.graph;
 
 import java.beans.PropertyChangeListener;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +38,7 @@ import java.util.Set;
  * @author Joseph Ramsey
  * @see Endpoint
  */
-public interface Graph extends TripleClassifier, Serializable {
-    long serialVersionUID = 23L;
+public interface Graph extends TripleClassifier {
 
     /**
      * Adds a bidirected edges <-> to the graph.

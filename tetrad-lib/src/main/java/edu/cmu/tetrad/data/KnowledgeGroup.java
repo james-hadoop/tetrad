@@ -23,7 +23,6 @@ package edu.cmu.tetrad.data;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -34,22 +33,16 @@ import java.util.*;
  *
  * @author Tyler Gibson
  */
-public final class KnowledgeGroup implements Serializable {
-    static final long serialVersionUID = 23L;
-
+public final class KnowledgeGroup {
 
     /**
      * The left group of variables.
-     *
-     * @serial - not null
      */
     private Set<String> fromGroup;
 
 
     /**
      * The right group of variables.
-     *
-     * @serial - not null
      */
     private Set<String> toGroup;
 
@@ -105,14 +98,6 @@ public final class KnowledgeGroup implements Serializable {
 
 
     //====================== Public Methods =============================//
-
-
-    /**
-     * Generates a simple exemplar of this class to test serialization.
-     */
-    public static KnowledgeGroup serializableInstance() {
-        return new KnowledgeGroup(REQUIRED, new HashSet<String>(0), new HashSet<String>(0));
-    }
 
 
     public int getType() {
@@ -219,40 +204,6 @@ public final class KnowledgeGroup implements Serializable {
         }
         return false;
     }
-
-
-    /**
-     * Adds semantic checks to the default deserialization method. This method
-     * must have the standard signature for a readObject method, and the body of
-     * the method must begin with "s.defaultReadObject();". Other than that, any
-     * semantic checks can be specified and do not need to stay the same from
-     * version to version. A readObject method of this form may be added to any
-     * class, even if Tetrad sessions were previously saved out using a version
-     * of the class that didn't include it. (That's what the
-     * "s.defaultReadObject();" is for. See J. Bloch, Effective Java, for help.
-     *
-     * @throws java.io.IOException
-     * @throws ClassNotFoundException
-     */
-    private void readObject(ObjectInputStream s)
-            throws IOException, ClassNotFoundException {
-        s.defaultReadObject();
-
-        if (this.type != REQUIRED && this.type != FORBIDDEN) {
-            throw new IllegalStateException("Type must be REQUIRED or FORBIDDEN");
-        }
-
-        if (fromGroup == null) {
-            throw new NullPointerException();
-        }
-
-        if (toGroup == null) {
-            throw new NullPointerException();
-        }
-
-    }
-
-
 }
 
 

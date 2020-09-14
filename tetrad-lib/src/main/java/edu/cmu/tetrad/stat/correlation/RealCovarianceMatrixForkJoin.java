@@ -21,7 +21,6 @@ package edu.cmu.tetrad.stat.correlation;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
-import static java.util.concurrent.ForkJoinTask.invokeAll;
 import java.util.concurrent.RecursiveAction;
 
 /**
@@ -31,8 +30,6 @@ import java.util.concurrent.RecursiveAction;
  * @author Kevin V. Bui (kvb2@pitt.edu)
  */
 public class RealCovarianceMatrixForkJoin implements RealCovariance {
-    static final long serialVersionUID = 23L;
-
     private final double[][] data;
 
     private final int numOfRows;
@@ -75,8 +72,6 @@ public class RealCovarianceMatrixForkJoin implements RealCovariance {
     }
 
     class CovarianceAction extends RecursiveAction {
-
-        private static final long serialVersionUID = 1034920868427599720L;
 
         private final double[][] covariance;
         private final double[] means;
@@ -138,8 +133,6 @@ public class RealCovarianceMatrixForkJoin implements RealCovariance {
 
     class CovarianceLowerTriangleAction extends RecursiveAction {
 
-        private static final long serialVersionUID = 1818119309247848613L;
-
         private final double[] covariance;
         private final double[] means;
         private final int start;
@@ -198,8 +191,6 @@ public class RealCovarianceMatrixForkJoin implements RealCovariance {
     }
 
     class MeanAction extends RecursiveAction {
-
-        private static final long serialVersionUID = 2419217605658853345L;
 
         private final double[] means;
         private final double[][] data;

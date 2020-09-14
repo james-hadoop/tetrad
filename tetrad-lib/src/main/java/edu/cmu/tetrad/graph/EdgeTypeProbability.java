@@ -1,10 +1,9 @@
 package edu.cmu.tetrad.graph;
 
-import java.io.Serializable;
+import edu.cmu.tetrad.graph.Edge.Property;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import edu.cmu.tetrad.graph.Edge.Property;
 
 /**
  *
@@ -13,9 +12,7 @@ import edu.cmu.tetrad.graph.Edge.Property;
  * @author Chirayu (Kong) Wongchokprasitti, PhD
  *
  */
-public class EdgeTypeProbability implements Serializable {
-
-    private static final long serialVersionUID = 23L;
+public class EdgeTypeProbability {
 
     public enum EdgeType {
         nil, ta, at, ca, ac, cc, aa, tt

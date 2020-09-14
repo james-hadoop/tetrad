@@ -23,7 +23,6 @@ package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Node;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -34,8 +33,7 @@ import java.util.List;
  *
  * @author Joseph Ramsey
  */
-public interface VariableSource extends Serializable {
-    long serialVersionUID = 23L;
+public interface VariableSource {
 
     /**
      * @return the list of variables associated with this object.

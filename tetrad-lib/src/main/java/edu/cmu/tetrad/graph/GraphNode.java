@@ -24,7 +24,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,21 +34,15 @@ import java.util.Map;
  * @author Joseph Ramsey
  * @author Willie Wheeler
  */
-public class GraphNode implements Node, Serializable {
-
-    static final long serialVersionUID = 23L;
+public class GraphNode implements Node {
 
     /**
      * The name of the node.
-     *
-     * @serial
      */
     private String name = "??";
 
     /**
      * The type of the node.
-     *
-     * @serial
      * @see edu.cmu.tetrad.graph.NodeType
      */
     private NodeType nodeType = NodeType.MEASURED;
@@ -62,15 +55,11 @@ public class GraphNode implements Node, Serializable {
 
     /**
      * The x coordinate of the center of the node.
-     *
-     * @serial
      */
     private int centerX = -1;
 
     /**
      * The y coordinate of the center of the node.
-     *
-     * @serial
      */
     private int centerY = -1;
 
@@ -97,13 +86,6 @@ public class GraphNode implements Node, Serializable {
         this.nodeType = node.nodeType;
         this.centerX = node.centerX;
         this.centerY = node.centerY;
-    }
-
-    /**
-     * Generates a simple exemplar of this class to test serialization.
-     */
-    public static GraphNode serializableInstance() {
-        return new GraphNode("X");
     }
 
     //============================PUBLIC METHODS========================//
@@ -243,32 +225,6 @@ public class GraphNode implements Node, Serializable {
         GraphNode node = new GraphNode(name);
         node.setNodeType(getNodeType());
         return node;
-    }
-
-    /**
-     * Adds semantic checks to the default deserialization method. This method
-     * must have the standard signature for a readObject method, and the body of
-     * the method must begin with "s.defaultReadObject();". Other than that, any
-     * semantic checks can be specified and do not need to stay the same from
-     * version to version. A readObject method of this form may be added to any
-     * class, even if Tetrad sessions were previously saved out using a version
-     * of the class that didn't include it. (That's what the
-     * "s.defaultReadObject();" is for. See J. Bloch, Effective Java, for help.
-     *
-     * @throws java.io.IOException
-     * @throws ClassNotFoundException
-     */
-    private void readObject(ObjectInputStream s)
-            throws IOException, ClassNotFoundException {
-        s.defaultReadObject();
-
-        if (name == null) {
-            throw new NullPointerException();
-        }
-
-        if (nodeType == null) {
-            throw new NullPointerException();
-        }
     }
 
     @Override

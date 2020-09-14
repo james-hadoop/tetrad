@@ -24,14 +24,13 @@ package edu.cmu.tetrad.data;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * Interface for covariance matrices. Implemented in different ways.
  * See implementations.
  */
-public interface ICovarianceMatrix extends DataModel, Serializable {
+public interface ICovarianceMatrix extends DataModel {
     List<Node> getVariables();
 
     List<String> getVariableNames();

@@ -22,17 +22,11 @@ package edu.cmu.tetrad.util;
 
 import cern.colt.matrix.impl.DenseDoubleMatrix1D;
 import cern.colt.matrix.linalg.Property;
-
-import java.util.Arrays;
-
 import org.apache.commons.math3.exception.NotStrictlyPositiveException;
 import org.apache.commons.math3.exception.OutOfRangeException;
-import org.apache.commons.math3.linear.AbstractRealMatrix;
-import org.apache.commons.math3.linear.BlockRealMatrix;
-import org.apache.commons.math3.linear.NonPositiveDefiniteMatrixException;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RectangularCholeskyDecomposition;
-import org.apache.commons.math3.linear.SingularValueDecomposition;
+import org.apache.commons.math3.linear.*;
+
+import java.util.Arrays;
 
 import static java.lang.Math.sqrt;
 

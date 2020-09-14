@@ -21,9 +21,9 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.util.ChoiceGenerator;
 
 import java.io.PrintStream;
 import java.util.*;

@@ -23,24 +23,15 @@ package edu.cmu.tetrad.data;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
 
 /**
  * Implements a knowledge edge X-->Y as a simple ordered pair of strings.
  *
  * @author Joseph Ramsey
  */
-public final class KnowledgeEdge implements Serializable {
-    static final long serialVersionUID = 23L;
+public final class KnowledgeEdge {
 
-    /**
-     * @serial
-     */
     private String from;
-
-    /**
-     * @serial
-     */
     private String to;
 
     //===============================CONSTRUCTORS=======================//
@@ -55,13 +46,6 @@ public final class KnowledgeEdge implements Serializable {
 
         this.from = from;
         this.to = to;
-    }
-
-    /**
-     * Generates a simple exemplar of this class to test serialization.
-     */
-    public static KnowledgeEdge serializableInstance() {
-        return new KnowledgeEdge("X", "Y");
     }
 
     //===============================PUBLIC METHODS======================//
@@ -108,31 +92,6 @@ public final class KnowledgeEdge implements Serializable {
         return from + "-->" + to;
     }
 
-    /**
-     * Adds semantic checks to the default deserialization method. This method
-     * must have the standard signature for a readObject method, and the body of
-     * the method must begin with "s.defaultReadObject();". Other than that, any
-     * semantic checks can be specified and do not need to stay the same from
-     * version to version. A readObject method of this form may be added to any
-     * class, even if Tetrad sessions were previously saved out using a version
-     * of the class that didn't include it. (That's what the
-     * "s.defaultReadObject();" is for. See J. Bloch, Effective Java, for help.
-     *
-     * @throws java.io.IOException
-     * @throws ClassNotFoundException
-     */
-    private void readObject(ObjectInputStream s)
-            throws IOException, ClassNotFoundException {
-        s.defaultReadObject();
-
-        if (from == null) {
-            throw new NullPointerException();
-        }
-
-        if (to == null) {
-            throw new NullPointerException();
-        }
-    }
 }
 
 

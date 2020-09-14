@@ -21,7 +21,6 @@
 package edu.cmu.tetrad.graph;
 
 import java.beans.PropertyChangeListener;
-import java.io.Serializable;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -32,13 +31,11 @@ import java.util.regex.Pattern;
  * @author Joseph Ramsey
  * @see NodeType
  */
-public interface Node extends Comparable<Node>, Serializable {
+public interface Node extends Comparable<Node> {
 
     public static final Pattern ALPHA = Pattern.compile("^[a-zA-Z]+$");
     public static final Pattern ALPHA_NUM = Pattern.compile("^[a-zA-Z]+[0-9]+$");
     public static final Pattern LAG = Pattern.compile("^.+:[0-9]+$");
-
-    long serialVersionUID = 23L;
 
     /**
      * @return the name of the node.

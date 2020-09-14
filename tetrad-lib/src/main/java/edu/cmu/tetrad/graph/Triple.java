@@ -21,7 +21,6 @@
 
 package edu.cmu.tetrad.graph;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,8 +30,7 @@ import java.util.List;
  *
  * @author Joseph Ramsey, after Frank Wimberly.
  */
-public final class Triple implements Serializable {
-    static final long serialVersionUID = 23L;
+public final class Triple {
 
     // Note: Switching all uses of Underline to Triple, since they did the
     // same thing, and this allows for some useful generalizations, especially
@@ -52,13 +50,6 @@ public final class Triple implements Serializable {
         this.x = x;
         this.y = y;
         this.z = z;
-    }
-
-    /**
-     * Generates a simple exemplar of this class to test serialization.
-     */
-    public static Triple serializableInstance() {
-        return new Triple(new GraphNode("X"), new GraphNode("Y"), new GraphNode("Z"));
     }
 
     public final Node getX() {
