@@ -118,7 +118,7 @@ public final class ParamDescriptions {
         }
 
         // add parameters not in documentation
-        map.put(Params.PRINT_STREAM, new ParamDescription(Params.PRINT_STREAM, "printStream", "A writer to print output messages.", ""));
+//        map.put(Params.PRINT_STREAM, new ParamDescription(Params.PRINT_STREAM, "printStream", "A writer to print output messages.", ""));
     }
 
     public static ParamDescriptions getInstance() {

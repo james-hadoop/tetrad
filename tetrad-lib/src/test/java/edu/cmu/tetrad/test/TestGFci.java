@@ -28,16 +28,14 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.util.RandomUtil;
-import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDatasetFileReader;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import org.junit.Test;
 
 /**
  * @author Joseph Ramsey
@@ -251,36 +249,5 @@ public class TestGFci {
 
         DagToPag2 dagToPag = new DagToPag2(g);
         dagToPag.setVerbose(false);
-    }
-
-    @Test
-    public void testDiscreteData() throws IOException {
-        double alpha = 0.05;
-        char delimiter = '\t';
-        Path dataFile = Paths.get("./src/test/resources/sim_discrete_data_20vars_100cases.txt");
-
-        VerticalDiscreteTabularDatasetFileReader dataReader = new VerticalDiscreteTabularDatasetFileReader(dataFile, DelimiterUtils.toDelimiter(delimiter));
-        DataSet dataSet = (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
-
-        IndependenceTest indTest = new IndTestChiSquare(dataSet, alpha);
-
-        BDeuScore score = new BDeuScore(dataSet);
-        score.setStructurePrior(1.0);
-        score.setSamplePrior(1.0);
-
-        GFci gFci = new GFci(indTest, score);
-        gFci.setFaithfulnessAssumed(true);
-        gFci.setMaxDegree(-1);
-        gFci.setMaxPathLength(-1);
-        gFci.setCompleteRuleSetUsed(false);
-        gFci.setVerbose(true);
-
-        long start = System.currentTimeMillis();
-
-        gFci.search();
-
-        long stop = System.currentTimeMillis();
-
-        System.out.println("Elapsed " + (stop - start) + " ms");
     }
 }

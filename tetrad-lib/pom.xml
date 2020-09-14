@@ -23,27 +23,6 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.8</version>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <copy file="../docs/manual/index.html"
-                                      tofile="${project.build.outputDirectory}/manual/index.html"/>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-
-
         </plugins>
         <extensions>
             <extension>
@@ -139,12 +118,6 @@
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>1.11.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>edu.pitt.dbmi</groupId>
-            <artifactId>data-reader</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
