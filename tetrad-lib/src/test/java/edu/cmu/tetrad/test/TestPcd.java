@@ -21,17 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphConverter;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.search.IndTestDSep;
-import edu.cmu.tetrad.search.IndependenceTest;
-import edu.cmu.tetrad.search.Pc;
-import edu.cmu.tetrad.search.Pcd;
-import org.junit.Test;
-
 import static org.junit.Assert.assertTrue;
 
 

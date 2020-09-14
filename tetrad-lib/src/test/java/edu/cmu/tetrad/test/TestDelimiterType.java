@@ -21,7 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.data.DelimiterType;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;

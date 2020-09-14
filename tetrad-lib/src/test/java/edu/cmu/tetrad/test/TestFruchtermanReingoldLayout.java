@@ -21,10 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.graph.Dag;
-import edu.cmu.tetrad.graph.FruchtermanReingoldLayout;
-import edu.cmu.tetrad.graph.GraphNode;
-import edu.cmu.tetrad.graph.GraphUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

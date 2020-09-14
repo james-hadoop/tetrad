@@ -21,8 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.graph.GraphGeneratorRandomNumEdges;
-import edu.cmu.tetrad.graph.UniformGraphGenerator;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.junit.Test;
 

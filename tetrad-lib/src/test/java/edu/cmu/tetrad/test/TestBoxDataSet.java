@@ -21,14 +21,11 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradVector;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 

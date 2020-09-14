@@ -21,8 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.data.DelimiterType;
-import edu.cmu.tetrad.data.RegexTokenizer;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

@@ -21,14 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.bayes.BayesIm;
-import edu.cmu.tetrad.bayes.BayesPm;
-import edu.cmu.tetrad.bayes.BayesProperties;
-import edu.cmu.tetrad.bayes.MlBayesIm;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.graph.Dag;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphConverter;
 import edu.cmu.tetrad.util.MathUtils;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.junit.Test;

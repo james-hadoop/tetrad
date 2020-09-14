@@ -21,10 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.data.DataReader;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.IndTestGSquare;
 import org.junit.Test;
 
 import java.io.File;

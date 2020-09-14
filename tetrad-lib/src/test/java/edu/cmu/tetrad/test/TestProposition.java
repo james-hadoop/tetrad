@@ -21,13 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.bayes.BayesIm;
-import edu.cmu.tetrad.bayes.BayesPm;
-import edu.cmu.tetrad.bayes.MlBayesIm;
-import edu.cmu.tetrad.bayes.Proposition;
-import edu.cmu.tetrad.graph.Dag;
-import edu.cmu.tetrad.graph.GraphNode;
-import edu.cmu.tetrad.graph.Node;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

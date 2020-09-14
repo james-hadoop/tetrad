@@ -18,15 +18,6 @@
  */
 package edu.cmu.tetrad.util;
 
-import edu.cmu.tetrad.data.BoxDataSet;
-import edu.cmu.tetrad.data.ContinuousVariable;
-import edu.cmu.tetrad.data.DataBox;
-import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DiscreteVariable;
-import edu.cmu.tetrad.data.DoubleDataBox;
-import edu.cmu.tetrad.data.MixedDataBox;
-import edu.cmu.tetrad.data.VerticalIntDataBox;
-import edu.cmu.tetrad.graph.Node;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;

@@ -9,17 +9,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.EdgeListGraphSingleConnections;
-import edu.cmu.tetrad.graph.EdgeTypeProbability;
-import edu.cmu.tetrad.graph.Endpoint;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphNode;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.NodeType;
-import edu.cmu.tetrad.graph.Triple;
-import edu.cmu.tetrad.graph.EdgeTypeProbability.EdgeType;
-
 /**
  * 
  * Dec 9, 2016 5:43:47 PM

@@ -21,7 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.graph.*;
 import org.junit.Test;
 

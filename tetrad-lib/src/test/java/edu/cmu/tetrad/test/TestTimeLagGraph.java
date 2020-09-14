@@ -21,9 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.graph.GraphNode;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.TimeLagGraph;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;

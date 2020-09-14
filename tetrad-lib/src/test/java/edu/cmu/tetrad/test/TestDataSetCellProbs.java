@@ -21,11 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.bayes.*;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.graph.Dag;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphConverter;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.junit.Test;
 

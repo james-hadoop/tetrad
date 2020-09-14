@@ -22,16 +22,6 @@
 package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.data.ContinuousVariable;
-import edu.cmu.tetrad.data.CorrelationMatrix;
-import edu.cmu.tetrad.data.CovarianceMatrix;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.DeltaTetradTest;
-import edu.cmu.tetrad.search.Tetrad;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
-import edu.cmu.tetrad.util.MatrixUtils;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.junit.Test;

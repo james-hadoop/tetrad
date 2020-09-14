@@ -22,7 +22,6 @@
 package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import org.junit.Test;
 
 import java.util.ArrayList;

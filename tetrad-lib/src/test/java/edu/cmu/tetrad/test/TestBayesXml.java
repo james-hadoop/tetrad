@@ -21,11 +21,6 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.bayes.*;
-import edu.cmu.tetrad.graph.Dag;
-import edu.cmu.tetrad.graph.GraphNode;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.NodeType;
 import nu.xom.*;
 import org.junit.Test;
 
