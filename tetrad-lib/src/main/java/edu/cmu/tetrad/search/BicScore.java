@@ -26,8 +26,6 @@ import edu.cmu.tetrad.graph.Node;
 
 import java.util.List;
 
-import static edu.cmu.tetrad.search.XdslXmlConstants.ROW;
-
 /**
  * Calculates the discrete BIC score.
  */
