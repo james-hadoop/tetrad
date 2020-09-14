@@ -29,7 +29,6 @@ import edu.cmu.tetrad.graph.NodeEqualityMode;
 import edu.cmu.tetrad.search.DMSearch;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
-import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;

@@ -8,7 +8,6 @@
 
     <name>Tetrad Project</name>
     <modules>
-        <module>tetrad-gui</module>
         <module>tetrad-lib</module>
         <module>data-reader</module>
     </modules>

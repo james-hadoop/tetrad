@@ -37,7 +37,7 @@ import edu.cmu.tetrad.algcomparison.statistic.MathewsCorrArrow;
 import edu.cmu.tetrad.algcomparison.statistic.SHD;
 import edu.cmu.tetrad.algcomparison.statistic.Statistics;
 import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.Params;
+
 import java.io.IOException;
 import static java.lang.System.out;
 import java.nio.file.Files;

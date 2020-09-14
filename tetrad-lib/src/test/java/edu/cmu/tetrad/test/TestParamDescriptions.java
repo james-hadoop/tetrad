@@ -7,7 +7,7 @@
 package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.util.ParamDescriptions;
-import edu.cmu.tetrad.util.Params;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
