@@ -21,7 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.ChoiceGenerator;
+import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
@@ -108,11 +108,6 @@ public final class PcAll implements GraphSearch {
      * graphs).
      */
     private boolean aggressivelyPreventCycles = false;
-
-    /**
-     * The logger for this class. The config needs to be set.
-     */
-    private TetradLogger logger = TetradLogger.getInstance();
 
     /**
      * The sepsets.
@@ -460,7 +455,7 @@ public final class PcAll implements GraphSearch {
         log("Finishing Collider Orientation.");
     }
 
-    private static void orientCollider(Node x, Node y, Node z, ConflictRule conflictRule, Graph graph) {
+    private void orientCollider(Node x, Node y, Node z, ConflictRule conflictRule, Graph graph) {
         if (conflictRule == ConflictRule.PRIORITY) {
             if (!(graph.getEndpoint(y, x) == Endpoint.ARROW || graph.getEndpoint(y, z) == Endpoint.ARROW)) {
                 graph.removeEdge(x, y);
@@ -478,7 +473,7 @@ public final class PcAll implements GraphSearch {
             graph.addDirectedEdge(z, y);
         }
 
-        TetradLogger.getInstance().log("colliderOrientations", SearchLogUtils.colliderOrientedMsg(x, y, z));
+        log(SearchLogUtils.colliderOrientedMsg(x, y, z));
     }
 
     private List<List<Node>> getSepsets(Node i, Node k, Graph g) {
@@ -587,7 +582,7 @@ public final class PcAll implements GraphSearch {
             System.out.println("FAS Sepset orientation...");
         }
 
-        TetradLogger.getInstance().log("details", "Starting Collider Orientation:");
+        log("Starting Collider Orientation:");
 
         List<Node> nodes = graph.getNodes();
         Map<Triple, Double> scoredTriples = new HashMap<>();
@@ -636,7 +631,7 @@ public final class PcAll implements GraphSearch {
                         System.out.println("Collider orientation <" + a + ", " + b + ", " + c + "> sepset = " + sepset);
                     }
 
-                    TetradLogger.getInstance().log("colliderOrientations", SearchLogUtils.colliderOrientedMsg(a, b, c, sepset));
+                    log(SearchLogUtils.colliderOrientedMsg(a, b, c, sepset));
                 }
             }
         }
