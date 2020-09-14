@@ -24,9 +24,8 @@ import edu.cmu.tetrad.graph.Edges;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.OrderedPair;
-import edu.cmu.tetrad.util.TetradSerializable;
-import java.io.CharArrayWriter;
-import java.io.IOException;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -64,7 +63,7 @@ import java.util.stream.Collectors;
  * @author Joseph Ramsey
  * @author Kevin V. Bui (kvb2@pitt.edu)
  */
-public final class Knowledge2 implements TetradSerializable, IKnowledge {
+public final class Knowledge2 implements IKnowledge, Serializable {
 
     private static final long serialVersionUID = 23L;
 

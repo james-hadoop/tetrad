@@ -21,11 +21,10 @@
 
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.data.ChoiceGenerator;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.util.ChoiceGenerator;
-import edu.cmu.tetrad.util.TetradLogger;
 
 import java.util.*;
 
@@ -269,8 +268,9 @@ public final class PcAll implements GraphSearch {
     }
 
     public Graph search(List<Node> nodes) {
-        this.logger.log("info", "Starting CPC algorithm");
-        this.logger.log("info", "Independence test = " + getIndependenceTest() + ".");
+
+        log("Starting CPC algorithm");
+        log("Independence test = " + getIndependenceTest() + ".");
         this.ambiguousTriples = new HashSet<>();
         this.colliderTriples = new HashSet<>();
         this.noncolliderTriples = new HashSet<>();
@@ -369,45 +369,48 @@ public final class PcAll implements GraphSearch {
 
         graph = SearchGraphUtils.patternFromEPattern(graph);
 
-        TetradLogger.getInstance().log("graph", "\nReturning this graph: " + graph);
+        log("\nReturning this graph: " + graph);
 
         long endTime = System.currentTimeMillis();
         this.elapsedTime = endTime - startTime;
 
-        TetradLogger.getInstance().log("info", "Elapsed time = " + (elapsedTime) / 1000. + " s");
-        TetradLogger.getInstance().log("info", "Finishing CPC algorithm.");
+        log("Elapsed time = " + (elapsedTime) / 1000. + " s");
+        log("Finishing CPC algorithm.");
 
         logTriples();
 
-        TetradLogger.getInstance().flush();
         return graph;
+    }
+
+    private void log(String text) {
+        System.out.println(text);
     }
 
     //==========================PRIVATE METHODS===========================//
 
     private void logTriples() {
-        TetradLogger.getInstance().log("info", "\nCollider triples:");
+        log("\nCollider triples:");
 
         for (Triple triple : colliderTriples) {
-            TetradLogger.getInstance().log("info", "Collider: " + triple);
+            log("Collider: " + triple);
         }
 
-        TetradLogger.getInstance().log("info", "\nNoncollider triples:");
+        log("\nNoncollider triples:");
 
         for (Triple triple : noncolliderTriples) {
-            TetradLogger.getInstance().log("info", "Noncollider: " + triple);
+            log("Noncollider: " + triple);
         }
 
-        TetradLogger.getInstance().log("info", "\nAmbiguous triples (i.e. list of triples for which " +
+        log("\nAmbiguous triples (i.e. list of triples for which " +
                 "\nthere is ambiguous data about whether they are colliderDiscovery or not):");
 
         for (Triple triple : getAmbiguousTriples()) {
-            TetradLogger.getInstance().log("info", "Ambiguous: " + triple);
+            log("Ambiguous: " + triple);
         }
     }
 
     private void orientUnshieldedTriplesConservative(IKnowledge knowledge) {
-        TetradLogger.getInstance().log("info", "Starting Collider Orientation:");
+        log("Starting Collider Orientation:");
 
         colliderTriples = new HashSet<>();
         noncolliderTriples = new HashSet<>();
@@ -454,7 +457,7 @@ public final class PcAll implements GraphSearch {
             }
         }
 
-        TetradLogger.getInstance().log("info", "Finishing Collider Orientation.");
+        log("Finishing Collider Orientation.");
     }
 
     private static void orientCollider(Node x, Node y, Node z, ConflictRule conflictRule, Graph graph) {

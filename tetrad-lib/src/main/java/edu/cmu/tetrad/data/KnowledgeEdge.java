@@ -21,17 +21,16 @@
 
 package edu.cmu.tetrad.data;
 
-import edu.cmu.tetrad.util.TetradSerializable;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 
 /**
  * Implements a knowledge edge X-->Y as a simple ordered pair of strings.
  *
  * @author Joseph Ramsey
  */
-public final class KnowledgeEdge implements TetradSerializable {
+public final class KnowledgeEdge implements Serializable {
     static final long serialVersionUID = 23L;
 
     /**

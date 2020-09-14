@@ -21,9 +21,8 @@
 
 package edu.cmu.tetrad.graph;
 
-import edu.cmu.tetrad.util.TetradSerializable;
-
 import java.io.ObjectStreamException;
+import java.io.Serializable;
 
 /**
  * A typesafe enumeration of the types of endpoints that are permitted in
@@ -31,7 +30,7 @@ import java.io.ObjectStreamException;
  *
  * @author Joseph Ramsey
  */
-public final class Endpoint implements TetradSerializable {
+public final class Endpoint implements Serializable {
     static final long serialVersionUID = 23L;
 
     public static final Endpoint TAIL = new Endpoint("Tail");

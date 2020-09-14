@@ -21,10 +21,9 @@
 
 package edu.cmu.tetrad.data;
 
-import edu.cmu.tetrad.util.TetradSerializable;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -35,7 +34,7 @@ import java.util.*;
  *
  * @author Tyler Gibson
  */
-public final class KnowledgeGroup implements TetradSerializable {
+public final class KnowledgeGroup implements Serializable {
     static final long serialVersionUID = 23L;
 
 

@@ -21,15 +21,14 @@
 
 package edu.cmu.tetrad.graph;
 
-import edu.cmu.tetrad.util.TetradSerializable;
-import edu.cmu.tetrad.util.TetradSerializableExcluded;
+import java.io.Serializable;
 
 /**
  * An ordered pair of objects. This does not serialize well, unfortunately.
  *
  * @author Tyler Gibson
  */
-public class OrderedPair<E> implements TetradSerializable, TetradSerializableExcluded {
+public class OrderedPair<E> implements Serializable {
     static final long serialVersionUID = 23L;
 
     /**

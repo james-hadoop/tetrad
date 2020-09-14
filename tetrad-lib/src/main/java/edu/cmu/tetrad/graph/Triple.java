@@ -21,8 +21,7 @@
 
 package edu.cmu.tetrad.graph;
 
-import edu.cmu.tetrad.util.TetradSerializable;
-
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +31,7 @@ import java.util.List;
  *
  * @author Joseph Ramsey, after Frank Wimberly.
  */
-public final class Triple implements TetradSerializable {
+public final class Triple implements Serializable {
     static final long serialVersionUID = 23L;
 
     // Note: Switching all uses of Underline to Triple, since they did the

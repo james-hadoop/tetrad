@@ -20,8 +20,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetrad.graph;
 
-import edu.cmu.tetrad.util.TetradSerializable;
 import java.beans.PropertyChangeListener;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  * @author Joseph Ramsey
  * @see NodeType
  */
-public interface Node extends TetradSerializable, Comparable<Node> {
+public interface Node extends Comparable<Node>, Serializable {
 
     public static final Pattern ALPHA = Pattern.compile("^[a-zA-Z]+$");
     public static final Pattern ALPHA_NUM = Pattern.compile("^[a-zA-Z]+[0-9]+$");

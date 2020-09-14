@@ -22,11 +22,11 @@
 package edu.cmu.tetrad.graph;
 
 import edu.cmu.tetrad.graph.EdgeTypeProbability.EdgeType;
-import edu.cmu.tetrad.util.TetradSerializable;
 
 import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +39,7 @@ import java.util.List;
  *
  * @author Joseph Ramsey
  */
-public class Edge implements TetradSerializable, Comparable {
+public class Edge implements Comparable, Serializable {
     static final long serialVersionUID = 23L;
 
     public enum Property {

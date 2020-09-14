@@ -20,11 +20,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetrad.graph;
 
-import edu.cmu.tetrad.util.TetradSerializable;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +35,7 @@ import java.util.Map;
  * @author Joseph Ramsey
  * @author Willie Wheeler
  */
-public class GraphNode implements Node, TetradSerializable {
+public class GraphNode implements Node, Serializable {
 
     static final long serialVersionUID = 23L;
 

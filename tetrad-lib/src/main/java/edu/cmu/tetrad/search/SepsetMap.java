@@ -22,10 +22,10 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.TetradSerializable;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Joseph Ramsey
  */
-public final class SepsetMap implements TetradSerializable {
+public final class SepsetMap implements Serializable {
     static final long serialVersionUID = 23L;
 
     /**

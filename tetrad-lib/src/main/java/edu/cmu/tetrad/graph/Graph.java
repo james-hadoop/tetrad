@@ -21,9 +21,8 @@
 
 package edu.cmu.tetrad.graph;
 
-import edu.cmu.tetrad.util.TetradSerializable;
-
 import java.beans.PropertyChangeListener;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +39,7 @@ import java.util.Set;
  * @author Joseph Ramsey
  * @see Endpoint
  */
-public interface Graph extends TetradSerializable, TripleClassifier {
+public interface Graph extends TripleClassifier, Serializable {
     long serialVersionUID = 23L;
 
     /**

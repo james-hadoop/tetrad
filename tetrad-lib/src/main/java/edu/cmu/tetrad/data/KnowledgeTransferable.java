@@ -21,7 +21,7 @@
 
 package edu.cmu.tetrad.data;
 
-import edu.cmu.tetrad.util.TetradSerializable;
+import java.io.Serializable;
 
 /**
  * Interface implemented by classes that are capable of participating in the
@@ -30,7 +30,7 @@ import edu.cmu.tetrad.util.TetradSerializable;
  * @author Joseph Ramsey
  * @see Knowledge2
  */
-public interface KnowledgeTransferable extends TetradSerializable {
+public interface KnowledgeTransferable extends Serializable {
     long serialVersionUID = 23L;
 
     /**

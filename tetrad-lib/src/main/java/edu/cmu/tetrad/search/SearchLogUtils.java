@@ -24,7 +24,6 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.Endpoint;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.NumberFormatUtil;
 
 import java.text.NumberFormat;
 import java.util.Iterator;

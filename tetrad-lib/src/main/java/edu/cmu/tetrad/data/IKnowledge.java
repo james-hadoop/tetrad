@@ -22,7 +22,8 @@ package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.TetradSerializable;
+
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 
@@ -30,7 +31,7 @@ import java.util.List;
  * Interface for knowledge of forbidden and required edges. Implemented in
  * different ways. See implementations.
  */
-public interface IKnowledge extends TetradSerializable {
+public interface IKnowledge extends Serializable {
 
     long serialVersionUID = 23L;
 
