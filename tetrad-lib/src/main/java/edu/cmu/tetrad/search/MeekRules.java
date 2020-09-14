@@ -91,9 +91,9 @@ public class MeekRules implements ImpliedOrientation {
         this.nodes = nodes;
         this.visited.addAll(nodes);
 
-        TetradLogger.getInstance().log("impliedOrientations", "Starting Orientation Step D.");
+        log("Starting Orientation Step D.");
         orientUsingMeekRulesLocally(knowledge, graph);
-        TetradLogger.getInstance().log("impliedOrientations", "Finishing Orientation Step D.");
+        log("Finishing Orientation Step D.");
 
     }
 
@@ -461,7 +461,7 @@ public class MeekRules implements ImpliedOrientation {
     private void log(String message) {
         if (verbose) {
             System.out.println(message);
-            TetradLogger.getInstance().log("impliedOrientations", message);
+            log(message);
         }
     }
 }

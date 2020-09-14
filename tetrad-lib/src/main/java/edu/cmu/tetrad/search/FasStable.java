@@ -71,12 +71,6 @@ public class FasStable implements IFas {
      */
     private int numIndependenceTests;
 
-
-    /**
-     * The logger, by default the empty logger.
-     */
-    private TetradLogger logger = TetradLogger.getInstance();
-
     /**
      * The true graph, for purposes of comparison. Temporary.
      */
@@ -145,7 +139,7 @@ public class FasStable implements IFas {
      * @return a SepSet, which indicates which variables are independent conditional on which other variables
      */
     public Graph search() {
-        this.logger.log("info", "Starting Fast Adjacency Search.");
+        log("Starting Fast Adjacency Search.");
 
         if (graph == null) graph = new EdgeListGraph(test.getVariables());
         graph.removeEdges(graph.getEdges());
@@ -193,13 +187,17 @@ public class FasStable implements IFas {
 
 //        GraphUtils.checkMarkov(graph, test, depth);
 
-        this.logger.log("info", "Finishing Fast Adjacency Search.");
+        log("Finishing Fast Adjacency Search.");
 
         return graph;
     }
 
+    private void log(String s) {
+        System.out.println(s);
+    }
+
     public Map<Node, Set<Node>> searchMapOnly() {
-        this.logger.log("info", "Starting Fast Adjacency Search.");
+        log("Starting Fast Adjacency Search.");
         graph.removeEdges(graph.getEdges());
 
         sepset = new SepsetMap();
@@ -313,7 +311,7 @@ public class FasStable implements IFas {
 //                    }
 
                     if (verbose) {
-                        TetradLogger.getInstance().forceLogMessage(SearchLogUtils.independenceFact(x, y, empty) + " p = " +
+                        log(SearchLogUtils.independenceFact(x, y, empty) + " p = " +
                                 nf.format(test.getPValue()));
                         out.println(SearchLogUtils.independenceFact(x, y, empty) + " p = " +
                                 nf.format(test.getPValue()));
@@ -359,7 +357,7 @@ public class FasStable implements IFas {
 
         if (knowledge.isForbidden(name1, name2) &&
                 knowledge.isForbidden(name2, name1)) {
-            this.logger.log("edgeRemoved", "Removed " + Edges.undirectedEdge(x, y) + " because it was " +
+            log("Removed " + Edges.undirectedEdge(x, y) + " because it was " +
                     "forbidden by background knowledge.");
 
             return true;
@@ -426,7 +424,7 @@ public class FasStable implements IFas {
                             getSepsets().set(x, y, condSet);
 
                             if (verbose) {
-                                TetradLogger.getInstance().forceLogMessage(SearchLogUtils.independenceFact(x, y, condSet) + " p = " +
+                                log(SearchLogUtils.independenceFact(x, y, condSet) + " p = " +
                                         nf.format(test.getPValue()));
                                 out.println(SearchLogUtils.independenceFactMsg(x, y, condSet, test.getPValue()));
                             }

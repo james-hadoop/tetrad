@@ -76,12 +76,6 @@ public class Fas implements IFas {
      */
     private int numIndependenceTests;
 
-
-    /**
-     * The logger, by default the empty logger.
-     */
-    private TetradLogger logger = TetradLogger.getInstance();
-
     /**
      * The true graph, for purposes of comparison. Temporary.
      */
@@ -155,7 +149,7 @@ public class Fas implements IFas {
      * @return a SepSet, which indicates which variables are independent conditional on which other variables
      */
     public Graph search() {
-        this.logger.log("info", "Starting Fast Adjacency Search.");
+        log("Starting Fast Adjacency Search.");
 
         sepset = new SepsetMap();
 //        sepset.setReturnEmptyIfNotSet(sepsetsReturnEmptyIfNotFixed);
@@ -199,13 +193,13 @@ public class Fas implements IFas {
             }
         }
 
-        this.logger.log("info", "Finishing Fast Adjacency Search.");
+        log("Finishing Fast Adjacency Search.");
 
         return graph;
     }
 
     public Map<Node, Set<Node>> searchMapOnly() {
-        this.logger.log("info", "Starting Fast Adjacency Search.");
+        log("Starting Fast Adjacency Search.");
         graph.removeEdges(graph.getEdges());
 
         sepset = new SepsetMap();
@@ -313,13 +307,10 @@ public class Fas implements IFas {
 
 
                 if (independent && noEdgeRequired) {
-//                    if (!getSepsets().isReturnEmptyIfNotSet()) {
                     getSepsets().set(x, y, empty);
-//                    }
 
                     if (verbose) {
-                        TetradLogger.getInstance().forceLogMessage(
-                                SearchLogUtils.independenceFact(x, y, empty) + " score = " +
+                        log(SearchLogUtils.independenceFact(x, y, empty) + " score = " +
                                         nf.format(test.getScore()));
                         out.println(SearchLogUtils.independenceFact(x, y, empty) + " score = " +
                                 nf.format(test.getScore()));
@@ -328,16 +319,15 @@ public class Fas implements IFas {
                 } else if (!forbiddenEdge(x, y)) {
                     adjacencies.get(x).add(y);
                     adjacencies.get(y).add(x);
-
-//                    if (verbose) {
-//                        TetradLogger.getInstance().log("dependencies", SearchLogUtils.independenceFact(x, y, empty) + " score = " +
-//                                nf.format(test.getScore()));
-//                    }
                 }
             }
         }
 
         return freeDegree(nodes, adjacencies) > 0;
+    }
+
+    private void log(String s) {
+        System.out.println(s);
     }
 
     private int freeDegree(List<Node> nodes, Map<Node, Set<Node>> adjacencies) {
@@ -436,7 +426,7 @@ public class Fas implements IFas {
                             getSepsets().set(x, y, condSet);
 
                             if (verbose) {
-                                TetradLogger.getInstance().forceLogMessage(SearchLogUtils.independenceFact(x, y, condSet) +
+                                log(SearchLogUtils.independenceFact(x, y, condSet) +
                                         " score = " + nf.format(test.getScore()));
                                 out.println(SearchLogUtils.independenceFactMsg(x, y, condSet, test.getScore()));
                             }

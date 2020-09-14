@@ -22,10 +22,8 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.Endpoint;
 import edu.cmu.tetrad.graph.Node;
 
-import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.List;
 
@@ -35,23 +33,6 @@ import java.util.List;
  * @author Joseph Ramsey
  */
 public class SearchLogUtils {
-    private static NumberFormat nf = NumberFormatUtil.getInstance().getNumberFormat();
-
-    public static String endpointOrientedMsg(Endpoint e, Node x, Node y) {
-        char endptChar = '*';
-
-        if (e == Endpoint.TAIL) {
-            endptChar = '-';
-        } else if (e == Endpoint.ARROW) {
-            endptChar = '>';
-        } else if (e == Endpoint.CIRCLE) {
-            endptChar = 'o';
-        }
-
-        String msg = "Orienting endpoint: " + x.getName() + " *-" + endptChar +
-                " " + y.getName();
-        return msg;
-    }
 
     public static String edgeOrientedMsg(String reason, Edge edge) {
         return "Orienting edge (" + reason + "): " + edge;
@@ -84,7 +65,7 @@ public class SearchLogUtils {
         sb.append(independenceFact(x, y, condSet));
 
         if (!Double.isNaN(pValue)) {
-            sb.append("\tp = ").append(nf.format(pValue));
+            sb.append("\tp = ").append(pValue);
         }
 
         return sb.toString();
@@ -97,7 +78,7 @@ public class SearchLogUtils {
         sb.append(independenceFact(x, y, condSet));
 
         if (!Double.isNaN(pValue)) {
-            sb.append("\tp = ").append(nf.format(pValue));
+            sb.append("\tp = ").append(pValue);
         }
 
         return sb.toString();

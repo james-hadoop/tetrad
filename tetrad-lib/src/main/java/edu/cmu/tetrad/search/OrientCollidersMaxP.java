@@ -25,6 +25,7 @@ import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.util.DepthChoiceGenerator;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -466,7 +467,11 @@ public final class OrientCollidersMaxP {
             graph.addDirectedEdge(z, y);
         }
 
-        TetradLogger.getInstance().log("colliderOrientations", SearchLogUtils.colliderOrientedMsg(x, y, z));
+        log(SearchLogUtils.colliderOrientedMsg(x, y, z));
+    }
+
+    private static void log(String s) {
+        System.out.println(s);
     }
 
     public PcAll.ConflictRule getConflictRule() {

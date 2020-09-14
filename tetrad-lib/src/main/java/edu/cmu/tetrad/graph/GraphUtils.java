@@ -26,10 +26,7 @@ import edu.cmu.tetrad.util.*;
 import nu.xom.*;
 
 import java.io.*;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.*;
-import java.util.concurrent.RecursiveTask;
 import java.util.regex.Matcher;
 
 /**
@@ -555,39 +552,6 @@ public final class GraphUtils {
         return arrangedAll;
     }
 
-    public static void arrangeByLayout(Graph graph, HashMap<String, PointXy> layout) {
-        for (Node node : graph.getNodes()) {
-            PointXy point = layout.get(node.getName());
-            node.setCenter(point.getX(), point.getY());
-        }
-    }
-
-    /**
-     * @return the node associated with a given error node. This should be the
-     * only child of the error node, E --> N.
-     */
-    public static Node getAssociatedNode(Node errorNode, Graph graph) {
-        if (errorNode.getNodeType() != NodeType.ERROR) {
-            throw new IllegalArgumentException(
-                    "Can only get an associated node " + "for an error node: "
-                    + errorNode);
-        }
-
-        List<Node> children = graph.getChildren(errorNode);
-
-        if (children.size() != 1) {
-            System.out.println("children of " + errorNode + " = " + children);
-            System.out.println(graph);
-
-            throw new IllegalArgumentException(
-                    "An error node should have only "
-                    + "one child, which is its associated node: "
-                    + errorNode);
-        }
-
-        return children.get(0);
-    }
-
     /**
      * @return true if <code>set</code> is a clique in <code>graph</code>. </p>
      * R. Silva, June 2004
@@ -627,10 +591,6 @@ public final class GraphUtils {
      */
     private static void collectComponentVisit(Node node, Set<Node> component,
             Graph graph, List<Node> unsortedNodes) {
-        if (TaskManager.getInstance().isCanceled()) {
-            return;
-        }
-
         component.add(node);
         unsortedNodes.remove(node);
         List<Node> adj = graph.getAdjacentNodes(node);
@@ -1965,77 +1925,6 @@ public final class GraphUtils {
         }
     }
 
-    public static HashMap<String, PointXy> grabLayout(List<Node> nodes) {
-        HashMap<String, PointXy> layout = new HashMap<>();
-
-        for (Node node : nodes) {
-            layout.put(node.getName(), new PointXy(node.getCenterX(), node.getCenterY()));
-        }
-
-        return layout;
-    }
-
-    /**
-     * @return A list of triples of the form X*->Y<-*Z.
-     */
-    public static List<Triple> getCollidersFromGraph(Node node, Graph graph) {
-        List<Triple> colliders = new ArrayList<>();
-
-        List<Node> adj = graph.getAdjacentNodes(node);
-        if (adj.size() < 2) {
-            return new LinkedList<>();
-        }
-
-        ChoiceGenerator gen = new ChoiceGenerator(adj.size(), 2);
-        int[] choice;
-
-        while ((choice = gen.next()) != null) {
-            Node x = adj.get(choice[0]);
-            Node z = adj.get(choice[1]);
-
-            Endpoint endpt1 = graph.getEdge(x, node).getProximalEndpoint(node);
-            Endpoint endpt2 = graph.getEdge(z, node).getProximalEndpoint(node);
-
-            if (endpt1 == Endpoint.ARROW && endpt2 == Endpoint.ARROW) {
-                colliders.add(new Triple(x, node, z));
-            }
-        }
-
-        return colliders;
-    }
-
-    /**
-     * @return A list of triples of the form <X, Y, Z>, where <X, Y, Z> is a
-     * definite noncollider in the given graph.
-     */
-    public static List<Triple> getNoncollidersFromGraph(Node node, Graph graph) {
-        List<Triple> noncolliders = new ArrayList<>();
-
-        List<Node> adj = graph.getAdjacentNodes(node);
-        if (adj.size() < 2) {
-            return new LinkedList<>();
-        }
-
-        ChoiceGenerator gen = new ChoiceGenerator(adj.size(), 2);
-        int[] choice;
-
-        while ((choice = gen.next()) != null) {
-            Node x = adj.get(choice[0]);
-            Node z = adj.get(choice[1]);
-
-            Endpoint endpt1 = graph.getEdge(x, node).getProximalEndpoint(node);
-            Endpoint endpt2 = graph.getEdge(z, node).getProximalEndpoint(node);
-
-            if (endpt1 == Endpoint.ARROW && endpt2 == Endpoint.TAIL
-                    || endpt1 == Endpoint.TAIL && endpt2 == Endpoint.ARROW
-                    || endpt1 == Endpoint.TAIL && endpt2 == Endpoint.TAIL) {
-                noncolliders.add(new Triple(x, node, z));
-            }
-        }
-
-        return noncolliders;
-    }
-
     /**
      * @return A list of triples of the form <X, Y, Z>, where <X, Y, Z> is a
      * definite noncollider in the given graph.
@@ -2153,65 +2042,6 @@ public final class GraphUtils {
         }
 
         return m;
-    }
-
-    public static String loadGraphRMatrix(Graph graph) throws IllegalArgumentException {
-        int[][] m = incidenceMatrix(graph);
-
-        TextTable table = new TextTable(m[0].length + 1, m.length + 1);
-
-        for (int i = 0; i < m.length; i++) {
-            for (int j = 0; j < m[0].length; j++) {
-                table.setToken(i + 1, j + 1, m[i][j] + "");
-            }
-        }
-
-        for (int i = 0; i < m.length; i++) {
-            table.setToken(i + 1, 0, (i + 1) + "");
-        }
-
-        List<Node> nodes = graph.getNodes();
-
-        for (int j = 0; j < m[0].length; j++) {
-            table.setToken(0, j + 1, nodes.get(j).getName());
-        }
-
-        return table.toString();
-    }
-
-    private static boolean existsDirectedPathVisit(Node node1, Node node2, LinkedList<Node> path, int depth, Graph graph) {
-        path.addLast(node1);
-
-        if (path.size() >= depth) {
-            return false;
-        }
-
-        for (Edge edge : graph.getEdges(node1)) {
-            Node child = Edges.traverseDirected(node1, edge);
-
-            if (graph.getEdges(node1, child).size() == 2) {
-                return true;
-            }
-
-            if (child == null) {
-                continue;
-            }
-
-            if (child == node2) {
-                return true;
-            }
-
-            if (path.contains(child)) {
-                continue;
-            }
-
-            if (existsDirectedPathVisit(child, node2, path, depth, graph)) {
-                return true;
-            }
-        }
-
-        path.removeLast();
-        return false;
     }
 
     /**
@@ -2666,145 +2496,6 @@ public final class GraphUtils {
         return true;
     }
 
-    public static String edgeMisclassifications(double[][] counts, NumberFormat nf) {
-        StringBuilder builder = new StringBuilder();
-
-        TextTable table2 = new TextTable(9, 7);
-
-        table2.setToken(1, 0, "---");
-        table2.setToken(2, 0, "o-o");
-        table2.setToken(3, 0, "o->");
-        table2.setToken(4, 0, "<-o");
-        table2.setToken(5, 0, "-->");
-        table2.setToken(6, 0, "<--");
-        table2.setToken(7, 0, "<->");
-        table2.setToken(8, 0, "No Edge");
-        table2.setToken(0, 1, "---");
-        table2.setToken(0, 2, "o-o");
-        table2.setToken(0, 3, "o->");
-        table2.setToken(0, 4, "-->");
-        table2.setToken(0, 5, "<->");
-        table2.setToken(0, 6, "No Edge");
-
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 6; j++) {
-                if (i == 7 && j == 5) {
-                    table2.setToken(i + 1, j + 1, "*");
-                } else {
-                    table2.setToken(i + 1, j + 1, "" + nf.format(counts[i][j]));
-                }
-            }
-        }
-
-        builder.append(table2.toString());
-
-        double correctEdges = 0;
-        double estimatedEdges = 0;
-
-        for (int i = 0; i < counts.length; i++) {
-            for (int j = 0; j < counts[0].length - 1; j++) {
-                if ((i == 0 && j == 0) || (i == 1 && j == 1) || (i == 2 && j == 2) || (i == 4 && j == 3) || (i == 6 && j == 4)) {
-                    correctEdges += counts[i][j];
-                }
-
-                estimatedEdges += counts[i][j];
-            }
-        }
-
-        NumberFormat nf2 = new DecimalFormat("0.00");
-
-        builder.append("\nRatio correct edges to estimated edges = ").append(nf2.format((correctEdges / (double) estimatedEdges)));
-
-        return builder.toString();
-    }
-
-    public static String edgeMisclassifications(int[][] counts) {
-        StringBuilder builder = new StringBuilder();
-
-        TextTable table2 = new TextTable(9, 7);
-
-        table2.setToken(1, 0, "---");
-        table2.setToken(2, 0, "o-o");
-        table2.setToken(3, 0, "o->");
-        table2.setToken(4, 0, "<-o");
-        table2.setToken(5, 0, "-->");
-        table2.setToken(6, 0, "<--");
-        table2.setToken(7, 0, "<->");
-        table2.setToken(8, 0, "No Edge");
-        table2.setToken(0, 1, "---");
-        table2.setToken(0, 2, "o-o");
-        table2.setToken(0, 3, "o->");
-        table2.setToken(0, 4, "-->");
-        table2.setToken(0, 5, "<->");
-        table2.setToken(0, 6, "No Edge");
-
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 6; j++) {
-                if (i == 7 && j == 5) {
-                    table2.setToken(i + 1, j + 1, "*");
-                } else {
-                    table2.setToken(i + 1, j + 1, "" + counts[i][j]);
-                }
-            }
-        }
-
-        builder.append(table2.toString());
-
-        int correctEdges = 0;
-        int estimatedEdges = 0;
-
-        for (int i = 0; i < counts.length; i++) {
-            for (int j = 0; j < counts[0].length - 1; j++) {
-                if ((i == 0 && j == 0) || (i == 1 && j == 1) || (i == 2 && j == 2) || (i == 4 && j == 3) || (i == 6 && j == 4)) {
-                    correctEdges += counts[i][j];
-                }
-
-                estimatedEdges += counts[i][j];
-            }
-        }
-
-        NumberFormat nf2 = new DecimalFormat("0.00");
-
-        builder.append("\nRatio correct edges to estimated edges = ").append(nf2.format((correctEdges / (double) estimatedEdges)));
-
-        return builder.toString();
-    }
-
-    public static int[][] edgeMisclassificationCounts1(Graph leftGraph, Graph topGraph, boolean print) {
-        topGraph = replaceNodes(topGraph, leftGraph.getNodes());
-
-        int[][] counts = new int[8][6];
-
-        for (Edge est : topGraph.getEdges()) {
-            Node x = est.getNode1();
-            Node y = est.getNode2();
-
-            Edge left = leftGraph.getEdge(x, y);
-
-            Edge top = topGraph.getEdge(x, y);
-
-            int m = getTypeLeft(left, top);
-            int n = getTypeTop(top);
-
-            counts[m][n]++;
-        }
-
-        if (print) {
-            System.out.println("# edges in true graph = " + leftGraph.getNumEdges());
-            System.out.println("# edges in est graph = " + topGraph.getNumEdges());
-        }
-
-        for (Edge edgeLeft : leftGraph.getEdges()) {
-            final Edge edgeTop = topGraph.getEdge(edgeLeft.getNode1(), edgeLeft.getNode2());
-            if (edgeTop == null) {
-                int m = getTypeLeft(edgeLeft, edgeLeft);
-                counts[m][5]++;
-            }
-        }
-
-        return counts;
-    }
-
     public static void addPagColoring(Graph graph) {
         for (Edge edge : graph.getEdges()) {
             if (!Edges.isDirectedEdge(edge)) {
@@ -2912,109 +2603,6 @@ public final class GraphUtils {
         public int[][] countArray() {
             return counts;
         }
-    }
-
-    public static int[][] edgeMisclassificationCounts(Graph leftGraph, Graph topGraph, boolean print) {
-//        topGraph = GraphUtils.replaceNodes(topGraph, leftGraph.getNodes());
-
-        class CountTask extends RecursiveTask<Counts> {
-
-            private int chunk;
-            private int from;
-            private int to;
-            private final List<Edge> edges;
-            private final Graph leftGraph;
-            private final Graph topGraph;
-            private final Counts counts;
-            private final int[] count;
-
-            public CountTask(int chunk, int from, int to, List<Edge> edges, Graph leftGraph, Graph topGraph, int[] count) {
-                this.chunk = chunk;
-                this.from = from;
-                this.to = to;
-                this.edges = edges;
-                this.leftGraph = leftGraph;
-                this.topGraph = topGraph;
-                this.counts = new Counts();
-                this.count = count;
-            }
-
-            @Override
-            protected Counts compute() {
-                int range = to - from;
-
-                if (range <= chunk) {
-                    for (int i = from; i < to; i++) {
-                        int j = ++count[0];
-                        if (j % 1000 == 0) {
-                            System.out.println("Counted " + (count[0]));
-                        }
-
-                        Edge edge = edges.get(i);
-
-                        Node x = edge.getNode1();
-                        Node y = edge.getNode2();
-
-                        Edge left = leftGraph.getEdge(x, y);
-                        Edge top = topGraph.getEdge(x, y);
-
-                        int m = getTypeLeft(left, top);
-                        int n = getTypeTop(top);
-
-                        counts.increment(m, n);
-                    }
-
-                    return counts;
-                } else {
-                    int mid = (to + from) / 2;
-                    CountTask left = new CountTask(chunk, from, mid, edges, leftGraph, topGraph, count);
-                    CountTask right = new CountTask(chunk, mid, to, edges, leftGraph, topGraph, count);
-
-                    left.fork();
-                    Counts rightAnswer = right.compute();
-                    Counts leftAnswer = left.join();
-
-                    leftAnswer.addAll(rightAnswer);
-                    return leftAnswer;
-                }
-            }
-
-            public Counts getCounts() {
-                return counts;
-            }
-        }
-
-//        System.out.println("Forming edge union");
-//        topGraph = GraphUtils.replaceNodes(topGraph, leftGraph.getNodes());
-//        int[][] counts = new int[8][6];
-        Set<Edge> edgeSet = new HashSet<>();
-        edgeSet.addAll(topGraph.getEdges());
-        edgeSet.addAll(leftGraph.getEdges());
-
-//        System.out.println("Union formed");
-        if (print) {
-            System.out.println("Top graph " + topGraph.getEdges().size());
-            System.out.println("Left graph " + leftGraph.getEdges().size());
-            System.out.println("All edges " + edgeSet.size());
-        }
-
-        List<Edge> edges = new ArrayList<>(edgeSet);
-
-//        System.out.println("Finding pool");
-        ForkJoinPoolInstance pool = ForkJoinPoolInstance.getInstance();
-
-//        System.out.println("Starting count task");
-        CountTask task = new CountTask(500, 0, edges.size(), edges, leftGraph, topGraph, new int[1]);
-        Counts counts = pool.getPool().invoke(task);
-
-//        System.out.println("Finishing count task");
-        return counts.countArray();
-    }
-
-    private static Set<Edge> complement(Set<Edge> edgeSet, Graph topGraph) {
-        Set<Edge> complement = new HashSet<>(edgeSet);
-        complement.removeAll(topGraph.getEdges());
-        return complement;
     }
 
     private static int getTypeTop(Edge edgeTop) {

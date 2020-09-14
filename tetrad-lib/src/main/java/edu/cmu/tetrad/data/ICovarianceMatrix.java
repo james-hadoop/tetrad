@@ -22,6 +22,7 @@
 package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.TetradMatrix;
 
 import java.io.Serializable;
 import java.util.List;
