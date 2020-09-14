@@ -22,10 +22,8 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.Triple;
+import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
 
@@ -297,15 +295,13 @@ public final class PcAll implements GraphSearch {
             if (concurrent == Concurrent.NO) {
                 fas = new Fas(initialGraph, getIndependenceTest());
             } else {
-                fas = new FasConcurrent(initialGraph, getIndependenceTest());
-                ((FasConcurrent) fas).setStable(false);
+                fas = new Fas(initialGraph, getIndependenceTest());
             }
         } else {
             if (concurrent == Concurrent.NO) {
                 fas = new FasStable(initialGraph, getIndependenceTest());
             } else {
-                fas = new FasConcurrent(initialGraph, getIndependenceTest());
-                ((FasConcurrent) fas).setStable(true);
+                fas = new FasStable(initialGraph, getIndependenceTest());
             }
         }
 
