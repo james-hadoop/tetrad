@@ -68,16 +68,7 @@ import java.io.*;
 import java.lang.reflect.Constructor;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.RecursiveTask;
 
 import org.reflections.Reflections;
@@ -619,9 +610,10 @@ public class Comparison {
                     }
 
                     if (isSaveSemModels()) {
-                        File file5 = new File(dir4, "sem.im." + (j + 1) + ".txt");
+                        File file5 = new File(dir5, "sem.im." + (j + 1) + ".txt");
                         PrintWriter _out = new PrintWriter(new FileOutputStream(file5));
-                        _out.println(semIms.get(j));
+                        assert semIms != null;
+                        _out.println(Objects.requireNonNull(semIms).get(j));
                         _out.close();
                     }
                 }

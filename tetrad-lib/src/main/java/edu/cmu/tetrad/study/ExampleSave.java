@@ -41,9 +41,9 @@ public class ExampleSave {
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 10);
-        parameters.set("numMeasures", 50, 100, 500);
+        parameters.set("numMeasures", 50);
         parameters.set("avgDegree", 2, 4, 6);
-        parameters.set("sampleSize", 100, 500, 1000);
+        parameters.set("sampleSize", 100);
 
         parameters.set("differentGraphs", true);
         parameters.set("maxDegree", 100);
@@ -61,7 +61,8 @@ public class ExampleSave {
 
         Simulation simulation = new SemSimulation(new RandomForward());
         Comparison comparison = new Comparison();
-        comparison.saveToFiles("/Users/user/comparison-data/condition_2", simulation, parameters);
+        comparison.setSaveSemModels(true);
+        comparison.saveToFiles("condition_2", simulation, parameters);
 
     }
 }
