@@ -19,10 +19,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA //
 ///////////////////////////////////////////////////////////////////////////////
 
-package edu.cmu.tetrad.search;
+package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.search.IndependenceTest;
+import edu.cmu.tetrad.search.SearchLogUtils;
 import edu.cmu.tetrad.util.*;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
@@ -238,6 +240,84 @@ public final class IndTestFisherZ implements IndependenceTest {
         double q = .5 * (log(1.0 + abs(r)) - log(1.0 - abs(r)));
         double fisherZ = sqrt(n - 3. - z.size()) * q;
         double p = (1.0 - normal.cumulativeProbability(fisherZ));
+
+        this.p = p;
+        return p;
+    }
+
+    public double getPValue2(Node x, Node y, List<Node> z) {
+        List<Node> allVars = new ArrayList<>(z);
+        allVars.add(x);
+        allVars.add(y);
+
+        double r;
+        int n;
+
+        if (covMatrix() != null) {
+            r = partialCorrelation(x, y, z, null);
+            n = sampleSize();
+        } else {
+            List<Integer> rows = getRows(allVars, nodesHash);
+            r = getR(x, y, z, rows);
+            n = rows.size();
+        }
+
+        this.r = r;
+        double q = .5 * (log(1.0 + abs(r)) - log(1.0 - abs(r)));
+        double fisherZ = sqrt(n - 3. - z.size()) * q;
+        double p = 2 * (1.0 - normal.cumulativeProbability(fisherZ));
+
+        this.p = p;
+        return p;
+    }
+
+    public double getPValue3(Node x, Node y, List<Node> z) {
+        List<Node> allVars = new ArrayList<>(z);
+        allVars.add(x);
+        allVars.add(y);
+
+        double r;
+        int n;
+
+        if (covMatrix() != null) {
+            r = partialCorrelation(x, y, z, null);
+            n = sampleSize();
+        } else {
+            List<Integer> rows = getRows(allVars, nodesHash);
+            r = getR(x, y, z, rows);
+            n = rows.size();
+        }
+
+        this.r = r;
+        double Z = .5 * (log(1.0 + r) - log(1.0 - r));
+        double X = sqrt(n - 3. - z.size()) * abs(Z);
+        double p = (1.0 - normal.cumulativeProbability(abs(X)));
+
+        this.p = p;
+        return p;
+    }
+
+    public double getPValue4(Node x, Node y, List<Node> z) {
+        List<Node> allVars = new ArrayList<>(z);
+        allVars.add(x);
+        allVars.add(y);
+
+        double r;
+        int n;
+
+        if (covMatrix() != null) {
+            r = partialCorrelation(x, y, z, null);
+            n = sampleSize();
+        } else {
+            List<Integer> rows = getRows(allVars, nodesHash);
+            r = getR(x, y, z, rows);
+            n = rows.size();
+        }
+
+        this.r = r;
+        double Z = .5 * (log(1.0 + r) - log(1.0 - r));
+        double X = sqrt(n - 3. - z.size()) * abs(Z);
+        double p = 2 * (1.0 - normal.cumulativeProbability(abs(X)));
 
         this.p = p;
         return p;

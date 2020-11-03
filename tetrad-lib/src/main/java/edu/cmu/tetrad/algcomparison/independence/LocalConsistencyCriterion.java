@@ -15,12 +15,12 @@ import java.util.*;
  * @author jdramsey
  */
 @TestOfIndependence(
-        name = "SEM BIC Test",
-        command = "sem-bic-test",
+        name = "Local Consistency Criterion",
+        command = "local-consistency-criterion",
         dataType = {DataType.Continuous, DataType.Covariance}
 )
 @Experimental
-public class SemBicTest implements IndependenceWrapper {
+public class LocalConsistencyCriterion implements IndependenceWrapper {
 
     static final long serialVersionUID = 23L;
 

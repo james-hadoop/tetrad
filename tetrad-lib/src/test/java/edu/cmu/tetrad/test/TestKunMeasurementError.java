@@ -28,7 +28,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.FgesD;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pc;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pcd;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.independence.LocalConsistencyCriterion;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
@@ -80,7 +80,7 @@ public class TestKunMeasurementError {
 //
         Algorithms algorithms = new Algorithms();
 
-        IndependenceWrapper test = new SemBicTest();
+        IndependenceWrapper test = new LocalConsistencyCriterion();
         ScoreWrapper score = new SemBicScore();
 
         algorithms.add(new Pc(test));

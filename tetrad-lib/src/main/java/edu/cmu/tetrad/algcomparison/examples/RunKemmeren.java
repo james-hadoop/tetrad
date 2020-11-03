@@ -1,17 +1,12 @@
 package edu.cmu.tetrad.algcomparison.examples;
 
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.FAS;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.FgesMb;
-import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.independence.LocalConsistencyCriterion;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Parameters;
-import edu.pitt.dbmi.data.reader.ContinuousData;
-import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.DataColumn;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularData;
@@ -22,9 +17,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class RunKemmeren {
     public static void main(String... args) {
@@ -85,7 +78,7 @@ public class RunKemmeren {
             parameters.set("verbose", true);
 
             SemBicScore score = new SemBicScore();
-            SemBicTest test = new SemBicTest();
+            LocalConsistencyCriterion test = new LocalConsistencyCriterion();
 
 //            Fges search = new Fges(score);
             FAS search = new FAS(test);

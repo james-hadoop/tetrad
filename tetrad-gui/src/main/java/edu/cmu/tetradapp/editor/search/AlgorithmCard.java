@@ -30,12 +30,7 @@ import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Gaussian;
 import edu.cmu.tetrad.annotation.Linear;
 import edu.cmu.tetrad.annotation.Nonexecutable;
-import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DataModelList;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.data.ICovarianceMatrix;
-import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetradapp.app.TetradDesktop;
 import edu.cmu.tetradapp.model.GeneralAlgorithmRunner;
 import edu.cmu.tetradapp.ui.PaddingPanel;
@@ -275,6 +270,8 @@ public class AlgorithmCard extends JPanel {
         if (dataModelList.containsEmptyData()) {
             return false;
         } else {
+            if (dataModelList.get(0) instanceof CovarianceMatrix) return false;
+
             DataSet dataSet = (DataSet) dataModelList.get(0);
 
             return dataSet.existsMissingValue();
@@ -324,8 +321,6 @@ public class AlgorithmCard extends JPanel {
      * algo name when user changes the upstream (after clicking the "Execute"
      * button), because a new algo algorithmRunner is created and we lose the
      * stored models from the old algorithmRunner - Zhou
-     *
-     * @param models
      */
     private void restoreUserAlgoSelections(Map<String, Object> userAlgoSelections) {
         Object obj = userAlgoSelections.get(LINEAR_PARAM);
@@ -906,8 +901,6 @@ public class AlgorithmCard extends JPanel {
         /**
          * Create new radio buttons and add them to both the radio button list
          * and radio button group.
-         *
-         * @param radioButtons
          */
         private void populateAlgoTypeOptions() {
             JRadioButton showAllRadBtn = new JRadioButton("show all");

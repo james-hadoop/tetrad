@@ -128,9 +128,9 @@ public class SemBicScore implements Score {
         }
 
         // r could be NaN if the matrix is not invertible; this NaN will be returned.
-        return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n)
-                + 2 * signum(getStructurePrior()) * (sp1 - sp2);
-//        return (localScore(y, append(z, x)) - localScore(y, z));
+        return -n * Math.log(1.0 - r * r) - 0.5 * getPenaltyDiscount() * log(n)
+                + 2 * (sp1 - sp2);
+//        return Math.max(localScore(y, append(z, x)) - localScore(y, z), localScore(x, append(z, y)) - localScore(x, z));
     }
 
     @Override
@@ -290,7 +290,7 @@ public class SemBicScore implements Score {
             return 0;
         } else {
             int c = variables.size();
-            double p = abs(getStructurePrior()) / (double) c;
+            double p = getStructurePrior() / (double) c;
             return (parents * Math.log(p) + (c - parents) * Math.log(1.0 - p));
         }
     }
@@ -487,6 +487,13 @@ public class SemBicScore implements Score {
         }
 
         return cov;
+    }
+
+    private int[] append(int[] parents, int extra) {
+        int[] all = new int[parents.length + 1];
+        System.arraycopy(parents, 0, all, 0, parents.length);
+        all[parents.length] = extra;
+        return all;
     }
 }
 

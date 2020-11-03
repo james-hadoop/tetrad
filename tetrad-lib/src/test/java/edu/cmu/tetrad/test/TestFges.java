@@ -26,10 +26,9 @@ import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.independence.LocalConsistencyCriterion;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulation;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.bayes.BayesIm;
@@ -46,9 +45,7 @@ import java.io.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
-import static java.lang.Math.log;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -1612,7 +1609,7 @@ public class TestFges {
 //            ScoreWrapper score = new edu.cmu.tetrad.algcomparison.score.SemBicScore();
 //            Algorithm alg = new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(score);
 
-            IndependenceWrapper test = new SemBicTest();
+            IndependenceWrapper test = new LocalConsistencyCriterion();
 //            IndependenceWrapper test = new FisherZ();
             Algorithm alg = new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Cpc(test);
 
