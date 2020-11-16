@@ -77,13 +77,13 @@ public class GraphScore implements Score {
 
     @Override
     public double localScoreDiff(int x, int y, int[] z) {
-        return locallyConsistentScoringCriterion(x, y, z);
+        return locallyConsistentScoringCriterion(y, x, z);
 //        return aBetterScore(x, y, z);
     }
 
     @Override
     public double localScoreDiff(int x, int y) {
-        return localScoreDiff(x, y, new int[0]);
+        return localScoreDiff(y, x, new int[0]);
 //        return localScore(y, x) - localScore(y);
     }
 

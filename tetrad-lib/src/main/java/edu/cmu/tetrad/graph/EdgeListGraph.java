@@ -563,7 +563,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * exists.
      */
     @Override
-    public synchronized Edge getEdge(Node node1, Node node2) {
+    public Edge getEdge(Node node1, Node node2) {
         List<Edge> edges = edgeLists.get(node1);
 
         if (edges == null) {
@@ -1317,7 +1317,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * @return true if the edge was added, false if not.
      */
     @Override
-    public boolean addEdge(Edge edge) {
+    public synchronized boolean addEdge(Edge edge) {
         if (edge == null) {
             throw new NullPointerException();
         }
@@ -1453,7 +1453,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * ordering of the edges in the list is guaranteed.
      */
     @Override
-    public synchronized List<Edge> getEdges(Node node) {
+    public List<Edge> getEdges(Node node) {
         List<Edge> list = edgeLists.get(node);
         if (list == null) {
             return new ArrayList<>();

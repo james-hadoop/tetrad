@@ -301,10 +301,10 @@ public class TestFges {
         RandomUtil.getInstance().setSeed(1450184147770L);
 
         int numNodes = 20;
-        int numIterations = 1;
+        int numIterations = 2;
 
         for (int i = 0; i < numIterations; i++) {
-//            System.out.println("Iteration " + (i + 1));
+            System.out.println("Iteration " + (i + 1));
             Graph dag = GraphUtils.randomDag(numNodes, 0, numNodes, 10, 10, 10, false);
             GraphScore fgesScore = new GraphScore(dag);
 
@@ -583,7 +583,8 @@ public class TestFges {
         System.out.println(pattern);
 
         String trueString = "Graph Nodes:\n" +
-                "ABILITY;GPQ;PREPROD;QFJ;SEX;CITES;PUBS\n" +
+                "Graph Nodes:\n" +
+                "Graph Nodes:;ABILITY;GPQ;PREPROD;QFJ;SEX;CITES;PUBS\n" +
                 "\n" +
                 "Graph Edges:\n" +
                 "1. ABILITY --> GPQ\n" +
@@ -706,7 +707,7 @@ public class TestFges {
 
     @Test
     public void testFromGraph() {
-        int numNodes = 10;
+        int numNodes = 20;
         int numIterations = 1;
 
         for (int i = 0; i < numIterations; i++) {
@@ -714,9 +715,11 @@ public class TestFges {
             Graph dag = GraphUtils.randomDag(numNodes, 0, 2 * numNodes, 10, 10, 10, false);
             Fges fges = new Fges(new GraphScore(dag));
             fges.setFaithfulnessAssumed(false);
+            fges.setVerbose(true);
+            fges.setTrueGraph(dag);
             Graph pattern1 = fges.search();
             Graph pattern2 = new Pc(new IndTestDSep(dag)).search();
-//            System.out.println(pattern2);
+//            System.out.println(pattern1);
             assertEquals(pattern2, pattern1);
         }
     }

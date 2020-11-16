@@ -33,10 +33,7 @@ import edu.cmu.tetrad.util.Vector;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.Double.NaN;
 import static java.lang.Math.*;
@@ -83,7 +80,7 @@ public class SemBicScore implements Score {
             throw new NullPointerException();
         }
 
-        setCovariances(new CovarianceMatrix(covariances));
+        setCovariances(covariances);
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
@@ -95,6 +92,14 @@ public class SemBicScore implements Score {
     public SemBicScore(DataSet dataSet) {
         if (dataSet == null) {
             throw new NullPointerException();
+        }
+
+        if (!dataSet.existsMissingValue()) {
+            setCovariances(new CovarianceMatrix(dataSet, false));
+            this.variables = covariances.getVariables();
+            this.sampleSize = covariances.getSampleSize();
+            this.indexMap = indexMap(this.variables);
+            return;
         }
 
         this.dataSet = dataSet;
@@ -129,8 +134,14 @@ public class SemBicScore implements Score {
 
         // r could be NaN if the matrix is not invertible; this NaN will be returned.
         return -n * Math.log(1.0 - r * r) - getPenaltyDiscount() * log(n)
-                + signum(getStructurePrior()) * (sp1 - sp2);
+                + 2 * signum(getStructurePrior()) * (sp1 - sp2);
 //        return (localScore(y, append(z, x)) - localScore(y, z));
+    }
+
+    private int[] append(int[] z, int x) {
+        int[] _z = Arrays.copyOf(z, z.length + 1);
+        _z[z.length] = x;
+        return _z;
     }
 
     @Override
@@ -420,7 +431,7 @@ public class SemBicScore implements Score {
 
     private double partialCorrelation(Node x, Node y, List<Node> z, List<Integer> rows)  {
         try {
-            return StatUtils.partialCorrelation(MatrixUtils.convertCovToCorr(getCov(rows, indices(x, y, z))));
+            return StatUtils.partialCorrelation(/*MatrixUtils.convertCovToCorr*/(getCov(rows, indices(x, y, z))));
         } catch (Exception e) {
 //            e.printStackTrace();
             return NaN;
