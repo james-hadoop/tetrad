@@ -51,18 +51,23 @@ public class TestFisherZCalibration {
         parameters.set(Params.STRUCTURE_PRIOR, 0);
         parameters.set(Params.COEF_LOW, .2);
         parameters.set(Params.COEF_HIGH, 1);
-        int numDraws = 1000;
-        int sampleSize = 10000;
+        parameters.set(Params.SAMPLE_SIZE, 1000);
 
-        Graph graph = GraphUtils.randomDag(20, 0, 40, 100,
+        parameters.set(Params.NUM_MEASURES, 20);
+        parameters.set(Params.AVG_DEGREE, 4);
+        int numDraws = 1000;
+
+        int maxNumEdges = parameters.getInt(Params.NUM_MEASURES) * parameters.getInt(Params.AVG_DEGREE) / 2;
+
+        Graph graph = GraphUtils.randomDag(parameters.getInt(Params.NUM_MEASURES),
+                0, maxNumEdges, 100,
                 100, 100, false);
         SemPm pm = new SemPm(graph);
         SemIm im = new SemIm(pm);
-        DataSet data = im.simulateData(sampleSize, false);
-
+        DataSet data = im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), false);
 
         IndependenceTest test1 = new FisherZ().getTest(new CovarianceMatrix(data), parameters);
-        IndependenceTest test2 = new SemBicTest().getTest(new CovarianceMatrix(data), parameters);
+        IndependenceTest test2 = new SemBicTest().getTest(data, parameters);
 
         List<Node> variables = data.getVariables();
         graph = GraphUtils.replaceNodes(graph, variables);
@@ -85,8 +90,8 @@ public class TestFisherZCalibration {
 
         for (int i = 0; i < numDraws; i++) {
             Collections.shuffle(variables);
-            Collections.shuffle(variables);
-            Collections.shuffle(variables);
+//            Collections.shuffle(variables);
+//            Collections.shuffle(variables);
 
             Node x = variables.get(0);
             Node y = variables.get(1);
@@ -125,6 +130,8 @@ public class TestFisherZCalibration {
         System.out.println("Depth = " + depth);
         System.out.println();
         System.out.println("Same = " + countSame + " out of " + numDraws);
+        System.out.println("# dsep = " + ds);
+        System.out.println("# dconn = " + dc);
         System.out.println();
         System.out.println(table);
 
@@ -136,19 +143,19 @@ public class TestFisherZCalibration {
         double betaHat = fn1 / (double) dc;
         double alphaHat2 = fp2 / (double) ds;
         double betaHat2 = fn2 / (double) dc;
-        System.out.println("alpha1^ = " + alphaHat);
-        System.out.println("beta1^ = " + betaHat);
-        System.out.println("alpha2^ = " + alphaHat2);
-        System.out.println("beta2^ = " + betaHat2);
+        System.out.println("alpha^ for Fisher Z = " + alphaHat);
+        System.out.println("beta^ for Fisher Z = " + betaHat);
+        System.out.println("alpha^ for Local Scoring Consistency Criterion = " + alphaHat2);
+        System.out.println("beta^ for Local Scoring Consistency Criterion = " + betaHat2);
 
 //        Assert.assertTrue(abs(alpha - alphaHat) < 2 * alpha);
     }
 
-    @Test
+    //    @Test
     public void test2() {
         Parameters parameters = new Parameters();
         parameters.set(Params.PENALTY_DISCOUNT, 1);
-        parameters.set(Params.STRUCTURE_PRIOR, 5);
+        parameters.set(Params.STRUCTURE_PRIOR, 0);
         parameters.set(Params.COEF_LOW, .2);
         parameters.set(Params.COEF_HIGH, 1);
         int sampleSize = 20000;
@@ -176,27 +183,37 @@ public class TestFisherZCalibration {
     public void test3() {
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 10);
+        parameters.set(Params.NUM_RUNS, 5);
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 4);
-        parameters.set(Params.SAMPLE_SIZE, 10000);
-        parameters.set(Params.PENALTY_DISCOUNT, 2);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
+        parameters.set(Params.SAMPLE_SIZE, 50, 100, 500, 1000, 2000, 5000, 10000, 20000, 50000);
+        parameters.set(Params.PENALTY_DISCOUNT, 1);
+        parameters.set(Params.STRUCTURE_PRIOR, 0);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
         parameters.set(Params.COEF_LOW, .2);
-        parameters.set(Params.COEF_HIGH, 1.0);
+        parameters.set(Params.COEF_HIGH, .7);
         parameters.set(Params.VAR_LOW, 1.0);
-        parameters.set(Params.VAR_HIGH, 2.0);
+        parameters.set(Params.VAR_HIGH, 1.1);
+        parameters.set(Params.DEPTH, 1);
+        parameters.set(Params.VERBOSE, false);
 
         Statistics statistics = new Statistics();
 
+        statistics.add(new ParameterColumn(Params.NUM_RUNS));
+        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
+        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+
+        statistics.add(new NumberOfEdgesTrue());
+        statistics.add(new NumberOfEdgesEst());
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
-//        statistics.add(new F1Adj());
-//        statistics.add(new F1Arrow());
+        statistics.add(new F1Adj());
+        statistics.add(new F1Arrow());
         statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
@@ -207,6 +224,7 @@ public class TestFisherZCalibration {
 
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
                 new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
+        algorithms.add(new Pc(new FisherZ()));
 
         Simulations simulations = new Simulations();
 
@@ -216,15 +234,16 @@ public class TestFisherZCalibration {
 
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
-        comparison.setSortByUtility(true);
-        comparison.setShowUtilities(true);
-        comparison.setSaveGraphs(true);
+        comparison.setShowUtilities(false);
+//        comparison.setSaveGraphs(true);
+//        comparison.setSavePags(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
 
         comparison.compareFromSimulations(
                 "/Users/user/tetrad4/comparison2040", simulations, algorithms, statistics, parameters);
     }
 
-    //    @Test
+    @Test
     public void test4() {
         Parameters parameters = new Parameters();
 
@@ -232,17 +251,18 @@ public class TestFisherZCalibration {
         parameters.set("differentGraphs", true);
         parameters.set("sampleSize", 1000);
 
-        parameters.set("numMeasures", 100);
+        parameters.set("numMeasures", 50);
         parameters.set("numLatents", 0);
         parameters.set("avgDegree", 6);
         parameters.set("maxDegree", 100);
         parameters.set("maxIndegree", 100);
         parameters.set("maxOutdegree", 100);
         parameters.set("connected", false);
+        parameters.set("depth", 1);
         parameters.set(Params.FAITHFULNESS_ASSUMED, true);
 
-        parameters.set("coefLow", 0.5);
-        parameters.set("coefHigh", 1.5);
+        parameters.set("coefLow", 0.2);
+        parameters.set("coefHigh", .7);
         parameters.set("varLow", 1);
         parameters.set("varHigh", 3);
         parameters.set("verbose", false);

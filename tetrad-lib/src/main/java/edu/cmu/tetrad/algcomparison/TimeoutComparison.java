@@ -230,7 +230,7 @@ public class TimeoutComparison {
             List<SimulationWrapper> wrappers = getSimulationWrappers(simulation, parameters);
 
             for (SimulationWrapper wrapper : wrappers) {
-                wrapper.createData(wrapper.getSimulationSpecificParameters());
+                wrapper.createData(wrapper.getSimulationSpecificParameters(), false);
                 simulationWrappers.add(wrapper);
             }
         }
@@ -488,7 +488,7 @@ public class TimeoutComparison {
                     parameters.set(param, simulationWrapper.getValue(param));
                 }
 
-                simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters());
+                simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters(), false);
                 index++;
 
                 File subdir = new File(dir, "" + index);
@@ -1763,8 +1763,8 @@ public class TimeoutComparison {
         }
 
         @Override
-        public void createData(Parameters parameters) {
-            simulation.createData(parameters);
+        public void createData(Parameters parameters, boolean newModel) {
+            simulation.createData(parameters, false);
             this.graphs = new ArrayList<>();
             this.dataModels = new ArrayList<>();
             for (int i = 0; i < simulation.getNumDataModels(); i++) {

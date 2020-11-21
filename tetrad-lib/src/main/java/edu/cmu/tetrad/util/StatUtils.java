@@ -1756,7 +1756,7 @@ public final class StatUtils {
 
     public static double partialCorrelationPrecisionMatrix(Matrix submatrix) {
         Matrix inverse = submatrix.inverse();
-        return (-inverse.get(0, 1)) / sqrt(inverse.get(0, 0) * inverse.get(1, 1));
+        return (-inverse.get(0, 1)) / (sqrt(inverse.get(0, 0) * inverse.get(1, 1)));
     }
 
     public static synchronized double partialCorrelationWhittaker(Matrix submatrix) {

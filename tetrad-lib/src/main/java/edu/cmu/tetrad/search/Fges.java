@@ -58,6 +58,10 @@ public final class Fges implements GraphSearch, GraphScorer {
 
     private IndependenceTest graphScore = null;
 
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
+
     /**
      * Internal.
      */
@@ -126,9 +130,6 @@ public final class Fges implements GraphSearch, GraphScorer {
     // Potential arrows sorted by bump high to low. The first one is a candidate for adding to the graph.
     private ConcurrentSkipListSet<Arrow> sortedArrows = null;
 
-//    // Arrows added to sortedArrows for each <i, j>.
-//    private Map<OrderedPair<Node>, Set<Arrow>> lookupArrows = null;
-
     // A utility map to help with orientation.
     private Map<Node, Set<Node>> neighbors = null;
 
@@ -175,7 +176,8 @@ public final class Fges implements GraphSearch, GraphScorer {
     // The maximum number of threads to use.
     private final int maxThreads;
 
-//    private final Set<Arrow> removed = new ConcurrentSkipListSet<>();
+    // Max number of nodes reoriented in any step.
+    private int depth = 1;
 
     //===========================CONSTRUCTORS=============================//
 
@@ -232,7 +234,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         long start = System.currentTimeMillis();
         topGraphs.clear();
 
-//        lookupArrows = new ConcurrentHashMap<>();
         final List<Node> nodes = new ArrayList<>(variables);
         graph = new EdgeListGraphSingleConnections(nodes);
 
@@ -430,10 +431,10 @@ public final class Fges implements GraphSearch, GraphScorer {
      * @deprecated Use the getters on the individual scores instead.
      */
     public double getPenaltyDiscount() {
-        if (score instanceof ISemBicScore) {
-            return ((ISemBicScore) score).getPenaltyDiscount();
+        if (score instanceof SemBicScore) {
+            return ((SemBicScore) score).getPenaltyDiscount();
         } else {
-            return 2.0;
+            return 1.0;
         }
     }
 
@@ -575,104 +576,93 @@ public final class Fges implements GraphSearch, GraphScorer {
                     double bump, bump2 = 0.0;
 
                     // if the initial graph graph is empty, proceed as usual
-                    if (initialGraph == null){
+                    if (initialGraph == null) {
                         bump = score.localScoreDiff(parent, child);
 
-                    }
-                    else{
+                    } else {
                         // if x or y has no adjacency in the initial graph, then proceed as if initial graph is empty
                         if (initialGraph.getAdjacentNodes(x).isEmpty() && initialGraph.getAdjacentNodes(y).isEmpty()) {
                             bump = score.localScoreDiff(parent, child);
 
                         }
                         // if x or y has adjacencies in the initial graph, then that should be considered in scoring
-                        else{
+                        else {
                             int[] parentIndicesY;
                             Set<Node> parentsY = new HashSet<>(initialGraph.getParents(y));
                             parentIndicesY = new int[parentsY.size()];
-                            int	c = 0;
+                            int c = 0;
                             for (Node p : parentsY) {
                                 parentIndicesY[c++] = hashIndices.get(p);
                             }
 
-                            bump  = score.localScoreDiff(parent, child, parentIndicesY);
+                            bump = score.localScoreDiff(parent, child, parentIndicesY);
                         }
 
                     }
 
                     // computing the bump of an edge from y (child) --> x (parent)
                     if (symmetricFirstStep) {
-                        if (initialGraph == null){
+                        if (initialGraph == null) {
                             bump2 = score.localScoreDiff(child, parent);
-                        }
-                        else{
+                        } else {
                             // if x or y has no adjacency, then proceed as an empty initial graph
                             if (initialGraph.getAdjacentNodes(x).isEmpty() && initialGraph.getAdjacentNodes(y).isEmpty()) {
                                 bump2 = score.localScoreDiff(child, parent);
 
-                            }
-                            else{
+                            } else {
                                 int[] parentIndicesX;
                                 Set<Node> parentsX = new HashSet<>(initialGraph.getParents(x));
                                 parentIndicesX = new int[parentsX.size()];
-                                int	c = 0;
+                                int c = 0;
                                 for (Node p : parentsX) {
                                     parentIndicesX[c++] = hashIndices.get(p);
                                 }
 
-                                bump2  = score.localScoreDiff(child, parent, parentIndicesX);
+                                bump2 = score.localScoreDiff(child, parent, parentIndicesX);
                             }
 
                         }
 
-						bump = Math.max(bump, bump2);
+                        bump = Math.max(bump, bump2);
                     }
-
-//                    if (symmetricFirstStep) {
-//                        double bump2 = score.localScoreDiff(child, parent);
-//                        bump = bump > bump2 ? bump : bump2;
-//                    }
 
                     if (boundGraph != null && !boundGraph.isAdjacentTo(x, y)) {
                         continue;
                     }
 
-                    if (bump > 0) {
+                    if (bump > 0.0) {
                         final Edge edge = Edges.undirectedEdge(x, y);
                         effectEdgesGraph.addEdge(edge);
                     }
 
-                    if (bump > 0) {
-                        if (initialGraph == null ){
+                    if (bump > 0.0) {
+                        if (initialGraph == null) {
                             addArrow(x, y, emptySet, emptySet, emptySet, bump, new HashSet<>());
 
-                            if (!symmetricFirstStep){
+                            if (!symmetricFirstStep) {
                                 addArrow(y, x, emptySet, emptySet, emptySet, bump2, new HashSet<>());
                             }
 
-                        }
-                        else{
-                            if( initialGraph.getAdjacentNodes(x).isEmpty() && initialGraph.getAdjacentNodes(y).isEmpty()){
+                        } else {
+                            if (initialGraph.getAdjacentNodes(x).isEmpty() && initialGraph.getAdjacentNodes(y).isEmpty()) {
                                 addArrow(x, y, emptySet, emptySet, emptySet, bump, new HashSet<>());
 
-                                if (!symmetricFirstStep){
+                                if (!symmetricFirstStep) {
                                     addArrow(y, x, emptySet, emptySet, emptySet, bump2, new HashSet<>());
                                 }
-                            }
-                            else{
+                            } else {
                                 calculateArrowsForward(x, y);
                                 calculateArrowsForward(y, x);
                             }
                         }
                     }
-                    if (symmetricFirstStep){
+                    if (symmetricFirstStep) {
                         if (bump2 > 0) {
-                            if (initialGraph == null ){
+                            if (initialGraph == null) {
                                 addArrow(y, x, emptySet, emptySet, emptySet, bump2, new HashSet<>());
 
-                            }
-                            else{
-                                if( initialGraph.getAdjacentNodes(x).isEmpty() && initialGraph.getAdjacentNodes(y).isEmpty()){
+                            } else {
+                                if (initialGraph.getAdjacentNodes(x).isEmpty() && initialGraph.getAdjacentNodes(y).isEmpty()) {
                                     addArrow(y, x, emptySet, emptySet, emptySet, bump2, new HashSet<>());
 
                                 }
@@ -718,7 +708,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         count[0] = 0;
 
         sortedArrows = new ConcurrentSkipListSet<>();
-//        lookupArrows = new ConcurrentHashMap<>();
         neighbors = new ConcurrentHashMap<>();
 
         if (this.effectEdgesGraph == null) {
@@ -1018,8 +1007,6 @@ public final class Fges implements GraphSearch, GraphScorer {
             Arrow arrow = sortedArrows.first();
             sortedArrows.remove(arrow);
 
-//            if (removed.contains(arrow)) continue;
-
             Node x = arrow.getA();
             Node y = arrow.getB();
 
@@ -1210,8 +1197,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         }
         this.neighbors.put(y, getNeighbors(y));
 
-//        clearArrow(x, y);
-
         if (x == y) {
             throw new IllegalArgumentException();
         }
@@ -1227,68 +1212,26 @@ public final class Fges implements GraphSearch, GraphScorer {
         List<Node> TNeighbors = new ArrayList<>(tNeighbors);
         HashSet<Node> parents = new HashSet<>(graph.getParents(y));
 
-//        Set<Set<Node>> previousCliques = new HashSet<>();
-//        previousCliques.add(new HashSet<>());
-//        Set<Set<Node>> newCliques = new HashSet<>();
+        int depth = this.depth == -1 ? Integer.MAX_VALUE : this.depth;
+        depth = Math.min(depth, TNeighbors.size());
 
-//        Set<Node> _T = null;
-//        double _bump = Double.NEGATIVE_INFINITY;
+        final DepthChoiceGenerator gen = new DepthChoiceGenerator(TNeighbors.size(), depth);// TNeighbors.size());
+        int[] choice;
 
-//        FOR:
-//        for (int i = 0; i <= TNeighbors.size(); i++) {
-            final DepthChoiceGenerator gen = new DepthChoiceGenerator(TNeighbors.size(), TNeighbors.size());
-            int[] choice;
+        while ((choice = gen.next()) != null) {
+            Set<Node> T = GraphUtils.asSet(choice, TNeighbors);
+            double bump = insertEval(x, y, T, naYX, hashIndices);
 
-            while ((choice = gen.next()) != null) {
-                Set<Node> T = GraphUtils.asSet(choice, TNeighbors);
-
-//                Set<Node> union = new HashSet<>(naYX);
-//                union.addAll(T);
-
-//                boolean foundAPreviousClique = false;
-//
-//                for (Set<Node> clique : previousCliques) {
-//                    if (union.containsAll(clique)) {
-//                        foundAPreviousClique = true;
-//                        break;
-//                    }
-//                }
-//
-//                if (!foundAPreviousClique) {
-//                    break FOR;
-//                }
-
-//                if (!isClique(union)) {
-//                    contiue;
-//                }
-
-
-//                newCliques.add(union);
-
-                double bump = insertEval(x, y, T, naYX, hashIndices);
-
-                if (bump > 0) {
-//                    if (!validInsert(x, y, T, naYX)) continue;
-//                    _T = T;
-//                    _bump = bump;
-                    addArrow(x, y, T, tNeighbors, naYX, bump, parents);
-                }
-//            }
-//
-//            if (_bump > Double.NEGATIVE_INFINITY) {
-//                addArrow(x, y, _T, new HashSet<>(TNeighbors), naYX, _bump, new HashSet<>(graph.getParents(y)));
-//            }
-
-//            previousCliques = newCliques;
-//            newCliques = new HashSet<>();
+            if (bump > 0.0) {
+                addArrow(x, y, T, tNeighbors, naYX, bump, parents);
+            }
         }
     }
 
     private synchronized void addArrow(Node a, Node b, Set<Node> hOrT, Set<Node> TNeighbors, Set<Node> naYX, double bump,
-                          Set<Node> parents) {
+                                       Set<Node> parents) {
         Arrow arrow = new Arrow(bump, a, b, hOrT, TNeighbors, naYX, arrowIndex++, parents);
         sortedArrows.add(arrow);
-//        addLookupArrow(a, b, arrow);
     }
 
     // Reevaluates arrows after removing an edge from the graph.
@@ -1362,17 +1305,13 @@ public final class Fges implements GraphSearch, GraphScorer {
             }
         }
 
-//        clearArrow(x, y);
-
         Set<Node> naYX = getNaYX(x, y);
         List<Node> _naYX = new ArrayList<>(naYX);
         HashSet<Node> parents = new HashSet<>(graph.getParents(y));
         parents.remove(x);
 
-        final int depth = naYX.size();
-
-//        Set<Node> _h = null;
-//        double _bump = Double.NEGATIVE_INFINITY;
+        int depth = this.depth == -1 ? Integer.MAX_VALUE : this.depth;
+        depth = Math.min(depth, naYX.size());
 
         final DepthChoiceGenerator gen = new DepthChoiceGenerator(naYX.size(), depth);
         int[] choice;
@@ -1386,30 +1325,19 @@ public final class Fges implements GraphSearch, GraphScorer {
                 }
             }
 
-//            Set<Node> nayx = new HashSet<>(naYX);
-//            nayx.removeAll(h);
-//            if (!isClique(nayx)) continue;
-
             double bump = deleteEval(x, y, h, naYX, hashIndices);
 
-            if (bump > 0.0) {
-//                if (!validDelete(x, y, h, naYX)) continue;
-//                _h = h;
-//                _bump = bump;
+            if (bump >= 0.0) {
                 addArrow(x, y, h, null, naYX, bump, parents);
             }
         }
-
-//        if (_bump > Double.NEGATIVE_INFINITY) {
-//            addArrow(x, y, _h, null, naYX, _bump, new HashSet<>(graph.getParents(y)));
-//        }
     }
 
     // Basic data structure for an arrow a->b considered for addition or removal from the graph, together with
-// associated sets needed to make this determination. For both forward and backward direction, NaYX is needed.
-// For the forward direction, TNeighbors neighbors are needed; for the backward direction, H neighbors are needed.
-// See Chickering (2002). The totalScore difference resulting from added in the edge (hypothetically) is recorded
-// as the "bump".
+    // associated sets needed to make this determination. For both forward and backward direction, NaYX is needed.
+    // For the forward direction, TNeighbors neighbors are needed; for the backward direction, H neighbors are needed.
+    // See Chickering (2002). The totalScore difference resulting from added in the edge (hypothetically) is recorded
+    // as the "bump".
     private static class Arrow implements Comparable<Arrow> {
 
         private final double bump;
@@ -1494,25 +1422,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         Set<Node> nb = getNeighbors(y);
         nb.removeAll(graph.getAdjacentNodes(x));
         return nb;
-
-//        List<Edge> yEdges = graph.getEdges(y);
-//        List<Node> tNeighbors = new ArrayList<>();
-//
-//        for (Edge edge : yEdges) {
-//            if (!Edges.isUndirectedEdge(edge)) {
-//                continue;
-//            }
-//
-//            Node z = edge.getDistalNode(y);
-//
-//            if (graph.isAdjacentTo(z, x)) {
-//                continue;
-//            }
-//
-//            tNeighbors.add(z);
-//        }
-//
-//        return tNeighbors;
     }
 
     // Get all adj that are connected to Y.
@@ -1556,9 +1465,12 @@ public final class Fges implements GraphSearch, GraphScorer {
         graph.addDirectedEdge(x, y);
 
         if (verbose) {
+            Set<Node> set = new HashSet<>(getNaYX(x, y));
+            set.addAll(T);
+            set.addAll(graph.getParents(y));
             String label = trueGraph != null && trueEdge != null ? "*" : "";
             TetradLogger.getInstance().forceLogMessage("graph.getNumEdges()" + ". INSERT " + graph.getEdge(x, y)
-                    + " " + T + " " + bump + " " + label);
+                    + " T = " + T + " conditioning on = " + set + " " + bump + " " + label);
         }
 
         int numEdges = graph.getNumEdges();
@@ -1568,7 +1480,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         }
 
         if (verbose) {
-            String label = trueGraph != null && trueEdge != null ? "*" : "";
+           String label = trueGraph != null && trueEdge != null ? "*" : "";
             final String message = graph.getNumEdges() + ". INSERT " + graph.getEdge(x, y)
                     + " " + T + " " + bump + " " + label
                     + " degree = " + GraphUtils.getDegree(graph)
@@ -1613,10 +1525,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         }
 
         Edge oldxy = graph.getEdge(x, y);
-
-        Set<Node> diff = new HashSet<>(naYX);
-        diff.removeAll(H);
-
         graph.removeEdge(oldxy);
 
         int numEdges = graph.getNumEdges();
@@ -1625,15 +1533,16 @@ public final class Fges implements GraphSearch, GraphScorer {
         }
 
         if (verbose) {
+            Set<Node> set = new HashSet<>(naYX);
+            set.removeAll(H);
+            set.addAll(graph.getParents(y));
+
             String label = trueGraph != null && trueEdge != null ? "*" : "";
             String message = (graph.getNumEdges()) + ". DELETE " + x + "-->" + y
-                    + " H = " + H + " NaYX = " + naYX + " diff = " + diff + " (" + bump + ") " + label;
+                    + " H = " + H + " conditioning on = " + set + " (" + bump + ") " + label;
             TetradLogger.getInstance().forceLogMessage(message);
 
             if (trueGraph != null) {
-                Set<Node> set = new HashSet<>(getNaYX(x, y));
-                set.removeAll(H);
-                set.addAll(graph.getParents(y));
                 if (!dseparated(x, y, new ArrayList<>(set))) {
                     TetradLogger.getInstance().forceLogMessage("...d-connected but judged independent");
                 }
@@ -1821,26 +1730,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         Set<Node> nb = getNeighbors(y);
         nb.retainAll(graph.getAdjacentNodes(x));
         return nb;
-
-
-//        List<Node> adj = graph.getAdjacentNodes(y);
-//        Set<Node> nayx = new HashSet<>();
-//
-//        for (Node z : adj) {
-//            if (z == x) {
-//                continue;
-//            }
-//            Edge yz = graph.getEdge(y, z);
-//            if (!Edges.isUndirectedEdge(yz)) {
-//                continue;
-//            }
-//            if (!graph.isAdjacentTo(z, x)) {
-//                continue;
-//            }
-//            nayx.add(z);
-//        }
-//
-//        return nayx;
     }
 
     // Returns true iif the given set forms a clique in the given graph.
@@ -1943,33 +1832,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         }
     }
 
-//    // Removes information associated with an edge x->y.
-//    private void clearArrow(Node x, Node y) {
-//        final OrderedPair<Node> pair = new OrderedPair<>(x, y);
-//        final Set<Arrow> lookupArrows = this.lookupArrows.get(pair);
-//
-//        if (lookupArrows != null) {
-////            sortedArrows.removeAll(lookupArrows);
-//            removed.addAll(lookupArrows);
-//        }
-//
-//        this.lookupArrows.remove(pair);
-//    }
-
-//    // Adds the given arrow for the adjacency i->j. These all are for i->j but may have
-//    // different TNeighbors or H or NaYX sets, and so different bumps.
-//    private void addLookupArrow(Node i, Node j, Arrow arrow) {
-//        OrderedPair<Node> pair = new OrderedPair<>(i, j);
-//        Set<Arrow> arrows = lookupArrows.get(pair);
-//
-//        if (arrows == null) {
-//            arrows = new ConcurrentSkipListSet<>();
-//            lookupArrows.put(pair, arrows);
-//        }
-//
-//        arrows.add(arrow);
-//    }
-
     //===========================SCORING METHODS===================//
 
     private double scoreDag(Graph dag, boolean recordScores) {
@@ -2043,7 +1905,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         final List<Node> parents = graph.getParents(y);
         parents.remove(x);
         set.addAll(parents);
-        return -scoreGraphChange(x, y, set, hashIndices);
+        return -(scoreGraphChange(x, y, set, hashIndices));
     }
 
     private double scoreGraphChange(Node x, Node y, Set<Node> parents,

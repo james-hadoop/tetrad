@@ -29,7 +29,6 @@ import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulation;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.bayes.BayesIm;
@@ -42,16 +41,16 @@ import edu.cmu.tetrad.sem.*;
 import edu.cmu.tetrad.util.*;
 import edu.pitt.csb.mgm.MGM;
 import edu.pitt.csb.mgm.MixedUtils;
+
 import java.io.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
-import static java.lang.Math.log;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 /**
@@ -394,7 +393,7 @@ public class TestFges {
 
         parameters.set(Params.ALPHA, 0.01);
 
-        simulation.createData(parameters);
+        simulation.createData(parameters, false);
 
         DataSet dataSet = (DataSet) simulation.getDataModel(0);
         Graph trueGraph = simulation.getTrueGraph(0);
@@ -708,20 +707,82 @@ public class TestFges {
     @Test
     public void testFromGraph() {
         int numNodes = 20;
+        int aveDegree = 8;
         int numIterations = 1;
 
         for (int i = 0; i < numIterations; i++) {
-//            System.out.println("Iteration " + (i + 1));
-            Graph dag = GraphUtils.randomDag(numNodes, 0, 2 * numNodes, 10, 10, 10, false);
+            Graph dag = GraphUtils.randomDag(numNodes, 0, aveDegree * numNodes / 2, 10, 10, 10, false);
             Fges fges = new Fges(new GraphScore(dag));
-            fges.setFaithfulnessAssumed(false);
+            fges.setFaithfulnessAssumed(true);
             fges.setVerbose(true);
             fges.setTrueGraph(dag);
+            fges.setDepth(1);
             Graph pattern1 = fges.search();
             Graph pattern2 = new Pc(new IndTestDSep(dag)).search();
-//            System.out.println(pattern1);
             assertEquals(pattern2, pattern1);
         }
+    }
+
+    @Test
+    public void testFromData() {
+        int numIterations = 1;
+
+        Parameters params = new Parameters();
+
+        int[] nodeOptions = {5, 10, 20, 30, 40, 50, 75, 100};
+        int[] avgDegreeOptions = {2, 4, 6};
+        int[] sampleSizeOptions = {100, 500, 1000, 10000, 100000};
+
+        int numRowsInTable = nodeOptions.length * avgDegreeOptions.length * sampleSizeOptions.length;
+
+        TextTable table = new TextTable(numRowsInTable + 1, 5);
+
+        table.setToken(0, 0, "# Nodes");
+        table.setToken(0, 1, "Avg Degree");
+        table.setToken(0, 2, "# Samples");
+        table.setToken(0, 3, "True # edges");
+        table.setToken(0, 4, "Est # Edges");
+
+        int count = 0;
+
+        for (int numNodes : nodeOptions) {
+            for (int avgDegree : avgDegreeOptions) {
+                for (int sampleSize : sampleSizeOptions) {
+                    for (int q = 0; q < 1; q++) {
+                        for (int i = 0; i < numIterations; i++) {
+                            Graph dag = GraphUtils.randomDag(numNodes, 0,
+                                    (avgDegree * numNodes) / 2, 100, 100, 100, false);
+                            SemPm pm = new SemPm(dag);
+                            SemIm im = new SemIm(pm, params);
+                            DataSet data = im.simulateData(sampleSize, false);
+                            SemBicScore score = new SemBicScore(data);
+                            score.setPenaltyDiscount(.5);
+                            Fges fges = new Fges(score);
+                            fges.setFaithfulnessAssumed(false);
+                            fges.setVerbose(false);
+                            fges.setTrueGraph(dag);
+                            Graph pattern1 = fges.search();
+                            System.out.println("num nodes = " + numNodes + " avg degree = " + avgDegree
+                                    + " sample size = " + sampleSize
+                                    + " true # edges = " + dag.getNumEdges()
+                                    + " est # edges = " + pattern1.getNumEdges());
+
+                            count++;
+                            table.setToken(count, 0, "" + numNodes);
+                            table.setToken(count, 1, "" + avgDegree);
+                            table.setToken(count, 2, "" + sampleSize);
+                            table.setToken(count, 3, "" + dag.getNumEdges());
+                            table.setToken(count, 4, "" + pattern1.getNumEdges());
+
+                        }
+                    }
+                }
+            }
+        }
+
+        System.out.println("\n==========================\n");
+        System.out.println(table);
+
     }
 
 
@@ -782,7 +843,7 @@ public class TestFges {
                     System.out.println("Knowledge violated: " + edge + " x = " + x + " y = " + y);
                 }
 
-                assertTrue (pattern1.isParentOf(x, y));
+                assertTrue(pattern1.isParentOf(x, y));
             }
         }
     }
@@ -1600,7 +1661,7 @@ public class TestFges {
 
         RandomGraph graph = new RandomForward();
         LinearFisherModel sim = new LinearFisherModel(graph);
-        sim.createData(parameters);
+        sim.createData(parameters, false);
         Graph previous = null;
         int prevDiff = Integer.MAX_VALUE;
 
@@ -1661,7 +1722,7 @@ public class TestFges {
         final int N = 1000;
         int numCond = 3;
 
-        Graph graph = GraphUtils.randomGraph(10,0, 20, 100,
+        Graph graph = GraphUtils.randomGraph(10, 0, 20, 100,
                 100, 100, false);
         final List<Node> nodes = graph.getNodes();
         buildIndexing(nodes);
@@ -1685,7 +1746,7 @@ public class TestFges {
             }
 
             final boolean _dsep = dsep.isIndependent(x, y, new ArrayList<>(z));
-            final double diff = scoreGraphChange(x, y, z, hashIndices, score) ;
+            final double diff = scoreGraphChange(x, y, z, hashIndices, score);
             final boolean diffNegative = diff < 0;
 
             if (!_dsep && _dsep != diffNegative) {
@@ -1766,7 +1827,7 @@ public class TestFges {
 
             RandomGraph graph = new RandomForward();
             LinearFisherModel sim = new LinearFisherModel(graph);
-            sim.createData(parameters);
+            sim.createData(parameters, false);
             ScoreWrapper score = new edu.cmu.tetrad.algcomparison.score.SemBicScore();
             Algorithm alg = new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(score);
 

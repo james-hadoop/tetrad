@@ -34,8 +34,8 @@ public class LoadContinuousDataSmithSim implements Simulation, HasParameterValue
     }
 
     @Override
-    public void createData(Parameters parameters) {
-        if (!dataSets.isEmpty()) return;
+    public void createData(Parameters parameters, boolean newModel) {
+        if (!newModel && !dataSets.isEmpty()) return;
         this.dataSets = new ArrayList<>();
 
         File dir2 = new File(path + "/models");

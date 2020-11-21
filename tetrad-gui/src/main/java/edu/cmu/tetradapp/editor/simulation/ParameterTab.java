@@ -43,6 +43,8 @@ import edu.cmu.tetradapp.model.Simulation;
 import edu.cmu.tetradapp.ui.PaddingPanel;
 import edu.cmu.tetradapp.util.ParameterComponents;
 import edu.cmu.tetradapp.util.WatchedProcess;
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -123,6 +125,16 @@ public class ParameterTab extends JPanel {
     }
 
     private void refreshParameters() {
+        RandomGraph randomGraph = newRandomGraph();
+        newSimulation(randomGraph);
+
+        showParameters();
+
+        firePropertyChange("refreshParameters", null, null);
+    }
+
+    @NotNull
+    private RandomGraph newRandomGraph() {
         RandomGraph randomGraph = (simulation.getSourceGraph() == null)
                 ? new SingleGraph(new EdgeListGraph())
                 : new SingleGraph(simulation.getSourceGraph());
@@ -151,7 +163,10 @@ public class ParameterTab extends JPanel {
                     throw new IllegalArgumentException("Unrecognized simulation type: " + graphItem);
             }
         }
+        return randomGraph;
+    }
 
+    private void newSimulation(RandomGraph randomGraph) {
         if (!simulation.isFixedSimulation()) {
             String simulationItem = simulationsDropdown.getItemAt(simulationsDropdown.getSelectedIndex());
             simulation.getParams().set("simulationsDropdownPreference", simulationItem);
@@ -209,10 +224,6 @@ public class ParameterTab extends JPanel {
                 }
             }
         }
-
-        showParameters();
-
-        firePropertyChange("refreshParameters", null, null);
     }
 
     private void showParameters() {
@@ -289,7 +300,7 @@ public class ParameterTab extends JPanel {
                 simulation.getParams().getString("simulationsDropdownPreference", simulationItems[0]));
         simulationsDropdown.addActionListener(e -> refreshParameters());
 
-        simOptBox.add(createLabeledComponent("For a New Simulation, Select (or re-select) Type: ", simulationsDropdown));
+        simOptBox.add(createLabeledComponent("Type of Simulation: ", simulationsDropdown));
         simOptBox.add(Box.createVerticalStrut(20));
 
         return simOptBox;
@@ -300,7 +311,9 @@ public class ParameterTab extends JPanel {
             @Override
             public void watch() {
                 try {
-                    simulation.getSimulation().createData(simulation.getParams());
+                    RandomGraph randomGraph = newRandomGraph();
+                    newSimulation(randomGraph);
+                    simulation.getSimulation().createData(simulation.getParams(), false);
 
                     firePropertyChange("modelChanged", null, null);
                 } catch (Exception exception) {
