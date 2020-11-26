@@ -1,9 +1,7 @@
 package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
-import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pc;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
@@ -22,7 +20,6 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TextTable;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -186,16 +183,18 @@ public class TestFisherZCalibration {
         parameters.set(Params.NUM_RUNS, 5);
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 4);
-        parameters.set(Params.SAMPLE_SIZE, 50, 100, 500, 1000, 2000, 5000, 10000, 20000, 50000);
+        parameters.set(Params.SAMPLE_SIZE, 500, 1000, 5000, 10000, 20000, 100000);
         parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
-        parameters.set(Params.COEF_LOW, .2);
-        parameters.set(Params.COEF_HIGH, .7);
+        parameters.set(Params.COEF_LOW, 0.2);
+        parameters.set(Params.COEF_HIGH, 0.7);
         parameters.set(Params.VAR_LOW, 1.0);
-        parameters.set(Params.VAR_HIGH, 1.1);
+        parameters.set(Params.VAR_HIGH, 3.0);
         parameters.set(Params.DEPTH, 1);
         parameters.set(Params.VERBOSE, false);
+        parameters.set(Params.RANDOMIZE_COLUMNS, true);
+        parameters.set(Params.COLLIDER_DISCOVERY_RULE, 2);
 
         Statistics statistics = new Statistics();
 
@@ -212,10 +211,14 @@ public class TestFisherZCalibration {
         statistics.add(new ArrowheadRecall());
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
+
+        statistics.add(new AhpR());
+        statistics.add(new AhpBound());
+
         statistics.add(new F1Adj());
         statistics.add(new F1Arrow());
-        statistics.add(new SHD());
-        statistics.add(new ElapsedTime());
+//        statistics.add(new SHD());
+//        statistics.add(new ElapsedTime());
 
 //        statistics.setWeight("AP", 1.0);
 //        statistics.setWeight("AR", 0.5);
@@ -224,7 +227,7 @@ public class TestFisherZCalibration {
 
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
                 new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
-        algorithms.add(new Pc(new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new FisherZ()));
 
         Simulations simulations = new Simulations();
 
@@ -235,7 +238,7 @@ public class TestFisherZCalibration {
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
         comparison.setShowUtilities(false);
-//        comparison.setSaveGraphs(true);
+        comparison.setSaveGraphs(false);
 //        comparison.setSavePags(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
 
