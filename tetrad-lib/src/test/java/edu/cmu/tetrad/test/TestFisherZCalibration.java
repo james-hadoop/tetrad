@@ -181,20 +181,21 @@ public class TestFisherZCalibration {
 
         Parameters parameters = new Parameters();
         parameters.set(Params.NUM_RUNS, 5);
-        parameters.set(Params.NUM_MEASURES, 20);
-        parameters.set(Params.AVG_DEGREE, 4);
-        parameters.set(Params.SAMPLE_SIZE, 500, 1000, 5000, 10000, 20000, 100000);
-        parameters.set(Params.PENALTY_DISCOUNT, 1);
-        parameters.set(Params.STRUCTURE_PRIOR, 0);
+        parameters.set(Params.NUM_MEASURES, 10, 20);
+        parameters.set(Params.AVG_DEGREE, 2, 4);
+        parameters.set(Params.SAMPLE_SIZE, 500, 1000, 5000, 10000, 20000, 100000, 200000);
+        parameters.set(Params.PENALTY_DISCOUNT, 3);
+        parameters.set(Params.STRUCTURE_PRIOR, 3);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
-        parameters.set(Params.COEF_LOW, 0.2);
-        parameters.set(Params.COEF_HIGH, 0.7);
+        parameters.set(Params.COEF_LOW, 0.3);
+        parameters.set(Params.COEF_HIGH, 1.5);
         parameters.set(Params.VAR_LOW, 1.0);
-        parameters.set(Params.VAR_HIGH, 3.0);
+        parameters.set(Params.VAR_HIGH, 2.0);
+//        parameters.set(Params.MAX_DEGREE, -1);
         parameters.set(Params.DEPTH, 1);
         parameters.set(Params.VERBOSE, false);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
-        parameters.set(Params.COLLIDER_DISCOVERY_RULE, 2);
+        parameters.set(Params.COLLIDER_DISCOVERY_RULE, 1);
 
         Statistics statistics = new Statistics();
 
@@ -227,8 +228,12 @@ public class TestFisherZCalibration {
 
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
                 new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new FisherZ()));
-
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+//                new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new FisherZ(),
+//                new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+//                        new edu.cmu.tetrad.algcomparison.score.SemBicScore())));
+//
         Simulations simulations = new Simulations();
 
         simulations.add(new SemSimulation(new RandomForward()));

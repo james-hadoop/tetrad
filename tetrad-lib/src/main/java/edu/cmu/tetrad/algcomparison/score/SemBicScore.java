@@ -43,6 +43,24 @@ public class SemBicScore implements ScoreWrapper {
 
         semBicScore.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
         semBicScore.setStructurePrior(parameters.getDouble(Params.STRUCTURE_PRIOR));
+        semBicScore.setMaxPartialCorrelation(parameters.getDouble(Params.MAX_CORRELATION));
+
+        switch (parameters.getInt(Params.SEM_BIC_RULE)) {
+            case 1:
+                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.HIGH_DIMENSIONAL);
+                break;
+            case 2:
+                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.NANDY);
+                break;
+            case 3:
+                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.STANDARD_BIC_DIFF);
+                break;
+            default:
+                throw new IllegalStateException("Expecting 1, 2 or 3: " + parameters.getInt(Params.SEM_BIC_RULE));
+        }
+
+
+        semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.HIGH_DIMENSIONAL);
         return semBicScore;
     }
 
@@ -61,6 +79,8 @@ public class SemBicScore implements ScoreWrapper {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.PENALTY_DISCOUNT);
         parameters.add(Params.STRUCTURE_PRIOR);
+        parameters.add(Params.MAX_CORRELATION);
+        parameters.add(Params.SEM_BIC_RULE);
         return parameters;
     }
 

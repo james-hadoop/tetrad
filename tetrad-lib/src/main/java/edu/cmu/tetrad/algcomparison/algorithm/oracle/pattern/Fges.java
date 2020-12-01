@@ -77,7 +77,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
             search.setSymmetricFirstStep(parameters.getBoolean(Params.SYMMETRIC_FIRST_STEP));
-            search.setDepth(parameters.getInt(Params.DEPTH));
+            search.setTDepth(parameters.getInt(Params.DEPTH));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
             if (obj instanceof PrintStream) {
@@ -146,7 +146,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
         parameters.add(Params.FAITHFULNESS_ASSUMED);
         parameters.add(Params.SYMMETRIC_FIRST_STEP);
         parameters.add(Params.MAX_DEGREE);
-        parameters.add(Params.DEPTH);
+        parameters.add(Params.TDEPTH);
 
         parameters.add(Params.VERBOSE);
 

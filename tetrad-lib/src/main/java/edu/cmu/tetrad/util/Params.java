@@ -167,6 +167,7 @@ public final class Params {
     public static final String STRUCTURE_PRIOR = "structurePrior";
     public static final String SYMMETRIC_FIRST_STEP = "symmetricFirstStep";
     public static final String TARGET_NAME = "targetName";
+    public static final String TDEPTH = "tDepth";
     public static final String TESTWISE_DELETION = "testwiseDeletion";
     public static final String THR = "thr";
     public static final String THRESHOLD_FOR_NUM_EIGENVALUES = "thresholdForNumEigenvalues";
@@ -188,6 +189,8 @@ public final class Params {
 
     // System prameters that are not supposed to put in the HTML manual documentation
     public static final String PRINT_STREAM = "printStream";
+    public static final String MAX_CORRELATION = "maxCorrelation";
+    public static final String SEM_BIC_RULE = "semBicRule";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(

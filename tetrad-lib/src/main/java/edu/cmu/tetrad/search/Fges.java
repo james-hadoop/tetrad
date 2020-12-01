@@ -58,14 +58,13 @@ public final class Fges implements GraphSearch, GraphScorer {
 
     private IndependenceTest graphScore = null;
 
-    public void setDepth(int depth) {
+    public void setTDepth(int depth) {
         this.depth = depth;
     }
 
     /**
      * Internal.
      */
-
     private enum Mode {
         allowUnfaithfulness, heuristicSpeedup, coverNoncolliders
     }
@@ -678,7 +677,6 @@ public final class Fges implements GraphSearch, GraphScorer {
 
     private void initializeForwardEdgesFromEmptyGraph(final List<Node> nodes) {
         sortedArrows = new ConcurrentSkipListSet<>();
-//        lookupArrows = new ConcurrentHashMap<>();
         neighbors = new ConcurrentHashMap<>();
         final Set<Node> emptySet = new HashSet<>();
 
@@ -824,7 +822,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         count[0] = 0;
 
         sortedArrows = new ConcurrentSkipListSet<>();
-//        lookupArrows = new ConcurrentHashMap<>();
         neighbors = new ConcurrentHashMap<>();
 
         if (this.effectEdgesGraph == null) {
@@ -929,8 +926,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         while (!sortedArrows.isEmpty()) {
             Arrow arrow = sortedArrows.first();
             sortedArrows.remove(arrow);
-
-//            if (removed.contains(arrow)) continue;
 
             Node x = arrow.getA();
             Node y = arrow.getB();
@@ -1480,7 +1475,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         }
 
         if (verbose) {
-           String label = trueGraph != null && trueEdge != null ? "*" : "";
+            String label = trueGraph != null && trueEdge != null ? "*" : "";
             final String message = graph.getNumEdges() + ". INSERT " + graph.getEdge(x, y)
                     + " " + T + " " + bump + " " + label
                     + " degree = " + GraphUtils.getDegree(graph)
@@ -1905,7 +1900,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         final List<Node> parents = graph.getParents(y);
         parents.remove(x);
         set.addAll(parents);
-        return -(scoreGraphChange(x, y, set, hashIndices));
+        return -(scoreGraphChange(x, y, set, hashIndices));// + 0.05 * score.getSampleSize();
     }
 
     private double scoreGraphChange(Node x, Node y, Set<Node> parents,

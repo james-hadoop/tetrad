@@ -4163,6 +4163,17 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="maxCategories_value_type">Integer</span></li>
         </ul>
 
+        <h3 id="maxCorrelation" class="parameter_description">maxCorrelation</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="maxCorrelation_short_desc">Maximum absoluate correlation considered</span></li>
+            <li>Long Description: <span id="maxCorrelation_long_desc">For the Nandy rule, the absoluate max correlation r.
+                For the standard BIC or high-dimensional rule, the maximum absolute partial correlation.</span></li>
+            <li>Default Value: <span id="maxCorrelation_default_value">1.0</span></li>
+            <li>Lower Bound: <span id="maxCorrelation_lower_bound">0.0</span></li>
+            <li>Upper Bound: <span id="maxCorrelation_upper_bound">1.0</span></li>
+            <li>Value Type: <span id="maxCorrelation_value_type">Double</span></li>
+        </ul>
+
         <h3 id="maxDegree" class="parameter_description">maxDegree</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="maxDegree_short_desc">The maximum degree of the graph (min = -1)</span>
@@ -4789,6 +4800,23 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="selfLoopCoef_value_type">Double</span></li>
         </ul>
 
+        <h3 id="semBicRule" class="parameter_description">semBicRule</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="semBicRule_short_desc">1 = High Dimensional, 2 = Nandy, 3 = Standard BIC</span>
+            </li>
+            <li>Long Description: <span id="semBicRule_long_desc">The rule used for calculating a score. The high dimensional rule is given on the Wikipedia
+                page for Bayesian Information Criterion (BIC) and amounts to substituting the number of variables for the sample size in the standard
+                BIC difference rule. The Nandy et al. rule is an optimization of the standard BIC difference rule. The standard BIC difference rule is
+                given in Chickering's paper on GES as the local scoring consistency criterion. In all cases we include a multiplier on the penalty term
+                which we call the "penalty discount" (for grandfathered reasons) and a structure prior, which amounts to a prior on the number of
+                parents in any scoring, a binomial formula.</span>
+            </li>
+            <li>Default Value: <span id="semBicRule_default_value">0</span></li>
+            <li>Lower Bound: <span id="semBicRule_lower_bound">0</span></li>
+            <li>Upper Bound: <span id="semBicRule_upper_bound">2147483647</span></li>
+            <li>Value Type: <span id="semBicRule_value_type">Integer</span></li>
+        </ul>
+
         <h3 id="skipNumRecords" class="parameter_description">skipNumRecords</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="skipNumRecords_short_desc">Number of records that should be skipped between recordings (min = 0)</span>
@@ -4856,6 +4884,19 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Lower Bound: <span id="targetName_lower_bound"></span></li>
             <li>Upper Bound: <span id="targetName_upper_bound"></span></li>
             <li>Value Type: <span id="targetName_value_type">String</span></li>
+        </ul>
+
+        <h3 id="tDepth" class="parameter_description">tDepth</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="tDepth_short_desc">The maximum number of neighbors considered in power set calculations</span>
+            </li>
+            <li>Long Description: <span id="tDepth_long_desc">For FGES, this is the maximum number of T-neighbors or H-complement-neights
+                that are considered in any scoring step. Any value >= 1 is fine.</span>
+            </li>
+            <li>Default Value: <span id="tDepth_default_value">1</span></li>
+            <li>Lower Bound: <span id="tDepth_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="tDepth_upper_bound">2147483647</span></li>
+            <li>Value Type: <span id="tDepth_value_type">Integer</span></li>
         </ul>
 
         <h3 id="thr" class="parameter_description">thr</h3>
