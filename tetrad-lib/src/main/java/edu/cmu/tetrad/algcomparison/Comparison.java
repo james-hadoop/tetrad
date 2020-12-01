@@ -112,6 +112,7 @@ public class Comparison {
     private String resultsPath = null;
     private boolean parallelized = false;
     private boolean savePatterns = false;
+    private boolean saveData = true;
     private boolean savePags = false;
     //    private boolean saveTrueDags = false;
     private ArrayList<String> dirs = null;
@@ -585,11 +586,13 @@ public class Comparison {
 
                     GraphUtils.saveGraph(graph, file2, false);
 
-                    File file = new File(dir2, "data." + (j + 1) + ".txt");
-                    Writer out = new FileWriter(file);
-                    DataModel dataModel = (DataModel) simulationWrapper.getDataModel(j);
-                    DataWriter.writeRectangularData((DataSet) dataModel, out, '\t');
-                    out.close();
+                    if (isSaveData()) {
+                        File file = new File(dir2, "data." + (j + 1) + ".txt");
+                        Writer out = new FileWriter(file);
+                        DataModel dataModel = (DataModel) simulationWrapper.getDataModel(j);
+                        DataWriter.writeRectangularData((DataSet) dataModel, out, '\t');
+                        out.close();
+                    }
 
                     if (isSavePatterns()) {
                         File file3 = new File(dir3, "pattern." + (j + 1) + ".txt");
@@ -1147,6 +1150,20 @@ public class Comparison {
 //    public void setSaveTrueDags(boolean saveTrueDags) {
 //        this.saveTrueDags = saveTrueDags;
 //    }
+
+    /**
+     * @return True if patterns should be saved out.
+     */
+    public boolean isSaveData() {
+        return this.saveData;
+    }
+
+    /**
+     * @return True if patterns should be saved out.
+     */
+    public void setSaveData(boolean saveData) {
+        this.saveData = saveData;
+    }
 
     /**
      * @return True iff tables should be tab delimited (e.g. for easy pasting

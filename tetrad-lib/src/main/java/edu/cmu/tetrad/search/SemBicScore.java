@@ -75,7 +75,7 @@ public class SemBicScore implements Score {
     private boolean nandy = false;
 
     // To avoid partial correlations near 1, a maximum can be set in absolute value, for instance 0.97.
-    private double maxPartialCorrelation = 0.97;
+    private double maxCorrelation = 1.0;
 
     // The rule type to use.
     private RuleType ruleType = RuleType.HIGH_DIMENSIONAL;
@@ -143,7 +143,7 @@ public class SemBicScore implements Score {
 
         double r = partialCorrelation(_x, _y, _z, rows);
 
-        r = min(maxPartialCorrelation, abs(r));
+        r = min(maxCorrelation, abs(r));
 
         return -sampleSize * log(1.0 - r * r) - getPenaltyDiscount() * log(sampleSize)
                 - 2.0 * (sp1 - sp2);
@@ -182,7 +182,7 @@ public class SemBicScore implements Score {
             Matrix byx = insertOne(p, b);
             double s2 = byx.transpose().times(covyxyx).times(byx).get(0, 0);
 
-            s2 = min(maxPartialCorrelation, s2);
+            s2 = min(maxCorrelation, abs(s2));
 
             if (s2 <= 0) {
                 if (isVerbose()) {
@@ -436,7 +436,8 @@ public class SemBicScore implements Score {
 
     private double partialCorrelation(Node x, Node y, List<Node> z, List<Integer> rows) {
         try {
-            return StatUtils.partialCorrelation(MatrixUtils.convertCovToCorr(getCov(rows, indices(x, y, z))));
+//            return StatUtils.partialCorrelation(MatrixUtils.convertCovToCorr(getCov(rows, indices(x, y, z))));
+            return StatUtils.partialCorrelation(getCov(rows, indices(x, y, z)));
         } catch (Exception e) {
             return NaN;
         }
@@ -508,8 +509,8 @@ public class SemBicScore implements Score {
         this.nandy = nandy;
     }
 
-    public void setMaxPartialCorrelation(double maxPartialCorrelation) {
-        this.maxPartialCorrelation = maxPartialCorrelation;
+    public void setMaxCorrelation(double maxCorrelation) {
+        this.maxCorrelation = maxCorrelation;
     }
 
     public void setRuleType(RuleType ruleType) {

@@ -570,6 +570,7 @@ public class TestFges {
         knowledge.addToTier(6, "CITES");
 
         SemBicScore score = new SemBicScore(cov);
+        score.setRuleType(SemBicScore.RuleType.NANDY);
         score.setPenaltyDiscount(1);
         score.setStructurePrior(0);
         Fges fges = new Fges(score);
@@ -723,7 +724,7 @@ public class TestFges {
         }
     }
 
-    @Test
+//    @Test
     public void testFromData() {
         int numIterations = 1;
 

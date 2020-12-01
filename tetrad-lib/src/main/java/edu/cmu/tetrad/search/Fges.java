@@ -58,11 +58,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
     private IndependenceTest graphScore = null;
 
-    public void setTDepth(int depth) {
-        this.depth = depth;
-    }
-
-    /**
+     /**
      * Internal.
      */
     private enum Mode {
@@ -176,7 +172,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     private final int maxThreads;
 
     // Max number of nodes reoriented in any step.
-    private int depth = 1;
+    private int tdepth = -1;
 
     //===========================CONSTRUCTORS=============================//
 
@@ -205,6 +201,10 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     //==========================PUBLIC METHODS==========================//
+
+    public void setTDepth(int tdepth) {
+        this.tdepth = tdepth;
+    }
 
     /**
      * Set to true if it is assumed that all path pairs with one length 1 path
@@ -1207,7 +1207,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         List<Node> TNeighbors = new ArrayList<>(tNeighbors);
         HashSet<Node> parents = new HashSet<>(graph.getParents(y));
 
-        int depth = this.depth == -1 ? Integer.MAX_VALUE : this.depth;
+        int depth = this.tdepth == -1 ? Integer.MAX_VALUE : this.tdepth;
         depth = Math.min(depth, TNeighbors.size());
 
         final DepthChoiceGenerator gen = new DepthChoiceGenerator(TNeighbors.size(), depth);// TNeighbors.size());
@@ -1305,7 +1305,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         HashSet<Node> parents = new HashSet<>(graph.getParents(y));
         parents.remove(x);
 
-        int depth = this.depth == -1 ? Integer.MAX_VALUE : this.depth;
+        int depth = this.tdepth == -1 ? Integer.MAX_VALUE : this.tdepth;
         depth = Math.min(depth, naYX.size());
 
         final DepthChoiceGenerator gen = new DepthChoiceGenerator(naYX.size(), depth);
