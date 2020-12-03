@@ -21,12 +21,15 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.CorrelationMatrix;
+import edu.cmu.tetrad.data.CovarianceMatrix;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.*;
+import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.StatUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -53,9 +56,6 @@ public class SemBicScore implements Score {
     // The sample size of the covariance matrix.
     private final int sampleSize;
 
-    // The printstream output should be sent to.
-    private PrintStream out = System.out;
-
     // True if verbose output should be sent to out.
     private boolean verbose = false;
 
@@ -70,9 +70,6 @@ public class SemBicScore implements Score {
 
     // Equivalent sample size
     private Matrix matrix;
-
-    // True if the Nandy formulation of the score should be used.
-    private boolean nandy = false;
 
     // To avoid partial correlations near 1, a maximum can be set in absolute value, for instance 0.97.
     private double maxCorrelation = 1.0;
@@ -163,64 +160,50 @@ public class SemBicScore implements Score {
     public double localScore(int i, int... parents) {
         List<Integer> rows = getRows(i, parents);
 
-        try {
-            final int p = parents.length;
-            int incr = 2;
-            int k = p + incr;
+        final int p = parents.length;
+        int incr = 2;
+        int k = p + incr;
 
-            int[] all = insertI(i, p, parents);
+        int[] all = insertI(i, p, parents);
 
-            // Only do this once.
-            Matrix covyxyx = getCov(rows, all, all);
+        // Only do this once.
+        Matrix covyxyx = getCov(rows, all, all);
 
-            int[] pp = restrictedParents(parents);
+        int[] pp = restrictedParents(parents);
 
-            Matrix covx = covyxyx.getSelection(pp, pp);
-            Matrix covxy = covyxyx.getSelection(pp, new int[]{0});
+        Matrix covx = covyxyx.getSelection(pp, pp);
+        Matrix covxy = covyxyx.getSelection(pp, new int[]{0});
 
-            Matrix b = covx.inverse().times(covxy);
-            Matrix byx = insertOne(p, b);
-            double s2 = byx.transpose().times(covyxyx).times(byx).get(0, 0);
+        Matrix b = covx.inverse().times(covxy);
+        Matrix byx = insertOne(p, b);
+        double s2 = byx.transpose().times(covyxyx).times(byx).get(0, 0);
 
-            s2 = min(maxCorrelation, abs(s2));
+        s2 = min(maxCorrelation, abs(s2));
 
-            if (s2 <= 0) {
-                if (isVerbose()) {
-                    out.println("Nonpositive residual varianceY: resVar / varianceY = " + (s2 / getCovariances().getValue(i, i)));
-                }
+        if (ruleType == RuleType.CHICKERING) {
 
-                return NaN;
-            }
+            // Standard BIC, with penalty discount and structure prior.
+            double c = getPenaltyDiscount();
+            return -(double) sampleSize * log(s2) - getPenaltyDiscount() * c * k * log(sampleSize) - 2 * getStructurePrior(p);
+        } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
-            int N;
+            // Pseudo-BIC formula, set Wikipedia page for BIC. With penalty discount and structure prior.
 
-            if (ruleType == RuleType.STANDARD_BIC_DIFF) {
+            double gamma = 1.; // Can be any positive constant > 0.
+            double omega = getPenaltyDiscount(); // >= 1.
 
-                // Standard BIC, with penalty discount and structure prior.
-                N = sampleSize;
-            } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
-
-                // High dimensional formula, set Wikipedia page for BIC. With penalty discount and structure prior.
-                N = variables.size();
-            } else {
-                throw new IllegalStateException("That rule type is not implemented: " + ruleType);
-            }
-
-            return -(double) N * log(s2) - getPenaltyDiscount() * k * log(N) - 2 * getStructurePrior(p) ;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return NaN;
+            return -sampleSize * log(s2) - (1. + gamma) * 6 * omega * k * log(variables.size()) - 2 * getStructurePrior(p);
+        } else {
+            throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
     }
 
-    @NotNull
     public int[] restrictedParents(int[] parents) {
         int[] pp = new int[parents.length];
         for (int j = 0; j < pp.length; j++) pp[j] = j + 1;
         return pp;
     }
 
-    @NotNull
     public int[] insertI(int i, int p, int[] parents) {
         int[] all = new int[p + 1];
         System.arraycopy(parents, 0, all, 1, p);
@@ -248,10 +231,6 @@ public class SemBicScore implements Score {
      */
     public double localScore(int i) {
         return localScore(i, new int[0]);
-    }
-
-    public void setOut(PrintStream out) {
-        this.out = out;
     }
 
     public double getPenaltyDiscount() {
@@ -505,10 +484,6 @@ public class SemBicScore implements Score {
         return cov;
     }
 
-    public void setNandy(boolean nandy) {
-        this.nandy = nandy;
-    }
-
     public void setMaxCorrelation(double maxCorrelation) {
         this.maxCorrelation = maxCorrelation;
     }
@@ -517,7 +492,7 @@ public class SemBicScore implements Score {
         this.ruleType = ruleType;
     }
 
-    public enum RuleType{STANDARD_BIC_DIFF, NANDY, HIGH_DIMENSIONAL}
+    public enum RuleType {CHICKERING, NANDY, HIGH_DIMENSIONAL}
 }
 
 

@@ -19,7 +19,7 @@ import java.util.*;
         command = "sem-bic-test",
         dataType = {DataType.Continuous, DataType.Covariance}
 )
-@Experimental
+//@Experimental
 public class SemBicTest implements IndependenceWrapper {
 
     static final long serialVersionUID = 23L;
@@ -33,8 +33,24 @@ public class SemBicTest implements IndependenceWrapper {
         } else {
             score = new SemBicScore((DataSet) dataSet);
         }
+
         score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
-        score.setStructurePrior(parameters.getDouble(Params.STRUCTURE_PRIOR));
+        score.setStructurePrior(parameters.getDouble(Params.SEM_BIC_STRUCTURE_PRIOR));
+        score.setMaxCorrelation(parameters.getDouble(Params.MAX_CORRELATION));
+
+        switch (parameters.getInt(Params.SEM_BIC_RULE)) {
+            case 1:
+                score.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.HIGH_DIMENSIONAL);
+                break;
+            case 2:
+                score.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.NANDY);
+                break;
+            case 3:
+                score.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.CHICKERING);
+                break;
+            default:
+                throw new IllegalStateException("Expecting 1, 2 or 3: " + parameters.getInt(Params.SEM_BIC_RULE));
+        }
 
         return new IndTestScore(score, dataSet);
     }
@@ -53,7 +69,9 @@ public class SemBicTest implements IndependenceWrapper {
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
         params.add(Params.PENALTY_DISCOUNT);
-        params.add(Params.STRUCTURE_PRIOR);
+        params.add(Params.SEM_BIC_STRUCTURE_PRIOR);
+        params.add(Params.MAX_CORRELATION);
+        params.add(Params.SEM_BIC_RULE);
         return params;
     }
 }

@@ -181,14 +181,14 @@ public class TestFisherZCalibration {
 
         Parameters parameters = new Parameters();
         parameters.set(Params.NUM_RUNS, 5);
-        parameters.set(Params.NUM_MEASURES, 10, 20);
+        parameters.set(Params.NUM_MEASURES, 10, 20, 50);
         parameters.set(Params.AVG_DEGREE, 2, 4);
         parameters.set(Params.SAMPLE_SIZE, 500, 1000, 5000, 10000, 20000);
 
         parameters.set(Params.SEM_BIC_RULE, 1);
-        parameters.set(Params.PENALTY_DISCOUNT, 0.5);
+        parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
-        parameters.set(Params.MAX_CORRELATION, 0.97);
+        parameters.set(Params.MAX_CORRELATION, 1);
 
         parameters.set(Params.TDEPTH, 2);
 
