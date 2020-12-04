@@ -117,11 +117,11 @@ public class SemBicScore implements Score {
     @Override
     public double localScoreDiff(int x, int y, int[] z) {
 
-        if (ruleType == RuleType.NANDY) {
-            return nandyBic(x, y, z);
-        } else {
+//        if (ruleType == RuleType.NANDY) {
+//            return nandyBic(x, y, z);
+//        } else {
             return localScore(y, append(z, x)) - localScore(y, z);
-        }
+//        }
     }
 
     public double nandyBic(int x, int y, int[] z) {
@@ -179,20 +179,28 @@ public class SemBicScore implements Score {
         double s2 = byx.transpose().times(covyxyx).times(byx).get(0, 0);
 
         s2 = min(maxCorrelation, abs(s2));
-
         if (ruleType == RuleType.CHICKERING) {
 
             // Standard BIC, with penalty discount and structure prior.
             double c = getPenaltyDiscount();
             return -(double) sampleSize * log(s2) - getPenaltyDiscount() * c * k * log(sampleSize) - 2 * getStructurePrior(p);
+        } else if (ruleType == RuleType.NANDY) {
+
+            // Pseudo-BIC formula, set Wikipedia page for BIC. With penalty discount and structure prior.
+
+            double gamma = .1; // Can be any positive constant > 0.
+            double omega = getPenaltyDiscount(); // >= 1.
+
+            return -(sampleSize) * log(s2) - getPenaltyDiscount() * (sampleSize / (double) variables.size()) * k * log(variables.size());
+//            return -(sampleSize) * log(s2) - getPenaltyDiscount() * k * pow(log(variables.size()), log(variables.size()));
         } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
             // Pseudo-BIC formula, set Wikipedia page for BIC. With penalty discount and structure prior.
 
-            double gamma = 1.; // Can be any positive constant > 0.
+            double gamma = .1; // Can be any positive constant > 0.
             double omega = getPenaltyDiscount(); // >= 1.
 
-            return -sampleSize * log(s2) - (1. + gamma) * 6 * omega * k * log(variables.size()) - 2 * getStructurePrior(p);
+            return -(variables.size() / 2.) * log(s2) - (1. + gamma) * 6 * (omega / 6.) * k * log(variables.size()) - 2 * getStructurePrior(p);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
