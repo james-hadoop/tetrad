@@ -313,18 +313,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
             System.out.println(count);
 
-            int count2 = 1;
-
-//            do {
-//                Graph graph1 = new EdgeListGraph(graph);
-//
-//                System.out.println("\t" + count2);
-
-                turning();
-//
-//                if (graph.equals(graph1)) break;
-//            } while (count2++ < 15);
-
+            turning();
             bes();
 
             if (graph.equals(graph0)) break;
@@ -1108,39 +1097,56 @@ public final class Fges implements GraphSearch, GraphScorer {
             TetradLogger.getInstance().forceLogMessage("** TURNING");
         }
 
+        Graph ref = new EdgeListGraph(graph);
+
         sortedArrows.clear();
 
-        for (int i = 0; i < variables.size(); i++) {
-            for (int j = 0; j < variables.size(); j++) {
-                if (i == j) continue;
-                Node x = variables.get(i);
-                Node y = variables.get(j);
+        for (Edge edge : ref.getEdges()) {
+            Node x = edge.getNode1();
+            Node y = edge.getNode2();
 
-                if (!graph.isAdjacentTo(x, y)) continue;
-                Edge edge = graph.getEdge(x, y);
+            Edge _edge = graph.getEdge(x, y);
 
-                graph.removeEdge(edge);
+            graph.removeEdge(_edge);
 
-                sortedArrows.clear();
-                calculateArrowsForward(x, y);
-                calculateArrowsForward(y, x);
+            sortedArrows.clear();
+            calculateArrowsForward(x, y);
+            calculateArrowsForward(y, x);
 
-                fes();
+            fes();
 
-                if (!graph.isAdjacentTo(x, y)) {
+            if (!graph.isAdjacentTo(x, y)) {
 
-                    // Add the original edge back in for consistency.
-                    graph.addEdge(edge);
-                }
-//                    else if (graph.isAdjacentTo(x, y) && !edge.equals(graph.getEdge(x, y))) {
-//                        continue WHILE;
-//                    }
+                // Add the original edge back in for consistency.
+                graph.addEdge(_edge);
             }
-//            }
-
-//            break;
 
         }
+
+//        for (int i = 0; i < variables.size(); i++) {
+//            for (int j = 0; j < variables.size(); j++) {
+//                if (i == j) continue;
+//                Node x = variables.get(i);
+//                Node y = variables.get(j);
+//
+//                if (!graph.isAdjacentTo(x, y)) continue;
+//                Edge edge = graph.getEdge(x, y);
+//
+//                graph.removeEdge(edge);
+//
+//                sortedArrows.clear();
+//                calculateArrowsForward(x, y);
+//                calculateArrowsForward(y, x);
+//
+//                fes();
+//
+//                if (!graph.isAdjacentTo(x, y)) {
+//
+//                    // Add the original edge back in for consistency.
+//                    graph.addEdge(edge);
+//                }
+//            }
+//        }
     }
 
 
