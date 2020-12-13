@@ -174,7 +174,7 @@ public class SemBicScore implements Score {
         List<Integer> rows = getRows(i, parents);
 
         final int p = parents.length;
-        int k = p + 1;
+        int k = 2 * p + 1;
 
         int[] all = concat(i, parents);
 

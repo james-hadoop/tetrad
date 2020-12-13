@@ -315,15 +315,15 @@ public final class Fges implements GraphSearch, GraphScorer {
 
             int count2 = 1;
 
-            do {
-                Graph graph1 = new EdgeListGraph(graph);
-
-                System.out.println("\t" + count2);
+//            do {
+//                Graph graph1 = new EdgeListGraph(graph);
+//
+//                System.out.println("\t" + count2);
 
                 turning();
-
-                if (graph.equals(graph1)) break;
-            } while (count2++ < 15);
+//
+//                if (graph.equals(graph1)) break;
+//            } while (count2++ < 15);
 
             bes();
 
