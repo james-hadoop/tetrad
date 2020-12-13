@@ -311,7 +311,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         do {
             Graph graph0 = new EdgeListGraph(graph);
 
-            System.out.println(count);
+            System.out.println("Turning " + count);
 
             turning();
             bes();
@@ -1093,13 +1093,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     // This ia targeted FES step where we try to redirect edges so long as we get improved score. After the
     // redirection, the pattern is adjusted for consistency.
     private void turning() {
-        if (verbose) {
-            TetradLogger.getInstance().forceLogMessage("** TURNING");
-        }
-
         Graph ref = new EdgeListGraph(graph);
-
-        sortedArrows.clear();
 
         for (Edge edge : ref.getEdges()) {
             Node x = edge.getNode1();
@@ -1122,31 +1116,6 @@ public final class Fges implements GraphSearch, GraphScorer {
             }
 
         }
-
-//        for (int i = 0; i < variables.size(); i++) {
-//            for (int j = 0; j < variables.size(); j++) {
-//                if (i == j) continue;
-//                Node x = variables.get(i);
-//                Node y = variables.get(j);
-//
-//                if (!graph.isAdjacentTo(x, y)) continue;
-//                Edge edge = graph.getEdge(x, y);
-//
-//                graph.removeEdge(edge);
-//
-//                sortedArrows.clear();
-//                calculateArrowsForward(x, y);
-//                calculateArrowsForward(y, x);
-//
-//                fes();
-//
-//                if (!graph.isAdjacentTo(x, y)) {
-//
-//                    // Add the original edge back in for consistency.
-//                    graph.addEdge(edge);
-//                }
-//            }
-//        }
     }
 
 
