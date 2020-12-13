@@ -57,8 +57,17 @@ import java.util.concurrent.*;
 public final class Fges implements GraphSearch, GraphScorer {
 
     private IndependenceTest graphScore = null;
+    private boolean turning = false;
 
-     /**
+    public boolean isTurning() {
+        return turning;
+    }
+
+    public void setTurning(boolean turning) {
+        this.turning = turning;
+    }
+
+    /**
      * Internal.
      */
     private enum Mode {
@@ -259,6 +268,10 @@ public final class Fges implements GraphSearch, GraphScorer {
             initializeTwoStepEdges(getVariables());
             fes();
             bes();
+
+            if (turning) {
+                doTurning();
+            }
         } else {
             initializeForwardEdgesFromEmptyGraph(getVariables());
 
@@ -270,7 +283,10 @@ public final class Fges implements GraphSearch, GraphScorer {
             this.mode = Mode.allowUnfaithfulness;
             initializeForwardEdgesFromExistingGraph(getVariables());
             fes();
-            bes();
+
+            if (turning) {
+                doTurning();
+            }
         }
 
         this.modelScore = scoreDag(SearchGraphUtils.dagFromPattern(graph), true);
@@ -287,6 +303,32 @@ public final class Fges implements GraphSearch, GraphScorer {
 
 
         return graph;
+    }
+
+    private void doTurning() {
+        int count = 1;
+
+        do {
+            Graph graph0 = new EdgeListGraph(graph);
+
+            System.out.println(count);
+
+            int count2 = 1;
+
+            do {
+                Graph graph1 = new EdgeListGraph(graph);
+
+                System.out.println("\t" + count2);
+
+                turning();
+
+                if (graph.equals(graph1)) break;
+            } while (count2++ < 15);
+
+            bes();
+
+            if (graph.equals(graph0)) break;
+        } while (count++ <= 15);
     }
 
     /**
@@ -873,7 +915,7 @@ public final class Fges implements GraphSearch, GraphScorer {
                         Node y = nodes.get(i);
                         Set<Node> D = new HashSet<>(getUnconditionallyDconnectedVars(y, graph));
                         D.remove(y);
-                        D.removeAll(effectEdgesGraph.getAdjacentNodes(y));
+//                        D.removeAll(effectEdgesGraph.getAdjacentNodes(y));
 
                         for (Node x : D) {
                             if (Thread.currentThread().isInterrupted()) {
@@ -1058,6 +1100,49 @@ public final class Fges implements GraphSearch, GraphScorer {
             reevaluateBackward(toProcess);
         }
     }
+
+    // This ia targeted FES step where we try to redirect edges so long as we get improved score. After the
+    // redirection, the pattern is adjusted for consistency.
+    private void turning() {
+        if (verbose) {
+            TetradLogger.getInstance().forceLogMessage("** TURNING");
+        }
+
+        sortedArrows.clear();
+
+        for (int i = 0; i < variables.size(); i++) {
+            for (int j = 0; j < variables.size(); j++) {
+                if (i == j) continue;
+                Node x = variables.get(i);
+                Node y = variables.get(j);
+
+                if (!graph.isAdjacentTo(x, y)) continue;
+                Edge edge = graph.getEdge(x, y);
+
+                graph.removeEdge(edge);
+
+                sortedArrows.clear();
+                calculateArrowsForward(x, y);
+                calculateArrowsForward(y, x);
+
+                fes();
+
+                if (!graph.isAdjacentTo(x, y)) {
+
+                    // Add the original edge back in for consistency.
+                    graph.addEdge(edge);
+                }
+//                    else if (graph.isAdjacentTo(x, y) && !edge.equals(graph.getEdge(x, y))) {
+//                        continue WHILE;
+//                    }
+            }
+//            }
+
+//            break;
+
+        }
+    }
+
 
     private Set<Node> reapplyOrientation(Node x, Node y, Set<Node> newArrows) {
         Set<Node> toProcess = new HashSet<>();
@@ -1329,10 +1414,10 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     // Basic data structure for an arrow a->b considered for addition or removal from the graph, together with
-    // associated sets needed to make this determination. For both forward and backward direction, NaYX is needed.
-    // For the forward direction, TNeighbors neighbors are needed; for the backward direction, H neighbors are needed.
-    // See Chickering (2002). The totalScore difference resulting from added in the edge (hypothetically) is recorded
-    // as the "bump".
+// associated sets needed to make this determination. For both forward and backward direction, NaYX is needed.
+// For the forward direction, TNeighbors neighbors are needed; for the backward direction, H neighbors are needed.
+// See Chickering (2002). The totalScore difference resulting from added in the edge (hypothetically) is recorded
+// as the "bump".
     private static class Arrow implements Comparable<Arrow> {
 
         private final double bump;
@@ -1834,20 +1919,6 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         Score score2 = score;
 
-        if (score instanceof SemBicScore) {
-            DataSet dataSet = ((SemBicScore) score).getDataSet();
-
-            if (dataSet != null) {
-                score2 = new SemBicScore(dataSet);
-            } else {
-                ICovarianceMatrix cov = ((SemBicScore) score).getCovariances();
-
-                if (cov != null) {
-                    score2 = new SemBicScore(cov);
-                }
-            }
-        }
-
         dag = GraphUtils.replaceNodes(dag, getVariables());
 
         if (dag == null) throw new NullPointerException("DAG not specified.");
@@ -1889,6 +1960,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         Set<Node> set = new HashSet<>(naYX);
         set.addAll(t);
         set.addAll(graph.getParents(y));
+        set.remove(x);
         return scoreGraphChange(x, y, set, hashIndices);
     }
 

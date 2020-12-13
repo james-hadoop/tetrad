@@ -67,7 +67,9 @@ public class AhpR implements Statistic {
             else if (e1.pointsTowards(y) && e2.pointsTowards(x)) f++;
         }
 
-        return f / (double) L.size();
+        return .5;
+
+//        return f / (double) L.size();
     }
 
     @Override

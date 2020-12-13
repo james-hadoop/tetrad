@@ -43,7 +43,6 @@ public class SemBicScore implements ScoreWrapper {
 
         semBicScore.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
         semBicScore.setStructurePrior(parameters.getDouble(Params.SEM_BIC_STRUCTURE_PRIOR));
-        semBicScore.setMaxCorrelation(parameters.getDouble(Params.MAX_CORRELATION));
 
         switch (parameters.getInt(Params.SEM_BIC_RULE)) {
             case 1:
@@ -77,7 +76,6 @@ public class SemBicScore implements ScoreWrapper {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.PENALTY_DISCOUNT);
         parameters.add(Params.SEM_BIC_STRUCTURE_PRIOR);
-        parameters.add(Params.MAX_CORRELATION);
         parameters.add(Params.SEM_BIC_RULE);
         return parameters;
     }

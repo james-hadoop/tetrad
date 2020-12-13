@@ -82,14 +82,14 @@ public class IndTestScore implements IndependenceTest {
      * @throws RuntimeException if a matrix singularity is encountered.
      */
     public boolean isIndependent(Node x, Node y, List<Node> z) {
-        List<Node> z1 = new ArrayList<>(z);
+//        List<Node> z1 = new ArrayList<>(z);
 
-        if (determines(z1, x)) return false;
-        if (determines(z1, y)) return false;
+//        if (determines(z1, x)) return false;
+//        if (determines(z1, y)) return false;
 
         double v = this.score.localScoreDiff(variables.indexOf(x), variables.indexOf(y), varIndices(z));
         this.bump = v;
-        return  v <= 0;
+        return  v <= 1;
     }
 
     private int[] varIndices(List<Node> z) {

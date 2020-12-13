@@ -708,7 +708,7 @@ public class TestFges {
     @Test
     public void testFromGraph() {
         int numNodes = 20;
-        int aveDegree = 8;
+        int aveDegree = 4;
         int numIterations = 1;
 
         for (int i = 0; i < numIterations; i++) {

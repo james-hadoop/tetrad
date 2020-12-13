@@ -36,17 +36,16 @@ public class SemBicTest implements IndependenceWrapper {
 
         score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
         score.setStructurePrior(parameters.getDouble(Params.SEM_BIC_STRUCTURE_PRIOR));
-        score.setMaxCorrelation(parameters.getDouble(Params.MAX_CORRELATION));
 
         switch (parameters.getInt(Params.SEM_BIC_RULE)) {
             case 1:
-                score.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.HIGH_DIMENSIONAL);
+            score.setRuleType(SemBicScore.RuleType.CHICKERING);
                 break;
             case 2:
                 score.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.NANDY);
                 break;
             case 3:
-                score.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.CHICKERING);
+                score.setRuleType(SemBicScore.RuleType.HIGH_DIMENSIONAL);
                 break;
             default:
                 throw new IllegalStateException("Expecting 1, 2 or 3: " + parameters.getInt(Params.SEM_BIC_RULE));
@@ -70,7 +69,6 @@ public class SemBicTest implements IndependenceWrapper {
         List<String> params = new ArrayList<>();
         params.add(Params.PENALTY_DISCOUNT);
         params.add(Params.SEM_BIC_STRUCTURE_PRIOR);
-        params.add(Params.MAX_CORRELATION);
         params.add(Params.SEM_BIC_RULE);
         return params;
     }

@@ -50,7 +50,7 @@ public class AhpBound implements Statistic {
                         U.add(estGraph.getEdge(node, y));
 
                         // In L
-                        if (trueGraph.isAdjacentTo(x, y)) {// && trueGraph.isAdjacentTo(node, x) && trueGraph.isAdjacentTo(node, y)) {
+                        if (trueGraph.isAdjacentTo(x, y) && trueGraph.isAdjacentTo(node, x) && trueGraph.isAdjacentTo(node, y)) {
                             L.add(estGraph.getEdge(node, x));
                             L.add(estGraph.getEdge(node, y));
                         }
@@ -89,11 +89,11 @@ public class AhpBound implements Statistic {
 
         double bound;
 
-        if (L.isEmpty() || U.isEmpty() || A == 0) bound = Double.NaN;
+        if (/*L.isEmpty() || U.isEmpty() ||*/ A == 0) bound = Double.NaN;
         else bound = 1.0 - (r) * (L.size() / (double) U.size()) * (U.size() / (double) A);
 
         System.out.println("f = " + f + " L = " + L.size() + " U = " + U.size() + " A = " + A + " bound = " + bound
-            + " U / L = " + L.size() / (double) U.size() + " d = " + d);
+            + " L / U = " + L.size() / (double) U.size() + " d = " + d);
 
         // Calculate bound.
         return bound;
