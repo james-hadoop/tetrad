@@ -193,7 +193,7 @@ public class TestFisherZCalibration {
         parameters.set(Params.STRUCTURE_PRIOR, 0);
         parameters.set(Params.TDEPTH, -1);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
-        parameters.set(Params.TURNING, false);
+        parameters.set(Params.TURNING, true);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
         parameters.set(Params.VAR_LOW, 1.0);
