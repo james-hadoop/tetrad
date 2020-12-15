@@ -263,15 +263,13 @@ public final class Fges implements GraphSearch, GraphScorer {
             this.mode = Mode.heuristicSpeedup;
             fes();
             bes();
+            turning();
 
             this.mode = Mode.coverNoncolliders;
             initializeTwoStepEdges(getVariables());
             fes();
             bes();
-
-            if (turning) {
-                doTurning();
-            }
+            turning();
         } else {
             initializeForwardEdgesFromEmptyGraph(getVariables());
 
@@ -279,15 +277,13 @@ public final class Fges implements GraphSearch, GraphScorer {
             this.mode = Mode.heuristicSpeedup;
             fes();
             bes();
+            turning();
 
             this.mode = Mode.allowUnfaithfulness;
             initializeForwardEdgesFromExistingGraph(getVariables());
             fes();
             bes();
-
-            if (turning) {
-                doTurning();
-            }
+            turning();
         }
 
         this.modelScore = scoreDag(SearchGraphUtils.dagFromPattern(graph), true);
@@ -306,12 +302,39 @@ public final class Fges implements GraphSearch, GraphScorer {
         return graph;
     }
 
-    private void doTurning() {
+    private void turning() {
+        if (!turning) return;
+
         int count = 1;
 
         do {
             Graph graph0 = new EdgeListGraph(graph);
-            turning();
+            Graph ref = new EdgeListGraph(graph);
+
+            for (Edge edge : ref.getEdges()) {
+                Node x = edge.getNode1();
+                Node y = edge.getNode2();
+
+                if (graph.isAdjacentTo(x, y)) {
+                    Edge _edge = graph.getEdge(x, y);
+
+                    graph.removeEdge(_edge);
+
+                    sortedArrows.clear();
+                    calculateArrowsForward(x, y);
+                    calculateArrowsForward(y, x);
+                    fes();
+
+                    if (!graph.isAdjacentTo(x, y)) {
+
+                        // Add the original edge back in for consistency.
+                        graph.addEdge(_edge);
+                    }
+
+                    bes();
+                }
+            }
+
             if (graph.equals(graph0)) break;
             System.out.println("Turning " + count);
         } while (count++ <= 15);
@@ -1088,39 +1111,6 @@ public final class Fges implements GraphSearch, GraphScorer {
             reevaluateBackward(toProcess);
         }
     }
-
-    // This ia targeted FES step where we try to redirect edges so long as we get improved score. After the
-    // redirection, the pattern is adjusted for consistency.
-    private void turning() {
-        {
-            Graph ref = new EdgeListGraph(graph);
-
-            for (Edge edge : ref.getEdges()) {
-                Node x = edge.getNode1();
-                Node y = edge.getNode2();
-
-                if (graph.isAdjacentTo(x, y)) {
-                    Edge _edge = graph.getEdge(x, y);
-
-                    graph.removeEdge(_edge);
-
-                    sortedArrows.clear();
-                    calculateArrowsForward(x, y);
-                    calculateArrowsForward(y, x);
-                    fes();
-
-                    if (!graph.isAdjacentTo(x, y)) {
-
-                        // Add the original edge back in for consistency.
-                        graph.addEdge(_edge);
-                    }
-
-                    bes();
-                }
-            }
-        }
-    }
-
 
     private Set<Node> reapplyOrientation(Node x, Node y, Set<Node> newArrows) {
         Set<Node> toProcess = new HashSet<>();
