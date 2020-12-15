@@ -308,7 +308,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         int count = 1;
 
         do {
-            Graph graph0 = new EdgeListGraph(graph);
             Graph ref = new EdgeListGraph(graph);
 
             for (Edge edge : ref.getEdges()) {
@@ -335,7 +334,7 @@ public final class Fges implements GraphSearch, GraphScorer {
                 }
             }
 
-            if (graph.equals(graph0)) break;
+            if (graph.equals(ref)) break;
             System.out.println("Turning " + count);
         } while (count++ <= 15);
     }
