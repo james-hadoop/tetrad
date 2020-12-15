@@ -1112,10 +1112,17 @@ public final class Fges implements GraphSearch, GraphScorer {
                     if (!graph.isAdjacentTo(x, y)) {
 
                         // Add the original edge back in for consistency.
-                        graph.addEdge(_edge);
-                    } else {
-                        bes();
+                        graph.addEdge(edge);
+                        continue;
+
+//                        List<Node> nodes = new ArrayList<>();
+//                        nodes.add(x);
+//                        nodes.add(y);
+
+//                        meekOrientRestricted(nodes, knowledge);
                     }
+
+                    bes();
                 }
             }
         }
@@ -2043,7 +2050,7 @@ public final class Fges implements GraphSearch, GraphScorer {
         Set<Node> set = new HashSet<>(naYX);
         set.addAll(t);
         set.addAll(graph.getParents(y));
-        set.remove(x);
+//        set.remove(x);
         return scoreGraphChange(x, y, set, hashIndices);
     }
 

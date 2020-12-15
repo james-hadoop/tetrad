@@ -174,7 +174,7 @@ public class SemBicScore implements Score {
         List<Integer> rows = getRows(i, parents);
 
         final int p = parents.length;
-        int k = 2 * p + 2;
+        int k = p + 1;
 
         int[] all = concat(i, parents);
 
@@ -187,16 +187,17 @@ public class SemBicScore implements Score {
         Matrix covxy = cov.getSelection(pp, new int[]{0});
 
         // My calculation.
-        Matrix b = covxx.inverse().times(covxy);
-        Matrix b2 = adjustedParents(p, b);
-        Matrix times = b2.transpose().times(cov).times(b2);
-        double s2 = times.get(0, 0);
+//        Matrix b = covxx.inverse().times(covxy);
+//        Matrix b2 = adjustedParents(p, b);
+//        Matrix times = b2.transpose().times(cov).times(b2);
+//        double s2 = times.get(0, 0);
 
         // Ricardo's calculation.
-//        double s2 = cov.get(0, 0);
-//        Vector _cxy = covxy.getColumn(0);
-//        Vector _b = b.getColumn(0);
-//        s2 -= _cxy.dotProduct(_b);
+        Matrix b = covxx.inverse().times(covxy);
+        double s2 = cov.get(0, 0);
+        Vector _cxy = covxy.getColumn(0);
+        Vector _b = b.getColumn(0);
+        s2 -= _cxy.dotProduct(_b);
 
         double V = variables.size();
         double N = sampleSize / 2.;
