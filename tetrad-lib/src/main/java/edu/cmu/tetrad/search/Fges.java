@@ -1101,7 +1101,6 @@ public final class Fges implements GraphSearch, GraphScorer {
 
                 if (graph.isAdjacentTo(x, y)) {
                     Edge _edge = graph.getEdge(x, y);
-//                    if (!_edge.isDirected()) continue;
 
                     graph.removeEdge(_edge);
 
