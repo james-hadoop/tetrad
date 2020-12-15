@@ -901,12 +901,13 @@ public final class Fges implements GraphSearch, GraphScorer {
                         Node y = nodes.get(i);
                         Set<Node> D = new HashSet<>(getUnconditionallyDconnectedVars(y, graph));
                         D.remove(y);
-//                        D.removeAll(effectEdgesGraph.getAdjacentNodes(y));
 
                         for (Node x : D) {
                             if (Thread.currentThread().isInterrupted()) {
                                 break;
                             }
+
+                            if (graph.isAdjacentTo(x, y)) continue;
 
                             if (existsKnowledge()) {
                                 if (getKnowledge().isForbidden(x.getName(), y.getName()) && getKnowledge().isForbidden(y.getName(), x.getName())) {
@@ -937,6 +938,7 @@ public final class Fges implements GraphSearch, GraphScorer {
                     left.join();
 
                 }
+
                 return true;
             }
         }
@@ -1090,7 +1092,6 @@ public final class Fges implements GraphSearch, GraphScorer {
     // This ia targeted FES step where we try to redirect edges so long as we get improved score. After the
     // redirection, the pattern is adjusted for consistency.
     private void turning() {
-
         {
             Graph ref = new EdgeListGraph(graph);
 
@@ -1100,7 +1101,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
                 if (graph.isAdjacentTo(x, y)) {
                     Edge _edge = graph.getEdge(x, y);
-                    if (!_edge.isDirected()) continue;
+//                    if (!_edge.isDirected()) continue;
 
                     graph.removeEdge(_edge);
 
@@ -1112,125 +1113,13 @@ public final class Fges implements GraphSearch, GraphScorer {
                     if (!graph.isAdjacentTo(x, y)) {
 
                         // Add the original edge back in for consistency.
-                        graph.addEdge(edge);
-                        continue;
-
-//                        List<Node> nodes = new ArrayList<>();
-//                        nodes.add(x);
-//                        nodes.add(y);
-
-//                        meekOrientRestricted(nodes, knowledge);
+                        graph.addEdge(_edge);
                     }
 
                     bes();
                 }
             }
         }
-
-//        {
-//            Graph ref = new EdgeListGraph(graph);
-//
-//            ConcurrentSkipListSet<Arrow> myArrows = new ConcurrentSkipListSet<>();
-//
-//            for (Edge edge : ref.getEdges()) {
-//                Node x = edge.getNode1();
-//                Node y = edge.getNode2();
-//
-//                Edge e = graph.getEdge(x, y);
-//                if (!e.isDirected()) continue;
-//
-//                graph.removeEdge(e);
-//                sortedArrows.clear();
-//                calculateArrowsForward(x, y);
-//                calculateArrowsForward(y, x);
-//                graph.addEdge(e);
-//
-//                Arrow arrow = sortedArrows.first();
-//                Edge e2 = Edges.directedEdge(arrow.getA(), arrow.getB());
-//
-//                if (!e.reverse().equals(e2)) {
-//                    myArrows.addAll(sortedArrows);
-//                }
-//            }
-//
-//            Set<Edge> reversed = new HashSet<>();
-//
-//            while (!myArrows.isEmpty()) {
-//                Arrow arrow = myArrows.first();
-//                myArrows.remove(arrow);
-//                Edge e = graph.getEdge(arrow.getA(), arrow.getB());
-//
-//                if (e == null) continue;
-//                if (e.equals(Edges.directedEdge(arrow.getA(), arrow.getB()))) continue;
-//                if (reversed.contains(e.reverse())) continue;
-//
-//                sortedArrows.clear();
-//                graph.removeEdge(arrow.getA(), arrow.getB());
-//                calculateArrowsForward(arrow.getA(), arrow.getB());
-//                calculateArrowsForward(arrow.getB(), arrow.getA());
-//                fes();
-//                reversed.add(e);
-//                bes();
-//            }
-//        }
-
-//        for (int i = 0; i < variables.size(); i++) {
-//            Node y = variables.get(i);
-//
-//            List<Node> into = graph.getNodesInTo(y, Endpoint.ARROW);
-//
-//            for (Node x : into) {
-//                if (graph.isAdjacentTo(x, y)) {
-//                    Graph g0 = new EdgeListGraph(graph);
-//
-//                    Edge _edge = graph.getEdge(x, y);
-//                    if (!_edge.isDirected()) continue;
-//                    graph.removeEdge(_edge);
-//
-//                    sortedArrows.clear();
-//                    calculateArrowsForward(x, y);
-//                    calculateArrowsForward(y, x);
-//                    fes();
-//
-//                    if (!graph.isAdjacentTo(x, y)) {
-//
-//                        // Add the original edge back in for consistency.
-//                        graph.addEdge(_edge);
-//                    } else if (!g0.equals(graph)) {
-//                        bes();
-//                    }
-//                }
-//            }
-//        }
-
-//        for (int i = 0; i < variables.size(); i++) {
-//            Node y = variables.get(i);
-//
-//            List<Node> into = graph.getNodesInTo(y, Endpoint.ARROW);
-//
-//            if (into.isEmpty()) continue;
-//
-////            Node x = into.get(0);
-//
-////            for (Node z : into) {
-////                if (z.equals(x)) continue;
-////                graph.removeEdge(z, y);
-////                graph.addUndirectedEdge(z, y);
-////            }
-//
-//            for (int j = 0; j < into.size(); j++) {
-//                for (Node x : into) {
-//                    sortedArrows.clear();
-//                    graph.removeEdge(x, y);
-//
-//                    calculateArrowsForward(x, y);
-//                    calculateArrowsForward(y, x);
-//
-//                    fes();
-//                    bes();
-//                }
-//            }
-//        }
     }
 
 
@@ -2050,7 +1939,12 @@ public final class Fges implements GraphSearch, GraphScorer {
         Set<Node> set = new HashSet<>(naYX);
         set.addAll(t);
         set.addAll(graph.getParents(y));
-//        set.remove(x);
+
+        if (t.contains(x)) throw new IllegalArgumentException("In insertEval, T contains x.");
+        if (naYX.contains(x)) throw new IllegalArgumentException("In insertEval, NaYX contains x.");
+        if (graph.getParents(y).contains(x)) throw new IllegalArgumentException("In insertEval, parents contains x.");
+
+        set.remove(x);
         return scoreGraphChange(x, y, set, hashIndices);
     }
 

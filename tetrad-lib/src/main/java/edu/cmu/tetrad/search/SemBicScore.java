@@ -199,8 +199,15 @@ public class SemBicScore implements Score {
         Vector _b = b.getColumn(0);
         s2 -= _cxy.dotProduct(_b);
 
+//        Matrix b = covxx.inverse().times(covxy);
+//        double s2 = cov.get(0, 0);
+//
+//        for (int q = 0; q < parents.length; q++) {
+//            s2 -= b.get(q, 0) * b.get(q, 0) * covxx.get(q, q);
+//        }
+
         double V = variables.size();
-        double N = sampleSize / 2.;
+        double N = sampleSize;
 
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
