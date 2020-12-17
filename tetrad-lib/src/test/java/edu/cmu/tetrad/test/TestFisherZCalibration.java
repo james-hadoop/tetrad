@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static java.lang.Math.log;
 import static java.lang.StrictMath.abs;
 
 public class TestFisherZCalibration {
@@ -193,7 +192,7 @@ public class TestFisherZCalibration {
         parameters.set(Params.STRUCTURE_PRIOR, 0);
         parameters.set(Params.TDEPTH, -1);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
-        parameters.set(Params.TURNING, true);
+        parameters.set(Params.FGES_ADJUSTING, true);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1.0);
         parameters.set(Params.VAR_LOW, 1.0);

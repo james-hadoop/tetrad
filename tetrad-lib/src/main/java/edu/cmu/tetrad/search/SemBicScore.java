@@ -187,17 +187,17 @@ public class SemBicScore implements Score {
         Matrix covxy = cov.getSelection(pp, new int[]{0});
 
         // My calculation.
-//        Matrix b = covxx.inverse().times(covxy);
-//        Matrix b2 = adjustedParents(p, b);
-//        Matrix times = b2.transpose().times(cov).times(b2);
-//        double s2 = times.get(0, 0);
+        Matrix b = covxx.inverse().times(covxy);
+        Matrix b2 = adjustedParents(p, b);
+        Matrix times = b2.transpose().times(cov).times(b2);
+        double s2 = times.get(0, 0);
 
         // Ricardo's calculation.
-        Matrix b = covxx.inverse().times(covxy);
-        double s2 = cov.get(0, 0);
-        Vector _cxy = covxy.getColumn(0);
-        Vector _b = b.getColumn(0);
-        s2 -= _cxy.dotProduct(_b);
+//        Matrix b = covxx.inverse().times(covxy);
+//        double s2 = cov.get(0, 0);
+//        Vector _cxy = covxy.getColumn(0);
+//        Vector _b = b.getColumn(0);
+//        s2 -= _cxy.dotProduct(_b);
 
 //        Matrix b = covxx.inverse().times(covxy);
 //        double s2 = cov.get(0, 0);
@@ -208,11 +208,11 @@ public class SemBicScore implements Score {
 
         double V = variables.size();
         double N = sampleSize;
+        double c = getPenaltyDiscount();
 
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-            double c = getPenaltyDiscount();
 
             return -N * log(s2) - k * c * log(N);// - 2 * getStructurePrior(p);
 
@@ -223,8 +223,6 @@ public class SemBicScore implements Score {
             // We will just take 6 * omega * (1 + gamma) to be a number >= 6. To be compatible with other scores,
             // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
-
-            double c = getPenaltyDiscount();
 
             return -N * log(s2) - k * c * 6 * log(V);// - 2 * getStructurePrior(p);
 

@@ -57,14 +57,14 @@ import java.util.concurrent.*;
 public final class Fges implements GraphSearch, GraphScorer {
 
     private IndependenceTest graphScore = null;
-    private boolean turning = false;
+    private boolean adjusting = false;
 
     public boolean isTurning() {
-        return turning;
+        return adjusting;
     }
 
-    public void setTurning(boolean turning) {
-        this.turning = turning;
+    public void setAdjusting(boolean turning) {
+        this.adjusting = turning;
     }
 
     /**
@@ -263,13 +263,13 @@ public final class Fges implements GraphSearch, GraphScorer {
             this.mode = Mode.heuristicSpeedup;
             fes();
             bes();
-            turning();
+            adjusting();
 
             this.mode = Mode.coverNoncolliders;
             initializeTwoStepEdges(getVariables());
             fes();
             bes();
-            turning();
+            adjusting();
         } else {
             initializeForwardEdgesFromEmptyGraph(getVariables());
 
@@ -277,13 +277,18 @@ public final class Fges implements GraphSearch, GraphScorer {
             this.mode = Mode.heuristicSpeedup;
             fes();
             bes();
-            turning();
 
-            this.mode = Mode.allowUnfaithfulness;
-            initializeForwardEdgesFromExistingGraph(getVariables());
-            fes();
-            bes();
-            turning();
+            while (true) {
+                Graph ref = new EdgeListGraph(graph);
+
+                this.mode = Mode.allowUnfaithfulness;
+                initializeForwardEdgesFromExistingGraph(getVariables());
+                fes();
+                bes();
+                adjusting();
+
+                if (ref.equals(graph)) break;
+            }
         }
 
         this.modelScore = scoreDag(SearchGraphUtils.dagFromPattern(graph), true);
@@ -302,8 +307,8 @@ public final class Fges implements GraphSearch, GraphScorer {
         return graph;
     }
 
-    private void turning() {
-        if (!turning) return;
+    private void adjusting() {
+        if (!adjusting) return;
 
         int count = 1;
 
@@ -331,6 +336,13 @@ public final class Fges implements GraphSearch, GraphScorer {
                     }
 
                     bes();
+                }
+                else {
+//                    sortedArrows.clear();
+//                    calculateArrowsForward(x, y);
+//                    calculateArrowsForward(y, x);
+//                    fes();
+//                    bes();
                 }
             }
 
