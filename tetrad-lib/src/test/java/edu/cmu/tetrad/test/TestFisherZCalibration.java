@@ -185,10 +185,10 @@ public class TestFisherZCalibration {
         Parameters parameters = new Parameters();
         parameters.set(Params.NUM_RUNS, 5);
         parameters.set(Params.NUM_MEASURES, 20);
-        parameters.set(Params.AVG_DEGREE, 4);
-        parameters.set(Params.SAMPLE_SIZE, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000);//, 1000000, 5000000);
-        parameters.set(Params.SEM_BIC_RULE, 3);
-        parameters.set(Params.PENALTY_DISCOUNT, 1);
+        parameters.set(Params.AVG_DEGREE, 6);
+        parameters.set(Params.SAMPLE_SIZE, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000);//, 100000, 200000, 500000);//, 1000000, 5000000);
+        parameters.set(Params.SEM_BIC_RULE, 1);
+        parameters.set(Params.PENALTY_DISCOUNT, .5);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
         parameters.set(Params.TDEPTH, -1);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);

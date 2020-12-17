@@ -337,13 +337,13 @@ public final class Fges implements GraphSearch, GraphScorer {
 
                     bes();
                 }
-                else {
-//                    sortedArrows.clear();
-//                    calculateArrowsForward(x, y);
-//                    calculateArrowsForward(y, x);
-//                    fes();
-//                    bes();
-                }
+//                else {
+////                    sortedArrows.clear();
+////                    calculateArrowsForward(x, y);
+////                    calculateArrowsForward(y, x);
+////                    fes();
+////                    bes();
+//                }
             }
 
             if (graph.equals(ref)) break;
