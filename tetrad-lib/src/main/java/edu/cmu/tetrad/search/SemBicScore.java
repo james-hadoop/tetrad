@@ -193,17 +193,13 @@ public class SemBicScore implements Score {
         }
 
         double V = variables.size();
-        double N = V;//sampleSize;
+        double N = sampleSize;
         double c = getPenaltyDiscount();
 
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-
-//            return -c * V * log(s2) - k * log(c * V);
-            return -c * N * log(s2) - k * log(c * N);
-
-//            return -N * log(s2) - c * k * log(N);// - 2 * getStructurePrior(p);
+            return -N * log(s2) - c * k * log(N);// - 2 * getStructurePrior(p);
 
         } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
@@ -213,8 +209,10 @@ public class SemBicScore implements Score {
             // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
 
-            return -N * log(s2) - c * k * (log(N) * log(V));// - 2 * getStructurePrior(p);
-
+            return -N * log(s2) - c * k * 6 * log(V);// - 2 * getStructurePrior(p);
+        } else if (ruleType == RuleType.ALTERNATIVE) {
+            double vv = c * V;
+            return -vv * log(s2) - k * log(vv);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
@@ -512,7 +510,7 @@ public class SemBicScore implements Score {
         this.ruleType = ruleType;
     }
 
-    public enum RuleType {CHICKERING, NANDY, HIGH_DIMENSIONAL}
+    public enum RuleType {CHICKERING, NANDY, HIGH_DIMENSIONAL, ALTERNATIVE}
 }
 
 
