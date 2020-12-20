@@ -54,8 +54,11 @@ public class SemBicScore implements ScoreWrapper {
             case 3:
                 semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.HIGH_DIMENSIONAL);
                 break;
+            case 4:
+                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.ALTERNATIVE);
+                break;
             default:
-                throw new IllegalStateException("Expecting 1, 2 or 3: " + parameters.getInt(Params.SEM_BIC_RULE));
+                throw new IllegalStateException("Expecting 1, 2, 3 or 4: " + parameters.getInt(Params.SEM_BIC_RULE));
         }
 
         return semBicScore;

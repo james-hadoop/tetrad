@@ -39,7 +39,7 @@ public class SemBicTest implements IndependenceWrapper {
 
         switch (parameters.getInt(Params.SEM_BIC_RULE)) {
             case 1:
-            score.setRuleType(SemBicScore.RuleType.CHICKERING);
+                score.setRuleType(SemBicScore.RuleType.CHICKERING);
                 break;
             case 2:
                 score.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.NANDY);
@@ -47,8 +47,11 @@ public class SemBicTest implements IndependenceWrapper {
             case 3:
                 score.setRuleType(SemBicScore.RuleType.HIGH_DIMENSIONAL);
                 break;
+            case 4:
+                score.setRuleType(SemBicScore.RuleType.ALTERNATIVE);
+                break;
             default:
-                throw new IllegalStateException("Expecting 1, 2 or 3: " + parameters.getInt(Params.SEM_BIC_RULE));
+                throw new IllegalStateException("Expecting 1, 2, 3 or 4: " + parameters.getInt(Params.SEM_BIC_RULE));
         }
 
         return new IndTestScore(score, dataSet);

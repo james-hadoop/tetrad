@@ -708,13 +708,13 @@ public class TestFges {
     @Test
     public void testFromGraph() {
         int numNodes = 20;
-        int aveDegree = 8;
+        int aveDegree = 4;
         int numIterations = 1;
 
         for (int i = 0; i < numIterations; i++) {
             Graph dag = GraphUtils.randomDag(numNodes, 0, aveDegree * numNodes / 2, 10, 10, 10, false);
             Fges fges = new Fges(new GraphScore(dag));
-            fges.setFaithfulnessAssumed(false);
+            fges.setFaithfulnessAssumed(true);
             fges.setVerbose(true);
             fges.setTrueGraph(dag);
             fges.setTDepth(1);
@@ -724,7 +724,7 @@ public class TestFges {
         }
     }
 
-//    @Test
+    //    @Test
     public void testFromData() {
         int numIterations = 1;
 

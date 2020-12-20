@@ -37,8 +37,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static java.lang.Double.NaN;
-import static java.lang.Math.abs;
-import static java.lang.Math.log;
+import static java.lang.Math.*;
 
 /**
  * Implements the continuous BIC score for FGES.
@@ -75,7 +74,8 @@ public class SemBicScore implements Score {
     private Matrix matrix;
 
     // The rule type to use.
-    private RuleType ruleType = RuleType.HIGH_DIMENSIONAL;
+    private RuleType ruleType = RuleType.CHICKERING;
+    private double ess;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -117,10 +117,16 @@ public class SemBicScore implements Score {
         this.indexMap = indexMap(this.variables);
     }
 
-    private void setCovariances(ICovarianceMatrix covariances) {
-        this.covariances = new CorrelationMatrix(covariances);
-        this.matrix = this.covariances.getMatrix();
-    }
+//    private void setCovariances(ICovarianceMatrix covariances) {
+//        this.covariances = covariances;
+////        this.covariances = new CorrelationMatrix(covariances);
+//        this.matrix = this.covariances.getMatrix();
+//
+//
+//        Matrix m = this.matrix;
+//
+//        System.out.println("Ess = " + m.times(m).trace());
+//    }
 
     @Override
     public double localScoreDiff(int x, int y, int[] z) {
@@ -163,12 +169,26 @@ public class SemBicScore implements Score {
 
         final int p = parents.length;
 
-        int k = covariances instanceof CorrelationMatrix ? p + 1 : 2 * p + 2;
+//        int k = covariances instanceof CorrelationMatrix ? p + 1 : 2 * p + 2;
+//
+//        int k = (p + 1) * (p + 2) / 2;
+//
+        int k = p + 1;
 
         int[] all = concat(i, parents);
 
         // Only do this once.
         Matrix cov = getCov(rows, all, all);
+
+//        Matrix cor = MatrixUtils.convertCovToCorr(cov);
+        double m = variables.size();
+        double n = sampleSize;
+
+//        double tr = cor.times(cor).trace();
+//        double rho = sqrt((1. / m) * tr - 1) / (n - 1);
+//        double ess = n / (1 + (n - 1) * rho);
+
+//        System.out.println(ess);
 
         int[] pp = orderedParents(parents);
 
@@ -177,7 +197,7 @@ public class SemBicScore implements Score {
 
         double s2;
 
-        if (false) {
+        if (true) {
             // Ricardo's calculation.
             Matrix b = covxx.inverse().times(covxy);
             s2 = cov.get(0, 0);
@@ -192,14 +212,12 @@ public class SemBicScore implements Score {
             s2 = times.get(0, 0);
         }
 
-        double V = variables.size();
-        double N = sampleSize;
         double c = getPenaltyDiscount();
 
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-            return -N * log(s2) - c * k * log(N);// - 2 * getStructurePrior(p);
+            return -n * log(s2) - c * k * log(n);// - 2 * getStructurePrior(p);
 
         } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
@@ -209,10 +227,15 @@ public class SemBicScore implements Score {
             // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
 
-            return -N * log(s2) - c * k * 6 * log(V);// - 2 * getStructurePrior(p);
+            return -n * log(s2) - c * k * 6 * log(m);// - 2 * getStructurePrior(p);
         } else if (ruleType == RuleType.ALTERNATIVE) {
-            double vv = c * V;
-            return -vv * log(s2) - k * log(vv);
+            double x = c * n;
+
+//            System.out.println("c * n = " + c * n + " ess / 2 = " + ess / 2);
+
+            return -x * log(s2) - k * log(x);
+//
+//            return -n * log(s2) - k * (c * n / (m)) * log(m);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
@@ -326,14 +349,22 @@ public class SemBicScore implements Score {
         return Double.isNaN(v);
     }
 
-    /**
-     * @return a string representation of this score.
-     */
-    public String toString() {
-        NumberFormat nf = new DecimalFormat("0.00");
-        return "SEM BIC Score penalty " + nf.format(penaltyDiscount);
-    }
+    private void setCovariances(ICovarianceMatrix covariances) {
+        this.covariances = covariances;
+        this.matrix = this.covariances.getMatrix();
 
+        Matrix cor = new CorrelationMatrix(covariances).getMatrix();
+
+        double m = covariances.getSize();
+        double n = covariances.getSampleSize();
+
+        double tr = cor.times(cor).trace();
+        double rho = sqrt((1. / m) * tr - 1.) / (n - 1.);
+        ess = n / (1. + (n - 1.) * rho);
+
+        System.out.println("n = " + n + " ess = " + ess + " rho = " + rho);
+
+    }
 
     private static int[] append(int[] z, int x) {
         int[] _z = Arrays.copyOf(z, z.length + 1);
