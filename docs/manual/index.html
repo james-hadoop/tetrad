@@ -4802,7 +4802,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
 
         <h3 id="semBicRule" class="parameter_description">semBicRule</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="semBicRule_short_desc">1 = Chickering, 2 = Nandy, 3 = High Dimensional</span>
+            <li>Short Description: <span id="semBicRule_short_desc">1 = Chickering, 2 = Nandy, 3 = High Dimensional, 4 = Alternative</span>
             </li>
             <li>Long Description: <span id="semBicRule_long_desc">The rule used for calculating a score.
                 The Chickering Rule is the local scoring consistency criterion in Chickering's formulation of
@@ -4813,11 +4813,11 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
                 Criterion, which is a pseudo-BIC formulation. It has two parameters, gamma (> 0) and omega (>= 1).
                 We fix gamma at 0.25 and allow omega to be adjusted using the "penalty discount" parameter.
                 In all cases we include a structure prior, which amounts to a prior on the number of
-                parents in any scoring, a binomial formula.</span>
+                parents in any scoring, a binomial formula. The 'alternative' score is an experimental score.</span>
             </li>
             <li>Default Value: <span id="semBicRule_default_value">1</span></li>
             <li>Lower Bound: <span id="semBicRule_lower_bound">1</span></li>
-            <li>Upper Bound: <span id="semBicRule_upper_bound">3</span></li>
+            <li>Upper Bound: <span id="semBicRule_upper_bound">4</span></li>
             <li>Value Type: <span id="semBicRule_value_type">Integer</span></li>
         </ul>
 
@@ -4905,7 +4905,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
 
         <h3 id="tDepth" class="parameter_description">tDepth</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="tDepth_short_desc">The maximum number of neighbors considered in power set calculations</span>
+            <li>Short Description: <span id="tDepth_short_desc">"T-Depth", the maximum number of neighbors considered in power set calculations</span>
             </li>
             <li>Long Description: <span id="tDepth_long_desc">For FGES, this is the maximum number of T-neighbors or H-complement-neights
                 that are considered in any scoring step. Default is -1 (unlimited).</span>
@@ -4972,16 +4972,27 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="twoCycleAlpha_value_type">Double</span></li>
         </ul>
 
-
-        <h3 id="fges_adjusting" class="parameter_description">fges_adjusting</h3>
+        <h3 id="timeLimit" class="parameter_description">timeLimit</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="fges_adjusting_short_desc">Yes, if the djusting step should be included in the algorithm.</span>
+            <li>Short Description: <span id="timeLimit_short_desc">Time limit</span></li>
+            <li>Long Description: <span id="timeLimit_long_desc">T-Separation requires a time limit. Default 1000.</span>
             </li>
-            <li>Long Description: <span id="fges_adjusting_long_desc">null</span></li>
-            <li>Default Value: <span id="fges_adjusting_default_value">true</span></li>
-            <li>Lower Bound: <span id="fges_adjusting_lower_bound"></span></li>
-            <li>Upper Bound: <span id="fges_adjusting_upper_bound"></span></li>
-            <li>Value Type: <span id="fges_adjusting_value_type">Boolean</span></li>
+            <li>Default Value: <span id="timeLimit_default_value">1000.0</span></li>
+            <li>Lower Bound: <span id="timeLimit_lower_bound">0.0</span></li>
+            <li>Upper Bound: <span id="timeLimit_upper_bound">1.7976931348623157E308</span></li>
+            <li>Value Type: <span id="timeLimit_value_type">Double</span></li>
+        </ul>
+
+
+        <h3 id="turning" class="parameter_description">turning</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="turning_short_desc">Yes, if the turning step should be included</span>
+            </li>
+            <li>Long Description: <span id="turning_long_desc">null</span></li>
+            <li>Default Value: <span id="turning_default_value">true</span></li>
+            <li>Lower Bound: <span id="turning_lower_bound"></span></li> g
+            <li>Upper Bound: <span id="turning_upper_bound"></span></li>
+            <li>Value Type: <span id="turning_value_type">Boolean</span></li>
         </ul>
 
         <h3 id="upperBound" class="parameter_description">upperBound</h3>

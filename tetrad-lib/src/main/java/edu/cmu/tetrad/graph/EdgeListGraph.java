@@ -20,6 +20,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetrad.graph;
 
+import edu.cmu.tetrad.search.TConnection;
+
 import static edu.cmu.tetrad.graph.Edges.directedEdge;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -379,7 +381,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     }
 
     private static boolean visibleEdgeHelperVisit(Graph graph, Node c, Node a, Node b,
-            LinkedList<Node> path) {
+                                                  LinkedList<Node> path) {
         if (path.contains(a)) {
             return false;
         }
@@ -952,7 +954,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     //added by ekorber, June 2004
     @Override
     public boolean possDConnectedTo(Node node1, Node node2,
-            List<Node> condNodes) {
+                                    List<Node> condNodes) {
         LinkedList<Node> allNodes = new LinkedList<>(getNodes());
         int sz = allNodes.size();
         int[][] edgeStage = new int[sz][sz];
@@ -1171,7 +1173,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         if (edges.size() > 1) {
             throw new IllegalStateException(
                     "There is more than one edge between " + node1 + " and "
-                    + node2);
+                            + node2);
         }
 
         return removeEdges(edges);
@@ -1242,8 +1244,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         } else {
             throw new NullPointerException(
                     "An endpoint between node1 and node2 "
-                    + "may not be set in this graph if there is more than one "
-                    + "edge between node1 and node2.");
+                            + "may not be set in this graph if there is more than one "
+                            + "edge between node1 and node2.");
         }
     }
 
@@ -2090,7 +2092,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * @return true iff there is a semi-directed path from node1 to node2
      */
     private boolean existsSemiDirectedPathVisit(Node node1, Set<Node> nodes2,
-            LinkedList<Node> path) {
+                                                LinkedList<Node> path) {
         path.addLast(node1);
 
         for (Edge edge : getEdges(node1)) {

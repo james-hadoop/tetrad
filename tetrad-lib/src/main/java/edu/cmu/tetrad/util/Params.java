@@ -173,7 +173,7 @@ public final class Params {
     public static final String THRESHOLD_FOR_NUM_EIGENVALUES = "thresholdForNumEigenvalues";
     public static final String THRESHOLD_NO_RANDOM_CONSTRAIN_SEARCH = "thresholdNoRandomConstrainSearch";
     public static final String THRESHOLD_NO_RANDOM_DATA_SEARCH = "thresholdNoRandomDataSearch";
-    public static final String FGES_ADJUSTING = "fges_adjusting";
+    public static final String TURNING = "turning";
     public static final String TWO_CYCLE_ALPHA = "twoCycleAlpha";
     public static final String UPPER_BOUND = "upperBound";
     public static final String USE_CORR_DIFF_ADJACENCIES = "useCorrDiffAdjacencies";
@@ -193,6 +193,7 @@ public final class Params {
     public static final String MAX_CORRELATION = "maxCorrelation";
     public static final String SEM_BIC_RULE = "semBicRule";
     public static final String SEM_BIC_STRUCTURE_PRIOR = "semBicStructurePrior";
+    public static final String TIME_LIMIT = "timeLimit";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(

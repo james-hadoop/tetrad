@@ -25,6 +25,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.cluster.ClusterAlgorithm;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.independence.TSeparationTest;
 import edu.cmu.tetrad.algcomparison.score.DSeparationScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
@@ -239,6 +240,9 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                 IndependenceWrapper wrapper = ((TakesIndependenceWrapper) algo).getIndependenceWrapper();
                 if (wrapper instanceof DSeparationTest) {
                     ((DSeparationTest) wrapper).setGraph(getSourceGraph());
+                }
+                if (wrapper instanceof TSeparationTest) {
+                    ((TSeparationTest) wrapper).setGraph(getSourceGraph());
                 }
             }
 
