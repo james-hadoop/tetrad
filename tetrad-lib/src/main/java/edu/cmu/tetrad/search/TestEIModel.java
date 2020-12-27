@@ -5,14 +5,14 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.RandomUtil;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
-
+ *
  */
 public class TestEIModel {
 
@@ -21,20 +21,40 @@ public class TestEIModel {
         RandomUtil.getInstance().setSeed(38284848383L);
 
         System.out.println("seed = " + RandomUtil.getInstance().getSeed());
-        Graph g = GraphUtils.loadGraphTxt(new File("src/test/resources/graph7.txt"));
+        Graph graph = GraphUtils.loadGraphTxt(new File("src/test/resources/graph7.txt"));
 
-        Map<Edge, Double> times = getRandomTimes(g);
-        Map<Edge, Integer> excitements = getRandomExcitements(g);
+        EIModel.Records records = new EIModel.Records();
 
-        Node x5 = node(g, "X5");
-        Node x15 = node(g, "X15");
+        for (Edge edge : graph.getEdges()) {
+            records.addRecord(edge.getNode1().toString(), edge.getNode2().toString(),
+                    getRandomTime(), getRandomExcitement(.9));
+        }
+
+        try {
+            records.toFile(new File("/Users/user/Downloads/records-ei-model.txt").toPath());
+            records = EIModel.Records.fromFile(new File("/Users/user/Downloads/records-ei-model.txt").toPath());
+            System.out.println(records);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        graph = records.getGraph();
+        Map<Edge, Double> times = records.getTimes();
+        Map<Edge, Integer> excitements = records.getExcitements();
+
+        Node x5 = node(graph, "X5");
+        Node x15 = node(graph, "X15");
         List<Node> cond = new ArrayList<>();
+//        cond.add(node(graph, "X6"));
 
-        EIModel wellen = new EIModel(g, times, excitements, 300);
+        EIModel wellen = new EIModel(graph, times, excitements, 100);
 
         int wellenPrediction = wellen.getWellenPrediction(x5, x15, cond);
 
         switch (wellenPrediction) {
+            case 0:
+                System.out.println("Disconnected");
+                break;
             case 1:
                 System.out.println("Excitatory");
                 break;
@@ -42,40 +62,30 @@ public class TestEIModel {
                 System.out.println("Inhibitory");
                 break;
             case 3:
-                System.out.println("Mixed");
+                System.out.println("Uncertain");
                 break;
             default:
-                throw new IllegalStateException("Prediction should be 1, 2, 3: " + wellenPrediction);
+                throw new IllegalStateException("Prediction should be 0, 1, 2, or 3: " + wellenPrediction);
         }
     }
 
-    @NotNull
-    private Map<Edge, Double> getRandomTimes(Graph graph) {
-        Map<Edge, Double> times = new HashMap<>();
-
-        for (Edge edge : graph.getEdges()) {
-            times.put(edge, RandomUtil.getInstance().nextInt(60) + 20.);
-        }
-        return times;
+    private double getRandomTime() {
+        return RandomUtil.getInstance().nextUniform(20, 80);
     }
 
-    @NotNull
-    private Map<Edge, Integer> getRandomExcitements(Graph graph) {
-        Map<Edge, Integer> excitements = new HashMap<>();
+    private int getRandomExcitement(double cutoff) {
+        if (cutoff < 0 || cutoff > 1) throw new IllegalStateException("Cutoff should be in [0, 1]: " + cutoff);
 
-        for (Edge edge : graph.getEdges()) {
-            if (RandomUtil.getInstance().nextDouble() < 0.2) {
-                excitements.put(edge, 2);
-            } else {
-                excitements.put(edge, 1);
-            }
+        if (RandomUtil.getInstance().nextDouble() < cutoff) {
+            return 1;
+        } else {
+            return 2;
         }
-
-        return excitements;
     }
 
     public Node node(Graph graph, String x1) {
         return graph.getNode(x1);
     }
+
 
 }

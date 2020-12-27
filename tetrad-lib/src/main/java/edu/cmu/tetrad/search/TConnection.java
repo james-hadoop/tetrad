@@ -3,9 +3,14 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
 
-import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 
 /**
@@ -207,6 +212,109 @@ public class TConnection {
             throw new IllegalArgumentException("Time limit must be >= 0: " + timeLimit);
         }
         this.timeLimit = timeLimit;
+    }
+
+    /**
+     * Build the graph and times for TConnection record by record.
+     */
+    public static class Records {
+        private final Graph graph;
+        private final Map<Edge, Double> times;
+
+        public Records() {
+            graph = new EdgeListGraph();
+            times = new HashMap<>();
+        }
+
+        public void addRecord(String var1, String var2, double time) {
+            if (var1 == null) {
+                throw new IllegalArgumentException("var1 is null.");
+            }
+
+            if (var2 == null) {
+                throw new IllegalArgumentException("var2 is null.");
+            }
+
+            if (time <= 0) {
+                throw new IllegalArgumentException("time is <= 0: " + time);
+            }
+
+            if (graph.getNode(var1) == null) {
+                graph.addNode(new GraphNode(var1));
+            }
+
+            if (graph.getNode(var2) == null) {
+                graph.addNode(new GraphNode(var2));
+            }
+
+            graph.addDirectedEdge(graph.getNode(var1), graph.getNode(var2));
+
+            Edge e = graph.getEdge(graph.getNode(var1), graph.getNode(var2));
+
+            times.put(e, time);
+        }
+
+        public Graph getGraph() {
+            return graph;
+        }
+
+        public Map<Edge, Double> getTimes() {
+            return times;
+        }
+
+        public String toString() {
+            StringBuilder s = new StringBuilder();
+            NumberFormat nf = new DecimalFormat("0.0000");
+
+            List<Edge> edges = new ArrayList<>(graph.getEdges());
+
+            s.append("Var1\tVar2\tDelay\n");
+
+            for (int i = 0; i < edges.size(); i++) {
+                Edge e = edges.get(i);
+                s.append(e.getNode1().toString()).append("\t");
+                s.append(e.getNode2().toString()).append("\t");
+                s.append(nf.format(times.get(e))).append("\t");
+
+                if (i < edges.size() - 1) {
+                    s.append("\n");
+                }
+            }
+
+            return s.toString();
+        }
+
+        public void toFile(Path path) throws IOException {
+            FileWriter writer = new FileWriter(path.toFile());
+            writer.write(toString());
+            writer.close();
+        }
+
+        public static TConnection.Records fromFile(Path path) throws IOException {
+            TConnection.Records records = new TConnection.Records();
+
+            BufferedReader r = new BufferedReader(new FileReader(path.toFile()));
+            String line;
+
+            System.out.println("Skipping first line of file as header.");
+            r.readLine();
+
+            while ((line = r.readLine()) != null) {
+                String[] tokens = line.split("\t");
+
+                if (tokens.length != 3) {
+                    throw new IllegalArgumentException("Expecting 3 tokens: " + line);
+                }
+
+                String v1 = tokens[0];
+                String v2 = tokens[1];
+                double time = Double.parseDouble(tokens[2]);
+
+                records.addRecord(v1, v2, time);
+            }
+
+            return records;
+        }
     }
 
     public enum PathType {DIRECT, TREK, PATH}

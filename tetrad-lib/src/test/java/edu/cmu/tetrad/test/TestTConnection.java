@@ -1,12 +1,14 @@
 package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.search.EIModel;
 import edu.cmu.tetrad.search.TConnection;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class TestTConnection {
@@ -115,7 +117,24 @@ public class TestTConnection {
         System.out.println("seed = " + RandomUtil.getInstance().getSeed());
         Graph graph = GraphUtils.loadGraphTxt(new File("src/test/resources/graph7.txt"));
 
-        Map<Edge, Double> times = getRandomTimes(graph);
+        // Helper class to build up the necessary graph and time map from data. Here we pick random times.
+        TConnection.Records records = new TConnection.Records();
+
+        for (Edge edge : graph.getEdges()) {
+            records.addRecord(edge.getNode1().toString(), edge.getNode2().toString(),
+                    RandomUtil.getInstance().nextUniform(20, 80));
+        }
+
+        try {
+            records.toFile(new File("/Users/user/Downloads/records-t-connection.txt").toPath());
+            records = TConnection.Records.fromFile(new File("/Users/user/Downloads/records-t-connection.txt").toPath());
+            System.out.println(records);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        graph = records.getGraph();
+        Map<Edge, Double> times = records.getTimes();
 
         Node x5 = node(graph, "X5");
         Node x15 = node(graph, "X15");
@@ -148,7 +167,15 @@ public class TestTConnection {
 
         Graph graph = GraphUtils.loadGraphTxt(new File("src/test/resources/graph7.txt"));
 
-        Map<Edge, Double> times = getRandomTimes(graph);
+        TConnection.Records records = new TConnection.Records();
+
+        for (Edge edge : graph.getEdges()) {
+            records.addRecord(edge.getNode1().toString(), edge.getNode2().toString(),
+                    RandomUtil.getInstance().nextUniform(20, 80));
+        }
+
+        graph = records.getGraph();
+        Map<Edge, Double> times = records.getTimes();
 
         Node x6 = node(graph, "X6");
         Node x3 = node(graph, "X3");
@@ -175,14 +202,22 @@ public class TestTConnection {
 
         System.out.println("seed = " + RandomUtil.getInstance().getSeed());
 
-        Graph g = GraphUtils.loadGraphTxt(new File("src/test/resources/graph8.txt"));
+        Graph graph = GraphUtils.loadGraphTxt(new File("src/test/resources/graph8.txt"));
 
-        Map<Edge, Double> times = getRandomTimes(g);
+        TConnection.Records records = new TConnection.Records();
 
-        Node x1 = node(g, "X1");
-        Node x2 = node(g, "X2");
-        Node x3 = node(g, "X3");
-        Node x4 = node(g, "X4");
+        for (Edge edge : graph.getEdges()) {
+            records.addRecord(edge.getNode1().toString(), edge.getNode2().toString(),
+                    RandomUtil.getInstance().nextUniform(20, 80));
+        }
+
+        graph = records.getGraph();
+        Map<Edge, Double> times = records.getTimes();
+
+        Node x1 = node(graph, "X1");
+        Node x2 = node(graph, "X2");
+        Node x3 = node(graph, "X3");
+        Node x4 = node(graph, "X4");
 
         List<Node> cond = new ArrayList<>();
 
@@ -191,8 +226,8 @@ public class TestTConnection {
         tconn.setPathType(TConnection.PathType.DIRECT);
         tconn.setTimeLimit(300);
 
-        List<LinkedList<Node>> temporalPaths = tconn.findTemporalPaths(g, x1, x2, cond, times);
-        printPaths(g, x1, x2, cond, temporalPaths, tconn.getTimeLimit());
+        List<LinkedList<Node>> temporalPaths = tconn.findTemporalPaths(graph, x1, x2, cond, times);
+        printPaths(graph, x1, x2, cond, temporalPaths, tconn.getTimeLimit());
 
         assert(temporalPaths.contains(path(x1, x2)));
         assert(temporalPaths.contains(path(x1, x2, x3, x4, x1, x2)));
