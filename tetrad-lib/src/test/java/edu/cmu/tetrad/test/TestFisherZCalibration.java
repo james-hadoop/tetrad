@@ -183,15 +183,13 @@ public class TestFisherZCalibration {
 
 //        RandomUtil.getInstance().setSeed(92883342449L);
 
-        double avgDegree = 4.;
-
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 10);
+        parameters.set(Params.NUM_RUNS, 30);
         parameters.set(Params.NUM_MEASURES, 20);
-        parameters.set(Params.AVG_DEGREE, avgDegree);
-        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
-        parameters.set(Params.SEM_BIC_RULE, 4);
-        parameters.set(Params.PENALTY_DISCOUNT, .5);
+        parameters.set(Params.AVG_DEGREE, 4.);
+        parameters.set(Params.SAMPLE_SIZE, 5000);//, 50000, 500000);//, 200000, 500000);// 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
+        parameters.set(Params.SEM_BIC_RULE, 3);
+        parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
         parameters.set(Params.TDEPTH, -1);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
@@ -205,7 +203,7 @@ public class TestFisherZCalibration {
 
         Statistics statistics = new Statistics();
 
-//        statistics.add(new ParameterColumn(Params.NUM_RUNS));
+        statistics.add(new ParameterColumn(Params.NUM_RUNS));
         statistics.add(new ParameterColumn(Params.SEM_BIC_RULE));
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
@@ -216,8 +214,8 @@ public class TestFisherZCalibration {
         statistics.add(new NumberOfEdgesEst());
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
+//        statistics.add(new ArrowheadPrecision());
+//        statistics.add(new ArrowheadRecall());
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new AhpBound());
@@ -227,7 +225,7 @@ public class TestFisherZCalibration {
         statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
-        statistics.setWeight("SHD", 1.0);
+        statistics.setWeight("SHD", .5);
 
         Algorithms algorithms = new Algorithms();
 

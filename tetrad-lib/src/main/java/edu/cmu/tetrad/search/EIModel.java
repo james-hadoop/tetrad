@@ -17,8 +17,8 @@ public class EIModel {
     private final Map<Edge, Integer> excitements;
     private final TConnection tconn;
 
-    private int[][] prod = {{1, 2, 0, 3}, {2, 1, 0, 3}, {0, 0, 0, 0}, {3, 3, 0, 3}};
-    private int[][] sum = {{1, 2, 0, 3}, {2, 1, 0, 3}, {0, 0, 0, 0}, {3, 3, 0, 3}};
+//    private int[][] prod = {{1, 2, 0, 3}, {2, 1, 0, 3}, {0, 0, 0, 0}, {3, 3, 0, 3}};
+//    private int[][] sum = {{1, 2, 0, 3}, {2, 1, 0, 3}, {0, 0, 0, 0}, {3, 3, 0, 3}};
 
     public EIModel(Graph graph, Map<Edge, Double> times, Map<Edge, Integer> excitatory, double timeLimit) {
         this.graph = graph;

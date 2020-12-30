@@ -90,7 +90,8 @@ public class AhpBound implements Statistic {
         double bound;
 
         if (/*L.isEmpty() || U.isEmpty() ||*/ A == 0) bound = Double.NaN;
-        else bound = 1.0 - (r) * (L.size() / (double) U.size()) * (U.size() / (double) A);
+//        else bound = 1.0 - (r) * (L.size() / (double) U.size()) * (U.size() / (double) A);
+        else bound = 1.0 - d;// (r) * d * (U.size() / (double) A);
 
         System.out.println("f = " + f + " L = " + L.size() + " U = " + U.size() + " A = " + A + " bound = " + bound
             + " L / U = " + L.size() / (double) U.size() + " d = " + d);

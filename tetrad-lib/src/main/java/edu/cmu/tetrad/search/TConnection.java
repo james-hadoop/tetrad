@@ -43,15 +43,6 @@ public class TConnection {
     private PathType pathType = PathType.PATH;
     private double timeLimit = 1000;
 
-    public boolean isTConnectedTo(Graph graph, Node x, Node y, List<Node> z) {
-        return isTConnectedTo(graph, x, y, z, getRandomTimes(graph));
-    }
-
-    public boolean isTConnectedTo(Graph graph, Node x, Node y, List<Node> z, Map<Edge, Double> times) {
-        List<LinkedList<Node>> temporalPaths = findTemporalPaths(graph, x, y, z, times);
-        return !temporalPaths.isEmpty();
-    }
-
     public List<LinkedList<Node>> findTemporalPaths(Graph g, Node x, Node y, List<Node> z, Map<Edge, Double> times) {
         if (!g.containsNode(x)) {
             throw new IllegalArgumentException("That graph doesn't contain the 'x' node: " + x);
@@ -84,6 +75,15 @@ public class TConnection {
         Set<Triple> triples = new HashSet<>();
         findTemporalPathsVisit(g, null, x, y, z, path, paths, times, 0, triples, new double[]{0});
         return paths;
+    }
+
+    public boolean isTConnectedTo(Graph graph, Node x, Node y, List<Node> z) {
+        return isTConnectedTo(graph, x, y, z, getRandomTimes(graph));
+    }
+
+    public boolean isTConnectedTo(Graph graph, Node x, Node y, List<Node> z, Map<Edge, Double> times) {
+        List<LinkedList<Node>> temporalPaths = findTemporalPaths(graph, x, y, z, times);
+        return !temporalPaths.isEmpty();
     }
 
     private boolean findTemporalPathsVisit(Graph g, Node prev, Node x, Node to, List<Node> z,
