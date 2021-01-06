@@ -28,7 +28,6 @@ import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.util.Matrix;
-import edu.cmu.tetrad.util.TetradLogger;
 
 import java.util.*;
 
@@ -141,7 +140,7 @@ public class IndTestTSep implements IndependenceTest {
     }
 
     public boolean isDependent(Node x, Node y, List<Node> z) {
-        tConnection.setPathType(TConnection.PathType.PATH);
+        tConnection.setPathType(TConnection.PathType.ALL_PATHS);
         tConnection.setTimeLimit(timeLimit);
         return tConnection.isTConnectedTo(graph, x, y, z);
     }

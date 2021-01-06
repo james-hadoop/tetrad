@@ -37,24 +37,24 @@ import java.util.*;
  * increases without bound, if the path type is set to PATH, and if the times for edges are fixed, the isTConnectioned
  * method always reverts to the d-connection relation.
  *
- * @author jdramsey@andrew.cmu.edu 2020.12.26
+ * @author jdramsey@andrew.cmu.edu 2021.1.4
  */
 public class TConnection {
-    private PathType pathType = PathType.PATH;
+    private PathType pathType = PathType.ALL_PATHS;
     private double timeLimit = 1000;
 
-    public List<LinkedList<Node>> findTemporalPaths(Graph g, Node x, Node y, List<Node> z, Map<Edge, Double> times) {
+    public List<LinkedList<Node>> findPaths(Graph g, Node x, Node y, List<Node> z, Map<Edge, Double> times) {
         if (!g.containsNode(x)) {
-            throw new IllegalArgumentException("That graph doesn't contain the 'x' node: " + x);
+            throw new IllegalArgumentException("That graph doesn't contain the 'x' node.");
         }
 
         if (!g.containsNode(y)) {
-            throw new IllegalArgumentException("That graph doesn't contain the 'y' node: " + y);
+            throw new IllegalArgumentException("That graph doesn't contain the 'y' node.");
         }
 
         for (Node _z : z) {
             if (!g.containsNode(_z)) {
-                throw new IllegalArgumentException("That graph doesn't contain a 'z' node: " + _z);
+                throw new IllegalArgumentException("That graph doesn't contain one of the conditioning nodes.");
             }
         }
 
@@ -64,7 +64,7 @@ public class TConnection {
             }
 
             if (times.get(e) <= 0) {
-                throw new IllegalArgumentException("Edge " + e + " is assigned a time delay that is <= 0: "
+                throw new IllegalArgumentException("Edge " + e + " is assigned a time delay that is <= 0 ms: "
                         + times.get(e));
             }
         }
@@ -82,121 +82,8 @@ public class TConnection {
     }
 
     public boolean isTConnectedTo(Graph graph, Node x, Node y, List<Node> z, Map<Edge, Double> times) {
-        List<LinkedList<Node>> temporalPaths = findTemporalPaths(graph, x, y, z, times);
+        List<LinkedList<Node>> temporalPaths = findPaths(graph, x, y, z, times);
         return !temporalPaths.isEmpty();
-    }
-
-    private boolean findTemporalPathsVisit(Graph g, Node prev, Node x, Node to, List<Node> z,
-                                           LinkedList<Node> path, List<LinkedList<Node>> paths,
-                                           Map<Edge, Double> times,
-                                           double sum, Set<Triple> triples, double[] descTime) {
-        List<Node> adjacentNodes = g.getAdjacentNodes(x);
-
-        boolean foundCond = false;
-
-        for (Node c : adjacentNodes) {
-            foundCond = foundCond || z.contains(x);
-
-            if (prev != null && prev == c) continue;
-
-            boolean fork = fork(prev, x, c, g);
-            boolean collider = collider(prev, x, c, g);
-
-            if (fork && triples.contains(new Triple(prev, x, c))) continue;
-            if (collider && triples.contains(new Triple(prev, x, c))) continue;
-
-            if (fork) triples.add(new Triple(prev, x, c));
-            if (collider) triples.add(new Triple(prev, x, c));
-
-            if (c == prev) continue;
-            Edge edge = g.getEdge(x, c);
-            double time = times.get(g.getEdge(x, c));
-
-            if (prev != null) {
-                if (!((collider && (foundCond)) || (!collider && !z.contains(x)))) {
-                    sum -= time;
-                    continue;
-                }
-            }
-
-            if (pathType == PathType.DIRECT && (x != c && !edge.pointsTowards(c))) {
-                continue;
-            }
-
-            sum += time;
-            path.addLast(c);
-
-            if (sum > timeLimit || sum <= 0) {
-                sum -= time;
-                path.removeLast();
-                continue;
-            }
-
-            if (c == to) {
-                paths.add(new LinkedList<>(path));
-            }
-
-            if (pathType == PathType.TREK && fork) {
-                foundCond = findTemporalPathsVisit(g, x, c, to, z, path, paths, times, 0, triples, descTime);
-            } else if (pathType == PathType.PATH && fork) {
-                foundCond = findTemporalPathsVisit(g, x, c, to, z, path, paths, times, 0, triples, descTime);
-            } else if (pathType == PathType.PATH && collider) {
-                foundCond = findTemporalPathsVisit(g, x, c, to, z, path, paths, times, descTime[0], triples, descTime);
-            } else {
-                foundCond = findTemporalPathsVisit(g, x, c, to, z, path, paths, times, sum, triples, descTime);
-            }
-
-            if (pathType == PathType.PATH && prev != null && !(fork || collider)) {
-                if (foundCond) {
-                    descTime[0] += time;
-                    sum -= time;
-                    path.removeLast();
-                    continue;
-                }
-            }
-
-            sum -= time;
-            path.removeLast();
-        }
-
-        return foundCond;
-    }
-
-    private static boolean collider(Node prev, Node x, Node c, Graph graph) {
-        if (prev == null) return false;
-
-        Edge e1 = graph.getEdge(prev, x);
-        Edge e2 = graph.getEdge(x, c);
-
-        if (e1 == null || e2 == null) {
-            throw new IllegalArgumentException("Not an edge in the graph.");
-        }
-
-        return e1.pointsTowards(x) && e2.pointsTowards(x);
-    }
-
-    private static boolean fork(Node prev, Node x, Node c, Graph graph) {
-        if (prev == null) return false;
-
-        Edge e1 = graph.getEdge(prev, x);
-        Edge e2 = graph.getEdge(x, c);
-
-        if (e1 == null || e2 == null) {
-            throw new IllegalArgumentException("Not an edge in the graph: <" + prev + ", " + x + ", " + c + ">");
-        }
-
-        return e1.pointsTowards(prev) && e2.pointsTowards(c);
-    }
-
-    @NotNull
-    private Map<Edge, Double> getRandomTimes(Graph graph) {
-        Map<Edge, Double> times = new HashMap<>();
-
-        for (Edge edge : graph.getEdges()) {
-            times.put(edge, RandomUtil.getInstance().nextInt(60) + 20.);
-        }
-
-        return times;
     }
 
     public void setPathType(PathType pathType) {
@@ -209,8 +96,9 @@ public class TConnection {
 
     public void setTimeLimit(double timeLimit) {
         if (timeLimit < 0) {
-            throw new IllegalArgumentException("Time limit must be >= 0: " + timeLimit);
+            throw new IllegalArgumentException("Time limit must be >= 0 ms: " + timeLimit);
         }
+
         this.timeLimit = timeLimit;
     }
 
@@ -226,30 +114,30 @@ public class TConnection {
             times = new HashMap<>();
         }
 
-        public void addRecord(String var1, String var2, double time) {
-            if (var1 == null) {
-                throw new IllegalArgumentException("var1 is null.");
+        public void addRecord(String x, String y, double time) {
+            if (x == null) {
+                throw new IllegalArgumentException("x is null.");
             }
 
-            if (var2 == null) {
-                throw new IllegalArgumentException("var2 is null.");
+            if (y == null) {
+                throw new IllegalArgumentException("y is null.");
             }
 
             if (time <= 0) {
-                throw new IllegalArgumentException("time is <= 0: " + time);
+                throw new IllegalArgumentException("Time is <= 0 ms: " + time);
             }
 
-            if (graph.getNode(var1) == null) {
-                graph.addNode(new GraphNode(var1));
+            if (graph.getNode(x) == null) {
+                graph.addNode(new GraphNode(x));
             }
 
-            if (graph.getNode(var2) == null) {
-                graph.addNode(new GraphNode(var2));
+            if (graph.getNode(y) == null) {
+                graph.addNode(new GraphNode(y));
             }
 
-            graph.addDirectedEdge(graph.getNode(var1), graph.getNode(var2));
+            graph.addDirectedEdge(graph.getNode(x), graph.getNode(y));
 
-            Edge e = graph.getEdge(graph.getNode(var1), graph.getNode(var2));
+            Edge e = graph.getEdge(graph.getNode(x), graph.getNode(y));
 
             times.put(e, time);
         }
@@ -317,5 +205,233 @@ public class TConnection {
         }
     }
 
-    public enum PathType {DIRECT, TREK, PATH}
+    public static String pathString(Graph graph, List<Node> path, List<Node> conditioningVars) {
+        StringBuilder buf = new StringBuilder();
+
+        if (path.size() < 2) {
+            return "";
+        }
+
+        buf.append(path.get(0).toString());
+
+        if (conditioningVars.contains(path.get(0))) {
+            buf.append("(C)");
+        }
+
+        for (int m = 1; m < path.size(); m++) {
+            Node n0 = path.get(m - 1);
+            Node n1 = path.get(m);
+            Node n2 = null;
+
+            if (m + 1 < path.size()) {
+                n2 = path.get(m + 1);
+            }
+
+            Edge edge = graph.getEdge(n0, n1);
+
+            if (edge == null) {
+                buf.append("(-)");
+            } else {
+                if (n0 == n1) {
+                    buf.append("-[").append(n0).append("-->").append(n1).append("]");
+                    continue;
+                }
+
+                Endpoint endpoint0 = edge.getProximalEndpoint(n0);
+                Endpoint endpoint1 = edge.getProximalEndpoint(n1);
+
+                if (endpoint0 == Endpoint.ARROW) {
+                    buf.append("<");
+                } else if (endpoint0 == Endpoint.TAIL) {
+                    buf.append("-");
+                } else if (endpoint0 == Endpoint.CIRCLE) {
+                    buf.append("o");
+                }
+
+                buf.append("-");
+
+                if (endpoint1 == Endpoint.ARROW) {
+                    buf.append(">");
+                } else if (endpoint1 == Endpoint.TAIL) {
+                    buf.append("-");
+                } else if (endpoint1 == Endpoint.CIRCLE) {
+                    buf.append("o");
+                }
+            }
+
+            buf.append(n1.toString());
+
+            if (conditioningVars.contains(n1)) {
+                buf.append("(C)");
+            }
+
+            if (n2 != null && TConnection.fork(n0, n1, n2, graph)) {
+                buf.append("(F)");
+            }
+        }
+
+        return buf.toString();
+    }
+
+    public static boolean directed(List<Node> path, Graph graph) {
+        for (int i = 0; i < path.size() - 1; i++) {
+            Edge e = graph.getEdge(path.get(i), path.get(i + 1));
+            if (!e.pointsTowards(path.get(i + 1))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static double sumTimes(List<Node> path, Graph graph, Map<Edge, Double> times) {
+        double sum = 0.0;
+
+        for (int i = 0; i < path.size() - 1; i++) {
+            Edge e = graph.getEdge(path.get(i), path.get(i + 1));
+
+            if (e.pointsTowards(path.get(i))) {
+                sum -= times.get(e);
+            } else {
+                sum += times.get(e);
+            }
+        }
+
+        return sum;
+    }
+
+    public static void printPaths(Graph graph, Node x, Node y, List<Node> cond, List<LinkedList<Node>> temporalPaths,
+                                  double timeLimit, Map<Edge, Double> times) {
+        System.out.println("Paths from " + x + " to " + y + (cond.isEmpty() ? (" conditioning on " + cond) : ""));
+        System.out.println("Time limit = " + timeLimit + " ms\n");
+
+        if (temporalPaths.isEmpty()) {
+            System.out.println("NO PATHS");
+        } else {
+            NumberFormat nf = new DecimalFormat("0.00");
+
+            for (List<Node> path : temporalPaths) {
+                if (directed(path, graph)) {
+                    System.out.print(nf.format(sumTimes(path, graph, times)) + ":\t");
+                }
+                System.out.println(pathString(graph, path, cond));
+            }
+
+            System.out.println();
+        }
+    }
+
+    private boolean findTemporalPathsVisit(Graph g, Node prev, Node x, Node to, List<Node> z,
+                                           LinkedList<Node> path, List<LinkedList<Node>> paths,
+                                           Map<Edge, Double> times,
+                                           double sum, Set<Triple> triples, double[] descTime) {
+        List<Node> adjacentNodes = g.getAdjacentNodes(x);
+
+        boolean foundCond = false;
+
+        for (Node c : adjacentNodes) {
+            foundCond = foundCond || z.contains(x);
+
+            if (prev != null && prev == c) continue;
+
+            boolean fork = fork(prev, x, c, g);
+            boolean collider = collider(prev, x, c, g);
+
+            if (fork && triples.contains(new Triple(prev, x, c))) continue;
+            if (collider && triples.contains(new Triple(prev, x, c))) continue;
+
+            if (fork) triples.add(new Triple(prev, x, c));
+            if (collider) triples.add(new Triple(prev, x, c));
+
+            if (c == prev) continue;
+            Edge edge = g.getEdge(x, c);
+            double time = times.get(g.getEdge(x, c));
+
+            if (prev != null) {
+                if (!((collider && (foundCond)) || (!collider && !z.contains(x)))) {
+                    continue;
+                }
+            }
+
+            if (pathType == PathType.DIRECT && (x != c && !edge.pointsTowards(c))) {
+                continue;
+            }
+
+            sum += time;
+            path.addLast(c);
+
+            if (sum > timeLimit || sum <= 0) {
+                sum -= time;
+                path.removeLast();
+                continue;
+            }
+
+            if (c == to && sumTimes(path, g, times) >= 0) {
+                paths.add(new LinkedList<>(path));
+            }
+
+            if (pathType == PathType.TREK && fork) {
+                foundCond = findTemporalPathsVisit(g, x, c, to, z, path, paths, times, 0, triples, descTime);
+            } else if (pathType == PathType.ALL_PATHS && fork) {
+                foundCond = findTemporalPathsVisit(g, x, c, to, z, path, paths, times, 0, triples, descTime);
+            } else if (pathType == PathType.ALL_PATHS && collider) {
+                foundCond = findTemporalPathsVisit(g, x, c, to, z, path, paths, times, descTime[0], triples, descTime);
+            } else {
+                foundCond = findTemporalPathsVisit(g, x, c, to, z, path, paths, times, sum, triples, descTime);
+            }
+
+            if (pathType == PathType.ALL_PATHS && prev != null && !(fork || collider)) {
+                if (foundCond) {
+                    descTime[0] += time;
+                    sum -= time;
+                    path.removeLast();
+                    continue;
+                }
+            }
+
+            sum -= time;
+            path.removeLast();
+        }
+
+        return foundCond;
+    }
+
+    private static boolean collider(Node prev, Node x, Node c, Graph graph) {
+        if (prev == null) return false;
+
+        Edge e1 = graph.getEdge(prev, x);
+        Edge e2 = graph.getEdge(x, c);
+
+        if (e1 == null || e2 == null) {
+            throw new IllegalArgumentException("Not an edge in the graph.");
+        }
+
+        return e1.pointsTowards(x) && e2.pointsTowards(x);
+    }
+
+    private static boolean fork(Node prev, Node x, Node c, Graph graph) {
+        if (prev == null) return false;
+
+        Edge e1 = graph.getEdge(prev, x);
+        Edge e2 = graph.getEdge(x, c);
+
+        if (e1 == null || e2 == null) {
+            throw new IllegalArgumentException("Not an edge in the graph: <" + prev + ", " + x + ", " + c + ">");
+        }
+
+        return e1.pointsTowards(prev) && e2.pointsTowards(c);
+    }
+
+    @NotNull
+    private Map<Edge, Double> getRandomTimes(Graph graph) {
+        Map<Edge, Double> times = new HashMap<>();
+
+        for (Edge edge : graph.getEdges()) {
+            times.put(edge, RandomUtil.getInstance().nextInt(60) + 20.);
+        }
+
+        return times;
+    }
+
+    public enum PathType {DIRECT, TREK, ALL_PATHS}
 }

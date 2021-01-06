@@ -3,89 +3,84 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
 
 /**
+ * Tests the EI model.
  *
+ * @author jdramsey@andrew.cmu.edu 2021.1.4
  */
 public class TestEIModel {
 
+    private double cutoff;
+
     @Test
     public void test1() {
-        RandomUtil.getInstance().setSeed(38284848383L);
+        setCutoff(0.8);
 
-        System.out.println("seed = " + RandomUtil.getInstance().getSeed());
         Graph graph = GraphUtils.loadGraphTxt(new File("src/test/resources/graph7.txt"));
 
         EIModel.Records records = new EIModel.Records();
 
         for (Edge edge : graph.getEdges()) {
             records.addRecord(edge.getNode1().toString(), edge.getNode2().toString(),
-                    getRandomTime(), getRandomExcitement(.9));
+                    getRandomTime(), getRandomExcitement(getCutoff()));
         }
 
         try {
-            records.toFile(new File("/Users/user/Downloads/records-ei-model.txt").toPath());
-            records = EIModel.Records.fromFile(new File("/Users/user/Downloads/records-ei-model.txt").toPath());
-            System.out.println(records);
+            records.toFile(new File("/Users/user/Downloads/records-acyclic.txt").toPath());
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        graph = records.getGraph();
-        Map<Edge, Double> times = records.getTimes();
-        Map<Edge, Integer> excitements = records.getExcitements();
+        EIModel.main("/Users/user/Downloads/records-acyclic.txt", "60", "X3", "X8", "X12");
+    }
 
-        Node x5 = node(graph, "X5");
-        Node x15 = node(graph, "X15");
-        List<Node> cond = new ArrayList<>();
-//        cond.add(node(graph, "X6"));
+    @Test
+    public void test2() {
+        setCutoff(0.9);
 
-        EIModel wellen = new EIModel(graph, times, excitements, 100);
+        Graph graph = GraphUtils.loadGraphTxt(new File("src/test/resources/graph8.txt"));
 
-        int wellenPrediction = wellen.getWellenPrediction(x5, x15, cond);
+        EIModel.Records records = new EIModel.Records();
 
-        switch (wellenPrediction) {
-            case 0:
-                System.out.println("Disconnected");
-                break;
-            case 1:
-                System.out.println("Excitatory");
-                break;
-            case 2:
-                System.out.println("Inhibitory");
-                break;
-            case 3:
-                System.out.println("Uncertain");
-                break;
-            default:
-                throw new IllegalStateException("Prediction should be 0, 1, 2, or 3: " + wellenPrediction);
+        for (Edge edge : graph.getEdges()) {
+            records.addRecord(edge.getNode1().toString(), edge.getNode2().toString(),
+                    getRandomTime(), getRandomExcitement(getCutoff()));
         }
+
+        try {
+            records.toFile(new File("/Users/user/Downloads/records-cyclic.txt").toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        EIModel.main("/Users/user/Downloads/records-cyclic.txt", "100", "X2", "X4");
+    }
+
+    private double getCutoff() {
+        return cutoff;
+    }
+
+    private void setCutoff(double cutoff) {
+        if (cutoff < 0 || cutoff > 1) throw new IllegalStateException("Cutoff should be in [0, 1]: " + cutoff);
+        this.cutoff = cutoff;
     }
 
     private double getRandomTime() {
-        return RandomUtil.getInstance().nextUniform(20, 80);
+        return RandomUtil.getInstance().nextUniform(3, 20);
     }
 
     private int getRandomExcitement(double cutoff) {
-        if (cutoff < 0 || cutoff > 1) throw new IllegalStateException("Cutoff should be in [0, 1]: " + cutoff);
-
         if (RandomUtil.getInstance().nextDouble() < cutoff) {
             return 1;
         } else {
-            return 2;
+            return RandomUtil.getInstance().nextDouble() < 0.2 ? 3 : 2;
         }
     }
-
-    public Node node(Graph graph, String x1) {
-        return graph.getNode(x1);
-    }
-
 
 }
