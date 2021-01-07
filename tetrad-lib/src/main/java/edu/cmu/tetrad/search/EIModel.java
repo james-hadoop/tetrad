@@ -257,13 +257,14 @@ public class EIModel {
     }
 
     public static void printPaths(Graph graph, Node x, Node y, List<Node> z, Return wellmanPrediction,
-                                  double timeLimit, Map<Edge, Double> times,
-                                  TConnection tconn) {
+                                  double timeLimit, Map<Edge, Double> times) {
 //        System.out.println("\n==========================================");
         System.out.println();
         NumberFormat nf = new DecimalFormat("0");
 
+        TConnection tconn = new TConnection();
         tconn.setPathType(TConnection.PathType.DIRECT);
+        tconn.setTimeLimit(timeLimit);
 
         List<LinkedList<Node>> paths = new LinkedList<>();
 
@@ -287,8 +288,7 @@ public class EIModel {
             paths.addAll(tconn.findPaths(graph, x, y, z, times));
         }
 
-        System.out.println("Paths from " + x + " to " + y + (z.isEmpty() ? (" conditioning on " + z) : "")
-                + " with " + y + " at or after " + x);
+        System.out.println("Paths from " + x + " to " + y + (z.isEmpty() ? (" conditioning on " + z) : ""));
         System.out.println("Time limit = " + nf.format(timeLimit) + " ms\n");
 
         List<LinkedList<Node>> temporalPaths = wellmanPrediction.getPaths();
@@ -330,7 +330,7 @@ public class EIModel {
         return graph.getNode(x1);
     }
 
-    public static void printEiResult(String file, String timeLimit, String x, String y, TConnection tconn,
+    public static void printEiResult(String file, String timeLimit, String x, String y,
                                      String... cond) {
         Records records = null;
 
@@ -365,7 +365,7 @@ public class EIModel {
 
         Return wellmanPrediction = wellman.getQualitativePrediction(_x, _y, _cond);
 
-        printPaths(graph, _x, _y, _cond, wellmanPrediction, _timeLimit, times, tconn);
+        printPaths(graph, _x, _y, _cond, wellmanPrediction, _timeLimit, times);
 
         System.out.print("\nQualitative excitatory/inhibitory prediction for " + x + " >>> " + y + ": ");
 
@@ -419,9 +419,8 @@ public class EIModel {
         String y = args[3];
         String[] cond = new String[args.length - 4];
         System.arraycopy(args, 4, cond, 0, cond.length);
-        TConnection tConnection = new TConnection();
         try {
-            printEiResult(file, timeLimit, x, y, tConnection, cond);
+            printEiResult(file, timeLimit, x, y, cond);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
