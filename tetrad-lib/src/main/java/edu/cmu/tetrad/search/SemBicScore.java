@@ -28,7 +28,6 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.StatUtils;
-import edu.cmu.tetrad.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -172,20 +171,20 @@ public class SemBicScore implements Score {
 
         double varey;
 
-        if (false) {
-            // Ricardo's calculation.
-            Matrix b = covxx.inverse().times(covxy);
-            varey = cov.get(0, 0);
-            Vector _cxy = covxy.getColumn(0);
-            Vector _b = b.getColumn(0);
-            varey -= _cxy.dotProduct(_b);
-        } else {
-            // My calculation.
-            Matrix b = covxx.inverse().times(covxy);
-            Matrix b2 = adjustedCoefs(p, b);
-            Matrix times = b2.transpose().times(cov).times(b2);
-            varey = times.get(0, 0);
-        }
+//        if (false) {
+//            // Ricardo's calculation.
+//            Matrix b = covxx.inverse().times(covxy);
+//            varey = cov.get(0, 0);
+//            Vector _cxy = covxy.getColumn(0);
+//            Vector _b = b.getColumn(0);
+//            varey -= _cxy.dotProduct(_b);
+//        } else {
+        // My calculation.
+        Matrix b = covxx.inverse().times(covxy);
+        Matrix b2 = adjustedCoefs(p, b);
+        Matrix times = b2.transpose().times(cov).times(b2);
+        varey = times.get(0, 0);
+//        }
 
         double c = getPenaltyDiscount();
 
@@ -203,8 +202,6 @@ public class SemBicScore implements Score {
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
 
             return -n * log(varey) - c * k * 6 * log(m) - 2 * getStructurePrior(p);
-        } else if (ruleType == RuleType.ALTERNATIVE) {
-            return -sampleSize * log(varey) - k * log(sampleSize);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
@@ -510,7 +507,7 @@ public class SemBicScore implements Score {
         this.ruleType = ruleType;
     }
 
-    public enum RuleType {CHICKERING, NANDY, HIGH_DIMENSIONAL, ALTERNATIVE}
+    public enum RuleType {CHICKERING, NANDY, HIGH_DIMENSIONAL}
 }
 
 
