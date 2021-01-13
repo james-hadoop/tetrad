@@ -43,6 +43,7 @@ import static java.lang.StrictMath.log;
  */
 public final class IndTestFisherZ implements IndependenceTest {
 
+    private double ess;
     /**
      * The correlation matrix.
      */
@@ -105,6 +106,17 @@ public final class IndTestFisherZ implements IndependenceTest {
 
             this.nodesHash = nodesHash;
 
+            Matrix cor = this.cor.getMatrix();
+
+            double m = this.cor.getSize();
+            double n = this.cor.getSampleSize();
+
+            double tr = cor.times(cor).trace();
+            double rho = sqrt(((1 / m) * tr - 1) / (n - 1));
+            double ess = n / (1. + (n - 1.) * rho);
+
+            this.ess = ess;
+
             return;
         }
 
@@ -126,6 +138,7 @@ public final class IndTestFisherZ implements IndependenceTest {
         }
 
         this.nodesHash = nodesHash;
+
 
     }
 
@@ -249,7 +262,7 @@ public final class IndTestFisherZ implements IndependenceTest {
         allVars.add(y);
 
         double r;
-        int n;
+        double n;
 
         if (covMatrix() != null) {
             r = partialCorrelation(x, y, z, null);
@@ -424,8 +437,8 @@ public final class IndTestFisherZ implements IndependenceTest {
 
     //==========================PRIVATE METHODS============================//
 
-    private int sampleSize() {
-        return covMatrix().getSampleSize();
+    private double sampleSize() {
+        return this.ess;// covMatrix().getSampleSize();
     }
 
     private ICovarianceMatrix covMatrix() {

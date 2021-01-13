@@ -349,6 +349,7 @@ public class TConnection {
 
             if (prev != null) {
                 if (!((collider && (foundCond)) || (!collider && !z.contains(x)))) {
+//                    sum -= time;
                     continue;
                 }
             }
@@ -366,7 +367,7 @@ public class TConnection {
                 continue;
             }
 
-            if (c == to && sumTimes(path, g, times) >= 0) {
+            if (c == to) {
                 paths.add(new LinkedList<>(path));
             }
 

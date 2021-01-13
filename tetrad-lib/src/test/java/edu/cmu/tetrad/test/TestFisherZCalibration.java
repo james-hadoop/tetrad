@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.lang.Math.log;
+import static java.lang.Math.sqrt;
 import static java.lang.StrictMath.abs;
 
 public class TestFisherZCalibration {
@@ -184,15 +185,15 @@ public class TestFisherZCalibration {
 //        RandomUtil.getInstance().setSeed(92883342449L);
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 30);
+        parameters.set(Params.NUM_RUNS, 10);
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 4.);
-        parameters.set(Params.SAMPLE_SIZE, 5000);//, 50000, 500000);//, 200000, 500000);// 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
-        parameters.set(Params.SEM_BIC_RULE, 3);
+        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
+        parameters.set(Params.SEM_BIC_RULE, 1);
         parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
         parameters.set(Params.TDEPTH, -1);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.TURNING, true);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
@@ -218,10 +219,10 @@ public class TestFisherZCalibration {
 //        statistics.add(new ArrowheadRecall());
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
-        statistics.add(new AhpBound());
+//        statistics.add(new AhpBound());
 
         statistics.add(new F1Adj());
-//        statistics.add(new F1Arrow());
+        statistics.add(new F1Arrow());
         statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 

@@ -28,6 +28,7 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.StatUtils;
+import edu.cmu.tetrad.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -72,6 +73,7 @@ public class SemBicScore implements Score {
 
     // The rule type to use.
     private RuleType ruleType = RuleType.CHICKERING;
+    private double ess;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -96,8 +98,8 @@ public class SemBicScore implements Score {
         }
 
         if (!dataSet.existsMissingValue()) {
-//            setCovariances(new CorrelationMatrix(new CovarianceMatrix(dataSet, false)));
-            setCovariances(new CovarianceMatrix(dataSet, false));
+            setCovariances(new CovarianceMatrix(dataSet, true));
+//            setCovariances(new CorrelationMatrix(new CovarianceMatrix(dataSet, true)));
             this.variables = covariances.getVariables();
             this.sampleSize = covariances.getSampleSize();
             this.indexMap = indexMap(this.variables);
@@ -162,7 +164,7 @@ public class SemBicScore implements Score {
         Matrix cov = getCov(rows, all, all);
 
         double m = variables.size();
-        double n = sampleSize;
+//        double n = sampleSize;
 
         int[] pp = indexedParents(parents);
 
@@ -171,27 +173,26 @@ public class SemBicScore implements Score {
 
         double varey;
 
-//        if (false) {
-//            // Ricardo's calculation.
-//            Matrix b = covxx.inverse().times(covxy);
-//            varey = cov.get(0, 0);
-//            Vector _cxy = covxy.getColumn(0);
-//            Vector _b = b.getColumn(0);
-//            varey -= _cxy.dotProduct(_b);
-//        } else {
-        // My calculation.
-        Matrix b = covxx.inverse().times(covxy);
-        Matrix b2 = adjustedCoefs(p, b);
-        Matrix times = b2.transpose().times(cov).times(b2);
-        varey = times.get(0, 0);
-//        }
+        if (false) {
+            // Ricardo's calculation.
+            Matrix b = covxx.inverse().times(covxy);
+            varey = cov.get(0, 0);
+            Vector _cxy = covxy.getColumn(0);
+            Vector _b = b.getColumn(0);
+            varey -= _cxy.dotProduct(_b);
+        } else {
+            // My calculation.
+            Matrix b = adjustedCoefs(covxx.inverse().times(covxy));
+            Matrix times = b.transpose().times(cov).times(b);
+            varey = times.get(0, 0);
+        }
 
         double c = getPenaltyDiscount();
 
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-            return -n * log(varey) - c * k * log(n) - 2 * getStructurePrior(p);
+            return -ess * log(varey) - c * k * log(ess);// - 2 * getStructurePrior(p);
 
         } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
@@ -200,8 +201,9 @@ public class SemBicScore implements Score {
             // We will just take 6 * omega * (1 + gamma) to be a number >= 6. To be compatible with other scores,
             // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
+            double x = ess;
 
-            return -n * log(varey) - c * k * 6 * log(m) - 2 * getStructurePrior(p);
+            return -x * log((varey)) - c * 6 * k * log(m);// - 2 * getStructurePrior(p);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
@@ -209,10 +211,10 @@ public class SemBicScore implements Score {
 
 
     @NotNull
-    public Matrix adjustedCoefs(int p, Matrix b) {
-        Matrix byx = new Matrix(p + 1, 1);
+    public Matrix adjustedCoefs(Matrix b) {
+        Matrix byx = new Matrix(b.rows() + 1, 1);
         byx.set(0, 0, 1);
-        for (int j = 0; j < p; j++) byx.set(j + 1, 0, -b.get(j, 0));
+        for (int j = 0; j < b.rows(); j++) byx.set(j + 1, 0, -b.get(j, 0));
         return byx;
     }
 
@@ -325,8 +327,10 @@ public class SemBicScore implements Score {
         double n = covariances.getSampleSize();
 
         double tr = cor.times(cor).trace();
-        double rho = sqrt((1. / m) * tr - 1.) / (n - 1.);
+        double rho = sqrt(((1 / m) * tr - 1) / (n - 1));
         double ess = n / (1. + (n - 1.) * rho);
+
+        this.ess = ess;
 
         System.out.println("n = " + n + " ess = " + ess + " rho = " + rho);
 
@@ -435,7 +439,7 @@ public class SemBicScore implements Score {
 
     private double partialCorrelation(Node x, Node y, List<Node> z, List<Integer> rows) {
         try {
-            return StatUtils.partialCorrelation(convertCovToCorr(getCov(rows, indices(x, y, z))));
+            return StatUtils.partialCorrelation(getCov(rows, indices(x, y, z)));
         } catch (Exception e) {
             return NaN;
         }
