@@ -1911,6 +1911,27 @@ public final class DataUtils {
 
         return (DataSet) dataSet;
     }
+
+    /**
+     * Returns the equivalent sample size, assuming all units are equally correlated and all unit variances are equal.
+     */
+    public static double getEss(ICovarianceMatrix covariances) {
+        Matrix C = new CorrelationMatrix(covariances).getMatrix();
+
+        double m = covariances.getSize();
+        double n = covariances.getSampleSize();
+
+        double sum = 0;
+
+        for (int i = 0; i < C.rows(); i++) {
+            for (int j = 0; j < C.columns(); j++) {
+                sum += C.get(i, j);
+            }
+        }
+
+        double rho = (n * sum - n * m) / (m * (n * n - n));
+        return n / (1. + (n - 1.) * rho);
+    }
 }
 
 

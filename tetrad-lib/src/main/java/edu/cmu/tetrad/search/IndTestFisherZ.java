@@ -106,6 +106,8 @@ public final class IndTestFisherZ implements IndependenceTest {
 
             this.nodesHash = nodesHash;
 
+            this.ess = DataUtils.getEss(cor);
+
             return;
         }
 
@@ -250,11 +252,11 @@ public final class IndTestFisherZ implements IndependenceTest {
         allVars.add(y);
 
         double r;
-        int n;
+        double n;
 
         if (covMatrix() != null) {
             r = partialCorrelation(x, y, z, null);
-            n = sampleSize();
+            n = ess;//sampleSize();
         } else {
             List<Integer> rows = getRows(allVars, nodesHash);
             r = getR(x, y, z, rows);

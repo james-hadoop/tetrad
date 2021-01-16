@@ -21,10 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.CorrelationMatrix;
-import edu.cmu.tetrad.data.CovarianceMatrix;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.ICovarianceMatrix;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.StatUtils;
@@ -139,7 +136,6 @@ public class SemBicScore implements Score {
         }
 
         double r = partialCorrelation(_x, _y, _z, rows);
-
         double c = getPenaltyDiscount();
 
         return -sampleSize * log(1.0 - r * r) - c * log(sampleSize)
@@ -192,7 +188,7 @@ public class SemBicScore implements Score {
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-            return -ess * log(varey) - c * k * log(ess);// - 2 * getStructurePrior(p);
+            return -ess * log(varey) - c * k * log(ess) - 2 * getStructurePrior(p);
 
         } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
@@ -201,9 +197,8 @@ public class SemBicScore implements Score {
             // We will just take 6 * omega * (1 + gamma) to be a number >= 6. To be compatible with other scores,
             // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
-            double x = ess;
 
-            return -x * log((varey)) - c * 6 * k * log(m);// - 2 * getStructurePrior(p);
+            return -ess * log((varey)) - c * k * 6 * log(m) - 2 * getStructurePrior(p);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
@@ -321,19 +316,9 @@ public class SemBicScore implements Score {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
 
-        Matrix cor = new CorrelationMatrix(covariances).getMatrix();
+        this.ess = DataUtils.getEss(covariances);
 
-        double m = covariances.getSize();
-        double n = covariances.getSampleSize();
-
-        double tr = cor.times(cor).trace();
-        double rho = sqrt(((1 / m) * tr - 1) / (n - 1));
-        double ess = n / (1. + (n - 1.) * rho);
-
-        this.ess = ess;
-
-        System.out.println("n = " + n + " ess = " + ess + " rho = " + rho);
-
+        System.out.println("n = " + covariances.getSampleSize() + " ess = " + this.ess);
     }
 
     private static int[] append(int[] z, int x) {
