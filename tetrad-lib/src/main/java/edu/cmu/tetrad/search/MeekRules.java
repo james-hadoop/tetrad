@@ -168,6 +168,10 @@ public class MeekRules implements ImpliedOrientation {
                     break;
                 }
 
+                for (Node n : graph.getChildren(node)) {
+                    undirectUnforcedEdges(n, graph);
+
+                }
                 undirectUnforcedEdges(node, graph);
             }
 

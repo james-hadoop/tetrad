@@ -316,7 +316,7 @@ public class SemBicScore implements Score {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
 
-        this.ess = covariances.getSampleSize();// DataUtils.getEss(covariances);
+        this.ess = DataUtils.getEss(covariances);
 
         System.out.println("n = " + covariances.getSampleSize() + " ess = " + this.ess);
     }
