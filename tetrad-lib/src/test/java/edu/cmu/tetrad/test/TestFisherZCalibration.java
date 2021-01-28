@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static java.lang.Math.*;
 import static java.lang.StrictMath.abs;
 
 public class TestFisherZCalibration {
@@ -38,19 +37,20 @@ public class TestFisherZCalibration {
     @Test
     public void test1() {
         RandomUtil.getInstance().setSeed(105034020L);
-        toTest();
+        doTest();
     }
 
-    private void toTest() {
+    @Test
+    public void doTest() {
         Parameters parameters = new Parameters();
         parameters.set(Params.ALPHA, 0.01);
         parameters.set(Params.DEPTH, 2);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
-        parameters.set(Params.SAMPLE_SIZE, 1000000);
-        parameters.set(Params.SEM_BIC_RULE, 3);
-        parameters.set(Params.PENALTY_DISCOUNT, 2);
+        parameters.set(Params.SAMPLE_SIZE, 10000);
+        parameters.set(Params.SEM_BIC_RULE, 1);
+        parameters.set(Params.PENALTY_DISCOUNT, 1);
 
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 4);
@@ -188,13 +188,13 @@ public class TestFisherZCalibration {
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 4);
         parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
-        parameters.set(Params.SEM_BIC_RULE, 1);
+        parameters.set(Params.SEM_BIC_RULE, 3);
         parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
         parameters.set(Params.TDEPTH, -1);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
-        parameters.set(Params.SYMMETRIC_FIRST_STEP, true);
-        parameters.set(Params.TURNING, true);
+        parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
+        parameters.set(Params.ADJUST_ORIENTATIONS, false);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
         parameters.set(Params.VAR_LOW, 1.0);

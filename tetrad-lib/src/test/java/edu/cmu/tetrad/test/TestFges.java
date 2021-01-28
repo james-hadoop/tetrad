@@ -714,7 +714,7 @@ public class TestFges {
         for (int i = 0; i < numIterations; i++) {
             Graph dag = GraphUtils.randomDag(numNodes, 0, aveDegree * numNodes / 2, 10, 10, 10, false);
             Fges fges = new Fges(new GraphScore(dag));
-            fges.setFaithfulnessAssumed(true);
+            fges.setFaithfulnessAssumed(false);
             fges.setVerbose(true);
             fges.setTrueGraph(dag);
             fges.setTDepth(1);

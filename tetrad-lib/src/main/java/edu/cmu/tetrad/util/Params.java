@@ -173,7 +173,7 @@ public final class Params {
     public static final String THRESHOLD_FOR_NUM_EIGENVALUES = "thresholdForNumEigenvalues";
     public static final String THRESHOLD_NO_RANDOM_CONSTRAIN_SEARCH = "thresholdNoRandomConstrainSearch";
     public static final String THRESHOLD_NO_RANDOM_DATA_SEARCH = "thresholdNoRandomDataSearch";
-    public static final String TURNING = "turning";
+    public static final String ADJUST_ORIENTATIONS = "adjustOrientations";
     public static final String TWO_CYCLE_ALPHA = "twoCycleAlpha";
     public static final String UPPER_BOUND = "upperBound";
     public static final String USE_CORR_DIFF_ADJACENCIES = "useCorrDiffAdjacencies";

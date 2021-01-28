@@ -139,43 +139,23 @@ public class MeekRules implements ImpliedOrientation {
 
     private void orientUsingMeekRulesLocally(IKnowledge knowledge, Graph graph) {
 
-        oriented = new HashSet<>();
+        {
 
-        if (undirectUnforcedEdges) {
-            for (Node node : nodes) {
-                if (Thread.currentThread().isInterrupted()) {
-                    break;
-                }
+            // To prevent infinite recursion in case there's a cycle already in the graph.
+            LinkedList<Node> path2 = new LinkedList<>();
 
-                undirectUnforcedEdges(node, graph);
-                directStack.addAll(graph.getAdjacentNodes(node));
-            }
-        }
-
-        for (Node node : this.nodes) {
-            if (Thread.currentThread().isInterrupted()) {
-                break;
+            for (Node c : nodes) {
+                undirectUnforcedEdges(c, graph, path2);
             }
 
-            runMeekRules(node, graph, knowledge);
-        }
-
-        while (!directStack.isEmpty()) {
-            Node node = directStack.removeLast();
-
-            if (undirectUnforcedEdges) {
-                if (Thread.currentThread().isInterrupted()) {
-                    break;
-                }
-
-                for (Node n : graph.getChildren(node)) {
-                    undirectUnforcedEdges(n, graph);
-
-                }
-                undirectUnforcedEdges(node, graph);
+            for (Node c : nodes) {
+                runMeekRules(c, graph, knowledge);
             }
 
-            runMeekRules(node, graph, knowledge);
+            while (!directStack.isEmpty()) {
+                Node n = directStack.removeFirst();
+                runMeekRules(n, graph, knowledge);
+            }
         }
     }
 
@@ -384,7 +364,7 @@ public class MeekRules implements ImpliedOrientation {
         graph.removeEdge(before);
         graph.addEdge(after);
 
-        oriented.add(after);
+//        oriented.add(after);
 
         // Adding last works, checking for c or not. Adding first works, but when it is
         // checked whether directStack already contains it it seems to produce one in
@@ -422,44 +402,42 @@ public class MeekRules implements ImpliedOrientation {
                 !knowledge.isForbidden(from.toString(), to.toString());
     }
 
-    private void undirectUnforcedEdges(Node y, Graph graph) {
-        Set<Node> parentsToUndirect = new HashSet<>();
-        List<Node> parents = graph.getParents(y);
+    private void undirectUnforcedEdges(Node y, Graph graph, LinkedList<Node> path2) {
+        if (path2.contains(y)) return;
+        path2.add(y);
 
-        NEXT_EDGE:
-        for (Node x : parents) {
-            for (Node parent : parents) {
-                if (parent != x) {
-                    if (!graph.isAdjacentTo(parent, x)) {
-                        oriented.add(graph.getEdge(x, y));
-                        continue NEXT_EDGE;
-                    }
+        List<Node> parents = graph.getParents(y);
+        Set<Node> keep = new HashSet<>();
+
+        if (parents.size() >= 2) {
+            ChoiceGenerator gen = new ChoiceGenerator(parents.size(), 2);
+            int[] choice;
+
+
+            while ((choice = gen.next()) != null) {
+                List<Node> pp = GraphUtils.asList(choice, parents);
+                if (!graph.isAdjacentTo(pp.get(0), pp.get(1)) && graph.isDefCollider(pp.get(0), y, pp.get(1))) {
+                    keep.add(pp.get(0));
+                    keep.add(pp.get(1));
                 }
             }
-
-            parentsToUndirect.add(x);
         }
 
-        boolean didit = false;
+        List<Node> children = graph.getChildren(y);
 
-        for (Node x : parentsToUndirect) {
-            boolean mustOrient = knowledge.isRequired(x.getName(), y.getName()) ||
-                    knowledge.isForbidden(y.getName(), x.getName());
-            if (!oriented.contains(graph.getEdge(x, y)) && !mustOrient) {
-                graph.removeEdge(x, y);
-                graph.addUndirectedEdge(x, y);
-                visited.add(x);
+        for (Node p : parents) {
+            if (!keep.contains(p)) {
+                graph.removeEdge(p, y);
+                graph.addUndirectedEdge(p, y);
+                visited.add(p);
                 visited.add(y);
-                didit = true;
             }
         }
 
-        if (didit) {
-            for (Node z : graph.getAdjacentNodes(y)) {
-                directStack.addLast(z);
+        if (keep.isEmpty()) {
+            for (Node c : children) {
+                undirectUnforcedEdges(c, graph, path2);
             }
-
-            directStack.addLast(y);
         }
     }
 

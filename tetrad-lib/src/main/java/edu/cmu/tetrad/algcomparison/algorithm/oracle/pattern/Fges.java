@@ -66,9 +66,6 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
     	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-//            if (algorithm != null) {
-//                initialGraph = algorithm.search(dataSet, parameters);
-//            }
 
             edu.cmu.tetrad.search.Fges search
                     = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters), Runtime.getRuntime().availableProcessors());
@@ -78,7 +75,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
             search.setSymmetricFirstStep(parameters.getBoolean(Params.SYMMETRIC_FIRST_STEP));
             search.setTDepth(parameters.getInt(Params.TDEPTH));
-            search.setTurning(parameters.getBoolean(Params.TURNING));
+            search.setAdjustOrientations(parameters.getBoolean(Params.ADJUST_ORIENTATIONS));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
             if (obj instanceof PrintStream) {
@@ -102,6 +99,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
             
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+
             switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
                 case 0:
                     edgeEnsemble = ResamplingEdgeEnsemble.Preserved;
@@ -112,6 +110,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
                 case 2:
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
             }
+
             search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
             
@@ -148,7 +147,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
         parameters.add(Params.SYMMETRIC_FIRST_STEP);
         parameters.add(Params.MAX_DEGREE);
         parameters.add(Params.TDEPTH);
-        parameters.add(Params.TURNING);
+        parameters.add(Params.ADJUST_ORIENTATIONS);
 
         parameters.add(Params.VERBOSE);
 

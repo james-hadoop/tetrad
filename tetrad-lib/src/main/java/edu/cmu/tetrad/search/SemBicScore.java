@@ -84,6 +84,8 @@ public class SemBicScore implements Score {
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
+
+        setStructurePrior(structurePrior);
     }
 
     /**
@@ -95,12 +97,13 @@ public class SemBicScore implements Score {
         }
 
         if (!dataSet.existsMissingValue()) {
-            setCovariances(new CovarianceMatrix(dataSet, true));
+            setCovariances(new CovarianceMatrix(dataSet, false));
 //            setCovariances(new CorrelationMatrix(new CovarianceMatrix(dataSet, true)));
             this.variables = covariances.getVariables();
             this.sampleSize = covariances.getSampleSize();
             this.indexMap = indexMap(this.variables);
 
+            setStructurePrior(structurePrior);
 
             return;
         }
@@ -110,6 +113,8 @@ public class SemBicScore implements Score {
         this.variables = dataSet.getVariables();
         this.sampleSize = dataSet.getNumRows();
         this.indexMap = indexMap(this.variables);
+
+        setStructurePrior(structurePrior);
     }
 
     @Override
@@ -138,8 +143,8 @@ public class SemBicScore implements Score {
         double r = partialCorrelation(_x, _y, _z, rows);
         double c = getPenaltyDiscount();
 
-        return -sampleSize * log(1.0 - r * r) - c * log(sampleSize)
-                - 2.0 * (sp1 - sp2);
+        return -sampleSize * log(1.0 - r * r) - c * log(sampleSize);
+//                - 2.0 * (sp1 - sp2);
     }
 
     @Override
@@ -158,10 +163,7 @@ public class SemBicScore implements Score {
 
         // Only do this once.
         Matrix cov = getCov(rows, all, all);
-
         double m = variables.size();
-//        double n = sampleSize;
-
         int[] pp = indexedParents(parents);
 
         Matrix covxx = cov.getSelection(pp, pp);
@@ -188,7 +190,7 @@ public class SemBicScore implements Score {
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-            return -ess * log(varey) - c * k * log(ess) - 2 * getStructurePrior(p);
+            return -ess * log(varey) - c * k * log(ess);// - 2 * getStructurePrior(p);
 
         } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
@@ -198,7 +200,7 @@ public class SemBicScore implements Score {
             // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
 
-            return -ess * log((varey)) - c * k * 6 * log(m) - 2 * getStructurePrior(p);
+            return -ess * log(varey) - c * k * 6 * log(m);//- 2 * getStructurePrior(p);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
@@ -258,6 +260,12 @@ public class SemBicScore implements Score {
 
     public void setStructurePrior(double structurePrior) {
         this.structurePrior = structurePrior;
+
+        this.ess = covariances.getSampleSize();
+
+        if (structurePrior == 11) {
+            this.ess = DataUtils.getEss(covariances);
+        }
     }
 
     public boolean isVerbose() {
@@ -316,7 +324,8 @@ public class SemBicScore implements Score {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
 
-        this.ess = DataUtils.getEss(covariances);
+
+
 
         System.out.println("n = " + covariances.getSampleSize() + " ess = " + this.ess);
     }
