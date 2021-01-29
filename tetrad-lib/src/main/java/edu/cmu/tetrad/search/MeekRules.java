@@ -22,6 +22,7 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
@@ -40,7 +41,7 @@ import java.util.*;
  */
 public class MeekRules implements ImpliedOrientation {
 
-    private IKnowledge knowledge;
+    private IKnowledge knowledge = new Knowledge2();
 
     //True if cycles are to be aggressively prevented. May be expensive for large graphs (but also useful for large
     //graphs).
@@ -139,23 +140,61 @@ public class MeekRules implements ImpliedOrientation {
 
     private void orientUsingMeekRulesLocally(IKnowledge knowledge, Graph graph) {
 
-        {
+        undirectUnforcedEdges = true;
+        for (int i = 0; i < 10; i++) {
+            oriented = new HashSet<>();
 
-            // To prevent infinite recursion in case there's a cycle already in the graph.
-            LinkedList<Node> path2 = new LinkedList<>();
+            if (undirectUnforcedEdges) {
+                boolean changed;
 
-            for (Node c : nodes) {
-                undirectUnforcedEdges(c, graph, path2);
+                do {
+                    changed = false;
+
+                    for (Node node : nodes) {
+                        if (Thread.currentThread().isInterrupted()) {
+                            break;
+                        }
+
+                        changed = undirectUnforcedEdges(node, graph);
+//                    directStack.addAll(graph.getAdjacentNodes(node));
+                    }
+                } while (changed);
             }
 
-            for (Node c : nodes) {
-                runMeekRules(c, graph, knowledge);
-            }
+            System.out.println(graph);
 
-            while (!directStack.isEmpty()) {
-                Node n = directStack.removeFirst();
-                runMeekRules(n, graph, knowledge);
+            System.out.println();
+//
+            for (Node node : this.nodes) {
+                if (Thread.currentThread().isInterrupted()) {
+                    break;
+                }
+
+                if (undirectUnforcedEdges) {
+                    if (Thread.currentThread().isInterrupted()) {
+                        break;
+                    }
+
+                    undirectUnforcedEdges(node, graph);
+                }
+
+                runMeekRules(node, graph, knowledge);
             }
+//
+//            while (!directStack.isEmpty()) {
+//                Node node = directStack.removeLast();
+//
+//                if (undirectUnforcedEdges) {
+//                    if (Thread.currentThread().isInterrupted()) {
+//                        break;
+//                    }
+//
+//                    undirectUnforcedEdges(node, graph);
+//                }
+//
+//                runMeekRules(node, graph, knowledge);
+//            }
+
         }
     }
 
@@ -356,6 +395,8 @@ public class MeekRules implements ImpliedOrientation {
             return;
         }
 
+//        if (graph.isAncestorOf(c, a)) return;
+
         Edge after = Edges.directedEdge(a, c);
 
         visited.add(a);
@@ -364,7 +405,7 @@ public class MeekRules implements ImpliedOrientation {
         graph.removeEdge(before);
         graph.addEdge(after);
 
-//        oriented.add(after);
+        oriented.add(after);
 
         // Adding last works, checking for c or not. Adding first works, but when it is
         // checked whether directStack already contains it it seems to produce one in
@@ -402,43 +443,52 @@ public class MeekRules implements ImpliedOrientation {
                 !knowledge.isForbidden(from.toString(), to.toString());
     }
 
-    private void undirectUnforcedEdges(Node y, Graph graph, LinkedList<Node> path2) {
-        if (path2.contains(y)) return;
-        path2.add(y);
+    private boolean undirectUnforcedEdges(Node y, Graph graph) {
+//        System.out.println("graph in = " + graph);
 
-        List<Node> parents = graph.getParents(y);
-        Set<Node> keep = new HashSet<>();
+//        System.out.println("Undirecting unforced edges for " + y);
 
-        if (parents.size() >= 2) {
-            ChoiceGenerator gen = new ChoiceGenerator(parents.size(), 2);
-            int[] choice;
+        Set<Node> parentsToUndirect;
+        boolean firstTime = true;
 
+        do {
+            parentsToUndirect = new HashSet<>();
+            List<Node> parents = graph.getParents(y);
 
-            while ((choice = gen.next()) != null) {
-                List<Node> pp = GraphUtils.asList(choice, parents);
-                if (!graph.isAdjacentTo(pp.get(0), pp.get(1)) && graph.isDefCollider(pp.get(0), y, pp.get(1))) {
-                    keep.add(pp.get(0));
-                    keep.add(pp.get(1));
+//            System.out.println("parents = " + graph.getParents(y));
+
+            NEXT_EDGE:
+            for (Node x : parents) {
+                for (Node parent : parents) {
+                    if (parent != x) {
+                        if (!graph.isAdjacentTo(parent, x)) {
+//                            oriented.add(graph.getEdge(x, y));
+//                            System.out.println("Oriented = " + graph.getEdge(x, y));
+                            continue NEXT_EDGE;
+                        }
+                    }
                 }
-            }
-        }
 
-        List<Node> children = graph.getChildren(y);
-
-        for (Node p : parents) {
-            if (!keep.contains(p)) {
-                graph.removeEdge(p, y);
-                graph.addUndirectedEdge(p, y);
-                visited.add(p);
-                visited.add(y);
+                parentsToUndirect.add(x);
             }
-        }
 
-        if (keep.isEmpty()) {
-            for (Node c : children) {
-                undirectUnforcedEdges(c, graph, path2);
+            if (firstTime && parentsToUndirect.isEmpty()) return false;
+            firstTime = false;
+
+//            System.out.println("Parents to undirect for " + y + " - " + parentsToUndirect);
+
+            for (Node x : parentsToUndirect) {
+                graph.removeEdge(x, y);
+                graph.addUndirectedEdge(x, y);
+                visited.add(x);
             }
-        }
+
+        } while (!parentsToUndirect.isEmpty());
+
+//        System.out.println("graph out = " + graph);
+
+
+        return true;
     }
 
     private void log(String message) {

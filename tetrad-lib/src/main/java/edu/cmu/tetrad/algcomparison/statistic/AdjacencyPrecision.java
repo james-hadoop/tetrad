@@ -32,7 +32,7 @@ public class AdjacencyPrecision implements Statistic {
 //        int adjTn = adjConfusion.getAdjTn();
         double prec = adjTp / (double) (adjTp + adjFp);
 
-        System.out.println("AP = " + prec);
+        System.out.println("AP = " + prec + " cyclic = " + estGraph.existsDirectedCycle());
 
         return prec;
     }

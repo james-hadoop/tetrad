@@ -22,9 +22,7 @@ import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TextTable;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static java.lang.StrictMath.abs;
 
@@ -191,10 +189,10 @@ public class TestFisherZCalibration {
         parameters.set(Params.SEM_BIC_RULE, 3);
         parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
-        parameters.set(Params.TDEPTH, -1);
+        parameters.set(Params.TDEPTH, 1);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
-        parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.ADJUST_ORIENTATIONS, false);
+        parameters.set(Params.SYMMETRIC_FIRST_STEP, true);
+        parameters.set(Params.ADJUST_ORIENTATIONS, true);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
         parameters.set(Params.VAR_LOW, 1.0);
@@ -313,5 +311,59 @@ public class TestFisherZCalibration {
         comparison.setSaveGraphs(true);
 
         comparison.compareFromSimulations("comparisonWayne", simulations, algorithms, statistics, parameters);
+    }
+
+    @Test
+    public void test5() {
+        Graph graph = GraphUtils.randomGraph(8, 0, 16, 100, 100, 100, false);
+        SemPm pm = new SemPm(graph);
+        SemIm im = new SemIm(pm);
+        DataSet data = im.simulateData(1000, true);
+        Score score = new SemBicScore(data);
+
+        Fges fges = new Fges(score);
+
+        Graph pattern = fges.search();
+
+        MeekRules rules = new MeekRules();
+        rules.setUndirectUnforcedEdges(true);
+
+        System.out.println("First");
+        rules.orientImplied(graph);
+
+        System.out.println("Second");
+        rules.orientImplied(graph);
+
+//        if (pattern == null) throw new IllegalArgumentException();
+//
+//        for (Node node : pattern.getNodes()) {
+//            if (undirectUnforcedEdges(node, pattern)) {
+//                System.out.println("Could undirect " + node);
+//            }
+//        }
+    }
+
+    private boolean undirectUnforcedEdges(Node node, Graph graph) {
+        System.out.println("Undirecting unforced edges for " + node);
+
+        Set<Node> parentsToUndirect = new HashSet<>();
+        List<Node> parents = graph.getParents(node);
+
+        NEXT_EDGE:
+        for (Node x : parents) {
+            for (Node parent : parents) {
+                if (parent != x) {
+                    if (!graph.isAdjacentTo(parent, x)) {
+                        continue NEXT_EDGE;
+                    }
+                }
+            }
+
+            parentsToUndirect.add(x);
+        }
+
+        System.out.println("   Parents to undirect for " + node + " = " + parentsToUndirect);
+
+        return (!parentsToUndirect.isEmpty());
     }
 }
