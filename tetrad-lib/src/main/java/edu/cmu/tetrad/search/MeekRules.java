@@ -142,20 +142,24 @@ public class MeekRules implements ImpliedOrientation {
 
         oriented = new HashSet<>();
 
-        for (int i = 0; i < 1; i++) {
-            for (Node node : graph.getNodes()) {
-                undirectUnforcedEdges(node, graph);
-            }
-        }
+//        undirect(nodes, graph);
 
-        for (Node node : graph.getNodes()) {
+        for (Node node : nodes) {
             runMeekRules(node, graph, knowledge);
         }
 
-//        while (!directStack.isEmpty()) {
-//            Node y = directStack.removeLast();
-//            runMeekRules(y, graph, knowledge);
-//        }
+        while (!directStack.isEmpty()) {
+            Node y = directStack.removeLast();
+            runMeekRules(y, graph, knowledge);
+        }
+    }
+
+    public void undirect(List<Node> nodes, Graph graph) {
+        for (int i = 0; i < 1; i++) {
+            for (Node node : nodes) {
+                undirectUnforcedEdges(node, graph);
+            }
+        }
     }
 
     private void runMeekRules(Node node, Graph graph, IKnowledge knowledge) {
@@ -227,14 +231,14 @@ public class MeekRules implements ImpliedOrientation {
             Node b = nodes.get(0);
             Node c = nodes.get(1);
 
-            r2Helper(c, a, b, graph, knowledge, a);
-            r2Helper(b, a, c, graph, knowledge, a);
+//            r2Helper(c, a, b, graph, knowledge, a);
+//            r2Helper(b, a, c, graph, knowledge, a);
 
 
-//            r2Helper(a, b, c, graph, knowledge, c);
-////            r2Helper(b, a, c, graph, knowledge, c);
-//            r2Helper(a, c, b, graph, knowledge, c);
-////            r2Helper(c, a, b, graph, knowledge, c);
+            r2Helper(a, b, c, graph, knowledge, c);
+            r2Helper(b, a, c, graph, knowledge, c);
+            r2Helper(a, c, b, graph, knowledge, c);
+            r2Helper(c, a, b, graph, knowledge, c);
         }
     }
 
