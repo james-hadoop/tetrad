@@ -165,6 +165,8 @@ public class MeekRules implements ImpliedOrientation {
     private void runMeekRules(Node node, Graph graph, IKnowledge knowledge) {
         System.out.println("run meek rules node = " + node);
 
+        undirectUnforcedEdges(node, graph);
+
         meekR1(node, graph, knowledge);
         meekR2(node, graph, knowledge);
         meekR3(node, graph, knowledge);
@@ -445,6 +447,10 @@ public class MeekRules implements ImpliedOrientation {
         for (Node x : parentsToUndirect) {
             graph.removeEdge(x, y);
             graph.addUndirectedEdge(x, y);
+        }
+
+        if (graph.getParents(y).size() < 2) {
+            directStack.addAll(graph.getChildren(y));
         }
     }
 
