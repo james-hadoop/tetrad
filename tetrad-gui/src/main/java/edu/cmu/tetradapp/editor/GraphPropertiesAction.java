@@ -52,6 +52,7 @@ class GraphPropertiesAction extends AbstractAction implements ClipboardOwner {
 
     public GraphPropertiesAction(Graph graph, GraphWorkbench workbench) {
         super("Graph Properties");
+        setGraph(graph, workbench);
         this.workbench = workbench;
     }
 

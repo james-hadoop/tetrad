@@ -325,22 +325,23 @@ public class TestFisherZCalibration {
 
         Graph pattern = fges.search();
 
-        MeekRules rules = new MeekRules();
-        rules.setUndirectUnforcedEdges(true);
+//        MeekRules rules = new MeekRules();
+//        rules.setUndirectUnforcedEdges(true);
 
-        System.out.println("First");
-        rules.orientImplied(graph);
-
-        System.out.println("Second");
-        rules.orientImplied(graph);
-
-//        if (pattern == null) throw new IllegalArgumentException();
+//        System.out.println("First");
+//        rules.orientImplied(pattern);
+//        rules.orientImplied(pattern);
 //
-//        for (Node node : pattern.getNodes()) {
-//            if (undirectUnforcedEdges(node, pattern)) {
-//                System.out.println("Could undirect " + node);
-//            }
-//        }
+//        System.out.println("Second");
+//        rules.orientImplied(pattern);
+
+        if (pattern == null) throw new IllegalArgumentException();
+
+        for (Node node : pattern.getNodes()) {
+            if (undirectUnforcedEdges(node, pattern)) {
+                System.out.println("Could undirect " + node);
+            }
+        }
     }
 
     private boolean undirectUnforcedEdges(Node node, Graph graph) {

@@ -717,7 +717,7 @@ public class TestFges {
             fges.setFaithfulnessAssumed(false);
             fges.setVerbose(true);
             fges.setTrueGraph(dag);
-            fges.setTDepth(1);
+//            fges.setTDepth(1);
             Graph pattern1 = fges.search();
             Graph pattern2 = new Pc(new IndTestDSep(dag)).search();
             assertEquals(pattern2, pattern1);
