@@ -80,7 +80,7 @@ public class MeekRules implements ImpliedOrientation {
      * Constructs the <code>MeekRules</code> with no logging.
      */
     public MeekRules() {
-        useRule4 = knowledge != null && !knowledge.isEmpty();
+        useRule4 = !knowledge.isEmpty();
     }
 
     //======================== Public Methods ========================//
@@ -142,8 +142,6 @@ public class MeekRules implements ImpliedOrientation {
 
         oriented = new HashSet<>();
 
-//        undirect(nodes, graph);
-
         for (Node node : nodes) {
             runMeekRules(node, graph, knowledge);
         }
@@ -155,22 +153,22 @@ public class MeekRules implements ImpliedOrientation {
     }
 
     public void undirect(List<Node> nodes, Graph graph) {
-        for (int i = 0; i < 1; i++) {
-            for (Node node : nodes) {
-                undirectUnforcedEdges(node, graph);
-            }
+        for (Node node : nodes) {
+            undirectUnforcedEdges(node, graph);
         }
     }
 
     private void runMeekRules(Node node, Graph graph, IKnowledge knowledge) {
         System.out.println("run meek rules node = " + node);
 
-        undirectUnforcedEdges(node, graph);
+//        undirect(graph.getNodes(), graph);
 
         meekR1(node, graph, knowledge);
         meekR2(node, graph, knowledge);
         meekR3(node, graph, knowledge);
         meekR4(node, graph, knowledge);
+
+//        undirect(graph.getNodes(), graph);
     }
 
     /**
@@ -216,10 +214,10 @@ public class MeekRules implements ImpliedOrientation {
     /**
      * If a-->b-->c, a--c, then b-->c.
      */
-    private void meekR2(Node a, Graph graph, IKnowledge knowledge) {
+    private void meekR2(Node b, Graph graph, IKnowledge knowledge) {
         System.out.println("R2");
 
-        List<Node> adjacentNodes = graph.getAdjacentNodes(a);
+        List<Node> adjacentNodes = graph.getAdjacentNodes(b);
 
         if (adjacentNodes.size() < 2) {
             return;
@@ -230,17 +228,13 @@ public class MeekRules implements ImpliedOrientation {
 
         while ((choice = cg.next()) != null) {
             List<Node> nodes = GraphUtils.asList(choice, adjacentNodes);
-            Node b = nodes.get(0);
+            Node a = nodes.get(0);
             Node c = nodes.get(1);
 
-//            r2Helper(c, a, b, graph, knowledge, a);
-//            r2Helper(b, a, c, graph, knowledge, a);
-
-
-            r2Helper(a, b, c, graph, knowledge, c);
-            r2Helper(b, a, c, graph, knowledge, c);
-            r2Helper(a, c, b, graph, knowledge, c);
-            r2Helper(c, a, b, graph, knowledge, c);
+            r2Helper(a, b, c, graph, knowledge, b);
+            r2Helper(c, b, a, graph, knowledge, b);
+            r2Helper(a, c, b, graph, knowledge, b);
+            r2Helper(c, a, b, graph, knowledge, b);
         }
     }
 
@@ -426,31 +420,40 @@ public class MeekRules implements ImpliedOrientation {
     }
 
     private void undirectUnforcedEdges(Node y, Graph graph) {
+        System.out.println("undirecting " + y);
+
         Set<Node> parentsToUndirect;
 
         parentsToUndirect = new HashSet<>();
         List<Node> parents = graph.getParents(y);
 
+        System.out.println("parents = " + parents);
+
+//        if (parents.size() == 1) {
+//            parentsToUndirect.add(parents.get(0));
+//        } else {
+
         NEXT_EDGE:
         for (Node x : parents) {
-            for (Node parent : parents) {
-                if (parent != x) {
-                    if (!graph.isAdjacentTo(parent, x)) {
-                        continue NEXT_EDGE;
-                    }
+            for (Node p : parents) {
+                if (p != x && !graph.isAdjacentTo(p, x)) {
+                    continue NEXT_EDGE;
                 }
             }
 
             parentsToUndirect.add(x);
         }
+//        }
 
-        for (Node x : parentsToUndirect) {
-            graph.removeEdge(x, y);
-            graph.addUndirectedEdge(x, y);
+        for (Node p : parentsToUndirect) {
+            graph.removeEdge(p, y);
+            graph.addUndirectedEdge(p, y);
         }
 
-        if (graph.getParents(y).size() < 2) {
-            directStack.addAll(graph.getChildren(y));
+        if (graph.getParents(y).isEmpty()) {
+            for (Node c : graph.getChildren(y)) {
+                undirectUnforcedEdges(c, graph);
+            }
         }
     }
 

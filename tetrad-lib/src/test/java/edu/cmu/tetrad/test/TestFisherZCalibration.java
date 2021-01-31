@@ -315,7 +315,7 @@ public class TestFisherZCalibration {
 
     @Test
     public void test5() {
-        Graph graph = GraphUtils.randomGraph(8, 0, 16, 100, 100, 100, false);
+        Graph graph = GraphUtils.randomGraph(7, 0, 10, 100, 100, 100, false);
         SemPm pm = new SemPm(graph);
         SemIm im = new SemIm(pm);
         DataSet data = im.simulateData(1000, true);
