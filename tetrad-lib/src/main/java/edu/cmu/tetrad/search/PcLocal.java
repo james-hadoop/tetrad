@@ -143,7 +143,6 @@ public class PcLocal implements GraphSearch {
         meekRules = new MeekRules();
         meekRules.setAggressivelyPreventCycles(isAggressivelyPreventCycles());
         meekRules.setKnowledge(knowledge);
-        meekRules.setUndirectUnforcedEdges(true);
 
         // This is the list of all changed nodes from the last iteration
         List<Node> nodes = getIndependenceTest().getVariables();

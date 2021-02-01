@@ -1806,7 +1806,6 @@ public final class TsFges2 implements GraphSearch, GraphScorer {
     private Set<Node> meekOrientRestricted(List<Node> nodes, IKnowledge knowledge) {
         MeekRules rules = new MeekRules();
         rules.setKnowledge(knowledge);
-        rules.setUndirectUnforcedEdges(true);
         rules.orientImplied(graph, nodes);
         return rules.getVisited();
     }

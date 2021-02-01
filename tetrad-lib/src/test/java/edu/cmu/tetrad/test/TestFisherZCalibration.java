@@ -186,15 +186,15 @@ public class TestFisherZCalibration {
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 4);
         parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
-        parameters.set(Params.SEM_BIC_RULE, 3);
+        parameters.set(Params.SEM_BIC_RULE, 1);
         parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
-        parameters.set(Params.TDEPTH, 1);
+//        parameters.set(Params.TDEPTH, 1);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
-        parameters.set(Params.SYMMETRIC_FIRST_STEP, true);
+        parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.ADJUST_ORIENTATIONS, true);
-        parameters.set(Params.COEF_LOW, 0);
-        parameters.set(Params.COEF_HIGH, 1);
+        parameters.set(Params.COEF_LOW, 0.2);
+        parameters.set(Params.COEF_HIGH, 1.0);
         parameters.set(Params.VAR_LOW, 1.0);
         parameters.set(Params.VAR_HIGH, 3.0);
         parameters.set(Params.VERBOSE, false);
@@ -247,7 +247,7 @@ public class TestFisherZCalibration {
         comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
 
         comparison.compareFromSimulations(
-                "/Users/user/tetrad4/comparison2040", simulations, algorithms, statistics, parameters);
+                "/Users/josephramsey/tetrad/comparison2040", simulations, algorithms, statistics, parameters);
     }
 
     @Test
@@ -265,11 +265,11 @@ public class TestFisherZCalibration {
         parameters.set("maxIndegree", 100);
         parameters.set("maxOutdegree", 100);
         parameters.set("connected", false);
-        parameters.set("depth", 1);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
+//        parameters.set("depth", 1);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
 
         parameters.set("coefLow", 0.2);
-        parameters.set("coefHigh", 0.7);
+        parameters.set("coefHigh", 1.0);
         parameters.set("varLow", 1);
         parameters.set("varHigh", 3);
         parameters.set("verbose", false);

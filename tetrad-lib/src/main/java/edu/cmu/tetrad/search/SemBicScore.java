@@ -158,6 +158,7 @@ public class SemBicScore implements Score {
         final int p = parents.length;
 
         int k = p + 1;
+//        k = (p + 1) * (p + 1) / 2;
 
         int[] all = concat(i, parents);
 

@@ -880,10 +880,8 @@ public class PerformanceTests {
                 long timea = System.currentTimeMillis();
 
                 Fges fges = new Fges(score);
-//                fges.setVerbose(false);
                 fges.setOut(System.out);
                 fges.setFaithfulnessAssumed(faithfulness);
-                fges.setCycleBound(-1);
 
                 long timeb = System.currentTimeMillis();
 
@@ -922,10 +920,8 @@ public class PerformanceTests {
                 long timea = System.currentTimeMillis();
 
                 Fges fges = new Fges(score);
-//                fges.setVerbose(false);
                 fges.setOut(System.out);
                 fges.setFaithfulnessAssumed(faithfulness);
-                fges.setCycleBound(-1);
 
                 long timeb = System.currentTimeMillis();
 

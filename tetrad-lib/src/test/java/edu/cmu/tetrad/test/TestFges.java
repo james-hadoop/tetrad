@@ -101,8 +101,6 @@ public class TestFges {
         fges.setVerbose(false);
         fges.setOut(out);
         fges.setFaithfulnessAssumed(true);
-//        fges.setMaxIndegree(1);
-        fges.setCycleBound(5);
 
         Graph estPattern = fges.search();
 

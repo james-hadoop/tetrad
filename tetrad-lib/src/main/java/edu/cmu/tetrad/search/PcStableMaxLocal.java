@@ -136,7 +136,6 @@ public class PcStableMaxLocal implements GraphSearch {
         meekRules = new MeekRules();
         meekRules.setAggressivelyPreventCycles(isAggressivelyPreventCycles());
         meekRules.setKnowledge(knowledge);
-        meekRules.setUndirectUnforcedEdges(true);
 
         List<Node> nodes = getIndependenceTest().getVariables();
         buildIndexing(nodes);

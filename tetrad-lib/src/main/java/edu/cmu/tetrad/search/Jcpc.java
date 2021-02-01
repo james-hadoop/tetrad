@@ -196,7 +196,6 @@ public class Jcpc implements GraphSearch {
         meekRules = new MeekRules();
         meekRules.setAggressivelyPreventCycles(isAggressivelyPreventCycles());
         meekRules.setKnowledge(knowledge);
-        meekRules.setUndirectUnforcedEdges(true);
 
         long time1 = System.currentTimeMillis();
 
