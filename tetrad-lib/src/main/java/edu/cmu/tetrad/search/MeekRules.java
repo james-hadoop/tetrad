@@ -34,8 +34,8 @@ import java.util.*;
  * Implements Meek's complete orientation rule set for PC (Chris Meek (1995), "Causal inference and causal explanation
  * with background knowledge"), modified for Conservative PC to check noncolliders against recorded noncolliders before
  * orienting.
- * <p>
- * For now, the fourth rule is always performed.
+ *
+ * Rule R4 is only performed if knowledge is nonempty.
  *
  * @author Joseph Ramsey
  */
@@ -64,9 +64,10 @@ public class MeekRules implements ImpliedOrientation {
     // The initial list of nodes to visit.
     private List<Node> nodes = new ArrayList<>();
 
-    // The lsit of nodes actually visited.
+    // The list of nodes actually visited.
     private final Set<Node> visited = new HashSet<>();
 
+    // True if verbose output should be printed.
     private boolean verbose = false;
 
     /**
@@ -139,6 +140,7 @@ public class MeekRules implements ImpliedOrientation {
 
         while (!directStack.isEmpty()) {
             Node y = directStack.removeLast();
+            if (visited.contains(y)) continue;
             runMeekRules(y, graph, knowledge);
         }
     }
@@ -175,10 +177,6 @@ public class MeekRules implements ImpliedOrientation {
 
     private void r1Helper(Node a, Node b, Node c, Graph graph, IKnowledge knowledge, Node node) {
         if (!graph.isAdjacentTo(a, c) && graph.isDirectedFromTo(a, b) && graph.isUndirectedFromTo(b, c)) {
-//            if (!isUnshieldedNoncollider(a, b, c, graph)) {
-//                return;
-//            }
-
             if (isArrowpointAllowed(b, c, knowledge)) {
                 direct(b, c, graph, node);
                 String message = SearchLogUtils.edgeOrientedMsg(
@@ -219,7 +217,8 @@ public class MeekRules implements ImpliedOrientation {
                 graph.isUndirectedFromTo(a, c)) {
             if (isArrowpointAllowed(a, c, knowledge)) {
                 direct(a, c, graph, node);
-                log(SearchLogUtils.edgeOrientedMsg("Meek R2", graph.getEdge(a, c)));
+                log(SearchLogUtils.edgeOrientedMsg(
+                        "Meek R2 triangle (" + a + "-->" + b + "-->" + c + ", " + a + "---" + c + ")", graph.getEdge(a, c)));
             }
         }
     }
@@ -251,12 +250,9 @@ public class MeekRules implements ImpliedOrientation {
 
                     if (isKite) {
                         if (isArrowpointAllowed(d, a, knowledge)) {
-//                            if (!isUnshieldedNoncollider(c, d, b, graph)) {
-//                                continue;
-//                            }
-
                             direct(d, a, graph, a);
-                            log(SearchLogUtils.edgeOrientedMsg("Meek R3", graph.getEdge(d, a)));
+                            log(SearchLogUtils.edgeOrientedMsg("Meek R3 " + a + "--" + d + ", " + b + ", "
+                                    + c + ", ", graph.getEdge(d, a)));
                         }
                     }
                 }
@@ -299,10 +295,6 @@ public class MeekRules implements ImpliedOrientation {
                 if (!(graph.isAdjacentTo(a, b) && graph.isAdjacentTo(a, d) && graph.isAdjacentTo(b, c) && graph.isAdjacentTo(d, c) && graph.isAdjacentTo(a, c))) {
                     if (graph.isDirectedFromTo(b, c) && graph.isDirectedFromTo(c, d) && graph.isUndirectedFromTo(a, d)) {
                         if (isArrowpointAllowed(a, c, knowledge)) {
-//                            if (!isUnshieldedNoncollider(b, a, d, graph)) {
-//                                continue;
-//                            }
-
                             if (isArrowpointAllowed(c, d, knowledge)) {
                                 direct(c, d, graph, a);
                                 log(SearchLogUtils.edgeOrientedMsg("Meek R4", graph.getEdge(c, d)));
@@ -317,10 +309,6 @@ public class MeekRules implements ImpliedOrientation {
 
                     if (graph.isDirectedFromTo(b, c) && graph.isDirectedFromTo(c, d) && graph.isUndirectedFromTo(a, d)) {
                         if (isArrowpointAllowed(a, c, knowledge)) {
-//                            if (!isUnshieldedNoncollider(b, a, d, graph)) {
-//                                continue;
-//                            }
-
                             if (isArrowpointAllowed(c, d, knowledge)) {
                                 direct(c, d, graph, a);
                                 log(SearchLogUtils.edgeOrientedMsg("Meek R4", graph.getEdge(c, d)));
@@ -339,6 +327,12 @@ public class MeekRules implements ImpliedOrientation {
             return;
         }
 
+        for (Node p : graph.getParents(c)) {
+            if (!graph.isAdjacentTo(p, a)) {
+                return;
+            }
+        }
+
         Edge after = Edges.directedEdge(a, c);
 
         visited.add(a);
@@ -354,30 +348,6 @@ public class MeekRules implements ImpliedOrientation {
             directStack.addLast(c);
         }
     }
-
-//    private static boolean isUnshieldedNoncollider(Node a, Node b, Node c,
-//                                                   Graph graph) {
-//        if (!graph.isAdjacentTo(a, b)) {
-//            return false;
-//        }
-//
-//        if (!graph.isAdjacentTo(c, b)) {
-//            return false;
-//        }
-//
-//        if (graph.isAdjacentTo(a, c)) {
-//            return false;
-//        }
-//
-//        if (graph.isAmbiguousTriple(a, b, c)) {
-//            return false;
-//        }
-//
-//        return !(graph.getEndpoint(a, b) == Endpoint.ARROW &&
-//                graph.getEndpoint(c, b) == Endpoint.ARROW);
-//
-//    }
-
 
     private static boolean isArrowpointAllowed(Node from, Node to, IKnowledge knowledge) {
         if (knowledge == null) return true;

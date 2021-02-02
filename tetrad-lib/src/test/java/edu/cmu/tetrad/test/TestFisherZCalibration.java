@@ -10,9 +10,7 @@ import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
@@ -366,5 +364,29 @@ public class TestFisherZCalibration {
         System.out.println("   Parents to undirect for " + node + " = " + parentsToUndirect);
 
         return (!parentsToUndirect.isEmpty());
+    }
+
+    @Test
+    public void test6() {
+        List<Node> nodes = new ArrayList<>();
+        Node x = new GraphNode("x");
+        Node y = new GraphNode("y");
+        Node z = new GraphNode("z");
+
+        nodes.add(x);
+        nodes.add(y);
+        nodes.add(z);
+
+        Graph graph = new EdgeListGraph(nodes);
+
+        graph.addUndirectedEdge(x, y);
+        graph.addDirectedEdge(x, z);
+        graph.addDirectedEdge(y, z);
+
+        MeekRules rules = new MeekRules();
+
+        rules.undirect(nodes, graph);
+
+        System.out.println(graph);
     }
 }

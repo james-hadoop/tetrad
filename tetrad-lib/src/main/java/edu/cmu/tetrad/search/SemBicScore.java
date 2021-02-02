@@ -21,18 +21,21 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.CovarianceMatrix;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.StatUtils;
-import edu.cmu.tetrad.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 import static edu.cmu.tetrad.util.MatrixUtils.convertCovToCorr;
 import static java.lang.Double.NaN;
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.log;
 
 /**
  * Implements the continuous BIC score for FGES.
@@ -70,7 +73,12 @@ public class SemBicScore implements Score {
 
     // The rule type to use.
     private RuleType ruleType = RuleType.CHICKERING;
+
+    // Equivalent sample size.
     private double ess;
+
+    // True if the equivalent sample size should be used in place of N.
+    private boolean useEquivalentSampleSize = false;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -98,7 +106,6 @@ public class SemBicScore implements Score {
 
         if (!dataSet.existsMissingValue()) {
             setCovariances(new CovarianceMatrix(dataSet, false));
-//            setCovariances(new CorrelationMatrix(new CovarianceMatrix(dataSet, true)));
             this.variables = covariances.getVariables();
             this.sampleSize = covariances.getSampleSize();
             this.indexMap = indexMap(this.variables);
@@ -143,8 +150,8 @@ public class SemBicScore implements Score {
         double r = partialCorrelation(_x, _y, _z, rows);
         double c = getPenaltyDiscount();
 
-        return -sampleSize * log(1.0 - r * r) - c * log(sampleSize);
-//                - 2.0 * (sp1 - sp2);
+        return -sampleSize * log(1.0 - r * r) - c * log(sampleSize)
+                + 2.0 * (sp1 - sp2);
     }
 
     @Override
@@ -158,7 +165,6 @@ public class SemBicScore implements Score {
         final int p = parents.length;
 
         int k = p + 1;
-//        k = (p + 1) * (p + 1) / 2;
 
         int[] all = concat(i, parents);
 
@@ -170,28 +176,16 @@ public class SemBicScore implements Score {
         Matrix covxx = cov.getSelection(pp, pp);
         Matrix covxy = cov.getSelection(pp, new int[]{0});
 
-        double varey;
-
-        if (false) {
-            // Ricardo's calculation.
-            Matrix b = covxx.inverse().times(covxy);
-            varey = cov.get(0, 0);
-            Vector _cxy = covxy.getColumn(0);
-            Vector _b = b.getColumn(0);
-            varey -= _cxy.dotProduct(_b);
-        } else {
-            // My calculation.
-            Matrix b = adjustedCoefs(covxx.inverse().times(covxy));
-            Matrix times = b.transpose().times(cov).times(b);
-            varey = times.get(0, 0);
-        }
+        Matrix b = adjustedCoefs(covxx.inverse().times(covxy));
+        Matrix times = b.transpose().times(cov).times(b);
+        double varey = times.get(0, 0);
 
         double c = getPenaltyDiscount();
 
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-            return -ess * log(varey) - c * k * log(ess);// - 2 * getStructurePrior(p);
+            return -ess * log(varey) - c * k * log(ess) + 2 * getStructurePrior(p);
 
         } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
@@ -201,7 +195,7 @@ public class SemBicScore implements Score {
             // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
 
-            return -ess * log(varey) - c * k * 6 * log(m);//- 2 * getStructurePrior(p);
+            return -ess * log(varey) - c * k * 6 * log(m) + 2 * getStructurePrior(p);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
@@ -264,7 +258,7 @@ public class SemBicScore implements Score {
 
         this.ess = covariances.getSampleSize();
 
-        if (structurePrior == 11) {
+        if (useEquivalentSampleSize) {
             this.ess = DataUtils.getEss(covariances);
         }
     }
@@ -324,8 +318,6 @@ public class SemBicScore implements Score {
     private void setCovariances(ICovarianceMatrix covariances) {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
-
-
 
 
         System.out.println("n = " + covariances.getSampleSize() + " ess = " + this.ess);
@@ -504,6 +496,10 @@ public class SemBicScore implements Score {
 
     public void setRuleType(RuleType ruleType) {
         this.ruleType = ruleType;
+    }
+
+    public void setUseEquivalentSampleSize(boolean useEquivalentSampleSize) {
+        this.useEquivalentSampleSize = useEquivalentSampleSize;
     }
 
     public enum RuleType {CHICKERING, NANDY, HIGH_DIMENSIONAL}
