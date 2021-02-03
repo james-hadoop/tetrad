@@ -23,13 +23,8 @@ package edu.cmu.tetrad.graph;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Edge.Property;
 import edu.cmu.tetrad.graph.EdgeTypeProbability.EdgeType;
-import edu.cmu.tetrad.util.ChoiceGenerator;
-import edu.cmu.tetrad.util.ForkJoinPoolInstance;
-import edu.cmu.tetrad.util.JsonUtils;
-import edu.cmu.tetrad.util.PointXy;
-import edu.cmu.tetrad.util.RandomUtil;
-import edu.cmu.tetrad.util.TaskManager;
-import edu.cmu.tetrad.util.TextTable;
+import edu.cmu.tetrad.util.*;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.CharArrayReader;
@@ -62,6 +57,10 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.RecursiveTask;
 import java.util.regex.Matcher;
+
+import edu.pitt.dbmi.data.reader.Data;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Element;
@@ -1135,6 +1134,37 @@ public final class GraphUtils {
             }
         }
         return true;
+    }
+
+    public static Graph loadRSpecial(File file) {
+        DataSet eg = null;
+
+        try {
+            ContinuousTabularDatasetFileReader reader = new ContinuousTabularDatasetFileReader(file.toPath(), Delimiter.COMMA);
+            reader.setHasHeader(false);
+            Data data = reader.readInData();
+            eg = (DataSet) DataConvertUtils.toDataModel(data);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+
+        if (eg == null) throw new NullPointerException();
+
+        List<Node> vars = eg.getVariables();
+
+        Graph graph = new EdgeListGraph(vars);
+
+        for (int i = 0; i < vars.size(); i++) {
+            for (int j = 0; j < vars.size(); j++) {
+                if (i > j && eg.getDouble(i, j) == 1 && eg.getDouble(j, i) == 1) {
+                    graph.addUndirectedEdge(vars.get(i), vars.get(j));
+                } else if (eg.getDouble(i, j) == 1 && eg.getDouble(j, i) == 0) {
+                    graph.addDirectedEdge(vars.get(i), vars.get(j));
+                }
+            }
+        }
+
+        return graph;
     }
 
     /**

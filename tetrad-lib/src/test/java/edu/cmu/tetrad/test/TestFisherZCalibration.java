@@ -14,12 +14,16 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
-import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.Params;
-import edu.cmu.tetrad.util.RandomUtil;
-import edu.cmu.tetrad.util.TextTable;
+import edu.cmu.tetrad.util.*;
+import edu.pitt.dbmi.data.reader.Data;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 
 import static java.lang.StrictMath.abs;
@@ -388,5 +392,88 @@ public class TestFisherZCalibration {
         rules.undirect(nodes, graph);
 
         System.out.println(graph);
+    }
+
+    @Test
+    public void test7() {
+        NumberFormat nf = new DecimalFormat("00");
+
+        for (int j = 3; j <= 8; j++) {
+            System.out.println("\nj = " + j);
+
+
+            double apsum = 0.0;
+            double arsum = 0.0;
+            double ahpsum = 0.0;
+            double ahrsum = 0.0;
+            double f1adjsum = 0.0;
+            double f1arrowsum = 0.0;
+
+            for (int i = 0; i < 50; i++) {
+                File dataFile = new File("/Users/josephramsey/Downloads/Triplet_A_Star_Data"
+                        + "/n60_prob0." + nf.format(j) + "_N500_pow1"
+                        + "/raw_data_13" + nf.format(i) + ".csv");
+                File graphFile = new File("/Users/josephramsey/Downloads/Triplet_A_Star_Data"
+                        + "/n60_prob0." + nf.format(j) + "_N500_pow1"
+                        + "/true_model_equiv_13" + nf.format(i));
+
+//                System.out.println(dataFile);
+
+                DataSet rawdata = null;
+
+                try {
+                    ContinuousTabularDatasetFileReader reader = new ContinuousTabularDatasetFileReader(dataFile.toPath(), Delimiter.COMMA);
+                    reader.setHasHeader(false);
+                    Data data = reader.readInData();
+                    rawdata = (DataSet) DataConvertUtils.toDataModel(data);
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+
+//                System.out.println(rawdata);
+
+                Fges fges = new Fges(new SemBicScore(rawdata));
+                fges.setFaithfulnessAssumed(false);
+//                fges.setTurning(true);
+//                fges.setVerbose(true);
+
+                Graph out = fges.search();
+
+//                System.out.println(out);
+
+
+                Graph graph = GraphUtils.loadRSpecial(graphFile);
+
+                if (graph.existsDirectedCycle()) throw new IllegalArgumentException("NO CYCLES! TAKE IT BACK!");
+
+                graph = GraphUtils.replaceNodes(graph, out.getNodes());
+
+//                System.out.println(graph);
+
+//                System.out.println("AP = " + new AdjacencyPrecision().getValue(graph, out, rawdata));
+//                System.out.println("AR = " + new AdjacencyRecall().getValue(graph, out, rawdata));
+//                System.out.println("AHP = " + new ArrowheadPrecision().getValue(graph, out, rawdata));
+//                System.out.println("AHR = " + new AdjacencyRecall().getValue(graph, out, rawdata));
+//                System.out.println("F1Adj = " + new F1Adj().getValue(graph, out, rawdata));
+//                System.out.println("F1Arrow = " + new F1Arrow().getValue(graph, out, rawdata));
+//                System.out.println();
+
+                apsum += new AdjacencyPrecision().getValue(graph, out, rawdata);
+                arsum += new AdjacencyRecall().getValue(graph, out, rawdata);
+
+                ahpsum += new ArrowheadPrecision().getValue(graph, out, rawdata);
+                ahrsum += new ArrowheadRecall().getValue(graph, out, rawdata);
+
+                f1adjsum += new F1Adj().getValue(graph, out, rawdata);
+                f1arrowsum += new F1Arrow().getValue(graph, out, rawdata);
+            }
+
+            System.out.println("AP = " + apsum / 50.);
+            System.out.println("AR = " + arsum / 50.);
+            System.out.println("AHP = " + ahpsum / 50.);
+            System.out.println("AHR = " + ahrsum / 50.);
+            System.out.println("F1Adj = " + f1adjsum / 50.);
+            System.out.println("F1Arrow = " + f1arrowsum / 50.);
+        }
     }
 }
