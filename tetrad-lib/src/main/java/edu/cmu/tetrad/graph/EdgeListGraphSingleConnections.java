@@ -246,7 +246,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
      * Determines whether one node is a descendent of another.
      */
     public boolean isDescendentOf(Node node1, Node node2) {
-        return node1 == node2 || GraphUtils.existsDirectedPathFromToBreathFirst(node2, node1, this);
+        return node1 == node2 || GraphUtils.existsDirectedPathFromTo(node2, node1, this);
 //        return (node1 == node2) || isProperDescendentOf(node1, node2);
     }
 

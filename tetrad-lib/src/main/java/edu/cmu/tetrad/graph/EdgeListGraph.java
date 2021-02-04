@@ -742,7 +742,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public boolean isDescendentOf(Node node1, Node node2) {
-        return node1 == node2 || GraphUtils.existsDirectedPathFromToBreathFirst(node2, node1, this);
+        return node1 == node2 || GraphUtils.existsDirectedPathFromTo(node2, node1, this);
     }
 
     /**
@@ -1039,7 +1039,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public boolean existsInducingPath(Node node1, Node node2) {
-        return node1 == node2 || GraphUtils.existsDirectedPathFromToBreathFirst(node2, node1, this);
+        return node1 == node2 || GraphUtils.existsDirectedPathFromTo(node2, node1, this);
     }
 
     /**
