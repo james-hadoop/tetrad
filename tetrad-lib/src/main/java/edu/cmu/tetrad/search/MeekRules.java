@@ -134,13 +134,13 @@ public class MeekRules implements ImpliedOrientation {
 
     private void orientUsingMeekRulesLocally(IKnowledge knowledge, Graph graph) {
 
-        boolean cyclic1 = graph.existsDirectedCycle();
+//        boolean cyclic1 = graph.existsDirectedCycle();
 
         for (Node node : nodes) {
             revertToColliders(node, graph, visited);
         }
 
-        boolean cyclic2 = graph.existsDirectedCycle();
+//        boolean cyclic2 = graph.existsDirectedCycle();
 
         boolean oriented;
 
@@ -472,36 +472,6 @@ public class MeekRules implements ImpliedOrientation {
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
-    }
-
-    private boolean existsSemiDirectedPath(Node from, Node to, Graph graph) {
-        Queue<Node> Q = new LinkedList<>();
-        Set<Node> V = new HashSet<>();
-        Q.offer(from);
-        V.add(from);
-
-        while (!Q.isEmpty()) {
-            Node t = Q.remove();
-
-            if (t == to) {
-                return true;
-            }
-
-            for (Node u : graph.getAdjacentNodes(t)) {
-                Edge edge = graph.getEdge(t, u);
-                Node c = traverseSemiDirected(t, edge);
-                if (c == null) {
-                    continue;
-                }
-
-                if (!V.contains(c)) {
-                    V.add(c);
-                    Q.offer(c);
-                }
-            }
-        }
-
-        return false;
     }
 
     // Used to find semidirected paths for cycle checking.

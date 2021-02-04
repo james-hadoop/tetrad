@@ -3340,11 +3340,11 @@ public final class SearchGraphUtils {
                 if (printStars) {
                     boolean directedInGraph2 = false;
 
-                    if (Edges.isDirectedEdge(edge) && GraphUtils.existsSemidirectedPathFromTo(node1, node2, graph2)) {
+                    if (Edges.isDirectedEdge(edge) && GraphUtils.existsSemidirectedPath(node1, node2, graph2)) {
                         directedInGraph2 = true;
                     } else if ((Edges.isUndirectedEdge(edge) || Edges.isBidirectedEdge(edge))
-                            && (GraphUtils.existsSemidirectedPathFromTo(node1, node2, graph2)
-                            || GraphUtils.existsSemidirectedPathFromTo(node2, node1, graph2))) {
+                            && (GraphUtils.existsSemidirectedPath(node1, node2, graph2)
+                            || GraphUtils.existsSemidirectedPath(node2, node1, graph2))) {
                         directedInGraph2 = true;
                     }
 
@@ -3373,11 +3373,11 @@ public final class SearchGraphUtils {
                 if (printStars) {
                     boolean directedInGraph1 = false;
 
-                    if (Edges.isDirectedEdge(edge) && GraphUtils.existsSemidirectedPathFromTo(node1, node2, graph1)) {
+                    if (Edges.isDirectedEdge(edge) && GraphUtils.existsSemidirectedPath(node1, node2, graph1)) {
                         directedInGraph1 = true;
                     } else if ((Edges.isUndirectedEdge(edge) || Edges.isBidirectedEdge(edge))
-                            && (GraphUtils.existsSemidirectedPathFromTo(node1, node2, graph1)
-                            || GraphUtils.existsSemidirectedPathFromTo(node2, node1, graph1))) {
+                            && (GraphUtils.existsSemidirectedPath(node1, node2, graph1)
+                            || GraphUtils.existsSemidirectedPath(node2, node1, graph1))) {
                         directedInGraph1 = true;
                     }
 

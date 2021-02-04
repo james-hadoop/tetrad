@@ -3121,16 +3121,12 @@ public final class GraphUtils {
     }
 
     public static boolean existsDirectedPathFromTo(Node node1, Node node2, Graph graph) {
-        return node1 == node2 || existsDirectedPathFromToBreathFirst(node1, node2, graph);
+        return node1 == node2 || existsDirectedPathFromTo(node1, node2, graph);
 //        return existsDirectedPathVisit(node1, node2, new LinkedList<Node>(), 1000, graph);
     }
 
     public static boolean existsDirectedPathFromTo(Node node1, Node node2, int depth, Graph graph) {
         return node1 == node2 || existsDirectedPathVisit(node1, node2, new LinkedList<Node>(), depth, graph);
-    }
-
-    public static boolean existsSemidirectedPathFromTo(Node node1, Node node2, Graph graph) {
-        return existsSemiDirectedPathVisit(node1, node2, new LinkedList<Node>(), 1000, graph);
     }
 
     private static boolean existsDirectedPathVisit(Node node1, Node node2, LinkedList<Node> path, int depth, Graph graph) {
@@ -3160,84 +3156,6 @@ public final class GraphUtils {
             }
 
             if (existsDirectedPathVisit(child, node2, path, depth, graph)) {
-                return true;
-            }
-        }
-
-        path.removeLast();
-        return false;
-    }
-
-    /**
-     * @return true just in case there is a nonempty path from one node to
-     * another. Because the path needs to be non-empty, this can distinguish
-     * cycles. The case where from = to but there is no cycle from from to to
-     * needs to be checked separately.
-     */
-    public static boolean existsDirectedPathFromToBreathFirst(Node from, Node to, Graph G) {
-        Queue<Node> Q = new LinkedList<>();
-        Set<Node> V = new HashSet<>();
-        Q.offer(from);
-        V.add(from);
-
-        while (!Q.isEmpty()) {
-            Node t = Q.remove();
-
-            for (Node u : G.getAdjacentNodes(t)) {
-                if (G.isParentOf(t, u) && G.isParentOf(u, t)) {
-                    return true;
-                }
-                Edge edge = G.getEdge(t, u);
-                Node c = Edges.traverseDirected(t, edge);
-
-                if (c == null) {
-                    continue;
-                }
-                if (c == to) {
-                    return true;
-                }
-                if (V.contains(c)) {
-                    continue;
-                }
-
-                V.add(c);
-                Q.offer(c);
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @return true iff there is a semi-directed path from node1 to node2
-     */
-    private static boolean existsSemiDirectedPathVisit(Node node1, Node node2, LinkedList<Node> path, int maxDepth,
-                                                       Graph graph) {
-        path.addLast(node1);
-
-        if (path.size() >= maxDepth) {
-            return false;
-        }
-
-        for (Edge edge : graph.getEdges(graph.getNode(node1.getName()))) {
-            Node child = Edges.traverseSemiDirected(node1, edge);
-
-            if (child == null) {
-                continue;
-            }
-
-            if (child == node2) {
-                return true;
-            }
-
-            if (path.contains(child)) {
-                continue;
-            }
-
-//            if (previous != null && graph.isAmbiguousTriple(previous, node1, child)) {
-//                continue;
-//            }
-            if (existsSemiDirectedPathVisit(child, node2, path, maxDepth, graph)) {
                 return true;
             }
         }
@@ -3774,7 +3692,7 @@ public final class GraphUtils {
             Edge xyEdge = graph.getEdge(x, y);
             graph.removeEdge(xyEdge);
 
-            if (!existsSemiDirectedPath(x, y, -1, graph)) {
+            if (!existsSemiDirectedPath(x, y, graph)) {
                 edge.addProperty(Edge.Property.dd); // green.
             } else {
                 edge.addProperty(Edge.Property.pd);
@@ -3792,46 +3710,42 @@ public final class GraphUtils {
 
     // Returns true if a path consisting of undirected and directed edges toward 'to' exists of
     // length at most 'bound'. Cycle checker in other words.
-    public static boolean existsSemiDirectedPath(Node from, Node to, int bound, Graph graph) {
+    public static boolean existsSemiDirectedPath(Node from, Node to, Graph graph) {
         Queue<Node> Q = new LinkedList<>();
         Set<Node> V = new HashSet<>();
-        Q.offer(from);
-        V.add(from);
-        Node e = null;
-        int distance = 0;
+
+        for (Node u : graph.getAdjacentNodes(from)) {
+            Edge edge = graph.getEdge(from, u);
+            Node c = traverseSemiDirected(from, edge);
+
+            if (c == null) {
+                continue;
+            }
+
+            if (!V.contains(c)) {
+                V.add(c);
+                Q.offer(c);
+            }
+        }
 
         while (!Q.isEmpty()) {
             Node t = Q.remove();
+
             if (t == to) {
                 return true;
             }
 
-            if (e == t) {
-                e = null;
-                distance++;
-                if (distance > (bound == -1 ? 1000 : bound)) {
-                    return false;
-                }
-            }
-
             for (Node u : graph.getAdjacentNodes(t)) {
                 Edge edge = graph.getEdge(t, u);
-                Node c = GraphUtils.traverseSemiDirected(t, edge);
+                Node c = traverseSemiDirected(t, edge);
+
                 if (c == null) {
                     continue;
-                }
-
-                if (c == to) {
-                    return true;
                 }
 
                 if (!V.contains(c)) {
                     V.add(c);
                     Q.offer(c);
-
-                    if (e == null) {
-                        e = u;
-                    }
                 }
             }
         }
@@ -5367,31 +5281,43 @@ public final class GraphUtils {
         list.add(b);
     }
 
-    private static boolean existsSemidirectedPath(Node from, Node to, Graph G) {
+    public static boolean existsSemidirectedPath(Node from, Node to, Graph G) {
         Queue<Node> Q = new LinkedList<>();
         Set<Node> V = new HashSet<>();
-        Q.offer(from);
-        V.add(from);
+
+        for (Node u : G.getAdjacentNodes(from)) {
+            Edge edge = G.getEdge(from, u);
+            Node c = traverseSemiDirected(from, edge);
+
+            if (c == null) {
+                continue;
+            }
+
+            if (!V.contains(c)) {
+                V.add(c);
+                Q.offer(c);
+            }
+        }
 
         while (!Q.isEmpty()) {
             Node t = Q.remove();
+
             if (t == to) {
                 return true;
             }
 
             for (Node u : G.getAdjacentNodes(t)) {
                 Edge edge = G.getEdge(t, u);
-                Node c = Edges.traverseSemiDirected(t, edge);
+                Node c = traverseSemiDirected(t, edge);
 
                 if (c == null) {
                     continue;
                 }
-                if (V.contains(c)) {
-                    continue;
-                }
 
-                V.add(c);
-                Q.offer(c);
+                if (!V.contains(c)) {
+                    V.add(c);
+                    Q.offer(c);
+                }
             }
         }
 
