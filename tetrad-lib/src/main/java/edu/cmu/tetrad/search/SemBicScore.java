@@ -318,9 +318,6 @@ public class SemBicScore implements Score {
     private void setCovariances(ICovarianceMatrix covariances) {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
-
-
-        System.out.println("n = " + covariances.getSampleSize() + " ess = " + this.ess);
     }
 
     private static int[] append(int[] z, int x) {

@@ -389,7 +389,7 @@ public class TestFisherZCalibration {
 
         MeekRules rules = new MeekRules();
 
-        rules.undirect(nodes, graph);
+        rules.revertToColliders(nodes, graph);
 
         System.out.println(graph);
     }
@@ -434,7 +434,7 @@ public class TestFisherZCalibration {
 
                 Fges fges = new Fges(new SemBicScore(rawdata));
                 fges.setFaithfulnessAssumed(false);
-//                fges.setTurning(true);
+                fges.setTurning(true);
 //                fges.setVerbose(true);
 
                 Graph out = fges.search();

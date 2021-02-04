@@ -20,8 +20,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetrad.graph;
 
-import edu.cmu.tetrad.search.TConnection;
-
 import static edu.cmu.tetrad.graph.Edges.directedEdge;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -293,13 +291,9 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public boolean existsDirectedCycle() {
         for (Node node : getNodes()) {
-            if (GraphUtils.existsDirectedPathFromToBreathFirst(node, node, this)) {
+            if (existsDirectedPathFromTo(node, node)) {
                 return true;
             }
-
-//            if (existsDirectedPathFromTo(node, node)) {
-//                return true;
-//            }
         }
         return false;
     }
@@ -482,7 +476,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public boolean existsDirectedPathFromTo(Node node1, Node node2) {
-        return existsDirectedPathVisit(node1, node2, new HashSet<Node>());
+        return existsDirectedPathVisit(node1, node2);
     }
 
     @Override
@@ -2061,30 +2055,32 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         return false;
     }
 
-    boolean existsDirectedPathVisit(Node node1, Node node2, Set<Node> path) {
-        path.add(node1);
+    protected boolean existsDirectedPathVisit(Node from, Node to) {
+        Queue<Node> Q = new LinkedList<>();
+        Set<Node> V = new HashSet<>();
 
-        for (Edge edge : getEdges(node1)) {
-            Node child = Edges.traverseDirected(node1, edge);
-
-            if (child == null) {
-                continue;
-            }
-
-            if (child == node2) {
-                return true;
-            }
-
-            if (path.contains(child)) {
-                continue;
-            }
-
-            if (existsDirectedPathVisit(child, node2, path)) {
-                return true;
+        for (Node c : getChildren(from)) {
+            if (!V.contains(c)) {
+                V.add(c);
+                Q.offer(c);
             }
         }
 
-        path.remove(node1);
+        while (!Q.isEmpty()) {
+            Node t = Q.remove();
+
+            if (t == to) {
+                return true;
+            }
+
+            for (Node c : getChildren(t)) {
+                if (!V.contains(c)) {
+                    V.add(c);
+                    Q.offer(c);
+                }
+            }
+        }
+
         return false;
     }
 
