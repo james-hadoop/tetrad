@@ -1156,8 +1156,11 @@ public final class GraphUtils {
 
         for (int i = 0; i < vars.size(); i++) {
             for (int j = 0; j < vars.size(); j++) {
-                if (i > j && eg.getDouble(i, j) == 1 && eg.getDouble(j, i) == 1) {
-                    graph.addUndirectedEdge(vars.get(i), vars.get(j));
+                if (i == j) continue;
+                if (eg.getDouble(i, j) == 1 && eg.getDouble(j, i) == 1) {
+                    if (!graph.isAdjacentTo(vars.get(i), vars.get(j))) {
+                        graph.addUndirectedEdge(vars.get(i), vars.get(j));
+                    }
                 } else if (eg.getDouble(i, j) == 1 && eg.getDouble(j, i) == 0) {
                     graph.addDirectedEdge(vars.get(i), vars.get(j));
                 }

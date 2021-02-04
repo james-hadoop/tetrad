@@ -192,11 +192,11 @@ public class TestFisherZCalibration {
         parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
 //        parameters.set(Params.TDEPTH, 1);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.ADJUST_ORIENTATIONS, true);
-        parameters.set(Params.COEF_LOW, 0.2);
-        parameters.set(Params.COEF_HIGH, 1.0);
+        parameters.set(Params.ADJUST_ORIENTATIONS, false);
+        parameters.set(Params.COEF_LOW, 0);
+        parameters.set(Params.COEF_HIGH, 2);
         parameters.set(Params.VAR_LOW, 1.0);
         parameters.set(Params.VAR_HIGH, 3.0);
         parameters.set(Params.VERBOSE, false);
@@ -224,6 +224,9 @@ public class TestFisherZCalibration {
         statistics.add(new F1Adj());
         statistics.add(new F1Arrow());
         statistics.add(new SHD());
+
+        statistics.add(new CyclicEst());
+
         statistics.add(new ElapsedTime());
 
         statistics.setWeight("SHD", .5);
@@ -415,7 +418,7 @@ public class TestFisherZCalibration {
                         + "/raw_data_13" + nf.format(i) + ".csv");
                 File graphFile = new File("/Users/josephramsey/Downloads/Triplet_A_Star_Data"
                         + "/n60_prob0." + nf.format(j) + "_N500_pow1"
-                        + "/true_model_equiv_13" + nf.format(i));
+                        + "/true_dag_13" + nf.format(i) + ".txt");
 
 //                System.out.println(dataFile);
 
@@ -432,9 +435,11 @@ public class TestFisherZCalibration {
 
 //                System.out.println(rawdata);
 
-                Fges fges = new Fges(new SemBicScore(rawdata));
-                fges.setFaithfulnessAssumed(false);
-                fges.setTurning(true);
+                SemBicScore score = new SemBicScore(rawdata);
+                score.setUseEquivalentSampleSize(true);
+                Fges fges = new Fges(score);
+                fges.setFaithfulnessAssumed(true);
+                fges.setTurning(false);
 //                fges.setVerbose(true);
 
                 Graph out = fges.search();
@@ -442,11 +447,27 @@ public class TestFisherZCalibration {
 //                System.out.println(out);
 
 
-                Graph graph = GraphUtils.loadRSpecial(graphFile);
+//                Graph graph = GraphUtils.loadRSpecial(graphFile);
+                Graph graph = GraphUtils.loadGraphTxt(graphFile);
 
-                if (graph.existsDirectedCycle()) throw new IllegalArgumentException("NO CYCLES! TAKE IT BACK!");
+
+                List<Node> nodes = graph.getNodes();
+
+                for (int k = 1; k <= nodes.size(); k++) {
+                    String name = "X" + k;
+                    Node node = graph.getNode(name);
+
+                    if (node == null) {
+                        System.out.println(name);
+                    }
+
+                    node.setName("C" + k);
+                }
 
                 graph = GraphUtils.replaceNodes(graph, out.getNodes());
+
+
+//                graph = SearchGraphUtils.patternForDag(graph);
 
 //                System.out.println(graph);
 

@@ -83,13 +83,15 @@ public class MeekRules implements ImpliedOrientation {
         orientImplied(graph, graph.getNodes());
     }
 
-    public void orientImplied(Graph graph, List<Node> nodes) {
+    public Set<Node> orientImplied(Graph graph, List<Node> nodes) {
         this.nodes = nodes;
         this.visited.addAll(nodes);
 
         TetradLogger.getInstance().log("impliedOrientations", "Starting Orientation Step D.");
         orientUsingMeekRulesLocally(knowledge, graph);
         TetradLogger.getInstance().log("impliedOrientations", "Finishing Orientation Step D.");
+
+        return visited;
     }
 
     public void revertToColliders(List<Node> nodes, Graph graph) {
@@ -134,13 +136,9 @@ public class MeekRules implements ImpliedOrientation {
 
     private void orientUsingMeekRulesLocally(IKnowledge knowledge, Graph graph) {
 
-        boolean cyclic1 = graph.existsDirectedCycle();
-
         for (Node node : nodes) {
             revertToColliders(node, graph, visited);
         }
-
-        boolean cyclic2 = graph.existsDirectedCycle();
 
         boolean oriented;
 
@@ -152,43 +150,16 @@ public class MeekRules implements ImpliedOrientation {
                     oriented = true;
                 }
             }
-
         } while (oriented);
-//        queue.addAll(nodes);
-//
-////        for (Node node : nodes) {
-////            runMeekRules(node, graph, knowledge);
-////
-//        while (!queue.isEmpty()) {
-//            Node y = queue.removeFirst();
-//            if (visited.contains(y)) continue;
-//            runMeekRules(y, graph, knowledge);
-//        }
-////        }
-//
-//        boolean cyclic3 = graph.existsDirectedCycle();
-//
-//
-////
-//        if (cyclic3) {
-////            System.out.println("cyclic1 = " + cyclic1 + " cyclic2 = " + cyclic2 + " cyclic3 = " + cyclic3);
-//        }
-
-
     }
 
     private boolean runMeekRules(Node node, Graph graph, IKnowledge knowledge) {
 
         boolean oriented = false;
 
-//        do {
-//            oriented = false;
-
-            if (meekR1(node, graph)) oriented = true;
-            if (meekR2(node, graph)) oriented = true;
-            if (meekR3(node, graph)) oriented = true;
-//            else if (meekR4(node, graph)) oriented = true;
-//        } while (oriented);
+        if (meekR1(node, graph)) oriented = true;
+        if (meekR2(node, graph)) oriented = true;
+        if (meekR3(node, graph)) oriented = true;
 
         return oriented;
     }
@@ -212,12 +183,8 @@ public class MeekRules implements ImpliedOrientation {
             Node c = nodes.get(1);
 
             if (r1Helper(a, b, c, graph, b)) {
-                queue.addLast(a);
-                queue.addLast(c);
                 return true;
             } else if (r1Helper(c, b, a, graph, b)) {
-                queue.addLast(a);
-                queue.addLast(c);
                 return true;
             }
         }
@@ -257,20 +224,12 @@ public class MeekRules implements ImpliedOrientation {
             Node c = nodes.get(1);
 
             if (r2Helper(a, b, c, graph)) {
-                queue.addLast(a);
-                queue.addLast(c);
                 return true;
             } else if (r2Helper(c, b, a, graph)) {
-                queue.addLast(a);
-                queue.addLast(c);
                 return true;
             } else if (r2Helper(a, c, b, graph)) {
-                queue.addLast(a);
-                queue.addLast(c);
                 return true;
             } else if (r2Helper(c, a, b, graph)) {
-                queue.addLast(a);
-                queue.addLast(c);
                 return true;
             }
         }
@@ -316,9 +275,6 @@ public class MeekRules implements ImpliedOrientation {
                     Node c = nodes.get(1);
 
                     if (r3Helper(a, d, b, c, graph)) {
-                        queue.addLast(b);
-                        queue.addLast(c);
-                        queue.addLast(d);
                         return true;
                     }
                 }
@@ -375,7 +331,6 @@ public class MeekRules implements ImpliedOrientation {
                     if (graph.isDirectedFromTo(c, node) && graph.isDirectedFromTo(node, a)) {
                         directed = direct(b, a, graph);
                         log(SearchLogUtils.edgeOrientedMsg("Meek R4", graph.getEdge(b, a)));
-                        continue;
                     }
 
                     if (directed) return true;
@@ -453,15 +408,11 @@ public class MeekRules implements ImpliedOrientation {
 
         }
 
-//        for (Node p : parents) {
-//            runMeekRules(p, graph, knowledge);
-//        }
-
-//        if (graph.getParents(y).isEmpty()) {
-//            for (Node c : graph.getChildren(y)) {
-//                revertToColliders(c, graph, visited);
-//            }
-//        }
+        if (graph.getParents(y).isEmpty()) {
+            for (Node c : graph.getChildren(y)) {
+                revertToColliders(c, graph, visited);
+            }
+        }
     }
 
     private void log(String message) {
@@ -473,51 +424,6 @@ public class MeekRules implements ImpliedOrientation {
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
-
-    private boolean existsSemiDirectedPath(Node from, Node to, Graph graph) {
-        Queue<Node> Q = new LinkedList<>();
-        Set<Node> V = new HashSet<>();
-        Q.offer(from);
-        V.add(from);
-
-        while (!Q.isEmpty()) {
-            Node t = Q.remove();
-
-            if (t == to) {
-                return true;
-            }
-
-            for (Node u : graph.getAdjacentNodes(t)) {
-                Edge edge = graph.getEdge(t, u);
-                Node c = traverseSemiDirected(t, edge);
-                if (c == null) {
-                    continue;
-                }
-
-                if (!V.contains(c)) {
-                    V.add(c);
-                    Q.offer(c);
-                }
-            }
-        }
-
-        return false;
-    }
-
-    // Used to find semidirected paths for cycle checking.
-    private static Node traverseSemiDirected(Node node, Edge edge) {
-        if (node == edge.getNode1()) {
-            if (edge.getEndpoint1() == Endpoint.TAIL) {
-                return edge.getNode2();
-            }
-        } else if (node == edge.getNode2()) {
-            if (edge.getEndpoint2() == Endpoint.TAIL) {
-                return edge.getNode1();
-            }
-        }
-        return null;
-    }
-
 }
 
 
