@@ -436,7 +436,10 @@ public class TestFisherZCalibration {
 //                System.out.println(rawdata);
 
                 SemBicScore score = new SemBicScore(rawdata);
-                score.setUseEquivalentSampleSize(true);
+                score.setUseEquivalentSampleSize(false);
+                score.setRuleType(SemBicScore.RuleType.CHICKERING);
+                score.setPenaltyDiscount(4);
+
                 Fges fges = new Fges(score);
                 fges.setFaithfulnessAssumed(true);
                 fges.setTurning(false);
