@@ -272,6 +272,11 @@ public class KnowledgeGraph implements Graph, TetradSerializableExcluded {
         return getGraph().existsDirectedPathFromTo(node1, node2);
     }
 
+    @Override
+    public List<Node> findCycle() {
+        return getGraph().findCycle();
+    }
+
     public boolean existsUndirectedPathFromTo(Node node1, Node node2) {
         return getGraph().existsUndirectedPathFromTo(node1, node2);
     }

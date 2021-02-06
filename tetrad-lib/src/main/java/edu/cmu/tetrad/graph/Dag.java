@@ -245,6 +245,11 @@ public final class Dag implements Graph {
         return dpath[index1][index2] == 1;
     }
 
+    @Override
+    public List<Node> findCycle() {
+        return getGraph().findCycle();
+    }
+
     public boolean existsUndirectedPathFromTo(Node node1, Node node2) {
         return false;
     }

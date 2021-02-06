@@ -400,6 +400,11 @@ public class EndpointMatrixGraph implements Graph {
         return existsDirectedPathVisit(node1, node2, new LinkedList<Node>());
     }
 
+    @Override
+    public List<Node> findCycle() {
+        throw new UnsupportedOperationException();
+    }
+
     public boolean existsUndirectedPathFromTo(Node node1, Node node2) {
         return existsUndirectedPathVisit(node1, node2, new LinkedList<Node>());
     }

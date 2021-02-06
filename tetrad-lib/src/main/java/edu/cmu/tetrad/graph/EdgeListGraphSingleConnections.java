@@ -217,7 +217,32 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
      * a
      */
     public boolean existsDirectedPathFromTo(Node node1, Node node2) {
-        return existsDirectedPathVisit(node1, node2);
+        Queue<Node> Q = new LinkedList<>();
+        Set<Node> V = new HashSet<>();
+
+        for (Node c : getChildren(node1)) {
+            if (!V.contains(c)) {
+                V.add(c);
+                Q.offer(c);
+            }
+        }
+
+        while (!Q.isEmpty()) {
+            Node t = Q.remove();
+
+            if (t == node2) {
+                return true;
+            }
+
+            for (Node c : getChildren(t)) {
+                if (!V.contains(c)) {
+                    V.add(c);
+                    Q.offer(c);
+                }
+            }
+        }
+
+        return false;
     }
 
     public boolean existsUndirectedPathFromTo(Node node1, Node node2) {

@@ -27,7 +27,6 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.traverseSemiDirected;
-import static java.lang.StrictMath.PI;
 import static java.lang.StrictMath.abs;
 
 public class TestFisherZCalibration {
@@ -522,7 +521,7 @@ public class TestFisherZCalibration {
 
         List<Edge> edges = new ArrayList<>(graph.getEdges());
 
-        Graph out = new EdgeListGraph(nodes);
+        EdgeListGraph out = new EdgeListGraph(nodes);
 
         while (!edges.isEmpty()) {
             Edge edge = edges.get(RandomUtil.getInstance().nextInt(edges.size()));
@@ -560,7 +559,7 @@ public class TestFisherZCalibration {
 
             boolean cycle2 = out.existsDirectedCycle();
 
-            for (Node t : T) {
+             for (Node t : T) {
                 if (out.getEdge(t, y).isDirected()) {
                     throw new IllegalArgumentException();
                 }
@@ -577,7 +576,9 @@ public class TestFisherZCalibration {
 
             boolean cycle4 = out.existsDirectedCycle();
 
-            if (cycle4) {
+            if (!cycle3 && cycle4) {
+                List<Node> cycle = out.findCycle();
+                System.out.println(cycle.isEmpty() ? "No cycle" : GraphUtils.pathString(cycle, out));
                 System.out.println(out.getNumEdges() + " " + cycle1 + " " + cycle2 + " " + cycle3 + " " + cycle4);
             }
         }
@@ -690,4 +691,5 @@ public class TestFisherZCalibration {
 
         return tNeighbors;
     }
+
 }

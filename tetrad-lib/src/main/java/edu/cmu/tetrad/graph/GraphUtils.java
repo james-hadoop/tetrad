@@ -1841,13 +1841,13 @@ public final class GraphUtils {
     }
 
     public static String pathString(List<Node> path, Graph graph) {
-        return pathString(graph, path, new LinkedList<Node>());
+        return pathString(graph, path, new LinkedList<>());
     }
 
     public static String pathString(Graph graph, Node... x) {
         List<Node> path = new ArrayList<>();
         Collections.addAll(path, x);
-        return pathString(graph, path, new LinkedList<Node>());
+        return pathString(graph, path, new LinkedList<>());
     }
 
     private static String pathString(Graph graph, List<Node> path, List<Node> conditioningVars) {

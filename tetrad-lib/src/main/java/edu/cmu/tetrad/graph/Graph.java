@@ -119,6 +119,8 @@ public interface Graph extends TetradSerializable, TripleClassifier {
      */
     boolean existsDirectedPathFromTo(Node node1, Node node2);
 
+    List<Node> findCycle();
+
     /**
      * @return true iff there is a semi-directed path from node1 to something in
      * nodes2 in the graph

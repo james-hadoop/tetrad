@@ -119,8 +119,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     public EdgeListGraph() {
         this.edgeLists = new HashMap<>();
-        this.nodes = new ArrayList<>();
-        this.edgesSet = new HashSet<>();
+        this.nodes = Collections.synchronizedList(new ArrayList<>());
+        this.edgesSet = Collections.synchronizedSet(new HashSet<>());
         this.namesHash = new HashMap<>();
     }
 
@@ -252,9 +252,11 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public boolean existsDirectedCycle() {
         for (Node node : getNodes()) {
-            if (existsDirectedPathFromTo(node, node)) {
-                return true;
-            }
+            if (findPath(node, node).size() > 1) return true;
+
+//            if (existsDirectedPathFromTo(node, node)) {
+//                return true;
+//            }
         }
         return false;
     }
@@ -417,8 +419,72 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public boolean existsDirectedPathFromTo(Node node1, Node node2) {
-        return existsDirectedPathVisit(node1, node2);
+        return !findCycle().isEmpty();
+
+//        Queue<Node> Q = new LinkedList<>();
+//        Set<Node> V = new HashSet<>();
+//
+//        for (Node c : getChildren(node1)) {
+//            V.add(c);
+//            Q.offer(c);
+//        }
+//
+//        while (!Q.isEmpty()) {
+//            Node t = Q.remove();
+//
+//            if (t == node2) {
+//                return true;
+//            }
+//
+//            for (Node c : getChildren(t)) {
+//                if (!V.contains(c)) {
+//                    V.add(c);
+//                    Q.offer(c);
+//                }
+//            }
+//        }
+//
+//        return false;
     }
+
+    @Override
+    public List<Node> findCycle() {
+        for (Node a : getNodes()) {
+            List<Node> path = findPath(a, a);
+            if (!path.isEmpty()) {
+                return path;
+            }
+        }
+
+        return new LinkedList<>();
+    }
+
+    public List<Node> findPath(Node from, Node to) {
+        LinkedList<Node> path = new LinkedList<>();
+
+        for (Node next : getChildren(from)) {
+            if (findPathVisit(next, to, path)) {
+                path.addFirst(from);
+                return path;
+            }
+        }
+
+        return path;
+    }
+
+    private boolean findPathVisit(Node next, Node to, LinkedList<Node> path) {
+        if (path.contains(next)) return false;
+        path.addLast(next);
+        if (next == to) return true;
+
+        for (Node d : getChildren(next)) {
+            if (findPathVisit(d, to, path)) return true;
+        }
+
+        path.removeLast();
+        return false;
+    }
+
 
     @Override
     public boolean existsUndirectedPathFromTo(Node node1, Node node2) {
@@ -1318,7 +1384,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public Set<Edge> getEdges() {
-        return new HashSet<>(this.edgesSet);
+        return Collections.synchronizedSet(new HashSet<>(this.edgesSet));
     }
 
     /**
@@ -1910,35 +1976,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         }
 
         path.remove(node1);
-        return false;
-    }
-
-    protected boolean existsDirectedPathVisit(Node from, Node to) {
-        Queue<Node> Q = new LinkedList<>();
-        Set<Node> V = new HashSet<>();
-
-        for (Node c : getChildren(from)) {
-            if (!V.contains(c)) {
-                V.add(c);
-                Q.offer(c);
-            }
-        }
-
-        while (!Q.isEmpty()) {
-            Node t = Q.remove();
-
-            if (t == to) {
-                return true;
-            }
-
-            for (Node c : getChildren(t)) {
-                if (!V.contains(c)) {
-                    V.add(c);
-                    Q.offer(c);
-                }
-            }
-        }
-
         return false;
     }
 

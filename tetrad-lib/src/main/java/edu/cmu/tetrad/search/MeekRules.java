@@ -25,7 +25,6 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
-import edu.cmu.tetrad.util.PermutationGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
@@ -53,9 +52,6 @@ public class MeekRules implements ImpliedOrientation {
 
     //The logger to use.
     private final Map<Edge, Edge> changedEdges = new HashMap<>();
-
-    // The stack of nodes to be visited.
-    private final LinkedList<Node> queue = new LinkedList<>();
 
     // Whether verbose output should be generated.
 
@@ -102,7 +98,9 @@ public class MeekRules implements ImpliedOrientation {
             reverted = false;
 
             for (Node node : nodes) {
-                reverted = reverted || revertToColliders(node, graph, visited);
+                if (revertToColliders(node, graph)) {
+                    reverted = true;
+                }
             }
         }
     }
@@ -141,15 +139,21 @@ public class MeekRules implements ImpliedOrientation {
 
     private void orientUsingMeekRulesLocally(IKnowledge knowledge, Graph graph) {
 
-        boolean reverted = true;
+//        this.nodes = graph.getNodes();
+//
+//        boolean reverted = true;
+//
+//        while (reverted) {
+//            reverted = false;
+//
+//            for (Node node : nodes) {
+//                if (revertToColliders(node, graph)) {
+//                    reverted = true;
+//                }
+//            }
+//        }
 
-        while (reverted) {
-            reverted = false;
-
-            for (Node node : nodes) {
-                 reverted = reverted || revertToColliders(node, graph, visited);
-            }
-        }
+        revertToColliders(this.nodes, graph);
 
         boolean oriented;
 
@@ -157,22 +161,13 @@ public class MeekRules implements ImpliedOrientation {
             oriented = false;
 
             for (Node y : graph.getNodes()) {
-                if (runMeekRules(y, graph, knowledge)) {
-                    oriented = true;
-                }
+                if (meekR1(y, graph)) oriented = true;
+                if (meekR2(y, graph)) oriented = true;
+                if (meekR3(y, graph)) oriented = true;
+//                if (meekR4(y, graph)) oriented = true;
+
             }
         } while (oriented);
-    }
-
-    private boolean runMeekRules(Node node, Graph graph, IKnowledge knowledge) {
-//        int d = (graph.getDegree(node));
-        boolean oriented = false;
-
-        if (meekR1(node, graph)) oriented = true;
-        if (meekR2(node, graph)) oriented = true;
-        if (meekR3(node, graph)) oriented = true;
-
-        return oriented;
     }
 
     /**
@@ -180,28 +175,14 @@ public class MeekRules implements ImpliedOrientation {
      */
     private boolean meekR1(Node b, Graph graph) {
         List<Node> adjacentNodes = graph.getAdjacentNodes(b);
-////        adjacentNodes.add(b);
-//
-//        if (adjacentNodes.size() < 2) return false;
-//
-//        PermutationGenerator gen = new PermutationGenerator(adjacentNodes.size());
-//        int[] choice;
-//
-//        while ((choice = gen.next()) != null) {
-//            List<Node> nodes = GraphUtils.asList(choice, adjacentNodes);
-//            if (r1Helper(nodes.get(0), b, nodes.get(1), graph)) {
-//                return true;
-//            }
-//        }
-//
-//        return false;
-//
+
         if (adjacentNodes.size() < 2) {
             return false;
         }
-//
+
         ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
         int[] choice;
+        boolean oriented = false;
 
         while ((choice = cg.next()) != null) {
             List<Node> nodes = GraphUtils.asList(choice, adjacentNodes);
@@ -209,15 +190,13 @@ public class MeekRules implements ImpliedOrientation {
             Node c = nodes.get(1);
 
             if (r1Helper(a, b, c, graph)) {
-                return true;
-            }
-
-            if (r1Helper(c, b, a, graph)) {
-                return true;
+                oriented = true;
+            } else if (r1Helper(c, b, a, graph)) {
+                oriented = true;
             }
         }
 
-        return false;
+        return oriented;
     }
 
     private boolean r1Helper(Node a, Node b, Node c, Graph graph) {
@@ -245,6 +224,7 @@ public class MeekRules implements ImpliedOrientation {
 
         ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
         int[] choice;
+        boolean oriented = false;
 
         while ((choice = cg.next()) != null) {
             List<Node> nodes = GraphUtils.asList(choice, adjacentNodes);
@@ -252,17 +232,17 @@ public class MeekRules implements ImpliedOrientation {
             Node c = nodes.get(1);
 
             if (r2Helper(a, b, c, graph)) {
-                return true;
+                oriented = true;
             } else if (r2Helper(c, b, a, graph)) {
-                return true;
+                oriented = true;
             } else if (r2Helper(a, c, b, graph)) {
-                return true;
+                oriented = true;
             } else if (r2Helper(c, a, b, graph)) {
-                return true;
+                oriented = true;
             }
         }
 
-        return false;
+        return oriented;
     }
 
     private boolean r2Helper(Node a, Node b, Node c, Graph graph) {
@@ -289,6 +269,8 @@ public class MeekRules implements ImpliedOrientation {
             return false;
         }
 
+        boolean oriented = false;
+
         for (Node d : adjacentNodes) {
             if (Edges.isUndirectedEdge(graph.getEdge(a, d))) {
                 List<Node> otherAdjacents = new ArrayList<>(adjacentNodes);
@@ -303,14 +285,13 @@ public class MeekRules implements ImpliedOrientation {
                     Node c = nodes.get(1);
 
                     if (r3Helper(a, d, b, c, graph)) {
-                        return true;
+                        oriented = true;
                     }
                 }
             }
         }
 
-
-        return false;
+        return oriented;
     }
 
     private boolean r3Helper(Node a, Node d, Node b, Node c, Graph graph) {
@@ -403,53 +384,81 @@ public class MeekRules implements ImpliedOrientation {
                 !knowledge.isForbidden(from.toString(), to.toString());
     }
 
-    private boolean revertToColliders(Node y, Graph graph, Set<Node> visited) {
-        visited.add(y);
+    private boolean revertToColliders(Node y, Graph graph) {
+//        List<Node> adj = graph.getAdjacentNodes(y);
+//
+//        if (adj.size() < 2) return false;
+//
+//        ChoiceGenerator gen = new ChoiceGenerator(adj.size(), 2);
+//        int[] choice;
+//        Set<Node> keep = new HashSet<>();
+//
+//        if ((choice = gen.next()) != null) {
+//            List<Node> _adj = GraphUtils.asList(choice, adj);
+//            Node x = _adj.get(0);
+//            Node z = _adj.get(1);
+//
+//            if (!graph.isAdjacentTo(x, z) && graph.isDefCollider(x, y, z)) {
+//                keep.add(x);
+//                keep.add(z);
+//            }
+//        }
 
-        Set<Node> parentsToUndirect;
+//        boolean changed = false;
+//
+//        for (Node p : graph.getParents(y)) {
+//            if (!keep.contains(p)) {
+//                graph.removeEdge(p, y);
+//                graph.addUndirectedEdge(p, y);
+//                changed = true;
+//            }
+//        }
+//
+//        return changed;
 
-        parentsToUndirect = new HashSet<>();
-        List<Node> parents = graph.getParents(y);
-
-//        NEXT_EDGE:
-//        for (Node x : parents) {
+//
+        boolean did = false;
+//
+//        TRUE:
+//        while (true) {
+//            List<Node> parents = graph.getParents(y);
+//
 //            for (Node p : parents) {
-//                if (p != x && !graph.isAdjacentTo(x, p)) {
-//                    continue NEXT_EDGE;
+//                Set<Node> _parents = new HashSet<>(parents);
+//                _parents.remove(p);
+//                if (graph.getAdjacentNodes(p).containsAll(_parents)) {
+//                    graph.removeEdge(p, y);
+//                    graph.addUndirectedEdge(p, y);
+//                    did = true;
+//                    continue TRUE;
 //                }
 //            }
 //
-//            parentsToUndirect.add(x);
+//            break;
 //        }
+
+        List<Node> parents = graph.getParents(y);
 
         for (Node p : parents) {
-            List<Node> _parents = new ArrayList<>(parents);
+            Set<Node> _parents = new HashSet<>(parents);
             _parents.remove(p);
             if (graph.getAdjacentNodes(p).containsAll(_parents)) {
-                parentsToUndirect.add(p);
+//                String msg = "Unorienting " + graph.getEdge(p, y);
+
+                graph.removeEdge(p, y);
+                graph.addUndirectedEdge(p, y);
+
+//                msg += " to " + graph.getEdge(p, y);
+//
+//                if (verbose) {
+//                    TetradLogger.getInstance().forceLogMessage(msg);
+//                }
+//
+                did = true;
             }
         }
 
-        for (Node p : parentsToUndirect) {
-            String msg = "Unorienting " + graph.getEdge(p, y);
-
-            graph.removeEdge(p, y);
-            graph.addUndirectedEdge(p, y);
-
-            msg += " to " + graph.getEdge(p, y);
-
-            if (verbose) {
-                TetradLogger.getInstance().forceLogMessage(msg);
-            }
-        }
-
-        return !parentsToUndirect.isEmpty();
-
-//        if (graph.getParents(y).isEmpty()) {
-//            for (Node c : graph.getChildren(y)) {
-//                revertToColliders(c, graph, visited);
-//            }
-//        }
+        return did;
     }
 
     private void log(String message) {
