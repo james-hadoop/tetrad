@@ -25,6 +25,7 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
+import edu.cmu.tetrad.util.PermutationGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
@@ -95,10 +96,14 @@ public class MeekRules implements ImpliedOrientation {
     }
 
     public void revertToColliders(List<Node> nodes, Graph graph) {
-        Set<Node> visited = new HashSet<>();
+        boolean reverted = true;
 
-        for (Node node : graph.getNodes()) {
-            revertToColliders(node, graph, visited);
+        while (reverted) {
+            reverted = false;
+
+            for (Node node : nodes) {
+                reverted = reverted || revertToColliders(node, graph, visited);
+            }
         }
     }
 
@@ -136,8 +141,14 @@ public class MeekRules implements ImpliedOrientation {
 
     private void orientUsingMeekRulesLocally(IKnowledge knowledge, Graph graph) {
 
-        for (Node node : nodes) {
-            revertToColliders(node, graph, visited);
+        boolean reverted = true;
+
+        while (reverted) {
+            reverted = false;
+
+            for (Node node : nodes) {
+                 reverted = reverted || revertToColliders(node, graph, visited);
+            }
         }
 
         boolean oriented;
@@ -154,7 +165,7 @@ public class MeekRules implements ImpliedOrientation {
     }
 
     private boolean runMeekRules(Node node, Graph graph, IKnowledge knowledge) {
-
+//        int d = (graph.getDegree(node));
         boolean oriented = false;
 
         if (meekR1(node, graph)) oriented = true;
@@ -169,11 +180,26 @@ public class MeekRules implements ImpliedOrientation {
      */
     private boolean meekR1(Node b, Graph graph) {
         List<Node> adjacentNodes = graph.getAdjacentNodes(b);
-
+////        adjacentNodes.add(b);
+//
+//        if (adjacentNodes.size() < 2) return false;
+//
+//        PermutationGenerator gen = new PermutationGenerator(adjacentNodes.size());
+//        int[] choice;
+//
+//        while ((choice = gen.next()) != null) {
+//            List<Node> nodes = GraphUtils.asList(choice, adjacentNodes);
+//            if (r1Helper(nodes.get(0), b, nodes.get(1), graph)) {
+//                return true;
+//            }
+//        }
+//
+//        return false;
+//
         if (adjacentNodes.size() < 2) {
             return false;
         }
-
+//
         ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
         int[] choice;
 
@@ -182,9 +208,11 @@ public class MeekRules implements ImpliedOrientation {
             Node a = nodes.get(0);
             Node c = nodes.get(1);
 
-            if (r1Helper(a, b, c, graph, b)) {
+            if (r1Helper(a, b, c, graph)) {
                 return true;
-            } else if (r1Helper(c, b, a, graph, b)) {
+            }
+
+            if (r1Helper(c, b, a, graph)) {
                 return true;
             }
         }
@@ -192,7 +220,7 @@ public class MeekRules implements ImpliedOrientation {
         return false;
     }
 
-    private boolean r1Helper(Node a, Node b, Node c, Graph graph, Node node) {
+    private boolean r1Helper(Node a, Node b, Node c, Graph graph) {
         boolean directed = false;
 
         if (!graph.isAdjacentTo(a, c) && graph.isDirectedFromTo(a, b) && graph.isUndirectedFromTo(b, c)) {
@@ -375,7 +403,7 @@ public class MeekRules implements ImpliedOrientation {
                 !knowledge.isForbidden(from.toString(), to.toString());
     }
 
-    private void revertToColliders(Node y, Graph graph, Set<Node> visited) {
+    private boolean revertToColliders(Node y, Graph graph, Set<Node> visited) {
         visited.add(y);
 
         Set<Node> parentsToUndirect;
@@ -383,15 +411,23 @@ public class MeekRules implements ImpliedOrientation {
         parentsToUndirect = new HashSet<>();
         List<Node> parents = graph.getParents(y);
 
-        NEXT_EDGE:
-        for (Node x : parents) {
-            for (Node p : parents) {
-                if (p != x && !graph.isAdjacentTo(x, p)) {
-                    continue NEXT_EDGE;
-                }
-            }
+//        NEXT_EDGE:
+//        for (Node x : parents) {
+//            for (Node p : parents) {
+//                if (p != x && !graph.isAdjacentTo(x, p)) {
+//                    continue NEXT_EDGE;
+//                }
+//            }
+//
+//            parentsToUndirect.add(x);
+//        }
 
-            parentsToUndirect.add(x);
+        for (Node p : parents) {
+            List<Node> _parents = new ArrayList<>(parents);
+            _parents.remove(p);
+            if (graph.getAdjacentNodes(p).containsAll(_parents)) {
+                parentsToUndirect.add(p);
+            }
         }
 
         for (Node p : parentsToUndirect) {
@@ -405,14 +441,15 @@ public class MeekRules implements ImpliedOrientation {
             if (verbose) {
                 TetradLogger.getInstance().forceLogMessage(msg);
             }
-
         }
 
-        if (graph.getParents(y).isEmpty()) {
-            for (Node c : graph.getChildren(y)) {
-                revertToColliders(c, graph, visited);
-            }
-        }
+        return !parentsToUndirect.isEmpty();
+
+//        if (graph.getParents(y).isEmpty()) {
+//            for (Node c : graph.getChildren(y)) {
+//                revertToColliders(c, graph, visited);
+//            }
+//        }
     }
 
     private void log(String message) {

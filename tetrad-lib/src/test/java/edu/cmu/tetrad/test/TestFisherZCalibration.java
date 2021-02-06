@@ -26,6 +26,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
+import static edu.cmu.tetrad.graph.GraphUtils.traverseSemiDirected;
+import static java.lang.StrictMath.PI;
 import static java.lang.StrictMath.abs;
 
 public class TestFisherZCalibration {
@@ -189,12 +191,12 @@ public class TestFisherZCalibration {
         parameters.set(Params.AVG_DEGREE, 4);
         parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
         parameters.set(Params.SEM_BIC_RULE, 1);
-        parameters.set(Params.PENALTY_DISCOUNT, 1);
+        parameters.set(Params.PENALTY_DISCOUNT, 2);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
 //        parameters.set(Params.TDEPTH, 1);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.ADJUST_ORIENTATIONS, false);
+        parameters.set(Params.ADJUST_ORIENTATIONS, true);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 2);
         parameters.set(Params.VAR_LOW, 1.0);
@@ -438,7 +440,7 @@ public class TestFisherZCalibration {
                 SemBicScore score = new SemBicScore(rawdata);
                 score.setUseEquivalentSampleSize(false);
                 score.setRuleType(SemBicScore.RuleType.CHICKERING);
-                score.setPenaltyDiscount(4);
+                score.setPenaltyDiscount(2);
 
                 Fges fges = new Fges(score);
                 fges.setFaithfulnessAssumed(true);
@@ -499,5 +501,193 @@ public class TestFisherZCalibration {
             System.out.println("F1Adj = " + f1adjsum / 50.);
             System.out.println("F1Arrow = " + f1arrowsum / 50.);
         }
+    }
+
+    @Test
+    public void test8() {
+        List<Node> nodes = new ArrayList<>();
+
+        for (int i = 0; i < 20; i++) {
+            nodes.add(new GraphNode("X" + i));
+        }
+
+        Graph graph = new EdgeListGraph(nodes);
+
+        for (int i = 0; i < nodes.size(); i++) {
+            for (int j = i + 1; j < nodes.size(); j++) {
+                graph.addDirectedEdge(nodes.get(i), nodes.get(j));
+                graph.addDirectedEdge(nodes.get(j), nodes.get(i));
+            }
+        }
+
+        List<Edge> edges = new ArrayList<>(graph.getEdges());
+
+        Graph out = new EdgeListGraph(nodes);
+
+        while (!edges.isEmpty()) {
+            Edge edge = edges.get(RandomUtil.getInstance().nextInt(edges.size()));
+            edges.remove(edge);
+
+            Node x = edge.getNode1();
+            Node y = edge.getNode2();
+
+            if (out.isAdjacentTo(x, y)) continue;
+
+            List<Node> tNeighbors = getTNeighbors(x, y, out);
+
+            List<Node> T = new ArrayList<>();
+
+            for (Node tNeighbor : tNeighbors) {
+                if (RandomUtil.getInstance().nextInt(2) == 1) {
+                    T.add(tNeighbor);
+                }
+            }
+
+            Set<Node> union = new HashSet<>(T);
+            union.addAll(getNaYX(x, y, out));
+
+            if (!isClique(union, out)) {
+                continue;
+            }
+
+            if (!semidirectedPathCondition(y, x, union, out)) {
+                continue;
+            }
+
+            boolean cycle1 = out.existsDirectedCycle();
+
+            out.addEdge(edge);
+
+            boolean cycle2 = out.existsDirectedCycle();
+
+            for (Node t : T) {
+                if (out.getEdge(t, y).isDirected()) {
+                    throw new IllegalArgumentException();
+                }
+
+                out.removeEdge(t, y);
+                out.addDirectedEdge(t, y);
+            }
+
+            boolean cycle3 = out.existsDirectedCycle();
+
+
+            MeekRules rules = new MeekRules();
+            rules.orientImplied(out);
+
+            boolean cycle4 = out.existsDirectedCycle();
+
+            if (cycle4) {
+                System.out.println(out.getNumEdges() + " " + cycle1 + " " + cycle2 + " " + cycle3 + " " + cycle4);
+            }
+        }
+    }
+
+    // Find all adj that are connected to Y by an undirected edge that are adjacent to X (that is, by undirected or
+    // directed edge).
+    private Set<Node> getNaYX(Node x, Node y, Graph graph) {
+        List<Node> adj = graph.getAdjacentNodes(y);
+        Set<Node> nayx = new HashSet<>();
+
+        for (Node z : adj) {
+            if (z == x) {
+                continue;
+            }
+            Edge yz = graph.getEdge(y, z);
+            if (!Edges.isUndirectedEdge(yz)) {
+                continue;
+            }
+            if (!graph.isAdjacentTo(z, x)) {
+                continue;
+            }
+            nayx.add(z);
+        }
+
+        return nayx;
+    }
+
+    // Returns true iif the given set forms a clique in the given graph.
+    private boolean isClique(Set<Node> nodes, Graph graph) {
+        List<Node> _nodes = new ArrayList<>(nodes);
+        for (int i = 0; i < _nodes.size(); i++) {
+            for (int j = i + 1; j < _nodes.size(); j++) {
+                if (!graph.isAdjacentTo(_nodes.get(i), _nodes.get(j))) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean semidirectedPathCondition(Node from, Node to, Set<Node> cond, Graph graph) {
+        if (from == to) throw new IllegalArgumentException();
+
+        Queue<Node> Q = new LinkedList<>();
+        Set<Node> V = new HashSet<>();
+
+        for (Node u : graph.getAdjacentNodes(from)) {
+            Edge edge = graph.getEdge(from, u);
+            Node c = traverseSemiDirected(from, edge);
+
+            if (c == null) {
+                continue;
+            }
+
+            if (!V.contains(c)) {
+                V.add(c);
+                Q.offer(c);
+            }
+        }
+
+        while (!Q.isEmpty()) {
+            Node t = Q.remove();
+
+            if (cond.contains(t)) {
+                continue;
+            }
+
+            if (t == to) {
+                return false;
+            }
+
+            for (Node u : graph.getAdjacentNodes(t)) {
+                Edge edge = graph.getEdge(t, u);
+                Node c = traverseSemiDirected(t, edge);
+
+                if (c == null) {
+                    continue;
+                }
+
+                if (!V.contains(c)) {
+                    V.add(c);
+                    Q.offer(c);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    // Get all adj that are connected to Y by an undirected edge and not adjacent to X.
+    private List<Node> getTNeighbors(Node x, Node y, Graph graph) {
+        List<Edge> yEdges = graph.getEdges(y);
+        List<Node> tNeighbors = new ArrayList<>();
+
+        for (Edge edge : yEdges) {
+            if (!Edges.isUndirectedEdge(edge)) {
+                continue;
+            }
+
+            Node z = edge.getDistalNode(y);
+
+            if (graph.isAdjacentTo(z, x)) {
+                continue;
+            }
+
+            tNeighbors.add(z);
+        }
+
+        return tNeighbors;
     }
 }
