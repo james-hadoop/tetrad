@@ -219,22 +219,20 @@ public class MeekRules implements ImpliedOrientation {
             return false;
         }
 
-        boolean oriented = false;
+        for (int i = 0; i < adjacentNodes.size(); i++) {
+            for (int j = i + 1; j < adjacentNodes.size(); j++) {
+                Node b = adjacentNodes.get(i);
+                Node c = adjacentNodes.get(j);
 
-        ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
-        int[] choice;
-
-        while ((choice = cg.next()) != null) {
-            List<Node> nodes = GraphUtils.asList(choice, adjacentNodes);
-            Node b = nodes.get(0);
-            Node c = nodes.get(1);
-
-            if (r3Helper(a, d, b, c, graph)) {
-                oriented = true;
+                if (!graph.isAdjacentTo(b, c)) {
+                    if (r3Helper(a, d, b, c, graph)) {
+                        return true;
+                    }
+                }
             }
         }
 
-        return oriented;
+        return false;
     }
 
     private boolean r3Helper(Node a, Node d, Node b, Node c, Graph graph) {
@@ -284,7 +282,16 @@ public class MeekRules implements ImpliedOrientation {
 
         for (Node p : graph.getParents(c)) {
             if (p != a && !graph.isAdjacentTo(a, p)) {
-                return false;
+                Edge before = graph.getEdge(a, c);
+                Edge after = Edges.directedEdge(c, a);
+
+                visited.add(a);
+                visited.add(c);
+
+                graph.removeEdge(before);
+                graph.addEdge(after);
+
+                return true;
             }
         }
 

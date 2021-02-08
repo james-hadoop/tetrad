@@ -58,79 +58,6 @@ import org.junit.Test;
  */
 public class TestFges {
 
-
-    private PrintStream out = System.out;
-//    private OutputStream out =
-
-    //    @Test
-    public void explore1() {
-        RandomUtil.getInstance().setSeed(1450184147770L);
-
-        int numVars = 10;
-        double edgesPerNode = 1.0;
-        int numCases = 1000;
-        double penaltyDiscount = 2.0;
-
-        final int numEdges = (int) (numVars * edgesPerNode);
-
-        List<Node> vars = new ArrayList<>();
-
-        for (int i = 0; i < numVars; i++) {
-            vars.add(new ContinuousVariable("X" + i));
-        }
-
-        Graph dag = GraphUtils.randomGraphRandomForwardEdges(vars, 0, numEdges, 30, 15, 15, false, true);
-//        printDegreeDistribution(dag, System.out);
-
-        int[] causalOrdering = new int[vars.size()];
-
-        for (int i = 0; i < vars.size(); i++) {
-            causalOrdering[i] = i;
-        }
-
-        LargeScaleSimulation simulator = new LargeScaleSimulation(dag, vars, causalOrdering);
-        simulator.setOut(out);
-        DataSet data = simulator.simulateDataFisher(numCases);
-
-//        ICovarianceMatrix cov = new CovarianceMatrix(data);
-        ICovarianceMatrix cov = new CovarianceMatrix(data);
-        SemBicScore score = new SemBicScore(cov);
-        score.setPenaltyDiscount(penaltyDiscount);
-
-        Fges fges = new Fges(score);
-        fges.setVerbose(false);
-        fges.setOut(out);
-        fges.setFaithfulnessAssumed(true);
-
-        Graph estPattern = fges.search();
-
-//        printDegreeDistribution(estPattern, out);
-
-        final Graph truePattern = SearchGraphUtils.patternForDag(dag);
-
-        int[][] counts = SearchGraphUtils.graphComparison(estPattern, truePattern, null);
-
-        int[][] expectedCounts = {
-                {2, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 8, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-        };
-
-        for (int i = 0; i < counts.length; i++) {
-            assertTrue(Arrays.equals(counts[i], expectedCounts[i]));
-        }
-//
-
-//        System.out.println(MatrixUtils.toString(expectedCounts));
-//        System.out.println(MatrixUtils.toString(counts));
-
-    }
-
     @Test
     public void explore2() {
         RandomUtil.getInstance().setSeed(1457220623122L);
@@ -164,31 +91,6 @@ public class TestFges {
         Fges ges = new Fges(score);
         ges.setVerbose(false);
         ges.setFaithfulnessAssumed(false);
-
-        Graph estPattern = ges.search();
-
-        final Graph truePattern = SearchGraphUtils.patternForDag(dag);
-
-        int[][] counts = SearchGraphUtils.graphComparison(estPattern, truePattern, null);
-
-        int[][] expectedCounts = {
-                {2, 0, 0, 0, 0, 1},
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-                {2, 0, 0, 13, 0, 3},
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0},
-        };
-
-//        for (int i = 0; i < counts.length; i++) {
-//            assertTrue(Arrays.equals(counts[i], expectedCounts[i]));
-//        }
-
-//        System.out.println(MatrixUtils.toString(expectedCounts));
-//        System.out.println(MatrixUtils.toString(counts));
-//        System.out.println(RandomUtil.getInstance().getSeed());
     }
 
 
@@ -328,41 +230,6 @@ public class TestFges {
         }
     }
 
-
-    private void printDegreeDistribution(Graph dag, PrintStream out) {
-        int max = 0;
-
-        for (Node node : dag.getNodes()) {
-            int degree = dag.getAdjacentNodes(node).size();
-            if (degree > max) max = degree;
-        }
-
-        int[] counts = new int[max + 1];
-        Map<Integer, List<Node>> names = new HashMap<>();
-
-        for (int i = 0; i <= max; i++) {
-            names.put(i, new ArrayList<Node>());
-        }
-
-        for (Node node : dag.getNodes()) {
-            int degree = dag.getAdjacentNodes(node).size();
-            counts[degree]++;
-            names.get(degree).add(node);
-        }
-
-        for (int k = 0; k < counts.length; k++) {
-            if (counts[k] == 0) continue;
-
-            out.print(k + " " + counts[k]);
-
-            for (Node node : names.get(k)) {
-                out.print(" " + node.getName());
-            }
-
-            out.println();
-        }
-    }
-
     @Test
     public void clarkTest() {
         RandomGraph randomGraph = new RandomForward();
@@ -440,7 +307,9 @@ public class TestFges {
             Node x = nodes.get(0);
             Node y = nodes.get(1);
 
+            assert trueGraph != null;
             boolean trueAncestral = ancestral(x, y, trueGraph);
+            assert pattern != null;
             boolean estAncestral = ancestral(x, y, pattern);
 
             if (trueAncestral && estAncestral) {
@@ -698,7 +567,7 @@ public class TestFges {
             PcStableMax pc2 = new PcStableMax(test2);
             pc2.setVerbose(false);
             Graph pattern2 = pc2.search();
-            assertTrue(pattern.equals(pattern2));
+            assertEquals(pattern, pattern2);
         }
     }
 

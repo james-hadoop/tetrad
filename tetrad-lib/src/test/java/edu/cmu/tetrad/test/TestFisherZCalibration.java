@@ -751,7 +751,7 @@ public class TestFisherZCalibration {
             Graph dag = GraphUtils.randomDag(numNodes, 0, aveDegree * numNodes / 2,
                     10, 10, 10, false);
             Fges fges = new Fges(new GraphScore(dag));
-            fges.setFaithfulnessAssumed(true);
+            fges.setFaithfulnessAssumed(false);
             fges.setVerbose(true);
 //            fges.setTDepth(1);
             Graph pattern1 = fges.search();
