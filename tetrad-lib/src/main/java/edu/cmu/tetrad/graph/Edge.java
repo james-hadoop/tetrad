@@ -48,8 +48,8 @@ public class Edge implements TetradSerializable, Comparable<Edge> {
 
 	private final Node node1;
 	private final Node node2;
-	private Endpoint endpoint1;
-	private Endpoint endpoint2;
+	private final Endpoint endpoint1;
+	private final Endpoint endpoint2;
 
 	// Usual coloring--set to something else for a special line color.
 	private transient Color lineColor = null;
@@ -134,14 +134,6 @@ public class Edge implements TetradSerializable, Comparable<Edge> {
 	 */
 	public final Endpoint getEndpoint2() {
 		return this.endpoint2;
-	}
-
-	public final void setEndpoint1(Endpoint e) {
-		this.endpoint1 = e;
-	}
-
-	public final void setEndpoint2(Endpoint e) {
-		this.endpoint2 = e;
 	}
 
 	/**

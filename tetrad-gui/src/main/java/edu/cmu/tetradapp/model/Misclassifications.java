@@ -476,13 +476,13 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
 
 
         for (Edge edge : sVcpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            sVcpcAdj.remove(edge);
+            sVcpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
         for (Edge edge : vcpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            vcpcAdj.remove(edge);
+            sVcpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
 
@@ -573,13 +573,13 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
         Set<Edge> svcpcAdj = new HashSet<>(sVcpcAdjacent);
 
         for (Edge edge : cpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            cpcAdj.remove(edge);
+            cpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
         for (Edge edge : svcpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            svcpcAdj.remove(edge);
+            svcpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
 
@@ -680,13 +680,13 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
         Set<Edge> sfvcpcAdj = new HashSet<>(sfVcpcAdjacent);
 
         for (Edge edge : cpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            cpcAdj.remove(edge);
+            cpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
         for (Edge edge : sfvcpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            sfvcpcAdj.remove(edge);
+            sfvcpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
 
@@ -786,13 +786,13 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
         Set<Edge> fvcpcAdj = new HashSet<>(fvcpcAdjacent);
 
         for (Edge edge : cpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            cpcAdj.remove(edge);
+            cpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
         for (Edge edge : fvcpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            fvcpcAdj.remove(edge);
+            fvcpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
 
@@ -893,13 +893,13 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
         Set<Edge> vcpcAdj = new HashSet<>(vcpcAdjacent);
 
         for (Edge edge : cpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            cpcAdj.remove(edge);
+            cpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
         for (Edge edge : vcpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            vcpcAdj.remove(edge);
+            vcpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
 
@@ -995,13 +995,13 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
         Set<Edge> pcAdj = new HashSet<>(pcAdjacent);
 
         for (Edge edge : cpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            cpcAdj.remove(edge);
+            cpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
         for (Edge edge : pcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            pcAdj.remove(edge);
+            pcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
         int[][] tableAdj = new int[3][3];
@@ -1082,13 +1082,13 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
         Set<Edge> vcpcAdj = new HashSet<>(vcpcAdjacent);
 
         for (Edge edge : pcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            pcAdj.remove(edge);
+            pcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
         for (Edge edge : vcpcAdj) {
-            edge.setEndpoint1(Endpoint.TAIL);
-            edge.setEndpoint2(Endpoint.TAIL);
+            vcpcAdj.remove(edge);
+            vcpcAdj.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
         }
 
         int[][] tableAdj = new int[4][3];

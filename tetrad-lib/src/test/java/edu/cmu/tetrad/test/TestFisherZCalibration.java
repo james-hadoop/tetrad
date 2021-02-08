@@ -26,6 +26,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
+import static edu.cmu.tetrad.graph.GraphUtils.existsSemiDirectedPath;
 import static edu.cmu.tetrad.graph.GraphUtils.traverseSemiDirected;
 import static java.lang.StrictMath.abs;
 
@@ -190,18 +191,20 @@ public class TestFisherZCalibration {
         parameters.set(Params.AVG_DEGREE, 4);
         parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
         parameters.set(Params.SEM_BIC_RULE, 1);
-        parameters.set(Params.PENALTY_DISCOUNT, 2);
+        parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
 //        parameters.set(Params.TDEPTH, 1);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.ADJUST_ORIENTATIONS, true);
-        parameters.set(Params.COEF_LOW, 0);
-        parameters.set(Params.COEF_HIGH, 2);
+        parameters.set(Params.ADJUST_ORIENTATIONS, false);
+        parameters.set(Params.COEF_LOW, .2);
+        parameters.set(Params.COEF_HIGH, .7);
         parameters.set(Params.VAR_LOW, 1.0);
         parameters.set(Params.VAR_HIGH, 3.0);
         parameters.set(Params.VERBOSE, false);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
+        parameters.set(Params.USE_EQUIVALENT_SAMPLE_SIZE, false);
+
 
         Statistics statistics = new Statistics();
 
@@ -243,12 +246,7 @@ public class TestFisherZCalibration {
 
         Comparison comparison = new Comparison();
 
-//        comparison.setShowAlgorithmIndices(true);
-//        comparison.setShowSimulationIndices(true);
-//        comparison.setShowUtilities(true);
-//        comparison.setSortByUtility(true);
         comparison.setSaveGraphs(false);
-//        comparison.setSavePags(true);
         comparison.setSaveData(false);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
 
@@ -393,7 +391,7 @@ public class TestFisherZCalibration {
 
         MeekRules rules = new MeekRules();
 
-        rules.revertToColliders(nodes, graph);
+        rules.revertToUnshieldedColliders(nodes, graph);
 
         System.out.println(graph);
     }
@@ -510,7 +508,7 @@ public class TestFisherZCalibration {
             nodes.add(new GraphNode("X" + i));
         }
 
-        Graph graph = new EdgeListGraph(nodes);
+        EdgeListGraph graph = new EdgeListGraph(nodes);
 
         for (int i = 0; i < nodes.size(); i++) {
             for (int j = i + 1; j < nodes.size(); j++) {
@@ -555,11 +553,13 @@ public class TestFisherZCalibration {
 
             boolean cycle1 = out.existsDirectedCycle();
 
+            EdgeListGraph ref = new EdgeListGraph(out);
+
             out.addEdge(edge);
 
-            boolean cycle2 = out.existsDirectedCycle();
+//            boolean cycle2 = out.existsDirectedCycle();
 
-             for (Node t : T) {
+            for (Node t : T) {
                 if (out.getEdge(t, y).isDirected()) {
                     throw new IllegalArgumentException();
                 }
@@ -570,17 +570,32 @@ public class TestFisherZCalibration {
 
             boolean cycle3 = out.existsDirectedCycle();
 
-
             MeekRules rules = new MeekRules();
             rules.orientImplied(out);
 
             boolean cycle4 = out.existsDirectedCycle();
 
             if (!cycle3 && cycle4) {
-                List<Node> cycle = out.findCycle();
-                System.out.println(cycle.isEmpty() ? "No cycle" : GraphUtils.pathString(cycle, out));
-                System.out.println(out.getNumEdges() + " " + cycle1 + " " + cycle2 + " " + cycle3 + " " + cycle4);
+                System.out.println("cycle4 cycle");
+
+                for (Node n : nodes) {
+                    List<Node> path = out.findDirectedPath(n, n);
+                    if (!path.isEmpty()) {
+                        System.out.println(out.getNumEdges() + "." + GraphUtils.pathString(path, out));
+                    }
+                }
+
             }
+
+//            for (Node n : nodes) {
+//                List<Node> path = out.findDirectedPath(n, n);
+//                if (!path.isEmpty()) {
+//                    out = ref;
+//                    System.out.println(out.getNumEdges() + "." + GraphUtils.pathString(path, out));
+//                    break;
+//                }
+//            }
+
         }
     }
 

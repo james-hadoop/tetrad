@@ -1214,7 +1214,7 @@ public final class SearchGraphUtils {
     /**
      * Get a graph and direct only the unshielded colliders.
      */
-    public static void basicPattern(Graph graph, boolean orientInPlace) {
+    public static void basicPattern(Graph graph) {
         Set<Edge> undirectedEdges = new HashSet<>();
 
         NEXT_EDGE:
@@ -1238,16 +1238,11 @@ public final class SearchGraphUtils {
         }
 
         for (Edge nextUndirected : undirectedEdges) {
-            if (orientInPlace) {
-                nextUndirected.setEndpoint1(Endpoint.TAIL);
-                nextUndirected.setEndpoint2(Endpoint.TAIL);
-            } else {
-                Node node1 = nextUndirected.getNode1();
-                Node node2 = nextUndirected.getNode2();
+            Node node1 = nextUndirected.getNode1();
+            Node node2 = nextUndirected.getNode2();
 
-                graph.removeEdges(node1, node2);
-                graph.addUndirectedEdge(node1, node2);
-            }
+            graph.removeEdges(node1, node2);
+            graph.addUndirectedEdge(node1, node2);
         }
     }
 
@@ -1459,7 +1454,7 @@ public final class SearchGraphUtils {
 //        return new PC(test).search();
 //
         Graph graph = new EdgeListGraph(dag);
-        SearchGraphUtils.basicPattern(graph, false);
+        SearchGraphUtils.basicPattern(graph);
         MeekRules rules = new MeekRules();
         rules.orientImplied(graph);
         return graph;
@@ -1642,7 +1637,7 @@ public final class SearchGraphUtils {
             Graph dag = chooseDagInPattern(_ePattern);
             double bic = SemBicScorer.scoreDag(dag, dataSet);
 
-            if (bic > bestBIC){
+            if (bic > bestBIC) {
                 bestBIC = bic;
                 out = _ePattern;
             }
@@ -2455,7 +2450,7 @@ public final class SearchGraphUtils {
 //        return new PC(test).search();
 //
         Graph pattern = new EdgeListGraph(dag);
-        SearchGraphUtils.basicPattern(pattern, false);
+        SearchGraphUtils.basicPattern(pattern);
         MeekRules rules = new MeekRules();
         rules.orientImplied(pattern);
 //        GraphUtils.replaceNodes(pattern, dag.getNodes());
@@ -2464,7 +2459,7 @@ public final class SearchGraphUtils {
 
     public static Graph patternForDag(final Graph dag, IKnowledge knowledge) {
         Graph pattern = new EdgeListGraph(dag);
-        SearchGraphUtils.basicPattern(pattern, false);
+        SearchGraphUtils.basicPattern(pattern);
         orientRequired(knowledge, pattern, pattern.getNodes());
         MeekRules rules = new MeekRules();
         rules.setKnowledge(knowledge);

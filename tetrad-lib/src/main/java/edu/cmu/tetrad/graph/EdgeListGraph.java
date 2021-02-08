@@ -25,6 +25,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static edu.cmu.tetrad.graph.Edges.directedEdge;
 
@@ -140,27 +141,41 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             throw new NullPointerException("Graph must not be null.");
         }
 
-        transferNodesAndEdges(graph);
+//        if (graph instanceof EdgeListGraph) {
+//            this.nodes = new ArrayList<>(((EdgeListGraph) graph).nodes);
+//            this.edgeLists = new ConcurrentHashMap<>(((EdgeListGraph) graph).edgeLists);
+//            this.edgesSet = new HashSet<>(((EdgeListGraph) graph).edgesSet);
+//            this.ambiguousTriples = new HashSet<>(((EdgeListGraph) graph).ambiguousTriples);
+//            this.underLineTriples = new HashSet<>(((EdgeListGraph) graph).underLineTriples);
+//            this.dottedUnderLineTriples = new HashSet<>(((EdgeListGraph) graph).dottedUnderLineTriples);
+//            this.namesHash = new HashMap<>(((EdgeListGraph) graph).namesHash);
+//            this.highlightedEdges = new HashSet<>(((EdgeListGraph) graph).highlightedEdges);
+//            this.pag = graph.isPag();
+//            this.pattern = graph.isPattern();
+//        } else {
 
-        // Keep attributes from the original graph
-        transferAttributes(graph);
+            transferNodesAndEdges(graph);
 
-        this.ambiguousTriples = graph.getAmbiguousTriples();
-        this.underLineTriples = graph.getUnderLines();
-        this.dottedUnderLineTriples = graph.getDottedUnderlines();
+            // Keep attributes from the original graph
+            transferAttributes(graph);
 
-        for (Edge edge : graph.getEdges()) {
-            if (graph.isHighlighted(edge)) {
-                setHighlighted(edge, true);
+            this.ambiguousTriples = graph.getAmbiguousTriples();
+            this.underLineTriples = graph.getUnderLines();
+            this.dottedUnderLineTriples = graph.getDottedUnderlines();
+
+            for (Edge edge : graph.getEdges()) {
+                if (graph.isHighlighted(edge)) {
+                    setHighlighted(edge, true);
+                }
             }
-        }
 
-        for (Node node : nodes) {
-            namesHash.put(node.getName(), node);
-        }
+            for (Node node : nodes) {
+                namesHash.put(node.getName(), node);
+            }
 
-        this.pag = graph.isPag();
-        this.pattern = graph.isPattern();
+            this.pag = graph.isPag();
+            this.pattern = graph.isPattern();
+//        }
     }
 
     /**
@@ -252,11 +267,11 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public boolean existsDirectedCycle() {
         for (Node node : getNodes()) {
-            if (findPath(node, node).size() > 1) return true;
-
-//            if (existsDirectedPathFromTo(node, node)) {
-//                return true;
-//            }
+//            if (findDirectedPath(node, node).size() > 1) return true;
+//
+            if (existsDirectedPathFromTo(node, node)) {
+                return true;
+            }
         }
         return false;
     }
@@ -419,38 +434,38 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public boolean existsDirectedPathFromTo(Node node1, Node node2) {
-        return !findCycle().isEmpty();
+//        return !findCycle().isEmpty();
+//
+        Queue<Node> Q = new LinkedList<>();
+        Set<Node> V = new HashSet<>();
 
-//        Queue<Node> Q = new LinkedList<>();
-//        Set<Node> V = new HashSet<>();
-//
-//        for (Node c : getChildren(node1)) {
-//            V.add(c);
-//            Q.offer(c);
-//        }
-//
-//        while (!Q.isEmpty()) {
-//            Node t = Q.remove();
-//
-//            if (t == node2) {
-//                return true;
-//            }
-//
-//            for (Node c : getChildren(t)) {
-//                if (!V.contains(c)) {
-//                    V.add(c);
-//                    Q.offer(c);
-//                }
-//            }
-//        }
-//
-//        return false;
+        for (Node c : getChildren(node1)) {
+            V.add(c);
+            Q.offer(c);
+        }
+
+        while (!Q.isEmpty()) {
+            Node t = Q.remove();
+
+            if (t == node2) {
+                return true;
+            }
+
+            for (Node c : getChildren(t)) {
+                if (!V.contains(c)) {
+                    V.add(c);
+                    Q.offer(c);
+                }
+            }
+        }
+
+        return false;
     }
 
     @Override
     public List<Node> findCycle() {
         for (Node a : getNodes()) {
-            List<Node> path = findPath(a, a);
+            List<Node> path = findDirectedPath(a, a);
             if (!path.isEmpty()) {
                 return path;
             }
@@ -459,11 +474,11 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         return new LinkedList<>();
     }
 
-    public List<Node> findPath(Node from, Node to) {
+    public List<Node> findDirectedPath(Node from, Node to) {
         LinkedList<Node> path = new LinkedList<>();
 
-        for (Node next : getChildren(from)) {
-            if (findPathVisit(next, to, path)) {
+         for (Node d : getChildren(from)) {
+            if (findDirectedPathVisit(from, d, to, path)) {
                 path.addFirst(from);
                 return path;
             }
@@ -472,13 +487,46 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         return path;
     }
 
-    private boolean findPathVisit(Node next, Node to, LinkedList<Node> path) {
+    private boolean findDirectedPathVisit(Node prev, Node next, Node to, LinkedList<Node> path) {
+        if (path.contains(next)) return false;
+        path.addLast(next);
+        if (!getEdge(prev, next).pointsTowards(next)) throw new IllegalArgumentException();
+        if (next == to) return true;
+
+        for (Node d : getChildren(next)) {
+            if (findDirectedPathVisit(next, d, to, path)) return true;
+        }
+
+        path.removeLast();
+        return false;
+    }
+
+    public List<Node> findSemidirectedPath(Node from, Node to) {
+        LinkedList<Node> path = new LinkedList<>();
+
+        List<Node> nonParents = getAdjacentNodes(from);
+        nonParents.removeAll(getParents(from));
+
+        for (Node next : nonParents) {
+            if (findSemidirectedPathVisit(next, to, path)) {
+                path.addFirst(from);
+                return path;
+            }
+        }
+
+        return path;
+    }
+
+    private boolean findSemidirectedPathVisit(Node next, Node to, LinkedList<Node> path) {
         if (path.contains(next)) return false;
         path.addLast(next);
         if (next == to) return true;
 
-        for (Node d : getChildren(next)) {
-            if (findPathVisit(d, to, path)) return true;
+        List<Node> nonParents = getAdjacentNodes(next);
+        nonParents.removeAll(getParents(next));
+
+        for (Node d : nonParents) {
+            if (findSemidirectedPathVisit(d, to, path)) return true;
         }
 
         path.removeLast();
@@ -521,12 +569,13 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     public List<Node> getChildren(Node node) {
         List<Node> children = new ArrayList<>();
 
-        for (Object o : getEdges(node)) {
-            Edge edge = (Edge) (o);
-            Node sub = Edges.traverseDirected(node, edge);
+        for (Edge edge : getEdges(node)) {
+            if (Edges.isDirectedEdge(edge)) {
+                Node sub = Edges.traverseDirected(node, edge);
 
-            if (sub != null) {
-                children.add(sub);
+                if (sub != null) {
+                    children.add(sub);
+                }
             }
         }
 
@@ -567,17 +616,19 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public Edge getEdge(Node node1, Node node2) {
-        List<Edge> edges = edgeLists.get(node1);
+        synchronized (edgeLists) {
+            List<Edge> edges = edgeLists.get(node1);
 
-        if (edges == null) {
-            return null;
-        }
+            if (edges == null) {
+                return null;
+            }
 
-        for (Edge edge : edges) {
-            if (edge.getNode1() == node1 && edge.getNode2() == node2) {
-                return edge;
-            } else if (edge.getNode1() == node2 && edge.getNode2() == node1) {
-                return edge;
+            for (Edge edge : edges) {
+                if (edge.getNode1() == node1 && edge.getNode2() == node2) {
+                    return edge;
+                } else if (edge.getNode1() == node2 && edge.getNode2() == node1) {
+                    return edge;
+                }
             }
         }
 
@@ -614,7 +665,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         List<Edge> edges = edgeLists.get(node);
 
         for (Edge edge : new ArrayList<>(edges)) {
-//            if (edge == null) continue;
+            if (edge == null) continue;
 
             Endpoint endpoint1 = edge.getDistalEndpoint(node);
             Endpoint endpoint2 = edge.getProximalEndpoint(node);
@@ -1299,22 +1350,12 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             edgeList2 = edgeLists.get(edge.getNode2());
         }
 
-        if (edgeList1 == null || edgeList2 == null) {
-            throw new NullPointerException("Can't add an edge unless both "
-                    + "nodes are in the graph: " + edge);
-        }
-
-        if (edgeList1.contains(edge) != edgeList2.contains(edge)) {
-            throw new IllegalStateException("Inconsistent edge lists.");
-        }
-
-        if (edgeList1.contains(edge) && edgeList2.contains(edge)) {
+        if (edgeList1.contains(edge)) {
             return true;
         }
 
         edgeList1.add(edge);
         edgeList2.add(edge);
-
         edgesSet.add(edge);
 
         if (Edges.isDirectedEdge(edge)) {

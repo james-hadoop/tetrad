@@ -1854,7 +1854,7 @@ public final class GraphUtils {
         StringBuilder buf = new StringBuilder();
 
         if (path.size() < 2) {
-            return "";
+            return "NO PATH";
         }
 
         buf.append(path.get(0).toString());
@@ -1868,6 +1868,7 @@ public final class GraphUtils {
             Node n1 = path.get(m);
 
             Edge edge = graph.getEdge(n0, n1);
+
 
             if (edge == null) {
                 buf.append("(-)");
