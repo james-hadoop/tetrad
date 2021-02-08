@@ -29,6 +29,7 @@ import java.util.*;
 import static edu.cmu.tetrad.graph.GraphUtils.existsSemiDirectedPath;
 import static edu.cmu.tetrad.graph.GraphUtils.traverseSemiDirected;
 import static java.lang.StrictMath.abs;
+import static org.junit.Assert.assertEquals;
 
 public class TestFisherZCalibration {
 
@@ -169,7 +170,6 @@ public class TestFisherZCalibration {
 
         Fges fges = new Fges(new SemBicScore(data));
         fges.setVerbose(true);
-        fges.setTrueGraph(graph);
 
         fges.search();
 
@@ -707,4 +707,56 @@ public class TestFisherZCalibration {
         return tNeighbors;
     }
 
+    @Test
+    public void test9() {
+        Graph dag = GraphUtils.randomDag(20, 0, 40, 100,
+                100, 100, false);
+
+        MeekRules rules = new MeekRules();
+
+        Graph pattern = new EdgeListGraph(dag);
+
+        rules.orientImplied(pattern);
+
+        Graph pattern2 = new EdgeListGraph(pattern);
+
+        rules.orientImplied(pattern2);
+
+        if (!pattern.equals(pattern2)) {
+            System.out.println("Not equal");
+        }
+
+        System.out.println(pattern);
+
+        Graph dag2 = SearchGraphUtils.dagFromPattern(pattern2);
+
+        rules.orientImplied(dag2);
+
+        if (!pattern.equals(dag2)) {
+            System.out.println("Not equal");
+        }
+
+
+
+
+    }
+
+    @Test
+    public void test10() {
+        int numNodes = 8;
+        int aveDegree = 4;
+        int numIterations = 1;
+
+        for (int i = 0; i < numIterations; i++) {
+            Graph dag = GraphUtils.randomDag(numNodes, 0, aveDegree * numNodes / 2,
+                    10, 10, 10, false);
+            Fges fges = new Fges(new GraphScore(dag));
+            fges.setFaithfulnessAssumed(true);
+            fges.setVerbose(true);
+//            fges.setTDepth(1);
+            Graph pattern1 = fges.search();
+            Graph pattern2 = new Pc(new IndTestDSep(dag)).search();
+            assertEquals(pattern2, pattern1);
+        }
+    }
 }

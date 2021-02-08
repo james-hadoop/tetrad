@@ -82,7 +82,7 @@ public class MeekRules implements ImpliedOrientation {
 
     public Set<Node> orientImplied(Graph graph, List<Node> nodes) {
         this.nodes = nodes;
-        this.visited.addAll(nodes);
+//        this.visited.addAll(nodes);
 
         TetradLogger.getInstance().log("impliedOrientations", "Starting Orientation Step D.");
         revertToUnshieldedColliders(graph.getNodes(), graph);
@@ -167,8 +167,7 @@ public class MeekRules implements ImpliedOrientation {
     private boolean meekR1(Node b, Node c, Graph graph) {
         for (Node a : graph.getParents(b)) {
             if (graph.isAdjacentTo(c, a)) continue;
-            graph.removeEdge(b, c);
-            graph.addDirectedEdge(b, c);
+            direct(b, c, graph);
             log(SearchLogUtils.edgeOrientedMsg(
                     "Meek R1 triangle (" + a + "-->" + b + "---" + c + ")", graph.getEdge(b, c)));
             return true;
@@ -285,16 +284,7 @@ public class MeekRules implements ImpliedOrientation {
 
         for (Node p : graph.getParents(c)) {
             if (p != a && !graph.isAdjacentTo(a, p)) {
-                Edge before = graph.getEdge(a, c);
-                Edge after = Edges.directedEdge(c, a);
-
-                visited.add(a);
-                visited.add(c);
-
-                graph.removeEdge(before);
-                graph.addEdge(after);
-
-                return true;
+                return false;
             }
         }
 

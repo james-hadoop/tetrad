@@ -705,16 +705,16 @@ public class TestFges {
 
     @Test
     public void testFromGraph() {
-        int numNodes = 8;
+        int numNodes = 20;
         int aveDegree = 4;
         int numIterations = 1;
 
         for (int i = 0; i < numIterations; i++) {
-            Graph dag = GraphUtils.randomDag(numNodes, 0, aveDegree * numNodes / 2, 10, 10, 10, false);
+            Graph dag = GraphUtils.randomDag(numNodes, 0, aveDegree * numNodes / 2,
+                    10, 10, 10, false);
             Fges fges = new Fges(new GraphScore(dag));
-            fges.setFaithfulnessAssumed(false);
+//            fges.setFaithfulnessAssumed(true);
             fges.setVerbose(true);
-            fges.setTrueGraph(dag);
 //            fges.setTDepth(1);
             Graph pattern1 = fges.search();
             Graph pattern2 = new Pc(new IndTestDSep(dag)).search();
@@ -759,7 +759,6 @@ public class TestFges {
                             Fges fges = new Fges(score);
                             fges.setFaithfulnessAssumed(false);
                             fges.setVerbose(false);
-                            fges.setTrueGraph(dag);
                             Graph pattern1 = fges.search();
                             System.out.println("num nodes = " + numNodes + " avg degree = " + avgDegree
                                     + " sample size = " + sampleSize
