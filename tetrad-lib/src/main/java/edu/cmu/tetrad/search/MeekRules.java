@@ -167,10 +167,11 @@ public class MeekRules implements ImpliedOrientation {
     private boolean meekR1(Node b, Node c, Graph graph) {
         for (Node a : graph.getParents(b)) {
             if (graph.isAdjacentTo(c, a)) continue;
-            direct(b, c, graph);
-            log(SearchLogUtils.edgeOrientedMsg(
-                    "Meek R1 triangle (" + a + "-->" + b + "---" + c + ")", graph.getEdge(b, c)));
-            return true;
+            if (direct(b, c, graph)) {
+                log(SearchLogUtils.edgeOrientedMsg(
+                        "Meek R1 triangle (" + a + "-->" + b + "---" + c + ")", graph.getEdge(b, c)));
+                return true;
+            }
         }
 
         return false;
@@ -279,6 +280,7 @@ public class MeekRules implements ImpliedOrientation {
 
     private boolean direct(Node a, Node c, Graph graph) {
         if (!isArrowpointAllowed(a, c, knowledge)) return false;
+//        if (graph.isAncestorOf(c, a)) return false;
 
         for (Node p : graph.getParents(c)) {
             if (p != a && !graph.isAdjacentTo(a, p)) {

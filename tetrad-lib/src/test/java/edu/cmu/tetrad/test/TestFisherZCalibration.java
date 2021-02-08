@@ -191,12 +191,12 @@ public class TestFisherZCalibration {
         parameters.set(Params.AVG_DEGREE, 4);
         parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
         parameters.set(Params.SEM_BIC_RULE, 1);
-        parameters.set(Params.PENALTY_DISCOUNT, 1);
+        parameters.set(Params.PENALTY_DISCOUNT, 2);
         parameters.set(Params.STRUCTURE_PRIOR, 0);
 //        parameters.set(Params.TDEPTH, 1);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.ADJUST_ORIENTATIONS, false);
+        parameters.set(Params.ADJUST_ORIENTATIONS, true);
         parameters.set(Params.COEF_LOW, .2);
         parameters.set(Params.COEF_HIGH, .7);
         parameters.set(Params.VAR_LOW, 1.0);
@@ -750,8 +750,11 @@ public class TestFisherZCalibration {
         for (int i = 0; i < numIterations; i++) {
             Graph dag = GraphUtils.randomDag(numNodes, 0, aveDegree * numNodes / 2,
                     10, 10, 10, false);
-            Fges fges = new Fges(new GraphScore(dag));
+            GraphScore score = new GraphScore(dag);
+//            score.setVerbose(true);
+            Fges fges = new Fges(score);
             fges.setFaithfulnessAssumed(false);
+            fges.setSymmetricFirstStep(true);
             fges.setVerbose(true);
 //            fges.setTDepth(1);
             Graph pattern1 = fges.search();
