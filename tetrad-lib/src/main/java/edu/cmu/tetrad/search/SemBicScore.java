@@ -28,14 +28,14 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.StatUtils;
+import edu.cmu.tetrad.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 import static edu.cmu.tetrad.util.MatrixUtils.convertCovToCorr;
 import static java.lang.Double.NaN;
-import static java.lang.Math.abs;
-import static java.lang.Math.log;
+import static java.lang.Math.*;
 
 /**
  * Implements the continuous BIC score for FGES.
@@ -180,12 +180,22 @@ public class SemBicScore implements Score {
         Matrix times = b.transpose().times(cov).times(b);
         double varey = times.get(0, 0);
 
+//         Ricardo's calculation.
+//        Matrix b = covxx.inverse().times(covxy);
+//        double varey = cov.get(0, 0);
+//        edu.cmu.tetrad.util.Vector _cxy = covxy.getColumn(0);
+//        Vector _b = b.getColumn(0);
+//        varey -= _cxy.dotProduct(_b);
+
         double c = getPenaltyDiscount();
 
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
+                        k = (p + 1) * (p + 2) / 2;
+
 
             // Standard BIC, with penalty discount and structure prior.
-            return -ess * log(varey) - c * k * log(ess) + 2 * getStructurePrior(p);
+            return -sampleSize * log(varey) - c * k * log(sampleSize) + 2 * getStructurePrior(p);
+//            return -sampleSize * log(varey) - k * log(sampleSize) - 2 * getStructurePrior(p);
 
         } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
@@ -195,7 +205,13 @@ public class SemBicScore implements Score {
             // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
 
-            return -ess * log(varey) - c * k * 6 * log(m) + 2 * getStructurePrior(p);
+            int n = sampleSize;
+//            k = (p + 1) * (p + 2) / 2;
+
+//            System.out.println("logn = " + log(n));
+
+            return -sampleSize * log(varey) - c * k * 6 * log(m) + 2 * getStructurePrior(p);
+//            return -sampleSize * log(varey) - c * k * log(n) * log(m);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }

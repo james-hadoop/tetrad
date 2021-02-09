@@ -3285,11 +3285,7 @@ public final class GraphUtils {
         List<Node> found = new LinkedList<>();
         List<Node> notFound = new ArrayList<>(graph.getNodes());
 
-        for (Iterator<Node> i = notFound.iterator(); i.hasNext();) {
-            if (i.next().getNodeType() == NodeType.ERROR) {
-                i.remove();
-            }
-        }
+        notFound.removeIf(node -> node.getNodeType() == NodeType.ERROR);
 
         List<Node> allNodes = new ArrayList<>(notFound);
 
@@ -3298,7 +3294,7 @@ public final class GraphUtils {
                 Node node = it.next();
 
                 List<Node> parents = graph.getParents(node);
-                parents.retainAll(allNodes);
+//                parents.retainAll(allNodes);
 
                 if (found.containsAll(parents)) {
                     found.add(node);

@@ -1313,13 +1313,13 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
             return simulateTimeSeries(sampleSize, latentDataSaved);
         }
 
-        if (initialValues != null) {
+//        if (initialValues != null) {
             return simulateDataRecursive(sampleSize, latentDataSaved);
-        } else {
+//        } else {
             //        return simulateDataCholesky(sampleSize, latentDataSaved);
-            return simulateDataReducedForm(sampleSize, latentDataSaved);
+//            return simulateDataReducedForm(sampleSize, latentDataSaved);
 //            return simulateDataRecursive2(sampleSize, latentDataSaved);
-        }
+//        }
     }
 
     public void setScoreType(ScoreType scoreType) {
@@ -1540,13 +1540,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
             Node node = variableNodes.get(i);
             List<Node> parents = graph.getParents(node);
 
-            for (Iterator<Node> j = parents.iterator(); j.hasNext();) {
-                Node _node = j.next();
-
-                if (_node.getNodeType() == NodeType.ERROR) {
-                    j.remove();
-                }
-            }
+            parents.removeIf(_node -> _node.getNodeType() == NodeType.ERROR);
 
             _parents[i] = new int[parents.size()];
 
@@ -1669,14 +1663,14 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
     }
 
     public DataSet simulateDataReducedForm(int sampleSize, boolean latentDataSaved) {
-        int numVars = getVariableNodes().size();
+        int m = getVariableNodes().size();
 
         // Calculate inv(I - edgeCoefC)
         Matrix B = edgeCoef().transpose();
-        Matrix iMinusBInv = TetradAlgebra.identity(B.rows()).minus(B).inverse();
+        Matrix iMinusBInv = Matrix.identity(m).minus(B).inverse();
 
         // Pick error values e, for each calculate inv * e.
-        Matrix sim = new Matrix(sampleSize, numVars);
+        Matrix sim = new Matrix(sampleSize, m);
 
         ROW:
         for (int row = 0; row < sampleSize; row++) {
