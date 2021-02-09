@@ -1,4 +1,4 @@
-Tue Feb 09 05:12:41 EST 2021
+Tue Feb 09 11:27:07 EST 2021
 
 Statistics:
 
@@ -58,26 +58,26 @@ AVERAGE STATISTICS
 All edges
 
   numRuns  semBicRule  sampleSize  penaltyDiscount  semBicStructurePrior  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  F1Adj  F1Arrow    SHD  CYCEST     E
-     5.00        1.00   100000.00             1.00                     -   40.00     68.00  0.68  0.99  0.84  0.88   0.78     0.68  61.40       -  0.76
+     5.00        1.00   100000.00             1.00                     -   40.00     56.20  0.72  0.98  0.77  0.75   0.83     0.64  42.80       -  0.92
 
 STANDARD DEVIATIONS
 
 All edges
 
   numRuns  semBicRule  sampleSize  penaltyDiscount  semBicStructurePrior  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  F1Adj  F1Arrow    SHD  CYCEST     E
-     5.00        1.00   100000.00             1.00                     -       -     27.67  0.30  0.01  0.15  0.11   0.21     0.30  60.68       -  0.32
+     5.00        1.00   100000.00             1.00                     -       -     11.32  0.17  0.02  0.15  0.15   0.11     0.22  29.12       -  0.32
 
 WORST CASE
 
 All edges
 
-  numRuns  semBicRule  sampleSize  penaltyDiscount  semBicStructurePrior  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  F1Adj  F1Arrow  SHD  CYCEST     E
-     5.00        1.00   100000.00             1.00                     -   40.00     40.00  0.39  0.97  0.70  0.76   0.56     0.39    -       -  0.56
+  numRuns  semBicRule  sampleSize  penaltyDiscount  semBicStructurePrior  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  F1Adj  F1Arrow   SHD  CYCEST     E
+     5.00        1.00   100000.00             1.00                     -   40.00     40.00  0.55  0.95  0.57  0.57   0.70     0.40  3.00       -  0.61
 
 MEDIAN CASE
 
 All edges
 
   numRuns  semBicRule  sampleSize  penaltyDiscount  semBicStructurePrior  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  F1Adj  F1Arrow    SHD  CYCEST     E
-     5.00        1.00   100000.00             1.00                     -   40.00     70.00  0.57  1.00  0.76  0.82   0.73     0.54  66.00       -  0.62
+     5.00        1.00   100000.00             1.00                     -   40.00     60.00  0.67  0.97  0.77  0.71   0.80     0.56  51.00       -  0.87
 

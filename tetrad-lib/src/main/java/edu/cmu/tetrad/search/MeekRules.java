@@ -62,7 +62,7 @@ public class MeekRules implements ImpliedOrientation {
     private List<Node> nodes = new ArrayList<>();
 
     // The list of nodes actually visited.
-    private final Set<Node> visited = new HashSet<>();
+    private Set<Node> visited = new HashSet<>();
 
     // True if verbose output should be printed.
     private boolean verbose = false;
@@ -82,7 +82,7 @@ public class MeekRules implements ImpliedOrientation {
 
     public Set<Node> orientImplied(Graph graph, List<Node> nodes) {
         this.nodes = nodes;
-//        this.visited.addAll(nodes);
+        this.visited = new HashSet<>();
 
         TetradLogger.getInstance().log("impliedOrientations", "Starting Orientation Step D.");
         revertToUnshieldedColliders(graph.getNodes(), graph);
@@ -109,7 +109,6 @@ public class MeekRules implements ImpliedOrientation {
             }
         }
 
-//        revertToColliders(this.nodes, graph);
         TetradLogger.getInstance().log("impliedOrientations", "Finishing Orientation Step D.");
 
         return visited;
@@ -280,7 +279,6 @@ public class MeekRules implements ImpliedOrientation {
 
     private boolean direct(Node a, Node c, Graph graph) {
         if (!isArrowpointAllowed(a, c, knowledge)) return false;
-//        if (graph.isAncestorOf(c, a)) return false;
 
         for (Node p : graph.getParents(c)) {
             if (p != a && !graph.isAdjacentTo(a, p)) {
@@ -324,7 +322,6 @@ public class MeekRules implements ImpliedOrientation {
             Set<Node> _parents = new HashSet<>(parents);
             _parents.remove(p);
             if (graph.getAdjacentNodes(p).containsAll(_parents)) {
-//                String msg = "Unorienting " + graph.getEdge(p, y);
 
                 graph.removeEdge(p, y);
                 graph.addUndirectedEdge(p, y);
@@ -332,12 +329,6 @@ public class MeekRules implements ImpliedOrientation {
                 visited.add(p);
                 visited.add(y);
 
-//                msg += " to " + graph.getEdge(p, y);
-//
-//                if (verbose) {
-//                    TetradLogger.getInstance().forceLogMessage(msg);
-//                }
-//
                 did = true;
             }
         }

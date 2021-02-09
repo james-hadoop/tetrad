@@ -120,8 +120,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     public EdgeListGraph() {
         this.edgeLists = new HashMap<>();
-        this.nodes = Collections.synchronizedList(new ArrayList<>());
-        this.edgesSet = Collections.synchronizedSet(new HashSet<>());
+        this.nodes = new ArrayList<>();
+        this.edgesSet = new HashSet<>();
         this.namesHash = new HashMap<>();
     }
 
@@ -154,27 +154,27 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 //            this.pattern = graph.isPattern();
 //        } else {
 
-            transferNodesAndEdges(graph);
+        transferNodesAndEdges(graph);
 
-            // Keep attributes from the original graph
-            transferAttributes(graph);
+        // Keep attributes from the original graph
+        transferAttributes(graph);
 
-            this.ambiguousTriples = graph.getAmbiguousTriples();
-            this.underLineTriples = graph.getUnderLines();
-            this.dottedUnderLineTriples = graph.getDottedUnderlines();
+        this.ambiguousTriples = graph.getAmbiguousTriples();
+        this.underLineTriples = graph.getUnderLines();
+        this.dottedUnderLineTriples = graph.getDottedUnderlines();
 
-            for (Edge edge : graph.getEdges()) {
-                if (graph.isHighlighted(edge)) {
-                    setHighlighted(edge, true);
-                }
+        for (Edge edge : graph.getEdges()) {
+            if (graph.isHighlighted(edge)) {
+                setHighlighted(edge, true);
             }
+        }
 
-            for (Node node : nodes) {
-                namesHash.put(node.getName(), node);
-            }
+        for (Node node : nodes) {
+            namesHash.put(node.getName(), node);
+        }
 
-            this.pag = graph.isPag();
-            this.pattern = graph.isPattern();
+        this.pag = graph.isPag();
+        this.pattern = graph.isPattern();
 //        }
     }
 
@@ -477,7 +477,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     public List<Node> findDirectedPath(Node from, Node to) {
         LinkedList<Node> path = new LinkedList<>();
 
-         for (Node d : getChildren(from)) {
+        for (Node d : getChildren(from)) {
             if (findDirectedPathVisit(from, d, to, path)) {
                 path.addFirst(from);
                 return path;
@@ -616,19 +616,17 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public Edge getEdge(Node node1, Node node2) {
-        synchronized (edgeLists) {
-            List<Edge> edges = edgeLists.get(node1);
+        List<Edge> edges = edgeLists.get(node1);
 
-            if (edges == null) {
-                return null;
-            }
+        if (edges == null) {
+            return null;
+        }
 
-            for (Edge edge : edges) {
-                if (edge.getNode1() == node1 && edge.getNode2() == node2) {
-                    return edge;
-                } else if (edge.getNode1() == node2 && edge.getNode2() == node1) {
-                    return edge;
-                }
+        for (Edge edge : edges) {
+            if (edge.getNode1() == node1 && edge.getNode2() == node2) {
+                return edge;
+            } else if (edge.getNode1() == node2 && edge.getNode2() == node1) {
+                return edge;
             }
         }
 
@@ -1425,7 +1423,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public Set<Edge> getEdges() {
-        return Collections.synchronizedSet(new HashSet<>(this.edgesSet));
+        return new HashSet<>(this.edgesSet);
     }
 
     /**

@@ -67,8 +67,9 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
     public Graph search(DataModel dataSet, Parameters parameters) {
     	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 
+            int parallelism = 10 * Runtime.getRuntime().availableProcessors();
             edu.cmu.tetrad.search.Fges search
-                    = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters), Runtime.getRuntime().availableProcessors());
+                    = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters), 1);//parallelism);
             search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
