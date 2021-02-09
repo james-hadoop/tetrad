@@ -195,11 +195,11 @@ public class TestFisherZCalibration {
         parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
         parameters.set(Params.PENALTY_DISCOUNT, 1);
 //        parameters.set(Params.TDEPTH, 1);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.ADJUST_ORIENTATIONS, false);
         parameters.set(Params.COEF_LOW, 0);
-        parameters.set(Params.COEF_HIGH, 2);
+        parameters.set(Params.COEF_HIGH, 1);
         parameters.set(Params.VAR_LOW, 1.0);
         parameters.set(Params.VAR_HIGH, 3.0);
         parameters.set(Params.VERBOSE, false);
@@ -438,11 +438,11 @@ public class TestFisherZCalibration {
 
                 SemBicScore score = new SemBicScore(rawdata);
                 score.setUseEquivalentSampleSize(false);
-                score.setRuleType(SemBicScore.RuleType.HIGH_DIMENSIONAL);
-                score.setPenaltyDiscount(2);
+                score.setRuleType(SemBicScore.RuleType.CHICKERING);
+                score.setPenaltyDiscount(1);
 
                 Fges fges = new Fges(score);
-                fges.setFaithfulnessAssumed(true);
+                fges.setFaithfulnessAssumed(false);
                 fges.setTurning(false);
 //                fges.setVerbose(true);
 

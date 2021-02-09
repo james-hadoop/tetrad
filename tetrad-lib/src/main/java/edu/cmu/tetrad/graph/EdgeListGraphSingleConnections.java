@@ -50,9 +50,6 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
      * Constructs a new (empty) EdgeListGraph.
      */
     public EdgeListGraphSingleConnections() {
-        edgeLists = new ConcurrentHashMap<>();
-        nodes = new ArrayList<>();
-        edgesSet = new HashSet<>();
     }
 
     /**
@@ -70,9 +67,12 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
 
         if (graph instanceof EdgeListGraphSingleConnections) {
             EdgeListGraphSingleConnections _graph = (EdgeListGraphSingleConnections) graph;
-            nodes = new ArrayList<>(_graph.nodes);
-            edgesSet = new HashSet<>(_graph.edgesSet);
-            edgeLists = new ConcurrentHashMap<>();
+            nodes.clear();
+            nodes.addAll(_graph.nodes);
+            edgesSet.clear();
+            edgesSet.addAll(_graph.edgesSet);
+            edgeLists.clear();
+            edgeLists.putAll(_graph.edgeLists);
             
             for (Node node : nodes) {
             	this.edgeLists.put(node, new ArrayList<>(_graph.edgeLists.get(node)));
@@ -120,7 +120,8 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
             throw new NullPointerException();
         }
 
-        this.nodes = new ArrayList<>(nodes);
+        this.nodes.clear();
+        this.nodes.addAll(nodes);
 
         for (Node node : nodes) {
             edgeLists.put(node, new ArrayList<Edge>());
@@ -134,10 +135,11 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
     public synchronized static Graph shallowCopy(EdgeListGraphSingleConnections _graph) {
         EdgeListGraphSingleConnections graph = new EdgeListGraphSingleConnections();
 
-        graph.nodes = new ArrayList<>(_graph.nodes);
-        graph.edgesSet = new HashSet<>(_graph.edgesSet);
-        graph.edgeLists = new ConcurrentHashMap<>(_graph.edgeLists);
-        
+        graph.nodes.addAll(_graph.nodes);
+        graph.edgesSet.addAll(_graph.edgesSet);
+        graph.edgeLists.clear();
+        graph.edgeLists.putAll(_graph.edgeLists);
+
         for (Node node : graph.nodes) {
         	graph.edgeLists.put(node, new ArrayList<>(_graph.edgeLists.get(node)));
         }
@@ -318,7 +320,8 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
                     "you are trying to set.");
         }
 
-        this.nodes = nodes;
+        this.nodes.clear();
+        this.nodes.addAll(nodes);
     }
 
     /**

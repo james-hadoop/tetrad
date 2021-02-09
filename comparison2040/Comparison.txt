@@ -1,4 +1,4 @@
-Tue Feb 09 11:27:07 EST 2021
+Tue Feb 09 16:47:16 EST 2021
 
 Statistics:
 
@@ -32,7 +32,7 @@ Maximum indegree of graph (min = 1) = 100
 Maximum outdegree of graph (min = 1) = 100
 Yes if graph should be connected = No
 Low end of coefficient range (min = 0.0) = 0
-High end of coefficient range (min = 0.0) = 2
+High end of coefficient range (min = 0.0) = 1
 Low end of covariance range (min = 0.0) = 0.0
 High end of covariance range (min = 0.0) = 0.0
 Low end of variance range (min = 0.0) = 1.0
@@ -58,26 +58,26 @@ AVERAGE STATISTICS
 All edges
 
   numRuns  semBicRule  sampleSize  penaltyDiscount  semBicStructurePrior  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  F1Adj  F1Arrow    SHD  CYCEST     E
-     5.00        1.00   100000.00             1.00                     -   40.00     56.20  0.72  0.98  0.77  0.75   0.83     0.64  42.80       -  0.92
+     5.00        1.00   100000.00             1.00                     -   40.00     49.80  0.80  0.99  0.86  0.89   0.88     0.77  24.60       -  0.42
 
 STANDARD DEVIATIONS
 
 All edges
 
   numRuns  semBicRule  sampleSize  penaltyDiscount  semBicStructurePrior  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  F1Adj  F1Arrow    SHD  CYCEST     E
-     5.00        1.00   100000.00             1.00                     -       -     11.32  0.17  0.02  0.15  0.15   0.11     0.22  29.12       -  0.32
+     5.00        1.00   100000.00             1.00                     -       -      5.54  0.08  0.01  0.06  0.07   0.05     0.10  11.91       -  0.28
 
 WORST CASE
 
 All edges
 
-  numRuns  semBicRule  sampleSize  penaltyDiscount  semBicStructurePrior  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  F1Adj  F1Arrow   SHD  CYCEST     E
-     5.00        1.00   100000.00             1.00                     -   40.00     40.00  0.55  0.95  0.57  0.57   0.70     0.40  3.00       -  0.61
+  numRuns  semBicRule  sampleSize  penaltyDiscount  semBicStructurePrior  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  F1Adj  F1Arrow    SHD  CYCEST     E
+     5.00        1.00   100000.00             1.00                     -   40.00     45.00  0.68  0.97  0.77  0.77   0.81     0.61  14.00       -  0.23
 
 MEDIAN CASE
 
 All edges
 
   numRuns  semBicRule  sampleSize  penaltyDiscount  semBicStructurePrior  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  F1Adj  F1Arrow    SHD  CYCEST     E
-     5.00        1.00   100000.00             1.00                     -   40.00     60.00  0.67  0.97  0.77  0.71   0.80     0.56  51.00       -  0.87
+     5.00        1.00   100000.00             1.00                     -   40.00     49.00  0.80  1.00  0.86  0.91   0.89     0.78  23.00       -  0.28
 

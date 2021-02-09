@@ -25,7 +25,6 @@ import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static edu.cmu.tetrad.graph.Edges.directedEdge;
 
@@ -52,21 +51,21 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      *
      * @serial
      */
-    protected List<Node> nodes;
+    protected final List<Node> nodes;
 
     /**
      * The edges in the graph.
      *
      * @serial
      */
-    Set<Edge> edgesSet;
+    final Set<Edge> edgesSet;
 
     /**
      * Map from each node to the List of edges connected to that node.
      *
      * @serial
      */
-    Map<Node, List<Edge>> edgeLists;
+    final Map<Node, List<Edge>> edgeLists;
 
     /**
      * Fires property change events.
@@ -140,19 +139,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         if (graph == null) {
             throw new NullPointerException("Graph must not be null.");
         }
-
-//        if (graph instanceof EdgeListGraph) {
-//            this.nodes = new ArrayList<>(((EdgeListGraph) graph).nodes);
-//            this.edgeLists = new ConcurrentHashMap<>(((EdgeListGraph) graph).edgeLists);
-//            this.edgesSet = new HashSet<>(((EdgeListGraph) graph).edgesSet);
-//            this.ambiguousTriples = new HashSet<>(((EdgeListGraph) graph).ambiguousTriples);
-//            this.underLineTriples = new HashSet<>(((EdgeListGraph) graph).underLineTriples);
-//            this.dottedUnderLineTriples = new HashSet<>(((EdgeListGraph) graph).dottedUnderLineTriples);
-//            this.namesHash = new HashMap<>(((EdgeListGraph) graph).namesHash);
-//            this.highlightedEdges = new HashSet<>(((EdgeListGraph) graph).highlightedEdges);
-//            this.pag = graph.isPag();
-//            this.pattern = graph.isPattern();
-//        } else {
 
         transferNodesAndEdges(graph);
 
@@ -860,7 +846,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
                     + "you are trying to set.");
         }
 
-        this.nodes = nodes;
+        this.nodes.clear();
+        this.nodes.addAll(nodes);
     }
 
     protected Set<Node> zAncestors(List<Node> z) {
@@ -1336,25 +1323,18 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             throw new NullPointerException();
         }
 
-        List<Edge> edgeList1 = edgeLists.get(edge.getNode1());
-        List<Edge> edgeList2 = edgeLists.get(edge.getNode2());
+        synchronized (edgeLists) {
+            List<Edge> edgeList1 = edgeLists.get(edge.getNode1());
+            List<Edge> edgeList2 = edgeLists.get(edge.getNode2());
 
-        if (edgeList1 == null || edgeList2 == null) {
+            if (edgeList1.contains(edge)) {
+                return true;
+            }
 
-            // Do not comment this out; if the user changes the names of variables, this is the
-            // mechanism for adjusting the maps from nodes to edge lists to compensate.
-            edgeLists = new HashMap<>(edgeLists);
-            edgeList1 = edgeLists.get(edge.getNode1());
-            edgeList2 = edgeLists.get(edge.getNode2());
+            edgeList1.add(edge);
+            edgeList2.add(edge);
+            edgesSet.add(edge);
         }
-
-        if (edgeList1.contains(edge)) {
-            return true;
-        }
-
-        edgeList1.add(edge);
-        edgeList2.add(edge);
-        edgesSet.add(edge);
 
         if (Edges.isDirectedEdge(edge)) {
             Node node = Edges.getDirectedEdgeTail(edge);
@@ -1615,18 +1595,20 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             return false;
         }
 
-        List<Edge> edgeList1 = edgeLists.get(edge.getNode1());
-        List<Edge> edgeList2 = edgeLists.get(edge.getNode2());
+        synchronized (edgeLists) {
+            List<Edge> edgeList1 = edgeLists.get(edge.getNode1());
+            List<Edge> edgeList2 = edgeLists.get(edge.getNode2());
 
-        edgeList1 = new ArrayList<>(edgeList1);
-        edgeList2 = new ArrayList<>(edgeList2);
+            edgeList1 = new ArrayList<>(edgeList1);
+            edgeList2 = new ArrayList<>(edgeList2);
 
-        edgesSet.remove(edge);
-        edgeList1.remove(edge);
-        edgeList2.remove(edge);
+            edgesSet.remove(edge);
+            edgeList1.remove(edge);
+            edgeList2.remove(edge);
 
-        edgeLists.put(edge.getNode1(), edgeList1);
-        edgeLists.put(edge.getNode2(), edgeList2);
+            edgeLists.put(edge.getNode1(), edgeList1);
+            edgeLists.put(edge.getNode2(), edgeList2);
+        }
 
         highlightedEdges.remove(edge);
         stuffRemovedSinceLastTripleAccess = true;

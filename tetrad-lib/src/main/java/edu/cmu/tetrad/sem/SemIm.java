@@ -29,11 +29,15 @@ import edu.cmu.tetrad.util.*;
 import edu.cmu.tetrad.util.Vector;
 import edu.cmu.tetrad.util.dist.Distribution;
 import edu.cmu.tetrad.util.dist.Split;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
+
 import static java.lang.Math.sqrt;
+
 import java.rmi.MarshalledObject;
 import java.util.*;
+
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 
 /**
@@ -127,7 +131,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      *
      * @serial Cannot be null.
      */
-    private Matrix edgeCoef;
+    private final Matrix edgeCoef;
 
     /**
      * Matrix of error covariances. errCovar[i][j] is the covariance of the
@@ -154,7 +158,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      *
      * @serial Cannot be null.
      */
-    private double[] variableMeansStdDev;
+    private final double[] variableMeansStdDev;
 
     /**
      * Replaced by sampleCovar. Please do not delete. Required for serialization
@@ -163,11 +167,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * @serial
      */
     private Matrix sampleCovarC;
-
-    /**
-     * The variable of the sample covariance.
-     */
-    private List<Node> sampleCovarVariables;
 
     /**
      * The sample size.
@@ -222,10 +221,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      */
     private boolean estimated = false;
 
-//    /**
-//     * Used for some linear algebra calculations.
-//     */
-//    private transient TetradAlgebra algebra;
     /**
      * True just in case the graph for the SEM is cyclic.
      */
@@ -236,20 +231,11 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      */
     private boolean cyclicChecked = false;
 
-//    /**
-//     * Caches the log determinant of the sample covariance matrix.
-//     */
-//    private transient double logDetSample;
     /**
      * Parameters to help guide how values are chosen for freeParameters.
      */
     private Parameters params = new Parameters();
 
-//    /**
-//     * True if positive definiteness should be checked when optimizing the
-//     * FML function. (It's checked other places.)
-//     */
-//    private boolean checkPositiveDefinite;
     /**
      * Stores a distribution for each variable. Initialized to N(0, 1) for each.
      */
@@ -267,7 +253,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
 
     private Map<Node, Integer> variablesHash;
     private Matrix sampleCovInv;
-    private static Collection<? extends String> parameterNames;
 
     public static List<String> getParameterNames() {
         List<String> parameters = new ArrayList<>();
@@ -283,12 +268,10 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
     }
 
     // Types of scores that yield a chi square value when minimized.
-//    public enum ScoreType {
-//        Fml, Fgls
-//    }
     private ScoreType scoreType = ScoreType.Fml;
 
     //=============================CONSTRUCTORS============================//
+
     /**
      * Constructs a new SEM IM from a SEM PM.
      */
@@ -312,10 +295,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
     public SemIm(SemPm semPm, SemIm oldSemIm, Parameters parameters) {
         if (semPm == null) {
             throw new NullPointerException("Sem PM must not be null.");
-        }
-
-        if (params == null) {
-            throw new NullPointerException();
         }
 
         this.params = parameters;
@@ -356,12 +335,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         }
 
         this.distributions = new HashMap<>();
-
-        // Careful with this! These must not be left in! They override the
-        // normal behavior!
-//        for (Node node : variableNodes) {
-//            this.distributions.put(node, new Uniform(-1, 1));
-//        }
         this.functions = new HashMap<>();
     }
 
@@ -378,7 +351,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * Special hidden constructor to generate updated models.
      */
     private SemIm(SemIm semIm, Matrix covariances,
-            Vector means) {
+                  Vector means) {
         this(semIm);
 
         if (covariances.rows() != covariances.columns()) {
@@ -399,7 +372,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         if (covariances.rows() != semPm.getVariableNodes().size()) {
             throw new IllegalArgumentException(
                     "Dimension of covariance matrix "
-                    + "does not equal number of variables.");
+                            + "does not equal number of variables.");
         }
 
         this.errCovar = covariances;
@@ -423,7 +396,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * Copy constructor.
      *
      * @throws RuntimeException if the given SemIm cannot be serialized and
-     * deserialized correctly.
+     *                          deserialized correctly.
      */
     public SemIm(SemIm semIm) {
         try {
@@ -495,6 +468,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
     }
 
     //==============================PUBLIC METHODS=========================//
+
     /**
      * Sets the sample covariance matrix for this Sem as a submatrix of the
      * given matrix. The variable names used in the SemPm for this model must
@@ -508,7 +482,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
 
         ICovarianceMatrix covMatrix2 = fixVarOrder(covMatrix);
         this.sampleCovarC = covMatrix2.getMatrix().copy();
-        this.sampleCovarVariables = covMatrix2.getVariables();
         this.sampleSize = covMatrix2.getSampleSize();
         this.sampleCovInv = null;
 
@@ -573,41 +546,13 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * is not in this
      *
      * @throws IllegalArgumentException if the given parameter is not a free
-     * parameter in this model.
+     *                                  parameter in this model.
      */
     public double getParamValue(Parameter parameter) {
         if (parameter == null) {
             throw new NullPointerException();
         }
 
-        // This is evil. jdramsey 12/3/2015
-//        Node nodeA = parameter.getNodeA();
-//        Node nodeB = parameter.getNodeB();
-//        Node parent;
-//        Node child;
-//
-//        Graph graph = getSemPm().getGraph();
-//
-//        if (graph.isParentOf(nodeA, nodeB)) {
-//            parent = nodeA;
-//            child = nodeB;
-//        } else {
-//            parent = nodeB;
-//            child = nodeA;
-//        }
-//
-//        List<Node> parents = graph.getParents(child);
-//
-//        if (parameter.getNodeA() != parameter.getNodeB() && sampleSize > 1
-//                && measuredNodes.contains(child) && measuredNodes.containsAll(parents)) {
-//            TetradMatrix sampleCovar = getSampleCovar();
-//            CovarianceMatrix cov = new CovarianceMatrix(measuredNodes, sampleCovar, sampleSize);
-//            Regression regression = new RegressionCovariance(cov);
-//            RegressionResult result = regression.regress(child, parents);
-////            double[] se = result.getSe();
-//            double[] coef = result.getCoef();
-//            return coef[parents.indexOf(parent) + 1];
-//        }
         if (getFreeParameters().contains(parameter)) {
             int index = getFreeParameters().indexOf(parameter);
             Mapping mapping = this.freeMappings.get(index);
@@ -621,7 +566,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
             return variableMeans[index];
         }
 
-//        return Double.NaN;
         throw new IllegalArgumentException(
                 "Not a parameter in this model: " + parameter);
     }
@@ -630,7 +574,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * Sets the value of a single free parameter to the given value.
      *
      * @throws IllegalArgumentException if the given parameter is not a free
-     * parameter in this model.
+     *                                  parameter in this model.
      */
     public void setParamValue(Parameter parameter, double value) {
         if (getFreeParameters().contains(parameter)) {
@@ -652,7 +596,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * Sets the value of a single free parameter to the given value.
      *
      * @throws IllegalArgumentException if the given parameter is not a free
-     * parameter in this model.
+     *                                  parameter in this model.
      */
     public void setFixedParamValue(Parameter parameter, double value) {
         if (!getFixedParameters().contains(parameter)) {
@@ -787,11 +731,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
 
         if (isCyclic()) {
             return Double.NaN;
-//            throw new UnsupportedOperationException("Setting and getting of " +
-//                    "intercepts is supported for acyclic SEMs only. The internal " +
-//                    "parameterizations uses variable means; the relationship " +
-//                    "between variable means and intercepts has not been fully " +
-//                    "worked out for the cyclic case.");
         }
 
         SemGraph semGraph = getSemPm().getGraph();
@@ -810,8 +749,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         }
 
         double mean = getMean(node);
-        double intercept = mean - weightedSumOfParentMeans;
-        return intercept;
+        return mean - weightedSumOfParentMeans;
     }
 
     /**
@@ -884,8 +822,8 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * nodeA and nodeB are the same.)
      *
      * @throws IllegalArgumentException if the given parameter is not a free
-     * parameter in this model or if there is no parameter connecting nodeA with
-     * nodeB in this model.
+     *                                  parameter in this model or if there is no parameter connecting nodeA with
+     *                                  nodeB in this model.
      */
     public double getParamValue(Node nodeA, Node nodeB) {
         Parameter parameter = null;
@@ -922,8 +860,8 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * nodeA and nodeB are the same.)
      *
      * @throws IllegalArgumentException if the given parameter is not a free
-     * parameter in this model or if there is no parameter connecting nodeA with
-     * nodeB in this model, or if value is Double.NaN.
+     *                                  parameter in this model or if there is no parameter connecting nodeA with
+     *                                  nodeB in this model, or if value is Double.NaN.
      */
     public void setParamValue(Node nodeA, Node nodeB, double value) {
         if (Double.isNaN(value)) {
@@ -1065,25 +1003,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
     }
 
     /**
-     * Sets the distribution for the given node.
-     */
-    public void setDistribution(Node node, Distribution distribution) {
-        if (node == null) {
-            throw new NullPointerException();
-        }
-
-        if (!getVariableNodes().contains(node)) {
-            throw new IllegalArgumentException("Not a node in this SEM.");
-        }
-
-        if (distribution == null) {
-            throw new NullPointerException("Distribution must be specified.");
-        }
-
-        distributions.put(node, distribution);
-    }
-
-    /**
      * The value of the maximum likelihood function for the getModel the model
      * (Bollen 107). To optimize, this should be minimized.
      */
@@ -1097,27 +1016,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         }
     }
 
-//    private double getFml1() {
-//        TetradMatrix sigma; // Do this once.
-//
-//        try {
-//            sigma = implCovarMeas();
-//        } catch (Exception e) {
-//            return Double.NaN;
-//        }
-//
-//        TetradMatrix s = this.sampleCovarC;
-//
-//        double logDetSigma = logDet(sigma);
-//        double traceSSigmaInv = traceABInv(s, sigma);
-//        double logDetSample = logDetSample();
-//        int pPlusQ = getMeasuredNodes().size();
-//
-//        double h1 = logDetSigma + traceSSigmaInv;
-//        double h0 = logDetSample + pPlusQ;
-//
-//        return h1 - h0;
-//    }
     private double getFml2() {
         Matrix sigma;
 
@@ -1160,26 +1058,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         return 0.5 * (diff.times(diff)).trace();
     }
 
-//    private double getLogLikelihood() {
-//        TetradMatrix SigmaTheta; // Do this once.
-//
-//        try {
-//            SigmaTheta = implCovarMeas();
-//        } catch (Exception e) {
-////            e.printStackTrace();
-//            return Double.NaN;
-//        }
-//
-//        TetradMatrix sStar = this.sampleCovarC;
-//
-//        double logDetSigmaTheta = logDet(SigmaTheta);
-//        double traceSStarSigmaInv = traceABInv(sStar, SigmaTheta);
-//        int pPlusQ = getMeasuredNodes().size();
-//
-//        return -(sampleSize / 2.) * pPlusQ * Math.log(2 * Math.PI)
-//                - (sampleSize / 2.) * logDetSigmaTheta
-//                - (sampleSize / 2.) * traceSStarSigmaInv;
-//    }
     /**
      * The negative of the log likelihood function for the getModel model, with
      * the constant chopped off. (Bollen 134). This is an alternative, more
@@ -1196,9 +1074,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         Matrix S = this.sampleCovarC;
         int n = getSampleSize();
         return -(n - 1) / 2. * (logDet(Sigma) + traceAInvB(Sigma, S));
-//        return -(n / 2.0) * (logDet(Sigma) + traceABInv(S, Sigma));
-//        return -(logDet(Sigma) + traceABInv(S, Sigma));
-//        return -(n - 1) / 2 * (logDet(Sigma) + traceABInv(S, Sigma));
     }
 
     /**
@@ -1207,20 +1082,11 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      */
     public double getBicScore() {
         int dof = getSemPm().getDof();
-//        return getChiSquare() - dof * Math.log(sampleSize);
-
         return getChiSquare() - dof * Math.log(sampleSize);
-
-//        CovarianceMatrix covarianceMatrix = new CovarianceMatrix(getVariableNodes(), getImplCovar(), getSampleSize());
-//        Ges ges = new Ges(covarianceMatrix);
-//        return -ges.getScore(getEstIm().getGraph());
     }
 
     @Override
     public double getRmsea() {
-//        double e = 1; // The sum of squares of the model? What's that?
-//        return e / (getSemPm().getDof() * getSampleSize());
-
         double v = getChiSquare() - semPm.getDof();
         double v1 = semPm.getDof() * (getSampleSize() - 1);
         return sqrt(v) / sqrt(v1);
@@ -1248,34 +1114,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         return new SemEstimator(sampleCovar, nullPm).estimate();
     }
 
-//    public double getAicScore() {
-//        int dof = getSemPm().getDof();
-//        return getChiSquare() - 2 * dof;
-////
-////        return getChiSquare() + dof * Math.log(sampleSize);
-//
-////        CovarianceMatrix covarianceMatrix = new CovarianceMatrix(getVariableNodes(), getImplCovar(), getSampleSize());
-////        Ges ges = new Ges(covarianceMatrix);
-////        return -ges.getScore(getEstIm().getGraph());
-//    }
-//    /**
-//     * @return the BIC score, without subtracting constant terms.
-//     */
-//    public double getFullBicScore() {
-////        int dof = getEstIm().getDof();
-//        int sampleSize = getSampleSize();
-//        double penalty = getNumFreeParams() * Math.log(sampleSize);
-////        double penalty = getEstIm().getDof() * Math.log(sampleSize);           i
-//        double L = getLogLikelihood();
-//        return -2 * L + penalty;
-//    }
-//    public double getKicScore() {
-//        double fml = getScore();
-//        int edgeCount = getSemPm().getGraph().getNumEdges();
-//        int sampleSize = getSampleSize();
-//
-//        return -fml - (edgeCount * Math.log(sampleSize));
-//    }
     /**
      * @return the chi square value for the model.
      */
@@ -1305,21 +1143,12 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      */
     @Override
     public DataSet simulateData(int sampleSize, boolean latentDataSaved) {
-        return simulateData(sampleSize, null, latentDataSaved);
-    }
-
-    private DataSet simulateData(int sampleSize, DataSet initialValues, boolean latentDataSaved) {
         if (semPm.getGraph().isTimeLagModel()) {
             return simulateTimeSeries(sampleSize, latentDataSaved);
         }
 
-//        if (initialValues != null) {
-            return simulateDataRecursive(sampleSize, latentDataSaved);
-//        } else {
-            //        return simulateDataCholesky(sampleSize, latentDataSaved);
-//            return simulateDataReducedForm(sampleSize, latentDataSaved);
-//            return simulateDataRecursive2(sampleSize, latentDataSaved);
-//        }
+//        return simulateDataRecursive(sampleSize, latentDataSaved);
+        return simulateDataReducedForm(sampleSize, latentDataSaved);
     }
 
     public void setScoreType(ScoreType scoreType) {
@@ -1397,7 +1226,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * graphs as well as acyclic graphs.
      *
      * @param sampleSize how many data points in sample
-     * @param seed a seed for random number generation
+     * @param seed       a seed for random number generation
      */
     @Override
     public DataSet simulateData(int sampleSize, long seed, boolean latentDataSaved) {
@@ -1414,20 +1243,16 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * implied covariance matrix. This method works even when the underlying
      * graph is cyclic.
      *
-     * @param sampleSize the number of rows of data to simulate.
+     * @param sampleSize      the number of rows of data to simulate.
      * @param latentDataSaved True iff data for latents should be saved.
      */
     public DataSet simulateDataCholesky(int sampleSize, boolean latentDataSaved) {
         List<Node> variables = new LinkedList<>();
 
         if (latentDataSaved) {
-            for (Node node : getVariableNodes()) {
-                variables.add(node);
-            }
+            variables.addAll(getVariableNodes());
         } else {
-            for (Node node : getMeasuredNodes()) {
-                variables.add(node);
-            }
+            variables.addAll(getMeasuredNodes());
         }
 
         List<Node> newVariables = new ArrayList<>();
@@ -1449,15 +1274,14 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         for (int row = 0; row < sampleSize; row++) {
 
             // Step 1. Generate normal samples.
-            double exoData[] = new double[cholesky.rows()];
+            double[] exoData = new double[cholesky.rows()];
 
             for (int i = 0; i < exoData.length; i++) {
                 exoData[i] = RandomUtil.getInstance().nextNormal(0, 1);
-                //            exoData[i] = randomUtil.nextUniform(-1, 1);
             }
 
             // Step 2. Multiply by cholesky to get correct covariance.
-            double point[] = new double[exoData.length];
+            double[] point = new double[exoData.length];
 
             for (int i = 0; i < exoData.length; i++) {
                 double sum = 0.0;
@@ -1494,12 +1318,12 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
     }
 
     public DataSet simulateDataRecursive(int sampleSize,
-            boolean latentDataSaved) {
+                                         boolean latentDataSaved) {
         return simulateDataRecursive(sampleSize, null, latentDataSaved);
     }
 
     public DataSet simulateDataRecursive(DataSet initialValues,
-            boolean latentDataSaved) {
+                                         boolean latentDataSaved) {
         return simulateDataRecursive(initialValues.getNumRows(), initialValues, latentDataSaved);
     }
 
@@ -1512,7 +1336,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * @return the simulated data set.
      */
     private DataSet simulateDataRecursive(int sampleSize, DataSet initialValues,
-            boolean latentDataSaved) {
+                                          boolean latentDataSaved) {
         List<Node> variables = new LinkedList<>();
         List<Node> variableNodes = getVariableNodes();
 
@@ -1557,14 +1381,14 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         for (int row = 0; row < sampleSize; row++) {
 
             // Step 1. Generate normal samples.
-            double exoData[] = new double[cholesky.rows()];
+            double[] exoData = new double[cholesky.rows()];
 
             for (int i = 0; i < exoData.length; i++) {
                 exoData[i] = RandomUtil.getInstance().nextNormal(0, 1);
             }
 
             // Step 2. Multiply by cholesky to get correct covariance.
-            double point[] = new double[exoData.length];
+            double[] point = new double[exoData.length];
 
             for (int i = 0; i < exoData.length; i++) {
                 double sum = 0.0;
@@ -1601,12 +1425,8 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                         && initCol != -1) {
                     int column = initialValues.getColumn(initNode);
                     value = initialValues.getDouble(row, column);
-//                    System.out.println(value);
-
                 } else {
                     if (distribution == null) {
-//                    value = RandomUtil.getInstance().nextNormal(0,
-//                            Math.sqrt(errCovar().get(col, col)));
                         value = e.get(col);
                     } else {
                         value = distribution.nextRandom();
@@ -1630,7 +1450,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                         continue ROW;
                     }
 
-                    fullDataSet.setDouble(row, col, value);
                 } else {
                     for (int j = 0; j < _parents[col].length; j++) {
                         int parent = _parents[col][j];
@@ -1644,8 +1463,8 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                         continue ROW;
                     }
 
-                    fullDataSet.setDouble(row, col, value);
                 }
+                fullDataSet.setDouble(row, col, value);
             }
         }
 
@@ -1672,30 +1491,18 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         // Pick error values e, for each calculate inv * e.
         Matrix sim = new Matrix(sampleSize, m);
 
-        ROW:
         for (int row = 0; row < sampleSize; row++) {
 
             // Step 1. Generate normal samples.
-            Vector e = new Vector(edgeCoef.columns());
+            Vector e = new Vector(m);
 
             for (int i = 0; i < e.size(); i++) {
-                e.set(i, RandomUtil.getInstance().nextNormal(0, sqrt(errCovar.get(i, i))));
+                e.set(i, RandomUtil.getInstance().nextNormal(0, 1) * sqrt(errCovar.get(i, i)));
             }
 
             // Step 3. Calculate the new rows in the data.
             Vector sample = iMinusBInv.times(e);
             sim.assignRow(row, sample);
-
-            for (int col = 0; col < sample.size(); col++) {
-                double value = sim.get(row, col) + variableMeans[col];
-
-                if (isSimulatedPositiveDataOnly() && value < 0) {
-                    row--;
-                    continue ROW;
-                }
-
-                sim.set(row, col, value);
-            }
         }
 
         List<Node> continuousVars = new ArrayList<>();
@@ -1719,13 +1526,8 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
     public Vector simulateOneRecord(Vector e) {
         // Calculate inv(I - edgeCoefC)
         Matrix edgeCoef = edgeCoef().copy().transpose();
-
-//        TetradMatrix iMinusB = TetradAlgebra.identity(edgeCoefC.rows()); //TetradMatrix.identity(edgeCoefC.rows());
-//        iMinusB.assign(edgeCoefC, Functions.minus);
         Matrix iMinusB = TetradAlgebra.identity(edgeCoef.rows()).minus(edgeCoef);
-
         Matrix inv = iMinusB.inverse();
-
         return inv.times(e);
     }
 
@@ -1778,11 +1580,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                     Regression regression = new RegressionCovariance(cov);
                     List<Node> parents = graph.getParents(child);
 
-                    for (Node node : new ArrayList<>(parents)) {
-                        if (node.getName().startsWith("E_")) {
-                            parents.remove(node);
-                        }
-                    }
+                    parents.removeIf(node -> node.getName().startsWith("E_"));
 
                     if (!(child.getNodeType() == NodeType.LATENT) && !containsLatent(parents)) {
                         RegressionResult result = regression.regress(child, parents);
@@ -1866,13 +1664,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         return cyclic;
     }
 
-//    public boolean isCheckPositiveDefinite() {
-//        return checkPositiveDefinite;
-//    }
-//
-//    public void setCheckPositiveDefinite(boolean checkPositiveDefinite) {
-//        this.checkPositiveDefinite = checkPositiveDefinite;
-//    }
     /**
      * @return the variable by the given name, or null if none exists.
      * @throws NullPointerException if name is null.
@@ -2005,10 +1796,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                         Parameter _parameter = oldSemIm.getSemPm().getParameter(_nodeA, _nodeB);
                         Parameter parameter = getSemPm().getParameter(nodeA, nodeB);
 
-                        if (parameter == null || _parameter == null) {
-                            continue;
-                        }
-
                         if (parameter.getType() != _parameter.getType()) {
                             continue;
                         }
@@ -2026,14 +1813,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         }
     }
 
-//    private double logDetSample() {
-//        if (logDetSample == 0.0 && getSampleCovar() != null) {
-//            double det = getSampleCovar().det();
-//            logDetSample = Math.log(det);
-//        }
-//
-//        return logDetSample;
-//    }
     private List<Node> unmeasuredLatents(SemPm semPm) {
         SemGraph graph = semPm.getGraph();
 
@@ -2082,8 +1861,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                 Node iNode = getMeasuredNodes().get(i);
                 Node jNode = getMeasuredNodes().get(j);
 
-//                int _i = getVariableNodes().indexOf(iNode);
-//                int _j = getVariableNodes().indexOf(jNode);
                 if (variablesHash == null) {
                     variablesHash = new HashMap<>();
 
@@ -2152,7 +1929,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * @return A submatrix of <code>covMatrix</code> with the order of its
      * variables the same as in <code>semPm</code>.
      * @throws IllegalArgumentException if not all of the variables of
-     * <code>semPm</code> are in <code>covMatrix</code>.
+     *                                  <code>semPm</code> are in <code>covMatrix</code>.
      */
     private ICovarianceMatrix fixVarOrder(ICovarianceMatrix covMatrix) {
         List<String> varNamesList = new ArrayList<>();
@@ -2163,7 +1940,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         }
 
         //System.out.println("CovarianceMatrix ar order: " + varNamesList);
-        String[] measuredVarNames = varNamesList.toArray(new String[varNamesList.size()]);
+        String[] measuredVarNames = varNamesList.toArray(new String[0]);
         return covMatrix.getSubmatrix(measuredVarNames);
     }
 
@@ -2259,36 +2036,13 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
 
         double trace = product.trace();
 
-//        double trace = MatrixUtils.trace(product);
         if (trace < -1e-8) {
             return 0;
-//            throw new IllegalArgumentException("Trace was negative: " + trace);
         }
 
         return trace;
     }
 
-//    private double traceABInv(TetradMatrix A, TetradMatrix B) {
-//
-//        // Note that at this point the sem and the sample covar MUST have the
-//        // same variables in the same order.
-//        TetradMatrix inverse;
-//        try {
-//            inverse = B.inverse();
-//        } catch (Exception e) {
-//            return Double.NaN;
-//        }
-//
-//        TetradMatrix product = A.times(inverse);
-//
-//        double trace = product.trace();
-//
-//        if (trace < -1e-8) {
-//            return 0;
-//        }
-//
-//        return trace;
-//    }
     private Matrix edgeCoef() {
         return this.edgeCoef;
     }
@@ -2315,9 +2069,6 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
      * class, even if Tetrad sessions were previously saved out using a version
      * of the class that didn't include it. (That's what the
      * "s.defaultReadObject();" is for. See J. Bloch, Effective Java, for help.
-     *
-     * @throws java.io.IOException
-     * @throws ClassNotFoundException
      */
     private void readObject(ObjectInputStream s)
             throws IOException, ClassNotFoundException {
@@ -2373,55 +2124,12 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         }
     }
 
-//    private TetradAlgebra getAlgebra() {
-//        if (algebra == null) {
-//            algebra = new TetradAlgebra();
-//        }
-//
-//        return algebra;
-//    }
-    private double round(double value, int decimalPlace) {
-        double power_of_ten = 1;
-        while (decimalPlace-- > 0) {
-            power_of_ten *= 10.0;
-        }
-        return Math.round(value * power_of_ten)
-                / power_of_ten;
-    }
-
     public Parameters getParams() {
         return params;
     }
 
     public void setParams(Parameters params) {
         this.params = params;
-    }
-
-    public void setFunction(Node node, ConnectionFunction function) {
-        List<Node> parents = semPm.getGraph().getParents(node);
-
-        for (Iterator<Node> j = parents.iterator(); j.hasNext();) {
-            Node _node = j.next();
-
-            if (_node.getNodeType() == NodeType.ERROR) {
-                j.remove();
-            }
-        }
-
-        HashSet<Node> parentSet = new HashSet<>(parents);
-        List<Node> inputList = Arrays.asList(function.getInputNodes());
-        HashSet<Node> inputSet = new HashSet<>(inputList);
-
-        if (!parentSet.equals(inputSet)) {
-            throw new IllegalArgumentException("The given function for " + node
-                    + " may only use the parents of " + node + ": " + parents);
-        }
-
-        functions.put(node, function);
-    }
-
-    public ConnectionFunction getConnectionFunction(Node node) {
-        return functions.get(node);
     }
 
     public double[] getVariableMeans() {
