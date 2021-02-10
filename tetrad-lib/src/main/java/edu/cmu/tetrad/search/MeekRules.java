@@ -45,10 +45,6 @@ public class MeekRules implements ImpliedOrientation {
 
     private IKnowledge knowledge = new Knowledge2();
 
-    //True if cycles are to be aggressively prevented. May be expensive for large graphs (but also useful for large
-    //graphs).
-    private boolean aggressivelyPreventCycles = false;
-
     // If knowledge is available.
     boolean useRule4;
 
@@ -140,15 +136,6 @@ public class MeekRules implements ImpliedOrientation {
         this.knowledge = knowledge;
     }
 
-
-    public boolean isAggressivelyPreventCycles() {
-        return aggressivelyPreventCycles;
-    }
-
-    public void setAggressivelyPreventCycles(boolean aggressivelyPreventCycles) {
-        this.aggressivelyPreventCycles = aggressivelyPreventCycles;
-    }
-
     public Map<Edge, Edge> getChangedEdges() {
         return changedEdges;
     }
@@ -163,6 +150,10 @@ public class MeekRules implements ImpliedOrientation {
 
     public Set<Node> getVisited() {
         return visited;
+    }
+
+    public void setAvoidNewUnshieldedColliders(boolean avoidNewUnshieldedColliders) {
+        this.avoidNewUnshieldedColliders = avoidNewUnshieldedColliders;
     }
 
     //============================== Private Methods ===================================//
@@ -361,9 +352,6 @@ public class MeekRules implements ImpliedOrientation {
         return adj;
     }
 
-    public void setAvoidNewUnshieldedColliders(boolean avoidNewUnshieldedColliders) {
-        this.avoidNewUnshieldedColliders = avoidNewUnshieldedColliders;
-    }
 }
 
 
