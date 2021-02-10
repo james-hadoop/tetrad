@@ -716,8 +716,9 @@ public class TestFisherZCalibration {
             Fges fges = new Fges(score);
             fges.setFaithfulnessAssumed(false);
             fges.setSymmetricFirstStep(true);
+            fges.setTDepth(1);
             fges.setVerbose(true);
-//            fges.setTDepth(1);
+            fges.setMeekVerbose(true);
             Graph pattern1 = fges.search();
             Graph pattern2 = new Pc(new IndTestDSep(dag)).search();
             assertEquals(pattern2, pattern1);

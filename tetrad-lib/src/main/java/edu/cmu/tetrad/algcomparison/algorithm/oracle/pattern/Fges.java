@@ -69,14 +69,14 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
 
             int parallelism = 10 * Runtime.getRuntime().availableProcessors();
             edu.cmu.tetrad.search.Fges search
-                    = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters), 20);//parallelism);
+                    = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters), parallelism);
             search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            search.setMeekVerbose(parameters.getBoolean(Params.MEEK_VERBOSE));
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
             search.setSymmetricFirstStep(parameters.getBoolean(Params.SYMMETRIC_FIRST_STEP));
-//            search.setTDepth(parameters.getInt(Params.TDEPTH));
-//            search.setTurning(parameters.getBoolean(Params.ADJUST_ORIENTATIONS));
+            search.setTDepth(parameters.getInt(Params.TDEPTH));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
             if (obj instanceof PrintStream) {
@@ -151,6 +151,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
         parameters.add(Params.ADJUST_ORIENTATIONS);
 
         parameters.add(Params.VERBOSE);
+        parameters.add(Params.MEEK_VERBOSE);
 
         return parameters;
     }
