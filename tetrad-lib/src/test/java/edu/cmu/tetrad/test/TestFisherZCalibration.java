@@ -185,15 +185,15 @@ public class TestFisherZCalibration {
 //        RandomUtil.getInstance().setSeed(92883342449L);
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 5);
+        parameters.set(Params.NUM_RUNS, 10);
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 4);
-        parameters.set(Params.SAMPLE_SIZE, 100000);
-//        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
+//        parameters.set(Params.SAMPLE_SIZE, 100000);
+        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
         parameters.set(Params.SEM_BIC_RULE, 1);
         parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
         parameters.set(Params.PENALTY_DISCOUNT, 1);
-//        parameters.set(Params.TDEPTH, 1);
+        parameters.set(Params.TDEPTH, 1);
         parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.ADJUST_ORIENTATIONS, false);
@@ -201,6 +201,7 @@ public class TestFisherZCalibration {
         parameters.set(Params.COEF_HIGH, 1);
         parameters.set(Params.VAR_LOW, 1.0);
         parameters.set(Params.VAR_HIGH, 3.0);
+        parameters.set(Params.VERBOSE, false);
         parameters.set(Params.VERBOSE, false);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
         parameters.set(Params.USE_EQUIVALENT_SAMPLE_SIZE, false);
@@ -214,7 +215,7 @@ public class TestFisherZCalibration {
 //        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
-        statistics.add(new ParameterColumn(Params.SEM_BIC_STRUCTURE_PRIOR));
+//        statistics.add(new ParameterColumn(Params.SEM_BIC_STRUCTURE_PRIOR));
 
         statistics.add(new NumberOfEdgesTrue());
         statistics.add(new NumberOfEdgesEst());
@@ -718,7 +719,7 @@ public class TestFisherZCalibration {
             fges.setSymmetricFirstStep(true);
             fges.setTDepth(1);
             fges.setVerbose(true);
-            fges.setMeekVerbose(true);
+            fges.setMeekVerbose(false);
             Graph pattern1 = fges.search();
             Graph pattern2 = new Pc(new IndTestDSep(dag)).search();
             assertEquals(pattern2, pattern1);
