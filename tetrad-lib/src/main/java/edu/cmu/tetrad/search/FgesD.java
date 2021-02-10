@@ -1791,8 +1791,7 @@ public final class FgesD implements GraphSearch, GraphScorer {
     private Set<Node> meekOrientRestricted(List<Node> nodes, IKnowledge knowledge) {
         MeekRules rules = new MeekRules();
         rules.setKnowledge(knowledge);
-        rules.orientImplied(graph, nodes);
-        return rules.getVisited();
+        return rules.orientImplied(graph, nodes);
     }
 
     // Maps adj to their indices for quick lookup.

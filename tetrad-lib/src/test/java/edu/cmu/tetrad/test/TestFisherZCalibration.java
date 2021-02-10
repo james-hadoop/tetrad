@@ -26,7 +26,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static edu.cmu.tetrad.graph.GraphUtils.existsSemiDirectedPath;
 import static edu.cmu.tetrad.graph.GraphUtils.traverseSemiDirected;
 import static java.lang.StrictMath.abs;
 import static org.junit.Assert.assertEquals;
@@ -372,30 +371,6 @@ public class TestFisherZCalibration {
         System.out.println("   Parents to undirect for " + node + " = " + parentsToUndirect);
 
         return (!parentsToUndirect.isEmpty());
-    }
-
-    @Test
-    public void test6() {
-        List<Node> nodes = new ArrayList<>();
-        Node x = new GraphNode("x");
-        Node y = new GraphNode("y");
-        Node z = new GraphNode("z");
-
-        nodes.add(x);
-        nodes.add(y);
-        nodes.add(z);
-
-        Graph graph = new EdgeListGraph(nodes);
-
-        graph.addUndirectedEdge(x, y);
-        graph.addDirectedEdge(x, z);
-        graph.addDirectedEdge(y, z);
-
-        MeekRules rules = new MeekRules();
-
-        rules.revertToUnshieldedColliders(nodes, graph);
-
-        System.out.println(graph);
     }
 
     @Test
