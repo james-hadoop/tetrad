@@ -76,11 +76,12 @@ public class MeekRules implements ImpliedOrientation {
         orientImplied(graph, graph.getNodes());
     }
 
+    /**
+     * Reverts the graph to its pattern and then applies the Meek rules.
+     * @return The set of nodes around which orientations were changed by the process.
+     */
     public Set<Node> orientImplied(Graph graph, List<Node> nodes) {
-        // The initial list of nodes to visit.
         Set<Node> visited = new HashSet<>();
-
-        TetradLogger.getInstance().log("impliedOrientations", "Starting Orientation Step D.");
         revertToUnshieldedColliders(graph.getNodes(), graph, visited);
 
         boolean oriented = true;
