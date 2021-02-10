@@ -23,8 +23,10 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.util.ChoiceGenerator;
+import edu.cmu.tetrad.graph.Edge;
+import edu.cmu.tetrad.graph.Edges;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
@@ -37,7 +39,7 @@ import java.util.*;
  * <p>
  * Rule R4 is only performed if knowledge is nonempty.
  *
- * @author Joseph Ramsey
+ * @author Joseph Ramsey 2021.02.10
  */
 public class MeekRules implements ImpliedOrientation {
 
@@ -98,6 +100,10 @@ public class MeekRules implements ImpliedOrientation {
 
                 Node x = edge.getNode1();
                 Node y = edge.getNode2();
+
+                if (!(nodes.contains(x) && nodes.contains(y))) {
+                    continue;
+                }
 
                 if (meekR1(x, y, graph)) oriented = true;
                 else if (meekR1(y, x, graph)) oriented = true;
