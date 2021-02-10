@@ -324,7 +324,6 @@ public final class Mbfs implements MbSearch, GraphSearch {
         orientUnshieldedTriples(knowledge, graph, getTest(), getDepth(), _visited);
 
         MeekRules meekRules = new MeekRules();
-        meekRules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
         meekRules.setKnowledge(knowledge);
         meekRules.orientImplied(graph);
 
@@ -416,7 +415,6 @@ public final class Mbfs implements MbSearch, GraphSearch {
         orientUnshieldedTriples(knowledge, graph, getTest(), getDepth(), graph.getNodes());
 
         MeekRules meekRules = new MeekRules();
-        meekRules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
         meekRules.setKnowledge(knowledge);
         meekRules.orientImplied(graph);
 

@@ -273,7 +273,6 @@ public class Pcd implements GraphSearch {
         SearchGraphUtils.pcdOrientC(sepsets, getIndependenceTest(), knowledge, graph);
 
         MeekRules rules = new MeekRules();
-        rules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
         rules.setKnowledge(knowledge);
         rules.orientImplied(graph);
 

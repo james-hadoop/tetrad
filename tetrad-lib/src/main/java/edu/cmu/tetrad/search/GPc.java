@@ -261,7 +261,6 @@ public final class GPc implements GraphSearch {
         modifiedR0(fgesGraph);
 
         MeekRules rules = new MeekRules();
-        rules.setAggressivelyPreventCycles(false);
         rules.setKnowledge(knowledge);
         rules.orientImplied(graph);
 

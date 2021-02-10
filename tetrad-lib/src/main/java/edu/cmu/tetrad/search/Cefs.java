@@ -265,7 +265,6 @@ public final class Cefs {
         orientUnshieldedTriples(knowledge, graph, getTest(), getDepth(), _visited);
 
         MeekRules meekRules = new MeekRules();
-        meekRules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
         meekRules.setKnowledge(knowledge);
         meekRules.orientImplied(graph);
 

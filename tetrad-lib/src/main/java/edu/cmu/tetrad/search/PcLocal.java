@@ -141,7 +141,6 @@ public class PcLocal implements GraphSearch {
         sepsetProducer = new SepsetsMinScore(graph, getIndependenceTest(), -1);
 
         meekRules = new MeekRules();
-        meekRules.setAggressivelyPreventCycles(isAggressivelyPreventCycles());
         meekRules.setKnowledge(knowledge);
 
         // This is the list of all changed nodes from the last iteration

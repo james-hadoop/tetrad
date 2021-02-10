@@ -119,7 +119,6 @@ public class CpcLocal implements GraphSearch {
 
         graph = new EdgeListGraph(getIndependenceTest().getVariables());
         meekRules = new MeekRules();
-        meekRules.setAggressivelyPreventCycles(isAggressivelyPreventCycles());
         meekRules.setKnowledge(knowledge);
 
 

@@ -109,7 +109,6 @@ public class CpcLocalRunner extends AbstractAlgorithmRunner
 
     public ImpliedOrientation getMeekRules() {
         MeekRules rules = new MeekRules();
-        rules.setAggressivelyPreventCycles(isAggressivelyPreventCycles());
         rules.setKnowledge((IKnowledge) getParams().get("knowledge", new Knowledge2()));
         return rules;
     }
