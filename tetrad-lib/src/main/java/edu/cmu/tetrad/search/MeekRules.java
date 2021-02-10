@@ -58,14 +58,15 @@ public class MeekRules implements ImpliedOrientation {
     // Where verbose output should be sent.
     private PrintStream out;
 
-    // The initial list of nodes to visit.
-    private List<Node> nodes = new ArrayList<>();
-
     // The list of nodes actually visited.
     private Set<Node> visited = new HashSet<>();
 
     // True if verbose output should be printed.
     private boolean verbose = false;
+
+    // True if new unshielded colliders should not be oriented by the procedure. That is, if
+    // P->A--C, ~adj(A, C), where A--C is to be oriented by any rule, R1 usurps to yield P->A->C.
+    private boolean avoidNewUnshieldedColliders = false;
 
     /**
      * Constructs the <code>MeekRules</code> with no logging.
@@ -81,7 +82,7 @@ public class MeekRules implements ImpliedOrientation {
     }
 
     public Set<Node> orientImplied(Graph graph, List<Node> nodes) {
-        this.nodes = nodes;
+        // The initial list of nodes to visit.
         this.visited = new HashSet<>();
 
         TetradLogger.getInstance().log("impliedOrientations", "Starting Orientation Step D.");
@@ -280,18 +281,20 @@ public class MeekRules implements ImpliedOrientation {
     private boolean direct(Node a, Node c, Graph graph) {
         if (!isArrowpointAllowed(a, c, knowledge)) return false;
 
-        for (Node p : graph.getParents(c)) {
-            if (p != a && !graph.isAdjacentTo(a, p)) {
-                Edge before = graph.getEdge(a, c);
-                Edge after = Edges.directedEdge(c, a);
+        if (avoidNewUnshieldedColliders) {
+            for (Node p : graph.getParents(c)) {
+                if (p != a && !graph.isAdjacentTo(a, p)) {
+                    Edge before = graph.getEdge(a, c);
+                    Edge after = Edges.directedEdge(c, a);
 
-                visited.add(a);
-                visited.add(c);
+                    visited.add(a);
+                    visited.add(c);
 
-                graph.removeEdge(before);
-                graph.addEdge(after);
+                    graph.removeEdge(before);
+                    graph.addEdge(after);
 
-                return true;
+                    return true;
+                }
             }
         }
 
@@ -350,6 +353,10 @@ public class MeekRules implements ImpliedOrientation {
         Set<Node> adj = new HashSet<>(graph.getAdjacentNodes(x));
         adj.retainAll(graph.getAdjacentNodes(y));
         return adj;
+    }
+
+    public void setAvoidNewUnshieldedColliders(boolean avoidNewUnshieldedColliders) {
+        this.avoidNewUnshieldedColliders = avoidNewUnshieldedColliders;
     }
 }
 

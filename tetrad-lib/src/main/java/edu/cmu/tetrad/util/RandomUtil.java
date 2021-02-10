@@ -56,9 +56,7 @@ public class RandomUtil {
     // Random number generator from the Apache library.
     private RandomGenerator randomGenerator;
 
-    Random random;
-
-    private NormalDistribution normal = new NormalDistribution(0, 1);
+    private Random random;
 
     private long seed;
 
@@ -125,11 +123,7 @@ public class RandomUtil {
         }
 
         double sample = random.nextGaussian();
-
-//        double sample = normal.sample();
         return sample * sd + mean;
-
-//        return new NormalDistribution(randomGenerator, mean, sd).sample();
     }
 
     /**
@@ -166,7 +160,6 @@ public class RandomUtil {
         // Do not change this generator; you will screw up innuerable unit tests!
         randomGenerator = new SynchronizedRandomGenerator(new Well44497b(seed));
         seedsToGenerators.put(seed, randomGenerator);
-        normal = new NormalDistribution(randomGenerator, 0, 1);
         random = new Random(seed);
         this.seed = seed;
     }
@@ -175,7 +168,6 @@ public class RandomUtil {
 
         // Do not change this generator; you will screw up innuerable unit tests!
         randomGenerator = seedsToGenerators.get(seed);
-        normal = new NormalDistribution(randomGenerator, 0, 1);
         random = new Random(seed);
         this.seed = seed;
 
@@ -197,7 +189,7 @@ public class RandomUtil {
      * @return Ibid.
      */
     public double normalCdf(double mean, double sd, double value) {
-        return normal.cumulativeProbability((value - mean) / sd);
+        return new NormalDistribution().cumulativeProbability((value - mean) / sd);
     }
 
     /**

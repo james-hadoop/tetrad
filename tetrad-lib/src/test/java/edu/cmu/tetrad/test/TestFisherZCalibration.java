@@ -443,7 +443,7 @@ public class TestFisherZCalibration {
 
                 Fges fges = new Fges(score);
                 fges.setFaithfulnessAssumed(false);
-                fges.setTurning(false);
+//                fges.setTurning(false);
 //                fges.setVerbose(true);
 
                 Graph out = fges.search();
@@ -729,7 +729,7 @@ public class TestFisherZCalibration {
 
     @Test
     public void test10() {
-        int numNodes = 8;
+        int numNodes = 18;
         int aveDegree = 4;
         int numIterations = 1;
 
