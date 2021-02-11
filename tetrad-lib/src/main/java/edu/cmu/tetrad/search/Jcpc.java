@@ -333,7 +333,7 @@ public class Jcpc implements GraphSearch {
     private void applyMeek(List<Node> y, Graph graph) {
         List<Node> start = new ArrayList<>();
         for (Node n : y) start.add(n);
-        meekRules.orientImplied(graph, start);
+        meekRules.orientImplied(graph);
     }
 
     private void reorientNode(Node y, Graph graph) {

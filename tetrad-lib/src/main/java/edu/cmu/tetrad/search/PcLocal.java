@@ -349,7 +349,7 @@ public class PcLocal implements GraphSearch {
     private void applyMeek(List<Node> y) {
         List<Node> start = new ArrayList<>();
         for (Node n : y) start.add(n);
-        meekRules.orientImplied(graph, start);
+        meekRules.orientImplied(graph);
     }
 
     private void unorientAdjacents(Node y) {

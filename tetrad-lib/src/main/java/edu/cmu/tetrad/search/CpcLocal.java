@@ -205,7 +205,7 @@ public class CpcLocal implements GraphSearch {
             start.add(x);
             start.add(y);
 
-            meekRules.orientImplied(graph, start);
+            meekRules.orientImplied(graph);
 
             renderUnambiguousWherePossible();
         }
@@ -273,7 +273,7 @@ public class CpcLocal implements GraphSearch {
 //        start.add(x);
         start.add(y);
 
-        meekRules.orientImplied(graph, start);
+        meekRules.orientImplied(graph);
     }
 
     private boolean orientCollider1(Node x, Node y) {
@@ -294,7 +294,7 @@ public class CpcLocal implements GraphSearch {
         List<Node> start = new ArrayList<>();
         start.add(y);
 
-        meekRules.orientImplied(graph, start);
+        meekRules.orientImplied(graph);
         return oriented;
     }
 
@@ -341,7 +341,7 @@ public class CpcLocal implements GraphSearch {
             }
         }
 
-        meekRules.orientImplied(graph, start);
+        meekRules.orientImplied(graph);
         renderUnambiguousWherePossible();
         return oriented;
     }

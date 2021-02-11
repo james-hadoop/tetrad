@@ -23,8 +23,10 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.util.ChoiceGenerator;
+import edu.cmu.tetrad.graph.Edge;
+import edu.cmu.tetrad.graph.Edges;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
@@ -64,10 +66,6 @@ public class MeekRules implements ImpliedOrientation {
     // True if verbose output should be printed.
     private boolean verbose = false;
 
-    // True if new unshielded colliders should not be oriented by the procedure. That is, if
-    // P->A--C, ~adj(A, C), where A--C is to be oriented by any rule, R1 usurps to yield P->A->C.
-    private boolean avoidNewUnshieldedColliders = false;
-
     /**
      * Constructs the <code>MeekRules</code> with no logging.
      */
@@ -77,11 +75,7 @@ public class MeekRules implements ImpliedOrientation {
 
     //======================== Public Methods ========================//
 
-    public void orientImplied(Graph graph) {
-        orientImplied(graph, graph.getNodes());
-    }
-
-    public Set<Node> orientImplied(Graph graph, List<Node> nodes) {
+    public Set<Node> orientImplied(Graph graph) {
         // The initial list of nodes to visit.
         this.visited = new HashSet<>();
 
@@ -281,22 +275,25 @@ public class MeekRules implements ImpliedOrientation {
     private boolean direct(Node a, Node c, Graph graph) {
         if (!isArrowpointAllowed(a, c, knowledge)) return false;
 
-        if (avoidNewUnshieldedColliders) {
-            for (Node p : graph.getParents(c)) {
-                if (p != a && !graph.isAdjacentTo(a, p)) {
-                    Edge before = graph.getEdge(a, c);
-                    Edge after = Edges.directedEdge(c, a);
-
-                    visited.add(a);
-                    visited.add(c);
-
-                    graph.removeEdge(before);
-                    graph.addEdge(after);
-
-                    return true;
-                }
-            }
-        }
+//        // True if new unshielded colliders should not be oriented by the procedure. That is, if
+//        // P->A--C, ~adj(A, C), where A--C is to be oriented by any rule, R1 usurps to yield P->A->C.
+//        boolean avoidNewUnshieldedColliders = false;
+//        if (avoidNewUnshieldedColliders) {
+//            for (Node p : graph.getParents(c)) {
+//                if (p != a && !graph.isAdjacentTo(a, p)) {
+//                    Edge before = graph.getEdge(a, c);
+//                    Edge after = Edges.directedEdge(c, a);
+//
+//                    visited.add(a);
+//                    visited.add(c);
+//
+//                    graph.removeEdge(before);
+//                    graph.addEdge(after);
+//
+//                    return true;
+//                }
+//            }
+//        }
 
         Edge before = graph.getEdge(a, c);
         Edge after = Edges.directedEdge(a, c);
@@ -353,10 +350,6 @@ public class MeekRules implements ImpliedOrientation {
         Set<Node> adj = new HashSet<>(graph.getAdjacentNodes(x));
         adj.retainAll(graph.getAdjacentNodes(y));
         return adj;
-    }
-
-    public void setAvoidNewUnshieldedColliders(boolean avoidNewUnshieldedColliders) {
-        this.avoidNewUnshieldedColliders = avoidNewUnshieldedColliders;
     }
 }
 
