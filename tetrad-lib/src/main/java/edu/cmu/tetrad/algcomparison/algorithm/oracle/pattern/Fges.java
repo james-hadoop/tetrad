@@ -67,7 +67,8 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
     public Graph search(DataModel dataSet, Parameters parameters) {
     	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 
-            int parallelism = Runtime.getRuntime().availableProcessors();
+    	    int parallelism = parameters.getInt(Params.PARALLELISM);
+
             edu.cmu.tetrad.search.Fges search
                     = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters), parallelism);
             search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
@@ -75,7 +76,6 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
             search.setSymmetricFirstStep(parameters.getBoolean(Params.SYMMETRIC_FIRST_STEP));
-//            search.setTDepth(parameters.ge tInt(Params.TDEPTH));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
             if (obj instanceof PrintStream) {
@@ -146,8 +146,8 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
         parameters.add(Params.FAITHFULNESS_ASSUMED);
         parameters.add(Params.SYMMETRIC_FIRST_STEP);
         parameters.add(Params.MAX_DEGREE);
-//        parameters.add(Params.TDEPTH);
         parameters.add(Params.ADJUST_ORIENTATIONS);
+        parameters.add(Params.PARALLELISM);
 
         parameters.add(Params.VERBOSE);
 
@@ -162,10 +162,6 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
     @Override
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
-    }
-
-    public void setCompareToTrue(boolean compareToTrue) {
-        this.compareToTrue = compareToTrue;
     }
 
     @Override

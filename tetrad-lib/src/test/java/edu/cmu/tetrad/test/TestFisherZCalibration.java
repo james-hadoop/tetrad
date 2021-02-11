@@ -26,16 +26,10 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static edu.cmu.tetrad.graph.GraphUtils.existsSemiDirectedPath;
 import static edu.cmu.tetrad.graph.GraphUtils.traverseSemiDirected;
-import static java.lang.StrictMath.abs;
 import static org.junit.Assert.assertEquals;
 
 public class TestFisherZCalibration {
-
-//    public static void main(String... args) {
-//        test1();
-//    }
 
     @Test
     public void test1() {
@@ -92,8 +86,6 @@ public class TestFisherZCalibration {
 
         for (int i = 0; i < numDraws; i++) {
             Collections.shuffle(variables);
-//            Collections.shuffle(variables);
-//            Collections.shuffle(variables);
 
             Node x = variables.get(0);
             Node y = variables.get(1);
@@ -149,11 +141,9 @@ public class TestFisherZCalibration {
         System.out.println("beta^ for Fisher Z = " + betaHat);
         System.out.println("alpha^ for Local Scoring Consistency Criterion = " + alphaHat2);
         System.out.println("beta^ for Local Scoring Consistency Criterion = " + betaHat2);
-
-//        Assert.assertTrue(abs(alpha - alphaHat) < 2 * alpha);
     }
 
-    //    @Test
+    @Test
     public void test2() {
         Parameters parameters = new Parameters();
         parameters.set(Params.PENALTY_DISCOUNT, 1);
@@ -172,12 +162,6 @@ public class TestFisherZCalibration {
         fges.setVerbose(true);
 
         fges.search();
-
-//        fges = new Fges(new GraphScore(graph));
-//        fges.setVerbose(true);
-//        fges.search();
-
-
     }
 
     @Test
@@ -189,7 +173,6 @@ public class TestFisherZCalibration {
         parameters.set(Params.NUM_RUNS, 10);
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 4);
-//        parameters.set(Params.SAMPLE_SIZE, 100000);
         parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
@@ -197,14 +180,13 @@ public class TestFisherZCalibration {
         parameters.set(Params.VAR_HIGH, 3.0);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
 
-//        parameters.set(Params.MAX_DEGREE, -1);
-//        parameters.set(Params.TDEPTH, -1);
         parameters.set(Params.ADJUST_ORIENTATIONS, false);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.VERBOSE, false);
+        parameters.set(Params.PARALLELISM, 4);
 
-        parameters.set(Params.PENALTY_DISCOUNT, 1);
+        parameters.set(Params.PENALTY_DISCOUNT, 2);
         parameters.set(Params.SEM_BIC_RULE, 1);
         parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
         parameters.set(Params.USE_EQUIVALENT_SAMPLE_SIZE, false);
@@ -213,8 +195,6 @@ public class TestFisherZCalibration {
 
         statistics.add(new ParameterColumn(Params.NUM_RUNS));
         statistics.add(new ParameterColumn(Params.SEM_BIC_RULE));
-//        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
-//        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
         statistics.add(new ParameterColumn(Params.SEM_BIC_STRUCTURE_PRIOR));
@@ -223,11 +203,8 @@ public class TestFisherZCalibration {
         statistics.add(new NumberOfEdgesEst());
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
-//        statistics.add(new ArrowheadPrecision());
-//        statistics.add(new ArrowheadRecall());
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
-//        statistics.add(new AhpBound());
 
         statistics.add(new F1Adj());
         statistics.add(new F1Arrow());
@@ -333,16 +310,6 @@ public class TestFisherZCalibration {
 
         Graph pattern = fges.search();
 
-//        MeekRules rules = new MeekRules();
-//        rules.setUndirectUnforcedEdges(true);
-
-//        System.out.println("First");
-//        rules.orientImplied(pattern);
-//        rules.orientImplied(pattern);
-//
-//        System.out.println("Second");
-//        rules.orientImplied(pattern);
-
         if (pattern == null) throw new IllegalArgumentException();
 
         for (Node node : pattern.getNodes()) {
@@ -441,21 +408,15 @@ public class TestFisherZCalibration {
                 SemBicScore score = new SemBicScore(rawdata);
                 score.setUseEquivalentSampleSize(false);
                 score.setRuleType(SemBicScore.RuleType.CHICKERING);
-                score.setPenaltyDiscount(1);
+                score.setPenaltyDiscount(2);
 
                 Fges fges = new Fges(score);
                 fges.setFaithfulnessAssumed(false);
-//                fges.setTurning(false);
-//                fges.setVerbose(true);
+                fges.setMaxDegree(100);
+                fges.setSymmetricFirstStep(false);
 
                 Graph out = fges.search();
-
-//                System.out.println(out);
-
-
-//                Graph graph = GraphUtils.loadRSpecial(graphFile);
                 Graph graph = GraphUtils.loadGraphTxt(graphFile);
-
 
                 List<Node> nodes = graph.getNodes();
 
@@ -465,25 +426,12 @@ public class TestFisherZCalibration {
 
                     if (node == null) {
                         System.out.println(name);
+                    } else {
+                        node.setName("C" + k);
                     }
-
-                    node.setName("C" + k);
                 }
 
                 graph = GraphUtils.replaceNodes(graph, out.getNodes());
-
-
-//                graph = SearchGraphUtils.patternForDag(graph);
-
-//                System.out.println(graph);
-
-//                System.out.println("AP = " + new AdjacencyPrecision().getValue(graph, out, rawdata));
-//                System.out.println("AR = " + new AdjacencyRecall().getValue(graph, out, rawdata));
-//                System.out.println("AHP = " + new ArrowheadPrecision().getValue(graph, out, rawdata));
-//                System.out.println("AHR = " + new AdjacencyRecall().getValue(graph, out, rawdata));
-//                System.out.println("F1Adj = " + new F1Adj().getValue(graph, out, rawdata));
-//                System.out.println("F1Arrow = " + new F1Arrow().getValue(graph, out, rawdata));
-//                System.out.println();
 
                 apsum += new AdjacencyPrecision().getValue(graph, out, rawdata);
                 arsum += new AdjacencyRecall().getValue(graph, out, rawdata);

@@ -104,7 +104,7 @@ public class SemBicScore implements Score {
         }
 
         if (!dataSet.existsMissingValue()) {
-            setCovariances(new CovarianceMatrix(dataSet, false));
+            setCovariances(new CovarianceMatrix(dataSet));
             this.variables = covariances.getVariables();
             this.sampleSize = covariances.getSampleSize();
             this.indexMap = indexMap(this.variables);
@@ -163,7 +163,7 @@ public class SemBicScore implements Score {
 
         final int p = parents.length;
 
-        int k = p + 1;
+        final double k = p + 1.0;
 
         int[] all = concat(i, parents);
 
@@ -178,13 +178,6 @@ public class SemBicScore implements Score {
         Matrix b = adjustedCoefs(covxx.inverse().times(covxy));
         Matrix times = b.transpose().times(cov).times(b);
         double varey = times.get(0, 0);
-
-//         Ricardo's calculation.
-//        Matrix b = covxx.inverse().times(covxy);
-//        double varey = cov.get(0, 0);
-//        edu.cmu.tetrad.util.Vector _cxy = covxy.getColumn(0);
-//        Vector _b = b.getColumn(0);
-//        varey -= _cxy.dotProduct(_b);
 
         double c = getPenaltyDiscount();
 

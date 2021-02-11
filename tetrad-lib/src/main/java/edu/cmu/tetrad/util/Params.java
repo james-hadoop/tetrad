@@ -142,6 +142,7 @@ public final class Params {
     public static final String ORIENT_TOWARD_DCONNECTIONS = "orientTowardDConnections";
     public static final String ORIENT_VISIBLE_FEEDBACK_LOOPS = "orientVisibleFeedbackLoops";
     public static final String OUTPUT_RBD = "outputRBD";
+    public static final String PARALLELISM = "parallelism";
     public static final String PENALTY_DISCOUNT = "penaltyDiscount";
     public static final String PERCENT_DISCRETE = "percentDiscrete";
     public static final String PERCENT_RESAMPLE_SIZE = "percentResampleSize";
