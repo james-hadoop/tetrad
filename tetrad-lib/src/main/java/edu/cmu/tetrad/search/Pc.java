@@ -286,7 +286,6 @@ public class Pc implements GraphSearch {
         }
 
         MeekRules rules = new MeekRules();
-        rules.setAggressivelyPreventCycles(false);
         rules.setKnowledge(knowledge);
         rules.orientImplied(graph);
 

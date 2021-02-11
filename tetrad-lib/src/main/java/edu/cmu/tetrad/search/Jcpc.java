@@ -194,7 +194,6 @@ public class Jcpc implements GraphSearch {
     public Graph search() {
 
         meekRules = new MeekRules();
-        meekRules.setAggressivelyPreventCycles(isAggressivelyPreventCycles());
         meekRules.setKnowledge(knowledge);
 
         long time1 = System.currentTimeMillis();
@@ -629,7 +628,6 @@ public class Jcpc implements GraphSearch {
         SearchGraphUtils.pcOrientbk(knowledge, graph, graph.getNodes());
         orientUnshieldedTriples(graph, test, depth, knowledge);
         MeekRules meekRules = new MeekRules();
-        meekRules.setAggressivelyPreventCycles(isAggressivelyPreventCycles());
         meekRules.setKnowledge(knowledge);
         meekRules.orientImplied(graph);
     }

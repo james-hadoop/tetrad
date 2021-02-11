@@ -188,6 +188,7 @@ public final class Params {
     public static final String VAR_HIGH = "varHigh";
     public static final String VAR_LOW = "varLow";
     public static final String VERBOSE = "verbose";
+    public static final String MEEK_VERBOSE = "meekVerbose";
 
     // System prameters that are not supposed to put in the HTML manual documentation
     public static final String PRINT_STREAM = "printStream";

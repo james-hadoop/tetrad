@@ -301,7 +301,6 @@ public final class VcpcAlt implements GraphSearch {
 //            orientUnshieldedTriplesConcurrent(knowledge, getIndependenceTest(), getMaxIndegree());
             MeekRules meekRules = new MeekRules();
 
-            meekRules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
             meekRules.setKnowledge(knowledge);
 
             meekRules.orientImplied(graph);
@@ -650,7 +649,6 @@ public final class VcpcAlt implements GraphSearch {
         SearchGraphUtils.pcOrientbk(knowledge, graph, graph.getNodes());
         orientUnshieldedTriples(knowledge, getIndependenceTest(), depth);
         MeekRules meekRules = new MeekRules();
-        meekRules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
         meekRules.setKnowledge(knowledge);
         meekRules.orientImplied(graph);
 

@@ -28,7 +28,6 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.StatUtils;
-import edu.cmu.tetrad.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -74,8 +73,8 @@ public class SemBicScore implements Score {
     // The rule type to use.
     private RuleType ruleType = RuleType.CHICKERING;
 
-    // Equivalent sample size.
-    private double ess;
+    // Sample size or equivalent sample size.
+    private double N;
 
     // True if the equivalent sample size should be used in place of N.
     private boolean useEquivalentSampleSize = false;
@@ -190,12 +189,9 @@ public class SemBicScore implements Score {
         double c = getPenaltyDiscount();
 
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
-                        k = (p + 1) * (p + 2) / 2;
-
 
             // Standard BIC, with penalty discount and structure prior.
-            return -sampleSize * log(varey) - c * k * log(sampleSize) + 2 * getStructurePrior(p);
-//            return -sampleSize * log(varey) - k * log(sampleSize) - 2 * getStructurePrior(p);
+            return -N * log(varey) - c * k * log(N) + 2 * getStructurePrior(p);
 
         } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
@@ -204,14 +200,7 @@ public class SemBicScore implements Score {
             // We will just take 6 * omega * (1 + gamma) to be a number >= 6. To be compatible with other scores,
             // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
-
-            int n = sampleSize;
-//            k = (p + 1) * (p + 2) / 2;
-
-//            System.out.println("logn = " + log(n));
-
-            return -sampleSize * log(varey) - c * k * 6 * log(m) + 2 * getStructurePrior(p);
-//            return -sampleSize * log(varey) - c * k * log(n) * log(m);
+            return -N * log(varey) - c * k * 6 * log(m) + 2 * getStructurePrior(p);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
@@ -272,10 +261,10 @@ public class SemBicScore implements Score {
     public void setStructurePrior(double structurePrior) {
         this.structurePrior = structurePrior;
 
-        this.ess = covariances.getSampleSize();
+        this.N = covariances.getSampleSize();
 
         if (useEquivalentSampleSize) {
-            this.ess = DataUtils.getEss(covariances);
+            this.N = DataUtils.getEss(covariances);
         }
     }
 

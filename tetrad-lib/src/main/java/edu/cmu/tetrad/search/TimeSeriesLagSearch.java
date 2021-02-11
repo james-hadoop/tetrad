@@ -293,7 +293,6 @@ public final class TimeSeriesLagSearch implements GraphSearch {
         SearchGraphUtils.pcOrientbk(knowledge, graph, graph.getNodes());
         orientUnshieldedTriples(knowledge, getIndependenceTest(), depth);
         MeekRules meekRules = new MeekRules();
-        meekRules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
         meekRules.setKnowledge(knowledge);
         meekRules.orientImplied(graph);
 
