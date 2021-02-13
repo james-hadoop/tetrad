@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
  */
 public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable,
         MultipleGraphSource, Unmarshallable, SessionModel, IndTestProducer,
-        KnowledgeBoxInput {
+        KnowledgeBoxInput, GraphSource {
 
     static final long serialVersionUID = 23L;
 
