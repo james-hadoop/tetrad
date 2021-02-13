@@ -90,7 +90,6 @@ public class TestFges {
 
         Fges ges = new Fges(score);
         ges.setVerbose(false);
-        ges.setFaithfulnessAssumed(false);
     }
 
 
@@ -114,7 +113,6 @@ public class TestFges {
     public void testExplore5() {
         Graph graph = GraphConverter.convert("A-->B,A-->C,A-->D,A->E,B-->F,C-->F,D-->F,E-->F");
         Fges fges = new Fges(new GraphScore(graph));
-        fges.setFaithfulnessAssumed(false);
         Graph pattern = fges.search();
         assertEquals(SearchGraphUtils.patternForDag(graph), pattern);
     }
@@ -143,7 +141,6 @@ public class TestFges {
 
         Graph pattern1 = new Pc(new IndTestDSep(g)).search();
         Fges fges = new Fges(new GraphScore(g));
-        fges.setFaithfulnessAssumed(true);
         Graph pattern2 = fges.search();
 
 //        System.out.println(pattern1);
@@ -626,7 +623,6 @@ public class TestFges {
                             SemBicScore score = new SemBicScore(data);
                             score.setPenaltyDiscount(.5);
                             Fges fges = new Fges(score);
-                            fges.setFaithfulnessAssumed(false);
                             fges.setVerbose(false);
                             Graph pattern1 = fges.search();
                             System.out.println("num nodes = " + numNodes + " avg degree = " + avgDegree
@@ -667,7 +663,6 @@ public class TestFges {
             IKnowledge knowledge = forbiddenKnowledge(knowledgeGraph);
 
             Fges fges = new Fges(new GraphScore(dag));
-            fges.setFaithfulnessAssumed(true);
             fges.setKnowledge(knowledge);
             Graph pattern1 = fges.search();
 
@@ -698,7 +693,6 @@ public class TestFges {
             IKnowledge knowledge = requiredKnowledge(knowledgeGraph);
 
             Fges fges = new Fges(new GraphScore(dag));
-            fges.setFaithfulnessAssumed(true);
             fges.setKnowledge(knowledge);
             Graph pattern1 = fges.search();
 

@@ -56,7 +56,6 @@ public class ImagesBDeu implements MultiDataSetAlgorithm, HasKnowledge {
             score.setSamplePrior(parameters.getDouble(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE));
             score.setStructurePrior(parameters.getDouble(Params.STRUCTURE_PRIOR));
             edu.cmu.tetrad.search.Fges search = new edu.cmu.tetrad.search.Fges(score);
-            search.setFaithfulnessAssumed(true);
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
 

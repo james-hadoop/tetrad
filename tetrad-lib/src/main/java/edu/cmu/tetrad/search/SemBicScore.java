@@ -149,7 +149,7 @@ public class SemBicScore implements Score {
         double r = partialCorrelation(_x, _y, _z, rows);
         double c = getPenaltyDiscount();
 
-        return -sampleSize * log(1.0 - r * r) - c * log(sampleSize)
+        return -N * log(1.0 - r * r) - c * log(N)
                 + 2.0 * (sp1 - sp2);
     }
 
@@ -163,7 +163,7 @@ public class SemBicScore implements Score {
 
         final int p = parents.length;
 
-        final double k = p + 1.0;
+        final double k = p + 1;
 
         int[] all = concat(i, parents);
 
@@ -253,12 +253,6 @@ public class SemBicScore implements Score {
 
     public void setStructurePrior(double structurePrior) {
         this.structurePrior = structurePrior;
-
-        this.N = covariances.getSampleSize();
-
-        if (useEquivalentSampleSize) {
-            this.N = DataUtils.getEss(covariances);
-        }
     }
 
     public boolean isVerbose() {
@@ -316,6 +310,12 @@ public class SemBicScore implements Score {
     private void setCovariances(ICovarianceMatrix covariances) {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
+
+        this.N = covariances.getSampleSize();
+
+        if (useEquivalentSampleSize) {
+            this.N = DataUtils.getEss(covariances);
+        }
     }
 
     private static int[] append(int[] z, int x) {

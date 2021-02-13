@@ -881,7 +881,6 @@ public class PerformanceTests {
 
                 Fges fges = new Fges(score);
                 fges.setOut(System.out);
-                fges.setFaithfulnessAssumed(faithfulness);
 
                 long timeb = System.currentTimeMillis();
 
@@ -921,7 +920,6 @@ public class PerformanceTests {
 
                 Fges fges = new Fges(score);
                 fges.setOut(System.out);
-                fges.setFaithfulnessAssumed(faithfulness);
 
                 long timeb = System.currentTimeMillis();
 

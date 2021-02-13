@@ -5,6 +5,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -180,16 +181,22 @@ public class TestFisherZCalibration {
         parameters.set(Params.VAR_HIGH, 3.0);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
 
-        parameters.set(Params.ADJUST_ORIENTATIONS, false);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
+//        parameters.set(Params.ADJUST_ORIENTATIONS, false);
+//        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.VERBOSE, false);
-        parameters.set(Params.PARALLELISM, 4);
+        parameters.set(Params.PARALLELISM, 8);
 
-        parameters.set(Params.PENALTY_DISCOUNT, 2);
-        parameters.set(Params.SEM_BIC_RULE, 1);
+        parameters.set(Params.PENALTY_DISCOUNT, 1);
+        parameters.set(Params.SEM_BIC_RULE, 3);
         parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
-        parameters.set(Params.USE_EQUIVALENT_SAMPLE_SIZE, false);
+        parameters.set(Params.USE_EQUIVALENT_SAMPLE_SIZE, true);
+
+        parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 50);
+        parameters.set(Params.INTERVAL_BETWEEN_RECORDINGS, 50);
+        parameters.set(Params.SELF_LOOP_COEF, 0);
+        parameters.set(Params.FISHER_EPSILON, 1e-6);
+
 
         Statistics statistics = new Statistics();
 
@@ -410,8 +417,7 @@ public class TestFisherZCalibration {
                 score.setRuleType(SemBicScore.RuleType.CHICKERING);
                 score.setPenaltyDiscount(2);
 
-                Fges fges = new Fges(score);
-                fges.setFaithfulnessAssumed(false);
+                Fges fges = new Fges(score, 4);
                 fges.setMaxDegree(100);
                 fges.setSymmetricFirstStep(false);
 
@@ -679,7 +685,7 @@ public class TestFisherZCalibration {
 
     @Test
     public void test10() {
-        int numNodes = 18;
+        int numNodes = 25;
         int aveDegree = 4;
         int numIterations = 1;
 
@@ -689,7 +695,6 @@ public class TestFisherZCalibration {
             GraphScore score = new GraphScore(dag);
 //            score.setVerbose(true);
             Fges fges = new Fges(score);
-            fges.setFaithfulnessAssumed(false);
             fges.setSymmetricFirstStep(true);
             fges.setVerbose(true);
 //            fges.setTDepth(1);

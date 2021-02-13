@@ -62,7 +62,6 @@ public class FgesMeasurement implements Algorithm, TakesInitialGraph, HasKnowled
             }
 
             Fges search = new Fges(score.getScore(dataSet, parameters));
-            search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
 

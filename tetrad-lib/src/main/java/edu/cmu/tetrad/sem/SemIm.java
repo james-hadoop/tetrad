@@ -1147,8 +1147,8 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
             return simulateTimeSeries(sampleSize, latentDataSaved);
         }
 
-//        return simulateDataRecursive(sampleSize, latentDataSaved);
-        return simulateDataReducedForm(sampleSize, latentDataSaved);
+        return simulateDataRecursive(sampleSize, latentDataSaved);
+//        return simulateDataReducedForm(sampleSize, latentDataSaved);
     }
 
     public void setScoreType(ScoreType scoreType) {
