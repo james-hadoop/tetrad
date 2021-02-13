@@ -83,11 +83,6 @@ public class EdgewiseComparisonParamsEditor extends JPanel implements ParameterE
             }
         }
 
-//        if (graphSources.size() == 1 && graphSources.get(0) instanceof GeneralAlgorithmRunner) {
-//            model1 = (GeneralAlgorithmRunner) graphSources.get(0);
-//            model2 = ((GeneralAlgorithmRunner) model1).getDataWrapper();
-//        } else
-
         if (graphSources.size() == 2) {
             if (graphSources.get(0) instanceof Simulation) {
                 model1 = (SessionModel) graphSources.get(0);
