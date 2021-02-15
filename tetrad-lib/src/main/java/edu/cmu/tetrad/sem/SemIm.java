@@ -1349,7 +1349,8 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         DataSet fullDataSet = new BoxDataSet(new VerticalDoubleDataBox(sampleSize, variables.size()), variables);
 
         // Create some index arrays to hopefully speed up the simulation.
-        Graph graph = new EdgeListGraph(getSemPm().getGraph());
+        SemGraph graph = getSemPm().getGraph();
+        graph.setShowErrorTerms(false);
         List<Node> tierOrdering = graph.getCausalOrdering();
 
         int[] tierIndices = new int[variableNodes.size()];
@@ -1387,20 +1388,20 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                 exoData[i] = RandomUtil.getInstance().nextNormal(0, 1);
             }
 
-            // Step 2. Multiply by cholesky to get correct covariance.
-            double[] point = new double[exoData.length];
-
-            for (int i = 0; i < exoData.length; i++) {
-                double sum = 0.0;
-
-                for (int j1 = 0; j1 < exoData.length; j1++) {
-                    sum += cholesky.get(i, j1) * exoData[j1];
-                }
-
-                point[i] = sum;
-            }
-
-            Vector e = new Vector(point);
+//            // Step 2. Multiply by cholesky to get correct covariance.
+//            double[] point = new double[exoData.length];
+//
+//            for (int i = 0; i < exoData.length; i++) {
+//                double sum = 0.0;
+//
+//                for (int j1 = 0; j1 < exoData.length; j1++) {
+//                    sum += cholesky.get(i, j1) * exoData[j1];
+//                }
+//
+//                point[i] = sum;
+//            }
+//
+//            Vector e = new Vector(point);
 
             for (int tier = 0; tier < tierOrdering.size(); tier++) {
                 Node node = tierOrdering.get(tier);
@@ -1426,31 +1427,32 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                     int column = initialValues.getColumn(initNode);
                     value = initialValues.getDouble(row, column);
                 } else {
-                    if (distribution == null) {
-                        value = e.get(col);
-                    } else {
-                        value = distribution.nextRandom();
-                    }
+//                    if (distribution == null) {
+                        value = exoData[col];//.get(col);
+//                    } else {
+//                        value = distribution.nextRandom();
+//                    }
                 }
 
-                if (function != null) {
-                    Node[] parents = function.getInputNodes();
-                    double[] parentValues = new double[parents.length];
-
-                    for (int j = 0; j < parents.length; j++) {
-                        Node parent = parents[j];
-                        int index = variableNodes.indexOf(parent);
-                        parentValues[j] = fullDataSet.getDouble(row, index);
-                    }
-
-                    value += function.valueAt(parentValues);
-
-                    if (initialValues == null && isSimulatedPositiveDataOnly() && value < 0) {
-                        row--;
-                        continue ROW;
-                    }
-
-                } else {
+//                if (function != null) {
+//                    Node[] parents = function.getInputNodes();
+//                    double[] parentValues = new double[parents.length];
+//
+//                    for (int j = 0; j < parents.length; j++) {
+//                        Node parent = parents[j];
+//                        int index = variableNodes.indexOf(parent);
+//                        parentValues[j] = fullDataSet.getDouble(row, index);
+//                    }
+//
+//                    value += function.valueAt(parentValues);
+//
+////                    if (initialValues == null && isSimulatedPositiveDataOnly() && value < 0) {
+////                        row--;
+////                        continue ROW;
+////                    }
+//
+//                } else
+                {
                     for (int j = 0; j < _parents[col].length; j++) {
                         int parent = _parents[col][j];
                         double parentValue = fullDataSet.getDouble(row, parent);
@@ -1458,10 +1460,10 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                         value += parentValue * parentCoef;
                     }
 
-                    if (isSimulatedPositiveDataOnly() && value < 0) {
-                        row--;
-                        continue ROW;
-                    }
+//                    if (isSimulatedPositiveDataOnly() && value < 0) {
+//                        row--;
+//                        continue ROW;
+//                    }
 
                 }
                 fullDataSet.setDouble(row, col, value);

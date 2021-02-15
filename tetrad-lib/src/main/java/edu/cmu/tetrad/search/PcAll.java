@@ -344,32 +344,32 @@ public final class PcAll implements GraphSearch {
         graph = GraphUtils.replaceNodes(graph, nodes);
 
         MeekRules meekRules = new MeekRules();
-//        meekRules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
         meekRules.setKnowledge(knowledge);
+        meekRules.setVerbose(true);
         meekRules.orientImplied(graph);
+//
+//        // Remove ambiguities whose status have been determined.
+//        Set<Triple> ambiguities = graph.getAmbiguousTriples();
+//
+//        for (Triple triple : new HashSet<>(ambiguities)) {
+//            final Node x = triple.getX();
+//            final Node y = triple.getY();
+//            final Node z = triple.getZ();
+//
+//            if (!graph.isAdjacentTo(x, y) || !graph.isAdjacentTo(y, x)) {
+//                graph.removeAmbiguousTriple(x, y, z);
+//            }
+//
+//            if (graph.isDefCollider(x, y, z)) {
+//                graph.removeAmbiguousTriple(x, y, z);
+//            }
+//
+//            if (graph.getEdge(x, y).pointsTowards(x) || graph.getEdge(y, z).pointsTowards(z)) {
+//                graph.removeAmbiguousTriple(x, y, z);
+//            }
+//        }
 
-        // Remove ambiguities whose status have been determined.
-        Set<Triple> ambiguities = graph.getAmbiguousTriples();
-
-        for (Triple triple : new HashSet<>(ambiguities)) {
-            final Node x = triple.getX();
-            final Node y = triple.getY();
-            final Node z = triple.getZ();
-
-            if (!graph.isAdjacentTo(x, y) || !graph.isAdjacentTo(y, x)) {
-                graph.removeAmbiguousTriple(x, y, z);
-            }
-
-            if (graph.isDefCollider(x, y, z)) {
-                graph.removeAmbiguousTriple(x, y, z);
-            }
-
-            if (graph.getEdge(x, y).pointsTowards(x) || graph.getEdge(y, z).pointsTowards(z)) {
-                graph.removeAmbiguousTriple(x, y, z);
-            }
-        }
-
-        graph = SearchGraphUtils.patternFromEPattern(graph);
+//        graph = SearchGraphUtils.patternFromEPattern(graph);
 
         TetradLogger.getInstance().log("graph", "\nReturning this graph: " + graph);
 
@@ -382,6 +382,11 @@ public final class PcAll implements GraphSearch {
         logTriples();
 
         TetradLogger.getInstance().flush();
+
+        System.out.println("now graph = " + graph);
+
+
+
         return graph;
     }
 
@@ -470,6 +475,10 @@ public final class PcAll implements GraphSearch {
         } else if (conflictRule == ConflictRule.BIDIRECTED) {
             graph.setEndpoint(x, y, Endpoint.ARROW);
             graph.setEndpoint(z, y, Endpoint.ARROW);
+
+            System.out.println("Orienting " + graph.getEdge(x, y) + " " + graph.getEdge(z, y));
+
+            System.out.println("graph = " + graph);
         } else if (conflictRule == ConflictRule.OVERWRITE) {
             graph.removeEdge(x, y);
             graph.removeEdge(z, y);
@@ -589,7 +598,6 @@ public final class PcAll implements GraphSearch {
         TetradLogger.getInstance().log("details", "Starting Collider Orientation:");
 
         List<Node> nodes = graph.getNodes();
-        Map<Triple, Double> scoredTriples = new HashMap<>();
 
         for (Node b : nodes) {
             List<Node> adjacentNodes = graph.getAdjacentNodes(b);
@@ -615,20 +623,11 @@ public final class PcAll implements GraphSearch {
                 }
 
                 List<Node> sepset = set.get(a, c);
-//
+
                 List<Node> s2 = new ArrayList<>(sepset);
                 if (!s2.contains(b)) s2.add(b);
 //
                 if (!sepset.contains(b) && isArrowpointAllowed(a, b, knowledge) && isArrowpointAllowed(c, b, knowledge)) {
-//                    independenceTest.isIndependent(a, c, sepset);
-//                    double p = independenceTest.getPValue();
-//
-//                    independenceTest.isIndependent(a, c, s2);
-//                    double p2 = independenceTest.getPValue();
-//                    if (!(p > independenceTest.getAlpha() && p2 < .15)) continue;
-
-//                    scoredTriples.put(new Triple(a, b, c), p);
-
                     orientCollider(a, b, c, conflictRule, graph);
 
                     if (verbose) {

@@ -28,7 +28,6 @@ public class StatsListEditor extends JPanel {
     }
 
     private void setup() {
-//        JTabbedPane pane = new JTabbedPane(JTabbedPane.TOP);
 
         // We'll leave the underlying model the same but just complain if there's not exactly
         // one reference and one target graph.
@@ -42,28 +41,9 @@ public class StatsListEditor extends JPanel {
         targetGraph = targetGraphs.get(0);
 
         add(getTableDisplay());
-
-//        JTabbedPane pane2 = new JTabbedPane(JTabbedPane.LEFT);
-//
-//        JTabbedPane pane3 = new JTabbedPane(JTabbedPane.TOP);
-//
-//        GraphEditor graphEditor = new GraphEditor(new GraphWrapper(targetGraph));
-//        graphEditor.enableEditing(false);
-//        pane3.add("Target Graph", graphEditor.getWorkbench());
-//
-//        graphEditor = new GraphEditor(new GraphWrapper(referenceGraph));
-//        graphEditor.enableEditing(false);
-//        pane3.add("True Graph", graphEditor.getWorkbench());
-//
-//        pane2.add("", pane3);
-//
-//        pane.addTab("Graphs", pane2);
-
-//        add(pane);
     }
 
     private JComponent getTableDisplay() {
-
         List<Statistic> statistics = new ArrayList<>();
 
         statistics.add(new AdjacencyPrecision());

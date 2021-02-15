@@ -1225,27 +1225,15 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public boolean setEndpoint(Node from, Node to, Endpoint endPoint)
             throws IllegalArgumentException {
-        List<Edge> edges = getEdges(from, to);
+        Edge edge = getEdge(from, to);
         ancestors = null;
 
-        if (endPoint == null) {
-            throw new NullPointerException();
-        } else if (edges.size() == 0) {
-            removeEdges(from, to);
-            addEdge(new Edge(from, to, Endpoint.TAIL, endPoint));
-            return true;
-        } else {
-            Edge edge = edges.get(0);
-            Edge newEdge = new Edge(from, to, edge.getProximalEndpoint(from), endPoint);
+        removeEdge(edge);
 
-            try {
-                removeEdges(edge.getNode1(), edge.getNode2());
-                addEdge(newEdge);
-                return true;
-            } catch (IllegalArgumentException e) {
-                return false;
-            }
-        }
+        Edge newEdge = new Edge(from, to,
+                edge.getProximalEndpoint(from), endPoint);
+        addEdge(newEdge);
+        return true;
     }
 
     /**

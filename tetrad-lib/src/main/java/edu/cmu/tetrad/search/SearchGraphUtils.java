@@ -2446,14 +2446,9 @@ public final class SearchGraphUtils {
     }
 
     public static Graph patternForDag(final Graph dag) {
-//        IndTestDSep test = new IndTestDSep(dag);
-//        return new PC(test).search();
-//
         Graph pattern = new EdgeListGraph(dag);
-        SearchGraphUtils.basicPattern(pattern);
         MeekRules rules = new MeekRules();
         rules.orientImplied(pattern);
-//        GraphUtils.replaceNodes(pattern, dag.getNodes());
         return pattern;
     }
 

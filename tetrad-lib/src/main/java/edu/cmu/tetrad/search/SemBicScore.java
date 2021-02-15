@@ -169,7 +169,8 @@ public class SemBicScore implements Score {
 
         // Only do this once.
         Matrix cov = getCov(rows, all, all);
-        double m = variables.size();
+        double pn = variables.size();
+        double n = N;
         int[] pp = indexedParents(parents);
 
         Matrix covxx = cov.getSelection(pp, pp);
@@ -188,12 +189,21 @@ public class SemBicScore implements Score {
 
         } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
-            // Pseudo-BIC formula, set Wikipedia page for BIC. With penalty discount and structure prior.
+            // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
+            // The Journal of Machine Learning Research, 13(1), 1037-1057.
 
             // We will just take 6 * omega * (1 + gamma) to be a number >= 6. To be compatible with other scores,
             // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
-            return -N * log(varey) - c * k * 6 * log(m) + 2 * getStructurePrior(p);
+//            return -n * log(varey) - c * k * 6 * log(pn);// + 2 * getStructurePrior(p);
+//            return -n * log(varey) - c * k * 2 * (log(pn) + log(log(pn)));
+//            return -n * log(varey) - 2 * (log(pn) + log(log(pn))) * k;
+
+
+//            c = 2;
+//            return -n * log(varey) - k * (pow(n, c)) * log(pn);
+//            return -n * log(varey) - c * k * pow(n, .35) * log(pn);
+            return -n * log(varey) - c * k * log(n) * log(pn);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }

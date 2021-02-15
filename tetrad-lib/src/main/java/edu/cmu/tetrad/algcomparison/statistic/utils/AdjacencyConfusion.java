@@ -1,8 +1,8 @@
 package edu.cmu.tetrad.algcomparison.statistic.utils;
 
 import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.Edges;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.NodePair;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -13,47 +13,50 @@ import java.util.Set;
  * @author jdramsey
  */
 public class AdjacencyConfusion {
-    private Graph truth;
-    private Graph est;
     private int adjTp;
     private int adjFp;
     private int adjFn;
-    private int adjTn;
+    private final int adjTn;
 
     public AdjacencyConfusion(Graph truth, Graph est) {
-        this.truth = truth;
-        this.est = est;
         adjTp = 0;
         adjFp = 0;
         adjFn = 0;
 
-        Set<Edge> allUnoriented = new HashSet<>();
-        for (Edge edge : this.truth.getEdges()) {
-            allUnoriented.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
+        Set<NodePair> trueEdges = new HashSet<>();
+        Set<NodePair> estEdges = new HashSet<>();
+
+        for (Edge edge : truth.getEdges()) {
+            NodePair e = new NodePair(edge.getNode1(), edge.getNode2());
+            trueEdges.add(e);
         }
 
-        for (Edge edge : this.est.getEdges()) {
-            allUnoriented.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
+        for (Edge edge : est.getEdges()) {
+            NodePair e = new NodePair(edge.getNode1(), edge.getNode2());
+            estEdges.add(e);
         }
 
-        for (Edge edge : allUnoriented) {
-            if (this.est.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
-                    !this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+        Set<NodePair> all = new HashSet<>(trueEdges);
+        all.addAll(estEdges);
+
+        for (NodePair edge : all) {
+            if (estEdges.contains(edge) && !trueEdges.contains(edge)) {
                 adjFp++;
             }
 
-            if (this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
-                    !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+            if (!estEdges.contains(edge) && trueEdges.contains(edge)) {
                 adjFn++;
             }
 
-            if (this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
-                    this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+            if (estEdges.contains(edge) && trueEdges.contains(edge)) {
                 adjTp++;
             }
         }
 
-        int allEdges = this.truth.getNumNodes() * (this.truth.getNumNodes() - 1) / 2;
+//        System.out.println("adjTp = " + adjTp + " adjFp = " + adjFp + " adjFn = " + adjFn
+//             + " true edge = " + trueEdges.size() + " estEdge = " + estEdges.size() + " all edges = " + all.size());
+
+        int allEdges = truth.getNumNodes() * (truth.getNumNodes() - 1) / 2;
 
         adjTn = allEdges - adjFn;
     }

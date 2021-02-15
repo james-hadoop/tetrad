@@ -88,7 +88,7 @@ public class MeekRules implements ImpliedOrientation {
             oriented = false;
 
             for (Edge edge : graph.getEdges()) {
-                if (edge.isDirected()) continue;
+                if (!Edges.isUndirectedEdge(edge)) continue;
 
                 Node x = edge.getNode1();
                 Node y = edge.getNode2();
