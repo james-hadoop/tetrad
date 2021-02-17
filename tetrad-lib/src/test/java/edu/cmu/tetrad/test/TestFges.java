@@ -436,7 +436,7 @@ public class TestFges {
         SemBicScore score = new SemBicScore(cov);
         score.setRuleType(SemBicScore.RuleType.NANDY);
         score.setPenaltyDiscount(1);
-        score.setStructurePrior(0);
+//        score.setStructurePrior(0);
         Fges fges = new Fges(score);
         fges.setKnowledge(knowledge);
 

@@ -15,7 +15,7 @@ public class SemBicScorer {
     public static double scoreDag(Graph dag, DataModel data) {
         if (dag == null) throw new NullPointerException("DAG not specified.");
 
-        Score score;
+        SemBicScore score;
 
         if (data instanceof ICovarianceMatrix) {
             score = new SemBicScore((ICovarianceMatrix) dag);
@@ -24,6 +24,9 @@ public class SemBicScorer {
         } else {
             throw new IllegalArgumentException("Expecting a covariance matrix of a dataset.");
         }
+
+        score.setRuleType(SemBicScore.RuleType.HIGH_DIMENSIONAL);
+        score.setPenaltyDiscount(1);
 
         dag = GraphUtils.replaceNodes(dag, data.getVariables());
 

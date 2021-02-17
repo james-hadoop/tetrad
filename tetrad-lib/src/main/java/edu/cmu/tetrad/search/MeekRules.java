@@ -60,11 +60,11 @@ public class MeekRules implements ImpliedOrientation {
     // Where verbose output should be sent.
     private PrintStream out;
 
-    // The list of nodes actually visited.
-    private Set<Node> visited = new HashSet<>();
-
     // True if verbose output should be printed.
     private boolean verbose = false;
+
+    // True (default) iff the graph should be reverted to its unshielded colliders before orienting.
+    private boolean revertToUnshieldedColliders = true;
 
     /**
      * Constructs the <code>MeekRules</code> with no logging.
@@ -77,10 +77,13 @@ public class MeekRules implements ImpliedOrientation {
 
     public Set<Node> orientImplied(Graph graph) {
         // The initial list of nodes to visit.
-        this.visited = new HashSet<>();
+        Set<Node> visited = new HashSet<>();
 
         TetradLogger.getInstance().log("impliedOrientations", "Starting Orientation Step D.");
-        revertToUnshieldedColliders(graph.getNodes(), graph);
+
+        if (revertToUnshieldedColliders) {
+            revertToUnshieldedColliders(graph.getNodes(), graph, visited);
+        }
 
         boolean oriented = true;
 
@@ -93,14 +96,14 @@ public class MeekRules implements ImpliedOrientation {
                 Node x = edge.getNode1();
                 Node y = edge.getNode2();
 
-                if (meekR1(x, y, graph)) oriented = true;
-                else if (meekR1(y, x, graph)) oriented = true;
-                else if (meekR2(x, y, graph)) oriented = true;
-                else if (meekR2(y, x, graph)) oriented = true;
-                else if (meekR3(x, y, graph)) oriented = true;
-                else if (meekR3(y, x, graph)) oriented = true;
-                else if (meekR4(x, y, graph)) oriented = true;
-                else if (meekR4(y, x, graph)) oriented = true;
+                if (meekR1(x, y, graph, visited)) oriented = true;
+                else if (meekR1(y, x, graph, visited)) oriented = true;
+                else if (meekR2(x, y, graph, visited)) oriented = true;
+                else if (meekR2(y, x, graph, visited)) oriented = true;
+                else if (meekR3(x, y, graph, visited)) oriented = true;
+                else if (meekR3(y, x, graph, visited)) oriented = true;
+                else if (meekR4(x, y, graph, visited)) oriented = true;
+                else if (meekR4(y, x, graph, visited)) oriented = true;
             }
         }
 
@@ -109,14 +112,14 @@ public class MeekRules implements ImpliedOrientation {
         return visited;
     }
 
-    public void revertToUnshieldedColliders(List<Node> nodes, Graph graph) {
+    public void revertToUnshieldedColliders(List<Node> nodes, Graph graph, Set<Node> visited) {
         boolean reverted = true;
 
         while (reverted) {
             reverted = false;
 
             for (Node node : nodes) {
-                if (revertToUnshieldedColliders(node, graph)) {
+                if (revertToUnshieldedColliders(node, graph, visited)) {
                     reverted = true;
                 }
             }
@@ -149,19 +152,15 @@ public class MeekRules implements ImpliedOrientation {
         return out;
     }
 
-    public Set<Node> getVisited() {
-        return visited;
-    }
-
     //============================== Private Methods ===================================//
 
     /**
      * Meek's rule R1: if a-->b, b---c, and a not adj to c, then b-->c
      */
-    private boolean meekR1(Node b, Node c, Graph graph) {
+    private boolean meekR1(Node b, Node c, Graph graph, Set<Node> visited) {
         for (Node a : graph.getParents(b)) {
             if (graph.isAdjacentTo(c, a)) continue;
-            if (direct(b, c, graph)) {
+            if (direct(b, c, graph, visited)) {
                 log(SearchLogUtils.edgeOrientedMsg(
                         "Meek R1 triangle (" + a + "-->" + b + "---" + c + ")", graph.getEdge(b, c)));
                 return true;
@@ -174,7 +173,7 @@ public class MeekRules implements ImpliedOrientation {
     /**
      * If a-->b-->c, a--c, then a-->c.
      */
-    private boolean meekR2(Node a, Node c, Graph graph) {
+    private boolean meekR2(Node a, Node c, Graph graph, Set<Node> visited) {
         List<Node> adjacentNodes = graph.getAdjacentNodes(c);
         adjacentNodes.remove(a);
 
@@ -182,13 +181,13 @@ public class MeekRules implements ImpliedOrientation {
 
         for (Node b : common) {
             if (graph.isDirectedFromTo(a, b) && graph.isDirectedFromTo(b, c)) {
-                if (r2Helper(a, b, c, graph)) {
+                if (r2Helper(a, b, c, graph, visited)) {
                     return true;
                 }
             }
 
             if (graph.isDirectedFromTo(c, b) && graph.isDirectedFromTo(b, a)) {
-                if (r2Helper(c, b, a, graph)) {
+                if (r2Helper(c, b, a, graph, visited)) {
                     return true;
                 }
             }
@@ -197,8 +196,8 @@ public class MeekRules implements ImpliedOrientation {
         return false;
     }
 
-    private boolean r2Helper(Node a, Node b, Node c, Graph graph) {
-        boolean directed = direct(a, c, graph);
+    private boolean r2Helper(Node a, Node b, Node c, Graph graph, Set<Node> visited) {
+        boolean directed = direct(a, c, graph, visited);
         log(SearchLogUtils.edgeOrientedMsg(
                 "Meek R2 triangle (" + a + "-->" + b + "-->" + c + ", " + a + "---" + c + ")", graph.getEdge(a, c)));
         return directed;
@@ -207,7 +206,7 @@ public class MeekRules implements ImpliedOrientation {
     /**
      * Meek's rule R3. If d--a, d--b, d--c, b-->a, c-->a, then orient d-->a.
      */
-    private boolean meekR3(Node d, Node a, Graph graph) {
+    private boolean meekR3(Node d, Node a, Graph graph, Set<Node> visited) {
         List<Node> adjacentNodes = new ArrayList<>(getCommonAdjacents(a, d, graph));
 
         if (adjacentNodes.size() < 2) {
@@ -220,7 +219,7 @@ public class MeekRules implements ImpliedOrientation {
                 Node c = adjacentNodes.get(j);
 
                 if (!graph.isAdjacentTo(b, c)) {
-                    if (r3Helper(a, d, b, c, graph)) {
+                    if (r3Helper(a, d, b, c, graph, visited)) {
                         return true;
                     }
                 }
@@ -230,7 +229,7 @@ public class MeekRules implements ImpliedOrientation {
         return false;
     }
 
-    private boolean r3Helper(Node a, Node d, Node b, Node c, Graph graph) {
+    private boolean r3Helper(Node a, Node d, Node b, Node c, Graph graph, Set<Node> visited) {
         boolean oriented = false;
 
         boolean b4 = graph.isUndirectedFromTo(d, a);
@@ -240,7 +239,7 @@ public class MeekRules implements ImpliedOrientation {
         boolean b8 = graph.isDirectedFromTo(c, a);
 
         if (b4 && b5 && b6 && b7 && b8) {
-            oriented = direct(d, a, graph);
+            oriented = direct(d, a, graph, visited);
             log(SearchLogUtils.edgeOrientedMsg("Meek R3 " + d + "--" + a + ", " + b + ", "
                     + c, graph.getEdge(d, a)));
         }
@@ -248,7 +247,7 @@ public class MeekRules implements ImpliedOrientation {
         return oriented;
     }
 
-    private boolean meekR4(Node a, Node b, Graph graph) {
+    private boolean meekR4(Node a, Node b, Graph graph, Set<Node> visited) {
         if (!useRule4) {
             return false;
         }
@@ -262,7 +261,7 @@ public class MeekRules implements ImpliedOrientation {
                 Edge dc = graph.getEdge(d, c);
                 if (!dc.pointsTowards(c)) continue;
                 if (graph.getEdge(a, d).isDirected()) continue;
-                if (direct(a, b, graph)) {
+                if (direct(a, b, graph, visited)) {
                     log(SearchLogUtils.edgeOrientedMsg("Meek R4 using " + c + ", " + d, graph.getEdge(a, b)));
                     return true;
                 }
@@ -272,28 +271,16 @@ public class MeekRules implements ImpliedOrientation {
         return false;
     }
 
-    private boolean direct(Node a, Node c, Graph graph) {
+    private boolean direct(Node a, Node c, Graph graph, Set<Node> visited) {
         if (!isArrowpointAllowed(a, c, knowledge)) return false;
 
-//        // True if new unshielded colliders should not be oriented by the procedure. That is, if
-//        // P->A--C, ~adj(A, C), where A--C is to be oriented by any rule, R1 usurps to yield P->A->C.
-//        boolean avoidNewUnshieldedColliders = false;
-//        if (avoidNewUnshieldedColliders) {
-//            for (Node p : graph.getParents(c)) {
-//                if (p != a && !graph.isAdjacentTo(a, p)) {
-//                    Edge before = graph.getEdge(a, c);
-//                    Edge after = Edges.directedEdge(c, a);
-//
-//                    visited.add(a);
-//                    visited.add(c);
-//
-//                    graph.removeEdge(before);
-//                    graph.addEdge(after);
-//
-//                    return true;
-//                }
-//            }
-//        }
+        // True if new unshielded colliders should not be oriented by the procedure. That is, if
+        // P->A--C, ~adj(A, C), where A--C is to be oriented by any rule, R1 usurps to yield P->A->C.
+        for (Node p : graph.getParents(c)) {
+            if (p != a && !graph.isAdjacentTo(a, p)) {
+                return direct(c, a, graph, visited);
+            }
+        }
 
         Edge before = graph.getEdge(a, c);
         Edge after = Edges.directedEdge(a, c);
@@ -313,7 +300,7 @@ public class MeekRules implements ImpliedOrientation {
                 !knowledge.isForbidden(from.toString(), to.toString());
     }
 
-    private boolean revertToUnshieldedColliders(Node y, Graph graph) {
+    private boolean revertToUnshieldedColliders(Node y, Graph graph, Set<Node> visited) {
         boolean did = false;
 
         List<Node> parents = graph.getParents(y);
@@ -350,6 +337,10 @@ public class MeekRules implements ImpliedOrientation {
         Set<Node> adj = new HashSet<>(graph.getAdjacentNodes(x));
         adj.retainAll(graph.getAdjacentNodes(y));
         return adj;
+    }
+
+    public void setRevertToUnshieldedColliders(boolean revertToUnshieldedColliders) {
+        this.revertToUnshieldedColliders = revertToUnshieldedColliders;
     }
 }
 

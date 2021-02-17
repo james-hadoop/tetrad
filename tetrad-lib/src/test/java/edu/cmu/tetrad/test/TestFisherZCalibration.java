@@ -5,7 +5,6 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
-import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -171,29 +170,29 @@ public class TestFisherZCalibration {
 //        RandomUtil.getInstance().setSeed(92883342449L);
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 20);
+        parameters.set(Params.NUM_RUNS, 10);
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 4);
-        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000);
-        parameters.set(Params.COEF_LOW, 0.1);
-        parameters.set(Params.COEF_HIGH, 1);
+        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
+        parameters.set(Params.COEF_LOW, 0.0);
+        parameters.set(Params.COEF_HIGH, 0.8);
         parameters.set(Params.VAR_LOW, 1.0);
         parameters.set(Params.VAR_HIGH, 3.0);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
 
-        parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
+        parameters.set(Params.SYMMETRIC_FIRST_STEP, true);
         parameters.set(Params.VERBOSE, false);
         parameters.set(Params.PARALLELISM, 8);
 
         parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.SEM_BIC_RULE, 3);
-        parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
-        parameters.set(Params.USE_EQUIVALENT_SAMPLE_SIZE, true);
+//        parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
+        parameters.set(Params.USE_EQUIVALENT_SAMPLE_SIZE, false);
 
-        parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 50);
-        parameters.set(Params.INTERVAL_BETWEEN_RECORDINGS, 50);
-        parameters.set(Params.SELF_LOOP_COEF, 0);
-        parameters.set(Params.FISHER_EPSILON, 0.0001);
+//        parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 50);
+//        parameters.set(Params.INTERVAL_BETWEEN_RECORDINGS, 50);
+//        parameters.set(Params.SELF_LOOP_COEF, 0);
+//        parameters.set(Params.FISHER_EPSILON, 0.0001);
 
         Statistics statistics = new Statistics();
 
@@ -201,7 +200,6 @@ public class TestFisherZCalibration {
         statistics.add(new ParameterColumn(Params.SEM_BIC_RULE));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
-//        statistics.add(new ParameterColumn(Params.SEM_BIC_STRUCTURE_PRIOR));
 
         statistics.add(new NumberOfEdgesTrue());
         statistics.add(new NumberOfEdgesEst());
@@ -210,6 +208,7 @@ public class TestFisherZCalibration {
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new CorrectPattern());
+        statistics.add(new BicDiff());
 
         statistics.add(new F1Adj());
         statistics.add(new F1Arrow());
@@ -365,9 +364,7 @@ public class TestFisherZCalibration {
 
         MeekRules rules = new MeekRules();
 
-        rules.revertToUnshieldedColliders(nodes, graph);
-
-        System.out.println(graph);
+        rules.setRevertToUnshieldedColliders(false);
     }
 
     @Test
@@ -409,7 +406,6 @@ public class TestFisherZCalibration {
 //                System.out.println(rawdata);
 
                 SemBicScore score = new SemBicScore(rawdata);
-                score.setUseEquivalentSampleSize(false);
                 score.setRuleType(SemBicScore.RuleType.HIGH_DIMENSIONAL);
                 score.setPenaltyDiscount(2);
 
@@ -673,8 +669,6 @@ public class TestFisherZCalibration {
         if (!pattern.equals(dag2)) {
             System.out.println("Not equal");
         }
-
-
 
 
     }

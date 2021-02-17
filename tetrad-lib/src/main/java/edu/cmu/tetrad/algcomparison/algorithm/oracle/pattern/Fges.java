@@ -89,7 +89,6 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
         } else {
             Fges fges = new Fges(score, algorithm);
 
-            //fges.setKnowledge(knowledge);
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(knowledge);

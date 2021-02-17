@@ -2128,8 +2128,7 @@ public final class FgesMb {
     private Set<Node> meekOrientRestricted(List<Node> nodes, IKnowledge knowledge) {
         MeekRules rules = new MeekRules();
         rules.setKnowledge(knowledge);
-        rules.orientImplied(graph);
-        return rules.getVisited();
+        return rules.orientImplied(graph);
     }
 
     // Maps adj to their indices for quick lookup.

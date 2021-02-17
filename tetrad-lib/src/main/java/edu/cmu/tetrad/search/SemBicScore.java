@@ -65,7 +65,7 @@ public class SemBicScore implements Score {
     private double penaltyDiscount = 1.0;
 
     // The structure prior, 0 for standard BIC.
-    private double structurePrior = 0.0;
+//    private double structurePrior = 0.0;
 
     // Equivalent sample size
     private Matrix matrix;
@@ -77,7 +77,7 @@ public class SemBicScore implements Score {
     private double N;
 
     // True if the equivalent sample size should be used in place of N.
-    private boolean useEquivalentSampleSize = false;
+//    private boolean useEquivalentSampleSize = false;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -92,7 +92,7 @@ public class SemBicScore implements Score {
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
 
-        setStructurePrior(structurePrior);
+//        setStructurePrior(structurePrior);
     }
 
     /**
@@ -109,7 +109,7 @@ public class SemBicScore implements Score {
             this.sampleSize = covariances.getSampleSize();
             this.indexMap = indexMap(this.variables);
 
-            setStructurePrior(structurePrior);
+//            setStructurePrior(structurePrior);
 
             return;
         }
@@ -120,7 +120,7 @@ public class SemBicScore implements Score {
         this.sampleSize = dataSet.getNumRows();
         this.indexMap = indexMap(this.variables);
 
-        setStructurePrior(structurePrior);
+//        setStructurePrior(structurePrior);
     }
 
     @Override
@@ -133,8 +133,8 @@ public class SemBicScore implements Score {
     }
 
     public double nandyBic(int x, int y, int[] z) {
-        double sp1 = getStructurePrior(z.length + 1);
-        double sp2 = getStructurePrior(z.length);
+//        double sp1 = getStructurePrior(z.length + 1);
+//        double sp2 = getStructurePrior(z.length);
 
         Node _x = variables.get(x);
         Node _y = variables.get(y);
@@ -149,8 +149,8 @@ public class SemBicScore implements Score {
         double r = partialCorrelation(_x, _y, _z, rows);
         double c = getPenaltyDiscount();
 
-        return -N * log(1.0 - r * r) - c * log(N)
-                + 2.0 * (sp1 - sp2);
+        return -N * log(1.0 - r * r) - c * log(N);
+//                + 2.0 * (sp1 - sp2);
     }
 
     @Override
@@ -185,7 +185,7 @@ public class SemBicScore implements Score {
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-            return -N * log(varey) - c * k * log(N) + 2 * getStructurePrior(p);
+            return -N * log(varey) - c * k * log(N);// + 2 * getStructurePrior(p);
 
         } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
 
@@ -195,15 +195,9 @@ public class SemBicScore implements Score {
             // We will just take 6 * omega * (1 + gamma) to be a number >= 6. To be compatible with other scores,
             // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
             // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
-//            return -n * log(varey) - c * k * 6 * log(pn);// + 2 * getStructurePrior(p);
-//            return -n * log(varey) - c * k * 2 * (log(pn) + log(log(pn)));
+//            return -n * log(varey) - c * k * 6 * log(pn);
 //            return -n * log(varey) - 2 * (log(pn) + log(log(pn))) * k;
-
-
-//            c = 2;
-//            return -n * log(varey) - k * (pow(n, c)) * log(pn);
-//            return -n * log(varey) - c * k * pow(n, .35) * log(pn);
-            return -n * log(varey) - c * k * log(n) * log(pn);
+            return -n * log(varey) - c * k * log(n) * log(pn);// + 2 * getStructurePrior(p);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
@@ -236,9 +230,9 @@ public class SemBicScore implements Score {
         return penaltyDiscount;
     }
 
-    public double getStructurePrior() {
-        return structurePrior;
-    }
+//    public double getStructurePrior() {
+//        return structurePrior;
+//    }
 
     public ICovarianceMatrix getCovariances() {
         return covariances;
@@ -261,9 +255,9 @@ public class SemBicScore implements Score {
         this.penaltyDiscount = penaltyDiscount;
     }
 
-    public void setStructurePrior(double structurePrior) {
-        this.structurePrior = structurePrior;
-    }
+//    public void setStructurePrior(double structurePrior) {
+//        this.structurePrior = structurePrior;
+//    }
 
     public boolean isVerbose() {
         return verbose;
@@ -320,12 +314,7 @@ public class SemBicScore implements Score {
     private void setCovariances(ICovarianceMatrix covariances) {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
-
         this.N = covariances.getSampleSize();
-
-        if (useEquivalentSampleSize) {
-            this.N = DataUtils.getEss(covariances);
-        }
     }
 
     private static int[] append(int[] z, int x) {
@@ -347,14 +336,14 @@ public class SemBicScore implements Score {
         return all;
     }
 
-    private double getStructurePrior(int parents) {
-        if (abs(getStructurePrior()) <= 0) {
-            return 0;
-        } else {
-            double p = (getStructurePrior()) / (variables.size());
-            return -((parents) * Math.log(p) + (variables.size() - (parents)) * Math.log(1.0 - p));
-        }
-    }
+//    private double getStructurePrior(int parents) {
+//        if (abs(getStructurePrior()) <= 0) {
+//            return 0;
+//        } else {
+//            double p = (getStructurePrior()) / (variables.size());
+//            return -((parents) * Math.log(p) + (variables.size() - (parents)) * Math.log(1.0 - p));
+//        }
+//    }
 
     private List<Node> getVariableList(int[] indices) {
         List<Node> variables = new ArrayList<>();
@@ -503,8 +492,19 @@ public class SemBicScore implements Score {
         this.ruleType = ruleType;
     }
 
-    public void setUseEquivalentSampleSize(boolean useEquivalentSampleSize) {
-        this.useEquivalentSampleSize = useEquivalentSampleSize;
+//    public void setUseEquivalentSampleSize(boolean useEquivalentSampleSize) {
+//        this.useEquivalentSampleSize = useEquivalentSampleSize;
+//
+//        if (useEquivalentSampleSize) {
+//            this.N = DataUtils.getEss(covariances);
+//        } else {
+//            this.N = covariances.getSampleSize();
+//        }
+//
+//    }
+
+    public RuleType getRuleType() {
+        return ruleType;
     }
 
     public enum RuleType {CHICKERING, NANDY, HIGH_DIMENSIONAL}

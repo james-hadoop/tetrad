@@ -1465,81 +1465,35 @@ public final class SearchGraphUtils {
 
         for (Edge edge : dag.getEdges()) {
             if (Edges.isBidirectedEdge(edge)) {
-                dag.removeEdge(edge);
-                dag.addUndirectedEdge(edge.getNode1(), edge.getNode2());
+                throw new IllegalArgumentException("That 'pattern' contains a bidirected edge.");
             }
         }
 
+        if (graph.existsDirectedCycle()) {
+            throw new IllegalArgumentException("That 'pattern' contains a directed cycle.");
+        }
+
         MeekRules rules = new MeekRules();
-        rules.orientImplied(dag);
+//        rules.setRevertToUnshieldedColliders(false);
 
-        Set<Edge> edges = dag.getEdges();
+        boolean directed = true;
 
-        for (Edge edge : edges) {
-            Edge edge1 = dag.getEdge(edge.getNode1(), edge.getNode2());
+        while (directed) {
+            directed = false;
 
-            if (Edges.isUndirectedEdge(edge1)) {
-                Node node1 = edge1.getNode1();
-                Node node2 = edge1.getNode2();
+            for (Edge edge : dag.getEdges()) {
+                if (Edges.isUndirectedEdge(edge)) {
+                    Node x = edge.getNode1();
+                    Node y = edge.getNode2();
 
-                if (!(dag.isAncestorOf(node2, node1))) {
-                    direct(node1, node2, dag);
-                } else if (!dag.isAncestorOf(node1, node2)) {
-                    direct(node2, node1, dag);
-                } else {
-                    System.out.println("Leaving edge unoriented to avoid cycle: " + edge);
+                    direct(x, y, dag);
+
+                    rules.orientImplied(dag);
                 }
-
-                rules.orientImplied(dag);
             }
         }
 
         return dag;
-
-//        DagInPatternIterator dags = new DagInPatternIterator(graph);
-//        return dags.next();
-//        MeekRules rules = new MeekRules();
-//        rules.orientImplied(graph);
-//
-//        WHILE:
-//        while (true) {
-//            List<Edge> edges = graph.getEdges();
-//
-//            for (Edge edge : edges) {
-//                if (Edges.isUndirectedEdge(edge)) {
-//                    Node node1 = edge.getNode1();
-//                    Node node2 = edge.getNode2();
-//
-//                    if (!(pattern.isAncestorOf(node2, node1)) && !pattern.getParents(node2).isEmpty()) {
-//                        edge.setEndpoint2(Endpoint.ARROW);
-//                    }
-//                    else if (!pattern.getParents(node1).isEmpty()) {
-//                        edge.setEndpoint1(Endpoint.ARROW);
-//                    }
-//                    else {
-//                        throw new IllegalArgumentException("Can't orient " + edge);
-//                    }
-//
-//                    rules.orientImplied(graph);
-//                    continue WHILE;
-//                }
-//            }
-//
-//            break;
-//        }
-//
-////        if (pattern.getNumEdges() > 10) {
-////            System.out.println(pattern);
-////        }
-//
-//
-//        return pattern;
-
-//
-//
-//        Graph graph = new EdgeListGraph(pattern);
-//        pdagToDag(graph);
-//        return graph;
     }
 
     public static Graph patternFromEPattern(Graph ePattern) {
