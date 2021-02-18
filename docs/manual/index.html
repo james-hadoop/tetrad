@@ -3400,7 +3400,7 @@ there is a single latent for each output cluster. For MimBuild, a pattern over t
             <li>Default Value: <span id="avgDegree_default_value">2</span></li>
             <li>Lower Bound: <span id="avgDegree_lower_bound">1</span></li>
             <li>Upper Bound: <span id="avgDegree_upper_bound">2147483647</span></li>
-            <li>Value Type: <span id="avgDegree_value_type">Integer</span></li>
+            <li>Value Type: <span id="avgDegree_value_type">Double</span></li>
         </ul>
 
         <h3 id="basisType" class="parameter_description">basisType</h3>
@@ -4165,7 +4165,8 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
 
         <h3 id="maxCorrelation" class="parameter_description">maxCorrelation</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="maxCorrelation_short_desc">Maximum absolute correlation considered</span></li>
+            <li>Short Description: <span id="maxCorrelation_short_desc">Maximum absolute correlation considered</span>
+            </li>
             <li>Long Description: <span id="maxCorrelation_long_desc">For the Nandy rule, the absolute max correlation r.
                 For the standard BIC or high-dimensional rule, the maximum absolute residual correlation.</span></li>
             <li>Default Value: <span id="maxCorrelation_default_value">1.0</span></li>
@@ -4815,18 +4816,20 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
 
         <h3 id="semBicRule" class="parameter_description">semBicRule</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="semBicRule_short_desc">1 = Chickering, 2 = Nandy, 3 = High Dimensional</span>
+            <li>Short Description: <span id="semBicRule_short_desc">1 = GIC4, 2 = GIC6 (high-dimensional scores), 3 = Chickering, 4 = Nandy</span>
             </li>
             <li>Long Description: <span id="semBicRule_long_desc">The rule used for calculating a score.
                 The Chickering Rule is the local scoring consistency criterion in Chickering's formulation of
                 GES, though we allow a multiplier on the penalty term called "penalty discount".
                 The Nandy et al. rule is a reformultion of the Chickering rule using a single calculation
-                of a partial correlation in place of the likelihood difference. For the high-dimensional score
-                we use the formulation in Gao and Chen, described on the Wikipedia page for Bayesian Information
-                Criterion, which is a pseudo-BIC formulation. It has two parameters, gamma (> 0) and omega (>= 1).
-                We fix gamma at 0.25 and allow omega to be adjusted using the "penalty discount" parameter.
-                In all cases we include a structure prior, which amounts to a prior on the number of
-                parents in any scoring, a binomial formula.</span>
+                of a partial correlation in place of the likelihood difference. For the high dimensional
+                scores, we follow Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria
+                on high dimensions. The Journal of Machine Learning Research, 13(1), 1037-1057.
+                The two best performing scores there are GIC4 and GIC6; we include these as options here.
+                The selling point for these scores is that with large numbers of variables, if the density
+                is not too high, AP will be kept in check. But please see Kim et al. for theoretical
+                details.
+            </span>
             </li>
             <li>Default Value: <span id="semBicRule_default_value">1</span></li>
             <li>Lower Bound: <span id="semBicRule_lower_bound">1</span></li>
@@ -4836,7 +4839,8 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
 
         <h3 id="semBicStructurePrior" class="parameter_description">semBicStructurePrior</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="semBicStructurePrior_short_desc">Structure Prior for SEM BIC (default 0)</span>
+            <li>Short Description: <span
+                    id="semBicStructurePrior_short_desc">Structure Prior for SEM BIC (default 0)</span>
             </li>
             <li>Long Description: <span id="semBicStructurePrior_long_desc">Structure prior; default is 0 (turned off); may be
                 any positive number otherwise</span>
@@ -4988,7 +4992,8 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
         <h3 id="timeLimit" class="parameter_description">timeLimit</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="timeLimit_short_desc">Time limit</span></li>
-            <li>Long Description: <span id="timeLimit_long_desc">T-Separation requires a time limit. Default 1000.</span>
+            <li>Long Description: <span
+                    id="timeLimit_long_desc">T-Separation requires a time limit. Default 1000.</span>
             </li>
             <li>Default Value: <span id="timeLimit_default_value">1000.0</span></li>
             <li>Lower Bound: <span id="timeLimit_lower_bound">0.0</span></li>
@@ -5003,7 +5008,8 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             </li>
             <li>Long Description: <span id="adjustOrientations_long_desc">null</span></li>
             <li>Default Value: <span id="adjustOrientations_default_value">false</span></li>
-            <li>Lower Bound: <span id="adjustOrientations_lower_bound"></span></li> g
+            <li>Lower Bound: <span id="adjustOrientations_lower_bound"></span></li>
+            g
             <li>Upper Bound: <span id="adjustOrientations_upper_bound"></span></li>
             <li>Value Type: <span id="adjustOrientations_value_type">Boolean</span></li>
         </ul>
@@ -5141,7 +5147,8 @@ The “Max P” method for orienting an unshielded triple X—Y—Z records p-va
         <h3 id="meekVerbose" class="parameter_description">meekVerbose</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span
-                    id="meekVerbose_short_desc">Yes if verbose output for Meek rule applications should be printed or logged</span></li>
+                    id="meekVerbose_short_desc">Yes if verbose output for Meek rule applications should be printed or logged</span>
+            </li>
             <li>Long Description: <span id="meekVerbose_long_desc">If this parameter is set to ‘Yes’, Meek rule appications will be printed out to the log.</span>
             </li>
             <li>Default Value: <span id="meekVerbose_default_value">false</span></li>
@@ -5464,6 +5471,7 @@ The “Max P” method for orienting an unshielded triple X—Y—Z records p-va
 <script>
 window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
 ga('create','UA-XXXXX-Y','auto');ga('send','pageview')
+
 
 
 

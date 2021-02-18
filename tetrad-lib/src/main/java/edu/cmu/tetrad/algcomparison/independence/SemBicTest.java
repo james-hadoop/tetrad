@@ -1,6 +1,5 @@
 package edu.cmu.tetrad.algcomparison.independence;
 
-import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.annotation.TestOfIndependence;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.search.*;
@@ -45,7 +44,7 @@ public class SemBicTest implements IndependenceWrapper {
                 score.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.NANDY);
                 break;
             case 3:
-                score.setRuleType(SemBicScore.RuleType.HIGH_DIMENSIONAL);
+                score.setRuleType(SemBicScore.RuleType.GIC6);
                 break;
             default:
                 throw new IllegalStateException("Expecting 1, 2, 3: " + parameters.getInt(Params.SEM_BIC_RULE));

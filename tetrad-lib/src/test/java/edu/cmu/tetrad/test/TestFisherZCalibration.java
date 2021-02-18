@@ -27,6 +27,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.traverseSemiDirected;
+import static java.lang.Math.log;
 import static org.junit.Assert.assertEquals;
 
 public class TestFisherZCalibration {
@@ -174,9 +175,9 @@ public class TestFisherZCalibration {
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 4);
         parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
-        parameters.set(Params.COEF_LOW, 0.0);
+        parameters.set(Params.COEF_LOW, 0.2);
         parameters.set(Params.COEF_HIGH, 0.8);
-        parameters.set(Params.VAR_LOW, 1.0);
+        parameters.set(Params.VAR_LOW, 3.0);
         parameters.set(Params.VAR_HIGH, 3.0);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
 
@@ -185,9 +186,9 @@ public class TestFisherZCalibration {
         parameters.set(Params.PARALLELISM, 8);
 
         parameters.set(Params.PENALTY_DISCOUNT, 1);
-        parameters.set(Params.SEM_BIC_RULE, 3);
+        parameters.set(Params.SEM_BIC_RULE, 1);
 //        parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
-        parameters.set(Params.USE_EQUIVALENT_SAMPLE_SIZE, false);
+//        parameters.set(Params.USE_EQUIVALENT_SAMPLE_SIZE, false);
 
 //        parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 50);
 //        parameters.set(Params.INTERVAL_BETWEEN_RECORDINGS, 50);
@@ -406,7 +407,7 @@ public class TestFisherZCalibration {
 //                System.out.println(rawdata);
 
                 SemBicScore score = new SemBicScore(rawdata);
-                score.setRuleType(SemBicScore.RuleType.HIGH_DIMENSIONAL);
+                score.setRuleType(SemBicScore.RuleType.GIC6);
                 score.setPenaltyDiscount(2);
 
                 Fges fges = new Fges(score, 4);

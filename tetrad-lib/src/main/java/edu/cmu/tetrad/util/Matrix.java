@@ -22,6 +22,7 @@
 package edu.cmu.tetrad.util;
 
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
+import org.apache.commons.math3.analysis.function.Sin;
 import org.apache.commons.math3.linear.*;
 
 import java.io.IOException;
@@ -178,7 +179,7 @@ public class Matrix implements TetradSerializable {
             return new Matrix(0, 0);
         }
 
-        return new Matrix(new LUDecomposition(apacheData, 1e-5).getSolver().getInverse().getData());
+        return new Matrix(new SingularValueDecomposition(apacheData).getSolver().getInverse().getData());
     }
 
     public Matrix symmetricInverse() {

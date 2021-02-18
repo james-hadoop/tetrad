@@ -47,7 +47,7 @@ public class DagInPatternWrapper extends GraphWrapper implements DoNotAddOldMode
     }
 
     private static Graph getGraph(Graph graph) {
-        return SearchGraphUtils.chooseDagInPattern(graph);
+        return SearchGraphUtils.dagFromPattern(graph);
     }
 
 

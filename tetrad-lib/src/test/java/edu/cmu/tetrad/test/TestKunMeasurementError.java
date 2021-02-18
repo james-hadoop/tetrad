@@ -93,6 +93,7 @@ public class TestKunMeasurementError {
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
         comparison.setSaveGraphs(false);
+        comparison.setSaveData(false);
         comparison.setTabDelimitedTables(false);
 
         comparison.compareFromSimulations("comparison", simulations, algorithms, statistics, parameters);

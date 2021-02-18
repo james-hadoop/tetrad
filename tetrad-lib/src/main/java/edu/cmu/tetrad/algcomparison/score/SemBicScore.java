@@ -47,13 +47,16 @@ public class SemBicScore implements ScoreWrapper {
 
         switch (parameters.getInt(Params.SEM_BIC_RULE)) {
             case 1:
-                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.CHICKERING);
+                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.GIC4);
                 break;
             case 2:
-                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.NANDY);
+                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.GIC6);
                 break;
             case 3:
-                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.HIGH_DIMENSIONAL);
+                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.CHICKERING);
+                break;
+            case 4:
+                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.NANDY);
                 break;
             default:
                 throw new IllegalStateException("Expecting 1, 2, or 3: " + parameters.getInt(Params.SEM_BIC_RULE));

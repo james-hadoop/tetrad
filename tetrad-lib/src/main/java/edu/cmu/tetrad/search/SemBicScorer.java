@@ -25,7 +25,7 @@ public class SemBicScorer {
             throw new IllegalArgumentException("Expecting a covariance matrix of a dataset.");
         }
 
-        score.setRuleType(SemBicScore.RuleType.HIGH_DIMENSIONAL);
+        score.setRuleType(SemBicScore.RuleType.GIC6);
         score.setPenaltyDiscount(1);
 
         dag = GraphUtils.replaceNodes(dag, data.getVariables());

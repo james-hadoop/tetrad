@@ -185,19 +185,19 @@ public class SemBicScore implements Score {
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-            return -N * log(varey) - c * k * log(N);// + 2 * getStructurePrior(p);
+            return -N * log(varey) - log(N) * k * c;
 
-        } else if (ruleType == RuleType.HIGH_DIMENSIONAL) {
+        } else if (ruleType == RuleType.GIC6) {
 
             // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
             // The Journal of Machine Learning Research, 13(1), 1037-1057.
+            return -n * log(varey) -  log(n) * log(pn) * k * c;
+        } else if (ruleType == RuleType.GIC4) {
 
-            // We will just take 6 * omega * (1 + gamma) to be a number >= 6. To be compatible with other scores,
-            // we will use c + 5 for this value, where c is the penalty discount. So a penalty discount of 1 (the usual)
-            // will correspond to 6 * omega * (1 + gamma) of 6, the minimum.
-//            return -n * log(varey) - c * k * 6 * log(pn);
-//            return -n * log(varey) - 2 * (log(pn) + log(log(pn))) * k;
-            return -n * log(varey) - c * k * log(n) * log(pn);// + 2 * getStructurePrior(p);
+            // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
+            // The Journal of Machine Learning Research, 13(1), 1037-1057.
+            return -n * log(varey) - 2 * (log(pn) + log(log(pn))) * k * c;
+//            return -n * log(varey) - (pow(pn, .1)) * k * c;
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
@@ -315,6 +315,7 @@ public class SemBicScore implements Score {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
         this.N = covariances.getSampleSize();
+//        this.N = DataUtils.getEss(covariances);
     }
 
     private static int[] append(int[] z, int x) {
@@ -507,7 +508,7 @@ public class SemBicScore implements Score {
         return ruleType;
     }
 
-    public enum RuleType {CHICKERING, NANDY, HIGH_DIMENSIONAL}
+    public enum RuleType {CHICKERING, NANDY, GIC6, GIC4}
 }
 
 

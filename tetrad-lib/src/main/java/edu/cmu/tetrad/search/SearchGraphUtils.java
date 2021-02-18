@@ -1474,23 +1474,22 @@ public final class SearchGraphUtils {
         }
 
         MeekRules rules = new MeekRules();
-//        rules.setRevertToUnshieldedColliders(false);
+        rules.setRevertToUnshieldedColliders(false);
 
-        boolean directed = true;
-
-        while (directed) {
-            directed = false;
-
+        NEXT:
+        while (true) {
             for (Edge edge : dag.getEdges()) {
+                Node x = edge.getNode1();
+                Node y = edge.getNode2();
+
                 if (Edges.isUndirectedEdge(edge)) {
-                    Node x = edge.getNode1();
-                    Node y = edge.getNode2();
-
                     direct(x, y, dag);
-
                     rules.orientImplied(dag);
+                    continue NEXT;
                 }
             }
+
+            break;
         }
 
         return dag;
