@@ -4,10 +4,8 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Fges;
 import edu.cmu.tetrad.search.SemBicScore;
-import edu.cmu.tetrad.search.SemBicScorer;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 
 import java.util.HashSet;
@@ -42,8 +40,6 @@ public class BicDiff implements Statistic {
         }
 
         SemBicScore score = new SemBicScore((DataSet) dataModel);
-        score.setRuleType(SemBicScore.RuleType.CHICKERING);
-        score.setPenaltyDiscount(1);
         Fges fges = new Fges(score);
         double _true = fges.scoreDag(trueGraph);
         double est = fges.scoreDag(SearchGraphUtils.dagFromPattern(estGraph));

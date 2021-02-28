@@ -25,20 +25,18 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.Regression;
 import edu.cmu.tetrad.regression.RegressionCovariance;
 import edu.cmu.tetrad.regression.RegressionResult;
-import edu.cmu.tetrad.util.*;
 import edu.cmu.tetrad.util.Vector;
+import edu.cmu.tetrad.util.*;
 import edu.cmu.tetrad.util.dist.Distribution;
 import edu.cmu.tetrad.util.dist.Split;
+import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-
-import static java.lang.Math.sqrt;
-
 import java.rmi.MarshalledObject;
 import java.util.*;
 
-import org.apache.commons.math3.distribution.ChiSquaredDistribution;
+import static java.lang.Math.sqrt;
 
 /**
  * Stores an instantiated structural equation model (SEM), with error covariance
@@ -1351,7 +1349,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         // Create some index arrays to hopefully speed up the simulation.
         SemGraph graph = getSemPm().getGraph();
         graph.setShowErrorTerms(false);
-        List<Node> tierOrdering = graph.getCausalOrdering();
+        List<Node> tierOrdering = variableNodes;// graph.getCausalOrdering();
 
         int[] tierIndices = new int[variableNodes.size()];
 
@@ -1375,40 +1373,19 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
             }
         }
 
-        Matrix cholesky = MatrixUtils.cholesky(errCovar());
-
         // Do the simulation.
         ROW:
         for (int row = 0; row < sampleSize; row++) {
 
             // Step 1. Generate normal samples.
-            double[] exoData = new double[cholesky.rows()];
+            double[] exoData = new double[variableNodes.size()];
 
             for (int i = 0; i < exoData.length; i++) {
-                exoData[i] = RandomUtil.getInstance().nextNormal(0, 1);
+                exoData[i] = RandomUtil.getInstance().nextNormal(0, errCovar.get(i, i));
             }
 
-//            // Step 2. Multiply by cholesky to get correct covariance.
-//            double[] point = new double[exoData.length];
-//
-//            for (int i = 0; i < exoData.length; i++) {
-//                double sum = 0.0;
-//
-//                for (int j1 = 0; j1 < exoData.length; j1++) {
-//                    sum += cholesky.get(i, j1) * exoData[j1];
-//                }
-//
-//                point[i] = sum;
-//            }
-//
-//            Vector e = new Vector(point);
-
             for (int tier = 0; tier < tierOrdering.size(); tier++) {
-                Node node = tierOrdering.get(tier);
-                ConnectionFunction function = functions.get(node);
                 int col = tierIndices[tier];
-
-                Distribution distribution = this.distributions.get(node);
                 double value;
 
                 // If it's an exogenous node and initial data has been specified, use that data instead.
@@ -1427,31 +1404,9 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                     int column = initialValues.getColumn(initNode);
                     value = initialValues.getDouble(row, column);
                 } else {
-//                    if (distribution == null) {
-                        value = exoData[col];//.get(col);
-//                    } else {
-//                        value = distribution.nextRandom();
-//                    }
+                    value = exoData[col];//.get(col);
                 }
 
-//                if (function != null) {
-//                    Node[] parents = function.getInputNodes();
-//                    double[] parentValues = new double[parents.length];
-//
-//                    for (int j = 0; j < parents.length; j++) {
-//                        Node parent = parents[j];
-//                        int index = variableNodes.indexOf(parent);
-//                        parentValues[j] = fullDataSet.getDouble(row, index);
-//                    }
-//
-//                    value += function.valueAt(parentValues);
-//
-////                    if (initialValues == null && isSimulatedPositiveDataOnly() && value < 0) {
-////                        row--;
-////                        continue ROW;
-////                    }
-//
-//                } else
                 {
                     for (int j = 0; j < _parents[col].length; j++) {
                         int parent = _parents[col][j];
@@ -1460,12 +1415,13 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                         value += parentValue * parentCoef;
                     }
 
-//                    if (isSimulatedPositiveDataOnly() && value < 0) {
-//                        row--;
-//                        continue ROW;
-//                    }
+                    if (isSimulatedPositiveDataOnly() && value < 0) {
+                        row--;
+                        continue ROW;
+                    }
 
                 }
+
                 fullDataSet.setDouble(row, col, value);
             }
         }
@@ -1499,7 +1455,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
             Vector e = new Vector(m);
 
             for (int i = 0; i < e.size(); i++) {
-                e.set(i, RandomUtil.getInstance().nextNormal(0, 1) * sqrt(errCovar.get(i, i)));
+                e.set(i, RandomUtil.getInstance().nextNormal(0, sqrt(errCovar.get(i, i))));
             }
 
             // Step 3. Calculate the new rows in the data.

@@ -3,6 +3,8 @@ package edu.cmu.tetrad.algcomparison.statistic;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.search.Fges;
+import edu.cmu.tetrad.search.SemBicScore;
 import edu.cmu.tetrad.search.SemBicScorer;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 
@@ -28,9 +30,9 @@ public class BicTrue implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        double _true = SemBicScorer.scoreDag(SearchGraphUtils.dagFromPattern(trueGraph), dataModel);
-//        double est = SemBicScorer.scoreDag(SearchGraphUtils.dagFromPattern(estGraph), dataModel);
-        return _true;
+        SemBicScore score = new SemBicScore((DataSet) dataModel);
+        Fges fges = new Fges(score);
+        return fges.scoreDag(trueGraph);
     }
 
     @Override

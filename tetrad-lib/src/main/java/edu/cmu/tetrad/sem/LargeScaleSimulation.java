@@ -791,8 +791,8 @@ public final class LargeScaleSimulation {
         AbstractRealDistribution distribution;
         AbstractRealDistribution varDist = null;
 
-        distribution = new NormalDistribution(new Well1024a(++seed), 0, 1);
-        varDist = new UniformRealDistribution(varLow, varHigh);
+//        distribution = new NormalDistribution(new Well1024a(++seed), 0, 1);
+//        varDist = new UniformRealDistribution(varLow, varHigh);
 
         int numVars = variableNodes.size();
         setupModel(numVars);
@@ -800,11 +800,10 @@ public final class LargeScaleSimulation {
         double[][] shocks = new double[sampleSize][numVars];
 
         for (int j = 0; j < numVars; j++) {
-            double sd = sqrt(varDist.sample());
+            double sd = sqrt(RandomUtil.getInstance().nextUniform(varLow, varHigh));
 
             for (int i = 0; i < sampleSize; i++) {
-                double sample = distribution.sample();
-                sample *= sd;
+                double sample = RandomUtil.getInstance().nextNormal(0, sd);
 
                 if (!errorsNormal) {
                     sample = sample * sample;

@@ -26,9 +26,10 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
+import static edu.cmu.tetrad.graph.GraphUtils.loadRSpecial;
 import static edu.cmu.tetrad.graph.GraphUtils.traverseSemiDirected;
-import static java.lang.Math.log;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestFisherZCalibration {
 
@@ -173,27 +174,33 @@ public class TestFisherZCalibration {
         Parameters parameters = new Parameters();
         parameters.set(Params.NUM_RUNS, 10);
         parameters.set(Params.NUM_MEASURES, 20);
-        parameters.set(Params.AVG_DEGREE, 4);
+
+        double avgDegree = 4;
+        double sigma2 = 3;
+        double penalty = 5;
+        int rule = 2;
+
+        parameters.set(Params.AVG_DEGREE, avgDegree);
         parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
-        parameters.set(Params.COEF_LOW, 0.2);
-        parameters.set(Params.COEF_HIGH, 0.8);
-        parameters.set(Params.VAR_LOW, 3.0);
-        parameters.set(Params.VAR_HIGH, 3.0);
+        parameters.set(Params.COEF_LOW, 0);
+        parameters.set(Params.COEF_HIGH, 1);
+        parameters.set(Params.VAR_LOW, 1);
+        parameters.set(Params.VAR_HIGH, sigma2);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
 
-        parameters.set(Params.SYMMETRIC_FIRST_STEP, true);
+        parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.VERBOSE, false);
-        parameters.set(Params.PARALLELISM, 8);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
+        parameters.set(Params.PARALLELISM, 20);
 
-        parameters.set(Params.PENALTY_DISCOUNT, 1);
-        parameters.set(Params.SEM_BIC_RULE, 1);
-//        parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
-//        parameters.set(Params.USE_EQUIVALENT_SAMPLE_SIZE, false);
+        parameters.set(Params.PENALTY_DISCOUNT, penalty);
+        parameters.set(Params.SEM_BIC_RULE, rule);
+        parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
 
-//        parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 50);
-//        parameters.set(Params.INTERVAL_BETWEEN_RECORDINGS, 50);
-//        parameters.set(Params.SELF_LOOP_COEF, 0);
-//        parameters.set(Params.FISHER_EPSILON, 0.0001);
+        parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 50);
+        parameters.set(Params.INTERVAL_BETWEEN_RECORDINGS, 50);
+        parameters.set(Params.SELF_LOOP_COEF, 0);
+        parameters.set(Params.FISHER_EPSILON, 0.0001);
 
         Statistics statistics = new Statistics();
 
@@ -415,7 +422,7 @@ public class TestFisherZCalibration {
                 fges.setSymmetricFirstStep(false);
 
                 Graph out = fges.search();
-                Graph graph = GraphUtils.loadGraphTxt(graphFile);
+                Graph graph = loadRSpecial(graphFile);
 
                 List<Node> nodes = graph.getNodes();
 
@@ -449,6 +456,107 @@ public class TestFisherZCalibration {
             System.out.println("F1Adj = " + f1adjsum / 50.);
             System.out.println("F1Arrow = " + f1arrowsum / 50.);
         }
+    }
+
+    @Test
+    public void test7a() {
+        NumberFormat nf = new DecimalFormat("0000");
+
+        String prefix = "tges1";
+
+        System.out.println("\nComparison of graph files with prefix '" + prefix + "' to true graph");
+
+        for (int i = 9200; i <= 9209; i++) {
+            File dataFile = new File("/Users/josephramsey/Downloads/ges_turning"
+                    + "/raw_data_" + nf.format(i) + ".csv");
+            File graphFile = new File("/Users/josephramsey/Downloads/ges_turning"
+                    + "/true_model_" + nf.format(i));
+
+            File gesFile = new File("/Users/josephramsey/Downloads/ges_turning/" + prefix + "_N10000_dag_"
+                    + nf.format(i) + ".csv");
+
+            DataSet rawdata = null;
+
+            try {
+                ContinuousTabularDatasetFileReader reader = new ContinuousTabularDatasetFileReader(dataFile.toPath(), Delimiter.COMMA);
+                reader.setHasHeader(false);
+                Data data = reader.readInData();
+                rawdata = (DataSet) DataConvertUtils.toDataModel(data);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+
+            SemBicScore score = new SemBicScore(rawdata);
+            score.setRuleType(SemBicScore.RuleType.BIC);
+            score.setPenaltyDiscount(2);
+
+            Fges fges = new Fges(score, 4);
+            fges.setMaxDegree(100);
+            fges.setSymmetricFirstStep(false);
+
+            Graph trueDag = loadMyGraph(graphFile);
+            Graph gesGraph = loadMyGraph(gesFile);
+
+//            Graph est = fges.search();
+
+            Graph est = gesGraph;
+            trueDag = GraphUtils.replaceNodes(trueDag, est.getNodes());
+
+            Graph truedag = SearchGraphUtils.dagFromPattern(trueDag);
+            Graph dagout = SearchGraphUtils.dagFromPattern(est);
+
+            System.out.println("\nModel " + i + "\n");
+            NumberFormat nf2 = new DecimalFormat("0.####");
+
+            System.out.println("True # edges = " + nf2.format(new NumberOfEdgesTrue().getValue(truedag, dagout, rawdata)));
+            System.out.println("Est # edges = " + nf2.format(new NumberOfEdgesEst().getValue(truedag, dagout, rawdata)));
+            System.out.println("AP = " + nf2.format(new AdjacencyPrecision().getValue(truedag, dagout, rawdata)));
+            System.out.println("AR = " + nf2.format(new AdjacencyRecall().getValue(truedag, dagout, rawdata)));
+            System.out.println("AHP = " + nf2.format(new ArrowheadPrecision().getValue(truedag, dagout, rawdata)));
+            System.out.println("AHR = " + nf2.format(new ArrowheadRecall().getValue(truedag, dagout, rawdata)));
+            System.out.println("F1Adj = " + nf2.format(new F1Adj().getValue(truedag, dagout, rawdata)));
+            System.out.println("F1Arrow = " + nf2.format(new F1Arrow().getValue(truedag, dagout, rawdata)));
+            System.out.println("BIC true = " + nf2.format(new BicTrue().getValue(truedag, dagout, rawdata)));
+            System.out.println("BIC est = " + nf2.format(new BicEst().getValue(truedag, dagout, rawdata)));
+            System.out.println("BIC diff = " + nf2.format(new BicDiff().getValue(truedag, dagout, rawdata)));
+            System.out.println("Cycle in est DAG? = " + nf2.format(new CyclicEst().getValue(truedag, dagout, rawdata)));
+
+        }
+
+    }
+
+    public static Graph loadMyGraph(File file) {
+        DataSet eg = null;
+
+        try {
+            ContinuousTabularDatasetFileReader reader = new ContinuousTabularDatasetFileReader(file.toPath(), Delimiter.COMMA);
+            reader.setHasHeader(false);
+            Data data = reader.readInData();
+            eg = (DataSet) DataConvertUtils.toDataModel(data);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+
+        if (eg == null) throw new NullPointerException();
+
+        List<Node> vars = eg.getVariables();
+
+        Graph graph = new EdgeListGraph(vars);
+
+        for (int i = 0; i < vars.size(); i++) {
+            for (int j = 0; j < vars.size(); j++) {
+                if (i == j) continue;
+                if (eg.getDouble(i, j) == 1 && eg.getDouble(j, i) == 1) {
+                    if (!graph.isAdjacentTo(vars.get(i), vars.get(j))) {
+                        graph.addUndirectedEdge(vars.get(i), vars.get(j));
+                    }
+                } else if (eg.getDouble(i, j) == 0 && eg.getDouble(j, i) == 1) {
+                    graph.addDirectedEdge(vars.get(i), vars.get(j));
+                }
+            }
+        }
+
+        return graph;
     }
 
     @Test
@@ -676,22 +784,117 @@ public class TestFisherZCalibration {
 
     @Test
     public void test10() {
-        int numNodes = 25;
-        int aveDegree = 4;
+        int numNodes = 20;
+        int aveDegree = 2;
         int numIterations = 1;
 
         for (int i = 0; i < numIterations; i++) {
             Graph dag = GraphUtils.randomDag(numNodes, 0, aveDegree * numNodes / 2,
-                    10, 10, 10, false);
+                    100, 100, 100, false);
             GraphScore score = new GraphScore(dag);
 //            score.setVerbose(true);
-            Fges fges = new Fges(score);
-            fges.setSymmetricFirstStep(true);
+            Fges fges = new Fges(score, 1);
+//            fges.setSymmetricFirstStep(true);
             fges.setVerbose(true);
 //            fges.setTDepth(1);
             Graph pattern1 = fges.search();
             Graph pattern2 = new Pc(new IndTestDSep(dag)).search();
             assertEquals(pattern2, pattern1);
         }
+    }
+
+    @Test
+    public void test11() {
+        int numNodes = 5;
+        int aveDegree = 2;
+        int numIterations = 5;
+
+        int N = 10000;
+
+//        long seed = 1614202777779L;
+//        long seed = 1614229734289L;
+//        long seed = 1614234337763L;
+//        long seed = 1614239138138L;
+        long seed = 1614264484974L;
+
+//        RandomUtil.getInstance().setSeed(seed);
+
+        for (int i = 0; i < numIterations; i++) {
+            System.out.println("seed = " + RandomUtil.getInstance().getSeed());
+
+            Graph trueDag = GraphUtils.randomDag(numNodes, 0, aveDegree * numNodes / 2,
+                    100, 100, 100, false);
+
+            Parameters p = new Parameters();
+            p.set(Params.VAR_LOW, 1);
+            p.set(Params.VAR_HIGH, 1);
+            p.set(Params.COEF_LOW, 0);
+            p.set(Params.COEF_HIGH, 1);
+
+            SemPm pm = new SemPm(trueDag);
+            SemIm im = new SemIm(pm, p);
+            DataSet D = im.simulateData(N, false);
+
+            SemBicScore score = new SemBicScore(D);
+            score.setRuleType(SemBicScore.RuleType.BIC);
+            score.setPenaltyDiscount(1);
+            score.setVerbose(false);
+            Fges fges = new Fges(score, 1);
+            fges.setTrueDag(trueDag);
+            fges.setVerbose(true);
+            fges.setMeekVerbose(true);
+            Graph estPattern = fges.search();
+
+            estPattern = GraphUtils.replaceNodes(estPattern, trueDag.getNodes());
+            Graph estDag = SearchGraphUtils.dagFromPattern(estPattern);
+
+            System.out.println("True DAG = " + trueDag);
+            System.out.println("FGES pattern = " + estPattern);
+            System.out.println("FGES sample DAG = " + estDag);
+
+            Graph truePattern = SearchGraphUtils.patternFromDag(trueDag);
+
+            double ap = new AdjacencyPrecision().getValue(truePattern, estPattern, D);
+            double ar = new AdjacencyRecall().getValue(truePattern, estPattern, D);
+            double ahpc = new ArrowheadPrecisionCommonEdges().getValue(truePattern, estPattern, D);
+            double ahrc = new ArrowheadRecallCommonEdges().getValue(truePattern, estPattern, D);
+
+            NumberFormat nf = new DecimalFormat("0.00");
+
+            System.out.println("AP = " + nf.format(ap) + " AR = " + nf.format(ar) + " AHPC = " + nf.format(ahpc) + " AHRC = " + nf.format(ahrc));
+
+            assert estPattern != null;
+            assertTrue("Markov failed", markovTo(estDag, trueDag));
+        }
+    }
+
+    private boolean markovTo(Graph estDag, Graph trueDag) {
+        List<Node> variables = estDag.getNodes();
+        IndTestDSep dsepTrue = new IndTestDSep(trueDag);
+
+        boolean ret = true;
+
+        for (Node x : variables) {
+            List<Node> parents = estDag.getParents(x);
+
+            for (Node y : variables) {
+                if (parents.contains(y)) continue;
+                if (x == y) continue;
+                if (estDag.isAncestorOf(x, y)) continue;
+
+                boolean ind1 = dsepTrue.isIndependent(x, y, parents);
+
+                System.out.println("ind1 = " + ind1);
+
+                if (!ind1) {
+                    System.out.println("Not Markov to the true graph "
+                            + " because " + SearchLogUtils.independenceFact(x, y, parents)
+                            + " not d-separated in true graph.");
+                    ret = false;
+                }
+            }
+        }
+
+        return ret;
     }
 }

@@ -3125,8 +3125,7 @@ public final class GraphUtils {
     }
 
     public static boolean existsDirectedPathFromTo(Node node1, Node node2, Graph graph) {
-        return node1 == node2 || existsDirectedPathFromTo(node1, node2, graph);
-//        return existsDirectedPathVisit(node1, node2, new LinkedList<Node>(), 1000, graph);
+        return existsDirectedPathVisit(node1, node2, new LinkedList<>(), -1, graph);
     }
 
     public static boolean existsDirectedPathFromTo(Node node1, Node node2, int depth, Graph graph) {
@@ -3135,6 +3134,8 @@ public final class GraphUtils {
 
     private static boolean existsDirectedPathVisit(Node node1, Node node2, LinkedList<Node> path, int depth, Graph graph) {
         path.addLast(node1);
+
+        if (depth == -1) depth = Integer.MAX_VALUE;
 
         if (path.size() >= depth) {
             return false;

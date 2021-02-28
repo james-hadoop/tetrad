@@ -7,6 +7,7 @@ import edu.cmu.tetradapp.model.GraphWrapper;
 import edu.cmu.tetradapp.model.TabularComparison;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -99,12 +100,14 @@ public class StatsListEditor extends JPanel {
                         table.toString()
         );
 
+        area.setBorder(new EmptyBorder(5, 5, 5, 5));
+
         area.setFont(new Font(Font.MONOSPACED, Font.BOLD, 14));
         area.setMinimumSize(area.getPreferredSize());
         area.setMaximumSize(area.getPreferredSize());
 
         JScrollPane pane = new JScrollPane(area);
-        pane.setPreferredSize(new Dimension(700, 600));
+        pane.setPreferredSize(new Dimension(700, 1100));
 
         Box b = Box.createVerticalBox();
         b.add(pane);

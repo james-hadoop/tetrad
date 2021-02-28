@@ -213,7 +213,7 @@ public class TestGFci {
 
         IndependenceTest test = new IndTestFisherZ(data, 0.001);
         SemBicScore score = new SemBicScore(data);
-        score.setRuleType(SemBicScore.RuleType.CHICKERING);
+        score.setRuleType(SemBicScore.RuleType.BIC);
         score.setPenaltyDiscount(2);
         GFci gFci = new GFci(test, score);
         gFci.setFaithfulnessAssumed(true);
