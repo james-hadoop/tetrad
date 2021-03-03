@@ -70,7 +70,7 @@ public class SearchWrappers {
 
         public Graph search(DataSet ds){
             SemBicScore score = new SemBicScore(new CovarianceMatrix(MixedUtils.makeContinuousData(ds)));
-            score.setTrueErrorVariance(searchParams[0]);
+            score.setPenaltyDiscount(searchParams[0]);
             Fges fg = new Fges(score);
             return fg.search();
         }

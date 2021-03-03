@@ -633,7 +633,7 @@ public class DMSearch {
         this.cov = new CovarianceMatrix(data);
 
         SemBicScore score = new SemBicScore(cov);
-        score.setTrueErrorVariance(penalty);
+        score.setPenaltyDiscount(penalty);
         Fges fges = new Fges(score);
         fges.setKnowledge(knowledge);
 //        fges.setMaxIndegree(this.gesDepth);

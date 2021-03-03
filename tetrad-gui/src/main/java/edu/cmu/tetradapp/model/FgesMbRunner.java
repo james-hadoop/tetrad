@@ -171,7 +171,7 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
             if (dataSet.isContinuous()) {
                 SemBicScore score = new SemBicScore(new CovarianceMatrix((DataSet) model));
                 target = score.getVariable(targetName);
-                score.setTrueErrorVariance(params.getDouble("penaltyDiscount", 4));
+                score.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
                 fges = new FgesMb(score);
             } else if (dataSet.isDiscrete()) {
                 double samplePrior = 1;//((Parameters) getParameters()).getSamplePrior();
@@ -186,8 +186,8 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
             }
         } else if (model instanceof ICovarianceMatrix) {
             SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
-            gesScore.setTrueErrorVariance(params.getDouble("alpha", 0.001));
-            gesScore.setTrueErrorVariance(params.getDouble("penaltyDiscount", 4));
+            gesScore.setPenaltyDiscount(params.getDouble("alpha", 0.001));
+            gesScore.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
             target = gesScore.getVariable(targetName);
             fges = new FgesMb(gesScore);
         }

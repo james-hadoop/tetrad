@@ -192,7 +192,7 @@ public class TsGFciRunner extends AbstractAlgorithmRunner
 //                    SemBicScore2 gesScore = new SemBicScore2(new CovarianceMatrix((DataSet) model));
 //                    SemGpScore gesScore = new SemGpScore(new CovarianceMatrix((DataSet) model));
 //                    SvrScore gesScore = new SvrScore((DataSet) model);
-                    gesScore.setTrueErrorVariance(penaltyDiscount);
+                    gesScore.setPenaltyDiscount(penaltyDiscount);
                     System.out.println("Score done");
                     IndependenceTest test = new IndTestDSep((Graph) model);
                     gfci = new TsGFci(test, gesScore);
@@ -211,8 +211,8 @@ public class TsGFciRunner extends AbstractAlgorithmRunner
                 }
             } else if (model instanceof ICovarianceMatrix) {
                 SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
-                gesScore.setTrueErrorVariance(penaltyDiscount);
-                gesScore.setTrueErrorVariance(penaltyDiscount);
+                gesScore.setPenaltyDiscount(penaltyDiscount);
+                gesScore.setPenaltyDiscount(penaltyDiscount);
                 IndependenceTest test = new IndTestDSep((Graph) model);
                 gfci = new TsGFci(test, gesScore);
                 gfci.setKnowledge((IKnowledge) getParams().get("knowledge", new Knowledge2()));

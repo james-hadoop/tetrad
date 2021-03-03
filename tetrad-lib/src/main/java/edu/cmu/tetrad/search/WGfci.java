@@ -41,7 +41,7 @@ public class WGfci implements GraphSearch {
 
         test = new IndTestFisherZ(covariances, 0.001);
         this.score = new SemBicScore(covariances);
-        score.setTrueErrorVariance(4);
+        score.setPenaltyDiscount(4);
         this.gfci = new GFci(test, score);
     }
 

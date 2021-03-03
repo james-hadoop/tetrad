@@ -435,7 +435,7 @@ public class TestFges {
 
         SemBicScore score = new SemBicScore(cov);
         score.setRuleType(SemBicScore.RuleType.NANDY);
-        score.setTrueErrorVariance(1);
+        score.setPenaltyDiscount(1);
 //        score.setStructurePrior(0);
         Fges fges = new Fges(score);
         fges.setKnowledge(knowledge);
@@ -621,7 +621,7 @@ public class TestFges {
                             SemIm im = new SemIm(pm, params);
                             DataSet data = im.simulateData(sampleSize, false);
                             SemBicScore score = new SemBicScore(data);
-                            score.setTrueErrorVariance(.5);
+                            score.setPenaltyDiscount(.5);
                             Fges fges = new Fges(score);
                             fges.setVerbose(false);
                             Graph pattern1 = fges.search();
@@ -879,7 +879,7 @@ public class TestFges {
     private Graph searchSemFges(DataSet Dk, double penalty) {
         Dk = DataUtils.convertNumericalDiscreteToContinuous(Dk);
         SemBicScore score = new SemBicScore(new CovarianceMatrix(Dk));
-        score.setTrueErrorVariance(penalty);
+        score.setPenaltyDiscount(penalty);
         Fges fges = new Fges(score);
         return fges.search();
     }
@@ -916,7 +916,7 @@ public class TestFges {
         Graph gm = m.search();
         DataSet dataSet = MixedUtils.makeContinuousData(ds);
         SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
-        score.setTrueErrorVariance(penalty);
+        score.setPenaltyDiscount(penalty);
         Fges fg = new Fges(score);
         fg.setBoundGraph(gm);
         fg.setVerbose(false);

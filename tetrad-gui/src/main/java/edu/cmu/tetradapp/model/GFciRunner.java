@@ -212,11 +212,11 @@ public class GFciRunner extends AbstractAlgorithmRunner
                 if (dataSet.isContinuous()) {
                     IndependenceTest test = new IndTestFisherZ(new CovarianceMatrix((DataSet) model), 0.001);
                     SemBicScore gesScore = new SemBicScore(new CovarianceMatrix((DataSet) model));
-                    gesScore.setTrueErrorVariance(penaltyDiscount);
+                    gesScore.setPenaltyDiscount(penaltyDiscount);
 //                    SemBicScore2 gesScore = new SemBicScore2(new CovarianceMatrix((DataSet) model));
 //                    SemGpScore gesScore = new SemGpScore(new CovarianceMatrix((DataSet) model));
 //                    SvrScore gesScore = new SvrScore((DataSet) model);
-                    gesScore.setTrueErrorVariance(penaltyDiscount);
+                    gesScore.setPenaltyDiscount(penaltyDiscount);
                     System.out.println("Score done");
                     gfci = new GFci(test, gesScore);
                 }
@@ -234,8 +234,8 @@ public class GFciRunner extends AbstractAlgorithmRunner
             } else if (model instanceof ICovarianceMatrix) {
                 IndependenceTest test = new IndTestFisherZ((ICovarianceMatrix) model, 0.001);
                 SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
-                gesScore.setTrueErrorVariance(penaltyDiscount);
-                gesScore.setTrueErrorVariance(penaltyDiscount);
+                gesScore.setPenaltyDiscount(penaltyDiscount);
+                gesScore.setPenaltyDiscount(penaltyDiscount);
                 gfci = new GFci(test, gesScore);
             } else if (model instanceof DataModelList) {
                 DataModelList list = (DataModelList) model;

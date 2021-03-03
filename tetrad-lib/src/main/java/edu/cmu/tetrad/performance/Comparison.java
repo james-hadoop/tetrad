@@ -145,7 +145,7 @@ public class Comparison {
             }
 
             SemBicScore semBicScore = new SemBicScore(new CovarianceMatrix(dataSet));
-            semBicScore.setTrueErrorVariance(params.getPenaltyDiscount());
+            semBicScore.setPenaltyDiscount(params.getPenaltyDiscount());
             score = semBicScore;
 
             params.setDataType(ComparisonParameters.DataType.Continuous);

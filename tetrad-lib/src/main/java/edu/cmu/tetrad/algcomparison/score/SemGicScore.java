@@ -18,11 +18,11 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Score(
-        name = "Sem BIC Score",
-        command = "sem-bic-score",
+        name = "Sem GIC Score",
+        command = "sem-gic-score",
         dataType = {DataType.Continuous, DataType.Covariance}
 )
-public class SemBicScore implements ScoreWrapper {
+public class SemGicScore implements ScoreWrapper {
 
     static final long serialVersionUID = 23L;
     private DataModel dataSet;
@@ -31,36 +31,41 @@ public class SemBicScore implements ScoreWrapper {
     public Score getScore(DataModel dataSet, Parameters parameters) {
         this.dataSet = dataSet;
 
-        edu.cmu.tetrad.search.SemBicScore semBicScore;
+        edu.cmu.tetrad.search.SemGicScore semGicScore;
 
         if (dataSet instanceof DataSet) {
-            semBicScore = new edu.cmu.tetrad.search.SemBicScore((DataSet) this.dataSet);
+            semGicScore = new edu.cmu.tetrad.search.SemGicScore((DataSet) this.dataSet);
         } else if (dataSet instanceof ICovarianceMatrix) {
-            semBicScore = new edu.cmu.tetrad.search.SemBicScore((ICovarianceMatrix) this.dataSet);
+            semGicScore = new edu.cmu.tetrad.search.SemGicScore((ICovarianceMatrix) this.dataSet);
         } else {
             throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
         }
 
-        semBicScore.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
-        semBicScore.setStructurePrior(parameters.getDouble(Params.SEM_BIC_STRUCTURE_PRIOR));
+        semGicScore.setTrueErrorVariance(parameters.getDouble(Params.PENALTY_DISCOUNT));
 
-        switch (parameters.getInt(Params.SEM_BIC_RULE)) {
+        switch (parameters.getInt(Params.SEM_GIC_RULE)) {
             case 1:
-                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.CHICKERING);
+                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.BIC);
                 break;
             case 2:
-                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.NANDY);
+                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.RICc);
+                break;
+            case 3:
+                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.GIC5);
+                break;
+            case 4:
+                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.GIC6);
                 break;
             default:
-                throw new IllegalStateException("Expecting 1 or 2: " + parameters.getInt(Params.SEM_BIC_RULE));
+                throw new IllegalStateException("Expecting 1, 2, 3 or 4: " + parameters.getInt(Params.SEM_BIC_RULE));
         }
 
-        return semBicScore;
+        return semGicScore;
     }
 
     @Override
     public String getDescription() {
-        return "Sem BIC Score";
+        return "Sem GIC Score";
     }
 
     @Override
@@ -71,9 +76,8 @@ public class SemBicScore implements ScoreWrapper {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.add(Params.PENALTY_DISCOUNT);
-        parameters.add(Params.SEM_BIC_STRUCTURE_PRIOR);
-        parameters.add(Params.SEM_BIC_RULE);
+        parameters.add(Params.TRUE_ERROR_VARIANCE);
+        parameters.add(Params.SEM_GIC_RULE);
         return parameters;
     }
 

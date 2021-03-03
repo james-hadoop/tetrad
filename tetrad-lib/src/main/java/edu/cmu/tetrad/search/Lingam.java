@@ -141,7 +141,7 @@ public class Lingam {
 //        System.out.println("BTilde = " + BTilde);
 
         final SemBicScore score = new SemBicScore(new CovarianceMatrix(data));
-        score.setTrueErrorVariance(penaltyDiscount);
+        score.setPenaltyDiscount(penaltyDiscount);
         Fges fges = new Fges(score);
 
         IKnowledge knowledge = new Knowledge2();

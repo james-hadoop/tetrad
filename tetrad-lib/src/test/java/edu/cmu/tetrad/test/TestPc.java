@@ -365,7 +365,7 @@ public class TestPc {
             IndTestFisherZ test = new IndTestFisherZ(data, alpha);
 
             SemBicScore score = new SemBicScore(new CovarianceMatrix(data));
-            score.setTrueErrorVariance(penaltyDiscount);
+            score.setPenaltyDiscount(penaltyDiscount);
             GraphSearch search;
 
             switch (t) {
@@ -737,7 +737,7 @@ public class TestPc {
 
 
             SemBicScore score = new SemBicScore(new CovarianceMatrix(data));
-            score.setTrueErrorVariance(penaltyDiscount);
+            score.setPenaltyDiscount(penaltyDiscount);
             GraphSearch search;
             Graph out;
 

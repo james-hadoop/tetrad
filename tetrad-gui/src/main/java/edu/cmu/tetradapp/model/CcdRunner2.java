@@ -186,7 +186,7 @@ public class CcdRunner2 extends AbstractAlgorithmRunner
 //                    SvrScore gesScore = new SvrScore((DataSet) model);
                     IndependenceTest test = new IndTestScore(gesScore);
 
-                    gesScore.setTrueErrorVariance(penaltyDiscount);
+                    gesScore.setPenaltyDiscount(penaltyDiscount);
                     System.out.println("Score done");
                     ccd = new CcdMax(test);
 //                    ccd.setAssumeIid(false);
@@ -206,8 +206,8 @@ public class CcdRunner2 extends AbstractAlgorithmRunner
                 }
             } else if (model instanceof ICovarianceMatrix) {
                 SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
-                gesScore.setTrueErrorVariance(penaltyDiscount);
-                gesScore.setTrueErrorVariance(penaltyDiscount);
+                gesScore.setPenaltyDiscount(penaltyDiscount);
+                gesScore.setPenaltyDiscount(penaltyDiscount);
                 IndependenceTest test = new IndTestScore(gesScore);
                 ccd = new CcdMax(test);
 //                ccd.setAssumeIid(false);

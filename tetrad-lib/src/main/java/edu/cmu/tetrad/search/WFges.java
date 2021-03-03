@@ -76,7 +76,7 @@ public class WFges implements GraphSearch {
     }
 
     public Graph search() {
-        score.setTrueErrorVariance(penaltyDiscount);
+        score.setPenaltyDiscount(penaltyDiscount);
         Graph g = fges.search();
 
         Graph out = new EdgeListGraph(searchVariables);

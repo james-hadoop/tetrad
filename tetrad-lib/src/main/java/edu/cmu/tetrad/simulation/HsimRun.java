@@ -36,7 +36,7 @@ public class HsimRun {
             //ICovarianceMatrix cov = new CovarianceMatrix(dataSet);
             double penaltyDiscount = 2.0;
             SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
-            score.setTrueErrorVariance(penaltyDiscount);
+            score.setPenaltyDiscount(penaltyDiscount);
             Fges fges = new Fges(score);
             fges.setVerbose(false);
 //            fges.setCorrErrorsAlpha(penaltyDiscount);
@@ -87,7 +87,7 @@ public class HsimRun {
             DataSet dataSetOut = (DataSet) DataConvertUtils.toDataModel(dataReaderOut.readInData());
 
             SemBicScore _score = new SemBicScore(new CovarianceMatrix(dataSetOut));
-            _score.setTrueErrorVariance(2.0);
+            _score.setPenaltyDiscount(2.0);
             Fges fgesOut = new Fges(_score);
             fgesOut.setVerbose(false);
 //            fgesOut.setCorrErrorsAlpha(2.0);

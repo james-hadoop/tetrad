@@ -4577,6 +4577,18 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="penaltyDiscount_value_type">Double</span></li>
         </ul>
 
+        <h3 id="trueErrorVariance" class="parameter_description">trueErrorVariance</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="trueErrorVariance_short_desc">Penalty discount (min = 0.0)</span></li>
+            <li>Long Description: <span id="trueErrorVariance_long_desc">
+                The true error variance of the model, assuming this is the same for all variables.
+            </span></li>
+            <li>Default Value: <span id="trueErrorVariance_default_value">1.0</span></li>
+            <li>Lower Bound: <span id="trueErrorVariance_lower_bound">0.0</span></li>
+            <li>Upper Bound: <span id="trueErrorVariance_upper_bound">1.7976931348623157E308</span></li>
+            <li>Value Type: <span id="trueErrorVariance_value_type">Double</span></li>
+        </ul>
+
         <h3 id="thresholdAlpha" class="parameter_description">errorThreshold</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="thresholdAlpha_short_desc">Error Threshold</span></li>
@@ -4817,25 +4829,37 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
         <h3 id="semBicRule" class="parameter_description">semBicRule</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="semBicRule_short_desc">
-                Lambda: 1 = ln n (BIC), 2 = 2(ln pn + ln ln pn), 3 = ln ln n ln pn 4 = log n ln pn</span>
+                Lambda: 1 = Chickering, 2 = Nandy</span>
             </li>
-            <li>Long Description: <span id="semBicRule_long_desc">The rule used for calculating a score.
-                The Chickering Rule is the local scoring consistency criterion in Chickering's formulation of
-                GES, though we allow a multiplier on the penalty term called "penalty discount".
-                The Nandy et al. rule is a reformultion of the Chickering rule using a single calculation
-                of a partial correlation in place of the likelihood difference. For the high dimensional
-                scores, we follow Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria
-                on high dimensions. The Journal of Machine Learning Research, 13(1), 1037-1057.
-                The two best performing scores there are GIC4 and GIC6; we include these as options here.
-                The selling point for these scores is that with large numbers of variables, if the density
-                is not too high, AP will be kept in check. But please see Kim et al. for theoretical
-                details.
+            <li>Long Description: <span id="semBicRule_long_desc">The Chickering Rule is the local scoring consistency
+                criterion in Chickering's formulation of GES, which is a difference of BIC scores, though we allow a
+                multiplier on the penalty term called "penalty discount".
+                The Nandy et al. rule is a reformulation of the Chickering rule using a single calculation
+                of a partial correlation in place of the likelihood difference.
             </span>
             </li>
             <li>Default Value: <span id="semBicRule_default_value">4</span></li>
             <li>Lower Bound: <span id="semBicRule_lower_bound">1</span></li>
             <li>Upper Bound: <span id="semBicRule_upper_bound">4</span></li>
             <li>Value Type: <span id="semBicRule_value_type">Integer</span></li>
+        </ul>
+
+        <h3 id="semGicRule" class="parameter_description">semGicRule</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="semGicRule_short_desc">
+                Lambda: 1 = ln n (BIC), 2 = 2 ln pn, 3 = 2(ln pn + ln ln pn), 4 = ln ln n ln pn, 4 = log n ln pn</span>
+            </li>
+            <li>Long Description: <span id="semGicRule_long_desc">The rule used for calculating the lambda term
+                of the score. a score. We follow Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria
+                on high dimensions. The Journal of Machine Learning Research, 13(1), 1037-1057 and articles
+                referenced therein. The selling point for these scores is that with large numbers of variables,
+                if the density is not too high, adjacency precision will be kept in check.
+            </span>
+            </li>
+            <li>Default Value: <span id="semGicRule_default_value">3</span></li>
+            <li>Lower Bound: <span id="semGicRule_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="semGicRule_upper_bound">5</span></li>
+            <li>Value Type: <span id="semGicRule_value_type">Integer</span></li>
         </ul>
 
         <h3 id="semBicStructurePrior" class="parameter_description">semBicStructurePrior</h3>

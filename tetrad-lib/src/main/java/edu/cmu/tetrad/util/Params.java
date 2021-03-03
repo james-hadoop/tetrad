@@ -195,6 +195,8 @@ public final class Params {
     public static final String PRINT_STREAM = "printStream";
     public static final String MAX_CORRELATION = "maxCorrelation";
     public static final String SEM_BIC_RULE = "semBicRule";
+    public static final String SEM_GIC_RULE = "semGicRule";
+    public static final String TRUE_ERROR_VARIANCE = "trueErrorVariance";
     public static final String SEM_BIC_STRUCTURE_PRIOR = "semBicStructurePrior";
     public static final String TIME_LIMIT = "timeLimit";
 

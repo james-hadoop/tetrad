@@ -89,11 +89,11 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
                 }
 
                 SemBicScore semBicScore = new SemBicScore(new CovarianceMatrix(dataSet));
-                semBicScore.setTrueErrorVariance(penaltyDiscount);
+                semBicScore.setPenaltyDiscount(penaltyDiscount);
                 semBicScores.add(semBicScore);
             } else if (model instanceof ICovarianceMatrix) {
                 SemBicScore semBicScore = new SemBicScore((ICovarianceMatrix) model);
-                semBicScore.setTrueErrorVariance(penaltyDiscount);
+                semBicScore.setPenaltyDiscount(penaltyDiscount);
                 semBicScores.add(semBicScore);
             } else {
                 throw new IllegalArgumentException("Only continuous data sets and covariance matrices may be used as input.");
@@ -245,7 +245,7 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
     public void setPenaltyDiscount(double penaltyDiscount) {
         this.penaltyDiscount = penaltyDiscount;
         for (SemBicScore score : semBicScores) {
-            score.setTrueErrorVariance(penaltyDiscount);
+            score.setPenaltyDiscount(penaltyDiscount);
         }
     }
 

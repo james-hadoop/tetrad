@@ -413,8 +413,8 @@ public class TestFisherZCalibration {
 //                System.out.println(rawdata);
 
                 SemBicScore score = new SemBicScore(rawdata);
-                score.setRuleType(SemBicScore.RuleType.GIC6);
-                score.setTrueErrorVariance(2);
+                score.setRuleType(SemBicScore.RuleType.CHICKERING);
+                score.setPenaltyDiscount(2);
 
                 Fges fges = new Fges(score, 4);
                 fges.setMaxDegree(100);
@@ -485,8 +485,8 @@ public class TestFisherZCalibration {
             }
 
             SemBicScore score = new SemBicScore(rawdata);
-            score.setRuleType(SemBicScore.RuleType.BIC);
-            score.setTrueErrorVariance(2);
+            score.setRuleType(SemBicScore.RuleType.CHICKERING);
+            score.setPenaltyDiscount(2);
 
             Fges fges = new Fges(score, 4);
             fges.setMaxDegree(100);
@@ -830,8 +830,8 @@ public class TestFisherZCalibration {
             DataSet D = im.simulateData(N, false);
 
             SemBicScore score = new SemBicScore(D);
-            score.setRuleType(SemBicScore.RuleType.BIC);
-            score.setTrueErrorVariance(1);
+            score.setRuleType(SemBicScore.RuleType.CHICKERING);
+            score.setPenaltyDiscount(1);
             score.setVerbose(false);
             Fges fges = new Fges(score, 1);
             fges.setTrueDag(trueDag);

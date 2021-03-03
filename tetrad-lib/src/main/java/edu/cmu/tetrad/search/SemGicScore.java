@@ -21,7 +21,6 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.CorrelationMatrix;
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
@@ -34,14 +33,14 @@ import java.util.*;
 
 import static edu.cmu.tetrad.util.MatrixUtils.convertCovToCorr;
 import static java.lang.Double.NaN;
-import static java.lang.Math.*;
+import static java.lang.Math.log;
 
 /**
  * Implements the continuous BIC score for FGES.
  *
  * @author Joseph Ramsey
  */
-public class SemBicScore implements Score {
+public class SemGicScore implements Score {
 
     // The dataset.
     private DataSet dataSet;
@@ -61,22 +60,28 @@ public class SemBicScore implements Score {
     // A  map from variable names to their indices.
     private final Map<Node, Integer> indexMap;
 
-    // The penalty penaltyDiscount, 1 for standard BIC.
-    private double penaltyDiscount = 1.0;
-
-    // The structure prior, 0 for standard BIC.
-    private double structurePrior = 0.0;
+    // The true error variance
+    private double trueErrorVariance = 1.0;
 
     // Equivalent sample size
     private Matrix matrix;
 
     // The rule type to use.
-    private RuleType ruleType = RuleType.CHICKERING;
+    private RuleType ruleType = RuleType.MANUAL;
+
+    // Sample size or equivalent sample size.
+    private double N;
+
+    // Manually set lambda, by default log(n);
+    private double lambda;
+
+    // True if the equivalent sample size should be used in place of N.
+//    private boolean useEquivalentSampleSize = false;
 
     /**
      * Constructs the score using a covariance matrix.
      */
-    public SemBicScore(ICovarianceMatrix covariances) {
+    public SemGicScore(ICovarianceMatrix covariances) {
         if (covariances == null) {
             throw new NullPointerException();
         }
@@ -85,23 +90,22 @@ public class SemBicScore implements Score {
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
+        this.setLambda(log(this.sampleSize));
     }
 
     /**
      * Constructs the score using a covariance matrix.
      */
-    public SemBicScore(DataSet dataSet) {
+    public SemGicScore(DataSet dataSet) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
 
         if (!dataSet.existsMissingValue()) {
-//            setCovariances(new CorrelationMatrix(new CovarianceMatrix(dataSet, false)));
-            setCovariances(new CovarianceMatrix(dataSet, false));
+            setCovariances(new CovarianceMatrix(dataSet));
             this.variables = covariances.getVariables();
             this.sampleSize = covariances.getSampleSize();
             this.indexMap = indexMap(this.variables);
-
 
             return;
         }
@@ -123,9 +127,6 @@ public class SemBicScore implements Score {
     }
 
     public double nandyBic(int x, int y, int[] z) {
-        double sp1 = getStructurePrior(z.length + 1);
-        double sp2 = getStructurePrior(z.length);
-
         Node _x = variables.get(x);
         Node _y = variables.get(y);
         List<Node> _z = getVariableList(z);
@@ -137,11 +138,9 @@ public class SemBicScore implements Score {
         }
 
         double r = partialCorrelation(_x, _y, _z, rows);
+        double c = getTrueErrorVariance();
 
-        double c = getPenaltyDiscount();
-
-        return -sampleSize * log(1.0 - r * r) - c * log(sampleSize)
-                - 2.0 * (sp1 - sp2);
+        return -N * log(1.0 - r * r) - c * log(N);
     }
 
     @Override
@@ -154,56 +153,63 @@ public class SemBicScore implements Score {
 
         final int p = parents.length;
 
-        int k = p + 1;
-
         int[] all = concat(i, parents);
 
         // Only do this once.
         Matrix cov = getCov(rows, all, all);
-
-        double m = variables.size();
-        double n = sampleSize;
-
+        double pn = variables.size();
+        double n = N;
         int[] pp = indexedParents(parents);
 
         Matrix covxx = cov.getSelection(pp, pp);
         Matrix covxy = cov.getSelection(pp, new int[]{0});
 
-        double varey;
+        Matrix b = adjustedCoefs(covxx.inverse().times(covxy));
+        Matrix times = b.transpose().times(cov).times(b);
+        double varey = times.get(0, 0);
 
-//        if (false) {
-//            // Ricardo's calculation.
-//            Matrix b = covxx.inverse().times(covxy);
-//            varey = cov.get(0, 0);
-//            Vector _cxy = covxy.getColumn(0);
-//            Vector _b = b.getColumn(0);
-//            varey -= _cxy.dotProduct(_b);
-//        } else {
-        // My calculation.
-        Matrix b = covxx.inverse().times(covxy);
-        Matrix b2 = adjustedCoefs(p, b);
-        Matrix times = b2.transpose().times(cov).times(b2);
-        varey = times.get(0, 0);
-//        }
+        double sigma2 = getTrueErrorVariance();
 
-        double c = getPenaltyDiscount();
+        double lambda;
 
-        if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
+        // Defaults to the manually set lambda.
+        if (ruleType == RuleType.MANUAL) {
+            lambda = this.lambda;
+        } else if (ruleType == RuleType.BIC || ruleType == RuleType.NANDY) {
+            lambda = log(n);
+        } else if (ruleType == RuleType.RIC) {
 
-            // Standard BIC, with penalty discount and structure prior.
-            return -n * log(varey) - c * k * log(n) - 2 * getStructurePrior(p);
+            // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
+            // The Journal 0of Machine Learning Research, 13(1), 1037-1057.
+            lambda = 2 * (log(pn));
+        } else if (ruleType == RuleType.RICc) {
 
+            // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
+            // The Journal of Machine Learning Research, 13(1), 1037-1057.
+            lambda = 2 * log(pn) + 2 * log(log(pn));
+        } else if (ruleType == RuleType.GIC5) {
+
+            // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
+            // The Journal of Machine Learning Research, 13(1), 1037-1057.
+            lambda = log(log(n)) * (log(pn));
+        } else if (ruleType == RuleType.GIC6) {
+
+            // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
+            // The Journal of Machine Learning Research, 13(1), 1037-1057.
+            lambda = log(n) * log(pn);
         } else {
-            throw new IllegalStateException("That rule type is not implemented: " + ruleType);
+            throw new IllegalStateException("That lambda rule is not configured: " + ruleType);
         }
+
+        return -n * log(varey) - lambda * p * sigma2;
     }
 
 
     @NotNull
-    public Matrix adjustedCoefs(int p, Matrix b) {
-        Matrix byx = new Matrix(p + 1, 1);
+    public Matrix adjustedCoefs(Matrix b) {
+        Matrix byx = new Matrix(b.rows() + 1, 1);
         byx.set(0, 0, 1);
-        for (int j = 0; j < p; j++) byx.set(j + 1, 0, -b.get(j, 0));
+        for (int j = 0; j < b.rows(); j++) byx.set(j + 1, 0, -b.get(j, 0));
         return byx;
     }
 
@@ -221,12 +227,8 @@ public class SemBicScore implements Score {
         return localScore(i, new int[0]);
     }
 
-    public double getPenaltyDiscount() {
-        return penaltyDiscount;
-    }
-
-    public double getStructurePrior() {
-        return structurePrior;
+    public double getTrueErrorVariance() {
+        return trueErrorVariance;
     }
 
     public ICovarianceMatrix getCovariances() {
@@ -246,12 +248,8 @@ public class SemBicScore implements Score {
         return dataSet;
     }
 
-    public void setPenaltyDiscount(double penaltyDiscount) {
-        this.penaltyDiscount = penaltyDiscount;
-    }
-
-    public void setStructurePrior(double structurePrior) {
-        this.structurePrior = structurePrior;
+    public void setTrueErrorVariance(double trueErrorVariance) {
+        this.trueErrorVariance = trueErrorVariance;
     }
 
     public boolean isVerbose() {
@@ -306,21 +304,16 @@ public class SemBicScore implements Score {
         return Double.isNaN(v);
     }
 
+    @Override
+    public Score defaultScore() {
+        return new SemGicScore(covariances);
+    }
+
     private void setCovariances(ICovarianceMatrix covariances) {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
-
-        Matrix cor = new CorrelationMatrix(covariances).getMatrix();
-
-        double m = covariances.getSize();
-        double n = covariances.getSampleSize();
-
-        double tr = cor.times(cor).trace();
-        double rho = sqrt((1. / m) * tr - 1.) / (n - 1.);
-        double ess = n / (1. + (n - 1.) * rho);
-
-        System.out.println("n = " + n + " ess = " + ess + " rho = " + rho);
-
+        this.N = covariances.getSampleSize();
+//        this.N = DataUtils.getEss(covariances);
     }
 
     private static int[] append(int[] z, int x) {
@@ -340,15 +333,6 @@ public class SemBicScore implements Score {
         all[0] = i;
         System.arraycopy(parents, 0, all, 1, parents.length);
         return all;
-    }
-
-    private double getStructurePrior(int parents) {
-        if (abs(getStructurePrior()) <= 0) {
-            return 0;
-        } else {
-            double p = (getStructurePrior()) / (variables.size());
-            return -((parents) * Math.log(p) + (variables.size() - (parents)) * Math.log(1.0 - p));
-        }
     }
 
     private List<Node> getVariableList(int[] indices) {
@@ -426,7 +410,7 @@ public class SemBicScore implements Score {
 
     private double partialCorrelation(Node x, Node y, List<Node> z, List<Integer> rows) {
         try {
-            return StatUtils.partialCorrelation(convertCovToCorr(getCov(rows, indices(x, y, z))));
+            return StatUtils.partialCorrelation(getCov(rows, indices(x, y, z)));
         } catch (Exception e) {
             return NaN;
         }
@@ -498,7 +482,15 @@ public class SemBicScore implements Score {
         this.ruleType = ruleType;
     }
 
-    public enum RuleType {CHICKERING, NANDY}
+    public RuleType getRuleType() {
+        return ruleType;
+    }
+
+    public void setLambda(double lambda) {
+        this.lambda = lambda;
+    }
+
+    public enum RuleType {MANUAL, BIC, NANDY, RIC, RICc, GIC5, GIC6}
 }
 
 
