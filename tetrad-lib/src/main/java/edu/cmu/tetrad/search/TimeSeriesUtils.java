@@ -165,7 +165,7 @@ public class TimeSeriesUtils {
             score = new BDeuScore(timeLags);
         } else if (timeLags.isContinuous()) {
             SemBicScore semBicScore = new SemBicScore(new CovarianceMatrix(timeLags));
-            semBicScore.setPenaltyDiscount(2.0);
+            semBicScore.setTrueErrorVariance(2.0);
             score = semBicScore;
         } else {
             throw new IllegalArgumentException("Mixed data set");

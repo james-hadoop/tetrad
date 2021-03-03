@@ -139,7 +139,7 @@ public class TsFgesRunner extends AbstractAlgorithmRunner implements IFgesRunner
 //                    SemBicScore2 gesScore = new SemBicScore2(new CovarianceMatrix((DataSet) model));
 //                    SemGpScore gesScore = new SemGpScore(new CovarianceMatrix((DataSet) model));
 //                    SvrScore gesScore = new SvrScore((DataSet) model);
-                    gesScore.setPenaltyDiscount(penaltyDiscount);
+                    gesScore.setTrueErrorVariance(penaltyDiscount);
                     System.out.println("Score done");
                     fges = new TsFges2(gesScore);
                 } else if (dataSet.isDiscrete()) {
@@ -156,8 +156,8 @@ public class TsFgesRunner extends AbstractAlgorithmRunner implements IFgesRunner
                 }
             } else if (model instanceof ICovarianceMatrix) {
                 SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
-                gesScore.setPenaltyDiscount(penaltyDiscount);
-                gesScore.setPenaltyDiscount(penaltyDiscount);
+                gesScore.setTrueErrorVariance(penaltyDiscount);
+                gesScore.setTrueErrorVariance(penaltyDiscount);
                 fges = new TsFges2(gesScore);
             }
             else if (model instanceof DataModelList) {

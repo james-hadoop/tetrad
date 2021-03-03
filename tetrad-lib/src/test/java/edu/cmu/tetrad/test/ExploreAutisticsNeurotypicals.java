@@ -90,7 +90,7 @@ public final class ExploreAutisticsNeurotypicals {
                 File file = new File(path, name);
 
                 SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
-                score.setPenaltyDiscount(penaltyDiscount);
+                score.setTrueErrorVariance(penaltyDiscount);
                 Fges search = new Fges(score);
                 search.setVerbose(false);
                 Graph graph = search.search();

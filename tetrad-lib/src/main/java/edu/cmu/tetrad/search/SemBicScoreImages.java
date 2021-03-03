@@ -69,11 +69,11 @@ public class SemBicScoreImages implements ISemBicScore, Score {
                 }
 
                 SemBicScore semBicScore = new SemBicScore(dataSet);
-                semBicScore.setPenaltyDiscount(penaltyDiscount);
+                semBicScore.setTrueErrorVariance(penaltyDiscount);
                 semBicScores.add(semBicScore);
             } else if (model instanceof ICovarianceMatrix) {
                 SemBicScore semBicScore = new SemBicScore((ICovarianceMatrix) model);
-                semBicScore.setPenaltyDiscount(penaltyDiscount);
+                semBicScore.setTrueErrorVariance(penaltyDiscount);
                 semBicScores.add(semBicScore);
             } else {
                 throw new IllegalArgumentException("Only continuous data sets and covariance matrices may be used as input.");
@@ -189,7 +189,7 @@ public class SemBicScoreImages implements ISemBicScore, Score {
     public void setPenaltyDiscount(double penaltyDiscount) {
         this.penaltyDiscount = penaltyDiscount;
         for (SemBicScore score : semBicScores) {
-            score.setPenaltyDiscount(penaltyDiscount);
+            score.setTrueErrorVariance(penaltyDiscount);
         }
     }
 

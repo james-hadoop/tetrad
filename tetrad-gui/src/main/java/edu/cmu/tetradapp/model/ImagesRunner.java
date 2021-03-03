@@ -129,7 +129,7 @@ public class ImagesRunner extends AbstractAlgorithmRunner implements IFgesRunner
 
             if (dataSet.isContinuous()) {
                 SemBicScore gesScore = new SemBicScore(new CovarianceMatrix((DataSet) model));
-                gesScore.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
+                gesScore.setTrueErrorVariance(params.getDouble("penaltyDiscount", 4));
                 fges = new Fges(gesScore);
             } else if (dataSet.isDiscrete()) {
                 double samplePrior = getParams().getDouble("samplePrior", 1);
@@ -143,7 +143,7 @@ public class ImagesRunner extends AbstractAlgorithmRunner implements IFgesRunner
             }
         } else if (model instanceof ICovarianceMatrix) {
             SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
-            gesScore.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
+            gesScore.setTrueErrorVariance(params.getDouble("penaltyDiscount", 4));
             fges = new Fges(gesScore);
         } else if (model instanceof DataModelList) {
             DataModelList list = (DataModelList) model;

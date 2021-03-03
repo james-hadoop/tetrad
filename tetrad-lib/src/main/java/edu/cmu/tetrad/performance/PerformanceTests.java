@@ -376,7 +376,7 @@ public class PerformanceTests {
         out.println("Elapsed (calculating cov): " + (time3 - time2) + " ms");
 
         SemBicScore semBicScore = new SemBicScore(cov);
-        semBicScore.setPenaltyDiscount(penaltyDiscount);
+        semBicScore.setTrueErrorVariance(penaltyDiscount);
 
         Fges pcStable = new Fges(semBicScore);
 
@@ -737,7 +737,7 @@ public class PerformanceTests {
 //        GFci fci = new GFci(independenceTest);
 
         SemBicScore score = new SemBicScore(cov);
-        score.setPenaltyDiscount(penaltyDiscount);
+        score.setTrueErrorVariance(penaltyDiscount);
         GFci fci = new GFci(independenceTest, score);
 
         fci.setVerbose(false);
@@ -872,7 +872,7 @@ public class PerformanceTests {
                 out.println("Elapsed (calculating cov): " + (time3 - time2) + " ms\n");
 
                 SemBicScore score = new SemBicScore(cov);
-                score.setPenaltyDiscount(penaltyDiscount);
+                score.setTrueErrorVariance(penaltyDiscount);
 
                 System.out.println(new Date());
                 System.out.println("\nStarting FGES");
@@ -1107,7 +1107,7 @@ public class PerformanceTests {
             out.println("Elapsed (calculating cov): " + (time3 - time2) + " ms\n");
 
             SemBicScore score = new SemBicScore(cov);
-            score.setPenaltyDiscount(penaltyDiscount);
+            score.setTrueErrorVariance(penaltyDiscount);
 
             System.out.println(new Date());
             System.out.println("\nStarting FGES-MB");
@@ -1368,7 +1368,7 @@ public class PerformanceTests {
             // Independence test.
             final IndTestFisherZ independenceTest = new IndTestFisherZ(cov, alpha);
             final SemBicScore score = new SemBicScore(cov);
-            score.setPenaltyDiscount(penaltyDiscount);
+            score.setTrueErrorVariance(penaltyDiscount);
 
             Graph estPag;
             long elapsed;

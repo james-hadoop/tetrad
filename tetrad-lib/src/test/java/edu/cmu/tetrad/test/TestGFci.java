@@ -83,7 +83,7 @@ public class TestGFci {
 
         IndTestFisherZ independenceTest = new IndTestFisherZ(cov, alpha);
         SemBicScore score = new SemBicScore(cov);
-        score.setPenaltyDiscount(penaltyDiscount);
+        score.setTrueErrorVariance(penaltyDiscount);
 
         independenceTest.setAlpha(alpha);
 
@@ -214,7 +214,7 @@ public class TestGFci {
         IndependenceTest test = new IndTestFisherZ(data, 0.001);
         SemBicScore score = new SemBicScore(data);
         score.setRuleType(SemBicScore.RuleType.BIC);
-        score.setPenaltyDiscount(2);
+        score.setTrueErrorVariance(2);
         GFci gFci = new GFci(test, score);
         gFci.setFaithfulnessAssumed(true);
 

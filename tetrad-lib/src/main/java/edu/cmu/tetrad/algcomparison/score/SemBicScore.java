@@ -41,16 +41,14 @@ public class SemBicScore implements ScoreWrapper {
             throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
         }
 
-        semBicScore.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
-        semBicScore.setStructurePrior(parameters.getDouble(Params.SEM_BIC_STRUCTURE_PRIOR));
-//        semBicScore.setUseEquivalentSampleSize(parameters.getBoolean(Params.USE_EQUIVALENT_SAMPLE_SIZE));
+        semBicScore.setTrueErrorVariance(parameters.getDouble(Params.PENALTY_DISCOUNT));
 
         switch (parameters.getInt(Params.SEM_BIC_RULE)) {
             case 1:
                 semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.BIC);
                 break;
             case 2:
-                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.GIC4);
+                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.RICc);
                 break;
             case 3:
                 semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.GIC5);

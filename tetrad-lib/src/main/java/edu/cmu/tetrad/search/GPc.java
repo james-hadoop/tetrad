@@ -291,12 +291,12 @@ public final class GPc implements GraphSearch {
         } else if (cov != null) {
             covarianceMatrix = cov;
             SemBicScore score0 = new SemBicScore(cov);
-            score0.setPenaltyDiscount(penaltyDiscount);
+            score0.setTrueErrorVariance(penaltyDiscount);
             score = score0;
         } else if (dataSet.isContinuous()) {
             covarianceMatrix = new CovarianceMatrix(dataSet);
             SemBicScore score0 = new SemBicScore(covarianceMatrix);
-            score0.setPenaltyDiscount(penaltyDiscount);
+            score0.setTrueErrorVariance(penaltyDiscount);
             score = score0;
         } else if (dataSet.isDiscrete()) {
             BDeuScore score0 = new BDeuScore(dataSet);

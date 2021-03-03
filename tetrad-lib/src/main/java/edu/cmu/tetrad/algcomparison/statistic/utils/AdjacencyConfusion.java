@@ -2,6 +2,7 @@ package edu.cmu.tetrad.algcomparison.statistic.utils;
 
 import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.NodePair;
 
 import java.util.HashSet;
@@ -22,6 +23,8 @@ public class AdjacencyConfusion {
         adjTp = 0;
         adjFp = 0;
         adjFn = 0;
+
+        est = GraphUtils.replaceNodes(est, truth.getNodes());
 
         Set<NodePair> trueEdges = new HashSet<>();
         Set<NodePair> estEdges = new HashSet<>();

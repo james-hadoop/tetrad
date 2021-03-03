@@ -79,7 +79,7 @@ public final class FasLofs implements GraphSearch {
         long start = System.currentTimeMillis();
 
         SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
-        score.setPenaltyDiscount(penaltyDiscount);
+        score.setTrueErrorVariance(penaltyDiscount);
         IndependenceTest test = new IndTestScore(score, dataSet);
 
         System.out.println("FAS");

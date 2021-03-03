@@ -5,6 +5,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -28,6 +29,7 @@ import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadRSpecial;
 import static edu.cmu.tetrad.graph.GraphUtils.traverseSemiDirected;
+import static java.lang.Math.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -175,26 +177,23 @@ public class TestFisherZCalibration {
         parameters.set(Params.NUM_RUNS, 10);
         parameters.set(Params.NUM_MEASURES, 20);
 
-        double avgDegree = 4;
         double sigma2 = 3;
-        double penalty = 5;
-        int rule = 2;
 
-        parameters.set(Params.AVG_DEGREE, avgDegree);
+        parameters.set(Params.AVG_DEGREE, 4);
         parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
-        parameters.set(Params.VAR_LOW, 1);
+        parameters.set(Params.VAR_LOW, sigma2);
         parameters.set(Params.VAR_HIGH, sigma2);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.VERBOSE, false);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
-        parameters.set(Params.PARALLELISM, 20);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.PARALLELISM, 10);
 
-        parameters.set(Params.PENALTY_DISCOUNT, penalty);
-        parameters.set(Params.SEM_BIC_RULE, rule);
+        parameters.set(Params.PENALTY_DISCOUNT, sigma2);
+        parameters.set(Params.SEM_BIC_RULE, 4);
         parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
 
         parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 50);
@@ -233,7 +232,7 @@ public class TestFisherZCalibration {
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearFisherModel(new RandomForward()));
 
         Comparison comparison = new Comparison();
 
@@ -415,7 +414,7 @@ public class TestFisherZCalibration {
 
                 SemBicScore score = new SemBicScore(rawdata);
                 score.setRuleType(SemBicScore.RuleType.GIC6);
-                score.setPenaltyDiscount(2);
+                score.setTrueErrorVariance(2);
 
                 Fges fges = new Fges(score, 4);
                 fges.setMaxDegree(100);
@@ -472,8 +471,7 @@ public class TestFisherZCalibration {
             File graphFile = new File("/Users/josephramsey/Downloads/ges_turning"
                     + "/true_model_" + nf.format(i));
 
-            File gesFile = new File("/Users/josephramsey/Downloads/ges_turning/" + prefix + "_N10000_dag_"
-                    + nf.format(i) + ".csv");
+//            File gesFile = new File("/Users/josephramsey/Downloads/ges_turning/" + prefix + "_N10000_dag_" + nf.format(i) + ".csv");
 
             DataSet rawdata = null;
 
@@ -488,18 +486,16 @@ public class TestFisherZCalibration {
 
             SemBicScore score = new SemBicScore(rawdata);
             score.setRuleType(SemBicScore.RuleType.BIC);
-            score.setPenaltyDiscount(2);
+            score.setTrueErrorVariance(2);
 
             Fges fges = new Fges(score, 4);
             fges.setMaxDegree(100);
             fges.setSymmetricFirstStep(false);
 
-            Graph trueDag = loadMyGraph(graphFile);
-            Graph gesGraph = loadMyGraph(gesFile);
+            Graph trueDag = loadMyGraph(graphFile, true);
+//            Graph gesGraph = loadMyGraph(gesFile, false);
 
-//            Graph est = fges.search();
-
-            Graph est = gesGraph;
+            Graph est = fges.search();
             trueDag = GraphUtils.replaceNodes(trueDag, est.getNodes());
 
             Graph truedag = SearchGraphUtils.dagFromPattern(trueDag);
@@ -525,7 +521,7 @@ public class TestFisherZCalibration {
 
     }
 
-    public static Graph loadMyGraph(File file) {
+    public static Graph loadMyGraph(File file, boolean dir) {
         DataSet eg = null;
 
         try {
@@ -550,7 +546,9 @@ public class TestFisherZCalibration {
                     if (!graph.isAdjacentTo(vars.get(i), vars.get(j))) {
                         graph.addUndirectedEdge(vars.get(i), vars.get(j));
                     }
-                } else if (eg.getDouble(i, j) == 0 && eg.getDouble(j, i) == 1) {
+                } else if (dir && eg.getDouble(i, j) == 0 && eg.getDouble(j, i) == 1) {
+                    graph.addDirectedEdge(vars.get(i), vars.get(j));
+                } else if (!dir && eg.getDouble(i, j) == 1 && eg.getDouble(j, i) == 0) {
                     graph.addDirectedEdge(vars.get(i), vars.get(j));
                 }
             }
@@ -785,7 +783,7 @@ public class TestFisherZCalibration {
     @Test
     public void test10() {
         int numNodes = 20;
-        int aveDegree = 2;
+        int aveDegree = 3;
         int numIterations = 1;
 
         for (int i = 0; i < numIterations; i++) {
@@ -811,13 +809,9 @@ public class TestFisherZCalibration {
 
         int N = 10000;
 
-//        long seed = 1614202777779L;
-//        long seed = 1614229734289L;
-//        long seed = 1614234337763L;
-//        long seed = 1614239138138L;
         long seed = 1614264484974L;
 
-//        RandomUtil.getInstance().setSeed(seed);
+        RandomUtil.getInstance().setSeed(seed);
 
         for (int i = 0; i < numIterations; i++) {
             System.out.println("seed = " + RandomUtil.getInstance().getSeed());
@@ -837,7 +831,7 @@ public class TestFisherZCalibration {
 
             SemBicScore score = new SemBicScore(D);
             score.setRuleType(SemBicScore.RuleType.BIC);
-            score.setPenaltyDiscount(1);
+            score.setTrueErrorVariance(1);
             score.setVerbose(false);
             Fges fges = new Fges(score, 1);
             fges.setTrueDag(trueDag);
@@ -896,5 +890,24 @@ public class TestFisherZCalibration {
         }
 
         return ret;
+    }
+
+    @Test
+    public void test12() {
+        for (int pn : new int[]{10}) {
+            for (int m0 : new int[]{0, 1, 2, 3, 4}) {
+                for (int n : new int[]{10000}) {
+                    for (double gamma = 1; gamma <= 20; gamma++) {
+                        double lambda = 2 * log(pn) + (1 + gamma) * log(log(pn));
+                        double pmin = 2 - pow(1 + exp(-(lambda - 1) / 2.) * sqrt(lambda), pn - m0);
+
+                        double pd = lambda / log(n);
+
+                        System.out.println("pn = " + pn + " m0 = " + m0 + " gamma = " + gamma + " lambda = "
+                                + lambda + " pmin = " + pmin + " pd = " + pd);
+                    }
+                }
+            }
+        }
     }
 }

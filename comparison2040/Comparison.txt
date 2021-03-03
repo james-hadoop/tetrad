@@ -1,4 +1,4 @@
-Sat Feb 27 18:06:58 EST 2021
+Wed Mar 03 11:00:03 EST 2021
 
 Statistics:
 
@@ -22,263 +22,313 @@ E = Elapsed Time in Seconds
 
 Simulations:
 
-Simulation 1: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+Simulation 1: Linear Fisher model simulation
 
 Comparison.printParameters
 Number of measured variables (min = 1) = 20
 Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4.0
+Average degree of graph (min = 1) = 4
 The maximum degree of the graph (min = -1) = 100
 Maximum indegree of graph (min = 1) = 100
 Maximum outdegree of graph (min = 1) = 100
 Yes if graph should be connected = No
 Low end of coefficient range (min = 0.0) = 0
 High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
+Low end of variance range (min = 0.0) = 3.0
 High end of variance range (min = 0.0) = 3.0
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
+Yes if verbose output should be printed or logged = No
+Yes if positive coefficients should be included in the model = Yes
+Yes if negative coefficients should be included in the model = Yes
+Yes if errors should be Normal; No if they should be abs(Normal) (i.e., non-Gaussian) = Yes
 Number of runs (min = 1) = 10
+Number of categories for discrete variables (min = 2) = 4
 Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
 Sample size (min = 1) = 200
+Interval beween shocks (R. A. Fisher simulation model) (min = 1) = 50
+Interval between data recordings for the linear Fisher model (min = 1) = 50
+The coefficient for the self-loop (default 0.0) = 0
+Epsilon where |xi.t - xi.t-1| < epsilon, criterion for convergence = 1.0E-4
+Yes if the order of the columns in each datasets should be randomized = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
 Save latent variables. = No
 Yes if the data should be standardized = No
 
-Simulation 2: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+Simulation 2: Linear Fisher model simulation
 
 Comparison.printParameters
 Number of measured variables (min = 1) = 20
 Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4.0
+Average degree of graph (min = 1) = 4
 The maximum degree of the graph (min = -1) = 100
 Maximum indegree of graph (min = 1) = 100
 Maximum outdegree of graph (min = 1) = 100
 Yes if graph should be connected = No
 Low end of coefficient range (min = 0.0) = 0
 High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
+Low end of variance range (min = 0.0) = 3.0
 High end of variance range (min = 0.0) = 3.0
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
+Yes if verbose output should be printed or logged = No
+Yes if positive coefficients should be included in the model = Yes
+Yes if negative coefficients should be included in the model = Yes
+Yes if errors should be Normal; No if they should be abs(Normal) (i.e., non-Gaussian) = Yes
 Number of runs (min = 1) = 10
+Number of categories for discrete variables (min = 2) = 4
 Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
 Sample size (min = 1) = 500
+Interval beween shocks (R. A. Fisher simulation model) (min = 1) = 50
+Interval between data recordings for the linear Fisher model (min = 1) = 50
+The coefficient for the self-loop (default 0.0) = 0
+Epsilon where |xi.t - xi.t-1| < epsilon, criterion for convergence = 1.0E-4
+Yes if the order of the columns in each datasets should be randomized = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
 Save latent variables. = No
 Yes if the data should be standardized = No
 
-Simulation 3: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+Simulation 3: Linear Fisher model simulation
 
 Comparison.printParameters
 Number of measured variables (min = 1) = 20
 Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4.0
+Average degree of graph (min = 1) = 4
 The maximum degree of the graph (min = -1) = 100
 Maximum indegree of graph (min = 1) = 100
 Maximum outdegree of graph (min = 1) = 100
 Yes if graph should be connected = No
 Low end of coefficient range (min = 0.0) = 0
 High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
+Low end of variance range (min = 0.0) = 3.0
 High end of variance range (min = 0.0) = 3.0
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
+Yes if verbose output should be printed or logged = No
+Yes if positive coefficients should be included in the model = Yes
+Yes if negative coefficients should be included in the model = Yes
+Yes if errors should be Normal; No if they should be abs(Normal) (i.e., non-Gaussian) = Yes
 Number of runs (min = 1) = 10
+Number of categories for discrete variables (min = 2) = 4
 Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
 Sample size (min = 1) = 1000
+Interval beween shocks (R. A. Fisher simulation model) (min = 1) = 50
+Interval between data recordings for the linear Fisher model (min = 1) = 50
+The coefficient for the self-loop (default 0.0) = 0
+Epsilon where |xi.t - xi.t-1| < epsilon, criterion for convergence = 1.0E-4
+Yes if the order of the columns in each datasets should be randomized = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
 Save latent variables. = No
 Yes if the data should be standardized = No
 
-Simulation 4: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+Simulation 4: Linear Fisher model simulation
 
 Comparison.printParameters
 Number of measured variables (min = 1) = 20
 Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4.0
+Average degree of graph (min = 1) = 4
 The maximum degree of the graph (min = -1) = 100
 Maximum indegree of graph (min = 1) = 100
 Maximum outdegree of graph (min = 1) = 100
 Yes if graph should be connected = No
 Low end of coefficient range (min = 0.0) = 0
 High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
+Low end of variance range (min = 0.0) = 3.0
 High end of variance range (min = 0.0) = 3.0
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
+Yes if verbose output should be printed or logged = No
+Yes if positive coefficients should be included in the model = Yes
+Yes if negative coefficients should be included in the model = Yes
+Yes if errors should be Normal; No if they should be abs(Normal) (i.e., non-Gaussian) = Yes
 Number of runs (min = 1) = 10
+Number of categories for discrete variables (min = 2) = 4
 Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
 Sample size (min = 1) = 2000
+Interval beween shocks (R. A. Fisher simulation model) (min = 1) = 50
+Interval between data recordings for the linear Fisher model (min = 1) = 50
+The coefficient for the self-loop (default 0.0) = 0
+Epsilon where |xi.t - xi.t-1| < epsilon, criterion for convergence = 1.0E-4
+Yes if the order of the columns in each datasets should be randomized = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
 Save latent variables. = No
 Yes if the data should be standardized = No
 
-Simulation 5: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+Simulation 5: Linear Fisher model simulation
 
 Comparison.printParameters
 Number of measured variables (min = 1) = 20
 Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4.0
+Average degree of graph (min = 1) = 4
 The maximum degree of the graph (min = -1) = 100
 Maximum indegree of graph (min = 1) = 100
 Maximum outdegree of graph (min = 1) = 100
 Yes if graph should be connected = No
 Low end of coefficient range (min = 0.0) = 0
 High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
+Low end of variance range (min = 0.0) = 3.0
 High end of variance range (min = 0.0) = 3.0
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
+Yes if verbose output should be printed or logged = No
+Yes if positive coefficients should be included in the model = Yes
+Yes if negative coefficients should be included in the model = Yes
+Yes if errors should be Normal; No if they should be abs(Normal) (i.e., non-Gaussian) = Yes
 Number of runs (min = 1) = 10
+Number of categories for discrete variables (min = 2) = 4
 Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
 Sample size (min = 1) = 5000
+Interval beween shocks (R. A. Fisher simulation model) (min = 1) = 50
+Interval between data recordings for the linear Fisher model (min = 1) = 50
+The coefficient for the self-loop (default 0.0) = 0
+Epsilon where |xi.t - xi.t-1| < epsilon, criterion for convergence = 1.0E-4
+Yes if the order of the columns in each datasets should be randomized = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
 Save latent variables. = No
 Yes if the data should be standardized = No
 
-Simulation 6: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+Simulation 6: Linear Fisher model simulation
 
 Comparison.printParameters
 Number of measured variables (min = 1) = 20
 Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4.0
+Average degree of graph (min = 1) = 4
 The maximum degree of the graph (min = -1) = 100
 Maximum indegree of graph (min = 1) = 100
 Maximum outdegree of graph (min = 1) = 100
 Yes if graph should be connected = No
 Low end of coefficient range (min = 0.0) = 0
 High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
+Low end of variance range (min = 0.0) = 3.0
 High end of variance range (min = 0.0) = 3.0
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
+Yes if verbose output should be printed or logged = No
+Yes if positive coefficients should be included in the model = Yes
+Yes if negative coefficients should be included in the model = Yes
+Yes if errors should be Normal; No if they should be abs(Normal) (i.e., non-Gaussian) = Yes
 Number of runs (min = 1) = 10
+Number of categories for discrete variables (min = 2) = 4
 Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
 Sample size (min = 1) = 10000
+Interval beween shocks (R. A. Fisher simulation model) (min = 1) = 50
+Interval between data recordings for the linear Fisher model (min = 1) = 50
+The coefficient for the self-loop (default 0.0) = 0
+Epsilon where |xi.t - xi.t-1| < epsilon, criterion for convergence = 1.0E-4
+Yes if the order of the columns in each datasets should be randomized = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
 Save latent variables. = No
 Yes if the data should be standardized = No
 
-Simulation 7: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+Simulation 7: Linear Fisher model simulation
 
 Comparison.printParameters
 Number of measured variables (min = 1) = 20
 Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4.0
+Average degree of graph (min = 1) = 4
 The maximum degree of the graph (min = -1) = 100
 Maximum indegree of graph (min = 1) = 100
 Maximum outdegree of graph (min = 1) = 100
 Yes if graph should be connected = No
 Low end of coefficient range (min = 0.0) = 0
 High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
+Low end of variance range (min = 0.0) = 3.0
 High end of variance range (min = 0.0) = 3.0
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
+Yes if verbose output should be printed or logged = No
+Yes if positive coefficients should be included in the model = Yes
+Yes if negative coefficients should be included in the model = Yes
+Yes if errors should be Normal; No if they should be abs(Normal) (i.e., non-Gaussian) = Yes
 Number of runs (min = 1) = 10
+Number of categories for discrete variables (min = 2) = 4
 Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
 Sample size (min = 1) = 20000
+Interval beween shocks (R. A. Fisher simulation model) (min = 1) = 50
+Interval between data recordings for the linear Fisher model (min = 1) = 50
+The coefficient for the self-loop (default 0.0) = 0
+Epsilon where |xi.t - xi.t-1| < epsilon, criterion for convergence = 1.0E-4
+Yes if the order of the columns in each datasets should be randomized = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
 Save latent variables. = No
 Yes if the data should be standardized = No
 
-Simulation 8: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+Simulation 8: Linear Fisher model simulation
 
 Comparison.printParameters
 Number of measured variables (min = 1) = 20
 Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4.0
+Average degree of graph (min = 1) = 4
 The maximum degree of the graph (min = -1) = 100
 Maximum indegree of graph (min = 1) = 100
 Maximum outdegree of graph (min = 1) = 100
 Yes if graph should be connected = No
 Low end of coefficient range (min = 0.0) = 0
 High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
+Low end of variance range (min = 0.0) = 3.0
 High end of variance range (min = 0.0) = 3.0
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
+Yes if verbose output should be printed or logged = No
+Yes if positive coefficients should be included in the model = Yes
+Yes if negative coefficients should be included in the model = Yes
+Yes if errors should be Normal; No if they should be abs(Normal) (i.e., non-Gaussian) = Yes
 Number of runs (min = 1) = 10
+Number of categories for discrete variables (min = 2) = 4
 Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
 Sample size (min = 1) = 50000
+Interval beween shocks (R. A. Fisher simulation model) (min = 1) = 50
+Interval between data recordings for the linear Fisher model (min = 1) = 50
+The coefficient for the self-loop (default 0.0) = 0
+Epsilon where |xi.t - xi.t-1| < epsilon, criterion for convergence = 1.0E-4
+Yes if the order of the columns in each datasets should be randomized = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
 Save latent variables. = No
 Yes if the data should be standardized = No
 
-Simulation 9: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+Simulation 9: Linear Fisher model simulation
 
 Comparison.printParameters
 Number of measured variables (min = 1) = 20
 Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4.0
+Average degree of graph (min = 1) = 4
 The maximum degree of the graph (min = -1) = 100
 Maximum indegree of graph (min = 1) = 100
 Maximum outdegree of graph (min = 1) = 100
 Yes if graph should be connected = No
 Low end of coefficient range (min = 0.0) = 0
 High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
+Low end of variance range (min = 0.0) = 3.0
 High end of variance range (min = 0.0) = 3.0
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
+Yes if verbose output should be printed or logged = No
+Yes if positive coefficients should be included in the model = Yes
+Yes if negative coefficients should be included in the model = Yes
+Yes if errors should be Normal; No if they should be abs(Normal) (i.e., non-Gaussian) = Yes
 Number of runs (min = 1) = 10
+Number of categories for discrete variables (min = 2) = 4
 Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
 Sample size (min = 1) = 100000
+Interval beween shocks (R. A. Fisher simulation model) (min = 1) = 50
+Interval between data recordings for the linear Fisher model (min = 1) = 50
+The coefficient for the self-loop (default 0.0) = 0
+Epsilon where |xi.t - xi.t-1| < epsilon, criterion for convergence = 1.0E-4
+Yes if the order of the columns in each datasets should be randomized = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
 Save latent variables. = No
 Yes if the data should be standardized = No
 
-Simulation 10: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+Simulation 10: Linear Fisher model simulation
 
 Comparison.printParameters
 Number of measured variables (min = 1) = 20
 Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4.0
+Average degree of graph (min = 1) = 4
 The maximum degree of the graph (min = -1) = 100
 Maximum indegree of graph (min = 1) = 100
 Maximum outdegree of graph (min = 1) = 100
 Yes if graph should be connected = No
 Low end of coefficient range (min = 0.0) = 0
 High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
+Low end of variance range (min = 0.0) = 3.0
 High end of variance range (min = 0.0) = 3.0
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
+Yes if verbose output should be printed or logged = No
+Yes if positive coefficients should be included in the model = Yes
+Yes if negative coefficients should be included in the model = Yes
+Yes if errors should be Normal; No if they should be abs(Normal) (i.e., non-Gaussian) = Yes
 Number of runs (min = 1) = 10
+Number of categories for discrete variables (min = 2) = 4
 Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
 Sample size (min = 1) = 200000
+Interval beween shocks (R. A. Fisher simulation model) (min = 1) = 50
+Interval between data recordings for the linear Fisher model (min = 1) = 50
+The coefficient for the self-loop (default 0.0) = 0
+Epsilon where |xi.t - xi.t-1| < epsilon, criterion for convergence = 1.0E-4
+Yes if the order of the columns in each datasets should be randomized = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
 Save latent variables. = No
 Yes if the data should be standardized = No
 
@@ -293,62 +343,62 @@ AVERAGE STATISTICS
 All edges
 
   numRuns  semBicRule  sampleSize  penaltyDiscount  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  CorrPatt  BicDiff  F1Adj  F1Arrow    SHD  CYCEST     E
-    10.00        2.00      200.00             5.00   40.00     14.20  0.97  0.35  0.77  0.37         -  -594.21   0.50     0.25  54.50       -  0.04
-    10.00        2.00      500.00             5.00   40.00     24.50  0.93  0.56  0.68  0.55         -  -427.26   0.69     0.41  44.60       -  0.03
-    10.00        2.00     1000.00             5.00   40.00     32.10  0.87  0.69  0.80  0.68         -  -434.69   0.77     0.56  38.40       -  0.02
-    10.00        2.00     2000.00             5.00   40.00     34.80  0.94  0.81  0.90  0.68         -  -314.71   0.86     0.66  22.90       -  0.03
-    10.00        2.00     5000.00             5.00   40.00     40.80  0.83  0.83  0.86  0.72         -  -318.97   0.83     0.64  32.40       -  0.03
-    10.00        2.00    10000.00             5.00   40.00     46.80  0.85  0.93  0.92  0.83         -  -219.72   0.88     0.77  27.20       -  0.05
-    10.00        2.00    20000.00             5.00   40.00     48.90  0.80  0.91  0.85  0.73         -  -545.60   0.84     0.67  36.50       -  0.06
-    10.00        2.00    50000.00             5.00   40.00     44.00  0.87  0.94  0.86  0.77         -  -164.37   0.90     0.73  21.80       -  0.08
-    10.00        2.00   100000.00             5.00   40.00     51.20  0.81  0.97  0.88  0.81         -  -336.85   0.87     0.74  31.10       -  0.12
-    10.00        2.00   200000.00             5.00   40.00     56.00  0.75  0.98  0.86  0.80      0.20  -324.60   0.84     0.71  40.40       -  0.24
+    10.00        4.00      200.00             3.00   40.00     18.30  0.97  0.45  0.87  0.62         -  -329.04   0.61     0.42  46.80       -  0.09
+    10.00        4.00      500.00             3.00   40.00     27.10  0.94  0.64  0.87  0.69         -  -335.96   0.76     0.57  34.30       -  0.03
+    10.00        4.00     1000.00             3.00   40.00     32.70  0.84  0.68  0.76  0.73         -  -547.52   0.74     0.56  43.40       -  0.03
+    10.00        4.00     2000.00             3.00   40.00     35.20  0.89  0.77  0.81  0.70         -  -373.53   0.83     0.61  31.60       -  0.03
+    10.00        4.00     5000.00             3.00   40.00     39.50  0.88  0.85  0.89  0.82         -  -232.06   0.87     0.75  25.20       -  0.03
+    10.00        4.00    10000.00             3.00   40.00     39.10  0.94  0.90  0.91  0.81         -  -179.60   0.92     0.78  16.60       -  0.03
+    10.00        4.00    20000.00             3.00   40.00     53.00  0.70  0.90  0.72  0.68         -  -629.82   0.78     0.55  51.20       -  0.05
+    10.00        4.00    50000.00             3.00   40.00     44.60  0.86  0.94  0.91  0.85         -  -231.36   0.89     0.79  21.10       -  0.06
+    10.00        4.00   100000.00             3.00   40.00     52.80  0.76  0.96  0.85  0.82      0.20  -390.30   0.84     0.71  37.60       -  0.10
+    10.00        4.00   200000.00             3.00   40.00     47.90  0.81  0.95  0.87  0.79      0.10  -255.47   0.87     0.72  27.20       -  0.18
 
 STANDARD DEVIATIONS
 
 All edges
 
   numRuns  semBicRule  sampleSize  penaltyDiscount  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  CorrPatt  BicDiff  F1Adj  F1Arrow    SHD  CYCEST        E
-    10.00        2.00      200.00             5.00       -      3.39  0.06  0.09     *  0.23         -   173.53   0.10        *   7.26       -     0.03
-    10.00        2.00      500.00             5.00       -      7.03  0.07  0.13  0.14  0.15         -   247.13   0.10     0.14   8.11       -     0.02
-    10.00        2.00     1000.00             5.00       -      5.24  0.09  0.07  0.14  0.09         -   237.76   0.05     0.10   9.59       -     0.01
-    10.00        2.00     2000.00             5.00       -      5.77  0.09  0.09  0.13  0.08         -   125.42   0.07     0.12  12.24       -  9.24E-3
-    10.00        2.00     5000.00             5.00       -      7.38  0.13  0.07  0.12  0.07         -   255.70   0.08     0.13  18.96       -     0.01
-    10.00        2.00    10000.00             5.00       -     16.12  0.18  0.04  0.13  0.11         -   222.78   0.11     0.17  32.69       -     0.03
-    10.00        2.00    20000.00             5.00       -     14.71  0.20  0.04  0.19  0.16         -   655.92   0.12     0.21  33.55       -     0.01
-    10.00        2.00    50000.00             5.00       -      5.29  0.11  0.03  0.10  0.08         -   145.51   0.06     0.11  13.97       -     0.02
-    10.00        2.00   100000.00             5.00       -     13.92  0.21  0.03  0.13  0.10         -   400.72   0.13     0.19  32.13       -     0.03
-    10.00        2.00   200000.00             5.00       -     16.15  0.20  0.02  0.14  0.12      0.42   369.58   0.14     0.21  38.75       -     0.06
+    10.00        4.00      200.00             3.00       -      3.40  0.03  0.08  0.11  0.13         -   101.34   0.08     0.12   7.10       -     0.09
+    10.00        4.00      500.00             3.00       -      3.25  0.04  0.07  0.10  0.10         -   153.02   0.05     0.10   6.62       -     0.01
+    10.00        4.00     1000.00             3.00       -      4.64  0.11  0.06  0.17  0.15         -   306.29   0.07     0.15  14.69       -  7.76E-3
+    10.00        4.00     2000.00             3.00       -      3.85  0.08  0.06  0.14  0.11         -   222.18   0.06     0.13  12.48       -  8.78E-3
+    10.00        4.00     5000.00             3.00       -      6.69  0.13  0.05  0.12  0.11         -   200.60   0.08     0.15  17.88       -     0.01
+    10.00        4.00    10000.00             3.00       -      5.34  0.10  0.04  0.13  0.10         -   167.53   0.06     0.13  14.38       -  7.36E-3
+    10.00        4.00    20000.00             3.00       -      9.45  0.13  0.04  0.15  0.12         -   300.72   0.08     0.15  23.19       -     0.01
+    10.00        4.00    50000.00             3.00       -      8.06  0.12  0.03  0.07  0.05         -   131.19   0.07     0.10  16.43       -     0.01
+    10.00        4.00   100000.00             3.00       -     11.38  0.18  0.03  0.12  0.11      0.42   341.16   0.12     0.20  29.19       -     0.02
+    10.00        4.00   200000.00             3.00       -      7.09  0.13  0.03  0.11  0.05      0.32   206.43   0.08     0.13  18.04       -     0.03
 
 WORST CASE
 
 All edges
 
-  numRuns  semBicRule  sampleSize  penaltyDiscount  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  CorrPatt   BicDiff  F1Adj  F1Arrow    SHD  CYCEST        E
-    10.00        2.00      200.00             5.00   40.00      8.00  0.83  0.20     *     -         -   -829.39   0.33        *  42.00       -     0.02
-    10.00        2.00      500.00             5.00   40.00     15.00  0.77  0.35  0.47  0.21         -   -993.84   0.51     0.13  34.00       -  7.00E-3
-    10.00        2.00     1000.00             5.00   40.00     24.00  0.73  0.55  0.59  0.52         -   -921.10   0.66     0.42  24.00       -     0.01
-    10.00        2.00     2000.00             5.00   40.00     26.00  0.77  0.62  0.65  0.55         -   -548.24   0.76     0.47  10.00       -     0.01
-    10.00        2.00     5000.00             5.00   40.00     30.00  0.62  0.72  0.62  0.59         -   -760.80   0.72     0.44   2.00       -     0.02
-    10.00        2.00    10000.00             5.00   40.00     34.00  0.44  0.85  0.55  0.54         -   -752.95   0.61     0.33   4.00       -     0.02
-    10.00        2.00    20000.00             5.00   40.00     36.00  0.51  0.82  0.38  0.36         -  -2191.87   0.65     0.24   4.00       -     0.04
-    10.00        2.00    50000.00             5.00   40.00     36.00  0.70  0.90  0.73  0.63         -   -513.25   0.79     0.58   7.00       -     0.05
-    10.00        2.00   100000.00             5.00   40.00     38.00  0.54  0.93  0.65  0.65         -  -1175.89   0.69     0.44   1.00       -     0.08
-    10.00        2.00   200000.00             5.00   40.00     40.00  0.49  0.95  0.58  0.58         -  -1082.81   0.64     0.38      -       -     0.16
+  numRuns  semBicRule  sampleSize  penaltyDiscount  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  CorrPatt   BicDiff  F1Adj  F1Arrow    SHD  CYCEST     E
+    10.00        4.00      200.00             3.00   40.00     13.00  0.94  0.33  0.69  0.46         -   -473.37   0.49     0.26  37.00       -  0.02
+    10.00        4.00      500.00             3.00   40.00     23.00  0.88  0.55  0.67  0.55         -   -650.82   0.68     0.41  21.00       -  0.01
+    10.00        4.00     1000.00             3.00   40.00     27.00  0.59  0.60  0.48  0.48         -  -1127.76   0.59     0.32  25.00       -  0.02
+    10.00        4.00     2000.00             3.00   40.00     30.00  0.73  0.68  0.61  0.52         -   -760.44   0.73     0.41  16.00       -  0.02
+    10.00        4.00     5000.00             3.00   40.00     33.00  0.64  0.80  0.62  0.58         -   -609.56   0.71     0.47   2.00       -  0.02
+    10.00        4.00    10000.00             3.00   40.00     33.00  0.70  0.82  0.58  0.54         -   -551.51   0.78     0.43   6.00       -  0.02
+    10.00        4.00    20000.00             3.00   40.00     38.00  0.55  0.82  0.50  0.50         -  -1052.49   0.66     0.37  18.00       -  0.03
+    10.00        4.00    50000.00             3.00   40.00     37.00  0.60  0.90  0.77  0.75         -   -452.34   0.74     0.63   2.00       -  0.04
+    10.00        4.00   100000.00             3.00   40.00     38.00  0.55  0.93  0.68  0.68         -  -1031.17   0.70     0.51      -       -  0.07
+    10.00        4.00   200000.00             3.00   40.00     38.00  0.66  0.90  0.70  0.70         -   -540.76   0.79     0.58      -       -  0.15
 
 MEDIAN CASE
 
 All edges
 
   numRuns  semBicRule  sampleSize  penaltyDiscount  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  CorrPatt  BicDiff  F1Adj  F1Arrow    SHD  CYCEST     E
-    10.00        2.00      200.00             5.00   40.00     14.00  1.00  0.34     *  0.38         -  -551.32   0.50        *  55.00       -  0.03
-    10.00        2.00      500.00             5.00   40.00     25.00  0.93  0.59  0.71  0.57         -  -368.44   0.71     0.42  46.00       -  0.01
-    10.00        2.00     1000.00             5.00   40.00     32.50  0.86  0.70  0.79  0.71         -  -396.84   0.77     0.58  38.00       -  0.02
-    10.00        2.00     2000.00             5.00   40.00     33.50  0.98  0.81  0.96  0.70         -  -322.18   0.89     0.72  16.50       -  0.03
-    10.00        2.00     5000.00             5.00   40.00     39.50  0.84  0.82  0.83  0.73         -  -233.79   0.84     0.68  29.50       -  0.03
-    10.00        2.00    10000.00             5.00   40.00     40.50  0.91  0.94  0.96  0.86         -  -205.64   0.91     0.81  15.50       -  0.03
-    10.00        2.00    20000.00             5.00   40.00     42.50  0.86  0.90  0.92  0.76         -  -420.06   0.87     0.74  21.00       -  0.06
-    10.00        2.00    50000.00             5.00   40.00     44.00  0.86  0.95  0.88  0.78         -  -149.21   0.90     0.75  22.00       -  0.07
-    10.00        2.00   100000.00             5.00   40.00     44.00  0.88  0.96  0.93  0.87         -  -146.05   0.91     0.80  17.50       -  0.12
-    10.00        2.00   200000.00             5.00   40.00     49.50  0.80  0.99  0.92  0.85         -  -155.39   0.88     0.80  22.50       -  0.24
+    10.00        4.00      200.00             3.00   40.00     18.50  0.98  0.44  0.91  0.60         -  -312.05   0.60     0.40  48.50       -  0.04
+    10.00        4.00      500.00             3.00   40.00     27.00  0.94  0.65  0.89  0.69         -  -340.62   0.76     0.57  34.00       -  0.02
+    10.00        4.00     1000.00             3.00   40.00     32.00  0.85  0.68  0.80  0.78         -  -455.98   0.75     0.57  43.00       -  0.03
+    10.00        4.00     2000.00             3.00   40.00     34.00  0.90  0.76  0.80  0.72         -  -306.16   0.82     0.62  30.50       -  0.03
+    10.00        4.00     5000.00             3.00   40.00     37.00  0.93  0.85  0.94  0.82         -  -152.67   0.88     0.78  20.00       -  0.02
+    10.00        4.00    10000.00             3.00   40.00     37.00  1.00  0.91  0.94  0.83         -  -171.07   0.93     0.81  12.50       -  0.03
+    10.00        4.00    20000.00             3.00   40.00     53.50  0.68  0.89  0.71  0.71         -  -691.12   0.78     0.55  51.00       -  0.05
+    10.00        4.00    50000.00             3.00   40.00     43.50  0.86  0.95  0.90  0.84         -  -241.59   0.90     0.78  18.50       -  0.06
+    10.00        4.00   100000.00             3.00   40.00     54.50  0.69  0.95  0.85  0.83         -  -365.16   0.79     0.65  45.00       -  0.10
+    10.00        4.00   200000.00             3.00   40.00     49.00  0.75  0.95  0.87  0.79         -  -259.22   0.84     0.69  32.50       -  0.18
 

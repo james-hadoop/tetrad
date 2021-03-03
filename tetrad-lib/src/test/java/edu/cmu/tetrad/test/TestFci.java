@@ -451,7 +451,7 @@ public class TestFci {
         IndTestFisherZ test = new IndTestFisherZ(data, alpha);
 
         SemBicScore score = new SemBicScore(new CovarianceMatrix(data));
-        score.setPenaltyDiscount(penaltyDiscount);
+        score.setTrueErrorVariance(penaltyDiscount);
 
 //        GraphSearch search = new Fci(test);
 //        GraphSearch search = new GFci(score);

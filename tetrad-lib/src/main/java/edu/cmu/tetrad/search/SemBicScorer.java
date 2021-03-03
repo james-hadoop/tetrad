@@ -26,7 +26,7 @@ public class SemBicScorer {
         }
 
         score.setRuleType(SemBicScore.RuleType.GIC6);
-        score.setPenaltyDiscount(1);
+        score.setTrueErrorVariance(1);
 
         dag = GraphUtils.replaceNodes(dag, data.getVariables());
 

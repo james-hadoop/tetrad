@@ -23,7 +23,6 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
@@ -61,20 +60,20 @@ public class SemBicScore implements Score {
     // A  map from variable names to their indices.
     private final Map<Node, Integer> indexMap;
 
-    // The penalty penaltyDiscount, 1 for standard BIC.
-    private double penaltyDiscount = 1.0;
-
-    // The structure prior, 0 for standard BIC.
-    private double structurePrior = 0.0;
+    // The true error variance
+    private double trueErrorVariance = 1.0;
 
     // Equivalent sample size
     private Matrix matrix;
 
     // The rule type to use.
-    private RuleType ruleType = RuleType.BIC;
+    private RuleType ruleType = RuleType.MANUAL;
 
     // Sample size or equivalent sample size.
     private double N;
+
+    // Manually set lambda, by default log(n);
+    private double lambda;
 
     // True if the equivalent sample size should be used in place of N.
 //    private boolean useEquivalentSampleSize = false;
@@ -91,8 +90,7 @@ public class SemBicScore implements Score {
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
-
-        setStructurePrior(structurePrior);
+        this.setLambda(log(this.sampleSize));
     }
 
     /**
@@ -109,8 +107,6 @@ public class SemBicScore implements Score {
             this.sampleSize = covariances.getSampleSize();
             this.indexMap = indexMap(this.variables);
 
-            setStructurePrior(structurePrior);
-
             return;
         }
 
@@ -119,8 +115,6 @@ public class SemBicScore implements Score {
         this.variables = dataSet.getVariables();
         this.sampleSize = dataSet.getNumRows();
         this.indexMap = indexMap(this.variables);
-
-        setStructurePrior(structurePrior);
     }
 
     @Override
@@ -133,9 +127,6 @@ public class SemBicScore implements Score {
     }
 
     public double nandyBic(int x, int y, int[] z) {
-        double sp1 = getStructurePrior(z.length + 1);
-        double sp2 = getStructurePrior(z.length);
-
         Node _x = variables.get(x);
         Node _y = variables.get(y);
         List<Node> _z = getVariableList(z);
@@ -147,10 +138,9 @@ public class SemBicScore implements Score {
         }
 
         double r = partialCorrelation(_x, _y, _z, rows);
-        double c = getPenaltyDiscount();
+        double c = getTrueErrorVariance();
 
-        return -N * log(1.0 - r * r) - c * log(N)
-                + 2.0 * (sp1 - sp2);
+        return -N * log(1.0 - r * r) - c * log(N);
     }
 
     @Override
@@ -162,8 +152,6 @@ public class SemBicScore implements Score {
         List<Integer> rows = getRows(i, parents);
 
         final int p = parents.length;
-
-        final double k = p + 1.;
 
         int[] all = concat(i, parents);
 
@@ -180,31 +168,40 @@ public class SemBicScore implements Score {
         Matrix times = b.transpose().times(cov).times(b);
         double varey = times.get(0, 0);
 
-        double c = getPenaltyDiscount();
+        double sigma2 = getTrueErrorVariance();
 
-        if (ruleType == RuleType.BIC || ruleType == RuleType.NANDY) {
+        double lambda;
 
-            // Standard BIC, with penalty discount and structure prior.
-            return -n * log(varey) - log(n) * k * c;//  + 2.0 * getStructurePrior(p);
-        } else if (ruleType == RuleType.GIC4) {
+        // Defaults to the manually set lambda.
+        if (ruleType == RuleType.MANUAL) {
+            lambda = this.lambda;
+        } else if (ruleType == RuleType.BIC || ruleType == RuleType.NANDY) {
+            lambda = log(n);
+        } else if (ruleType == RuleType.RIC) {
+
+            // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
+            // The Journal 0of Machine Learning Research, 13(1), 1037-1057.
+            lambda = 2 * (log(pn));
+        } else if (ruleType == RuleType.RICc) {
 
             // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
             // The Journal of Machine Learning Research, 13(1), 1037-1057.
-            return -n * log(varey) - 2 * (log(pn) + log(log(pn))) * k * c;// + 2.0 * getStructurePrior(p);
-//            return -n * log(varey) - 2 * (log(pn)) * k * c;
+            lambda = 2 * log(pn) + 2 * log(log(pn));
         } else if (ruleType == RuleType.GIC5) {
 
             // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
             // The Journal of Machine Learning Research, 13(1), 1037-1057.
-            return -n * log(varey) - log(log(n)) * (log(pn)) * k * c;// + 2.0 * getStructurePrior(p);
+            lambda = log(log(n)) * (log(pn));
         } else if (ruleType == RuleType.GIC6) {
 
             // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
             // The Journal of Machine Learning Research, 13(1), 1037-1057.
-            return -n * log(varey) - log(n) * log(pn) * k * c;// + 2.0 * getStructurePrior(p);
+            lambda = log(n) * log(pn);
         } else {
-            throw new IllegalStateException("That rule type is not implemented: " + ruleType);
+            throw new IllegalStateException("That lambda rule is not configured: " + ruleType);
         }
+
+        return -n * log(varey) - lambda * p * sigma2;
     }
 
 
@@ -230,8 +227,8 @@ public class SemBicScore implements Score {
         return localScore(i, new int[0]);
     }
 
-    public double getPenaltyDiscount() {
-        return penaltyDiscount;
+    public double getTrueErrorVariance() {
+        return trueErrorVariance;
     }
 
     public ICovarianceMatrix getCovariances() {
@@ -251,12 +248,8 @@ public class SemBicScore implements Score {
         return dataSet;
     }
 
-    public void setPenaltyDiscount(double penaltyDiscount) {
-        this.penaltyDiscount = penaltyDiscount;
-    }
-
-    public void setStructurePrior(double structurePrior) {
-        this.structurePrior = structurePrior;
+    public void setTrueErrorVariance(double trueErrorVariance) {
+        this.trueErrorVariance = trueErrorVariance;
     }
 
     public boolean isVerbose() {
@@ -319,8 +312,8 @@ public class SemBicScore implements Score {
     private void setCovariances(ICovarianceMatrix covariances) {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
-//        this.N = covariances.getSampleSize();
-        this.N = DataUtils.getEss(covariances);
+        this.N = covariances.getSampleSize();
+//        this.N = DataUtils.getEss(covariances);
     }
 
     private static int[] append(int[] z, int x) {
@@ -340,15 +333,6 @@ public class SemBicScore implements Score {
         all[0] = i;
         System.arraycopy(parents, 0, all, 1, parents.length);
         return all;
-    }
-
-    private double getStructurePrior(int parents) {
-        if (structurePrior <= 0) {
-            return 0;
-        } else {
-            double p = structurePrior / (variables.size());
-            return -((parents) * Math.log(p) + (variables.size() - (parents)) * Math.log(1.0 - p));
-        }
     }
 
     private List<Node> getVariableList(int[] indices) {
@@ -498,22 +482,15 @@ public class SemBicScore implements Score {
         this.ruleType = ruleType;
     }
 
-//    public void setUseEquivalentSampleSize(boolean useEquivalentSampleSize) {
-//        this.useEquivalentSampleSize = useEquivalentSampleSize;
-//
-//        if (useEquivalentSampleSize) {
-//            this.N = DataUtils.getEss(covariances);
-//        } else {
-//            this.N = covariances.getSampleSize();
-//        }
-//
-//    }
-
     public RuleType getRuleType() {
         return ruleType;
     }
 
-    public enum RuleType {BIC, NANDY, GIC4, GIC5, GIC6}
+    public void setLambda(double lambda) {
+        this.lambda = lambda;
+    }
+
+    public enum RuleType {MANUAL, BIC, NANDY, RIC, RICc, GIC5, GIC6}
 }
 
 

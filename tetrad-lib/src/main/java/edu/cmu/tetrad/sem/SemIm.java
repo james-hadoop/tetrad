@@ -348,8 +348,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
     /**
      * Special hidden constructor to generate updated models.
      */
-    private SemIm(SemIm semIm, Matrix covariances,
-                  Vector means) {
+    private SemIm(SemIm semIm, Matrix covariances, Vector means) {
         this(semIm);
 
         if (covariances.rows() != covariances.columns()) {
@@ -1869,7 +1868,8 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
                     return Math.abs(value);
                 }
             } else { //if (parameter.getType() == ParamType.VAR) {
-                return RandomUtil.getInstance().nextUniform(getParams().getDouble("varLow", 1), getParams().getDouble("varHigh", 3));
+                return RandomUtil.getInstance().nextUniform(getParams().getDouble("varLow", 1),
+                        getParams().getDouble("varHigh", 3));
             }
         } else {
             return parameter.getStartingValue();

@@ -1482,7 +1482,7 @@ public final class SearchGraphUtils {
                 Node x = edge.getNode1();
                 Node y = edge.getNode2();
 
-                if (Edges.isUndirectedEdge(edge)) {
+                if (Edges.isUndirectedEdge(edge) && !graph.isAncestorOf(y, x)) {
                     direct(x, y, dag);
                     rules.orientImplied(dag);
                     continue NEXT;
@@ -2399,20 +2399,15 @@ public final class SearchGraphUtils {
     }
 
     public static Graph patternForDag(final Graph dag) {
-        Graph pattern = new EdgeListGraph(dag);
-        MeekRules rules = new MeekRules();
-        rules.orientImplied(pattern);
-        return pattern;
+        return patternForDag(dag, new Knowledge2());
     }
 
     public static Graph patternForDag(final Graph dag, IKnowledge knowledge) {
         Graph pattern = new EdgeListGraph(dag);
-        SearchGraphUtils.basicPattern(pattern);
-        orientRequired(knowledge, pattern, pattern.getNodes());
         MeekRules rules = new MeekRules();
         rules.setKnowledge(knowledge);
+        rules.setRevertToUnshieldedColliders(true);
         rules.orientImplied(pattern);
-//        DataGraphUtils.replaceNodes(pattern, dag.getNodes());
         return pattern;
     }
 

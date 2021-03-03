@@ -127,7 +127,7 @@ public class TsImagesRunner extends AbstractAlgorithmRunner implements IFgesRunn
 
             if (dataSet.isContinuous()) {
                 SemBicScore gesScore = new SemBicScore(new CovarianceMatrix((DataSet) model));
-                gesScore.setPenaltyDiscount(penaltyDiscount);
+                gesScore.setTrueErrorVariance(penaltyDiscount);
                 IndependenceTest test = new IndTestScore(gesScore);
                 fges = new TsGFci(test, gesScore);
             } else if (dataSet.isDiscrete()) {
@@ -143,7 +143,7 @@ public class TsImagesRunner extends AbstractAlgorithmRunner implements IFgesRunn
             }
         } else if (model instanceof ICovarianceMatrix) {
             SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
-            gesScore.setPenaltyDiscount(penaltyDiscount);
+            gesScore.setTrueErrorVariance(penaltyDiscount);
             IndependenceTest test = new IndTestScore(gesScore);
             fges = new TsGFci(test, gesScore);
         } else if (model instanceof DataModelList) {
