@@ -41,23 +41,27 @@ public class SemGicScore implements ScoreWrapper {
             throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
         }
 
-        semGicScore.setTrueErrorVariance(parameters.getDouble(Params.PENALTY_DISCOUNT));
+        semGicScore.setTrueErrorVariance(parameters.getDouble(Params.TRUE_ERROR_VARIANCE));
+        semGicScore.setLambda(parameters.getDouble(Params.MANUAL_LAMBDA));
 
         switch (parameters.getInt(Params.SEM_GIC_RULE)) {
             case 1:
                 semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.BIC);
                 break;
             case 2:
-                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.RICc);
+                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.RIC);
                 break;
             case 3:
-                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.GIC5);
+                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.RICc);
                 break;
             case 4:
+                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.GIC5);
+                break;
+            case 5:
                 semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.GIC6);
                 break;
             default:
-                throw new IllegalStateException("Expecting 1, 2, 3 or 4: " + parameters.getInt(Params.SEM_BIC_RULE));
+                throw new IllegalStateException("Expecting 1, 2, 3, 4, or 5: " + parameters.getInt(Params.SEM_BIC_RULE));
         }
 
         return semGicScore;
@@ -77,6 +81,7 @@ public class SemGicScore implements ScoreWrapper {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.TRUE_ERROR_VARIANCE);
+        parameters.add(Params.MANUAL_LAMBDA);
         parameters.add(Params.SEM_GIC_RULE);
         return parameters;
     }

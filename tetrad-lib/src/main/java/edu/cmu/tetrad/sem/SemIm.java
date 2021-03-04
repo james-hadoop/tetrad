@@ -20,6 +20,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetrad.sem;
 
+import edu.cmu.tetrad.algcomparison.simulation.SimulationTypes;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.Regression;
@@ -72,6 +73,14 @@ import static java.lang.Math.sqrt;
 public final class SemIm implements IM, ISemIm, TetradSerializable {
 
     static final long serialVersionUID = 23L;
+
+    public void setSimulationType(SimulationType simulationType) {
+        this.simulationType = simulationType;
+    }
+
+    public enum SimulationType{RECURSIVE, REDUCED_FORM}
+
+    private SimulationType simulationType = SimulationType.RECURSIVE;
 
     /**
      * The Sem PM containing the graph and the freeParameters to be estimated.
@@ -1144,8 +1153,13 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
             return simulateTimeSeries(sampleSize, latentDataSaved);
         }
 
-        return simulateDataRecursive(sampleSize, latentDataSaved);
-//        return simulateDataReducedForm(sampleSize, latentDataSaved);
+        if (simulationType == SimulationType.RECURSIVE) {
+            return simulateDataRecursive(sampleSize, latentDataSaved);
+        } else if (simulationType == SimulationType.REDUCED_FORM) {
+            return simulateDataReducedForm(sampleSize, latentDataSaved);
+        } else {
+            throw new IllegalStateException("That simulation type is not configured: " + simulationType);
+        }
     }
 
     public void setScoreType(ScoreType scoreType) {
@@ -1314,14 +1328,9 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
         }
     }
 
-    public DataSet simulateDataRecursive(int sampleSize,
+    private DataSet simulateDataRecursive(int sampleSize,
                                          boolean latentDataSaved) {
         return simulateDataRecursive(sampleSize, null, latentDataSaved);
-    }
-
-    public DataSet simulateDataRecursive(DataSet initialValues,
-                                         boolean latentDataSaved) {
-        return simulateDataRecursive(initialValues.getNumRows(), initialValues, latentDataSaved);
     }
 
     /**

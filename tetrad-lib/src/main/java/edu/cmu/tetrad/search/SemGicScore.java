@@ -186,7 +186,7 @@ public class SemGicScore implements Score {
 
             // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
             // The Journal of Machine Learning Research, 13(1), 1037-1057.
-            lambda = 2 * log(pn) + 2 * log(log(pn));
+            lambda = 2 * (log(pn) + log(log(pn)));
         } else if (ruleType == RuleType.GIC5) {
 
             // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.

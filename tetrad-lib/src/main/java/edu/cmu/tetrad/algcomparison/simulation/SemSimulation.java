@@ -22,7 +22,7 @@ import java.util.List;
 public class SemSimulation implements Simulation {
 
     static final long serialVersionUID = 23L;
-    private RandomGraph randomGraph;
+    private final RandomGraph randomGraph;
     private SemPm pm;
     private SemIm im;
     private List<DataSet> dataSets = new ArrayList<>();
@@ -119,9 +119,6 @@ public class SemSimulation implements Simulation {
             parameters.addAll(randomGraph.getParameters());
         }
 
-//        if (pm == null) {
-//            parameters.addAll(SemPm.getParameterNames());
-//        }
         if (im == null) {
             parameters.addAll(SemIm.getParameterNames());
         }
@@ -133,6 +130,7 @@ public class SemSimulation implements Simulation {
         parameters.add(Params.SAMPLE_SIZE);
         parameters.add(Params.SAVE_LATENT_VARS);
         parameters.add(Params.STANDARDIZE);
+        parameters.add(Params.SEM_IM_SIMULATION_TYPE);
 
         return parameters;
     }
@@ -150,6 +148,10 @@ public class SemSimulation implements Simulation {
     private DataSet simulate(Graph graph, Parameters parameters) {
         boolean saveLatentVars = parameters.getBoolean(Params.SAVE_LATENT_VARS);
 
+        boolean recursive = parameters.getBoolean("semImSimulationType");
+
+        SemIm.SimulationType type = recursive ? SemIm.SimulationType.RECURSIVE : SemIm.SimulationType.REDUCED_FORM;
+
         SemIm im = this.im;
 
         if (im == null) {
@@ -158,14 +160,17 @@ public class SemSimulation implements Simulation {
             if (pm == null) {
                 pm = new SemPm(graph);
                 im = new SemIm(pm, parameters);
+                im.setSimulationType(type);
                 ims.add(im);
                 return im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), saveLatentVars);
             } else {
                 im = new SemIm(pm, parameters);
+                im.setSimulationType(type);
                 ims.add(im);
                 return im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), saveLatentVars);
             }
         } else {
+            im.setSimulationType(type);
             ims.add(im);
             return im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), saveLatentVars);
         }

@@ -68,8 +68,8 @@ public class StatsListEditor extends JPanel {
         statistics.add(new MathewsCorrAdj());
         statistics.add(new MathewsCorrArrow());
         statistics.add(new SHD());
-        statistics.add(new NodesInCyclesPrecision());
-        statistics.add(new NodesInCyclesRecall());
+//        statistics.add(new NodesInCyclesPrecision());
+//        statistics.add(new NodesInCyclesRecall());
         statistics.add(new NumAmbiguousTriples());
         statistics.add(new PercentAmbiguous());
         statistics.add(new PercentBidirectedEdges());

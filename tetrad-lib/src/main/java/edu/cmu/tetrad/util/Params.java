@@ -162,6 +162,7 @@ public final class Params {
     public static final String SCALE_FREE_DELTA_IN = "scaleFreeDeltaIn";
     public static final String SCALE_FREE_DELTA_OUT = "scaleFreeDeltaOut";
     public static final String SELF_LOOP_COEF = "selfLoopCoef";
+    public static final String SEM_IM_SIMULATION_TYPE = "semImSimulationType";
     public static final String SKIP_NUM_RECORDS = "skipNumRecords";
     public static final String STABLE_FAS = "stableFAS";
     public static final String STANDARDIZE = "standardize";
@@ -197,6 +198,7 @@ public final class Params {
     public static final String SEM_BIC_RULE = "semBicRule";
     public static final String SEM_GIC_RULE = "semGicRule";
     public static final String TRUE_ERROR_VARIANCE = "trueErrorVariance";
+    public static final String MANUAL_LAMBDA = "manualLambda";
     public static final String SEM_BIC_STRUCTURE_PRIOR = "semBicStructurePrior";
     public static final String TIME_LIMIT = "timeLimit";
 

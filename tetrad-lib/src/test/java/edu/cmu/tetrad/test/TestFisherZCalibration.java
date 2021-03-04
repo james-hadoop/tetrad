@@ -894,19 +894,21 @@ public class TestFisherZCalibration {
 
     @Test
     public void test12() {
-        for (int pn : new int[]{10}) {
-            for (int m0 : new int[]{0, 1, 2, 3, 4}) {
-                for (int n : new int[]{10000}) {
-                    for (double gamma = 1; gamma <= 20; gamma++) {
-                        double lambda = 2 * log(pn) + (1 + gamma) * log(log(pn));
-                        double pmin = 2 - pow(1 + exp(-(lambda - 1) / 2.) * sqrt(lambda), pn - m0);
+        int pn = 10;
 
-                        double pd = lambda / log(n);
+        for (int m0 : new int[]{0, 1, 2, 3, 4}) {
+            for (int n : new int[]{1000}) {
+                for (double lambda = 1; lambda <= 20; lambda += 0.5) {
+//                        for (double gamma = 1; gamma <= 1; gamma++) {
+//                            double lambda = 2 * log(pn) + (1 + gamma) * log(log(pn));
+                    double pmin = 2 - pow(1 + exp(-(lambda - 1) / 2.) * sqrt(lambda), pn - m0);
 
-                        System.out.println("pn = " + pn + " m0 = " + m0 + " gamma = " + gamma + " lambda = "
-                                + lambda + " pmin = " + pmin + " pd = " + pd);
-                    }
+                    double pd = lambda / log(n);
+
+                    System.out.println("pn = " + pn + " m0 = " + m0 + " lambda = "
+                            + lambda + " pmin = " + pmin + " pd = " + pd);
                 }
+//                    }
             }
         }
     }

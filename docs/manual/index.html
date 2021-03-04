@@ -4579,7 +4579,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
 
         <h3 id="trueErrorVariance" class="parameter_description">trueErrorVariance</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="trueErrorVariance_short_desc">Penalty discount (min = 0.0)</span></li>
+            <li>Short Description: <span id="trueErrorVariance_short_desc">True error variance</span></li>
             <li>Long Description: <span id="trueErrorVariance_long_desc">
                 The true error variance of the model, assuming this is the same for all variables.
             </span></li>
@@ -4587,6 +4587,18 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Lower Bound: <span id="trueErrorVariance_lower_bound">0.0</span></li>
             <li>Upper Bound: <span id="trueErrorVariance_upper_bound">1.7976931348623157E308</span></li>
             <li>Value Type: <span id="trueErrorVariance_value_type">Double</span></li>
+        </ul>
+
+        <h3 id="manualLambda" class="parameter_description">manualLambda</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="manualLambda_short_desc">Lambda (manually set)</span></li>
+            <li>Long Description: <span id="manualLambda_long_desc">
+                The manually set lambda for GIC--the default is 10, though this should be set by the user to a good value.
+            </span></li>
+            <li>Default Value: <span id="manualLambda_default_value">10.0</span></li>
+            <li>Lower Bound: <span id="manualLambda_lower_bound">0.0</span></li>
+            <li>Upper Bound: <span id="manualLambda_upper_bound">1.7976931348623157E308</span></li>
+            <li>Value Type: <span id="manualLambda_value_type">Double</span></li>
         </ul>
 
         <h3 id="thresholdAlpha" class="parameter_description">errorThreshold</h3>
@@ -4847,7 +4859,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
         <h3 id="semGicRule" class="parameter_description">semGicRule</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="semGicRule_short_desc">
-                Lambda: 1 = ln n (BIC), 2 = 2 ln pn, 3 = 2(ln pn + ln ln pn), 4 = ln ln n ln pn, 4 = log n ln pn</span>
+                Lambda: 1 = Manual, 2 = ln n (BIC), 3 = 2 ln pn, 4 = 2(ln pn + ln ln pn), 5 = ln ln n ln pn, 6 = log n ln pn</span>
             </li>
             <li>Long Description: <span id="semGicRule_long_desc">The rule used for calculating the lambda term
                 of the score. a score. We follow Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria
@@ -4856,9 +4868,9 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
                 if the density is not too high, adjacency precision will be kept in check.
             </span>
             </li>
-            <li>Default Value: <span id="semGicRule_default_value">3</span></li>
+            <li>Default Value: <span id="semGicRule_default_value">4</span></li>
             <li>Lower Bound: <span id="semGicRule_lower_bound">1</span></li>
-            <li>Upper Bound: <span id="semGicRule_upper_bound">5</span></li>
+            <li>Upper Bound: <span id="semGicRule_upper_bound">6</span></li>
             <li>Value Type: <span id="semGicRule_value_type">Integer</span></li>
         </ul>
 
@@ -5071,6 +5083,19 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Lower Bound: <span id="useFasAdjacencies_lower_bound"></span></li>
             <li>Upper Bound: <span id="useFasAdjacencies_upper_bound"></span></li>
             <li>Value Type: <span id="useFasAdjacencies_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="semImSimulationType" class="parameter_description">semImSimulationType</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="semImSimulationType_short_desc">Yes if recursive simulation, No if reduced form simulation</span>
+            </li>
+            <li>Long Description: <span id="semImSimulationType_long_desc">Determines the type of simulation done. If recursive, the graph must be a DAG in causal order.
+            "Reduced form" means X = (I - B)^-1 e, which requires a possibly large matrix inversion.</span>
+            </li>
+            <li>Default Value: <span id="semImSimulationType_default_value">true</span></li>
+            <li>Lower Bound: <span id="semImSimulationType_lower_bound"></span></li>
+            <li>Upper Bound: <span id="semImSimulationType_upper_bound"></span></li>
+            <li>Value Type: <span id="semImSimulationType_value_type">Boolean</span></li>
         </ul>
 
         <h3 id="ess" class="parameter_description">ess</h3>
