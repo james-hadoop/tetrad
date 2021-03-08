@@ -72,7 +72,7 @@ public final class StatUtils {
      * @param N     the number of values of array which should be considered.
      * @return the mean of the first N values in this array.
      */
-    public static double mean(long array[], int N) {
+    public static double mean(long[] array, int N) {
         double sum = 0.0;
         int count = 0;
 
@@ -91,7 +91,7 @@ public final class StatUtils {
      * @param N     the number of values of array which should be considered.
      * @return the mean of the first N values in this array.
      */
-    public static double mean(double array[], int N) {
+    public static double mean(double[] array, int N) {
         double sum = 0.0;
         int count = 0;
 
@@ -665,7 +665,7 @@ public final class StatUtils {
      * products of the sample means for the first N values in array1 and
      * array2..
      */
-    public static double sxy(long array1[], long array2[], int N) {
+    public static double sxy(long[] array1, long[] array2, int N) {
 
         int i;
         double sum = 0.0;
@@ -687,7 +687,7 @@ public final class StatUtils {
      * products of the sample means for the first N values in array1 and
      * array2..
      */
-    public static double sxy(double array1[], double array2[], int N) {
+    public static double sxy(double[] array1, double[] array2, int N) {
         double sum = 0.0;
         double meanX = mean(array1, N);
         double meanY = mean(array2, N);
@@ -831,7 +831,7 @@ public final class StatUtils {
      *               array2.
      * @return the covariance of the first N values in array1 and array2.
      */
-    public static double covariance(long array1[], long array2[], int N) {
+    public static double covariance(long[] array1, long[] array2, int N) {
         return sxy(array1, array2, N) / (N - 1);
     }
 
@@ -842,7 +842,7 @@ public final class StatUtils {
      *               array2.
      * @return the covariance of the first N values in array1 and array2.
      */
-    public static double covariance(double array1[], double array2[], int N) {
+    public static double covariance(double[] array1, double[] array2, int N) {
         return sxy(array1, array2, N) / (N - 1);
     }
 
@@ -862,7 +862,7 @@ public final class StatUtils {
                             "unequal lengths.");
         }
 
-        return correlation(array1, array2, N1);
+        return correlation(array1, array2, N1 - 1);
     }
 
     /**

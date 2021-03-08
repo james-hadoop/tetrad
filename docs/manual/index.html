@@ -4202,12 +4202,23 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
         <h3 id="maxIndegree" class="parameter_description">maxIndegree</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="maxIndegree_short_desc">Maximum indegree of graph (min = 1)</span></li>
-            <li>Long Description: <span id="maxIndegree_long_desc">It is possible for a random graph to have a node in which there is a very large “indegree”—that is, number of parents, or number of edges into that node. This parameter places a bound on the maximum such indegree. If no limit is to be placed on the maximum indegree, use the value -1.</span>
+            <li>Long Description: <span id="maxIndegree_long_desc">It is possible for a random graph to have a node in which there is a very large “indegree”—that is, number of parents, or number of edges into that node. This parameter places a bound on the maximum such indegree.</span>
             </li>
             <li>Default Value: <span id="maxIndegree_default_value">100</span></li>
             <li>Lower Bound: <span id="maxIndegree_lower_bound">1</span></li>
             <li>Upper Bound: <span id="maxIndegree_upper_bound">2147483647</span></li>
             <li>Value Type: <span id="maxIndegree_value_type">Integer</span></li>
+        </ul>
+
+        <h3 id="zsMaxIndegree" class="parameter_description">zsMaxIndegree</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="zsMaxIndegree_short_desc">Maximum indegree of true graph (min = 0)</span></li>
+            <li>Long Description: <span id="zsMaxIndegree_long_desc">This is the maximum number of parents one expects any node to have in the true model.</span>
+            </li>
+            <li>Default Value: <span id="zsMaxIndegree_default_value">4</span></li>
+            <li>Lower Bound: <span id="zsMaxIndegree_lower_bound">0</span></li>
+            <li>Upper Bound: <span id="zsMaxIndegree_upper_bound">2147483647</span></li>
+            <li>Value Type: <span id="zsMaxIndegree_value_type">Integer</span></li>
         </ul>
 
         <h3 id="maxIterations" class="parameter_description">maxIterations</h3>
@@ -4581,12 +4592,24 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
         <ul class="parameter_description_list">
             <li>Short Description: <span id="trueErrorVariance_short_desc">True error variance</span></li>
             <li>Long Description: <span id="trueErrorVariance_long_desc">
-                The true error variance of the model, assuming this is the same for all variables.
-            </span></li>
+                The true error variance of the model, assuming this is the same for all variables.</span>
+            </li>
             <li>Default Value: <span id="trueErrorVariance_default_value">1.0</span></li>
             <li>Lower Bound: <span id="trueErrorVariance_lower_bound">0.0</span></li>
             <li>Upper Bound: <span id="trueErrorVariance_upper_bound">1.7976931348623157E308</span></li>
             <li>Value Type: <span id="trueErrorVariance_value_type">Double</span></li>
+        </ul>
+
+        <h3 id="zSRiskBound" class="parameter_description">zSRiskBound</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="zSRiskBound_short_desc">Risk bound</span></li>
+            <li>Long Description: <span id="zSRiskBound_long_desc">
+                This is the probability of getting the true model if a correct model is discovered. Could underfit.</span>
+            </li>
+            <li>Default Value: <span id="zSRiskBound_default_value">0.001</span></li>
+            <li>Lower Bound: <span id="zSRiskBound_lower_bound">0</span></li>
+            <li>Upper Bound: <span id="zSRiskBound_upper_bound">1</span></li>
+            <li>Value Type: <span id="zSRiskBound_value_type">Double</span></li>
         </ul>
 
         <h3 id="manualLambda" class="parameter_description">manualLambda</h3>
@@ -4850,16 +4873,16 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
                 of a partial correlation in place of the likelihood difference.
             </span>
             </li>
-            <li>Default Value: <span id="semBicRule_default_value">4</span></li>
+            <li>Default Value: <span id="semBicRule_default_value">1</span></li>
             <li>Lower Bound: <span id="semBicRule_lower_bound">1</span></li>
-            <li>Upper Bound: <span id="semBicRule_upper_bound">4</span></li>
+            <li>Upper Bound: <span id="semBicRule_upper_bound">2</span></li>
             <li>Value Type: <span id="semBicRule_value_type">Integer</span></li>
         </ul>
 
         <h3 id="semGicRule" class="parameter_description">semGicRule</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="semGicRule_short_desc">
-                Lambda: 1 = Manual, 2 = ln n (BIC), 3 = 2 ln pn, 4 = 2(ln pn + ln ln pn), 5 = ln ln n ln pn, 6 = log n ln pn</span>
+                Lambda: 1 = ln n, 2 = pn^1/3, 3 = 2 ln pn, 4 = 2(ln pn + ln ln pn), 5 = ln ln n ln pn, 6 = ln n ln pn, 7 = Manual</span>
             </li>
             <li>Long Description: <span id="semGicRule_long_desc">The rule used for calculating the lambda term
                 of the score. a score. We follow Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria
@@ -4870,7 +4893,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             </li>
             <li>Default Value: <span id="semGicRule_default_value">4</span></li>
             <li>Lower Bound: <span id="semGicRule_lower_bound">1</span></li>
-            <li>Upper Bound: <span id="semGicRule_upper_bound">6</span></li>
+            <li>Upper Bound: <span id="semGicRule_upper_bound">7</span></li>
             <li>Value Type: <span id="semGicRule_value_type">Integer</span></li>
         </ul>
 

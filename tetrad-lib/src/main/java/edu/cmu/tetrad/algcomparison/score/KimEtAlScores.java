@@ -18,11 +18,11 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Score(
-        name = "Sem GIC Score",
-        command = "sem-gic-score",
+        name = "Kim et al. Scores",
+        command = "kim-scores",
         dataType = {DataType.Continuous, DataType.Covariance}
 )
-public class SemGicScore implements ScoreWrapper {
+public class KimEtAlScores implements ScoreWrapper {
 
     static final long serialVersionUID = 23L;
     private DataModel dataSet;
@@ -31,45 +31,51 @@ public class SemGicScore implements ScoreWrapper {
     public Score getScore(DataModel dataSet, Parameters parameters) {
         this.dataSet = dataSet;
 
-        edu.cmu.tetrad.search.SemGicScore semGicScore;
+        edu.cmu.tetrad.search.KimEtAlScores kimEtAlScores;
 
         if (dataSet instanceof DataSet) {
-            semGicScore = new edu.cmu.tetrad.search.SemGicScore((DataSet) this.dataSet);
+            kimEtAlScores = new edu.cmu.tetrad.search.KimEtAlScores((DataSet) this.dataSet);
         } else if (dataSet instanceof ICovarianceMatrix) {
-            semGicScore = new edu.cmu.tetrad.search.SemGicScore((ICovarianceMatrix) this.dataSet);
+            kimEtAlScores = new edu.cmu.tetrad.search.KimEtAlScores((ICovarianceMatrix) this.dataSet);
         } else {
             throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
         }
 
-        semGicScore.setTrueErrorVariance(parameters.getDouble(Params.TRUE_ERROR_VARIANCE));
-        semGicScore.setLambda(parameters.getDouble(Params.MANUAL_LAMBDA));
+        kimEtAlScores.setTrueErrorVariance(parameters.getDouble(Params.TRUE_ERROR_VARIANCE));
+        kimEtAlScores.setLambda(parameters.getDouble(Params.MANUAL_LAMBDA));
 
         switch (parameters.getInt(Params.SEM_GIC_RULE)) {
             case 1:
-                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.BIC);
+                kimEtAlScores.setRuleType(edu.cmu.tetrad.search.KimEtAlScores.RuleType.BIC);
                 break;
             case 2:
-                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.RIC);
+                kimEtAlScores.setRuleType(edu.cmu.tetrad.search.KimEtAlScores.RuleType.GIC2);
                 break;
             case 3:
-                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.RICc);
+                kimEtAlScores.setRuleType(edu.cmu.tetrad.search.KimEtAlScores.RuleType.RIC);
                 break;
             case 4:
-                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.GIC5);
+                kimEtAlScores.setRuleType(edu.cmu.tetrad.search.KimEtAlScores.RuleType.RICc);
                 break;
             case 5:
-                semGicScore.setRuleType(edu.cmu.tetrad.search.SemGicScore.RuleType.GIC6);
+                kimEtAlScores.setRuleType(edu.cmu.tetrad.search.KimEtAlScores.RuleType.GIC5);
+                break;
+            case 6:
+                kimEtAlScores.setRuleType(edu.cmu.tetrad.search.KimEtAlScores.RuleType.GIC6);
+                break;
+            case 7:
+                kimEtAlScores.setRuleType(edu.cmu.tetrad.search.KimEtAlScores.RuleType.MANUAL);
                 break;
             default:
-                throw new IllegalStateException("Expecting 1, 2, 3, 4, or 5: " + parameters.getInt(Params.SEM_BIC_RULE));
+                throw new IllegalStateException("Expecting one of the available options: " + parameters.getInt(Params.SEM_BIC_RULE));
         }
 
-        return semGicScore;
+        return kimEtAlScores;
     }
 
     @Override
     public String getDescription() {
-        return "Sem GIC Score";
+        return "Kim et al. Scores";
     }
 
     @Override

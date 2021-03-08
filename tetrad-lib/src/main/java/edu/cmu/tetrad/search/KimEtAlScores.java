@@ -33,14 +33,14 @@ import java.util.*;
 
 import static edu.cmu.tetrad.util.MatrixUtils.convertCovToCorr;
 import static java.lang.Double.NaN;
-import static java.lang.Math.log;
+import static java.lang.Math.*;
 
 /**
  * Implements the continuous BIC score for FGES.
  *
  * @author Joseph Ramsey
  */
-public class SemGicScore implements Score {
+public class KimEtAlScores implements Score {
 
     // The dataset.
     private DataSet dataSet;
@@ -75,13 +75,10 @@ public class SemGicScore implements Score {
     // Manually set lambda, by default log(n);
     private double lambda;
 
-    // True if the equivalent sample size should be used in place of N.
-//    private boolean useEquivalentSampleSize = false;
-
     /**
      * Constructs the score using a covariance matrix.
      */
-    public SemGicScore(ICovarianceMatrix covariances) {
+    public KimEtAlScores(ICovarianceMatrix covariances) {
         if (covariances == null) {
             throw new NullPointerException();
         }
@@ -96,7 +93,7 @@ public class SemGicScore implements Score {
     /**
      * Constructs the score using a covariance matrix.
      */
-    public SemGicScore(DataSet dataSet) {
+    public KimEtAlScores(DataSet dataSet) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
@@ -119,28 +116,7 @@ public class SemGicScore implements Score {
 
     @Override
     public double localScoreDiff(int x, int y, int[] z) {
-        if (ruleType == RuleType.NANDY) {
-            return nandyBic(x, y, z);
-        } else {
-            return localScore(y, append(z, x)) - localScore(y, z);
-        }
-    }
-
-    public double nandyBic(int x, int y, int[] z) {
-        Node _x = variables.get(x);
-        Node _y = variables.get(y);
-        List<Node> _z = getVariableList(z);
-
-        List<Integer> rows = getRows(x, z);
-
-        if (rows != null) {
-            rows.retainAll(Objects.requireNonNull(getRows(y, z)));
-        }
-
-        double r = partialCorrelation(_x, _y, _z, rows);
-        double c = getTrueErrorVariance();
-
-        return -N * log(1.0 - r * r) - c * log(N);
+        return localScore(y, append(z, x)) - localScore(y, z);
     }
 
     @Override
@@ -157,7 +133,7 @@ public class SemGicScore implements Score {
 
         // Only do this once.
         Matrix cov = getCov(rows, all, all);
-        double pn = variables.size();
+        double pn = variables.size() - 1;
         double n = N;
         int[] pp = indexedParents(parents);
 
@@ -166,7 +142,7 @@ public class SemGicScore implements Score {
 
         Matrix b = adjustedCoefs(covxx.inverse().times(covxy));
         Matrix times = b.transpose().times(cov).times(b);
-        double varey = times.get(0, 0);
+        double varey = sqrt(times.get(0, 0));
 
         double sigma2 = getTrueErrorVariance();
 
@@ -175,8 +151,13 @@ public class SemGicScore implements Score {
         // Defaults to the manually set lambda.
         if (ruleType == RuleType.MANUAL) {
             lambda = this.lambda;
-        } else if (ruleType == RuleType.BIC || ruleType == RuleType.NANDY) {
+        } else if (ruleType == RuleType.BIC) {
             lambda = log(n);
+        } else if (ruleType == RuleType.GIC2) {
+
+            // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
+            // The Journal 0of Machine Learning Research, 13(1), 1037-1057.
+            lambda = pow(pn, 1. / 3.);
         } else if (ruleType == RuleType.RIC) {
 
             // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
@@ -201,7 +182,7 @@ public class SemGicScore implements Score {
             throw new IllegalStateException("That lambda rule is not configured: " + ruleType);
         }
 
-        return -n * log(varey) - lambda * p * sigma2;
+        return -n * varey - lambda * p * sigma2;
     }
 
 
@@ -306,7 +287,7 @@ public class SemGicScore implements Score {
 
     @Override
     public Score defaultScore() {
-        return new SemGicScore(covariances);
+        return new KimEtAlScores(covariances);
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {
@@ -490,7 +471,7 @@ public class SemGicScore implements Score {
         this.lambda = lambda;
     }
 
-    public enum RuleType {MANUAL, BIC, NANDY, RIC, RICc, GIC5, GIC6}
+    public enum RuleType {MANUAL, BIC, NANDY, GIC2, RIC, RICc, GIC5, GIC6}
 }
 
 

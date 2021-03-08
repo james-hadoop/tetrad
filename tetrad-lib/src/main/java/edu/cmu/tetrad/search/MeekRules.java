@@ -279,7 +279,9 @@ public class MeekRules implements ImpliedOrientation {
         // P->A--C, ~adj(A, C), where A--C is to be oriented by any rule, R1 usurps to yield P->A->C.
         for (Node p : graph.getParents(c)) {
             if (p != a && !graph.isAdjacentTo(a, p)) {
-                return false;
+                graph.removeEdge(a, c);
+                graph.addUndirectedEdge(a, c);
+                return true;
             }
         }
 

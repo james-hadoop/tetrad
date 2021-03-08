@@ -5,7 +5,6 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
-import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -29,6 +28,7 @@ import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadRSpecial;
 import static edu.cmu.tetrad.graph.GraphUtils.traverseSemiDirected;
+import static java.lang.Double.POSITIVE_INFINITY;
 import static java.lang.Math.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -174,7 +174,7 @@ public class TestFisherZCalibration {
 //        RandomUtil.getInstance().setSeed(92883342449L);
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 10);
+        parameters.set(Params.NUM_RUNS, 20);
         parameters.set(Params.NUM_MEASURES, 20);
 
         double sigma2 = 3;
@@ -183,17 +183,18 @@ public class TestFisherZCalibration {
         parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
-        parameters.set(Params.VAR_LOW, sigma2);
-        parameters.set(Params.VAR_HIGH, sigma2);
+        parameters.set(Params.VAR_LOW, 3);
+        parameters.set(Params.VAR_HIGH, 3);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
+        parameters.set(Params.SEM_IM_SIMULATION_TYPE, true);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.VERBOSE, false);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
-        parameters.set(Params.PARALLELISM, 10);
+        parameters.set(Params.PARALLELISM, 20);
 
-        parameters.set(Params.PENALTY_DISCOUNT, sigma2);
-        parameters.set(Params.SEM_BIC_RULE, 4);
+//        parameters.set(Params.PENALTY_DISCOUNT, sigma2);
+//        parameters.set(Params.SEM_BIC_RULE, 4);
         parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
 
         parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 50);
@@ -201,12 +202,19 @@ public class TestFisherZCalibration {
         parameters.set(Params.SELF_LOOP_COEF, 0);
         parameters.set(Params.FISHER_EPSILON, 0.0001);
 
+//        parameters.set(Params.TRUE_ERROR_VARIANCE, 3);
+        parameters.set(Params.ZS_RISK_BOUND, .001);
+//        parameters.set(Params.ZS_MAX_INDEGREE, 12);
+
+//        parameters.set(Params.MANUAL_LAMBDA);
+//        parameters.set(Params.SEM_GIC_RULE, 6);
+
         Statistics statistics = new Statistics();
 
         statistics.add(new ParameterColumn(Params.NUM_RUNS));
-        statistics.add(new ParameterColumn(Params.SEM_BIC_RULE));
+//        statistics.add(new ParameterColumn(Params.SEM_BIC_RULE));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
-        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
+//        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
 
         statistics.add(new NumberOfEdgesTrue());
         statistics.add(new NumberOfEdgesEst());
@@ -214,7 +222,7 @@ public class TestFisherZCalibration {
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
-        statistics.add(new CorrectPattern());
+//        statistics.add(new CorrectPattern());
         statistics.add(new BicDiff());
 
         statistics.add(new F1Adj());
@@ -228,11 +236,11 @@ public class TestFisherZCalibration {
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
-                new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
+                new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new LinearFisherModel(new RandomForward()));
+        simulations.add(new SemSimulation(new RandomForward()));
 
         Comparison comparison = new Comparison();
 
@@ -894,7 +902,7 @@ public class TestFisherZCalibration {
 
     @Test
     public void test12() {
-        int pn = 10;
+        int pn = 100;
 
         for (int m0 : new int[]{0, 1, 2, 3, 4}) {
             for (int n : new int[]{1000}) {
@@ -911,5 +919,45 @@ public class TestFisherZCalibration {
 //                    }
             }
         }
+    }
+
+    @Test
+    public void test13() {
+        int pn = 50;
+        int a = pn - 1;
+        int n = 1000;
+        double pmin = 0.99;
+
+        NumberFormat nf = new DecimalFormat("0.00");
+
+        double maxLambda = Double.NEGATIVE_INFINITY;
+
+        for (int m0 = 0; m0 <= a; m0++) {
+            double lambda = Double.NaN;
+
+            for (double _lambda = .1; _lambda <= POSITIVE_INFINITY; _lambda += 0.1) {
+                double p = 2 - pow(1 + exp(-(_lambda - 1) / 2.) * sqrt(_lambda), pn - m0);
+
+                if (p >= pmin) {
+                    lambda = _lambda;
+                    break;
+                }
+            }
+
+            double pd = lambda / log(n);
+
+            System.out.println( " m0 = " + m0 + " pn = " + pn + " pmin = " +  nf.format(pmin)
+                    + " lambda = " + nf.format(lambda) + " pd = " + nf.format(pd));
+
+
+            if (lambda > maxLambda) {
+                maxLambda = lambda;
+            }
+        }
+
+//        double pd = maxLambda / log(n);
+//
+//        System.out.println("pn = " + pn + " a = " + a + " pmin = " + pmin
+//                + " lambda = " + maxLambda + " pd = " + pd);
     }
 }

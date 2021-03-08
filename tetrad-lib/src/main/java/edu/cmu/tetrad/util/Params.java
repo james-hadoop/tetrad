@@ -111,6 +111,7 @@ public final class Params {
     public static final String MAX_DEGREE = "maxDegree";
     public static final String MAX_DISTINCT_VALUES_DISCRETE = "maxDistinctValuesDiscrete";
     public static final String MAX_INDEGREE = "maxIndegree";
+    public static final String ZS_MAX_INDEGREE = "zsMaxIndegree";
     public static final String MAX_ITERATIONS = "maxIterations";
     public static final String MAX_OUTDEGREE = "maxOutdegree";
     public static final String MAX_P_ORIENTATION_MAX_PATH_LENGTH = "maxPOrientationMaxPathLength";
@@ -198,6 +199,7 @@ public final class Params {
     public static final String SEM_BIC_RULE = "semBicRule";
     public static final String SEM_GIC_RULE = "semGicRule";
     public static final String TRUE_ERROR_VARIANCE = "trueErrorVariance";
+    public static final String ZS_RISK_BOUND = "zSRiskBound";
     public static final String MANUAL_LAMBDA = "manualLambda";
     public static final String SEM_BIC_STRUCTURE_PRIOR = "semBicStructurePrior";
     public static final String TIME_LIMIT = "timeLimit";

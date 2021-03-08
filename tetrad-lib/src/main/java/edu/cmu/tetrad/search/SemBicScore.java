@@ -183,7 +183,7 @@ public class SemBicScore implements Score {
         Matrix b = covxx.inverse().times(covxy);
         Matrix b2 = adjustedCoefs(p, b);
         Matrix times = b2.transpose().times(cov).times(b2);
-        varey = times.get(0, 0);
+        varey = sqrt(times.get(0, 0));
 //        }
 
         double c = getPenaltyDiscount();

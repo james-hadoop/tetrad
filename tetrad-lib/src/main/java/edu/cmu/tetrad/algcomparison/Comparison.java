@@ -1576,7 +1576,7 @@ public class Comparison {
 
                         statTables[u][i][j] = stat;
                     } else if (mode == Mode.Average) {
-                        final double mean = StatUtils.mean(allStats[u][i][j]);
+                        final double mean = StatUtils.mean(allStats[u][i][j], allStats[u][i][j].length);
                         statTables[u][i][j] = mean;
                     } else if (mode == Mode.WorstCase) {
                         statTables[u][i][j] = StatUtils.min(allStats[u][i][j]);

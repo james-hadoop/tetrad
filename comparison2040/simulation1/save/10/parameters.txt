@@ -1,3 +1,3 @@
-Linear Fisher model simulation
-printStream = java.io.PrintStream@b59d31
-numRuns = 10
+Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+printStream = java.io.PrintStream@442675e1
+numRuns = 20

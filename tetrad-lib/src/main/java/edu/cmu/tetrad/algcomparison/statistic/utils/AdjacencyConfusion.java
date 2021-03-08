@@ -25,36 +25,52 @@ public class AdjacencyConfusion {
         adjFn = 0;
 
         est = GraphUtils.replaceNodes(est, truth.getNodes());
+        assert est != null;
 
-        Set<NodePair> trueEdges = new HashSet<>();
-        Set<NodePair> estEdges = new HashSet<>();
+//        Set<NodePair> trueEdges = new HashSet<>();
+//        Set<NodePair> estEdges = new HashSet<>();
+//
+//        for (Edge edge : truth.getEdges()) {
+//            NodePair e = new NodePair(edge.getNode1(), edge.getNode2());
+//            trueEdges.add(e);
+//        }
+//
+//        assert est != null;
+//        for (Edge edge : est.getEdges()) {
+//            NodePair e = new NodePair(edge.getNode1(), edge.getNode2());
+//            estEdges.add(e);
+//        }
+
+//        Set<NodePair> all = new HashSet<>(trueEdges);
+//        all.addAll(estEdges);
+
+//        adjFn = 0;
+
 
         for (Edge edge : truth.getEdges()) {
-            NodePair e = new NodePair(edge.getNode1(), edge.getNode2());
-            trueEdges.add(e);
+            if (edge.getNode1() == edge.getNode2()) continue;
+            if (!est.isAdjacentTo(edge.getNode1(), edge.getNode2())) adjFn++;
         }
 
         for (Edge edge : est.getEdges()) {
-            NodePair e = new NodePair(edge.getNode1(), edge.getNode2());
-            estEdges.add(e);
+            if (edge.getNode1() == edge.getNode2()) continue;
+            if (!truth.isAdjacentTo(edge.getNode1(), edge.getNode2())) adjFp++;
+            else adjTp++;
         }
 
-        Set<NodePair> all = new HashSet<>(trueEdges);
-        all.addAll(estEdges);
-
-        for (NodePair edge : all) {
-            if (estEdges.contains(edge) && !trueEdges.contains(edge)) {
-                adjFp++;
-            }
-
-            if (!estEdges.contains(edge) && trueEdges.contains(edge)) {
-                adjFn++;
-            }
-
-            if (estEdges.contains(edge) && trueEdges.contains(edge)) {
-                adjTp++;
-            }
-        }
+//        for (NodePair edge : all) {
+//            if (estEdges.contains(edge) && !trueEdges.contains(edge)) {
+//                adjFp++;
+//            }
+//
+//            if (!estEdges.contains(edge) && trueEdges.contains(edge)) {
+//                adjFn++;
+//            }
+//
+//            if (estEdges.contains(edge) && trueEdges.contains(edge)) {
+//                adjTp++;
+//            }
+//        }
 
 //        System.out.println("adjTp = " + adjTp + " adjFp = " + adjFp + " adjFn = " + adjFn
 //             + " true edge = " + trueEdges.size() + " estEdge = " + estEdges.size() + " all edges = " + all.size());
