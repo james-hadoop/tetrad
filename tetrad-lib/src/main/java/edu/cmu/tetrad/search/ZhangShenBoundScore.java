@@ -26,6 +26,8 @@ import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.StatUtils;
+import edu.cmu.tetrad.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -40,7 +42,9 @@ import static java.lang.Math.*;
  * @author Joseph Ramsey
  */
 public class ZhangShenBoundScore implements Score {
+    private double trueErrorVariance = 1;
 
+    private int depth = -1;
     // The covariance matrix.
     private ICovarianceMatrix covariances;
 
@@ -60,7 +64,7 @@ public class ZhangShenBoundScore implements Score {
     private List<Double> lambdas;
 
     // The minimim probability lower bound for risk.
-    private double riskBound = 0;
+    private double riskBound = 0.05;
 
     // The data, if it is set.
     private Matrix data;
@@ -80,11 +84,16 @@ public class ZhangShenBoundScore implements Score {
     // A ,ap from nodes to the lambdas for their minimal models.
     Map<Node, Double> lambdass = new HashMap<>();
 
+    // Depth for finding initial minimal models.
+    private double epsilon = 1e-6;
 
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ZhangShenBoundScore(ICovarianceMatrix covariances) {
+    public ZhangShenBoundScore(ICovarianceMatrix covariances, double epsilon, int depth) {
+        this.epsilon = epsilon;
+        this.depth = depth;
+
         if (covariances == null) {
             throw new NullPointerException();
         }
@@ -97,7 +106,11 @@ public class ZhangShenBoundScore implements Score {
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ZhangShenBoundScore(DataSet dataSet, boolean calculateSquaredEuclideanNorms) {
+    public ZhangShenBoundScore(DataSet dataSet, boolean calculateSquaredEuclideanNorms,
+                               double epsilon, int depth, double trueErrorVariance) {
+        this.epsilon = epsilon;
+        this.depth = depth;
+
         if (dataSet == null) {
             throw new NullPointerException();
         }
@@ -107,15 +120,12 @@ public class ZhangShenBoundScore implements Score {
         this.sampleSize = dataSet.getNumRows();
 
         if (!dataSet.existsMissingValue()) {
+            DataSet _dataSet = DataUtils.center(dataSet);
+            this.data = _dataSet.getDoubleData();
+
             setCovariances(new CovarianceMatrix(dataSet));
             calculateRowSubsets = false;
             setTrueStats();
-
-            if (calculateSquaredEuclideanNorms) {
-                DataSet _dataSet = DataUtils.center(dataSet);
-                this.data = _dataSet.getDoubleData();
-            }
-
 
             return;
         }
@@ -129,37 +139,58 @@ public class ZhangShenBoundScore implements Score {
     private void setTrueStats() {
         for (Node y : variables) {
 
-            List<Node> adj = new ArrayList<>(variables);
-            adj.remove(y);
+            List<Node> _adj = new ArrayList<>(variables);
+            _adj.remove(y);
 
-            DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), 4);//adj.size());
-            int[] choice;
+            List<Node> adj = new ArrayList<>();
 
-            double _bic = NEGATIVE_INFINITY;
-            double _varey = POSITIVE_INFINITY;
-            double _lambda = NEGATIVE_INFINITY;
-
-            while ((choice = gen.next()) != null) {
-                List<Node> _adj = GraphUtils.asList(choice, adj);
-
-                int[] indices = new int[_adj.size()];
-                for (int t = 0; t < _adj.size(); t++) indices[t] = variables.indexOf(_adj.get(t));
-                double varey2 = getVarey(variables.indexOf(y), indices);
-                double lambda = getLambda(indices.length);
-
-                double bic2 = -2 * varey2 - lambda * _adj.size() * varey2;
-
-                if (bic2 > _bic) {
-                    _bic = bic2;
-                    _varey = varey2;
-                    _lambda = lambda;
+            for (Node node : _adj) {
+                Vector column = data.getColumn(variables.indexOf(y));
+                Vector column1 = data.getColumn(variables.indexOf(node));
+                if ((abs(StatUtils.correlation(column.toArray(), column1.toArray()))) >= epsilon) {
+                    adj.add(node);
                 }
             }
 
-            bics.put(y, _bic);
-            vareys.put(y, _varey);
-            lambdass.put(y, _lambda);
+            DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), depth == -1 ? adj.size() : depth);
+            int[] choice;
+
+            double _score = POSITIVE_INFINITY;
+            double _varey = NEGATIVE_INFINITY;
+            double _lambda = NEGATIVE_INFINITY;
+            List<Node> _pi = new ArrayList<>();
+
+            while ((choice = gen.next()) != null) {
+                List<Node> pi = GraphUtils.asList(choice, adj);
+
+                int[] indices = indices(pi);
+                double varey = getVarey(variables.indexOf(y), indices);
+                double lambda = getLambda(pi.size());
+
+                int pn = variables.size() - 1;
+                double sigma2 = 1;
+                double score = sampleSize * varey + pi.size() * 2 * (log(pn) + log(log(pn))) * trueErrorVariance;
+
+                if (score < _score) {
+                    _score = score;
+                    _varey = varey;
+                    _lambda = lambda;
+                    _pi = pi;
+                }
+            }
+
+            System.out.println(" var = " + y + " _varey = " + _varey + " _lambda = " + _lambda + " _score = " + _score + " _pi = " + _pi);
+
+            bics.put(y, _score);
+            vareys.put(y, 3.);//_varey);//covariances.getValue(variables.indexOf(y), variables.indexOf(y)));
+            lambdass.put(y, getLambda(0));
         }
+    }
+
+    private int[] indices(List<Node> __adj) {
+        int[] indices = new int[__adj.size()];
+        for (int t = 0; t < __adj.size(); t++) indices[t] = variables.indexOf(__adj.get(t));
+        return indices;
     }
 
     @Override
@@ -187,6 +218,8 @@ public class ZhangShenBoundScore implements Score {
         double varey2 = vareys.get(variables.get(i));
         double lambda = lambdass.get(variables.get(i));
 
+        lambda = zhangShenLambda(variables.size() - 1, parents.length, 0);
+
         return -sum - lambda * p * varey2;
     }
 
@@ -197,7 +230,6 @@ public class ZhangShenBoundScore implements Score {
     }
 
     private double getVarey(Matrix cov, int[] parents) {
-        double varey;
         int[] pp = indexedParents(parents);
 
         Matrix covxx = cov.getSelection(pp, pp);
@@ -205,23 +237,22 @@ public class ZhangShenBoundScore implements Score {
 
         Matrix b = adjustedCoefs(covxx.inverse().times(covxy));
         Matrix times = b.transpose().times(cov).times(b);
-        varey = sqrt(times.get(0, 0));
-        return varey;
+        return sqrt(times.get(0, 0));
     }
 
-    private double getLambda(int maxp) {
+    private double getLambda(int m) {
         if (lambdas == null) {
             lambdas = new ArrayList<>();
         }
 
-        if (lambdas.size() - 1 < maxp) {
-            for (int t = lambdas.size(); t <= maxp; t++) {
+        if (lambdas.size() - 1 < m) {
+            for (int t = lambdas.size(); t <= m; t++) {
                 double lambda = zhangShenLambda(variables.size() - 1, t, riskBound);
                 lambdas.add(lambda);
             }
         }
 
-        return lambdas.get(maxp);
+        return lambdas.get(m);
     }
 
     private double getSquaredEucleanNorm(int i, int[] parents) {
@@ -324,18 +355,14 @@ public class ZhangShenBoundScore implements Score {
 
     @Override
     public int getMaxDegree() {
-        return (int) Math.ceil(log(sampleSize));
+        return (int) ceil(log(sampleSize));
     }
 
     @Override
     public boolean determines(List<Node> z, Node y) {
         int i = variables.indexOf(y);
 
-        int[] k = new int[z.size()];
-
-        for (int t = 0; t < z.size(); t++) {
-            k[t] = variables.indexOf(z.get(t));
-        }
+        int[] k = indices(z);
 
         double v = localScore(i, k);
 
@@ -344,11 +371,12 @@ public class ZhangShenBoundScore implements Score {
 
     @Override
     public Score defaultScore() {
-        return new ZhangShenBoundScore(covariances);
+        return new ZhangShenBoundScore(covariances, 0, -1);
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {
-        this.covariances = new CorrelationMatrix(covariances);
+//        this.covariances = new CorrelationMatrix(covariances);
+        this.covariances = covariances;
         this.N = covariances.getSampleSize();
     }
 
@@ -453,6 +481,10 @@ public class ZhangShenBoundScore implements Score {
 
     private double getP(int pn, int m0, double lambda) {
         return 2 - pow(1 + exp(-(lambda - 1) / 2.) * sqrt(lambda), pn - m0);
+    }
+
+    public void setTrueErrorVariance(double trueErrorVariance) {
+        this.trueErrorVariance = trueErrorVariance;
     }
 }
 

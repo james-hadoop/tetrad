@@ -34,9 +34,13 @@ public class ZhangShenBoundScore implements ScoreWrapper {
         edu.cmu.tetrad.search.ZhangShenBoundScore score;
 
         if (dataSet instanceof DataSet) {
-            score = new edu.cmu.tetrad.search.ZhangShenBoundScore((DataSet) this.dataSet, false);
+            score = new edu.cmu.tetrad.search.ZhangShenBoundScore((DataSet) this.dataSet, false,
+                    parameters.getDouble(Params.ALPHA),
+                    parameters.getInt(Params.DEPTH), parameters.getDouble(Params.PENALTY_DISCOUNT));
         } else if (dataSet instanceof ICovarianceMatrix) {
-            score = new edu.cmu.tetrad.search.ZhangShenBoundScore((ICovarianceMatrix) this.dataSet);
+            score = new edu.cmu.tetrad.search.ZhangShenBoundScore((ICovarianceMatrix) this.dataSet,
+                    parameters.getDouble(Params.ALPHA),
+                    parameters.getInt(Params.DEPTH));
         } else {
             throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
         }
@@ -59,7 +63,9 @@ public class ZhangShenBoundScore implements ScoreWrapper {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.ZS_RISK_BOUND);
-//        parameters.add(Params.ZS_MAX_INDEGREE);
+        parameters.add(Params.DEPTH);
+        parameters.add(Params.ALPHA);
+        parameters.add(Params.PENALTY_DISCOUNT);
 
         return parameters;
     }
