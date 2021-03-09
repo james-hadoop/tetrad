@@ -21,19 +21,18 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.data.CovarianceMatrix;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.Matrix;
-import edu.cmu.tetrad.util.StatUtils;
-import edu.cmu.tetrad.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-import static java.lang.Double.NEGATIVE_INFINITY;
-import static java.lang.Double.POSITIVE_INFINITY;
 import static java.lang.Math.*;
 
 /**
@@ -42,9 +41,7 @@ import static java.lang.Math.*;
  * @author Joseph Ramsey
  */
 public class ZhangShenBoundScore implements Score {
-    private double trueErrorVariance = 1;
 
-    private int depth = -1;
     // The covariance matrix.
     private ICovarianceMatrix covariances;
 
@@ -72,28 +69,17 @@ public class ZhangShenBoundScore implements Score {
     // True if sume of squares should be calculated, false if estimated.
     private boolean calculateSquaredEuclideanNorms = false;
 
+    // The variance of the error term in the true model; assumed to be constant.
+    private double trueErrorVariance = 1;
+
+
     // True if row subsets should be calculated.
     private boolean calculateRowSubsets = false;
-
-    // A Map from nodes to the BICs for their minimal models.
-    Map<Node, Double> bics = new HashMap<>();
-
-    // A map from nodes to the varey's of their minimal models.
-    Map<Node, Double> vareys = new HashMap<>();
-
-    // A ,ap from nodes to the lambdas for their minimal models.
-    Map<Node, Double> lambdass = new HashMap<>();
-
-    // Depth for finding initial minimal models.
-    private double epsilon = 1e-6;
 
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ZhangShenBoundScore(ICovarianceMatrix covariances, double epsilon, int depth) {
-        this.epsilon = epsilon;
-        this.depth = depth;
-
+    public ZhangShenBoundScore(ICovarianceMatrix covariances) {
         if (covariances == null) {
             throw new NullPointerException();
         }
@@ -106,11 +92,7 @@ public class ZhangShenBoundScore implements Score {
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ZhangShenBoundScore(DataSet dataSet, boolean calculateSquaredEuclideanNorms,
-                               double epsilon, int depth, double trueErrorVariance) {
-        this.epsilon = epsilon;
-        this.depth = depth;
-
+    public ZhangShenBoundScore(DataSet dataSet, boolean calculateSquaredEuclideanNorms) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
@@ -125,7 +107,6 @@ public class ZhangShenBoundScore implements Score {
 
             setCovariances(new CovarianceMatrix(dataSet));
             calculateRowSubsets = false;
-            setTrueStats();
 
             return;
         }
@@ -133,58 +114,6 @@ public class ZhangShenBoundScore implements Score {
         calculateRowSubsets = true;
         DataSet _dataSet = DataUtils.center(dataSet);
         this.data = _dataSet.getDoubleData();
-        setTrueStats();
-    }
-
-    private void setTrueStats() {
-        for (Node y : variables) {
-
-            List<Node> _adj = new ArrayList<>(variables);
-            _adj.remove(y);
-
-            List<Node> adj = new ArrayList<>();
-
-            for (Node node : _adj) {
-                Vector column = data.getColumn(variables.indexOf(y));
-                Vector column1 = data.getColumn(variables.indexOf(node));
-                if ((abs(StatUtils.correlation(column.toArray(), column1.toArray()))) >= epsilon) {
-                    adj.add(node);
-                }
-            }
-
-            DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), depth == -1 ? adj.size() : depth);
-            int[] choice;
-
-            double _score = POSITIVE_INFINITY;
-            double _varey = NEGATIVE_INFINITY;
-            double _lambda = NEGATIVE_INFINITY;
-            List<Node> _pi = new ArrayList<>();
-
-            while ((choice = gen.next()) != null) {
-                List<Node> pi = GraphUtils.asList(choice, adj);
-
-                int[] indices = indices(pi);
-                double varey = getVarey(variables.indexOf(y), indices);
-                double lambda = getLambda(pi.size());
-
-                int pn = variables.size() - 1;
-                double sigma2 = 1;
-                double score = sampleSize * varey + pi.size() * 2 * (log(pn) + log(log(pn))) * trueErrorVariance;
-
-                if (score < _score) {
-                    _score = score;
-                    _varey = varey;
-                    _lambda = lambda;
-                    _pi = pi;
-                }
-            }
-
-            System.out.println(" var = " + y + " _varey = " + _varey + " _lambda = " + _lambda + " _score = " + _score + " _pi = " + _pi);
-
-            bics.put(y, _score);
-            vareys.put(y, 3.);//_varey);//covariances.getValue(variables.indexOf(y), variables.indexOf(y)));
-            lambdass.put(y, getLambda(0));
-        }
     }
 
     private int[] indices(List<Node> __adj) {
@@ -215,10 +144,8 @@ public class ZhangShenBoundScore implements Score {
             sum = N * varey;
         }
 
-        double varey2 = vareys.get(variables.get(i));
-        double lambda = lambdass.get(variables.get(i));
-
-        lambda = zhangShenLambda(variables.size() - 1, parents.length, 0);
+        double varey2 = trueErrorVariance;
+        double lambda = getLambda(parents.length);
 
         return -sum - lambda * p * varey2;
     }
@@ -371,7 +298,7 @@ public class ZhangShenBoundScore implements Score {
 
     @Override
     public Score defaultScore() {
-        return new ZhangShenBoundScore(covariances, 0, -1);
+        return new ZhangShenBoundScore(covariances);
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {

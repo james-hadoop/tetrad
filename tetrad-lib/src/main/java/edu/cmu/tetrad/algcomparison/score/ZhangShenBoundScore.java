@@ -34,22 +34,17 @@ public class ZhangShenBoundScore implements ScoreWrapper {
         edu.cmu.tetrad.search.ZhangShenBoundScore score;
 
         if (dataSet instanceof DataSet) {
-            score = new edu.cmu.tetrad.search.ZhangShenBoundScore((DataSet) this.dataSet, false,
-                    parameters.getDouble(Params.ALPHA),
-                    parameters.getInt(Params.DEPTH), parameters.getDouble(Params.PENALTY_DISCOUNT));
+            score = new edu.cmu.tetrad.search.ZhangShenBoundScore((DataSet) this.dataSet, false);
         } else if (dataSet instanceof ICovarianceMatrix) {
-            score = new edu.cmu.tetrad.search.ZhangShenBoundScore((ICovarianceMatrix) this.dataSet,
-                    parameters.getDouble(Params.ALPHA),
-                    parameters.getInt(Params.DEPTH));
+            score = new edu.cmu.tetrad.search.ZhangShenBoundScore((ICovarianceMatrix) this.dataSet);
         } else {
             throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
         }
 
         score.setRiskBound(parameters.getDouble(Params.ZS_RISK_BOUND));
+        score.setTrueErrorVariance(parameters.getDouble(Params.TRUE_ERROR_VARIANCE));
         return score;
-    }
-
-    @Override
+    }@Override
     public String getDescription() {
         return "Zhang-Shen Bound Score";
     }
@@ -63,10 +58,7 @@ public class ZhangShenBoundScore implements ScoreWrapper {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.ZS_RISK_BOUND);
-        parameters.add(Params.DEPTH);
-        parameters.add(Params.ALPHA);
-        parameters.add(Params.PENALTY_DISCOUNT);
-
+        parameters.add(Params.TRUE_ERROR_VARIANCE);
         return parameters;
     }
 
