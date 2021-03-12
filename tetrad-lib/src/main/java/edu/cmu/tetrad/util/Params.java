@@ -200,6 +200,7 @@ public final class Params {
     public static final String SEM_GIC_RULE = "semGicRule";
     public static final String TRUE_ERROR_VARIANCE = "trueErrorVariance";
     public static final String ZS_RISK_BOUND = "zSRiskBound";
+    public static final String CORRELATION_THRESHOLD = "correlationThreshold";
     public static final String MANUAL_LAMBDA = "manualLambda";
     public static final String SEM_BIC_STRUCTURE_PRIOR = "semBicStructurePrior";
     public static final String TIME_LIMIT = "timeLimit";

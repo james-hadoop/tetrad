@@ -174,47 +174,38 @@ public class TestFisherZCalibration {
 //        RandomUtil.getInstance().setSeed(92883342449L);
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 20);
+        parameters.set(Params.NUM_RUNS, 10);
         parameters.set(Params.NUM_MEASURES, 20);
-
-        double sigma2 = 3;
 
         parameters.set(Params.AVG_DEGREE, 4);
         parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
-        parameters.set(Params.VAR_LOW, 3);
-        parameters.set(Params.VAR_HIGH, 3);
+        parameters.set(Params.VAR_LOW, 1);
+        parameters.set(Params.VAR_HIGH, 1);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
-        parameters.set(Params.SEM_IM_SIMULATION_TYPE, true);
+        parameters.set(Params.SEM_IM_SIMULATION_TYPE, false);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.VERBOSE, false);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.PARALLELISM, 20);
 
-//        parameters.set(Params.PENALTY_DISCOUNT, sigma2);
-//        parameters.set(Params.SEM_BIC_RULE, 4);
         parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
 
         parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 50);
         parameters.set(Params.INTERVAL_BETWEEN_RECORDINGS, 50);
         parameters.set(Params.SELF_LOOP_COEF, 0);
-        parameters.set(Params.FISHER_EPSILON, 0.0001);
+        parameters.set(Params.FISHER_EPSILON, 0.000);
 
-//        parameters.set(Params.TRUE_ERROR_VARIANCE, 3);
-        parameters.set(Params.ZS_RISK_BOUND, .001);
-//        parameters.set(Params.ZS_MAX_INDEGREE, 12);
-
-//        parameters.set(Params.MANUAL_LAMBDA);
-//        parameters.set(Params.SEM_GIC_RULE, 6);
+        // Parameters for Zhang Shen Bound Score
+        parameters.set(Params.TRUE_ERROR_VARIANCE, .7);
+        parameters.set(Params.ZS_RISK_BOUND, 0.000001);
 
         Statistics statistics = new Statistics();
 
         statistics.add(new ParameterColumn(Params.NUM_RUNS));
-//        statistics.add(new ParameterColumn(Params.SEM_BIC_RULE));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
-//        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
 
         statistics.add(new NumberOfEdgesTrue());
         statistics.add(new NumberOfEdgesEst());
@@ -222,7 +213,6 @@ public class TestFisherZCalibration {
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
-//        statistics.add(new CorrectPattern());
         statistics.add(new BicDiff());
 
         statistics.add(new F1Adj());
@@ -916,48 +906,50 @@ public class TestFisherZCalibration {
                     System.out.println("pn = " + pn + " m0 = " + m0 + " lambda = "
                             + lambda + " pmin = " + pmin + " pd = " + pd);
                 }
-//                    }
             }
         }
     }
 
     @Test
     public void test13() {
-        int pn = 50;
-        int a = pn - 1;
+        int pn = 8;
         int n = 1000;
-        double pmin = 0.99;
+        double riskBound = 0.01;
+
+        NumberFormat nf = new DecimalFormat("0.00000");
+
+        for (int m0 = 0; m0 < pn; m0++) {
+            double lambda = ZhangShenBoundScore.zhangShenLambda(pn, m0, riskBound);
+
+            double p = ZhangShenBoundScore.getP(pn, m0, lambda);
+
+
+
+
+            double pd = lambda / log(n);
+
+            System.out.println(" m0 = " + m0 + " pn = " + pn + " riskBound = " + nf.format(riskBound)
+                    + " lambda = " + nf.format(lambda) + " pd = " + nf.format(pd) + " recovered risk bound = " + nf.format(1 - p));
+        }
+    }
+
+
+    @Test
+    public void test14() {
+        int pn = 8;
+        int m0 = 4;
+        int n = 1000;
 
         NumberFormat nf = new DecimalFormat("0.00");
 
         double maxLambda = Double.NEGATIVE_INFINITY;
 
-        for (int m0 = 0; m0 <= a; m0++) {
-            double lambda = Double.NaN;
-
-            for (double _lambda = .1; _lambda <= POSITIVE_INFINITY; _lambda += 0.1) {
-                double p = 2 - pow(1 + exp(-(_lambda - 1) / 2.) * sqrt(_lambda), pn - m0);
-
-                if (p >= pmin) {
-                    lambda = _lambda;
-                    break;
-                }
-            }
-
+        for (double pmin = 1.0; pmin >= 0.0; pmin -= 0.01) {
+            double lambda = ZhangShenBoundScore.zhangShenLambda(pn, m0, 1 - pmin);
             double pd = lambda / log(n);
 
-            System.out.println( " m0 = " + m0 + " pn = " + pn + " pmin = " +  nf.format(pmin)
+            System.out.println(" m0 = " + m0 + " pn = " + pn + " pmin = " + nf.format(pmin)
                     + " lambda = " + nf.format(lambda) + " pd = " + nf.format(pd));
-
-
-            if (lambda > maxLambda) {
-                maxLambda = lambda;
-            }
         }
-
-//        double pd = maxLambda / log(n);
-//
-//        System.out.println("pn = " + pn + " a = " + a + " pmin = " + pmin
-//                + " lambda = " + maxLambda + " pd = " + pd);
     }
 }

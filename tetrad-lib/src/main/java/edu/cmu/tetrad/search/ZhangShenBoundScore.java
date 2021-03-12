@@ -21,12 +21,10 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.CovarianceMatrix;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.ICovarianceMatrix;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -61,7 +59,7 @@ public class ZhangShenBoundScore implements Score {
     private List<Double> lambdas;
 
     // The minimim probability lower bound for risk.
-    private double riskBound = 0.05;
+    private double riskBound = 0;
 
     // The data, if it is set.
     private Matrix data;
@@ -69,51 +67,82 @@ public class ZhangShenBoundScore implements Score {
     // True if sume of squares should be calculated, false if estimated.
     private boolean calculateSquaredEuclideanNorms = false;
 
-    // The variance of the error term in the true model; assumed to be constant.
-    private double trueErrorVariance = 1;
-
-
     // True if row subsets should be calculated.
     private boolean calculateRowSubsets = false;
+
+    // The running maximum score, for estimating the true minimal model.
+    final double[] maxScores;
+
+    // The running estimate of the number of parents in the true minimal model.
+    final int[] trueMinParents;
+
+    // The running estimate of the residual variance of the true minimal model.
+    final double[] trueVarRys;
+    private boolean changed = false;
+    private double correlationThreshold = 1.0;
+    private double penalyDiscount;
 
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ZhangShenBoundScore(ICovarianceMatrix covariances) {
+    public ZhangShenBoundScore(ICovarianceMatrix covariances, double riskBound, double correlationThreshold) {
         if (covariances == null) {
             throw new NullPointerException();
         }
 
+        if (riskBound < 0 || riskBound > 1) throw new IllegalStateException(
+                "Risk probability should be in [0, 1]: " + this.riskBound);
+
+        this.riskBound = riskBound;
+        this.correlationThreshold = correlationThreshold;
         setCovariances(covariances);
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
+        this.trueMinParents = new int[variables.size()];
+        this.maxScores = new double[variables.size()];
+        this.trueVarRys = new double[variables.size()];
+
+        for (int i = 0; i < variables.size(); i++) {
+            this.trueMinParents[i] = 0;
+            this.maxScores[i] = localScore(i, new int[0]);
+            this.trueVarRys[i] = getVarRy(i, new int[0]);
+        }
     }
 
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ZhangShenBoundScore(DataSet dataSet, boolean calculateSquaredEuclideanNorms) {
+    public ZhangShenBoundScore(DataSet dataSet, double riskBound, double correlationThreshold) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
 
-        this.calculateSquaredEuclideanNorms = calculateSquaredEuclideanNorms;
+        if (riskBound < 0 || riskBound > 1) throw new IllegalStateException(
+                "Risk probability should be in [0, 1]: " + this.riskBound);
+
+        this.riskBound = riskBound;
+        this.correlationThreshold = correlationThreshold;
         this.variables = dataSet.getVariables();
         this.sampleSize = dataSet.getNumRows();
+        this.trueMinParents = new int[variables.size()];
+        this.maxScores = new double[variables.size()];
+        this.trueVarRys = new double[variables.size()];
 
-        if (!dataSet.existsMissingValue()) {
-            DataSet _dataSet = DataUtils.center(dataSet);
-            this.data = _dataSet.getDoubleData();
-
-            setCovariances(new CovarianceMatrix(dataSet));
-            calculateRowSubsets = false;
-
-            return;
-        }
-
-        calculateRowSubsets = true;
         DataSet _dataSet = DataUtils.center(dataSet);
         this.data = _dataSet.getDoubleData();
+
+        if (!dataSet.existsMissingValue()) {
+            setCovariances(new CovarianceMatrix(dataSet, false));
+            calculateRowSubsets = false;
+        } else {
+            calculateRowSubsets = true;
+        }
+
+        for (int i = 0; i < variables.size(); i++) {
+            this.trueMinParents[i] = 0;
+            this.maxScores[i] = localScore(i, new int[0]);
+            this.trueVarRys[i] = getVarRy(i, new int[0]);
+        }
     }
 
     private int[] indices(List<Node> __adj) {
@@ -132,39 +161,76 @@ public class ZhangShenBoundScore implements Score {
         return localScoreDiff(x, y, new int[0]);
     }
 
-    public double localScore(int i, int... parents) {
-        final int p = parents.length;
-        double sum;
+    boolean first = true;
 
-        double varey = getVarey(i, parents);
+    public double localScore(int i, int... parents) {
+        final int pi = parents.length;
+        double sum;
 
         if (calculateSquaredEuclideanNorms) {
             sum = getSquaredEucleanNorm(i, parents);
         } else {
-            sum = N * varey;
+            sum = N * getVarRy(i, parents);
         }
 
-        double varey2 = trueErrorVariance;
-        double lambda = getLambda(parents.length);
+        double score = -(sum + getLambda(trueMinParents[i]) * pi * trueVarRys[i] * penalyDiscount);
 
-        return -sum - lambda * p * varey2;
+        if (first && score > maxScores[i]) {
+            trueMinParents[i] = parents.length;
+            trueVarRys[i] = getVarRy(i, parents);
+            maxScores[i] = score;
+            changed = true;
+        }
+
+        first = !first;
+
+        return score;
     }
 
-    private double getVarey(int i, int[] parents) {
+    private double getVarRy(int i, int[] parents) {
         int[] all = concat(i, parents);
         Matrix cov = getCov(getRows(i, parents), all, all);
-        return getVarey(cov, parents);
-    }
 
-    private double getVarey(Matrix cov, int[] parents) {
         int[] pp = indexedParents(parents);
 
         Matrix covxx = cov.getSelection(pp, pp);
         Matrix covxy = cov.getSelection(pp, new int[]{0});
 
-        Matrix b = adjustedCoefs(covxx.inverse().times(covxy));
+        Matrix b0 = (covxx.inverse().times(covxy));
+        Matrix b = adjustedCoefs(b0);
         Matrix times = b.transpose().times(cov).times(b);
-        return sqrt(times.get(0, 0));
+        double a = times.get(0, 0);
+
+        double d = 1;
+        double k = 3;
+
+//        return sqrt(a + d * d * d * d + 2 * d * d - k + 1) - d * d;
+
+        double varry = covariances.getValue(i, i);
+
+        for (int t = 0; t < b0.rows(); t++) {
+            double b1 = b0.get(t, 0);
+            varry -= b1 * b1 * covariances.getValue(parents[t], parents[t]);
+        }
+
+        for (int t = 0; t < b0.rows(); t++) {
+            for (int s = 0; s < b0.rows(); s++) {
+                if (t == s) continue;
+                double b1 = b0.get(t, 0);
+                double b2 = b0.get(s, 0);
+                varry -= b1 * b2 * covariances.getValue(parents[t], parents[s]);
+            }
+        }
+
+        return varry;
+//
+//        Matrix b2 = covxx.inverse().times(covxy);
+//        double varey = cov.get(0, 0);
+//        Vector _cxy = covxy.getColumn(0);
+//        Vector _b = b2.getColumn(0);
+//        varey -= _cxy.dotProduct(_b);
+//
+//        return varey;
     }
 
     private double getLambda(int m) {
@@ -174,12 +240,38 @@ public class ZhangShenBoundScore implements Score {
 
         if (lambdas.size() - 1 < m) {
             for (int t = lambdas.size(); t <= m; t++) {
-                double lambda = zhangShenLambda(variables.size() - 1, t, riskBound);
+                double lambda = zhangShenLambda(variables.size(), t, riskBound);
                 lambdas.add(lambda);
             }
         }
 
-        return lambdas.get(m);
+        return lambdas.
+                get(m);
+    }
+
+    public static double zhangShenLambda(int pn, int m0, double riskBound) {
+        if (pn == m0) throw new IllegalArgumentException("m0 should not equal pn");
+
+        double high = 100000.0;
+        double low = 0.0;
+
+        while (high - low > 1e-10) {
+            double lambda = (high + low) / 2.0;
+
+            double p = getP(pn, m0, lambda);
+
+            if (p < 1.0 - riskBound) {
+                low = lambda;
+            } else {
+                high = lambda;
+            }
+        }
+
+        return (high + low) / 2.0;
+    }
+
+    public static double getP(int pn, int m0, double lambda) {
+        return 2 - pow((1 + (exp(-(lambda - 1) / 2.)) * sqrt(lambda)), pn - m0);
     }
 
     private double getSquaredEucleanNorm(int i, int[] parents) {
@@ -188,19 +280,6 @@ public class ZhangShenBoundScore implements Score {
 
         Matrix y = data.getSelection(rows, new int[]{i});
         Matrix x = data.getSelection(rows, parents);
-
-        Matrix x2 = new Matrix(x.rows(), x.columns() + 1);
-        for (int q = 0; q < x.rows(); q++) {
-            for (int r = 0; r < x.columns(); r++) {
-                x2.set(q, r, x.get(q, r));
-            }
-        }
-
-        for (int q = 0; q < x.rows(); q++) {
-            x2.set(q, x.columns(), 1);
-        }
-
-        x = x2;
 
         Matrix xT = x.transpose();
         Matrix xTx = xT.times(x);
@@ -298,12 +377,33 @@ public class ZhangShenBoundScore implements Score {
 
     @Override
     public Score defaultScore() {
-        return new ZhangShenBoundScore(covariances);
+        return new ZhangShenBoundScore(covariances, 0, 1);
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {
-//        this.covariances = new CorrelationMatrix(covariances);
+        CorrelationMatrix correlations = new CorrelationMatrix(covariances);
         this.covariances = covariances;
+//        this.covariances = covariances;
+
+        boolean exists = false;
+
+        for (int i = 0; i < correlations.getSize(); i++) {
+            for (int j = 0; j < correlations.getSize(); j++) {
+                if (i == j) continue;
+                double r = correlations.getValue(i, j);
+                if (abs(r) > correlationThreshold) {
+                    System.out.println("Absolute correlation too high: " + r);
+                    exists = true;
+                }
+            }
+        }
+
+        if (exists) {
+            throw new IllegalArgumentException("Some correlations are too high (> " + correlationThreshold
+                    + ") in absolute value.");
+        }
+
+
         this.N = covariances.getSampleSize();
     }
 
@@ -381,37 +481,25 @@ public class ZhangShenBoundScore implements Score {
         return rows;
     }
 
-    public void setRiskBound(double riskBound) {
-        if (riskBound < 0 || riskBound > 1) throw new IllegalStateException(
-                "Risk probability should be in [0, 1]: " + this.riskBound);
-        this.riskBound = riskBound;
+
+    public void setCalculateSquaredEuclideanNorms(boolean calculateSquaredEuclideanNorms) {
+        this.calculateSquaredEuclideanNorms = calculateSquaredEuclideanNorms;
     }
 
-    public double zhangShenLambda(int pn, int m0, double riskBound) {
-        double high = 100000.0;
-        double low = 0.0;
-
-        while (high - low > 1e-10) {
-            double lambda = (high + low) / 2.0;
-
-            double p = getP(pn, m0, lambda);
-
-            if (p < 1.0 - riskBound) {
-                low = lambda;
-            } else {
-                high = lambda;
-            }
-        }
-
-        return (high + low) / 2.0;
+    public boolean isChanged() {
+        return changed;
     }
 
-    private double getP(int pn, int m0, double lambda) {
-        return 2 - pow(1 + exp(-(lambda - 1) / 2.) * sqrt(lambda), pn - m0);
+    public void setChanged(boolean b) {
+        changed = b;
     }
 
-    public void setTrueErrorVariance(double trueErrorVariance) {
-        this.trueErrorVariance = trueErrorVariance;
+    public void setPenalyDiscount(double penalyDiscount) {
+        this.penalyDiscount = penalyDiscount;
+    }
+
+    public double getPenalyDiscount() {
+        return penalyDiscount;
     }
 }
 

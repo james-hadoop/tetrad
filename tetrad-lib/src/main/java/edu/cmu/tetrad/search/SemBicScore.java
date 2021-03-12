@@ -181,10 +181,12 @@ public class SemBicScore implements Score {
 //        } else {
         // My calculation.
         Matrix b = covxx.inverse().times(covxy);
-        Matrix b2 = adjustedCoefs(p, b);
+        Matrix b2 = adjustedCoefs(b);
         Matrix times = b2.transpose().times(cov).times(b2);
         varey = sqrt(times.get(0, 0));
 //        }
+
+        varey = getVarRy(i, parents);
 
         double c = getPenaltyDiscount();
 
@@ -198,9 +200,52 @@ public class SemBicScore implements Score {
         }
     }
 
+    private double getVarRy(int i, int[] parents) {
+        int[] all = concat(i, parents);
+        Matrix cov = getCov(getRows(i, parents), all, all);
+
+        int[] pp = indexedParents(parents);
+
+        Matrix covxx = cov.getSelection(pp, pp);
+        Matrix covxy = cov.getSelection(pp, new int[]{0});
+
+        Matrix b0 = (covxx.inverse().times(covxy));
+        Matrix b = adjustedCoefs(b0);
+        Matrix times = b.transpose().times(cov).times(b);
+        double a = times.get(0, 0);
+
+        double d = 1;
+        double k = 3;
+
+//        return sqrt(a + d * d * d * d + 2 * d * d - k + 1) - d * d;
+//
+        double varry = covariances.getValue(i, i);
+
+        for (int t = 0; t < b0.rows(); t++) {
+            for (int s = 0; s < b0.rows(); s++) {
+                double b1 = b0.get(t, 0);
+                double b2 = b0.get(s, 0);
+                varry -= b1 * b2 * covariances.getValue(parents[t], parents[s]);
+            }
+        }
+
+
+        return varry;
+//
+//        Matrix b2 = covxx.inverse().times(covxy);
+//        double varey = cov.get(0, 0);
+//        Vector _cxy = covxy.getColumn(0);
+//        Vector _b = b2.getColumn(0);
+//        varey -= _cxy.dotProduct(_b);
+//
+//        return varey;
+    }
+
+
 
     @NotNull
-    public Matrix adjustedCoefs(int p, Matrix b) {
+    public Matrix adjustedCoefs(Matrix b) {
+        int p = b.rows();
         Matrix byx = new Matrix(p + 1, 1);
         byx.set(0, 0, 1);
         for (int j = 0; j < p; j++) byx.set(j + 1, 0, -b.get(j, 0));

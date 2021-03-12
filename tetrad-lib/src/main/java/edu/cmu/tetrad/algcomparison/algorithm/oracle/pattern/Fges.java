@@ -7,11 +7,7 @@ import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.SearchGraphUtils;
@@ -19,6 +15,7 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +35,6 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
 
     static final long serialVersionUID = 23L;
 
-    private boolean compareToTrue = false;
     private ScoreWrapper score;
     private Algorithm algorithm = null;
     private Graph initialGraph = null;
@@ -50,12 +46,6 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
 
     public Fges(ScoreWrapper score) {
         this.score = score;
-        this.compareToTrue = false;
-    }
-
-    public Fges(ScoreWrapper score, boolean compareToTrueGraph) {
-        this.score = score;
-        this.compareToTrue = compareToTrueGraph;
     }
 
     public Fges(ScoreWrapper score, Algorithm algorithm) {
@@ -65,9 +55,9 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
-    	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
+        if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 
-    	    int parallelism = parameters.getInt(Params.PARALLELISM);
+            int parallelism = parameters.getInt(Params.PARALLELISM);
 
             edu.cmu.tetrad.search.Fges search
                     = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters), parallelism);
@@ -94,10 +84,10 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(knowledge);
-            
+
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
-            
+
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
 
             switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
@@ -113,7 +103,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
 
             search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
-            
+
             search.setParameters(parameters);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             return search.search();
@@ -123,11 +113,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
 
     @Override
     public Graph getComparisonGraph(Graph graph) {
-        if (compareToTrue) {
-            return new EdgeListGraph(graph);
-        } else {
-            return SearchGraphUtils.patternForDag(new EdgeListGraph(graph));
-        }
+        return new EdgeListGraph(graph);
     }
 
     @Override
@@ -184,7 +170,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
     public void setScoreWrapper(ScoreWrapper score) {
         this.score = score;
     }
-    
+
     @Override
     public ScoreWrapper getScoreWrapper() {
         return score;

@@ -265,7 +265,7 @@ public class TestFges {
         ScoreWrapper score = new edu.cmu.tetrad.algcomparison.score.SemBicScore();
         IndependenceWrapper test = new FisherZ();
 
-        Algorithm fges = new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(score, false);
+        Algorithm fges = new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(score);
 
         Graph fgesGraph = fges.search(dataSet, parameters);
 

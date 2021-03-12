@@ -420,22 +420,22 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public boolean existsDirectedPathFromTo(Node node1, Node node2) {
-//        return !findCycle().isEmpty();
-//
         Queue<Node> Q = new LinkedList<>();
         Set<Node> V = new HashSet<>();
 
-        for (Node c : getChildren(node1)) {
-            V.add(c);
-            Q.offer(c);
-        }
+        Q.add(node1);
+        V.add(node1);
+
+        boolean started = false;
 
         while (!Q.isEmpty()) {
             Node t = Q.remove();
 
-            if (t == node2) {
+            if (started && t == node2) {
                 return true;
             }
+
+            started = true;
 
             for (Node c : getChildren(t)) {
                 if (!V.contains(c)) {

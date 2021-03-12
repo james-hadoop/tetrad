@@ -28,6 +28,9 @@ public class ArrowheadPrecision implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
+        System.out.println("true graph = " + trueGraph + "\nest graph = " + estGraph);
+
+
         ArrowConfusion confusion = new ArrowConfusion(trueGraph, estGraph);
         int arrowsTp = confusion.getArrowsTp();
         int arrowsFp = confusion.getArrowsFp();
