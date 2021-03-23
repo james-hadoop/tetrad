@@ -21,18 +21,13 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.CovarianceMatrix;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.ICovarianceMatrix;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
-import edu.cmu.tetrad.util.StatUtils;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
-import static edu.cmu.tetrad.util.MatrixUtils.convertCovToCorr;
-import static java.lang.Double.NaN;
 import static java.lang.Math.*;
 
 /**
@@ -57,14 +52,8 @@ public class KimEtAlScores implements Score {
     // True if verbose output should be sent to out.
     private boolean verbose = false;
 
-    // A  map from variable names to their indices.
-    private final Map<Node, Integer> indexMap;
-
     // The true error variance
     private double trueErrorVariance = 1.0;
-
-    // Equivalent sample size
-    private Matrix matrix;
 
     // The rule type to use.
     private RuleType ruleType = RuleType.MANUAL;
@@ -74,44 +63,71 @@ public class KimEtAlScores implements Score {
 
     // Manually set lambda, by default log(n);
     private double lambda;
+    private boolean calculateRowSubsets = false;
+    Matrix data;
+//    private double penaltyDiscount;
+    private double correlationThreshold = 1.0;
+    private boolean takeLog = false;
+    private boolean calculateSquareEuclideanNorms = false;
 
     /**
      * Constructs the score using a covariance matrix.
      */
-    public KimEtAlScores(ICovarianceMatrix covariances) {
+    public KimEtAlScores(ICovarianceMatrix covariances, double correlationThreshold) {
         if (covariances == null) {
             throw new NullPointerException();
         }
 
+        this.correlationThreshold = correlationThreshold;
+
         setCovariances(covariances);
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
-        this.indexMap = indexMap(this.variables);
         this.setLambda(log(this.sampleSize));
     }
 
     /**
      * Constructs the score using a covariance matrix.
      */
-    public KimEtAlScores(DataSet dataSet) {
+    public KimEtAlScores(DataSet dataSet, double correlationThreshold) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
 
+        this.correlationThreshold = correlationThreshold;
+
+        dataSet = DataUtils.center(dataSet);
+
+        double[][] cov = new double[dataSet.getNumColumns()][dataSet.getNumColumns()];
+
+        for (int i = 0; i < dataSet.getNumColumns(); i++) {
+            for (int j = 0; j < dataSet.getNumColumns(); j++) {
+                double sum = 0.0;
+
+                for (int k = 0; k < dataSet.getNumRows(); k++) {
+                    sum += dataSet.getDouble(k, i) * dataSet.getDouble(k, j);
+                }
+
+                cov[i][j] = sum / dataSet.getNumRows();
+            }
+        }
+
+        CovarianceMatrix covarianceMatrix = new CovarianceMatrix(dataSet.getVariables(), cov, dataSet.getNumRows());
+
+        this.data = dataSet.getDoubleData();
+        this.dataSet = dataSet;
+
         if (!dataSet.existsMissingValue()) {
-            setCovariances(new CovarianceMatrix(dataSet));
+            setCovariances(covarianceMatrix);// new CovarianceMatrix(dataSet, false));
             this.variables = covariances.getVariables();
             this.sampleSize = covariances.getSampleSize();
-            this.indexMap = indexMap(this.variables);
-
+            calculateRowSubsets = false;
             return;
         }
 
-        this.dataSet = dataSet;
-
         this.variables = dataSet.getVariables();
         this.sampleSize = dataSet.getNumRows();
-        this.indexMap = indexMap(this.variables);
+        calculateRowSubsets = true;
     }
 
     @Override
@@ -125,26 +141,13 @@ public class KimEtAlScores implements Score {
     }
 
     public double localScore(int i, int... parents) {
-        List<Integer> rows = getRows(i, parents);
-
-        final int p = parents.length;
-
-        int[] all = concat(i, parents);
+        final int pi = parents.length + 1;
 
         // Only do this once.
-        Matrix cov = getCov(rows, all, all);
         double pn = variables.size() - 1;
         double n = N;
-        int[] pp = indexedParents(parents);
 
-        Matrix covxx = cov.getSelection(pp, pp);
-        Matrix covxy = cov.getSelection(pp, new int[]{0});
-
-        Matrix b = adjustedCoefs(covxx.inverse().times(covxy));
-        Matrix times = b.transpose().times(cov).times(b);
-        double varey = sqrt(times.get(0, 0));
-
-        double sigma2 = getTrueErrorVariance();
+        double varry = ZhangShenBoundScore.getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquareEuclideanNorms);
 
         double lambda;
 
@@ -176,22 +179,20 @@ public class KimEtAlScores implements Score {
         } else if (ruleType == RuleType.GIC6) {
 
             // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
-            // The Journal of Machine Learning Research, 13(1), 1037-1057.
+            // The Journal of Machine Learning Resjearch, 13(1), 1037-1057.
             lambda = log(n) * log(pn);
         } else {
             throw new IllegalStateException("That lambda rule is not configured: " + ruleType);
         }
 
-        return -n * varey - lambda * p * sigma2;
-    }
+//        double c = penaltyDiscount;
 
+        if (takeLog) {
+            return -n * log(varry) - lambda * pi * 2;
+        } else {
+            return -n * (varry) - lambda * pi * trueErrorVariance;
+        }
 
-    @NotNull
-    public Matrix adjustedCoefs(Matrix b) {
-        Matrix byx = new Matrix(b.rows() + 1, 1);
-        byx.set(0, 0, 1);
-        for (int j = 0; j < b.rows(); j++) byx.set(j + 1, 0, -b.get(j, 0));
-        return byx;
     }
 
     /**
@@ -287,176 +288,40 @@ public class KimEtAlScores implements Score {
 
     @Override
     public Score defaultScore() {
-        return new KimEtAlScores(covariances);
+        return new KimEtAlScores(covariances, 1.0);
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {
+        CorrelationMatrix correlations = new CorrelationMatrix(covariances);
         this.covariances = covariances;
-        this.matrix = this.covariances.getMatrix();
+//        this.covariances = covariances;
+
+        boolean exists = false;
+
+        for (int i = 0; i < correlations.getSize(); i++) {
+            for (int j = 0; j < correlations.getSize(); j++) {
+                if (i == j) continue;
+                double r = correlations.getValue(i, j);
+                if (abs(r) > correlationThreshold) {
+                    System.out.println("Absolute correlation too high: " + r);
+                    exists = true;
+                }
+            }
+        }
+
+        if (exists) {
+            throw new IllegalArgumentException("Some correlations are too high (> " + correlationThreshold
+                    + ") in absolute value.");
+        }
+
+
         this.N = covariances.getSampleSize();
-//        this.N = DataUtils.getEss(covariances);
     }
 
     private static int[] append(int[] z, int x) {
         int[] _z = Arrays.copyOf(z, z.length + 1);
         _z[z.length] = x;
         return _z;
-    }
-
-    private static int[] indexedParents(int[] parents) {
-        int[] pp = new int[parents.length];
-        for (int j = 0; j < pp.length; j++) pp[j] = j + 1;
-        return pp;
-    }
-
-    private static int[] concat(int i, int[] parents) {
-        int[] all = new int[parents.length + 1];
-        all[0] = i;
-        System.arraycopy(parents, 0, all, 1, parents.length);
-        return all;
-    }
-
-    private List<Node> getVariableList(int[] indices) {
-        List<Node> variables = new ArrayList<>();
-        for (int i : indices) {
-            variables.add(this.variables.get(i));
-        }
-        return variables;
-    }
-
-    private Map<Node, Integer> indexMap(List<Node> variables) {
-        Map<Node, Integer> indexMap = new HashMap<>();
-
-        for (int i = 0; variables.size() > i; i++) {
-            indexMap.put(variables.get(i), i);
-        }
-
-        return indexMap;
-    }
-
-    private Matrix getCov(List<Integer> rows, int[] _rows, int[] cols) {
-        if (rows == null) {
-            return convertCovToCorr(getCovariances().getSelection(_rows, cols));
-        }
-
-        Matrix cov = new Matrix(_rows.length, cols.length);
-
-        for (int i = 0; i < _rows.length; i++) {
-            for (int j = 0; j < cols.length; j++) {
-                double mui = 0.0;
-                double muj = 0.0;
-
-                for (int k : rows) {
-                    mui += dataSet.getDouble(k, _rows[i]);
-                    muj += dataSet.getDouble(k, cols[j]);
-                }
-
-                mui /= rows.size() - 1;
-                muj /= rows.size() - 1;
-
-                double _cov = 0.0;
-
-                for (int k : rows) {
-                    _cov += (dataSet.getDouble(k, _rows[i]) - mui) * (dataSet.getDouble(k, cols[j]) - muj);
-                }
-
-                double mean = _cov / (rows.size());
-                cov.set(i, j, mean);
-            }
-        }
-
-        return convertCovToCorr(cov);
-    }
-
-    private List<Integer> getRows(int i, int[] parents) {
-        if (dataSet == null) {
-            return null;
-        }
-
-        List<Integer> rows = new ArrayList<>();
-
-        K:
-        for (int k = 0; k < dataSet.getNumRows(); k++) {
-            if (Double.isNaN(dataSet.getDouble(k, i))) continue;
-
-            for (int p : parents) {
-                if (Double.isNaN(dataSet.getDouble(k, p))) continue K;
-            }
-
-            rows.add(k);
-        }
-
-        return rows;
-    }
-
-    private double partialCorrelation(Node x, Node y, List<Node> z, List<Integer> rows) {
-        try {
-            return StatUtils.partialCorrelation(getCov(rows, indices(x, y, z)));
-        } catch (Exception e) {
-            return NaN;
-        }
-    }
-
-    private int[] indices(Node x, Node y, List<Node> z) {
-        int[] indices = new int[z.size() + 2];
-        indices[0] = indexMap.get(x);
-        indices[1] = indexMap.get(y);
-        for (int i = 0; i < z.size(); i++) indices[i + 2] = indexMap.get(z.get(i));
-        return indices;
-    }
-
-    private Matrix getCov(List<Integer> rows, int[] cols) {
-        if (dataSet == null) {
-            return matrix.getSelection(cols, cols);
-        }
-
-        Matrix cov = new Matrix(cols.length, cols.length);
-
-        for (int i = 0; i < cols.length; i++) {
-            for (int j = i + 1; j < cols.length; j++) {
-                double mui = 0.0;
-                double muj = 0.0;
-
-                for (int k : rows) {
-                    mui += dataSet.getDouble(k, cols[i]);
-                    muj += dataSet.getDouble(k, cols[j]);
-                }
-
-                mui /= rows.size() - 1;
-                muj /= rows.size() - 1;
-
-                double _cov = 0.0;
-
-                for (int k : rows) {
-                    _cov += (dataSet.getDouble(k, cols[i]) - mui) * (dataSet.getDouble(k, cols[j]) - muj);
-                }
-
-                double mean = _cov / (rows.size());
-                cov.set(i, j, mean);
-                cov.set(j, i, mean);
-            }
-        }
-
-        for (int i = 0; i < cols.length; i++) {
-            double mui = 0.0;
-
-            for (int k : rows) {
-                mui += dataSet.getDouble(k, cols[i]);
-            }
-
-            mui /= rows.size();
-
-            double _cov = 0.0;
-
-            for (int k : rows) {
-                _cov += (dataSet.getDouble(k, cols[i]) - mui) * (dataSet.getDouble(k, cols[i]) - mui);
-            }
-
-            double mean = _cov / (rows.size());
-            cov.set(i, i, mean);
-        }
-
-        return cov;
     }
 
     public void setRuleType(RuleType ruleType) {
@@ -469,6 +334,22 @@ public class KimEtAlScores implements Score {
 
     public void setLambda(double lambda) {
         this.lambda = lambda;
+    }
+
+//    public void setPenaltyDiscount(double penaltyDiscount) {
+//        this.penaltyDiscount = penaltyDiscount;
+//    }
+
+    public void setCorrelationThreshold(double correlationThreshold) {
+        this.correlationThreshold = correlationThreshold;
+    }
+
+    public void setTakeLog(boolean takeLog) {
+        this.takeLog = takeLog;
+    }
+
+    public void setCalculateSquareEuclideanNorms(boolean calculateSquareEuclideanNorms) {
+        this.calculateSquareEuclideanNorms = calculateSquareEuclideanNorms;
     }
 
     public enum RuleType {MANUAL, BIC, NANDY, GIC2, RIC, RICc, GIC5, GIC6}

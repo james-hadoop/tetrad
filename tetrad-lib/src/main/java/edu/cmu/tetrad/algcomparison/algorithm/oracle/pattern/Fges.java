@@ -10,7 +10,8 @@ import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.SearchGraphUtils;
+import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.ZhangShenBoundScore;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -59,8 +60,18 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
 
             int parallelism = parameters.getInt(Params.PARALLELISM);
 
+            Score score = this.score.getScore(dataSet, parameters);
+            Graph graph = null;
+
+            boolean changed = false;
+
+            if (score instanceof ZhangShenBoundScore) {
+                ((ZhangShenBoundScore) score).setChanged(false);
+            }
+
+
             edu.cmu.tetrad.search.Fges search
-                    = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters), parallelism);
+                    = new edu.cmu.tetrad.search.Fges(score, parallelism);
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setMeekVerbose(parameters.getBoolean(Params.MEEK_VERBOSE));
@@ -77,7 +88,9 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
                 search.setInitialGraph(initialGraph);
             }
 
-            return search.search();
+            graph = search.search();
+
+            return graph;
         } else {
             Fges fges = new Fges(score, algorithm);
 

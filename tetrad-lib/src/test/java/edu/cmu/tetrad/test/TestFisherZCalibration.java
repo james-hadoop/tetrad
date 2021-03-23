@@ -4,6 +4,7 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
+import edu.cmu.tetrad.algcomparison.independence.KimEtAlTests;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
@@ -28,7 +29,6 @@ import java.util.*;
 
 import static edu.cmu.tetrad.graph.GraphUtils.loadRSpecial;
 import static edu.cmu.tetrad.graph.GraphUtils.traverseSemiDirected;
-import static java.lang.Double.POSITIVE_INFINITY;
 import static java.lang.Math.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -174,21 +174,23 @@ public class TestFisherZCalibration {
 //        RandomUtil.getInstance().setSeed(92883342449L);
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 10);
-        parameters.set(Params.NUM_MEASURES, 20);
+        parameters.set(Params.NUM_RUNS, 1);
 
-        parameters.set(Params.AVG_DEGREE, 4);
-        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
+        parameters.set(Params.NUM_MEASURES, 500);
+        parameters.set(Params.AVG_DEGREE, 6);
+
+        parameters.set(Params.SAMPLE_SIZE, /*200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000,*/ 1000);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
         parameters.set(Params.VAR_LOW, 1);
         parameters.set(Params.VAR_HIGH, 1);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
         parameters.set(Params.SEM_IM_SIMULATION_TYPE, false);
+        parameters.set(Params.CORRELATION_THRESHOLD, 1);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.VERBOSE, false);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
+        parameters.set(Params.VERBOSE, true);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
         parameters.set(Params.PARALLELISM, 20);
 
         parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
@@ -196,17 +198,128 @@ public class TestFisherZCalibration {
         parameters.set(Params.INTERVAL_BETWEEN_SHOCKS, 50);
         parameters.set(Params.INTERVAL_BETWEEN_RECORDINGS, 50);
         parameters.set(Params.SELF_LOOP_COEF, 0);
-        parameters.set(Params.FISHER_EPSILON, 0.000);
+        parameters.set(Params.FISHER_EPSILON, 0.001);
+
+        parameters.set(Params.SEM_GIC_RULE, 1, 2, 3, 4, 5, 6);
+        parameters.set(Params.PENALTY_DISCOUNT, 1);//, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        parameters.set(Params.TAKE_LOGS, true);
+        parameters.set(Params.TRUE_ERROR_VARIANCE, 1);
+        parameters.set(Params.DISCRETIZE, false);
+
+        parameters.set(Params.STABLE_FAS, true);
+        parameters.set(Params.CONCURRENT_FAS, true);
+        parameters.set(Params.COLLIDER_DISCOVERY_RULE, 3);
+        parameters.set(Params.CONFLICT_RULE, 3);
+        parameters.set(Params.DEPTH, -1);
+        parameters.set(Params.USE_MAX_P_ORIENTATION_HEURISTIC, true);
+        parameters.set(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH, -1);
+
 
         // Parameters for Zhang Shen Bound Score
-        parameters.set(Params.TRUE_ERROR_VARIANCE, .7);
-        parameters.set(Params.ZS_RISK_BOUND, 0.000001);
+//        parameters.set(Params.ZS_RISK_BOUND, 0, 0.001, 0.01, 0.2, 0.3);
 
         Statistics statistics = new Statistics();
 
-        statistics.add(new ParameterColumn(Params.NUM_RUNS));
-        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+//        statistics.add(new ParameterColumn(Params.NUM_RUNS));
+//        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+//
+//        statistics.add(new ParameterColumn(Params.ZS_RISK_BOUND));
+        statistics.add(new ParameterColumn(Params.SEM_GIC_RULE));
+//        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
+//        statistics.add(new ParameterColumn(Params.TAKE_LOGS));
+//
+        statistics.add(new NumberOfEdgesTrue());
+        statistics.add(new NumberOfEdgesEst());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecallCommonEdges());
+//        statistics.add(new BicDiff());
 
+//        statistics.add(new F1Adj());
+//        statistics.add(new F1Arrow());
+//        statistics.add(new F1All());
+//        statistics.add(new SHD());
+
+//        statistics.setWeight("F1All", 1.0);
+
+//        statistics.add(new CyclicEst());
+//
+//        statistics.add(new ElapsedTime());
+
+        Algorithms algorithms = new Algorithms();
+
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+//                new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+//                new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+//                new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
+
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new KimEtAlTests(), null));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new SemBicTest(), null));
+
+        Simulations simulations = new Simulations();
+
+        simulations.add(new SemSimulation(new RandomForward()));
+//        simulations.add(new LinearFisherModel(new RandomForward()));
+
+        Comparison comparison = new Comparison();
+
+        comparison.setSaveGraphs(false);
+        comparison.setSaveData(false);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
+
+        comparison.compareFromSimulations(
+                "/Users/josephramsey/tetrad/comparison2040", simulations, algorithms, statistics, parameters);
+    }
+
+    @Test
+    public void test3a() {
+
+        Parameters parameters = new Parameters();
+        parameters.set(Params.NUM_RUNS, 1);
+
+        parameters.set(Params.NUM_MEASURES, 20);
+        parameters.set(Params.AVG_DEGREE, 4);
+
+        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
+        parameters.set(Params.COEF_LOW, 0);
+        parameters.set(Params.COEF_HIGH, 1);
+        parameters.set(Params.VAR_LOW, 1);
+        parameters.set(Params.VAR_HIGH, 1);
+        parameters.set(Params.RANDOMIZE_COLUMNS, true);
+        parameters.set(Params.SEM_IM_SIMULATION_TYPE, true);
+//        parameters.set(Params.CORRELATION_THRESHOLD, 1);
+
+        parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
+        parameters.set(Params.VERBOSE, true);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.PARALLELISM, 20);
+
+        parameters.set(Params.SEM_GIC_RULE, 1, 2, 3, 4, 5, 6);
+        parameters.set(Params.PENALTY_DISCOUNT, 1);
+        parameters.set(Params.TAKE_LOGS, true);
+        parameters.set(Params.TRUE_ERROR_VARIANCE, 1);
+        parameters.set(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED, false);
+
+        parameters.set(Params.USE_MAX_P_ORIENTATION_HEURISTIC, true);
+        parameters.set(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH, -1);
+
+
+        // Parameters for Zhang Shen Bound Score
+//        parameters.set(Params.ZS_RISK_BOUND, 0, 0.001, 0.01, 0.2, 0.3);
+
+        Statistics statistics = new Statistics();
+
+//        statistics.add(new ParameterColumn(Params.NUM_RUNS));
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+//
+//        statistics.add(new ParameterColumn(Params.ZS_RISK_BOUND));
+        statistics.add(new ParameterColumn(Params.SEM_GIC_RULE));
+//        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
+//        statistics.add(new ParameterColumn(Params.TAKE_LOGS));
+//
         statistics.add(new NumberOfEdgesTrue());
         statistics.add(new NumberOfEdgesEst());
         statistics.add(new AdjacencyPrecision());
@@ -215,22 +328,33 @@ public class TestFisherZCalibration {
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new BicDiff());
 
-        statistics.add(new F1Adj());
-        statistics.add(new F1Arrow());
-        statistics.add(new SHD());
+//        statistics.add(new F1Adj());
+//        statistics.add(new F1Arrow());
+//        statistics.add(new F1All());
+//        statistics.add(new SHD());
 
-        statistics.add(new CyclicEst());
+//        statistics.setWeight("F1All", 1.0);
 
-        statistics.add(new ElapsedTime());
+//        statistics.add(new CyclicEst());
+//
+//        statistics.add(new ElapsedTime());
 
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
                 new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
+
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new KimEtAlTests(), null));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new SemBicTest(), null));
 
         Simulations simulations = new Simulations();
 
         simulations.add(new SemSimulation(new RandomForward()));
+//        simulations.add(new LinearFisherModel(new RandomForward()));
 
         Comparison comparison = new Comparison();
 
@@ -299,7 +423,7 @@ public class TestFisherZCalibration {
         comparison.setShowSimulationIndices(false);
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
         comparison.setSaveGraphs(true);
 
         comparison.compareFromSimulations("comparisonWayne", simulations, algorithms, statistics, parameters);
@@ -805,10 +929,10 @@ public class TestFisherZCalibration {
         int aveDegree = 2;
         int numIterations = 5;
 
-        int N = 10000;
+        int N = 100000;
 
         long seed = 1614264484974L;
-
+//
         RandomUtil.getInstance().setSeed(seed);
 
         for (int i = 0; i < numIterations; i++) {
@@ -912,8 +1036,8 @@ public class TestFisherZCalibration {
 
     @Test
     public void test13() {
-        int pn = 8;
-        int n = 1000;
+        int pn = 500;
+        int n = 300;
         double riskBound = 0.01;
 
         NumberFormat nf = new DecimalFormat("0.00000");
@@ -922,8 +1046,6 @@ public class TestFisherZCalibration {
             double lambda = ZhangShenBoundScore.zhangShenLambda(pn, m0, riskBound);
 
             double p = ZhangShenBoundScore.getP(pn, m0, lambda);
-
-
 
 
             double pd = lambda / log(n);
@@ -950,6 +1072,30 @@ public class TestFisherZCalibration {
 
             System.out.println(" m0 = " + m0 + " pn = " + pn + " pmin = " + nf.format(pmin)
                     + " lambda = " + nf.format(lambda) + " pd = " + nf.format(pd));
+        }
+    }
+
+    @Test
+    public void test15() {
+        int pn = 500;
+        int n = 300;
+
+        double[] lambda = new double[7];
+
+        lambda[1] = log(n);
+        lambda[2] = pow(pn, 1. / 3.);
+        lambda[3] = 2 * (log(pn));
+        lambda[4] = 2 * (log(pn) + log(log(pn)));
+        lambda[5] = log(log(n)) * (log(pn));
+        lambda[6] = log(n) * log(pn);
+
+        NumberFormat nf = new DecimalFormat("0.00");
+
+        for (int i = 1; i <= 6; i++) {
+//            System.out.println("pn = " + pn + " n = " + n + " lambda" + i + " = " + nf.format(lambda[i])
+//                    + " effective penalty discount = " + nf.format((2 * lambda[i]) / log(n)));
+            System.out.println("GIC" + i + " lambda = " + nf.format(lambda[i])
+                    + " penalty discount = " + nf.format((2 * lambda[i]) / log(n)));
         }
     }
 }

@@ -39,7 +39,7 @@ import static java.lang.Math.*;
  *
  * @author Joseph Ramsey
  */
-public class ZhangShenBoundScore implements Score {
+public class ZhangShenBoundTest implements Score {
 
     // The covariance matrix.
     private ICovarianceMatrix covariances;
@@ -80,15 +80,15 @@ public class ZhangShenBoundScore implements Score {
     private boolean changed = false;
 
     private double correlationThreshold = 1.0;
-//    private double penaltyDiscount = 1.0;
+    private double penaltyDiscount = 1.0;
     private boolean takeLog = true;
     private double riskBound = 0;
-//    private double trueErrorVariance;
+    private double trueErrorVariance;
 
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ZhangShenBoundScore(ICovarianceMatrix covariances) {
+    public ZhangShenBoundTest(ICovarianceMatrix covariances) {
         if (covariances == null) {
             throw new NullPointerException();
         }
@@ -104,7 +104,7 @@ public class ZhangShenBoundScore implements Score {
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ZhangShenBoundScore(DataSet dataSet) {
+    public ZhangShenBoundTest(DataSet dataSet) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
@@ -157,12 +157,6 @@ public class ZhangShenBoundScore implements Score {
         final int pi = parents.length + 1;
         double sum;
 
-        if (takeLog) {
-            sum = N * log(getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquaredEuclideanNorms));
-        } else {
-            sum = N * (getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquaredEuclideanNorms));
-        }
-
         double varRy = getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquaredEuclideanNorms);
 
         double score;
@@ -179,6 +173,8 @@ public class ZhangShenBoundScore implements Score {
             estVarRys[i] = varRy;
             maxScores[i] = score;
             changed = true;
+
+            System.out.println(Arrays.toString(estVarRys));
         }
 
         return score;
@@ -225,7 +221,7 @@ public class ZhangShenBoundScore implements Score {
     public static double zhangShenLambda(int pn, int m0, double riskBound) {
         if (pn == m0) throw new IllegalArgumentException("m0 should not equal pn");
 
-        double high = 10000;
+        double high = 1e6;
         double low = 0.0;
 
         while (high - low > 1e-10) {
@@ -240,9 +236,7 @@ public class ZhangShenBoundScore implements Score {
             }
         }
 
-        System.out.println("lambda = " + low);
-
-        return low;//(high + low) / 2.0;
+        return (high + low) / 2.0;
     }
 
     public static double getP(int pn, int m0, double lambda) {
@@ -352,7 +346,7 @@ public class ZhangShenBoundScore implements Score {
 
     @Override
     public Score defaultScore() {
-        return new ZhangShenBoundScore(covariances);
+        return new ZhangShenBoundTest(covariances);
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {
@@ -469,13 +463,13 @@ public class ZhangShenBoundScore implements Score {
         changed = b;
     }
 
-//    public void setPenaltyDiscount(double penaltyDiscount) {
-//        this.penaltyDiscount = penaltyDiscount;
-//    }
-//
-//    public double getPenaltyDiscount() {
-//        return penaltyDiscount;
-//    }
+    public void setPenaltyDiscount(double penaltyDiscount) {
+        this.penaltyDiscount = penaltyDiscount;
+    }
+
+    public double getPenaltyDiscount() {
+        return penaltyDiscount;
+    }
 
     public void setRiskBound(double riskBound) {
         this.riskBound = riskBound;
@@ -489,9 +483,9 @@ public class ZhangShenBoundScore implements Score {
         this.takeLog = takeLog;
     }
 
-//    public void setTrueErrorVariance(double trueErrorVariance) {
-//        this.trueErrorVariance = trueErrorVariance;
-//    }
+    public void setTrueErrorVariance(double trueErrorVariance) {
+        this.trueErrorVariance = trueErrorVariance;
+    }
 }
 
 

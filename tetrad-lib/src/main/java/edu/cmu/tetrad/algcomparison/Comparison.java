@@ -2019,9 +2019,9 @@ public class Comparison {
         }
 
         public void setValue(String name, Object value) {
-            if (!(value instanceof Number)) {
-                throw new IllegalArgumentException();
-            }
+//            if (!(value instanceof Number)) {
+//                throw new IllegalArgumentException();
+//            }
 
             parameters.set(name, value);
         }

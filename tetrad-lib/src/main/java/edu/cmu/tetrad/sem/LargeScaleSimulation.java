@@ -260,7 +260,7 @@ public final class LargeScaleSimulation {
      *                   integer.
      */
     public DataSet simulateDataFisher(int sampleSize) {
-        return simulateDataFisher(getSoCalledPoissonShocks(sampleSize), 50, 1e-5);
+        return simulateDataFisher(getUncorrelatedGaussianShocks(sampleSize), 50, 1e-5);
     }
 
     /**

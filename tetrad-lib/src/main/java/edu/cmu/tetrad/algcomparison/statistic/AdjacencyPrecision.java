@@ -30,7 +30,9 @@ public class AdjacencyPrecision implements Statistic {
         int adjFp = adjConfusion.getAdjFp();
 //        int adjFn = adjConfusion.getAdjFn();
 //        int adjTn = adjConfusion.getAdjTn();
-        return adjTp / (double) (adjTp + adjFp);
+        double ap = adjTp / (double) (adjTp + adjFp);
+        System.out.println("AP = " + ap);
+        return ap;
     }
 
     @Override

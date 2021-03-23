@@ -1476,7 +1476,7 @@ public final class GraphUtils {
 
     public static List<List<Node>> directedPathsFromTo(Graph graph, Node node1, Node node2, int maxLength) {
         List<List<Node>> paths = new LinkedList<>();
-        directedPathsFromToVisit(graph, node1, node2, new LinkedList<Node>(), paths, maxLength);
+        directedPathsFromToVisit(graph, node1, node2, new LinkedList<>(), paths, maxLength);
         return paths;
     }
 
@@ -1507,14 +1507,14 @@ public final class GraphUtils {
                 continue;
             }
 
+            if (path.contains(child)) {
+                continue;
+            }
+
             if (child == node2) {
                 LinkedList<Node> _path = new LinkedList<>(path);
                 _path.add(child);
                 paths.add(_path);
-                continue;
-            }
-
-            if (path.contains(child)) {
                 continue;
             }
 

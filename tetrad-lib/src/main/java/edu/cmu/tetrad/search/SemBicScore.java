@@ -21,20 +21,20 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.CorrelationMatrix;
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.StatUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 import static edu.cmu.tetrad.util.MatrixUtils.convertCovToCorr;
 import static java.lang.Double.NaN;
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.log;
 
 /**
  * Implements the continuous BIC score for FGES.
@@ -43,8 +43,12 @@ import static java.lang.Math.*;
  */
 public class SemBicScore implements Score {
 
+    private boolean calculateRowSubsets = false;
     // The dataset.
     private DataSet dataSet;
+
+    // .. as matrix
+    private Matrix data;
 
     // The correlation matrix.
     private ICovarianceMatrix covariances;
@@ -72,6 +76,7 @@ public class SemBicScore implements Score {
 
     // The rule type to use.
     private RuleType ruleType = RuleType.CHICKERING;
+    private boolean calculateSquareEuclideanNorms = false;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -95,22 +100,23 @@ public class SemBicScore implements Score {
             throw new NullPointerException();
         }
 
+        this.dataSet = dataSet;
+        this.data = dataSet.getDoubleData();
+
         if (!dataSet.existsMissingValue()) {
 //            setCovariances(new CorrelationMatrix(new CovarianceMatrix(dataSet, false)));
             setCovariances(new CovarianceMatrix(dataSet, false));
             this.variables = covariances.getVariables();
             this.sampleSize = covariances.getSampleSize();
             this.indexMap = indexMap(this.variables);
-
-
+            this.calculateRowSubsets = false;
             return;
         }
-
-        this.dataSet = dataSet;
 
         this.variables = dataSet.getVariables();
         this.sampleSize = dataSet.getNumRows();
         this.indexMap = indexMap(this.variables);
+        this.calculateRowSubsets = true;
     }
 
     @Override
@@ -150,107 +156,28 @@ public class SemBicScore implements Score {
     }
 
     public double localScore(int i, int... parents) {
-        List<Integer> rows = getRows(i, parents);
-
         final int p = parents.length;
 
-        int k = p + 1;
-
-        int[] all = concat(i, parents);
+        int pi = p + 1;
 
         // Only do this once.
-        Matrix cov = getCov(rows, all, all);
-
-        double m = variables.size();
         double n = sampleSize;
-
-        int[] pp = indexedParents(parents);
-
-        Matrix covxx = cov.getSelection(pp, pp);
-        Matrix covxy = cov.getSelection(pp, new int[]{0});
 
         double varey;
 
-//        if (false) {
-//            // Ricardo's calculation.
-//            Matrix b = covxx.inverse().times(covxy);
-//            varey = cov.get(0, 0);
-//            Vector _cxy = covxy.getColumn(0);
-//            Vector _b = b.getColumn(0);
-//            varey -= _cxy.dotProduct(_b);
-//        } else {
-        // My calculation.
-        Matrix b = covxx.inverse().times(covxy);
-        Matrix b2 = adjustedCoefs(b);
-        Matrix times = b2.transpose().times(cov).times(b2);
-        varey = sqrt(times.get(0, 0));
-//        }
-
-        varey = getVarRy(i, parents);
+        varey = ZhangShenBoundScore.getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquareEuclideanNorms);
 
         double c = getPenaltyDiscount();
 
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-            return -n * log(varey) - c * k * log(n) - 2 * getStructurePrior(p);
-
+            return -n * log(varey) - c * pi * log(n);// - 2 * getStructurePrior(p);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
     }
 
-    private double getVarRy(int i, int[] parents) {
-        int[] all = concat(i, parents);
-        Matrix cov = getCov(getRows(i, parents), all, all);
-
-        int[] pp = indexedParents(parents);
-
-        Matrix covxx = cov.getSelection(pp, pp);
-        Matrix covxy = cov.getSelection(pp, new int[]{0});
-
-        Matrix b0 = (covxx.inverse().times(covxy));
-        Matrix b = adjustedCoefs(b0);
-        Matrix times = b.transpose().times(cov).times(b);
-        double a = times.get(0, 0);
-
-        double d = 1;
-        double k = 3;
-
-//        return sqrt(a + d * d * d * d + 2 * d * d - k + 1) - d * d;
-//
-        double varry = covariances.getValue(i, i);
-
-        for (int t = 0; t < b0.rows(); t++) {
-            for (int s = 0; s < b0.rows(); s++) {
-                double b1 = b0.get(t, 0);
-                double b2 = b0.get(s, 0);
-                varry -= b1 * b2 * covariances.getValue(parents[t], parents[s]);
-            }
-        }
-
-
-        return varry;
-//
-//        Matrix b2 = covxx.inverse().times(covxy);
-//        double varey = cov.get(0, 0);
-//        Vector _cxy = covxy.getColumn(0);
-//        Vector _b = b2.getColumn(0);
-//        varey -= _cxy.dotProduct(_b);
-//
-//        return varey;
-    }
-
-
-
-    @NotNull
-    public Matrix adjustedCoefs(Matrix b) {
-        int p = b.rows();
-        Matrix byx = new Matrix(p + 1, 1);
-        byx.set(0, 0, 1);
-        for (int j = 0; j < p; j++) byx.set(j + 1, 0, -b.get(j, 0));
-        return byx;
-    }
 
     /**
      * Specialized scoring method for a single parent. Used to speed up the effect edges search.
@@ -355,36 +282,16 @@ public class SemBicScore implements Score {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
 
-        Matrix cor = new CorrelationMatrix(covariances).getMatrix();
-
-        double m = covariances.getSize();
         double n = covariances.getSampleSize();
+        double ess = DataUtils.getEss(covariances);
 
-        double tr = cor.times(cor).trace();
-        double rho = sqrt((1. / m) * tr - 1.) / (n - 1.);
-        double ess = n / (1. + (n - 1.) * rho);
-
-        System.out.println("n = " + n + " ess = " + ess + " rho = " + rho);
-
+        System.out.println("n = " + n + " ess = " + ess);
     }
 
     private static int[] append(int[] z, int x) {
         int[] _z = Arrays.copyOf(z, z.length + 1);
         _z[z.length] = x;
         return _z;
-    }
-
-    private static int[] indexedParents(int[] parents) {
-        int[] pp = new int[parents.length];
-        for (int j = 0; j < pp.length; j++) pp[j] = j + 1;
-        return pp;
-    }
-
-    private static int[] concat(int i, int[] parents) {
-        int[] all = new int[parents.length + 1];
-        all[0] = i;
-        System.arraycopy(parents, 0, all, 1, parents.length);
-        return all;
     }
 
     private double getStructurePrior(int parents) {
@@ -412,40 +319,6 @@ public class SemBicScore implements Score {
         }
 
         return indexMap;
-    }
-
-    private Matrix getCov(List<Integer> rows, int[] _rows, int[] cols) {
-        if (rows == null) {
-            return convertCovToCorr(getCovariances().getSelection(_rows, cols));
-        }
-
-        Matrix cov = new Matrix(_rows.length, cols.length);
-
-        for (int i = 0; i < _rows.length; i++) {
-            for (int j = 0; j < cols.length; j++) {
-                double mui = 0.0;
-                double muj = 0.0;
-
-                for (int k : rows) {
-                    mui += dataSet.getDouble(k, _rows[i]);
-                    muj += dataSet.getDouble(k, cols[j]);
-                }
-
-                mui /= rows.size() - 1;
-                muj /= rows.size() - 1;
-
-                double _cov = 0.0;
-
-                for (int k : rows) {
-                    _cov += (dataSet.getDouble(k, _rows[i]) - mui) * (dataSet.getDouble(k, cols[j]) - muj);
-                }
-
-                double mean = _cov / (rows.size());
-                cov.set(i, j, mean);
-            }
-        }
-
-        return convertCovToCorr(cov);
     }
 
     private List<Integer> getRows(int i, int[] parents) {
@@ -541,6 +414,10 @@ public class SemBicScore implements Score {
 
     public void setRuleType(RuleType ruleType) {
         this.ruleType = ruleType;
+    }
+
+    public void setCalculateSquareEuclideanNorms(boolean calculateSquareEuclideanNorms) {
+        this.calculateSquareEuclideanNorms = calculateSquareEuclideanNorms;
     }
 
     public enum RuleType {CHICKERING, NANDY}
