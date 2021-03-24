@@ -278,22 +278,22 @@ public class TestFisherZCalibration {
     public void test3a() {
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 1);
+        parameters.set(Params.NUM_RUNS, 10);
 
         parameters.set(Params.NUM_MEASURES, 20);
         parameters.set(Params.AVG_DEGREE, 4);
 
-        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
+//        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
+        parameters.set(Params.SAMPLE_SIZE, 5000);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
         parameters.set(Params.VAR_LOW, 1);
         parameters.set(Params.VAR_HIGH, 1);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
-        parameters.set(Params.SEM_IM_SIMULATION_TYPE, true);
-//        parameters.set(Params.CORRELATION_THRESHOLD, 1);
+        parameters.set(Params.SEM_IM_SIMULATION_TYPE, false);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.VERBOSE, true);
+        parameters.set(Params.VERBOSE, false);
         parameters.set(Params.FAITHFULNESS_ASSUMED, false);
         parameters.set(Params.PARALLELISM, 20);
 
@@ -306,20 +306,12 @@ public class TestFisherZCalibration {
         parameters.set(Params.USE_MAX_P_ORIENTATION_HEURISTIC, true);
         parameters.set(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH, -1);
 
-
-        // Parameters for Zhang Shen Bound Score
 //        parameters.set(Params.ZS_RISK_BOUND, 0, 0.001, 0.01, 0.2, 0.3);
 
         Statistics statistics = new Statistics();
 
-//        statistics.add(new ParameterColumn(Params.NUM_RUNS));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
-//
-//        statistics.add(new ParameterColumn(Params.ZS_RISK_BOUND));
         statistics.add(new ParameterColumn(Params.SEM_GIC_RULE));
-//        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
-//        statistics.add(new ParameterColumn(Params.TAKE_LOGS));
-//
         statistics.add(new NumberOfEdgesTrue());
         statistics.add(new NumberOfEdgesEst());
         statistics.add(new AdjacencyPrecision());
@@ -328,23 +320,14 @@ public class TestFisherZCalibration {
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new BicDiff());
 
-//        statistics.add(new F1Adj());
-//        statistics.add(new F1Arrow());
-//        statistics.add(new F1All());
-//        statistics.add(new SHD());
-
-//        statistics.setWeight("F1All", 1.0);
-
-//        statistics.add(new CyclicEst());
-//
-//        statistics.add(new ElapsedTime());
-
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
                 new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
                 new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                new edu.cmu.tetrad.algcomparison.score.EBicScore()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
                 new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
 
@@ -1043,7 +1026,7 @@ public class TestFisherZCalibration {
         NumberFormat nf = new DecimalFormat("0.00000");
 
         for (int m0 = 0; m0 < pn; m0++) {
-            double lambda = ZhangShenBoundScore.zhangShenLambda(pn, m0, riskBound);
+            double lambda = ZhangShenBoundScore.zhangShenLambda(m0, pn, riskBound);
 
             double p = ZhangShenBoundScore.getP(pn, m0, lambda);
 
@@ -1067,7 +1050,7 @@ public class TestFisherZCalibration {
         double maxLambda = Double.NEGATIVE_INFINITY;
 
         for (double pmin = 1.0; pmin >= 0.0; pmin -= 0.01) {
-            double lambda = ZhangShenBoundScore.zhangShenLambda(pn, m0, 1 - pmin);
+            double lambda = ZhangShenBoundScore.zhangShenLambda(m0, pn, 1 - pmin);
             double pd = lambda / log(n);
 
             System.out.println(" m0 = " + m0 + " pn = " + pn + " pmin = " + nf.format(pmin)

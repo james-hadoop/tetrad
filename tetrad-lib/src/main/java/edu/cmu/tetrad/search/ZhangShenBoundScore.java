@@ -80,7 +80,7 @@ public class ZhangShenBoundScore implements Score {
     private boolean changed = false;
 
     private double correlationThreshold = 1.0;
-//    private double penaltyDiscount = 1.0;
+    //    private double penaltyDiscount = 1.0;
     private boolean takeLog = true;
     private double riskBound = 0;
 //    private double trueErrorVariance;
@@ -141,6 +141,10 @@ public class ZhangShenBoundScore implements Score {
     }
 
     public double localScore(int i, int... parents) throws RuntimeException {
+        int sn = 8;
+
+        int pn = variables.size();
+        pn = min(pn, sn);
 
         if (this.estMinParents == null) {
             this.estMinParents = new int[variables.size()];
@@ -155,26 +159,19 @@ public class ZhangShenBoundScore implements Score {
         }
 
         final int pi = parents.length + 1;
-        double sum;
-
-        if (takeLog) {
-            sum = N * log(getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquaredEuclideanNorms));
-        } else {
-            sum = N * (getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquaredEuclideanNorms));
-        }
-
         double varRy = getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquaredEuclideanNorms);
 
         double score;
+        int m0 = estMinParents[i];
 
         if (takeLog) {
-            score = -(N * log(varRy) + getLambda(estMinParents[i]) * pi * 2);
+            score = -(N * log(varRy) + getLambda(m0, pn) * pi * 2);
         } else {
-//            score = -(sum + c * getLambda(estMinParents[i]) * pi * trueErrorVariance);// estVarRys[i]);
-            score = -(N * varRy + getLambda(estMinParents[i]) * pi * estVarRys[i]);
+//            score = -(sum + c * getLambda(m0, pn) * pi * trueErrorVariance);
+            score = -(N * varRy + getLambda(m0, pn) * pi * estVarRys[i]);
         }
 
-        if (score > maxScores[i]) {
+        if (score > maxScores[i] && parents.length < pn) {
             estMinParents[i] = parents.length;
             estVarRys[i] = varRy;
             maxScores[i] = score;
@@ -207,23 +204,25 @@ public class ZhangShenBoundScore implements Score {
         }
     }
 
-    private double getLambda(int m) {
+    private double getLambda(int m0, int pn) {
         if (lambdas == null) {
             lambdas = new ArrayList<>();
         }
 
-        if (lambdas.size() - 1 < m) {
-            for (int t = lambdas.size(); t <= m; t++) {
-                double lambda = zhangShenLambda(variables.size(), t, riskBound);
+        if (lambdas.size() - 1 < m0) {
+            for (int t = lambdas.size(); t <= m0; t++) {
+                double lambda = zhangShenLambda(t, pn, riskBound);
                 lambdas.add(lambda);
             }
         }
 
-        return lambdas.get(m);
+        return lambdas.get(m0);
     }
 
-    public static double zhangShenLambda(int pn, int m0, double riskBound) {
+    public static double zhangShenLambda(int m0, int pn, double riskBound) {
         if (pn == m0) throw new IllegalArgumentException("m0 should not equal pn");
+        int sn = min(pn, 12);
+        sn = max(sn, 0);
 
         double high = 10000;
         double low = 0.0;
@@ -231,7 +230,7 @@ public class ZhangShenBoundScore implements Score {
         while (high - low > 1e-10) {
             double lambda = (high + low) / 2.0;
 
-            double p = getP(pn, m0, lambda);
+            double p = getP(sn, m0, lambda);
 
             if (p < 1.0 - riskBound) {
                 low = lambda;
@@ -240,9 +239,7 @@ public class ZhangShenBoundScore implements Score {
             }
         }
 
-        System.out.println("lambda = " + low);
-
-        return low;//(high + low) / 2.0;
+        return low;
     }
 
     public static double getP(int pn, int m0, double lambda) {

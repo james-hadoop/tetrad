@@ -144,7 +144,7 @@ public class SemBicScore implements Score {
 
         double r = partialCorrelation(_x, _y, _z, rows);
 
-        double c = getPenaltyDiscount();
+        double c = 1;//getPenaltyDiscount();
 
         return -sampleSize * log(1.0 - r * r) - c * log(sampleSize)
                 - 2.0 * (sp1 - sp2);
@@ -167,7 +167,7 @@ public class SemBicScore implements Score {
 
         varey = ZhangShenBoundScore.getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquareEuclideanNorms);
 
-        double c = getPenaltyDiscount();
+        double c = 1;//getPenaltyDiscount();
 
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 

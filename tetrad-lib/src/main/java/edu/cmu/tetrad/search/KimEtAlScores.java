@@ -141,10 +141,14 @@ public class KimEtAlScores implements Score {
     }
 
     public double localScore(int i, int... parents) {
+        double sn = 12;
+
+        if (parents.length > sn) return Double.NEGATIVE_INFINITY;
         final int pi = parents.length + 1;
 
         // Only do this once.
-        double pn = variables.size() - 1;
+        double pn = variables.size();
+        pn = min(pn, sn);
         double n = N;
 
         double varry = ZhangShenBoundScore.getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquareEuclideanNorms);

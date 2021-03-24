@@ -1,4 +1,4 @@
-Mon Mar 22 19:16:07 EDT 2021
+Wed Mar 24 04:48:06 EDT 2021
 
 Statistics:
 
@@ -33,256 +33,13 @@ High end of variance range (min = 0.0) = 1
 Yes if negative coefficient values should be considered = Yes
 Yes if negative covariance values should be considered = Yes
 Additive measurement noise variance (min = 0.0) = 0.0
-Number of runs (min = 1) = 1
-Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
-Sample size (min = 1) = 200
-Save latent variables. = No
-Yes if the data should be standardized = No
-Yes if recursive simulation, No if reduced form simulation = Yes
-
-Simulation 2: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
-
-Comparison.printParameters
-Number of measured variables (min = 1) = 20
-Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4
-The maximum degree of the graph (min = -1) = 100
-Maximum indegree of graph (min = 1) = 100
-Maximum outdegree of graph (min = 1) = 100
-Yes if graph should be connected = No
-Low end of coefficient range (min = 0.0) = 0
-High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
-High end of variance range (min = 0.0) = 1
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
-Number of runs (min = 1) = 1
-Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
-Sample size (min = 1) = 500
-Save latent variables. = No
-Yes if the data should be standardized = No
-Yes if recursive simulation, No if reduced form simulation = Yes
-
-Simulation 3: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
-
-Comparison.printParameters
-Number of measured variables (min = 1) = 20
-Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4
-The maximum degree of the graph (min = -1) = 100
-Maximum indegree of graph (min = 1) = 100
-Maximum outdegree of graph (min = 1) = 100
-Yes if graph should be connected = No
-Low end of coefficient range (min = 0.0) = 0
-High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
-High end of variance range (min = 0.0) = 1
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
-Number of runs (min = 1) = 1
-Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
-Sample size (min = 1) = 1000
-Save latent variables. = No
-Yes if the data should be standardized = No
-Yes if recursive simulation, No if reduced form simulation = Yes
-
-Simulation 4: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
-
-Comparison.printParameters
-Number of measured variables (min = 1) = 20
-Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4
-The maximum degree of the graph (min = -1) = 100
-Maximum indegree of graph (min = 1) = 100
-Maximum outdegree of graph (min = 1) = 100
-Yes if graph should be connected = No
-Low end of coefficient range (min = 0.0) = 0
-High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
-High end of variance range (min = 0.0) = 1
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
-Number of runs (min = 1) = 1
-Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
-Sample size (min = 1) = 2000
-Save latent variables. = No
-Yes if the data should be standardized = No
-Yes if recursive simulation, No if reduced form simulation = Yes
-
-Simulation 5: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
-
-Comparison.printParameters
-Number of measured variables (min = 1) = 20
-Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4
-The maximum degree of the graph (min = -1) = 100
-Maximum indegree of graph (min = 1) = 100
-Maximum outdegree of graph (min = 1) = 100
-Yes if graph should be connected = No
-Low end of coefficient range (min = 0.0) = 0
-High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
-High end of variance range (min = 0.0) = 1
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
-Number of runs (min = 1) = 1
+Number of runs (min = 1) = 10
 Yes if a different graph should be used for each run = No
 Yes if the order of the columns in each datasets should be randomized = Yes
 Sample size (min = 1) = 5000
 Save latent variables. = No
 Yes if the data should be standardized = No
-Yes if recursive simulation, No if reduced form simulation = Yes
-
-Simulation 6: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
-
-Comparison.printParameters
-Number of measured variables (min = 1) = 20
-Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4
-The maximum degree of the graph (min = -1) = 100
-Maximum indegree of graph (min = 1) = 100
-Maximum outdegree of graph (min = 1) = 100
-Yes if graph should be connected = No
-Low end of coefficient range (min = 0.0) = 0
-High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
-High end of variance range (min = 0.0) = 1
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
-Number of runs (min = 1) = 1
-Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
-Sample size (min = 1) = 10000
-Save latent variables. = No
-Yes if the data should be standardized = No
-Yes if recursive simulation, No if reduced form simulation = Yes
-
-Simulation 7: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
-
-Comparison.printParameters
-Number of measured variables (min = 1) = 20
-Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4
-The maximum degree of the graph (min = -1) = 100
-Maximum indegree of graph (min = 1) = 100
-Maximum outdegree of graph (min = 1) = 100
-Yes if graph should be connected = No
-Low end of coefficient range (min = 0.0) = 0
-High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
-High end of variance range (min = 0.0) = 1
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
-Number of runs (min = 1) = 1
-Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
-Sample size (min = 1) = 20000
-Save latent variables. = No
-Yes if the data should be standardized = No
-Yes if recursive simulation, No if reduced form simulation = Yes
-
-Simulation 8: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
-
-Comparison.printParameters
-Number of measured variables (min = 1) = 20
-Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4
-The maximum degree of the graph (min = -1) = 100
-Maximum indegree of graph (min = 1) = 100
-Maximum outdegree of graph (min = 1) = 100
-Yes if graph should be connected = No
-Low end of coefficient range (min = 0.0) = 0
-High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
-High end of variance range (min = 0.0) = 1
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
-Number of runs (min = 1) = 1
-Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
-Sample size (min = 1) = 50000
-Save latent variables. = No
-Yes if the data should be standardized = No
-Yes if recursive simulation, No if reduced form simulation = Yes
-
-Simulation 9: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
-
-Comparison.printParameters
-Number of measured variables (min = 1) = 20
-Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4
-The maximum degree of the graph (min = -1) = 100
-Maximum indegree of graph (min = 1) = 100
-Maximum outdegree of graph (min = 1) = 100
-Yes if graph should be connected = No
-Low end of coefficient range (min = 0.0) = 0
-High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
-High end of variance range (min = 0.0) = 1
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
-Number of runs (min = 1) = 1
-Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
-Sample size (min = 1) = 100000
-Save latent variables. = No
-Yes if the data should be standardized = No
-Yes if recursive simulation, No if reduced form simulation = Yes
-
-Simulation 10: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
-
-Comparison.printParameters
-Number of measured variables (min = 1) = 20
-Number of latent variables (min = 0) = 0
-Average degree of graph (min = 1) = 4
-The maximum degree of the graph (min = -1) = 100
-Maximum indegree of graph (min = 1) = 100
-Maximum outdegree of graph (min = 1) = 100
-Yes if graph should be connected = No
-Low end of coefficient range (min = 0.0) = 0
-High end of coefficient range (min = 0.0) = 1
-Low end of covariance range (min = 0.0) = 0.0
-High end of covariance range (min = 0.0) = 0.0
-Low end of variance range (min = 0.0) = 1
-High end of variance range (min = 0.0) = 1
-Yes if negative coefficient values should be considered = Yes
-Yes if negative covariance values should be considered = Yes
-Additive measurement noise variance (min = 0.0) = 0.0
-Number of runs (min = 1) = 1
-Yes if a different graph should be used for each run = No
-Yes if the order of the columns in each datasets should be randomized = Yes
-Sample size (min = 1) = 200000
-Save latent variables. = No
-Yes if the data should be standardized = No
-Yes if recursive simulation, No if reduced form simulation = Yes
+Yes if recursive simulation, No if reduced form simulation = No
 
 Algorithms:
 
@@ -293,7 +50,8 @@ Algorithms:
 5. FGES (Fast Greedy Equivalence Search) using Kim et al. Scores, semGicRule = 5
 6. FGES (Fast Greedy Equivalence Search) using Kim et al. Scores, semGicRule = 6
 7. FGES (Fast Greedy Equivalence Search) using Zhang-Shen Bound Test
-8. FGES (Fast Greedy Equivalence Search) using Sem BIC Score
+8. FGES (Fast Greedy Equivalence Search) using EBIC Score
+9. FGES (Fast Greedy Equivalence Search) using Sem BIC Score
 
 Graphs are being compared to the true DAG.
 
@@ -301,343 +59,59 @@ AVERAGE STATISTICS
 
 All edges
 
-  sampleSize  semGicRule  EdgesT  EdgesEst    AP    AR  AHPC  AHRC    BicDiff
-      200.00        1.00   40.00     34.00  0.85  0.72  0.59  0.59    -115.58
-      200.00        2.00   40.00     47.00  0.64  0.75  0.53  0.53     -74.14
-      200.00        3.00   40.00     34.00  0.85  0.72  0.59  0.59    -115.58
-      200.00        4.00   40.00     28.00  0.89  0.62  0.60  0.60    -167.20
-      200.00        5.00   40.00     38.00  0.79  0.75  0.57  0.57     -76.06
-      200.00        6.00   40.00     23.00  1.00  0.57  0.70  0.70    -230.62
-      200.00           *   40.00     19.00  1.00  0.47  0.75  0.32    -375.26
-      200.00           *   40.00     47.00  0.64  0.75  0.53  0.53     -74.14
-      500.00        1.00   40.00     34.00  0.82  0.70  0.71  0.71     -49.03
-      500.00        2.00   40.00     43.00  0.77  0.82  0.70  0.70     -31.39
-      500.00        3.00   40.00     35.00  0.80  0.70  0.71  0.71     -43.32
-      500.00        4.00   40.00     33.00  0.85  0.70  0.71  0.71     -58.09
-      500.00        5.00   40.00     37.00  0.84  0.78  0.74  0.74     -43.72
-      500.00        6.00   40.00     29.00  0.86  0.62  0.67  0.64    -133.47
-      500.00           *   40.00     27.00  0.85  0.57  0.64  0.61    -207.33
-      500.00           *   40.00     44.00  0.77  0.85  0.71  0.71     -28.24
-     1000.00        1.00   40.00     34.00  0.91  0.78  0.89  0.77     -25.62
-     1000.00        2.00   40.00     43.00  0.81  0.88  0.79  0.77     -15.16
-     1000.00        3.00   40.00     35.00  0.91  0.80  0.84  0.81     -19.50
-     1000.00        4.00   40.00     33.00  0.94  0.78  0.89  0.77     -34.55
-     1000.00        5.00   40.00     36.00  0.89  0.80  0.84  0.81     -14.65
-     1000.00        6.00   40.00     29.00  1.00  0.72  0.88  0.76    -189.37
-     1000.00           *   40.00     29.00  1.00  0.72  0.88  0.76    -189.37
-     1000.00           *   40.00     40.00  0.82  0.82  0.81  0.79     -11.45
-     2000.00        1.00   40.00     40.00  0.93  0.93  0.97  0.81      -7.55
-     2000.00        2.00   40.00     46.00  0.83  0.95  0.94  0.84     -18.99
-     2000.00        3.00   40.00     41.00  0.93  0.95  0.97  0.82      -3.37
-     2000.00        4.00   40.00     39.00  0.95  0.93  0.97  0.81     -15.27
-     2000.00        5.00   40.00     40.00  0.93  0.93  0.97  0.81      -7.55
-     2000.00        6.00   40.00     32.00  0.97  0.78  0.86  0.77    -417.34
-     2000.00           *   40.00     32.00  0.97  0.78  0.86  0.77    -417.34
-     2000.00           *   40.00     42.00  0.90  0.95  0.94  0.87     -12.06
-     5000.00        1.00   40.00     49.00  0.78  0.95  0.65  0.63    -110.45
-     5000.00        2.00   40.00     55.00  0.73  1.00  0.71  0.62     -98.37
-     5000.00        3.00   40.00     51.00  0.76  0.97  0.70  0.59    -100.45
-     5000.00        4.00   40.00     49.00  0.78  0.95  0.65  0.63    -110.45
-     5000.00        5.00   40.00     50.00  0.76  0.95  0.65  0.63    -104.44
-     5000.00        6.00   40.00     48.00  0.71  0.85  0.64  0.62    -304.47
-     5000.00           *   40.00     48.00  0.71  0.85  0.64  0.62    -304.47
-     5000.00           *   40.00     61.00  0.66  1.00  0.65  0.55    -173.93
-    10000.00        1.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        2.00   40.00     43.00  0.93  1.00  1.00  0.95       0.93
-    10000.00        3.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        4.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        5.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        6.00   40.00     39.00  1.00  0.97  1.00  0.95     -30.20
-    10000.00           *   40.00     39.00  1.00  0.97  1.00  0.95     -30.20
-    10000.00           *   40.00     42.00  0.95  1.00  1.00  0.95       2.78
-    20000.00        1.00   40.00     48.00  0.81  0.97  0.87  0.87    -122.42
-    20000.00        2.00   40.00     61.00  0.64  0.97  0.82  0.82    -178.82
-    20000.00        3.00   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    20000.00        4.00   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    20000.00        5.00   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    20000.00        6.00   40.00     47.00  0.83  0.97  0.87  0.87    -132.40
-    20000.00           *   40.00     47.00  0.83  0.97  0.87  0.87    -132.40
-    20000.00           *   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    50000.00        1.00   40.00     76.00  0.51  0.97  0.62  0.62    -475.85
-    50000.00        2.00   40.00     87.00  0.46  1.00  0.55  0.55    -459.11
-    50000.00        3.00   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-    50000.00        4.00   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-    50000.00        5.00   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-    50000.00        6.00   40.00     67.00  0.57  0.95  0.63  0.63    -697.68
-    50000.00           *   40.00     69.00  0.57  0.97  0.62  0.62    -646.41
-    50000.00           *   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-   100000.00        1.00   40.00     52.00  0.77  1.00  0.94  0.82    -148.35
-   100000.00        2.00   40.00     41.00  0.98  1.00  0.95  0.90      -4.60
-   100000.00        3.00   40.00     40.00  1.00  1.00  1.00  0.85  -3.41E-12
-   100000.00        4.00   40.00     40.00  1.00  1.00  1.00  0.85  -3.41E-12
-   100000.00        5.00   40.00     40.00  1.00  1.00  1.00  0.85  -3.41E-12
-   100000.00        6.00   40.00     52.00  0.77  1.00  0.94  0.82    -148.35
-   100000.00           *   40.00     52.00  0.77  1.00  0.94  0.82    -148.35
-   100000.00           *   40.00     40.00  1.00  1.00  1.00  0.85   2.50E-12
-   200000.00        1.00   40.00     50.00  0.78  0.97  0.82  0.82    -183.63
-   200000.00        2.00   40.00     46.00  0.87  1.00  0.88  0.88     -61.00
-   200000.00        3.00   40.00     51.00  0.76  0.97  0.87  0.85    -152.41
-   200000.00        4.00   40.00     51.00  0.76  0.97  0.82  0.82    -176.15
-   200000.00        5.00   40.00     51.00  0.76  0.97  0.82  0.82    -176.15
-   200000.00        6.00   40.00     49.00  0.80  0.97  0.82  0.82    -211.77
-   200000.00           *   40.00     49.00  0.80  0.97  0.82  0.82    -211.77
-   200000.00           *   40.00     51.00  0.76  0.97  0.87  0.85    -152.41
+  sampleSize  semGicRule  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  BicDiff
+     5000.00        1.00   40.00     44.90  0.86  0.93  0.91  0.87   -71.26
+     5000.00        2.00   40.00     50.60  0.78  0.96  0.91  0.88   -61.48
+     5000.00        3.00   40.00     45.80  0.86  0.94  0.92  0.87   -65.27
+     5000.00        4.00   40.00     45.80  0.85  0.93  0.91  0.86   -70.36
+     5000.00        5.00   40.00     45.80  0.85  0.93  0.91  0.86   -67.33
+     5000.00        6.00   40.00     43.10  0.85  0.89  0.89  0.84  -180.55
+     5000.00           *   40.00     43.40  0.85  0.89  0.88  0.83  -162.01
+     5000.00           *   40.00     46.20  0.85  0.94  0.92  0.87   -64.94
+     5000.00           *   40.00     46.00  0.85  0.94  0.91  0.86   -61.82
 
 STANDARD DEVIATIONS
 
 All edges
 
-  sampleSize  semGicRule  EdgesT  EdgesEst  AP  AR  AHPC  AHRC  BicDiff
-      200.00        1.00       *         *   *   *     *     *        *
-      200.00        2.00       *         *   *   *     *     *        *
-      200.00        3.00       *         *   *   *     *     *        *
-      200.00        4.00       *         *   *   *     *     *        *
-      200.00        5.00       *         *   *   *     *     *        *
-      200.00        6.00       *         *   *   *     *     *        *
-      200.00           *       *         *   *   *     *     *        *
-      200.00           *       *         *   *   *     *     *        *
-      500.00        1.00       *         *   *   *     *     *        *
-      500.00        2.00       *         *   *   *     *     *        *
-      500.00        3.00       *         *   *   *     *     *        *
-      500.00        4.00       *         *   *   *     *     *        *
-      500.00        5.00       *         *   *   *     *     *        *
-      500.00        6.00       *         *   *   *     *     *        *
-      500.00           *       *         *   *   *     *     *        *
-      500.00           *       *         *   *   *     *     *        *
-     1000.00        1.00       *         *   *   *     *     *        *
-     1000.00        2.00       *         *   *   *     *     *        *
-     1000.00        3.00       *         *   *   *     *     *        *
-     1000.00        4.00       *         *   *   *     *     *        *
-     1000.00        5.00       *         *   *   *     *     *        *
-     1000.00        6.00       *         *   *   *     *     *        *
-     1000.00           *       *         *   *   *     *     *        *
-     1000.00           *       *         *   *   *     *     *        *
-     2000.00        1.00       *         *   *   *     *     *        *
-     2000.00        2.00       *         *   *   *     *     *        *
-     2000.00        3.00       *         *   *   *     *     *        *
-     2000.00        4.00       *         *   *   *     *     *        *
-     2000.00        5.00       *         *   *   *     *     *        *
-     2000.00        6.00       *         *   *   *     *     *        *
-     2000.00           *       *         *   *   *     *     *        *
-     2000.00           *       *         *   *   *     *     *        *
-     5000.00        1.00       *         *   *   *     *     *        *
-     5000.00        2.00       *         *   *   *     *     *        *
-     5000.00        3.00       *         *   *   *     *     *        *
-     5000.00        4.00       *         *   *   *     *     *        *
-     5000.00        5.00       *         *   *   *     *     *        *
-     5000.00        6.00       *         *   *   *     *     *        *
-     5000.00           *       *         *   *   *     *     *        *
-     5000.00           *       *         *   *   *     *     *        *
-    10000.00        1.00       *         *   *   *     *     *        *
-    10000.00        2.00       *         *   *   *     *     *        *
-    10000.00        3.00       *         *   *   *     *     *        *
-    10000.00        4.00       *         *   *   *     *     *        *
-    10000.00        5.00       *         *   *   *     *     *        *
-    10000.00        6.00       *         *   *   *     *     *        *
-    10000.00           *       *         *   *   *     *     *        *
-    10000.00           *       *         *   *   *     *     *        *
-    20000.00        1.00       *         *   *   *     *     *        *
-    20000.00        2.00       *         *   *   *     *     *        *
-    20000.00        3.00       *         *   *   *     *     *        *
-    20000.00        4.00       *         *   *   *     *     *        *
-    20000.00        5.00       *         *   *   *     *     *        *
-    20000.00        6.00       *         *   *   *     *     *        *
-    20000.00           *       *         *   *   *     *     *        *
-    20000.00           *       *         *   *   *     *     *        *
-    50000.00        1.00       *         *   *   *     *     *        *
-    50000.00        2.00       *         *   *   *     *     *        *
-    50000.00        3.00       *         *   *   *     *     *        *
-    50000.00        4.00       *         *   *   *     *     *        *
-    50000.00        5.00       *         *   *   *     *     *        *
-    50000.00        6.00       *         *   *   *     *     *        *
-    50000.00           *       *         *   *   *     *     *        *
-    50000.00           *       *         *   *   *     *     *        *
-   100000.00        1.00       *         *   *   *     *     *        *
-   100000.00        2.00       *         *   *   *     *     *        *
-   100000.00        3.00       *         *   *   *     *     *        *
-   100000.00        4.00       *         *   *   *     *     *        *
-   100000.00        5.00       *         *   *   *     *     *        *
-   100000.00        6.00       *         *   *   *     *     *        *
-   100000.00           *       *         *   *   *     *     *        *
-   100000.00           *       *         *   *   *     *     *        *
-   200000.00        1.00       *         *   *   *     *     *        *
-   200000.00        2.00       *         *   *   *     *     *        *
-   200000.00        3.00       *         *   *   *     *     *        *
-   200000.00        4.00       *         *   *   *     *     *        *
-   200000.00        5.00       *         *   *   *     *     *        *
-   200000.00        6.00       *         *   *   *     *     *        *
-   200000.00           *       *         *   *   *     *     *        *
-   200000.00           *       *         *   *   *     *     *        *
+  sampleSize  semGicRule  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  BicDiff
+     5000.00        1.00       -     10.85  0.17  0.02  0.11  0.11   108.86
+     5000.00        2.00       -      9.37  0.13  0.03  0.09  0.09    74.35
+     5000.00        3.00       -     10.97  0.17  0.02  0.10  0.10   103.22
+     5000.00        4.00       -     11.01  0.17  0.02  0.10  0.10   108.56
+     5000.00        5.00       -     10.99  0.17  0.02  0.10  0.10   101.87
+     5000.00        6.00       -      8.40  0.15  0.03  0.09  0.09   171.72
+     5000.00           *       -      8.47  0.15  0.02  0.11  0.10   154.30
+     5000.00           *       -     11.45  0.18  0.02  0.10  0.10   102.77
+     5000.00           *       -     10.50  0.16  0.02  0.11  0.10    94.19
 
 WORST CASE
 
 All edges
 
-  sampleSize  semGicRule  EdgesT  EdgesEst    AP    AR  AHPC  AHRC    BicDiff
-      200.00        1.00   40.00     34.00  0.85  0.72  0.59  0.59    -115.58
-      200.00        2.00   40.00     47.00  0.64  0.75  0.53  0.53     -74.14
-      200.00        3.00   40.00     34.00  0.85  0.72  0.59  0.59    -115.58
-      200.00        4.00   40.00     28.00  0.89  0.62  0.60  0.60    -167.20
-      200.00        5.00   40.00     38.00  0.79  0.75  0.57  0.57     -76.06
-      200.00        6.00   40.00     23.00  1.00  0.57  0.70  0.70    -230.62
-      200.00           *   40.00     19.00  1.00  0.47  0.75  0.32    -375.26
-      200.00           *   40.00     47.00  0.64  0.75  0.53  0.53     -74.14
-      500.00        1.00   40.00     34.00  0.82  0.70  0.71  0.71     -49.03
-      500.00        2.00   40.00     43.00  0.77  0.82  0.70  0.70     -31.39
-      500.00        3.00   40.00     35.00  0.80  0.70  0.71  0.71     -43.32
-      500.00        4.00   40.00     33.00  0.85  0.70  0.71  0.71     -58.09
-      500.00        5.00   40.00     37.00  0.84  0.78  0.74  0.74     -43.72
-      500.00        6.00   40.00     29.00  0.86  0.62  0.67  0.64    -133.47
-      500.00           *   40.00     27.00  0.85  0.57  0.64  0.61    -207.33
-      500.00           *   40.00     44.00  0.77  0.85  0.71  0.71     -28.24
-     1000.00        1.00   40.00     34.00  0.91  0.78  0.89  0.77     -25.62
-     1000.00        2.00   40.00     43.00  0.81  0.88  0.79  0.77     -15.16
-     1000.00        3.00   40.00     35.00  0.91  0.80  0.84  0.81     -19.50
-     1000.00        4.00   40.00     33.00  0.94  0.78  0.89  0.77     -34.55
-     1000.00        5.00   40.00     36.00  0.89  0.80  0.84  0.81     -14.65
-     1000.00        6.00   40.00     29.00  1.00  0.72  0.88  0.76    -189.37
-     1000.00           *   40.00     29.00  1.00  0.72  0.88  0.76    -189.37
-     1000.00           *   40.00     40.00  0.82  0.82  0.81  0.79     -11.45
-     2000.00        1.00   40.00     40.00  0.93  0.93  0.97  0.81      -7.55
-     2000.00        2.00   40.00     46.00  0.83  0.95  0.94  0.84     -18.99
-     2000.00        3.00   40.00     41.00  0.93  0.95  0.97  0.82      -3.37
-     2000.00        4.00   40.00     39.00  0.95  0.93  0.97  0.81     -15.27
-     2000.00        5.00   40.00     40.00  0.93  0.93  0.97  0.81      -7.55
-     2000.00        6.00   40.00     32.00  0.97  0.78  0.86  0.77    -417.34
-     2000.00           *   40.00     32.00  0.97  0.78  0.86  0.77    -417.34
-     2000.00           *   40.00     42.00  0.90  0.95  0.94  0.87     -12.06
-     5000.00        1.00   40.00     49.00  0.78  0.95  0.65  0.63    -110.45
-     5000.00        2.00   40.00     55.00  0.73  1.00  0.71  0.62     -98.37
-     5000.00        3.00   40.00     51.00  0.76  0.97  0.70  0.59    -100.45
-     5000.00        4.00   40.00     49.00  0.78  0.95  0.65  0.63    -110.45
-     5000.00        5.00   40.00     50.00  0.76  0.95  0.65  0.63    -104.44
-     5000.00        6.00   40.00     48.00  0.71  0.85  0.64  0.62    -304.47
-     5000.00           *   40.00     48.00  0.71  0.85  0.64  0.62    -304.47
-     5000.00           *   40.00     61.00  0.66  1.00  0.65  0.55    -173.93
-    10000.00        1.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        2.00   40.00     43.00  0.93  1.00  1.00  0.95       0.93
-    10000.00        3.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        4.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        5.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        6.00   40.00     39.00  1.00  0.97  1.00  0.95     -30.20
-    10000.00           *   40.00     39.00  1.00  0.97  1.00  0.95     -30.20
-    10000.00           *   40.00     42.00  0.95  1.00  1.00  0.95       2.78
-    20000.00        1.00   40.00     48.00  0.81  0.97  0.87  0.87    -122.42
-    20000.00        2.00   40.00     61.00  0.64  0.97  0.82  0.82    -178.82
-    20000.00        3.00   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    20000.00        4.00   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    20000.00        5.00   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    20000.00        6.00   40.00     47.00  0.83  0.97  0.87  0.87    -132.40
-    20000.00           *   40.00     47.00  0.83  0.97  0.87  0.87    -132.40
-    20000.00           *   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    50000.00        1.00   40.00     76.00  0.51  0.97  0.62  0.62    -475.85
-    50000.00        2.00   40.00     87.00  0.46  1.00  0.55  0.55    -459.11
-    50000.00        3.00   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-    50000.00        4.00   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-    50000.00        5.00   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-    50000.00        6.00   40.00     67.00  0.57  0.95  0.63  0.63    -697.68
-    50000.00           *   40.00     69.00  0.57  0.97  0.62  0.62    -646.41
-    50000.00           *   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-   100000.00        1.00   40.00     52.00  0.77  1.00  0.94  0.82    -148.35
-   100000.00        2.00   40.00     41.00  0.98  1.00  0.95  0.90      -4.60
-   100000.00        3.00   40.00     40.00  1.00  1.00  1.00  0.85  -3.41E-12
-   100000.00        4.00   40.00     40.00  1.00  1.00  1.00  0.85  -3.41E-12
-   100000.00        5.00   40.00     40.00  1.00  1.00  1.00  0.85  -3.41E-12
-   100000.00        6.00   40.00     52.00  0.77  1.00  0.94  0.82    -148.35
-   100000.00           *   40.00     52.00  0.77  1.00  0.94  0.82    -148.35
-   100000.00           *   40.00     40.00  1.00  1.00  1.00  0.85   2.50E-12
-   200000.00        1.00   40.00     50.00  0.78  0.97  0.82  0.82    -183.63
-   200000.00        2.00   40.00     46.00  0.87  1.00  0.88  0.88     -61.00
-   200000.00        3.00   40.00     51.00  0.76  0.97  0.87  0.85    -152.41
-   200000.00        4.00   40.00     51.00  0.76  0.97  0.82  0.82    -176.15
-   200000.00        5.00   40.00     51.00  0.76  0.97  0.82  0.82    -176.15
-   200000.00        6.00   40.00     49.00  0.80  0.97  0.82  0.82    -211.77
-   200000.00           *   40.00     49.00  0.80  0.97  0.82  0.82    -211.77
-   200000.00           *   40.00     51.00  0.76  0.97  0.87  0.85    -152.41
+  sampleSize  semGicRule  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  BicDiff
+     5000.00        1.00   40.00     36.00  0.57  0.90  0.68  0.61  -311.09
+     5000.00        2.00   40.00     43.00  0.51  0.93  0.70  0.70  -232.64
+     5000.00        3.00   40.00     38.00  0.56  0.90  0.74  0.66  -271.52
+     5000.00        4.00   40.00     37.00  0.55  0.90  0.74  0.66  -298.21
+     5000.00        5.00   40.00     37.00  0.56  0.90  0.74  0.66  -271.52
+     5000.00        6.00   40.00     35.00  0.61  0.85  0.72  0.66  -510.07
+     5000.00           *   40.00     35.00  0.61  0.88  0.67  0.61  -510.07
+     5000.00           *   40.00     38.00  0.55  0.90  0.74  0.68  -270.56
+     5000.00           *   40.00     38.00  0.57  0.90  0.70  0.68  -232.15
 
 MEDIAN CASE
 
 All edges
 
-  sampleSize  semGicRule  EdgesT  EdgesEst    AP    AR  AHPC  AHRC    BicDiff
-      200.00        1.00   40.00     34.00  0.85  0.72  0.59  0.59    -115.58
-      200.00        2.00   40.00     47.00  0.64  0.75  0.53  0.53     -74.14
-      200.00        3.00   40.00     34.00  0.85  0.72  0.59  0.59    -115.58
-      200.00        4.00   40.00     28.00  0.89  0.62  0.60  0.60    -167.20
-      200.00        5.00   40.00     38.00  0.79  0.75  0.57  0.57     -76.06
-      200.00        6.00   40.00     23.00  1.00  0.57  0.70  0.70    -230.62
-      200.00           *   40.00     19.00  1.00  0.47  0.75  0.32    -375.26
-      200.00           *   40.00     47.00  0.64  0.75  0.53  0.53     -74.14
-      500.00        1.00   40.00     34.00  0.82  0.70  0.71  0.71     -49.03
-      500.00        2.00   40.00     43.00  0.77  0.82  0.70  0.70     -31.39
-      500.00        3.00   40.00     35.00  0.80  0.70  0.71  0.71     -43.32
-      500.00        4.00   40.00     33.00  0.85  0.70  0.71  0.71     -58.09
-      500.00        5.00   40.00     37.00  0.84  0.78  0.74  0.74     -43.72
-      500.00        6.00   40.00     29.00  0.86  0.62  0.67  0.64    -133.47
-      500.00           *   40.00     27.00  0.85  0.57  0.64  0.61    -207.33
-      500.00           *   40.00     44.00  0.77  0.85  0.71  0.71     -28.24
-     1000.00        1.00   40.00     34.00  0.91  0.78  0.89  0.77     -25.62
-     1000.00        2.00   40.00     43.00  0.81  0.88  0.79  0.77     -15.16
-     1000.00        3.00   40.00     35.00  0.91  0.80  0.84  0.81     -19.50
-     1000.00        4.00   40.00     33.00  0.94  0.78  0.89  0.77     -34.55
-     1000.00        5.00   40.00     36.00  0.89  0.80  0.84  0.81     -14.65
-     1000.00        6.00   40.00     29.00  1.00  0.72  0.88  0.76    -189.37
-     1000.00           *   40.00     29.00  1.00  0.72  0.88  0.76    -189.37
-     1000.00           *   40.00     40.00  0.82  0.82  0.81  0.79     -11.45
-     2000.00        1.00   40.00     40.00  0.93  0.93  0.97  0.81      -7.55
-     2000.00        2.00   40.00     46.00  0.83  0.95  0.94  0.84     -18.99
-     2000.00        3.00   40.00     41.00  0.93  0.95  0.97  0.82      -3.37
-     2000.00        4.00   40.00     39.00  0.95  0.93  0.97  0.81     -15.27
-     2000.00        5.00   40.00     40.00  0.93  0.93  0.97  0.81      -7.55
-     2000.00        6.00   40.00     32.00  0.97  0.78  0.86  0.77    -417.34
-     2000.00           *   40.00     32.00  0.97  0.78  0.86  0.77    -417.34
-     2000.00           *   40.00     42.00  0.90  0.95  0.94  0.87     -12.06
-     5000.00        1.00   40.00     49.00  0.78  0.95  0.65  0.63    -110.45
-     5000.00        2.00   40.00     55.00  0.73  1.00  0.71  0.62     -98.37
-     5000.00        3.00   40.00     51.00  0.76  0.97  0.70  0.59    -100.45
-     5000.00        4.00   40.00     49.00  0.78  0.95  0.65  0.63    -110.45
-     5000.00        5.00   40.00     50.00  0.76  0.95  0.65  0.63    -104.44
-     5000.00        6.00   40.00     48.00  0.71  0.85  0.64  0.62    -304.47
-     5000.00           *   40.00     48.00  0.71  0.85  0.64  0.62    -304.47
-     5000.00           *   40.00     61.00  0.66  1.00  0.65  0.55    -173.93
-    10000.00        1.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        2.00   40.00     43.00  0.93  1.00  1.00  0.95       0.93
-    10000.00        3.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        4.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        5.00   40.00     40.00  1.00  1.00  1.00  0.95          -
-    10000.00        6.00   40.00     39.00  1.00  0.97  1.00  0.95     -30.20
-    10000.00           *   40.00     39.00  1.00  0.97  1.00  0.95     -30.20
-    10000.00           *   40.00     42.00  0.95  1.00  1.00  0.95       2.78
-    20000.00        1.00   40.00     48.00  0.81  0.97  0.87  0.87    -122.42
-    20000.00        2.00   40.00     61.00  0.64  0.97  0.82  0.82    -178.82
-    20000.00        3.00   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    20000.00        4.00   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    20000.00        5.00   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    20000.00        6.00   40.00     47.00  0.83  0.97  0.87  0.87    -132.40
-    20000.00           *   40.00     47.00  0.83  0.97  0.87  0.87    -132.40
-    20000.00           *   40.00     50.00  0.78  0.97  0.87  0.87    -106.91
-    50000.00        1.00   40.00     76.00  0.51  0.97  0.62  0.62    -475.85
-    50000.00        2.00   40.00     87.00  0.46  1.00  0.55  0.55    -459.11
-    50000.00        3.00   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-    50000.00        4.00   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-    50000.00        5.00   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-    50000.00        6.00   40.00     67.00  0.57  0.95  0.63  0.63    -697.68
-    50000.00           *   40.00     69.00  0.57  0.97  0.62  0.62    -646.41
-    50000.00           *   40.00     77.00  0.51  0.97  0.59  0.59    -434.11
-   100000.00        1.00   40.00     52.00  0.77  1.00  0.94  0.82    -148.35
-   100000.00        2.00   40.00     41.00  0.98  1.00  0.95  0.90      -4.60
-   100000.00        3.00   40.00     40.00  1.00  1.00  1.00  0.85  -3.41E-12
-   100000.00        4.00   40.00     40.00  1.00  1.00  1.00  0.85  -3.41E-12
-   100000.00        5.00   40.00     40.00  1.00  1.00  1.00  0.85  -3.41E-12
-   100000.00        6.00   40.00     52.00  0.77  1.00  0.94  0.82    -148.35
-   100000.00           *   40.00     52.00  0.77  1.00  0.94  0.82    -148.35
-   100000.00           *   40.00     40.00  1.00  1.00  1.00  0.85   2.50E-12
-   200000.00        1.00   40.00     50.00  0.78  0.97  0.82  0.82    -183.63
-   200000.00        2.00   40.00     46.00  0.87  1.00  0.88  0.88     -61.00
-   200000.00        3.00   40.00     51.00  0.76  0.97  0.87  0.85    -152.41
-   200000.00        4.00   40.00     51.00  0.76  0.97  0.82  0.82    -176.15
-   200000.00        5.00   40.00     51.00  0.76  0.97  0.82  0.82    -176.15
-   200000.00        6.00   40.00     49.00  0.80  0.97  0.82  0.82    -211.77
-   200000.00           *   40.00     49.00  0.80  0.97  0.82  0.82    -211.77
-   200000.00           *   40.00     51.00  0.76  0.97  0.87  0.85    -152.41
+  sampleSize  semGicRule  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  BicDiff
+     5000.00        1.00   40.00     39.50  0.94  0.93  0.94  0.91   -15.10
+     5000.00        2.00   40.00     46.50  0.81  0.95  0.92  0.89   -19.13
+     5000.00        3.00   40.00     40.00  0.91  0.95  0.94  0.89   -11.77
+     5000.00        4.00   40.00     40.00  0.91  0.94  0.94  0.89   -17.11
+     5000.00        5.00   40.00     40.00  0.91  0.94  0.94  0.89   -17.11
+     5000.00        6.00   40.00     39.50  0.89  0.88  0.91  0.86  -114.95
+     5000.00           *   40.00     41.50  0.87  0.88  0.91  0.82  -115.97
+     5000.00           *   40.00     40.00  0.91  0.95  0.94  0.89   -11.77
+     5000.00           *   40.00     40.50  0.90  0.95  0.94  0.87   -16.04
 
