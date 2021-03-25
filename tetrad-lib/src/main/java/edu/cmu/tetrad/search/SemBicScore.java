@@ -167,7 +167,7 @@ public class SemBicScore implements Score {
 
         varey = ZhangShenBoundScore.getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquareEuclideanNorms);
 
-        double c = 1;//getPenaltyDiscount();
+        double c = getPenaltyDiscount();
 
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 

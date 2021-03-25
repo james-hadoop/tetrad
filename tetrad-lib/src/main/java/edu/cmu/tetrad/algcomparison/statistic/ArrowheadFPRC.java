@@ -1,6 +1,6 @@
 package edu.cmu.tetrad.algcomparison.statistic;
 
-import edu.cmu.tetrad.algcomparison.statistic.utils.AdjacencyConfusion;
+import edu.cmu.tetrad.algcomparison.statistic.utils.ArrowConfusion;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
 
@@ -10,25 +10,25 @@ import edu.cmu.tetrad.graph.Graph;
  *
  * @author jdramsey
  */
-public class AdjacencyTPR implements Statistic {
+public class ArrowheadFPRC implements Statistic {
     static final long serialVersionUID = 23L;
 
     @Override
     public String getAbbreviation() {
-        return "ATPR";
+        return "AHFPRC";
     }
 
     @Override
     public String getDescription() {
-        return "Adjacency True Positive Rate";
+        return "Arrowhead False Positive Rate Common Edges";
     }
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        AdjacencyConfusion adjConfusion = new AdjacencyConfusion(trueGraph, estGraph);
-        int adjTp = adjConfusion.getAdjTp();
-        int adjFn = adjConfusion.getAdjFn();
-        return adjTp / (double) (adjTp + adjFn);
+        ArrowConfusion adjConfusion = new ArrowConfusion(trueGraph, estGraph);
+        int adjFp = adjConfusion.getArrowsFpc();
+        int adjTn = adjConfusion.getArrowsTnc();
+        return adjFp / (double) (adjFp + adjTn);
     }
 
     @Override

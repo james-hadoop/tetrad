@@ -278,30 +278,32 @@ public class TestFisherZCalibration {
     public void test3a() {
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 10);
+        parameters.set(Params.NUM_RUNS, 1);
 
-        parameters.set(Params.NUM_MEASURES, 20);
-        parameters.set(Params.AVG_DEGREE, 4);
+        parameters.set(Params.NUM_MEASURES, 600);
+        parameters.set(Params.AVG_DEGREE, 2.8);
 
 //        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
-        parameters.set(Params.SAMPLE_SIZE, 5000);
-        parameters.set(Params.COEF_LOW, 0);
+        parameters.set(Params.SAMPLE_SIZE, 200);
+        parameters.set(Params.COEF_LOW, 0.1);
         parameters.set(Params.COEF_HIGH, 1);
         parameters.set(Params.VAR_LOW, 1);
-        parameters.set(Params.VAR_HIGH, 1);
+        parameters.set(Params.VAR_HIGH, 2);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
         parameters.set(Params.SEM_IM_SIMULATION_TYPE, false);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.VERBOSE, false);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.VERBOSE, true);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.PARALLELISM, 20);
 
         parameters.set(Params.SEM_GIC_RULE, 1, 2, 3, 4, 5, 6);
-        parameters.set(Params.PENALTY_DISCOUNT, 1);
+//        parameters.set(Params.PENALTY_DISCOUNT, .05);
         parameters.set(Params.TAKE_LOGS, true);
         parameters.set(Params.TRUE_ERROR_VARIANCE, 1);
         parameters.set(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED, false);
+        parameters.set(Params.ZS_RISK_BOUND, 0, .1, .2, .3, .4, .5, .6, .7);
+
 
         parameters.set(Params.USE_MAX_P_ORIENTATION_HEURISTIC, true);
         parameters.set(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH, -1);
@@ -312,24 +314,30 @@ public class TestFisherZCalibration {
 
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new ParameterColumn(Params.SEM_GIC_RULE));
+        statistics.add(new ParameterColumn(Params.ZS_RISK_BOUND));
+        statistics.add(new NumberOfNodesTrue());
         statistics.add(new NumberOfEdgesTrue());
         statistics.add(new NumberOfEdgesEst());
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
+        statistics.add(new AdjacencyTPR());
+        statistics.add(new AdjacencyFPR());
+        statistics.add(new AdjacencyTPRDirectedParts());
+        statistics.add(new AdjacencyFPRDirectedParts());
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
-        statistics.add(new BicDiff());
+        statistics.add(new ElapsedTime());
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
-                new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+//                new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
                 new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
-                new edu.cmu.tetrad.algcomparison.score.EBicScore()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
-                new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+//                new edu.cmu.tetrad.algcomparison.score.EBicScore()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+//                new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
 
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new KimEtAlTests(), null));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new SemBicTest(), null));
