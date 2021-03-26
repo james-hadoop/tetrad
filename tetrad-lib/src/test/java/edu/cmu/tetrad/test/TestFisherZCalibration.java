@@ -368,7 +368,7 @@ public class TestFisherZCalibration {
         boolean faithfulness = true;
         boolean zhangshen = false;
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 4; i++) {
             visit3b(numMeasures[i], avgDegree[i], sampleSize[i], faithfulness, zhangshen);
         }
     }
@@ -445,7 +445,7 @@ public class TestFisherZCalibration {
         comparison.setSaveData(false);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
-        String file = "TestComparison." + numMeasures;
+        String file = "Comparison." + numMeasures;
         if (faithfulness) file += ".fa";
         if (zhangshen) file += ".zs";
         file += ".txt";
