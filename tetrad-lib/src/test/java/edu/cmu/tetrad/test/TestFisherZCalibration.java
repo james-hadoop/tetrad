@@ -357,6 +357,103 @@ public class TestFisherZCalibration {
                 "/Users/josephramsey/tetrad/comparison2040", simulations, algorithms, statistics, parameters);
     }
 
+
+    @Test
+    public void test3b() {
+
+        int[] numMeasures = {300, 600, 1200, 2400};
+        double[] avgDegree = {2.0, 2.5, 3.5, 4.0};
+        int[] sampleSize = {100, 200, 300, 400};
+
+        boolean faithfulness = true;
+        boolean zhangshen = false;
+
+        for (int i = 0; i < 1; i++) {
+            visit3b(numMeasures[i], avgDegree[i], sampleSize[i], faithfulness, zhangshen);
+        }
+    }
+
+    private void visit3b(int numMeasures, double value, int value1, boolean faithfulness, boolean zhangshen) {
+        Parameters parameters = new Parameters();
+        parameters.set(Params.NUM_RUNS, 1);
+
+        parameters.set(Params.NUM_MEASURES, numMeasures);
+        parameters.set(Params.AVG_DEGREE, value);
+
+//        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
+        parameters.set(Params.SAMPLE_SIZE, value1);
+        parameters.set(Params.COEF_LOW, 0.1);
+        parameters.set(Params.COEF_HIGH, 1);
+        parameters.set(Params.VAR_LOW, 1);
+        parameters.set(Params.VAR_HIGH, 2);
+        parameters.set(Params.RANDOMIZE_COLUMNS, true);
+        parameters.set(Params.SEM_IM_SIMULATION_TYPE, false);
+
+        parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
+        parameters.set(Params.VERBOSE, true);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, faithfulness);
+        parameters.set(Params.PARALLELISM, 20);
+
+        parameters.set(Params.SEM_GIC_RULE, 1, 2, 3, 4, 5, 6);
+//        parameters.set(Params.PENALTY_DISCOUNT, .05);
+        parameters.set(Params.TAKE_LOGS, true);
+        parameters.set(Params.TRUE_ERROR_VARIANCE, 1);
+        parameters.set(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED, false);
+        parameters.set(Params.ZS_RISK_BOUND, 0, .1, .2, .3, .4, .5, .6, .7);
+
+        parameters.set(Params.USE_MAX_P_ORIENTATION_HEURISTIC, true);
+        parameters.set(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH, -1);
+
+        Statistics statistics = new Statistics();
+
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new ParameterColumn(Params.SEM_GIC_RULE));
+        statistics.add(new ParameterColumn(Params.ZS_RISK_BOUND));
+        statistics.add(new NumberOfNodesTrue());
+        statistics.add(new NumberOfEdgesTrue());
+        statistics.add(new NumberOfEdgesEst());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new AdjacencyTPR());
+        statistics.add(new AdjacencyFPR());
+        statistics.add(new AdjacencyTPRDirectedParts());
+        statistics.add(new AdjacencyFPRDirectedParts());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new ElapsedTime());
+
+        Algorithms algorithms = new Algorithms();
+
+        if (zhangshen) {
+            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                    new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
+        } else {
+            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                    new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
+            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                    new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
+        }
+
+        Simulations simulations = new Simulations();
+
+        simulations.add(new SemSimulation(new RandomForward()));
+//        simulations.add(new LinearFisherModel(new RandomForward()));
+
+        Comparison comparison = new Comparison();
+
+        comparison.setSaveGraphs(false);
+        comparison.setSaveData(false);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
+
+        String file = "TestComparison." + numMeasures;
+        if (faithfulness) file += ".fa";
+        if (zhangshen) file += ".zs";
+        file += ".txt";
+
+        comparison.compareFromSimulations(
+                "/Users/josephramsey/tetrad/comparison3b", simulations, file, algorithms, statistics, parameters);
+    }
+
     @Test
     public void test4() {
         Parameters parameters = new Parameters();

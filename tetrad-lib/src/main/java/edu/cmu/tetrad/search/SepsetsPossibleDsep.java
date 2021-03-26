@@ -37,7 +37,7 @@ import java.util.Set;
 public class SepsetsPossibleDsep implements SepsetProducer {
     private Graph graph;
     private IndependenceTest independenceTest;
-    private int maxPathLength = 5;
+    private int maxPathLength = 100;
     private IKnowledge knowledge = new Knowledge2();
     private int depth = -1;
     private boolean verbose = false;
