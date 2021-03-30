@@ -24,6 +24,9 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
+import org.apache.commons.math3.linear.BlockRealMatrix;
+import org.apache.commons.math3.linear.EigenDecomposition;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 import org.jetbrains.annotations.NotNull;
 
@@ -158,7 +161,7 @@ public class ZhangShenBoundScore implements Score {
             }
         }
 
-        final int pi = parents.length + 1;
+        final int pi = parents.length;
         double varRy = getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquaredEuclideanNorms);
 
         double score;
@@ -489,6 +492,28 @@ public class ZhangShenBoundScore implements Score {
 //    public void setTrueErrorVariance(double trueErrorVariance) {
 //        this.trueErrorVariance = trueErrorVariance;
 //    }
+
+    public void testRegularityConditions(CovarianceMatrix cov) {
+
+        // A1
+        double M1 = NEGATIVE_INFINITY;
+
+        for (int i = 0; i < cov.getDimension(); i++) {
+            if (cov.getValue(i, i) > M1) {
+                M1 = cov.getValue(i, i);
+            }
+        }
+
+        // A2
+        RealMatrix m = new BlockRealMatrix(cov.getMatrix().toArray());
+        EigenDecomposition eig = new EigenDecomposition(m);
+        double[] ev = eig.getRealEigenvalues();
+        Arrays.sort(ev);
+        double M2 = ev[0];
+
+        // A3
+
+    }
 }
 
 

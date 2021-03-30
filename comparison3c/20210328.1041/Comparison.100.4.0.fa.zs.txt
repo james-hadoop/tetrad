@@ -1,0 +1,362 @@
+Sun Mar 28 09:57:41 EDT 2021
+
+Statistics:
+
+sampleSize = Extra column for sampleSize
+semGicRule = Extra column for semGicRule
+zSRiskBound = Extra column for zSRiskBound
+NodesT = Number of Nodes in the True Graph
+EdgesT = Number of Edges in the True Graph
+EdgesEst = Number of Edges in the Estimated Graph
+AP = Adjacency Precision
+AR = Adjacency Recall
+ATPR = Adjacency True Positive Rate
+AFPR = Adjacency False Positive Rate
+ATPRDP = Adjacency True Positive Rate DirectedParts
+AFPRDP = Adjacency False Positive Rate Directed Parts
+AHPC = Arrowhead precision (common edges)
+AHRC = Arrowhead recall (common edges)
+E = Elapsed Time in Seconds
+
+Simulations:
+
+Simulation 1: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 30
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 200
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Simulation 2: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 30
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 500
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Simulation 3: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 30
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 1000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Simulation 4: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 30
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 2000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Simulation 5: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 30
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 5000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Simulation 6: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 30
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 10000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Simulation 7: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 30
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 20000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Simulation 8: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 30
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 50000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Simulation 9: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 30
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 100000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Simulation 10: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 30
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 200000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Algorithms:
+
+1. FGES (Fast Greedy Equivalence Search) using Zhang-Shen Bound Test
+
+Graphs are being compared to the true DAG.
+
+AVERAGE STATISTICS
+
+All edges
+
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR     AFPR  ATPRDP  AFPRDP  AHPC  AHRC      E
+      200.00           *         0.10  100.00  200.00    116.87  0.97  0.57  0.57  5.96E-4    0.56       -  0.92  0.73   0.20
+      500.00           *         0.10  100.00  200.00    162.37  0.94  0.76  0.76  1.99E-3    0.76       -  0.93  0.83   0.18
+     1000.00           *         0.10  100.00  200.00    187.37  0.95  0.89  0.89  2.09E-3    0.88       -  0.95  0.84   0.24
+     2000.00           *         0.10  100.00  200.00    207.63  0.91  0.94  0.94  4.07E-3    0.93       -  0.94  0.88   0.50
+     5000.00           *         0.10  100.00  200.00    221.33  0.90  0.98  0.98  4.99E-3    0.98       -  0.95  0.89   0.77
+    10000.00           *         0.10  100.00  200.00    221.73  0.91  1.00  1.00  4.49E-3    1.00       -  0.97  0.89   0.80
+    20000.00           *         0.10  100.00  200.00    217.97  0.93  1.00  1.00  3.62E-3    1.00       -  0.98  0.88   2.67
+    50000.00           *         0.10  100.00  200.00    231.37  0.89  1.00  1.00  6.27E-3    1.00       -  0.96  0.88  12.48
+   100000.00           *         0.10  100.00  200.00    223.43  0.91  1.00  1.00  4.71E-3    1.00       -  0.97  0.87  12.59
+   200000.00           *         0.10  100.00  200.00    219.83  0.93  1.00  1.00  3.96E-3    1.00       -  0.98  0.88  19.76
+
+STANDARD DEVIATIONS
+
+All edges
+
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP       AR     ATPR     AFPR   ATPRDP  AFPRDP  AHPC  AHRC      E
+      200.00           *         0.10       -       -      7.19  0.03     0.04     0.04  5.57E-4     0.04       -  0.05  0.04   0.22
+      500.00           *         0.10       -       -      7.19  0.03     0.03     0.03  9.48E-4     0.03       -  0.04  0.04   0.05
+     1000.00           *         0.10       -       -      8.20  0.03     0.02     0.02  1.43E-3     0.03       -  0.03  0.02   0.05
+     2000.00           *         0.10       -       -     13.96  0.06     0.02     0.02  2.88E-3     0.02       -  0.03  0.03   0.13
+     5000.00           *         0.10       -       -     25.58  0.09     0.01     0.01  5.20E-3     0.01       -  0.05  0.03   0.20
+    10000.00           *         0.10       -       -     24.16  0.09  3.75E-3  3.75E-3  4.82E-3  4.12E-3       -  0.03  0.02   0.15
+    20000.00           *         0.10       -       -     37.47  0.11  2.60E-3  2.60E-3  7.33E-3  2.44E-3       -  0.03  0.02   4.33
+    50000.00           *         0.10       -       -     44.65  0.14  2.25E-3  2.25E-3  8.79E-3  2.39E-3       -  0.04  0.03  13.65
+   100000.00           *         0.10       -       -     39.40  0.11  2.67E-3  2.67E-3  7.75E-3  2.94E-3       -  0.04  0.02   5.78
+   200000.00           *         0.10       -       -     36.14  0.12  1.53E-3  1.53E-3  7.13E-3  1.43E-3       -  0.03  0.01   5.91
+
+WORST CASE
+
+All edges
+
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR  AFPR  ATPRDP  AFPRDP  AHPC  AHRC      E
+      200.00           *         0.10  100.00  200.00     94.00  0.88  0.41  0.41     -    0.40       -  0.81  0.59   0.05
+      500.00           *         0.10  100.00  200.00    145.00  0.90  0.71  0.71     -    0.70       -  0.84  0.76   0.11
+     1000.00           *         0.10  100.00  200.00    171.00  0.83  0.81  0.81     -    0.80       -  0.89  0.78   0.14
+     2000.00           *         0.10  100.00  200.00    185.00  0.76  0.90  0.90     -    0.89       -  0.87  0.83   0.28
+     5000.00           *         0.10  100.00  200.00    197.00  0.63  0.96  0.96     -    0.96       -  0.82  0.80   0.48
+    10000.00           *         0.10  100.00  200.00    199.00  0.71  0.98  0.98     -    0.98       -  0.90  0.82   0.58
+    20000.00           *         0.10  100.00  200.00    199.00  0.51  0.99  0.99     -    0.99       -  0.85  0.83   1.19
+    50000.00           *         0.10  100.00  200.00    200.00  0.53  0.99  0.99     -    0.99       -  0.87  0.81   3.62
+   100000.00           *         0.10  100.00  200.00    200.00  0.50  0.99  0.99     -    0.99       -  0.85  0.82   6.49
+   200000.00           *         0.10  100.00  200.00    199.00  0.60  0.99  0.99     -    0.99       -  0.91  0.83  13.13
+
+MEDIAN CASE
+
+All edges
+
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR     AFPR  ATPRDP  AFPRDP  AHPC  AHRC      E
+      200.00           *         0.10  100.00  200.00    117.00  0.98  0.57  0.57  4.11E-4    0.56       -  0.93  0.73   0.14
+      500.00           *         0.10  100.00  200.00    163.00  0.93  0.77  0.77  2.24E-3    0.76       -  0.93  0.83   0.17
+     1000.00           *         0.10  100.00  200.00    187.00  0.95  0.88  0.88  1.82E-3    0.88       -  0.95  0.84   0.24
+     2000.00           *         0.10  100.00  200.00    206.00  0.91  0.94  0.94  3.73E-3    0.93       -  0.95  0.88   0.48
+     5000.00           *         0.10  100.00  200.00    215.00  0.91  0.98  0.98  3.72E-3    0.98       -  0.95  0.89   0.73
+    10000.00           *         0.10  100.00  200.00    211.50  0.94  0.99  0.99  2.42E-3    0.99       -  0.96  0.89   0.75
+    20000.00           *         0.10  100.00  200.00    203.00  0.99  1.00  1.00  6.06E-4    1.00       -  0.99  0.89   1.56
+    50000.00           *         0.10  100.00  200.00    210.00  0.95  1.00  1.00  2.12E-3    1.00       -  0.98  0.89   4.63
+   100000.00           *         0.10  100.00  200.00    208.00  0.96  1.00  1.00  1.71E-3    1.00       -  0.98  0.88  12.29
+   200000.00           *         0.10  100.00  200.00    200.00  1.00  1.00  1.00        -    1.00       -  1.00  0.89  17.79
+

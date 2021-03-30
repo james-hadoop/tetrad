@@ -144,7 +144,7 @@ public class KimEtAlScores implements Score {
         double sn = 12;
 
         if (parents.length > sn) return Double.NEGATIVE_INFINITY;
-        final int pi = parents.length + 1;
+        final int pi = parents.length;
 
         // Only do this once.
         double pn = variables.size();

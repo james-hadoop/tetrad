@@ -1,0 +1,145 @@
+Sun Mar 28 12:41:50 EDT 2021
+
+Statistics:
+
+sampleSize = Extra column for sampleSize
+semGicRule = Extra column for semGicRule
+zSRiskBound = Extra column for zSRiskBound
+NodesT = Number of Nodes in the True Graph
+EdgesT = Number of Edges in the True Graph
+EdgesEst = Number of Edges in the Estimated Graph
+AP = Adjacency Precision
+AR = Adjacency Recall
+ATPR = Adjacency True Positive Rate
+AFPR = Adjacency False Positive Rate
+ATPRDP = Adjacency True Positive Rate DirectedParts
+AFPRDP = Adjacency False Positive Rate Directed Parts
+AHPC = Arrowhead precision (common edges)
+AHRC = Arrowhead recall (common edges)
+E = Elapsed Time in Seconds
+
+Simulations:
+
+Simulation 1: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 200
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 5
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 1000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Simulation 2: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 200
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 5
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 10000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Simulation 3: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 200
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.1
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 5
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 100000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Algorithms:
+
+1. FGES (Fast Greedy Equivalence Search) using Zhang-Shen Bound Test
+
+Graphs are being compared to the true DAG.
+
+AVERAGE STATISTICS
+
+All edges
+
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR     AFPR  ATPRDP  AFPRDP  AHPC  AHRC      E
+     1000.00           *         0.10  200.00  400.00    360.20  0.98  0.88  0.88  4.43E-4    0.87       -  0.97  0.90   1.05
+    10000.00           *         0.10  200.00  400.00    422.40  0.95  1.00  1.00  1.20E-3    1.00       -  0.98  0.89   1.86
+   100000.00           *         0.10  200.00  400.00    444.40  0.91  1.00  1.00  2.23E-3    1.00       -  0.98  0.91  20.86
+
+STANDARD DEVIATIONS
+
+All edges
+
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP       AR     ATPR     AFPR   ATPRDP  AFPRDP  AHPC     AHRC     E
+     1000.00           *         0.10       -       -      7.82  0.01     0.01     0.01  2.34E-4     0.01       -  0.02     0.01  0.76
+    10000.00           *         0.10       -       -     28.21  0.06  4.87E-3  4.87E-3  1.38E-3  5.41E-3       -  0.02     0.01  0.29
+   100000.00           *         0.10       -       -     67.82  0.12  1.12E-3  1.12E-3  3.37E-3  1.22E-3       -  0.02  9.73E-3  0.93
+
+WORST CASE
+
+All edges
+
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR     AFPR  ATPRDP  AFPRDP  AHPC  AHRC      E
+     1000.00           *         0.10  200.00  400.00    351.00  0.96  0.87  0.87  1.01E-4    0.86       -  0.94  0.88   0.55
+    10000.00           *         0.10  200.00  400.00    399.00  0.88  0.99  0.99        -    0.99       -  0.95  0.87   1.45
+   100000.00           *         0.10  200.00  400.00    400.00  0.71  1.00  1.00        -    1.00       -  0.96  0.90  20.05
+
+MEDIAN CASE
+
+All edges
+
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR     AFPR  ATPRDP  AFPRDP  AHPC  AHRC      E
+     1000.00           *         0.10  200.00  400.00    360.00  0.97  0.87  0.87  4.53E-4    0.87       -  0.97  0.89   0.76
+    10000.00           *         0.10  200.00  400.00    408.00  0.97  1.00  1.00  6.53E-4    1.00       -  0.99  0.89   1.84
+   100000.00           *         0.10  200.00  400.00    428.00  0.93  1.00  1.00  1.41E-3    1.00       -  0.99  0.92  20.61
+
