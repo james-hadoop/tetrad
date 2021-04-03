@@ -5178,7 +5178,7 @@ public final class GraphUtils {
         Map<Node, List<Node>> previous = new HashMap<>();
         previous.put(x, null);
 
-        OrderedPair e = null;
+        OrderedPair<Node> e = null;
         int distance = 0;
 
         for (Node b : graph.getAdjacentNodes(x)) {
@@ -5251,6 +5251,7 @@ public final class GraphUtils {
         if (w == x) {
             return true;
         }
+
         final List<Node> p = previous.get(w);
         if (p == null) {
             return false;

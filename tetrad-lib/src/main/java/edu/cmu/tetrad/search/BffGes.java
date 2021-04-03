@@ -43,19 +43,20 @@ import java.util.*;
  */
 
 public final class BffGes implements Bff {
+    private final DataSet data;
     private IKnowledge knowledge = new Knowledge2();
-    private Graph graph;
+    private final Graph graph;
     private double alpha = 0.05;
-    private double highPValueAlpha = 0.05;
     private final NumberFormat nf = new DecimalFormat("0.0#########");
-    private Set<GraphWithPValue> significantModels = new HashSet<>();
+    private final Set<GraphWithPValue> significantModels = new HashSet<>();
     private SemIm originalSemIm;
     private SemIm newSemIm;
-    private Scorer scorer;
+    private final Scorer scorer;
     private Graph newDag;
 
     public BffGes(Graph graph, DataSet data) {
         if (graph == null) throw new NullPointerException("Graph not specified.");
+        this.data = data;
 
         boolean allowArbitraryOrientations = true;
         boolean allowNewColliders = true;
@@ -89,8 +90,8 @@ public final class BffGes implements Bff {
     }
 
     public static class GraphWithPValue {
-        private Graph graph;
-        private double pValue;
+        private final Graph graph;
+        private final double pValue;
 
         public GraphWithPValue(Graph graph, double pValue) {
             this.graph = graph;
@@ -141,7 +142,6 @@ public final class BffGes implements Bff {
     }
 
     public void setHighPValueAlpha(double highPValueAlpha) {
-        this.highPValueAlpha = highPValueAlpha;
     }
 
     public Score scoreDag(Graph dag) {
@@ -192,12 +192,19 @@ public final class BffGes implements Bff {
 
 //        removeHighPValueEdges(getGraph());
 
+        Fges fges = new Fges(new SemBicScore(data));
+        Graph model = SearchGraphUtils.dagFromPattern(fges.search());
+
+//        score = fges.scoreDag(getGraph());
+
+        saveModelIfSignificant(model);
+
         // Do forward search.
-        score = fes(getGraph(), score);
-
-        // Do backward search.
-        bes(getGraph(), score);
-
+//        score = fes(getGraph(), score);
+////
+//         Do backward search.
+//        bes(getGraph(), score);
+//
 //        removeHighPValueEdges(getGraph());
 
         setNewDag(SearchGraphUtils.dagFromPattern(getGraph()));
@@ -208,391 +215,390 @@ public final class BffGes implements Bff {
         return new EdgeListGraph(getGraph());
     }
 
-    private double fes(Graph graph, double score) {
-        TetradLogger.getInstance().log("info", "** FORWARD EQUIVALENCE SEARCH");
-        double bestScore = score;
-        TetradLogger.getInstance().log("info", "Initial Score = " + nf.format(bestScore));
-
-        Node x, y;
-        Set<Node> t = new HashSet<>();
-
-        do {
-            x = y = null;
-            List<Node> nodes = graph.getNodes();
-            Collections.shuffle(nodes);
-
-            for (int i = 0; i < nodes.size(); i++) {
-                Node _x = nodes.get(i);
-
-                for (Node _y : nodes) {
-                    if (_x == _y) {
-                        continue;
-                    }
-
-                    if (graph.isAdjacentTo(_x, _y)) {
-                        continue;
-                    }
-
-                    if (getKnowledge().isForbidden(_x.getName(),
-                            _y.getName())) {
-                        continue;
-                    }
-
-                    List<Node> tNeighbors = getTNeighbors(_x, _y, graph);
-                    List<Set<Node>> tSubsets = powerSet(tNeighbors);
-
-                    for (Set<Node> tSubset : tSubsets) {
-
-                        if (!validSetByKnowledge(_x, _y, tSubset, true)) {
-                            continue;
-                        }
-
-                        Graph graph2 = new EdgeListGraph(graph);
-
-                        tryInsert(_x, _y, tSubset, graph2, true);
-
-                        if (graph2.existsDirectedCycle()) {
-                            continue;
-                        }
-
-                        double evalScore = scoreGraph(graph2).getScore();
-
-                        TetradLogger.getInstance().log("edgeEvaluations", "Trying to add " + _x + "-->" + _y + " evalScore = " +
-                                evalScore);
-
-                        if (!(evalScore > bestScore && evalScore > score)) {
-                            continue;
-                        }
-
-                        if (!validInsert(_x, _y, tSubset, graph)) {
-                            continue;
-                        }
-
-                        bestScore = evalScore;
-                        x = _x;
-                        y = _y;
-                        t = tSubset;
-                    }
-                }
-            }
-
-            if (x != null) {
-                score = bestScore;
-                insert(x, y, t, graph, true);
-                rebuildPattern(graph);
-
-                saveModelIfSignificant(graph);
-
-                if (scoreGraph(graph).getPValue() > alpha) {
-                    return score;
-                }
-            }
-        } while (x != null);
-        return score;
-    }
-
-    private double bes(Graph graph, double initialScore) {
-        TetradLogger.getInstance().log("info", "** BACKWARD ELIMINATION SEARCH");
-        TetradLogger.getInstance().log("info", "Initial Score = " + nf.format(initialScore));
-        double score = initialScore;
-        double bestScore = score;
-        Node x, y;
-        Set<Node> t = new HashSet<>();
-        do {
-            x = y = null;
-            List<Edge> graphEdges = new ArrayList<>(graph.getEdges());
-            Collections.shuffle(graphEdges);
-
-            for (Edge edge : graphEdges) {
-                Node _x, _y;
-
-                if (Edges.isUndirectedEdge(edge)) {
-                    _x = edge.getNode1();
-                    _y = edge.getNode2();
-                } else {
-                    _x = Edges.getDirectedEdgeTail(edge);
-                    _y = Edges.getDirectedEdgeHead(edge);
-                }
-
-                if (!getKnowledge().noEdgeRequired(_x.getName(), _y.getName())) {
-                    continue;
-                }
-
-                List<Node> hNeighbors = getHNeighbors(_x, _y, graph);
-                List<Set<Node>> hSubsets = powerSet(hNeighbors);
-
-                for (Set<Node> hSubset : hSubsets) {
-                    if (!validSetByKnowledge(_x, _y, hSubset, false)) {
-                        continue;
-                    }
-
-                    Graph graph2 = new EdgeListGraph(graph);
-
-                    tryDelete(_x, _y, hSubset, graph2, true);
-
-                    double evalScore = scoreGraph(graph2).getScore();
-
-                    if (!(evalScore > bestScore)) {
-                        continue;
-                    }
-
-                    if (!validDelete(_x, _y, hSubset, graph)) {
-                        continue;
-                    }
-
-                    bestScore = evalScore;
-                    x = _x;
-                    y = _y;
-                    t = hSubset;
-                }
-            }
-            if (x != null) {
-//                if (scoreGraph(graph).getScore() < alpha) {
+//    private double fes(Graph graph, double score) {
+//        TetradLogger.getInstance().log("info", "** FORWARD EQUIVALENCE SEARCH");
+//        double bestScore = score;
+//        TetradLogger.getInstance().log("info", "Initial Score = " + nf.format(bestScore));
+//
+//        Node x, y;
+//        Set<Node> t = new HashSet<>();
+//
+//        do {
+//            x = y = null;
+//            List<Node> nodes = graph.getNodes();
+//            Collections.shuffle(nodes);
+//
+//            for (int i = 0; i < nodes.size(); i++) {
+//                Node _x = nodes.get(i);
+//
+//                for (Node _y : nodes) {
+//                    if (_x == _y) {
+//                        continue;
+//                    }
+//
+//                    if (graph.isAdjacentTo(_x, _y)) {
+//                        continue;
+//                    }
+//
+//                    if (getKnowledge().isForbidden(_x.getName(),
+//                            _y.getName())) {
+//                        continue;
+//                    }
+//
+//                    List<Node> tNeighbors = getTNeighbors(_x, _y, graph);
+//                    List<Set<Node>> tSubsets = powerSet(tNeighbors);
+//
+//                    for (Set<Node> tSubset : tSubsets) {
+//
+//                        if (!validSetByKnowledge(_x, _y, tSubset, true)) {
+//                            continue;
+//                        }
+//
+//                        Graph graph2 = new EdgeListGraph(graph);
+//
+//                        tryInsert(_x, _y, tSubset, graph2, true);
+//
+//                        if (graph2.existsDirectedCycle()) {
+//                            continue;
+//                        }
+//
+//                        double evalScore = scoreGraph(graph2).getScore();
+//
+//                        TetradLogger.getInstance().log("edgeEvaluations", "Trying to add " + _x + "-->" + _y + " evalScore = " +
+//                                evalScore);
+//
+//                        if (!(evalScore > bestScore && evalScore > score)) {
+//                            continue;
+//                        }
+//
+//                        if (!validInsert(_x, _y, tSubset, graph)) {
+//                            continue;
+//                        }
+//
+//                        bestScore = evalScore;
+//                        x = _x;
+//                        y = _y;
+//                        t = tSubset;
+//                    }
+//                }
+//            }
+//
+//            if (x != null) {
+//                score = bestScore;
+//                insert(x, y, t, graph, true);
+//                rebuildPattern(graph);
+//
+//                saveModelIfSignificant(graph);
+//
+//                if (scoreGraph(graph).getPValue() > alpha) {
 //                    return score;
 //                }
+//            }
+//        } while (x != null);
+//        return score;
+//    }
 
-                if (!graph.isAdjacentTo(x, y)) {
-                    throw new IllegalArgumentException("trying to delete a nonexistent edge! " + x + "---" + y);
-                }
+//    private void bes(Graph graph, double initialScore) {
+//        TetradLogger.getInstance().log("info", "** BACKWARD ELIMINATION SEARCH");
+//        TetradLogger.getInstance().log("info", "Initial Score = " + nf.format(initialScore));
+//        double score = initialScore;
+//        double bestScore = score;
+//        Node x, y;
+//        Set<Node> t = new HashSet<>();
+//        do {
+//            x = y = null;
+//            List<Edge> graphEdges = new ArrayList<>(graph.getEdges());
+//            Collections.shuffle(graphEdges);
+//
+//            for (Edge edge : graphEdges) {
+//                Node _x, _y;
+//
+//                if (Edges.isUndirectedEdge(edge)) {
+//                    _x = edge.getNode1();
+//                    _y = edge.getNode2();
+//                } else {
+//                    _x = Edges.getDirectedEdgeTail(edge);
+//                    _y = Edges.getDirectedEdgeHead(edge);
+//                }
+//
+//                if (!getKnowledge().noEdgeRequired(_x.getName(), _y.getName())) {
+//                    continue;
+//                }
+//
+//                List<Node> hNeighbors = getHNeighbors(_x, _y, graph);
+//                List<Set<Node>> hSubsets = powerSet(hNeighbors);
+//
+//                for (Set<Node> hSubset : hSubsets) {
+//                    if (!validSetByKnowledge(_x, _y, hSubset, false)) {
+//                        continue;
+//                    }
+//
+//                    Graph graph2 = new EdgeListGraph(graph);
+//
+//                    tryDelete(_x, _y, hSubset, graph2, true);
+//
+//                    double evalScore = scoreGraph(graph2).getScore();
+//
+//                    if (!(evalScore > bestScore)) {
+//                        continue;
+//                    }
+//
+//                    if (!validDelete(_x, _y, hSubset, graph)) {
+//                        continue;
+//                    }
+//
+//                    bestScore = evalScore;
+//                    x = _x;
+//                    y = _y;
+//                    t = hSubset;
+//                }
+//            }
+//            if (x != null) {
+////                if (scoreGraph(graph).getScore() < alpha) {
+////                    return score;
+////                }
+//
+//                if (!graph.isAdjacentTo(x, y)) {
+//                    throw new IllegalArgumentException("trying to delete a nonexistent edge! " + x + "---" + y);
+//                }
+//
+//                score = bestScore;
+//                delete(x, y, t, graph, true);
+//
+//
+//                rebuildPattern(graph);
+//
+//                saveModelIfSignificant(graph);
+//            }
+//        } while (x != null);
+//
+//    }
 
-                score = bestScore;
-                delete(x, y, t, graph, true);
 
+//    /*
+//     * Do an actual insertion
+//     * (Definition 12 from Chickering, 2002).
+//     **/
 
-                rebuildPattern(graph);
+//    private void tryInsert(Node x, Node y, Set<Node> subset, Graph graph, boolean log) {
+//        graph.addDirectedEdge(x, y);
+//
+//        for (Node t : subset) {
+//            Edge oldEdge = graph.getEdge(t, y);
+//
+//            if (!Edges.isUndirectedEdge(oldEdge)) {
+//                throw new IllegalArgumentException("Should be undirected: " + oldEdge);
+//            }
+//
+//            graph.removeEdge(t, y);
+//            graph.addDirectedEdge(t, y);
+//
+//            if (log) {
+//                TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
+//                        graph.getEdge(t, y));
+//            }
+//        }
+//    }
 
-                saveModelIfSignificant(graph);
-            }
-        } while (x != null);
+//    /**
+//     * Do an actual deletion (Definition 13 from Chickering, 2002).
+//     */
+//    private void tryDelete(Node x, Node y, Set<Node> subset, Graph graph, boolean log) {
+//        graph.removeEdge(x, y);
+//
+//        for (Node h : subset) {
+//            if (Edges.isUndirectedEdge(graph.getEdge(x, h))) {
+//                graph.removeEdge(x, h);
+//                graph.addDirectedEdge(x, h);
+//
+//                if (log) {
+//                    Edge oldEdge = graph.getEdge(x, h);
+//                    TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
+//                            graph.getEdge(x, h));
+//                }
+//            }
+//
+//            if (Edges.isUndirectedEdge(graph.getEdge(y, h))) {
+//                graph.removeEdge(y, h);
+//                graph.addDirectedEdge(y, h);
+//
+//                if (log) {
+//                    Edge oldEdge = graph.getEdge(y, h);
+//                    TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
+//                            graph.getEdge(y, h));
+//                }
+//            }
+//        }
+//    }
 
-        return score;
-    }
+//    private void insert(Node x, Node y, Set<Node> subset, Graph graph, boolean log) {
+//        if (graph.isAdjacentTo(x, y)) {
+//            return;
+//        }
+//
+//        graph.addDirectedEdge(x, y);
+//
+//        for (Node t : subset) {
+//            Edge oldEdge = graph.getEdge(t, y);
+//
+//            if (!Edges.isUndirectedEdge(oldEdge)) {
+//                throw new IllegalArgumentException("Should be undirected: " + oldEdge);
+//            }
+//
+//            graph.removeEdge(t, y);
+//            graph.addDirectedEdge(t, y);
+//
+//            if (log) {
+//                TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
+//                        graph.getEdge(t, y));
+//            }
+//        }
+//    }
 
+//    /**
+//     * Do an actual deletion (Definition 13 from Chickering, 2002).
+//     */
+//    private void delete(Node x, Node y, Set<Node> subset, Graph graph, boolean log) {
+//
+//        if (log) {
+//            Edge oldEdge = graph.getEdge(x, y);
+//            System.out.println(graph.getNumEdges() + ". DELETE " + oldEdge +
+//                    " " + subset +
+//                    " (" + nf.format(scoreGraph(graph).getPValue()) + ")");
+//        }
+//
+//        graph.removeEdge(x, y);
+//
+//        for (Node h : subset) {
+//            if (Edges.isUndirectedEdge(graph.getEdge(x, h))) {
+//                graph.removeEdge(x, h);
+//                graph.addDirectedEdge(x, h);
+//
+//                if (log) {
+//                    Edge oldEdge = graph.getEdge(x, h);
+//                    TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
+//                            graph.getEdge(x, h));
+//                }
+//            }
+//
+//            if (Edges.isUndirectedEdge(graph.getEdge(y, h))) {
+//                graph.removeEdge(y, h);
+//                graph.addDirectedEdge(y, h);
+//
+//                if (log) {
+//                    Edge oldEdge = graph.getEdge(y, h);
+//                    TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
+//                            graph.getEdge(y, h));
+//                }
+//            }
+//        }
+//    }
 
     /*
-    * Do an actual insertion
-    * (Definition 12 from Chickering, 2002).
-    **/
+     * Test if the candidate insertion is a valid operation
+     * (Theorem 15 from Chickering, 2002).
+     **/
 
-    private void tryInsert(Node x, Node y, Set<Node> subset, Graph graph, boolean log) {
-        graph.addDirectedEdge(x, y);
+//    private boolean validInsert(Node x, Node y, Set<Node> subset, Graph graph) {
+//        List<Node> naYXT = new LinkedList<>(subset);
+//        naYXT.addAll(findNaYX(x, y, graph));
+//
+//        return GraphUtils.isClique(naYXT, graph) && isSemiDirectedBlocked(x, y, naYXT, graph, new HashSet<Node>());
+//
+//    }
 
-        for (Node t : subset) {
-            Edge oldEdge = graph.getEdge(t, y);
-
-            if (!Edges.isUndirectedEdge(oldEdge)) {
-                throw new IllegalArgumentException("Should be undirected: " + oldEdge);
-            }
-
-            graph.removeEdge(t, y);
-            graph.addDirectedEdge(t, y);
-
-            if (log) {
-                TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
-                        graph.getEdge(t, y));
-            }
-        }
-    }
-
-    /**
-     * Do an actual deletion (Definition 13 from Chickering, 2002).
-     */
-    private void tryDelete(Node x, Node y, Set<Node> subset, Graph graph, boolean log) {
-        graph.removeEdge(x, y);
-
-        for (Node h : subset) {
-            if (Edges.isUndirectedEdge(graph.getEdge(x, h))) {
-                graph.removeEdge(x, h);
-                graph.addDirectedEdge(x, h);
-
-                if (log) {
-                    Edge oldEdge = graph.getEdge(x, h);
-                    TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
-                            graph.getEdge(x, h));
-                }
-            }
-
-            if (Edges.isUndirectedEdge(graph.getEdge(y, h))) {
-                graph.removeEdge(y, h);
-                graph.addDirectedEdge(y, h);
-
-                if (log) {
-                    Edge oldEdge = graph.getEdge(y, h);
-                    TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
-                            graph.getEdge(y, h));
-                }
-            }
-        }
-    }
-
-    private void insert(Node x, Node y, Set<Node> subset, Graph graph, boolean log) {
-        if (graph.isAdjacentTo(x, y)) {
-            return;
-        }
-
-        graph.addDirectedEdge(x, y);
-
-        for (Node t : subset) {
-            Edge oldEdge = graph.getEdge(t, y);
-
-            if (!Edges.isUndirectedEdge(oldEdge)) {
-                throw new IllegalArgumentException("Should be undirected: " + oldEdge);
-            }
-
-            graph.removeEdge(t, y);
-            graph.addDirectedEdge(t, y);
-
-            if (log) {
-                TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
-                        graph.getEdge(t, y));
-            }
-        }
-    }
-
-    /**
-     * Do an actual deletion (Definition 13 from Chickering, 2002).
-     */
-    private void delete(Node x, Node y, Set<Node> subset, Graph graph, boolean log) {
-
-        if (log) {
-            Edge oldEdge = graph.getEdge(x, y);
-            System.out.println(graph.getNumEdges() + ". DELETE " + oldEdge +
-                    " " + subset +
-                    " (" + nf.format(scoreGraph(graph).getPValue()) + ")");
-        }
-
-        graph.removeEdge(x, y);
-
-        for (Node h : subset) {
-            if (Edges.isUndirectedEdge(graph.getEdge(x, h))) {
-                graph.removeEdge(x, h);
-                graph.addDirectedEdge(x, h);
-
-                if (log) {
-                    Edge oldEdge = graph.getEdge(x, h);
-                    TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
-                            graph.getEdge(x, h));
-                }
-            }
-
-            if (Edges.isUndirectedEdge(graph.getEdge(y, h))) {
-                graph.removeEdge(y, h);
-                graph.addDirectedEdge(y, h);
-
-                if (log) {
-                    Edge oldEdge = graph.getEdge(y, h);
-                    TetradLogger.getInstance().log("directedEdges", "--- Directing " + oldEdge + " to " +
-                            graph.getEdge(y, h));
-                }
-            }
-        }
-    }
-
-    /*
-    * Test if the candidate insertion is a valid operation
-    * (Theorem 15 from Chickering, 2002).
-    **/
-
-    private boolean validInsert(Node x, Node y, Set<Node> subset, Graph graph) {
-        List<Node> naYXT = new LinkedList<>(subset);
-        naYXT.addAll(findNaYX(x, y, graph));
-
-        return GraphUtils.isClique(naYXT, graph) && isSemiDirectedBlocked(x, y, naYXT, graph, new HashSet<Node>());
-
-    }
-
-    /**
-     * Test if the candidate deletion is a valid operation (Theorem 17 from Chickering, 2002).
-     */
-    private static boolean validDelete(Node x, Node y, Set<Node> h,
-                                       Graph graph) {
-        List<Node> naYXH = findNaYX(x, y, graph);
-        naYXH.removeAll(h);
-        return GraphUtils.isClique(naYXH, graph);
-    }
+//    /**
+//     * Test if the candidate deletion is a valid operation (Theorem 17 from Chickering, 2002).
+//     */
+//    private static boolean validDelete(Node x, Node y, Set<Node> h,
+//                                       Graph graph) {
+//        List<Node> naYXH = findNaYX(x, y, graph);
+//        naYXH.removeAll(h);
+//        return GraphUtils.isClique(naYXH, graph);
+//    }
 
     /**
      * Get all nodes that are connected to Y by an undirected edge and not adjacent to X.
      */
-    private static List<Node> getTNeighbors(Node x, Node y, Graph graph) {
-        List<Node> tNeighbors = new LinkedList<>(graph.getAdjacentNodes(y));
-        tNeighbors.removeAll(graph.getAdjacentNodes(x));
-
-        for (int i = tNeighbors.size() - 1; i >= 0; i--) {
-            Node z = tNeighbors.get(i);
-            Edge edge = graph.getEdge(y, z);
-
-            if (!Edges.isUndirectedEdge(edge)) {
-                tNeighbors.remove(z);
-            }
-        }
-
-        return tNeighbors;
-    }
+//    private static List<Node> getTNeighbors(Node x, Node y, Graph graph) {
+//        List<Node> tNeighbors = new LinkedList<>(graph.getAdjacentNodes(y));
+//        tNeighbors.removeAll(graph.getAdjacentNodes(x));
+//
+//        for (int i = tNeighbors.size() - 1; i >= 0; i--) {
+//            Node z = tNeighbors.get(i);
+//            Edge edge = graph.getEdge(y, z);
+//
+//            if (!Edges.isUndirectedEdge(edge)) {
+//                tNeighbors.remove(z);
+//            }
+//        }
+//
+//        return tNeighbors;
+//    }
 
     /**
      * Get all nodes that are connected to Y by an undirected edge and adjacent to X
      */
-    private static List<Node> getHNeighbors(Node x, Node y, Graph graph) {
-        List<Node> hNeighbors = new LinkedList<>(graph.getAdjacentNodes(y));
-        hNeighbors.retainAll(graph.getAdjacentNodes(x));
-
-        for (int i = hNeighbors.size() - 1; i >= 0; i--) {
-            Node z = hNeighbors.get(i);
-            Edge edge = graph.getEdge(y, z);
-
-            if (!Edges.isUndirectedEdge(edge)) {
-                hNeighbors.remove(z);
-            }
-        }
-
-        return hNeighbors;
-    }
+//    private static List<Node> getHNeighbors(Node x, Node y, Graph graph) {
+//        List<Node> hNeighbors = new LinkedList<>(graph.getAdjacentNodes(y));
+//        hNeighbors.retainAll(graph.getAdjacentNodes(x));
+//
+//        for (int i = hNeighbors.size() - 1; i >= 0; i--) {
+//            Node z = hNeighbors.get(i);
+//            Edge edge = graph.getEdge(y, z);
+//
+//            if (!Edges.isUndirectedEdge(edge)) {
+//                hNeighbors.remove(z);
+//            }
+//        }
+//
+//        return hNeighbors;
+//    }
 
     /**
      * Find all nodes that are connected to Y by an undirected edge that are adjacent to X (that is, by undirected or
      * directed edge) NOTE: very inefficient implementation, since the getModel library does not allow access to the
      * adjacency list/matrix of the graph.
      */
-    private static List<Node> findNaYX(Node x, Node y, Graph graph) {
-        List<Node> naYX = new LinkedList<>(graph.getAdjacentNodes(y));
-        naYX.retainAll(graph.getAdjacentNodes(x));
+//    private static List<Node> findNaYX(Node x, Node y, Graph graph) {
+//        List<Node> naYX = new LinkedList<>(graph.getAdjacentNodes(y));
+//        naYX.retainAll(graph.getAdjacentNodes(x));
+//
+//        for (int i = 0; i < naYX.size(); i++) {
+//            Node z = naYX.get(i);
+//            Edge edge = graph.getEdge(y, z);
+//
+//            if (!Edges.isUndirectedEdge(edge)) {
+//                naYX.remove(z);
+//            }
+//        }
+//
+//        return naYX;
+//    }
 
-        for (int i = 0; i < naYX.size(); i++) {
-            Node z = naYX.get(i);
-            Edge edge = graph.getEdge(y, z);
-
-            if (!Edges.isUndirectedEdge(edge)) {
-                naYX.remove(z);
-            }
-        }
-
-        return naYX;
-    }
-
-    private boolean validSetByKnowledge(Node x, Node y, Set<Node> subset,
-                                        boolean insertMode) {
-        if (insertMode) {
-            for (Node aSubset : subset) {
-                if (getKnowledge().isForbidden(aSubset.getName(),
-                        y.getName())) {
-                    return false;
-                }
-            }
-        } else {
-            for (Node nextElement : subset) {
-                if (getKnowledge().isForbidden(x.getName(),
-                        nextElement.getName())) {
-                    return false;
-                }
-                if (getKnowledge().isForbidden(y.getName(),
-                        nextElement.getName())) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
+//    private boolean validSetByKnowledge(Node x, Node y, Set<Node> subset,
+//                                        boolean insertMode) {
+//        if (insertMode) {
+//            for (Node aSubset : subset) {
+//                if (getKnowledge().isForbidden(aSubset.getName(),
+//                        y.getName())) {
+//                    return false;
+//                }
+//            }
+//        } else {
+//            for (Node nextElement : subset) {
+//                if (getKnowledge().isForbidden(x.getName(),
+//                        nextElement.getName())) {
+//                    return false;
+//                }
+//                if (getKnowledge().isForbidden(y.getName(),
+//                        nextElement.getName())) {
+//                    return false;
+//                }
+//            }
+//        }
+//        return true;
+//    }
 
 //    private double scoreGraphChange(Node y, Set<Node> parents1,
 //                                    Set<Node> parents2, Graph graph) {
@@ -647,93 +653,93 @@ public final class BffGes implements Bff {
     /**
      * Verifies if every semidirected path from y to x contains a node in naYXT.
      */
-    private boolean isSemiDirectedBlocked(Node x, Node y, List<Node> naYXT,
-                                          Graph graph, Set<Node> marked) {
-        if (naYXT.contains(y)) {
-            return true;
-        }
+//    private boolean isSemiDirectedBlocked(Node x, Node y, List<Node> naYXT,
+//                                          Graph graph, Set<Node> marked) {
+//        if (naYXT.contains(y)) {
+//            return true;
+//        }
+//
+//        if (y == x) {
+//            return false;
+//        }
+//
+//        for (Node node1 : graph.getNodes()) {
+//            if (node1 == y || marked.contains(node1)) {
+//                continue;
+//            }
+//
+//            if (graph.isAdjacentTo(y, node1) && !graph.isParentOf(node1, y)) {
+//                marked.add(node1);
+//
+//                if (!isSemiDirectedBlocked(x, node1, naYXT, graph, marked)) {
+//                    return false;
+//                }
+//
+//                marked.remove(node1);
+//            }
+//        }
+//
+//        return true;
+//    }
 
-        if (y == x) {
-            return false;
-        }
-
-        for (Node node1 : graph.getNodes()) {
-            if (node1 == y || marked.contains(node1)) {
-                continue;
-            }
-
-            if (graph.isAdjacentTo(y, node1) && !graph.isParentOf(node1, y)) {
-                marked.add(node1);
-
-                if (!isSemiDirectedBlocked(x, node1, naYXT, graph, marked)) {
-                    return false;
-                }
-
-                marked.remove(node1);
-            }
-        }
-
-        return true;
-    }
-
-    private static List<Set<Node>> powerSet(List<Node> nodes) {
-        List<Set<Node>> subsets = new ArrayList<>();
-        int total = (int) Math.pow(2, nodes.size());
-        for (int i = 0; i < total; i++) {
-            Set<Node> newSet = new HashSet<>();
-            String selection = Integer.toBinaryString(i);
-            for (int j = selection.length() - 1; j >= 0; j--) {
-                if (selection.charAt(j) == '1') {
-                    newSet.add(nodes.get(selection.length() - j - 1));
-                }
-            }
-            subsets.add(newSet);
-        }
-        return subsets;
-    }
+//    private static List<Set<Node>> powerSet(List<Node> nodes) {
+//        List<Set<Node>> subsets = new ArrayList<>();
+//        int total = (int) Math.pow(2, nodes.size());
+//        for (int i = 0; i < total; i++) {
+//            Set<Node> newSet = new HashSet<>();
+//            String selection = Integer.toBinaryString(i);
+//            for (int j = selection.length() - 1; j >= 0; j--) {
+//                if (selection.charAt(j) == '1') {
+//                    newSet.add(nodes.get(selection.length() - j - 1));
+//                }
+//            }
+//            subsets.add(newSet);
+//        }
+//        return subsets;
+//    }
 
 
     /**
      * Completes a pattern that was modified by an insertion/deletion operator Based on the algorithm described on
      * Appendix C of (Chickering, 2002).
      */
-    private void rebuildPattern(Graph graph) {
-        SearchGraphUtils.basicPattern(graph);
-        addRequiredEdges(graph);
-        pdagWithBk(graph, getKnowledge());
+//    private void rebuildPattern(Graph graph) {
+//        SearchGraphUtils.basicPattern(graph);
+//        addRequiredEdges(graph);
+//        pdagWithBk(graph, getKnowledge());
+//
+//        TetradLogger.getInstance().log("rebuiltPatterns", "Rebuilt pattern = " + graph);
+//    }
 
-        TetradLogger.getInstance().log("rebuiltPatterns", "Rebuilt pattern = " + graph);
-    }
+//    /**
+//     * Fully direct a graph with background knowledge. I am not sure how to adapt Chickering's suggested algorithm above
+//     * (dagToPdag) to incorporate background knowledge, so I am also implementing this algorithm based on Meek's 1995
+//     * UAI paper. Notice it is the same implemented in PcSearch. </p> *IMPORTANT!* *It assumes all colliders are
+//     * oriented, as well as arrows dictated by time order.*
+//     */
+//    private void pdagWithBk(Graph graph, IKnowledge knowledge) {
+//        MeekRules rules = new MeekRules();
+////        rules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
+//        rules.setKnowledge(knowledge);
+//        rules.orientImplied(graph);
+//    }
 
-    /**
-     * Fully direct a graph with background knowledge. I am not sure how to adapt Chickering's suggested algorithm above
-     * (dagToPdag) to incorporate background knowledge, so I am also implementing this algorithm based on Meek's 1995
-     * UAI paper. Notice it is the same implemented in PcSearch. </p> *IMPORTANT!* *It assumes all colliders are
-     * oriented, as well as arrows dictated by time order.*
-     */
-    private void pdagWithBk(Graph graph, IKnowledge knowledge) {
-        MeekRules rules = new MeekRules();
-//        rules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
-        rules.setKnowledge(knowledge);
-        rules.orientImplied(graph);
-    }
-
-    private void addRequiredEdges(Graph graph) {
-        // Add required edges.
-        List<Node> nodes = graph.getNodes();
-
-        for (int i = 0; i < nodes.size(); i++) {
-            for (int j = 0; j < nodes.size(); j++) {
-                if (i == j) continue;
-
-                if (getKnowledge().isRequired(nodes.get(i).getName(), nodes.get(j).getName())) {
-                    if (!graph.isAdjacentTo(nodes.get(i), nodes.get(j))) {
-                        graph.addDirectedEdge(nodes.get(i), nodes.get(j));
-                    }
-                }
-            }
-        }
-    }
+//    private void addRequiredEdges(Graph graph) {
+//        // Add required edges.
+//        List<Node> nodes = graph.getNodes();
+//
+//        for (int i = 0; i < nodes.size(); i++) {
+//            for (int j = 0; j < nodes.size(); j++) {
+//                if (i == j) continue;
+//
+//                if (getKnowledge().isRequired(nodes.get(i).getName(), nodes.get(j).getName())) {
+//                    if (!graph.isAdjacentTo(nodes.get(i), nodes.get(j))) {
+//                        graph.addDirectedEdge(nodes.get(i), nodes.get(j));
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
@@ -761,12 +767,12 @@ public final class BffGes implements Bff {
     }
 
     public static class Score {
-        private Scorer scorer;
-        private double pValue;
-        private double fml;
-        private double chisq;
+        private final Scorer scorer;
+        private final double pValue;
+        private final double fml;
+        private final double chisq;
         private double bic;
-//        private double aic;
+        //        private double aic;
         private int dof;
 
         public Score(Scorer scorer) {

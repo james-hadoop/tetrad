@@ -168,7 +168,17 @@ public class ZhangShenBoundScore implements Score {
         int m0 = estMinParents[i];
 
         if (takeLog) {
-            score = -(N * log(varRy) + getLambda(m0, pn) * pi * 2);
+
+            double s2 = 3;// (estVarRys[i]);
+            double lambda = getLambda(m0, pn);
+
+            double s = (log(s2) - ((1./ N) * pi * lambda)) / (1. - (1. / N) * pi * lambda);
+
+//            System.out.println("s = " + s + " estsdy = " + (estVarRys[i]));
+
+//            s = max(0.1, s);
+
+            score = -(N * log(varRy) + getLambda(m0, pn) * pi * s);
         } else {
 //            score = -(sum + c * getLambda(m0, pn) * pi * trueErrorVariance);
             score = -(N * varRy + getLambda(m0, pn) * pi * estVarRys[i]);

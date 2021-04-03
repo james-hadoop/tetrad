@@ -202,7 +202,7 @@ public final class Fci implements GraphSearch {
 
         graph.reorientAllWith(Endpoint.CIRCLE);
 
-        SepsetProducer sp = new SepsetsPossibleDsep(graph, independenceTest, knowledge, depth, maxPathLength);
+        SepsetsPossibleDsep sp = new SepsetsPossibleDsep(graph, independenceTest, knowledge, depth, maxPathLength);
         sp.setVerbose(verbose);
 
         // The original FCI, with or without JiJi Zhang's orientation rules

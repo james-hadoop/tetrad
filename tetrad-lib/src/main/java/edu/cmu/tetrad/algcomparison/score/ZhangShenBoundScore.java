@@ -41,7 +41,7 @@ public class ZhangShenBoundScore implements ScoreWrapper {
             throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
         }
 
-        score.setCalculateSquaredEuclideanNorms(parameters.getBoolean(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED));
+//        score.setCalculateSquaredEuclideanNorms(parameters.getBoolean(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED));
         score.setRiskBound(parameters.getDouble(Params.ZS_RISK_BOUND));
         score.setCorrelationThreshold(parameters.getDouble(Params.CORRELATION_THRESHOLD));
         score.setTakeLog(parameters.getBoolean(Params.TAKE_LOGS));
@@ -64,10 +64,10 @@ public class ZhangShenBoundScore implements ScoreWrapper {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.ZS_RISK_BOUND);
-        parameters.add(Params.CORRELATION_THRESHOLD);
+//        parameters.add(Params.CORRELATION_THRESHOLD);
 //        parameters.add(Params.PENALTY_DISCOUNT);
-        parameters.add(Params.TAKE_LOGS);
-        parameters.add(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED);
+//        parameters.add(Params.TAKE_LOGS);
+//        parameters.add(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED);
 //        parameters.add(Params.TRUE_ERROR_VARIANCE);
         return parameters;
     }

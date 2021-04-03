@@ -6,6 +6,7 @@ import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.KimEtAlTests;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -174,23 +175,23 @@ public class TestFisherZCalibration {
 //        RandomUtil.getInstance().setSeed(92883342449L);
 
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 1);
+        parameters.set(Params.NUM_RUNS, 10);
 
-        parameters.set(Params.NUM_MEASURES, 500);
-        parameters.set(Params.AVG_DEGREE, 6);
+        parameters.set(Params.NUM_MEASURES, 20);
+        parameters.set(Params.AVG_DEGREE, 4);
 
-        parameters.set(Params.SAMPLE_SIZE, /*200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000,*/ 1000);
+        parameters.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);//,*/ 1000);
         parameters.set(Params.COEF_LOW, 0);
         parameters.set(Params.COEF_HIGH, 1);
         parameters.set(Params.VAR_LOW, 1);
-        parameters.set(Params.VAR_HIGH, 1);
+        parameters.set(Params.VAR_HIGH, 2);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
         parameters.set(Params.SEM_IM_SIMULATION_TYPE, false);
         parameters.set(Params.CORRELATION_THRESHOLD, 1);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.VERBOSE, true);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.PARALLELISM, 20);
 
         parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
@@ -216,15 +217,15 @@ public class TestFisherZCalibration {
 
 
         // Parameters for Zhang Shen Bound Score
-//        parameters.set(Params.ZS_RISK_BOUND, 0, 0.001, 0.01, 0.2, 0.3);
+        parameters.set(Params.ZS_RISK_BOUND, 0.2);//0, 0.001, 0.01, 0.2, 0.3);
 
         Statistics statistics = new Statistics();
 
-//        statistics.add(new ParameterColumn(Params.NUM_RUNS));
-//        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new ParameterColumn(Params.NUM_RUNS));
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
 //
-//        statistics.add(new ParameterColumn(Params.ZS_RISK_BOUND));
-        statistics.add(new ParameterColumn(Params.SEM_GIC_RULE));
+        statistics.add(new ParameterColumn(Params.ZS_RISK_BOUND));
+//        statistics.add(new ParameterColumn(Params.SEM_GIC_RULE));
 //        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
 //        statistics.add(new ParameterColumn(Params.TAKE_LOGS));
 //
@@ -253,11 +254,11 @@ public class TestFisherZCalibration {
 //                new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
 //                new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
-//                new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
 
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new KimEtAlTests(), null));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new SemBicTest(), null));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new KimEtAlTests(), null));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new SemBicTest(), null));
 
         Simulations simulations = new Simulations();
 
@@ -360,11 +361,11 @@ public class TestFisherZCalibration {
 
     @Test
     public void test3b() {
-        int[] numMeasures = {2400};//{300, 600, 1200, 2400, 500};
-        double[] avgDegree = {4};//{2.0, 2.8, 3.5, 4.0, 10.0};
-        int[] sampleSize = {1000};//{100, 200, 300, 400, 300};
+        int[] numMeasures = {300};//{300, 600, 1200, 2400, 500};
+        double[] avgDegree = {2};//{2.0, 2.8, 3.5, 4.0, 10.0};
+        int[] sampleSize = {100};//{100, 200, 300, 400, 300};
 
-        boolean faithfulness = false;
+        boolean faithfulness = true;
         boolean zhangshen = false;
 
         int[] indices = {0};
@@ -403,7 +404,7 @@ public class TestFisherZCalibration {
         parameters.set(Params.TAKE_LOGS, true);
         parameters.set(Params.TRUE_ERROR_VARIANCE, 1);
         parameters.set(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED, false);
-        parameters.set(Params.ZS_RISK_BOUND, .1, .2, .3, .4);
+        parameters.set(Params.ZS_RISK_BOUND, .01);
 
         parameters.set(Params.USE_MAX_P_ORIENTATION_HEURISTIC, true);
         parameters.set(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH, -1);
@@ -429,13 +430,13 @@ public class TestFisherZCalibration {
         Algorithms algorithms = new Algorithms();
 
 //        if (zhangshen) {
-//            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
-//                    new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
+            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                    new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
 //        } else {
 //            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
 //                    new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
-            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
-                    new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
+//            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+//                    new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
 //        }
 
         Simulations simulations = new Simulations();
