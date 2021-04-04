@@ -328,7 +328,7 @@
                 <model-class>edu.cmu.tetradapp.model.GeneralizedSemImWrapper</model-class>
                 <editor-class>edu.cmu.tetradapp.editor.GeneralizedSemImEditor</editor-class>
             </model>
-            <model name="HBSMS" acronym="hbsms" help="hbsms">
+            <model name="HBSMS" acronym="HBSMS" help="hbsms">
                 <logger>
                     <event id="info" description="Information" default="on"/>
                     <event id="im" description="Instantiated Model" default="on"/>

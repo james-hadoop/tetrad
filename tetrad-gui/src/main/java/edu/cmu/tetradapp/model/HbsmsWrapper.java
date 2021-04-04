@@ -52,34 +52,17 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
     private Graph initialGraph;
     private Graph graph;
     private transient List<PropertyChangeListener> listeners;
-    private final DataWrapper dataWrapper;
 
-    /**
-     * @deprecated
-     */
-    private Parameters params;
     private Parameters params2;
-    private SemIm estSem;
-    private Graph trueDag;
 
-    /**
-     * @deprecated
-     */
-    private double alpha = 0.05;
     private SemIm originalSemIm;
     private SemIm newSemIm;
-
-    /**
-     * @deprecated
-     */
-    private SemIm semIm;
 
     //============================CONSTRUCTORS============================//
 
     public HbsmsWrapper(DataWrapper dataWrapper,
                         Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
         super(dataWrapper, params, knowledgeBoxModel);
-        this.dataWrapper = dataWrapper;
         this.params2 = params;
         this.graph = new EdgeListGraph(dataWrapper.getSelectedDataModel().getVariables());
     }
@@ -87,7 +70,6 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
     public HbsmsWrapper(DataWrapper dataWrapper,
                         Parameters params) {
         super(dataWrapper, params, null);
-        this.dataWrapper = dataWrapper;
         this.params2 = params;
         setGraph(new EdgeListGraph(dataWrapper.getSelectedDataModel().getVariables()));
     }
@@ -97,65 +79,10 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
         this.initialGraph = new EdgeListGraph(graph);
     }
 
-//    public PValueImproverWrapper(GraphWrapper graphWrapper,
-//                                 DataWrapper dataWrapper,
-//                                 Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
-//        super(dataWrapper, params, knowledgeBoxModel);
-//        this.dataWrapper = dataWrapper;
-//        this.params2 = params;
-//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-//    }
-//
-//    public PValueImproverWrapper(GraphWrapper graphWrapper,
-//                                 DataWrapper dataWrapper,
-//                                 Parameters params) {
-//        super(dataWrapper, params);
-//        this.dataWrapper = dataWrapper;
-//        this.params2 = params;
-//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-//    }
-//
-//    public PValueImproverWrapper(DagWrapper graphWrapper,
-//                                 DataWrapper dataWrapper,
-//                                 Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
-//        super(dataWrapper, params, knowledgeBoxModel);
-//        this.dataWrapper = dataWrapper;
-//        this.params2 = params;
-//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-//    }
-//
-//    public PValueImproverWrapper(DagWrapper graphWrapper,
-//                                 DataWrapper dataWrapper,
-//                                 Parameters params) {
-//        super(dataWrapper, params);
-//        this.dataWrapper = dataWrapper;
-//        this.params2 = params;
-//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-//    }
-//
-//    public PValueImproverWrapper(SemGraphWrapper graphWrapper,
-//                                 DataWrapper dataWrapper,
-//                                 Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
-//        super(dataWrapper, params, knowledgeBoxModel);
-//        this.dataWrapper = dataWrapper;
-//        this.params2 = params;
-//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-//   }
-//
-//    public PValueImproverWrapper(SemGraphWrapper graphWrapper,
-//                                 DataWrapper dataWrapper,
-//                                 Parameters params) {
-//        super(dataWrapper, params);
-//        this.dataWrapper = dataWrapper;
-//        this.params2 = params;
-//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-//    }
-
     public HbsmsWrapper(GraphSource graphWrapper,
                         DataWrapper dataWrapper,
                         Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
         super(dataWrapper, params, knowledgeBoxModel);
-        this.dataWrapper = dataWrapper;
         this.params2 = params;
         setGraph(new EdgeListGraph(graphWrapper.getGraph()));
     }
@@ -164,7 +91,6 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
                         DataWrapper dataWrapper,
                         Parameters params) {
         super(dataWrapper, params);
-        this.dataWrapper = dataWrapper;
         this.params2 = params;
         setGraph(new EdgeListGraph(graphWrapper.getGraph()));
     }
@@ -194,8 +120,7 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
     }
 
     public boolean isShuffleMoves() {
-        boolean shuffleMoves = false;
-        return shuffleMoves;
+        return false;
     }
 
     /**
@@ -204,6 +129,7 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
 
     public void execute() {
         DataModel dataModel = getDataModel();
+        assert (dataModel != null);
 
         IKnowledge knowledge = (IKnowledge) params2.get("knowledge", new Knowledge2());
 
@@ -229,17 +155,7 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
             }
         }
         else if (dataModel instanceof CovarianceMatrix) {
-            CovarianceMatrix covarianceMatrix = (CovarianceMatrix) dataModel;
-
-            if (getAlgorithmType() == AlgorithmType.BEAM) {
-                search = new HbsmsBeam(graph2, covarianceMatrix, knowledge);
-            } else if (getAlgorithmType() == AlgorithmType.FGES) {
-                throw new IllegalArgumentException("GES method requires a dataset; a covariance matrix was provided.");
-//                search = new BffGes(graph2, covarianceMatrix);
-//                search.setKnowledge(knowledge);
-            } else {
-                throw new IllegalStateException();
-            }
+            throw new IllegalArgumentException("HBSMS requires tabular data.");
         }
         else {
             throw new IllegalStateException();
@@ -274,9 +190,7 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
     }
 
     public ImpliedOrientation getMeekRules() {
-        MeekRules rules = new MeekRules();
-        rules.setKnowledge((IKnowledge) params.get("knowledge", new Knowledge2()));
-        return rules;
+        return new MeekRules();
     }
 
     @Override
@@ -286,10 +200,6 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
 
     public void setAlgorithmType(AlgorithmType algorithmType) {
         this.algorithmType = algorithmType;
-    }
-
-    private boolean isAggressivelyPreventCycles() {
-        return params.getBoolean("aggressivelyPreventCycles", false);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l) {
@@ -331,68 +241,6 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
     }
 
 
-    public DataSet simulateDataCholesky(int sampleSize, Matrix covar, List<Node> variableNodes) {
-        List<Node> variables = new LinkedList<>();
-
-        for (Node node : variableNodes) {
-            variables.add(node);
-        }
-
-        List<Node> newVariables = new ArrayList<>();
-
-        for (Node node : variables) {
-            ContinuousVariable continuousVariable = new ContinuousVariable(node.getName());
-            continuousVariable.setNodeType(node.getNodeType());
-            newVariables.add(continuousVariable);
-        }
-
-        Matrix impliedCovar = covar;
-
-        DataSet fullDataSet = new BoxDataSet(new VerticalDoubleDataBox(sampleSize, newVariables.size()), newVariables);
-        Matrix cholesky = MatrixUtils.cholesky(impliedCovar);
-
-        // Simulate the data by repeatedly calling the Cholesky.exogenousData
-        // method. Store only the data for the measured variables.
-        for (int row = 0; row < sampleSize; row++) {
-
-            // Step 1. Generate normal samples.
-            double exoData[] = new double[cholesky.rows()];
-
-            for (int i = 0; i < exoData.length; i++) {
-                exoData[i] = RandomUtil.getInstance().nextNormal(0, 1);
-                //            exoData[i] = randomUtil.nextUniform(-1, 1);
-            }
-
-            // Step 2. Multiply by cholesky to get correct covariance.
-            double point[] = new double[exoData.length];
-
-            for (int i = 0; i < exoData.length; i++) {
-                double sum = 0.0;
-
-                for (int j = 0; j <= i; j++) {
-                    sum += cholesky.get(i, j) * exoData[j];
-                }
-
-                point[i] = sum;
-            }
-
-            double rowData[] = point;
-
-            for (int col = 0; col < variables.size(); col++) {
-                int index = variableNodes.indexOf(variables.get(col));
-                double value = rowData[index];
-
-                if (Double.isNaN(value) || Double.isInfinite(value)) {
-                    throw new IllegalArgumentException("Value out of range: " + value);
-                }
-
-                fullDataSet.setDouble(row, col, value);
-            }
-        }
-
-        return DataUtils.restrictToMeasured(fullDataSet);
-    }
-
     private void setOriginalSemIm(SemIm originalSemIm) {
         if (this.originalSemIm == null) {
             this.originalSemIm = originalSemIm;
@@ -407,9 +255,6 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
      * this form may be added to any class, even if Tetrad sessions were previously saved out using a version of the
      * class that didn't include it. (That's what the "s.defaultReadObject();" is for. See J. Bloch, Effective Java, for
      * help.
-     *
-     * @throws java.io.IOException
-     * @throws ClassNotFoundException
      */
     private void readObject(ObjectInputStream s)
             throws IOException, ClassNotFoundException {
