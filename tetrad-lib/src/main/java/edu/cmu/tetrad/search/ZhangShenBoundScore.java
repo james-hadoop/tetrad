@@ -178,7 +178,7 @@ public class ZhangShenBoundScore implements Score {
 
 //            s = max(0.1, s);
 
-            score = -(N * log(varRy) + getLambda(m0, pn) * pi * s);
+            score = -(N * log(varRy) + getLambda(m0, pn) * pi * 2);
         } else {
 //            score = -(sum + c * getLambda(m0, pn) * pi * trueErrorVariance);
             score = -(N * varRy + getLambda(m0, pn) * pi * estVarRys[i]);

@@ -43,7 +43,7 @@ import java.util.*;
  * @author Joseph Ramsey
  */
 
-public final class BffBeam implements Bff {
+public final class HbsmsBeam implements Hbsms {
     private CovarianceMatrix cov = null;
     private IKnowledge knowledge = new Knowledge2();
     private Graph initialGraph;
@@ -60,7 +60,7 @@ public final class BffBeam implements Bff {
     private Graph newDag;
     private int beamWidth = 1;
 
-    public BffBeam(Graph graph, DataSet data, IKnowledge knowledge) {
+    public HbsmsBeam(Graph graph, DataSet data, IKnowledge knowledge) {
         if (graph == null) graph = new EdgeListGraph(data.getVariables());
 
         this.knowledge = knowledge;
@@ -70,7 +70,7 @@ public final class BffBeam implements Bff {
         this.scorer = new DagScorer(cov);
     }
 
-    public BffBeam(Graph graph, CovarianceMatrix cov, IKnowledge knowledge) {
+    public HbsmsBeam(Graph graph, CovarianceMatrix cov, IKnowledge knowledge) {
         if (graph == null) graph = new EdgeListGraph(cov.getVariables());
 
         this.knowledge = knowledge;

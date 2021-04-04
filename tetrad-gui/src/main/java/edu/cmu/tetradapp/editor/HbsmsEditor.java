@@ -33,7 +33,7 @@ import edu.cmu.tetrad.sem.Scorer;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetradapp.model.PValueImproverWrapper;
+import edu.cmu.tetradapp.model.HbsmsWrapper;
 import edu.cmu.tetradapp.model.SemImWrapper;
 import edu.cmu.tetradapp.util.DoubleTextField;
 import edu.cmu.tetradapp.util.IntTextField;
@@ -54,9 +54,9 @@ import java.util.Map;
 /**
  * Edits BFF. (We used to call BFF the P Value Improver.)
  */
-public class PValueImproverEditor extends JPanel implements LayoutEditable {
+public class HbsmsEditor extends JPanel implements LayoutEditable {
     private GraphWorkbench graphWorkbench;
-    private PValueImproverWrapper wrapper;
+    private HbsmsWrapper wrapper;
     private final Parameters params;
 
     private final DoubleTextField alphaField;
@@ -66,7 +66,7 @@ public class PValueImproverEditor extends JPanel implements LayoutEditable {
     private SemIm originalSemIm;
     private SemIm newSemIm;
 
-    public PValueImproverEditor(final PValueImproverWrapper wrapper) {
+    public HbsmsEditor(final HbsmsWrapper wrapper) {
         this.setWrapper(wrapper);
         this.params = wrapper.getParams();
 
@@ -168,8 +168,8 @@ public class PValueImproverEditor extends JPanel implements LayoutEditable {
             }
         });
 
-        JRadioButton beamRadioButton = new JRadioButton("Beam Search");
-        JRadioButton gesRadioButton = new JRadioButton("GES Search");
+        JRadioButton beamRadioButton = new JRadioButton("Optimize P-value");
+        JRadioButton gesRadioButton = new JRadioButton("Optimize BIC");
 
         ButtonGroup group = new ButtonGroup();
         group.add(beamRadioButton);
@@ -180,7 +180,7 @@ public class PValueImproverEditor extends JPanel implements LayoutEditable {
 
         beamRadioButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                wrapper.setAlgorithmType(PValueImproverWrapper.AlgorithmType.BEAM);
+                wrapper.setAlgorithmType(HbsmsWrapper.AlgorithmType.BEAM);
                 alphaField.setEnabled(true);
                 beamWidthField.setEnabled(true);
             }
@@ -195,18 +195,18 @@ public class PValueImproverEditor extends JPanel implements LayoutEditable {
 
         gesRadioButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                wrapper.setAlgorithmType(PValueImproverWrapper.AlgorithmType.FGES);
+                wrapper.setAlgorithmType(HbsmsWrapper.AlgorithmType.FGES);
                 alphaField.setEnabled(false);
                 beamWidthField.setEnabled(false);
             }
         });
 
-        if (getWrapper().getAlgorithmType() == PValueImproverWrapper.AlgorithmType.BEAM) {
+        if (getWrapper().getAlgorithmType() == HbsmsWrapper.AlgorithmType.BEAM) {
             beamRadioButton.setSelected(true);
             alphaField.setEnabled(true);
             beamWidthField.setEnabled(true);
         }
-        else if (getWrapper().getAlgorithmType() == PValueImproverWrapper.AlgorithmType.FGES) {
+        else if (getWrapper().getAlgorithmType() == HbsmsWrapper.AlgorithmType.FGES) {
             gesRadioButton.setSelected(true);
             alphaField.setEnabled(false);
             beamWidthField.setEnabled(false);
@@ -313,11 +313,11 @@ public class PValueImproverEditor extends JPanel implements LayoutEditable {
         getGraphWorkbench().layoutByKnowledge();
     }
 
-    private PValueImproverWrapper getWrapper() {
+    private HbsmsWrapper getWrapper() {
         return wrapper;
     }
 
-    private void setWrapper(PValueImproverWrapper wrapper) {
+    private void setWrapper(HbsmsWrapper wrapper) {
         this.wrapper = wrapper;
     }
 

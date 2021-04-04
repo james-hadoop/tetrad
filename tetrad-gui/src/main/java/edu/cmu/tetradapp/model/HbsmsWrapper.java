@@ -36,12 +36,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Extends AbstractAlgorithmRunner to produce a wrapper for the GES algorithm.
- *
- * @author Ricardo Silva
+ * @author Joseph Ramsey
  */
 
-public class PValueImproverWrapper extends AbstractAlgorithmRunner implements GraphSource {
+public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource {
     static final long serialVersionUID = 23L;
 
     public enum AlgorithmType {
@@ -78,16 +76,16 @@ public class PValueImproverWrapper extends AbstractAlgorithmRunner implements Gr
 
     //============================CONSTRUCTORS============================//
 
-    public PValueImproverWrapper(DataWrapper dataWrapper,
-                                 Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
+    public HbsmsWrapper(DataWrapper dataWrapper,
+                        Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
         super(dataWrapper, params, knowledgeBoxModel);
         this.dataWrapper = dataWrapper;
         this.params2 = params;
         this.graph = new EdgeListGraph(dataWrapper.getSelectedDataModel().getVariables());
     }
 
-    public PValueImproverWrapper(DataWrapper dataWrapper,
-                                 Parameters params) {
+    public HbsmsWrapper(DataWrapper dataWrapper,
+                        Parameters params) {
         super(dataWrapper, params, null);
         this.dataWrapper = dataWrapper;
         this.params2 = params;
@@ -99,72 +97,72 @@ public class PValueImproverWrapper extends AbstractAlgorithmRunner implements Gr
         this.initialGraph = new EdgeListGraph(graph);
     }
 
-    public PValueImproverWrapper(GraphWrapper graphWrapper,
-                                 DataWrapper dataWrapper,
-                                 Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
+//    public PValueImproverWrapper(GraphWrapper graphWrapper,
+//                                 DataWrapper dataWrapper,
+//                                 Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
+//        super(dataWrapper, params, knowledgeBoxModel);
+//        this.dataWrapper = dataWrapper;
+//        this.params2 = params;
+//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
+//    }
+//
+//    public PValueImproverWrapper(GraphWrapper graphWrapper,
+//                                 DataWrapper dataWrapper,
+//                                 Parameters params) {
+//        super(dataWrapper, params);
+//        this.dataWrapper = dataWrapper;
+//        this.params2 = params;
+//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
+//    }
+//
+//    public PValueImproverWrapper(DagWrapper graphWrapper,
+//                                 DataWrapper dataWrapper,
+//                                 Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
+//        super(dataWrapper, params, knowledgeBoxModel);
+//        this.dataWrapper = dataWrapper;
+//        this.params2 = params;
+//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
+//    }
+//
+//    public PValueImproverWrapper(DagWrapper graphWrapper,
+//                                 DataWrapper dataWrapper,
+//                                 Parameters params) {
+//        super(dataWrapper, params);
+//        this.dataWrapper = dataWrapper;
+//        this.params2 = params;
+//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
+//    }
+//
+//    public PValueImproverWrapper(SemGraphWrapper graphWrapper,
+//                                 DataWrapper dataWrapper,
+//                                 Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
+//        super(dataWrapper, params, knowledgeBoxModel);
+//        this.dataWrapper = dataWrapper;
+//        this.params2 = params;
+//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
+//   }
+//
+//    public PValueImproverWrapper(SemGraphWrapper graphWrapper,
+//                                 DataWrapper dataWrapper,
+//                                 Parameters params) {
+//        super(dataWrapper, params);
+//        this.dataWrapper = dataWrapper;
+//        this.params2 = params;
+//        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
+//    }
+
+    public HbsmsWrapper(GraphSource graphWrapper,
+                        DataWrapper dataWrapper,
+                        Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
         super(dataWrapper, params, knowledgeBoxModel);
         this.dataWrapper = dataWrapper;
         this.params2 = params;
         setGraph(new EdgeListGraph(graphWrapper.getGraph()));
     }
 
-    public PValueImproverWrapper(GraphWrapper graphWrapper,
-                                 DataWrapper dataWrapper,
-                                 Parameters params) {
-        super(dataWrapper, params);
-        this.dataWrapper = dataWrapper;
-        this.params2 = params;
-        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-    }
-
-    public PValueImproverWrapper(DagWrapper graphWrapper,
-                                 DataWrapper dataWrapper,
-                                 Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
-        super(dataWrapper, params, knowledgeBoxModel);
-        this.dataWrapper = dataWrapper;
-        this.params2 = params;
-        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-    }
-
-    public PValueImproverWrapper(DagWrapper graphWrapper,
-                                 DataWrapper dataWrapper,
-                                 Parameters params) {
-        super(dataWrapper, params);
-        this.dataWrapper = dataWrapper;
-        this.params2 = params;
-        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-    }
-
-    public PValueImproverWrapper(SemGraphWrapper graphWrapper,
-                                 DataWrapper dataWrapper,
-                                 Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
-        super(dataWrapper, params, knowledgeBoxModel);
-        this.dataWrapper = dataWrapper;
-        this.params2 = params;
-        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-   }
-
-    public PValueImproverWrapper(SemGraphWrapper graphWrapper,
-                                 DataWrapper dataWrapper,
-                                 Parameters params) {
-        super(dataWrapper, params);
-        this.dataWrapper = dataWrapper;
-        this.params2 = params;
-        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-    }
-
-    public PValueImproverWrapper(AbstractAlgorithmRunner graphWrapper,
-                                 DataWrapper dataWrapper,
-                                 Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
-        super(dataWrapper, params, knowledgeBoxModel);
-        this.dataWrapper = dataWrapper;
-        this.params2 = params;
-        setGraph(new EdgeListGraph(graphWrapper.getGraph()));
-    }
-
-    public PValueImproverWrapper(AbstractAlgorithmRunner graphWrapper,
-                                 DataWrapper dataWrapper,
-                                 Parameters params) {
+    public HbsmsWrapper(GraphSource graphWrapper,
+                        DataWrapper dataWrapper,
+                        Parameters params) {
         super(dataWrapper, params);
         this.dataWrapper = dataWrapper;
         this.params2 = params;
@@ -216,15 +214,15 @@ public class PValueImproverWrapper extends AbstractAlgorithmRunner implements Gr
         Graph graph2 = new EdgeListGraph(initialGraph);
         graph2 = GraphUtils.replaceNodes(graph2, dataModel.getVariables());
 
-        Bff search;
+        Hbsms search;
 
         if (dataModel instanceof DataSet) {
             DataSet dataSet = (DataSet) dataModel;
 
             if (getAlgorithmType() == AlgorithmType.BEAM) {
-                search = new BffBeam(graph2, dataSet, knowledge);
+                search = new HbsmsBeam(graph2, dataSet, knowledge);
             } else if (getAlgorithmType() == AlgorithmType.FGES) {
-                search = new BffGes(graph2, dataSet);
+                search = new HbsmsGes(graph2, dataSet);
                 search.setKnowledge(knowledge);
             } else {
                 throw new IllegalStateException();
@@ -234,7 +232,7 @@ public class PValueImproverWrapper extends AbstractAlgorithmRunner implements Gr
             CovarianceMatrix covarianceMatrix = (CovarianceMatrix) dataModel;
 
             if (getAlgorithmType() == AlgorithmType.BEAM) {
-                search = new BffBeam(graph2, covarianceMatrix, knowledge);
+                search = new HbsmsBeam(graph2, covarianceMatrix, knowledge);
             } else if (getAlgorithmType() == AlgorithmType.FGES) {
                 throw new IllegalArgumentException("GES method requires a dataset; a covariance matrix was provided.");
 //                search = new BffGes(graph2, covarianceMatrix);

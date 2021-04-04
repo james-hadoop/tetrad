@@ -28,7 +28,6 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.sem.DagScorer;
 import edu.cmu.tetrad.sem.Scorer;
 import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.util.TetradLogger;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -42,7 +41,7 @@ import java.util.*;
  * @author Joseph Ramsey
  */
 
-public final class BffGes implements Bff {
+public final class HbsmsGes implements Hbsms {
     private final DataSet data;
     private IKnowledge knowledge = new Knowledge2();
     private final Graph graph;
@@ -54,7 +53,7 @@ public final class BffGes implements Bff {
     private final Scorer scorer;
     private Graph newDag;
 
-    public BffGes(Graph graph, DataSet data) {
+    public HbsmsGes(Graph graph, DataSet data) {
         if (graph == null) throw new NullPointerException("Graph not specified.");
         this.data = data;
 
@@ -188,7 +187,7 @@ public final class BffGes implements Bff {
 
         originalSemIm = score1.getEstimatedSem();
 
-        saveModelIfSignificant(getGraph());
+//        saveModelIfSignificant(getGraph());
 
 //        removeHighPValueEdges(getGraph());
 
@@ -207,7 +206,7 @@ public final class BffGes implements Bff {
 //
 //        removeHighPValueEdges(getGraph());
 
-        setNewDag(SearchGraphUtils.dagFromPattern(getGraph()));
+        setNewDag(SearchGraphUtils.dagFromPattern(model));
 
         Score _score = scoreGraph(getGraph());
         newSemIm = _score.getEstimatedSem();
