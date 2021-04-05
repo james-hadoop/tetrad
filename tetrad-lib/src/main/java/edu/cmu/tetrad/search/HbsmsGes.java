@@ -67,7 +67,7 @@ public final class HbsmsGes implements Hbsms {
 
         this.graph = graph;
 
-        List<DataSet> split = DataUtils.split(data, 0.5);
+        List<DataSet> split = DataUtils.split(data, 0.8);
 
         this.scorer = new DagScorer(split.get(0));
         this.scorer2 = new DagScorer(split.get(1));

@@ -65,7 +65,7 @@ public final class HbsmsBeam implements Hbsms {
         this.graph = graph;
         this.initialGraph = new EdgeListGraph(graph);
 
-        List<DataSet> split = DataUtils.split(data, 0.5);
+        List<DataSet> split = DataUtils.split(data, 0.8);
 
         this.cov = new CovarianceMatrix(split.get(0));
         this.cov2 = new CovarianceMatrix(split.get(1));
