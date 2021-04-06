@@ -65,10 +65,11 @@ public class KimEtAlScores implements Score {
     private double lambda;
     private boolean calculateRowSubsets = false;
     Matrix data;
-//    private double penaltyDiscount;
+    //    private double penaltyDiscount;
     private double correlationThreshold = 1.0;
     private boolean takeLog = false;
     private boolean calculateSquareEuclideanNorms = false;
+    private double penaltyDiscount = 1;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -192,9 +193,9 @@ public class KimEtAlScores implements Score {
 //        double c = penaltyDiscount;
 
         if (takeLog) {
-            return -n * log(varry) - lambda * pi * 2;
+            return -n * log(varry) - lambda * getPenaltyDiscount() * pi;
         } else {
-            return -n * (varry) - lambda * pi * trueErrorVariance;
+            return -n * (varry) - lambda * getPenaltyDiscount() * pi * trueErrorVariance;
         }
 
     }
@@ -354,6 +355,14 @@ public class KimEtAlScores implements Score {
 
     public void setCalculateSquareEuclideanNorms(boolean calculateSquareEuclideanNorms) {
         this.calculateSquareEuclideanNorms = calculateSquareEuclideanNorms;
+    }
+
+    public double getPenaltyDiscount() {
+        return penaltyDiscount;
+    }
+
+    public void setPenaltyDiscount(double penaltyDiscount) {
+        this.penaltyDiscount = penaltyDiscount;
     }
 
     public enum RuleType {MANUAL, BIC, NANDY, GIC2, RIC, RICc, GIC5, GIC6}

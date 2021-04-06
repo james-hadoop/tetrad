@@ -52,7 +52,7 @@ public class ZhangShenBoundScore implements ScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "Zhang-Shen Bound Test";
+        return "Zhang-Shen Bound Score";
     }
 
     @Override
@@ -66,7 +66,7 @@ public class ZhangShenBoundScore implements ScoreWrapper {
         parameters.add(Params.ZS_RISK_BOUND);
 //        parameters.add(Params.CORRELATION_THRESHOLD);
 //        parameters.add(Params.PENALTY_DISCOUNT);
-//        parameters.add(Params.TAKE_LOGS);
+        parameters.add(Params.TAKE_LOGS);
 //        parameters.add(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED);
 //        parameters.add(Params.TRUE_ERROR_VARIANCE);
         return parameters;

@@ -2253,7 +2253,7 @@ raf mek pip2    erk akt cd3_s   cd3_v   icam
     <h4>Parameters</h4>
 
     <p><a href="#samplePrior">samplePrior</a>, <a href="#structurePrior">structurePrior</a>, <a href="#penaltyDiscount">penaltyDiscount</a>,
-        <a href="#symmetricFirstStep">symmetricFirstStep</a>, <a href="#faithfulnessAssumed">faithfulnessAssumed</a>, <a
+        <a href="#symmetricFirstStep">symmetricFirstStep</a>, <a href="#adjacencyFaithfulnessAssumed">faithfulnessAssumed</a>, <a
                 href="#maxDegree">maxDegree</a></p>
 
 
@@ -3813,16 +3813,16 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="faskAdjacencyMethod_value_type">Integer</span></li>
         </ul>
 
-        <h3 id="faithfulnessAssumed" class="parameter_description">faithfulnessAssumed</h3>
+        <h3 id="adjacencyFaithfulnessAssumed" class="parameter_description">adjacencyFaithfulnessAssumed</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="faithfulnessAssumed_short_desc">Yes if (one edge) faithfulness should be assumed</span>
+            <li>Short Description: <span id="adjacencyFaithfulnessAssumed_short_desc">Yes if (one edge) faithfulness should be assumed</span>
             </li>
-            <li>Long Description: <span id="faithfulnessAssumed_long_desc">This is a parameter for FGES (“Fast GES”). If this is set to ‘Yes’, it will be assumed that if X _||_ Y, by an independence test, then X _||_ Y | Z for nonempty Z. If the model is faithful to the data, this will necessarily be the case. However, there are some non-faithful examples one can propose where this is not the case. If one is worried about this kind of unfaithfulness, one should set this parameter to ‘No’. If one is willing to tolerate this kind of unfaithfulness, then setting this parameter to ‘Yes’ leads to significantly faster searches.</span>
+            <li>Long Description: <span id="adjacencyFaithfulnessAssumed_long_desc">Assumes that if X _||_ Y, by an independence test, then X _||_ Y | Z for nonempty Z.</span>
             </li>
-            <li>Default Value: <span id="faithfulnessAssumed_default_value">false</span></li>
-            <li>Lower Bound: <span id="faithfulnessAssumed_lower_bound"></span></li>
-            <li>Upper Bound: <span id="faithfulnessAssumed_upper_bound"></span></li>
-            <li>Value Type: <span id="faithfulnessAssumed_value_type">Boolean</span></li>
+            <li>Default Value: <span id="adjacencyFaithfulnessAssumed_default_value">false</span></li>
+            <li>Lower Bound: <span id="adjacencyFaithfulnessAssumed_lower_bound"></span></li>
+            <li>Upper Bound: <span id="adjacencyFaithfulnessAssumed_upper_bound"></span></li>
+            <li>Value Type: <span id="adjacencyFaithfulnessAssumed_value_type">Boolean</span></li>
         </ul>
 
         <h3 id="fasRule" class="parameter_description">fasRule</h3>
@@ -4611,6 +4611,17 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Lower Bound: <span id="penaltyDiscount_lower_bound">0.0</span></li>
             <li>Upper Bound: <span id="penaltyDiscount_upper_bound">1.7976931348623157E308</span></li>
             <li>Value Type: <span id="penaltyDiscount_value_type">Double</span></li>
+        </ul>
+
+        <h3 id="ebicGamma" class="parameter_description">ebicGamma</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="ebicGamma_short_desc">EBIC Gamma (0-1)</span></li>
+            <li>Long Description: <span id="ebicGamma_long_desc">The gamma parameter for Extended BIC (Chen and Chen). In [0, 1].</span>
+            </li>
+            <li>Default Value: <span id="ebicGamma_default_value">0.5</span></li>
+            <li>Lower Bound: <span id="ebicGamma_lower_bound">0.0</span></li>
+            <li>Upper Bound: <span id="ebicGamma_upper_bound">1.0</span></li>
+            <li>Value Type: <span id="ebicGamma_value_type">Double</span></li>
         </ul>
 
         <h3 id="trueErrorVariance" class="parameter_description">trueErrorVariance</h3>

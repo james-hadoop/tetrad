@@ -230,7 +230,7 @@ public class GesMe implements Algorithm, TakesInitialGraph/*, HasKnowledge*/ {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.SYMMETRIC_FIRST_STEP);
-        parameters.add(Params.FAITHFULNESS_ASSUMED);
+        parameters.add(Params.ADJACENCY_FAITHFULNESS_ASSUMED);
         parameters.add(Params.MAX_DEGREE);
         parameters.add(Params.DETERMINISM_THRESHOLD);
         parameters.add("convergenceThreshold");

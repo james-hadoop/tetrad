@@ -75,7 +75,7 @@ public final class Params {
     public static final String FASK_LINEARITY_ASSUMED = "faskAssumeLinearity";
     public static final String FASK_ADJACENCY_METHOD = "faskAdjacencyMethod";
     public static final String FASK_NONEMPIRICAL = "faskNonempirical";
-    public static final String FAITHFULNESS_ASSUMED = "faithfulnessAssumed";
+    public static final String ADJACENCY_FAITHFULNESS_ASSUMED = "adjacencyFaithfulnessAssumed";
     public static final String FAS_RULE = "fasRule";
     public static final String FAST_ICA_A = "fastIcaA";
     public static final String FAST_ICA_MAX_ITER = "fastIcaMaxIter";
@@ -147,6 +147,7 @@ public final class Params {
     public static final String OUTPUT_RBD = "outputRBD";
     public static final String PARALLELISM = "parallelism";
     public static final String PENALTY_DISCOUNT = "penaltyDiscount";
+    public static final String EBIC_GAMMA = "ebicGamma";
     public static final String PERCENT_DISCRETE = "percentDiscrete";
     public static final String PERCENT_RESAMPLE_SIZE = "percentResampleSize";
     public static final String POSSIBLE_DSEP_DONE = "possibleDsepDone";
@@ -216,7 +217,7 @@ public final class Params {
             CUTOFF_CONSTRAIN_SEARCH, CUTOFF_DATA_SEARCH, CUTOFF_IND_TEST,
             DATA_TYPE, DEPTH, DETERMINISM_THRESHOLD, DIFFERENT_GRAPHS, DISCRETIZE,
             DO_COLLIDER_ORIENTATION, ERRORS_NORMAL, SKEW_EDGE_THRESHOLD,
-            FAITHFULNESS_ASSUMED, FAS_RULE, FISHER_EPSILON, GENERAL_SEM_ERROR_TEMPLATE,
+            ADJACENCY_FAITHFULNESS_ASSUMED, FAS_RULE, FISHER_EPSILON, GENERAL_SEM_ERROR_TEMPLATE,
             GENERAL_SEM_FUNCTION_TEMPLATE_LATENT, GENERAL_SEM_FUNCTION_TEMPLATE_MEASURED,
             GENERAL_SEM_PARAMETER_TEMPLATE, IA, INCLUDE_NEGATIVE_COEFS,
             INCLUDE_NEGATIVE_SKEWS_FOR_BETA, INCLUDE_POSITIVE_COEFS,

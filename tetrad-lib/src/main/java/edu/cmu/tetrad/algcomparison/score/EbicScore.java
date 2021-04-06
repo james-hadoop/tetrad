@@ -22,7 +22,7 @@ import java.util.List;
         command = "ebic-score",
         dataType = {DataType.Continuous, DataType.Covariance}
 )
-public class EBicScore implements ScoreWrapper {
+public class EbicScore implements ScoreWrapper {
 
     static final long serialVersionUID = 23L;
     private DataModel dataSet;
@@ -31,19 +31,22 @@ public class EBicScore implements ScoreWrapper {
     public Score getScore(DataModel dataSet, Parameters parameters) {
         this.dataSet = dataSet;
 
-        edu.cmu.tetrad.search.EBic eBicScore;
+        edu.cmu.tetrad.search.EbicScore score;
 
         if (dataSet instanceof DataSet) {
-            eBicScore = new edu.cmu.tetrad.search.EBic((DataSet) this.dataSet);
+            score = new edu.cmu.tetrad.search.EbicScore((DataSet) this.dataSet);
         } else if (dataSet instanceof ICovarianceMatrix) {
-            eBicScore = new edu.cmu.tetrad.search.EBic((ICovarianceMatrix) this.dataSet);
+            score = new edu.cmu.tetrad.search.EbicScore((ICovarianceMatrix) this.dataSet);
         } else {
             throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
         }
 
-        eBicScore.setGamma(parameters.getDouble(Params.PENALTY_DISCOUNT));
-
-        return eBicScore;
+//        score.setCalculateSquaredEuclideanNorms(parameters.getBoolean(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED));
+        score.setRiskBound(parameters.getDouble(Params.EBIC_GAMMA));
+        score.setCorrelationThreshold(parameters.getDouble(Params.CORRELATION_THRESHOLD));
+//        score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
+//        score.setTrueErrorVariance(parameters.getDouble(Params.TRUE_ERROR_VARIANCE));
+        return score;
     }
 
     @Override
@@ -59,7 +62,12 @@ public class EBicScore implements ScoreWrapper {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.add(Params.PENALTY_DISCOUNT);
+        parameters.add(Params.EBIC_GAMMA);
+//        parameters.add(Params.CORRELATION_THRESHOLD);
+//        parameters.add(Params.PENALTY_DISCOUNT);
+//        parameters.add(Params.TAKE_LOGS);
+//        parameters.add(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED);
+//        parameters.add(Params.TRUE_ERROR_VARIANCE);
         return parameters;
     }
 
@@ -67,5 +75,4 @@ public class EBicScore implements ScoreWrapper {
     public Node getVariable(String name) {
         return dataSet.getVariable(name);
     }
-
 }

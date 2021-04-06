@@ -249,7 +249,7 @@ public class TestFges {
         parameters.set(Params.DIFFERENT_GRAPHS, false);
         parameters.set(Params.SAMPLE_SIZE, 1000);
 
-        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, false);
         parameters.set(Params.MAX_DEGREE, -1);
         parameters.set(Params.VERBOSE, false);
 

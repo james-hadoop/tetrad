@@ -100,7 +100,7 @@ public class TestGeneralResamplingTest {
 
 		Parameters parameters = new Parameters();
 		parameters.set(Params.PENALTY_DISCOUNT, penaltyDiscount);
-		parameters.set(Params.FAITHFULNESS_ASSUMED, faithfulnessAssumed);
+		parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, faithfulnessAssumed);
 		parameters.set(Params.MAX_DEGREE, maxDegree);
 		parameters.set("numPatternsToStore", 0);
 		parameters.set(Params.VERBOSE, verbose);
@@ -157,7 +157,7 @@ public class TestGeneralResamplingTest {
 		Parameters parameters = new Parameters();
 		parameters.set(Params.STRUCTURE_PRIOR, structurePrior);
 		parameters.set(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE, samplePrior);
-		parameters.set(Params.FAITHFULNESS_ASSUMED, faithfulnessAssumed);
+		parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, faithfulnessAssumed);
 		parameters.set(Params.MAX_DEGREE, maxDegree);
 		parameters.set("numPatternsToStore", 0);
 		parameters.set(Params.VERBOSE, verbose);
@@ -220,7 +220,7 @@ public class TestGeneralResamplingTest {
 
 		Parameters parameters = new Parameters();
 		parameters.set(Params.PENALTY_DISCOUNT, penaltyDiscount);
-		parameters.set(Params.FAITHFULNESS_ASSUMED, faithfulnessAssumed);
+		parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, faithfulnessAssumed);
 		parameters.set(Params.MAX_DEGREE, maxDegree);
 		parameters.set("numPatternsToStore", 0);
 		parameters.set(Params.VERBOSE, verbose);
@@ -281,7 +281,7 @@ public class TestGeneralResamplingTest {
 		Parameters parameters = new Parameters();
 		parameters.set(Params.STRUCTURE_PRIOR, structurePrior);
 		parameters.set(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE, samplePrior);
-		parameters.set(Params.FAITHFULNESS_ASSUMED, faithfulnessAssumed);
+		parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, faithfulnessAssumed);
 		parameters.set(Params.MAX_DEGREE, maxDegree);
 		parameters.set("numPatternsToStore", 0);
 		parameters.set(Params.VERBOSE, verbose);

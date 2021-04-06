@@ -171,7 +171,7 @@ public class FgesConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
 	@Override
 	public List<String> getParameters() {
             List<String> parameters = new ArrayList<>();
-            parameters.add(Params.FAITHFULNESS_ASSUMED);
+            parameters.add(Params.ADJACENCY_FAITHFULNESS_ASSUMED);
             parameters.add(Params.MAX_DEGREE);
 
             parameters.add(Params.NUM_RUNS);

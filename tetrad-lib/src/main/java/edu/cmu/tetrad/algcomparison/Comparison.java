@@ -38,53 +38,20 @@ import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.HasParameterValues;
 import edu.cmu.tetrad.algcomparison.utils.HasParameters;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
-import edu.cmu.tetrad.data.ContinuousVariable;
-import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.data.DataWriter;
-import edu.cmu.tetrad.data.DiscreteVariable;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.data.simulation.LoadDataAndGraphs;
-import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.EdgeListGraph;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.search.SearchGraphUtils;
-import edu.cmu.tetrad.util.CombinationGenerator;
-import edu.cmu.tetrad.util.Experimental;
-import edu.cmu.tetrad.util.ForkJoinPoolInstance;
-import edu.cmu.tetrad.util.ParamDescription;
-import edu.cmu.tetrad.util.ParamDescriptions;
-import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.Params;
-import edu.cmu.tetrad.util.StatUtils;
-import edu.cmu.tetrad.util.TextTable;
+import edu.cmu.tetrad.util.*;
+import org.reflections.Reflections;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.Writer;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.RecursiveTask;
-
-import org.reflections.Reflections;
 
 /**
  * Script to do a comparison of a list of algorithms using a list of statistics
@@ -110,7 +77,7 @@ public class Comparison {
     private boolean sortByUtility = false;
     private String dataPath = null;
     private String resultsPath = null;
-    private boolean parallelized = false;
+    private final boolean parallelized = false;
     private boolean savePatterns = false;
     private boolean saveData = true;
     private boolean savePags = false;
@@ -589,7 +556,7 @@ public class Comparison {
                     if (isSaveData()) {
                         File file = new File(dir2, "data." + (j + 1) + ".txt");
                         Writer out = new FileWriter(file);
-                        DataModel dataModel = (DataModel) simulationWrapper.getDataModel(j);
+                        DataModel dataModel = simulationWrapper.getDataModel(j);
                         DataWriter.writeRectangularData((DataSet) dataModel, out, '\t');
                         out.close();
                     }
@@ -1012,7 +979,7 @@ public class Comparison {
         } else {
             class Task extends RecursiveTask<Boolean> {
 
-                List<AlgorithmTask> tasks;
+                final List<AlgorithmTask> tasks;
 
                 public Task(List<AlgorithmTask> tasks) {
                     this.tasks = tasks;
@@ -1228,12 +1195,12 @@ public class Comparison {
 
     private class AlgorithmTask extends RecursiveTask<Boolean> {
 
-        private List<AlgorithmSimulationWrapper> algorithmSimulationWrappers;
-        private List<AlgorithmWrapper> algorithmWrappers;
-        private List<SimulationWrapper> simulationWrappers;
-        private Statistics statistics;
-        private int numGraphTypes;
-        private double[][][][] allStats;
+        private final List<AlgorithmSimulationWrapper> algorithmSimulationWrappers;
+        private final List<AlgorithmWrapper> algorithmWrappers;
+        private final List<SimulationWrapper> simulationWrappers;
+        private final Statistics statistics;
+        private final int numGraphTypes;
+        private final double[][][][] allStats;
         private final Run run;
         private final PrintStream stdout;
 
@@ -1694,9 +1661,10 @@ public class Comparison {
 
                     double stat = statTables[u][newOrder[t]][statIndex];
 
-                    if (stat == 0.0) {
-                        table.setToken(t + 1, initialColumn + statIndex, "-");
-                    } else if (stat == Double.POSITIVE_INFINITY) {
+//                    if (stat == 0.0) {
+//                        table.setToken(t + 1, initialColumn + statIndex, "-");
+//                    } else
+                    if (stat == Double.POSITIVE_INFINITY) {
                         table.setToken(t + 1, initialColumn + statIndex, "Yes");
                     } else if (stat == Double.NEGATIVE_INFINITY) {
                         table.setToken(t + 1, initialColumn + statIndex, "No");
@@ -1844,9 +1812,9 @@ public class Comparison {
     private class AlgorithmWrapper implements Algorithm {
 
         static final long serialVersionUID = 23L;
-        private Algorithm algorithm;
-        private Parameters parameters;
-        private List<String> overriddenParameters = new ArrayList<>();
+        private final Algorithm algorithm;
+        private final Parameters parameters;
+        private final List<String> overriddenParameters = new ArrayList<>();
 
         public AlgorithmWrapper(Algorithm algorithm, Parameters parameters) {
             this.algorithm = algorithm;
@@ -1908,8 +1876,8 @@ public class Comparison {
     private class AlgorithmSimulationWrapper implements Algorithm {
 
         static final long serialVersionUID = 23L;
-        private SimulationWrapper simulationWrapper;
-        private AlgorithmWrapper algorithmWrapper;
+        private final SimulationWrapper simulationWrapper;
+        private final AlgorithmWrapper algorithmWrapper;
         List<String> parameters = new ArrayList<>();
 
         public AlgorithmSimulationWrapper(AlgorithmWrapper algorithm, SimulationWrapper simulation) {
@@ -1957,7 +1925,7 @@ public class Comparison {
 
     private class SimulationWrapper implements Simulation {
         static final long serialVersionUID = 23L;
-        private Simulation simulation;
+        private final Simulation simulation;
         private List<Graph> graphs;
         private List<DataModel> dataModels;
         private Parameters parameters;

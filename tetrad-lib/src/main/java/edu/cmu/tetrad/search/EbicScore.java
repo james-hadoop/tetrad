@@ -23,10 +23,8 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.Matrix;
-import org.apache.commons.math3.linear.BlockRealMatrix;
-import org.apache.commons.math3.linear.EigenDecomposition;
-import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,7 +40,7 @@ import static java.lang.Math.*;
  *
  * @author Joseph Ramsey
  */
-public class ZhangShenBoundScore implements Score {
+public class EbicScore implements Score {
 
     // The covariance matrix.
     private ICovarianceMatrix covariances;
@@ -59,14 +57,8 @@ public class ZhangShenBoundScore implements Score {
     // Sample size or equivalent sample size.
     private double N;
 
-    // A recpord of lambdas for each m0.
-    private List<Double> lambdas;
-
     // The data, if it is set.
     private Matrix data;
-
-    // True if sume of squares should be calculated, false if estimated.
-    private boolean calculateSquaredEuclideanNorms = false;
 
     // True if row subsets should be calculated.
     private boolean calculateRowSubsets = false;
@@ -83,15 +75,13 @@ public class ZhangShenBoundScore implements Score {
     private boolean changed = false;
 
     private double correlationThreshold = 1.0;
-    //    private double penaltyDiscount = 1.0;
-    private boolean takeLog = true;
     private double riskBound = 0;
 //    private double trueErrorVariance;
 
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ZhangShenBoundScore(ICovarianceMatrix covariances) {
+    public EbicScore(ICovarianceMatrix covariances) {
         if (covariances == null) {
             throw new NullPointerException();
         }
@@ -107,7 +97,7 @@ public class ZhangShenBoundScore implements Score {
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ZhangShenBoundScore(DataSet dataSet) {
+    public EbicScore(DataSet dataSet) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
@@ -146,6 +136,7 @@ public class ZhangShenBoundScore implements Score {
     public double localScore(int i, int... parents) throws RuntimeException {
         int pn = variables.size() - 1;
 
+        // True if sume of squares should be calculated, false if estimated.
         if (this.estMinParents == null) {
             this.estMinParents = new int[variables.size()];
             this.maxScores = new double[variables.size()];
@@ -154,36 +145,27 @@ public class ZhangShenBoundScore implements Score {
             for (int j = 0; j < variables.size(); j++) {
                 this.estMinParents[j] = 0;
                 this.maxScores[j] = localScore(j, new int[0]);
-                this.estVarRys[j] = getVarRy(j, new int[0], data, covariances, calculateRowSubsets, calculateSquaredEuclideanNorms);
+                this.estVarRys[j] = getVarRy(j, new int[0], data, covariances, calculateRowSubsets, false);
             }
         }
 
         final int pi = parents.length;
-        double varRy = getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquaredEuclideanNorms);
+        double varRy = getVarRy(i, parents, data, covariances, calculateRowSubsets, false);
 
-        double score;
-        int m0 = estMinParents[i];
-
-//        System.out.println("var = " + estVarRys[i]);
-
-        if (takeLog) {
-
-//            double s2 = 3;// (estVarRys[i]);
-//            double lambda = getLambda(m0, pn);
+//        double kappa = log(N) / log(pn);
 //
-//            double s = (log(s2) - ((1./ N) * pi * lambda)) / (1. - (1. / N) * pi * lambda);
+//        double gamma = 1.0 - 1.0 / (2 * kappa);
 
-//            System.out.println("s = " + s + " estsdy = " + (estVarRys[i]));
+//        System.out.println("gamma = " + gamma);
 
-//            s = max(0.1, s);
 
-            score = -(N * log(varRy) + getLambda(m0, pn) * pi);
-        } else {
-//            score = -(sum + c * getLambda(m0, pn) * pi * trueErrorVariance);
-            score = -(N * varRy + getLambda(m0, pn) * pi * estVarRys[i]);
-        }
+        double gamma = riskBound;//  1.0 - riskBound;
 
-        if (score < maxScores[i] && parents.length < pn) {
+        double score = -(N * log(varRy)
+                + (pi * log(N)
+                + 2 * gamma * ChoiceGenerator.logCombinations(variables.size() - 1, pi)));
+
+        if (score > maxScores[i] && parents.length < pn) {
             estMinParents[i] = parents.length;
             estVarRys[i] = varRy;
             maxScores[i] = score;
@@ -214,44 +196,6 @@ public class ZhangShenBoundScore implements Score {
             System.out.println("Singularity " + variables.get(i) + " | " + p);
             return NEGATIVE_INFINITY;
         }
-    }
-
-    private double getLambda(int m0, int pn) {
-        if (lambdas == null) {
-            lambdas = new ArrayList<>();
-        }
-
-        if (lambdas.size() - 1 < m0) {
-            for (int t = lambdas.size(); t <= m0; t++) {
-                double lambda = zhangShenLambda(t, pn, riskBound);
-                lambdas.add(lambda);
-            }
-        }
-
-        return lambdas.get(m0);
-    }
-
-    public static double zhangShenLambda(int m0, int pn, double riskBound) {
-        if (pn == m0) throw new IllegalArgumentException("m0 should not equal pn");
-        int sn = min(pn, 12);
-        sn = max(sn, 0);
-
-        double high = 10000;
-        double low = 0.0;
-
-        while (high - low > 1e-10) {
-            double lambda = (high + low) / 2.0;
-
-            double p = getP(sn, m0, lambda);
-
-            if (p < 1.0 - riskBound) {
-                low = lambda;
-            } else {
-                high = lambda;
-            }
-        }
-
-        return low;
     }
 
     public static double getP(int pn, int m0, double lambda) {
@@ -361,7 +305,7 @@ public class ZhangShenBoundScore implements Score {
 
     @Override
     public Score defaultScore() {
-        return new ZhangShenBoundScore(covariances);
+        return new EbicScore(covariances);
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {
@@ -466,10 +410,6 @@ public class ZhangShenBoundScore implements Score {
     }
 
 
-    public void setCalculateSquaredEuclideanNorms(boolean calculateSquaredEuclideanNorms) {
-        this.calculateSquaredEuclideanNorms = calculateSquaredEuclideanNorms;
-    }
-
     public boolean isChanged() {
         return changed;
     }
@@ -478,50 +418,12 @@ public class ZhangShenBoundScore implements Score {
         changed = b;
     }
 
-//    public void setPenaltyDiscount(double penaltyDiscount) {
-//        this.penaltyDiscount = penaltyDiscount;
-//    }
-//
-//    public double getPenaltyDiscount() {
-//        return penaltyDiscount;
-//    }
-
-    public void setRiskBound(double riskBound) {
-        this.riskBound = riskBound;
-    }
-
     public void setCorrelationThreshold(double correlationThreshold) {
         this.correlationThreshold = correlationThreshold;
     }
 
-    public void setTakeLog(boolean takeLog) {
-        this.takeLog = takeLog;
-    }
-
-//    public void setTrueErrorVariance(double trueErrorVariance) {
-//        this.trueErrorVariance = trueErrorVariance;
-//    }
-
-    public void testRegularityConditions(CovarianceMatrix cov) {
-
-        // A1
-        double M1 = NEGATIVE_INFINITY;
-
-        for (int i = 0; i < cov.getDimension(); i++) {
-            if (cov.getValue(i, i) > M1) {
-                M1 = cov.getValue(i, i);
-            }
-        }
-
-        // A2
-        RealMatrix m = new BlockRealMatrix(cov.getMatrix().toArray());
-        EigenDecomposition eig = new EigenDecomposition(m);
-        double[] ev = eig.getRealEigenvalues();
-        Arrays.sort(ev);
-        double M2 = ev[0];
-
-        // A3
-
+    public void setRiskBound(double riskBound) {
+        this.riskBound = riskBound;
     }
 }
 

@@ -1460,7 +1460,7 @@ public final class SemIm implements IM, ISemIm, TetradSerializable {
             double[] exoData = new double[variableNodes.size()];
 
             for (int i = 0; i < exoData.length; i++) {
-                exoData[i] = RandomUtil.getInstance().nextNormal(0, sqrt(errCovar.get(i, i)));
+                exoData[i] = RandomUtil.getInstance().nextNormal(0, errCovar.get(i, i));
             }
 
             for (int tier = 0; tier < tierOrdering.size(); tier++) {

@@ -122,7 +122,7 @@ public class FgesMeasurement implements Algorithm, TakesInitialGraph, HasKnowled
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.add(Params.FAITHFULNESS_ASSUMED);
+        parameters.add(Params.ADJACENCY_FAITHFULNESS_ASSUMED);
         parameters.add(Params.MEASUREMENT_VARIANCE);
 
         parameters.add(Params.VERBOSE);

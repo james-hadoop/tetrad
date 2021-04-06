@@ -23,14 +23,10 @@ package edu.cmu.tetrad.study;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
-import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -134,11 +130,11 @@ public class BryanSensitivityStudy {
         parameters.set(Params.DEPTH, -1);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, false);
         parameters.set("verbose", false);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
+        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.MAX_DEGREE, 100);
         parameters.set(Params.MAX_INDEGREE, 100);
         parameters.set(Params.MAX_OUTDEGREE, 100);

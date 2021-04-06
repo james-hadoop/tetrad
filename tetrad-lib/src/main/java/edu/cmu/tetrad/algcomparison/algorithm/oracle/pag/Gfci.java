@@ -54,7 +54,7 @@ public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
+            search.setFaithfulnessAssumed(parameters.getBoolean(Params.ADJACENCY_FAITHFULNESS_ASSUMED));
             search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
             search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
 
@@ -119,7 +119,7 @@ public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
 
-        parameters.add(Params.FAITHFULNESS_ASSUMED);
+        parameters.add(Params.ADJACENCY_FAITHFULNESS_ASSUMED);
         parameters.add(Params.MAX_DEGREE);
 //        parameters.add("printStream");
         parameters.add(Params.MAX_PATH_LENGTH);
