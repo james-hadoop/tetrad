@@ -67,7 +67,7 @@ public class KimEtAlScores implements Score {
     Matrix data;
     //    private double penaltyDiscount;
     private double correlationThreshold = 1.0;
-    private boolean takeLog = false;
+    private boolean takeLog = true;
     private boolean calculateSquareEuclideanNorms = false;
     private double penaltyDiscount = 1;
 
@@ -145,7 +145,7 @@ public class KimEtAlScores implements Score {
         double sn = 12;
 
         if (parents.length > sn) return Double.NEGATIVE_INFINITY;
-        final int pi = parents.length;
+        final int k = parents.length;
 
         // Only do this once.
         double pn = variables.size();
@@ -193,9 +193,9 @@ public class KimEtAlScores implements Score {
 //        double c = penaltyDiscount;
 
         if (takeLog) {
-            return -n * log(varry) - lambda * getPenaltyDiscount() * pi;
+            return -n * log(varry) - lambda * getPenaltyDiscount() * k;
         } else {
-            return -n * (varry) - lambda * getPenaltyDiscount() * pi * trueErrorVariance;
+            return -n * (varry) - lambda * getPenaltyDiscount() * k * trueErrorVariance;
         }
 
     }

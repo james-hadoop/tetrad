@@ -84,7 +84,7 @@ public class ZhangShenBoundScore implements Score {
 
     private double correlationThreshold = 1.0;
     //    private double penaltyDiscount = 1.0;
-    private boolean takeLog = true;
+//    private boolean takeLog = true;
     private double riskBound = 0;
 //    private double trueErrorVariance;
 
@@ -102,6 +102,8 @@ public class ZhangShenBoundScore implements Score {
         this.estMinParents = new int[variables.size()];
         this.maxScores = new double[variables.size()];
         this.estVarRys = new double[variables.size()];
+
+        this.riskBound = 3.0 / covariances.getDimension();
     }
 
     /**
@@ -125,6 +127,7 @@ public class ZhangShenBoundScore implements Score {
             calculateRowSubsets = true;
         }
 
+        this.riskBound = 3.0 / dataSet.getNumColumns();
     }
 
     private int[] indices(List<Node> __adj) {
@@ -166,29 +169,29 @@ public class ZhangShenBoundScore implements Score {
 
 //        System.out.println("var = " + estVarRys[i]);
 
-        if (takeLog) {
+//        if (takeLog) {
 
 //            double s2 = 3;// (estVarRys[i]);
 //            double lambda = getLambda(m0, pn);
 //
-//            double s = (log(s2) - ((1./ N) * pi * lambda)) / (1. - (1. / N) * pi * lambda);
+//            double s = (log(s2) - ((1./ N) * k * lambda)) / (1. - (1. / N) * k * lambda);
 
 //            System.out.println("s = " + s + " estsdy = " + (estVarRys[i]));
 
 //            s = max(0.1, s);
 
-            score = -(N * log(varRy) + getLambda(m0, pn) * pi);
-        } else {
+            score = -(N * log(varRy) + getLambda(m0, pn) * pi * 2);
+//        } else {
 //            score = -(sum + c * getLambda(m0, pn) * pi * trueErrorVariance);
-            score = -(N * varRy + getLambda(m0, pn) * pi * estVarRys[i]);
-        }
+//            score = -(N * varRy + getLambda(m0, pn) * pi * estVarRys[i]);
+//        }
 
-        if (score < maxScores[i] && parents.length < pn) {
-            estMinParents[i] = parents.length;
-            estVarRys[i] = varRy;
-            maxScores[i] = score;
-            changed = true;
-        }
+//        if (score < maxScores[i] && parents.length < pn) {
+//            estMinParents[i] = parents.length;
+//            estVarRys[i] = varRy;
+//            maxScores[i] = score;
+//            changed = true;
+//        }
 
         return score;
     }
@@ -487,16 +490,16 @@ public class ZhangShenBoundScore implements Score {
 //    }
 
     public void setRiskBound(double riskBound) {
-        this.riskBound = riskBound;
+//        this.riskBound = riskBound;
     }
 
     public void setCorrelationThreshold(double correlationThreshold) {
         this.correlationThreshold = correlationThreshold;
     }
 
-    public void setTakeLog(boolean takeLog) {
-        this.takeLog = takeLog;
-    }
+//    public void setTakeLog(boolean takeLog) {
+//        this.takeLog = takeLog;
+//    }
 
 //    public void setTrueErrorVariance(double trueErrorVariance) {
 //        this.trueErrorVariance = trueErrorVariance;

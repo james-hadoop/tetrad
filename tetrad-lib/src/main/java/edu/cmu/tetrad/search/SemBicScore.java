@@ -156,9 +156,7 @@ public class SemBicScore implements Score {
     }
 
     public double localScore(int i, int... parents) {
-        final int p = parents.length;
-
-        int pi = p + 1;
+        final int k = parents.length;
 
         // Only do this once.
         double n = sampleSize;
@@ -172,7 +170,7 @@ public class SemBicScore implements Score {
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-            return -n * log(varey) - c * pi * log(n);// - 2 * getStructurePrior(p);
+            return -n * log(varey) - c * k * log(n);// - 2 * getStructurePrior(k);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }

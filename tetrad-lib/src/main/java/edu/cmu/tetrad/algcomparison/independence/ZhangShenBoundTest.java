@@ -48,7 +48,7 @@ public class ZhangShenBoundTest implements IndependenceWrapper {
         score.setCalculateSquaredEuclideanNorms(parameters.getBoolean(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED));
         score.setRiskBound(parameters.getDouble(Params.ZS_RISK_BOUND));
         score.setCorrelationThreshold(parameters.getDouble(Params.CORRELATION_THRESHOLD));
-        score.setTakeLog(parameters.getBoolean(Params.TAKE_LOGS));
+//        score.setTakeLog(parameters.getBoolean(Params.TAKE_LOGS));
 //        score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
 //        score.setTrueErrorVariance(parameters.getDouble(Params.TRUE_ERROR_VARIANCE));
         return new IndTestScore(score, dataSet);

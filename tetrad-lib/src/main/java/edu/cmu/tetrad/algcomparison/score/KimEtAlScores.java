@@ -46,8 +46,8 @@ public class KimEtAlScores implements ScoreWrapper {
         kimEtAlScores.setTrueErrorVariance(parameters.getDouble(Params.TRUE_ERROR_VARIANCE));
         kimEtAlScores.setLambda(parameters.getDouble(Params.MANUAL_LAMBDA));
         kimEtAlScores.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
-        kimEtAlScores.setTakeLog(parameters.getBoolean(Params.TAKE_LOGS));
-        kimEtAlScores.setCalculateSquareEuclideanNorms(parameters.getBoolean(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED));
+//        kimEtAlScores.setTakeLog(parameters.getBoolean(Params.TAKE_LOGS));
+//        kimEtAlScores.setCalculateSquareEuclideanNorms(parameters.getBoolean(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED));
 
         switch (parameters.getInt(Params.SEM_GIC_RULE)) {
             case 1:
@@ -96,8 +96,8 @@ public class KimEtAlScores implements ScoreWrapper {
         parameters.add(Params.SEM_GIC_RULE);
         parameters.add(Params.PENALTY_DISCOUNT);
         parameters.add(Params.CORRELATION_THRESHOLD);
-        parameters.add(Params.TAKE_LOGS);
-        parameters.add(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED);
+//        parameters.add(Params.TAKE_LOGS);
+//        parameters.add(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED);
         return parameters;
     }
 

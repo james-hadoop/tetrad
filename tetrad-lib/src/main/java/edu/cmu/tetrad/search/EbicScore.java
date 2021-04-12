@@ -149,7 +149,7 @@ public class EbicScore implements Score {
             }
         }
 
-        final int pi = parents.length;
+        final int pi = parents.length + 1;
         double varRy = getVarRy(i, parents, data, covariances, calculateRowSubsets, false);
 
 //        double kappa = log(N) / log(pn);

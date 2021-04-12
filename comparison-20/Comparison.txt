@@ -1,0 +1,118 @@
+Sun Apr 11 06:22:40 EDT 2021
+
+Statistics:
+
+numRuns = Extra column for numRuns
+numMeasures = Extra column for numMeasures
+sampleSize = Extra column for sampleSize
+semGicRule = Extra column for semGicRule
+zSRiskBound = Extra column for zSRiskBound
+ebicGamma = Extra column for ebicGamma
+EdgesT = Number of Edges in the True Graph
+EdgesEst = Number of Edges in the Estimated Graph
+AP = Adjacency Precision
+AR = Adjacency Recall
+AHPC = Arrowhead precision (common edges)
+AHRC = Arrowhead recall (common edges)
+AFDR = Adjacency False Discovery Rate
+AHFDR = Arrowhead False Discovery Rate
+E = Elapsed Time in Seconds
+
+Simulations:
+
+Simulation 1: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 20
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1
+High end of variance range (min = 0.0) = 2
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 10
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 1000
+Save latent variables. = No
+Yes if the data should be standardized = No
+Yes if recursive simulation, No if reduced form simulation = No
+
+Algorithms:
+
+1. FGES (Fast Greedy Equivalence Search) using Kim et al. Scores, semGicRule = 1
+2. FGES (Fast Greedy Equivalence Search) using Kim et al. Scores, semGicRule = 2
+3. FGES (Fast Greedy Equivalence Search) using Kim et al. Scores, semGicRule = 3
+4. FGES (Fast Greedy Equivalence Search) using Kim et al. Scores, semGicRule = 4
+5. FGES (Fast Greedy Equivalence Search) using Kim et al. Scores, semGicRule = 5
+6. FGES (Fast Greedy Equivalence Search) using Kim et al. Scores, semGicRule = 6
+7. FGES (Fast Greedy Equivalence Search) using Zhang-Shen Bound Score
+8. FGES (Fast Greedy Equivalence Search) using EBIC Score
+
+Graphs are being compared to the true DAG.
+
+AVERAGE STATISTICS
+
+All edges
+
+  numRuns  numMeasures  sampleSize  semGicRule  zSRiskBound  ebicGamma  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  AFDR  AHFDR     E
+    10.00        20.00     1000.00        1.00            *          *   40.00     38.60  0.86  0.82  0.78  0.70  0.14   0.32  0.10
+    10.00        20.00     1000.00        2.00            *          *   40.00     46.40  0.78  0.89  0.76  0.70  0.22   0.40  0.05
+    10.00        20.00     1000.00        3.00            *          *   40.00     40.60  0.85  0.85  0.78  0.69  0.15   0.33  0.04
+    10.00        20.00     1000.00        4.00            *          *   40.00     38.80  0.86  0.82  0.78  0.69  0.14   0.32  0.04
+    10.00        20.00     1000.00        5.00            *          *   40.00     41.00  0.85  0.86  0.78  0.69  0.15   0.33  0.04
+    10.00        20.00     1000.00        6.00            *          *   40.00     32.90  0.91  0.74  0.78  0.70  0.09   0.28  0.02
+    10.00        20.00     1000.00           *      1.00E-3          *   40.00     35.30  0.90  0.79  0.78  0.69  0.10   0.28  0.03
+    10.00        20.00     1000.00           *            *       1.00   40.00     40.80  0.85  0.85  0.78  0.70  0.15   0.33  0.03
+
+STANDARD DEVIATIONS
+
+All edges
+
+  numRuns  numMeasures  sampleSize  semGicRule  zSRiskBound  ebicGamma  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  AFDR  AHFDR        E
+    10.00        20.00     1000.00        1.00            *          *    0.00      4.35  0.08  0.03  0.13  0.10  0.08   0.17     0.12
+    10.00        20.00     1000.00        2.00            *          *    0.00      6.88  0.10  0.04  0.14  0.12  0.10   0.17     0.01
+    10.00        20.00     1000.00        3.00            *          *    0.00      6.15  0.10  0.04  0.14  0.10  0.10   0.19     0.03
+    10.00        20.00     1000.00        4.00            *          *    0.00      4.21  0.08  0.03  0.14  0.10  0.08   0.18     0.02
+    10.00        20.00     1000.00        5.00            *          *    0.00      6.24  0.10  0.04  0.14  0.10  0.10   0.19     0.01
+    10.00        20.00     1000.00        6.00            *          *    0.00      3.90  0.06  0.06  0.12  0.08  0.06   0.14  7.13E-3
+    10.00        20.00     1000.00           *      1.00E-3          *    0.00      3.27  0.05  0.05  0.12  0.09  0.05   0.15     0.02
+    10.00        20.00     1000.00           *            *       1.00    0.00      5.31  0.09  0.04  0.12  0.07  0.09   0.17  9.81E-3
+
+WORST CASE
+
+All edges
+
+  numRuns  numMeasures  sampleSize  semGicRule  zSRiskBound  ebicGamma  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  AFDR  AHFDR     E
+    10.00        20.00     1000.00        1.00            *          *   40.00     31.00  0.76  0.75  0.53  0.52  0.03   0.04  0.04
+    10.00        20.00     1000.00        2.00            *          *   40.00     35.00  0.67  0.82  0.47  0.41  0.06   0.17  0.03
+    10.00        20.00     1000.00        3.00            *          *   40.00     32.00  0.70  0.78  0.52  0.50  0.03   0.04  0.02
+    10.00        20.00     1000.00        4.00            *          *   40.00     32.00  0.76  0.78  0.50  0.48  0.03   0.04  0.02
+    10.00        20.00     1000.00        5.00            *          *   40.00     32.00  0.70  0.78  0.50  0.49  0.03   0.04  0.02
+    10.00        20.00     1000.00        6.00            *          *   40.00     28.00  0.79  0.65  0.57  0.57  0.03   0.06  0.01
+    10.00        20.00     1000.00           *      1.00E-3          *   40.00     29.00  0.82  0.70  0.53  0.52  0.03   0.05  0.02
+    10.00        20.00     1000.00           *            *       1.00   40.00     32.00  0.73  0.78  0.61  0.59  0.03   0.04  0.02
+
+MEDIAN CASE
+
+All edges
+
+  numRuns  numMeasures  sampleSize  semGicRule  zSRiskBound  ebicGamma  EdgesT  EdgesEst    AP    AR  AHPC  AHRC  AFDR  AHFDR     E
+    10.00        20.00     1000.00        1.00            *          *   40.00     40.00  0.85  0.82  0.80  0.72  0.15   0.32  0.05
+    10.00        20.00     1000.00        2.00            *          *   40.00     48.00  0.76  0.89  0.81  0.73  0.24   0.39  0.05
+    10.00        20.00     1000.00        3.00            *          *   40.00     41.00  0.83  0.84  0.80  0.72  0.17   0.34  0.03
+    10.00        20.00     1000.00        4.00            *          *   40.00     40.50  0.84  0.82  0.80  0.73  0.16   0.32  0.03
+    10.00        20.00     1000.00        5.00            *          *   40.00     41.50  0.83  0.86  0.81  0.72  0.17   0.33  0.04
+    10.00        20.00     1000.00        6.00            *          *   40.00     32.50  0.92  0.75  0.80  0.72  0.08   0.26  0.02
+    10.00        20.00     1000.00           *      1.00E-3          *   40.00     35.00  0.90  0.79  0.81  0.69  0.10   0.28  0.02
+    10.00        20.00     1000.00           *            *       1.00   40.00     40.50  0.85  0.85  0.79  0.72  0.15   0.34  0.03
+

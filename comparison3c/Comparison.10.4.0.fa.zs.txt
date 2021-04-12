@@ -1,4 +1,4 @@
-Sun Apr 11 13:46:18 EDT 2021
+Sun Apr 11 13:43:49 EDT 2021
 
 Statistics:
 
@@ -23,7 +23,7 @@ Simulations:
 Simulation 1: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
 
 Comparison.printParameters
-Number of measured variables (min = 1) = 30
+Number of measured variables (min = 1) = 10
 Number of latent variables (min = 0) = 0
 Average degree of graph (min = 1) = 4.0
 The maximum degree of the graph (min = -1) = 100
@@ -50,7 +50,7 @@ Yes if recursive simulation, No if reduced form simulation = No
 Simulation 2: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
 
 Comparison.printParameters
-Number of measured variables (min = 1) = 30
+Number of measured variables (min = 1) = 10
 Number of latent variables (min = 0) = 0
 Average degree of graph (min = 1) = 4.0
 The maximum degree of the graph (min = -1) = 100
@@ -77,7 +77,7 @@ Yes if recursive simulation, No if reduced form simulation = No
 Simulation 3: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
 
 Comparison.printParameters
-Number of measured variables (min = 1) = 30
+Number of measured variables (min = 1) = 10
 Number of latent variables (min = 0) = 0
 Average degree of graph (min = 1) = 4.0
 The maximum degree of the graph (min = -1) = 100
@@ -104,7 +104,7 @@ Yes if recursive simulation, No if reduced form simulation = No
 Simulation 4: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
 
 Comparison.printParameters
-Number of measured variables (min = 1) = 30
+Number of measured variables (min = 1) = 10
 Number of latent variables (min = 0) = 0
 Average degree of graph (min = 1) = 4.0
 The maximum degree of the graph (min = -1) = 100
@@ -131,7 +131,7 @@ Yes if recursive simulation, No if reduced form simulation = No
 Simulation 5: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
 
 Comparison.printParameters
-Number of measured variables (min = 1) = 30
+Number of measured variables (min = 1) = 10
 Number of latent variables (min = 0) = 0
 Average degree of graph (min = 1) = 4.0
 The maximum degree of the graph (min = -1) = 100
@@ -158,7 +158,7 @@ Yes if recursive simulation, No if reduced form simulation = No
 Simulation 6: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
 
 Comparison.printParameters
-Number of measured variables (min = 1) = 30
+Number of measured variables (min = 1) = 10
 Number of latent variables (min = 0) = 0
 Average degree of graph (min = 1) = 4.0
 The maximum degree of the graph (min = -1) = 100
@@ -192,47 +192,47 @@ AVERAGE STATISTICS
 
 All edges
 
-  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR     AFPR  ATPRDP  AFPRDP  AHPC  AHRC     E
-      200.00           *         0.10   30.00   60.00     33.50  0.96  0.54  0.54  3.20E-3    0.52    0.00  0.86  0.67  0.14
-      500.00           *         0.10   30.00   60.00     45.30  0.97  0.73  0.73  3.54E-3    0.73    0.00  0.90  0.77  0.10
-     1000.00           *         0.10   30.00   60.00     56.90  0.89  0.83  0.83     0.02    0.84    0.00  0.89  0.82  0.09
-     2000.00           *         0.10   30.00   60.00     63.60  0.88  0.92  0.92     0.02    0.93    0.00  0.86  0.80  0.10
-     5000.00           *         0.10   30.00   60.00     76.50  0.78  0.97  0.97     0.04    0.97    0.00  0.86  0.84  0.16
-    10000.00           *         0.10   30.00   60.00     70.30  0.85  0.98  0.98     0.03    0.99    0.00  0.90  0.78  0.19
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR  AFPR  ATPRDP  AFPRDP  AHPC  AHRC     E
+      200.00           *         0.10   10.00   20.00     10.80  0.94  0.51  0.51  0.02    0.52    0.00  0.66  0.50  0.04
+      500.00           *         0.10   10.00   20.00     15.90  0.90  0.71  0.71  0.04    0.74    0.00  0.64  0.58  0.03
+     1000.00           *         0.10   10.00   20.00     18.70  0.88  0.81  0.81  0.05    0.82    0.00  0.71  0.68  0.01
+     2000.00           *         0.10   10.00   20.00     21.90  0.83  0.90  0.90  0.08    0.89    0.00  0.75  0.68  0.02
+     5000.00           *         0.10   10.00   20.00     24.50  0.80  0.95  0.95  0.10    0.94    0.00  0.76  0.61  0.02
+    10000.00           *         0.10   10.00   20.00     23.80  0.80  0.94  0.94  0.10    0.95    0.00  0.72  0.65  0.03
 
 STANDARD DEVIATIONS
 
 All edges
 
-  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR     AFPR  ATPRDP  AFPRDP  AHPC  AHRC     E
-      200.00           *         0.10    0.00    0.00      4.70  0.04  0.09  0.09  3.09E-3    0.09    0.00  0.09  0.13  0.15
-      500.00           *         0.10    0.00    0.00      4.11  0.04  0.05  0.05  4.75E-3    0.07    0.00  0.07  0.07  0.06
-     1000.00           *         0.10    0.00    0.00      5.43  0.08  0.05  0.05     0.01    0.06    0.00  0.05  0.04  0.04
-     2000.00           *         0.10    0.00    0.00      8.49  0.10  0.02  0.02     0.02    0.02    0.00  0.09  0.08  0.05
-     5000.00           *         0.10    0.00    0.00     12.30  0.13  0.02  0.02     0.03    0.02    0.00  0.08  0.08  0.04
-    10000.00           *         0.10    0.00    0.00     11.39  0.12  0.01  0.01     0.02    0.01    0.00  0.07  0.02  0.10
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR  AFPR  ATPRDP  AFPRDP  AHPC  AHRC        E
+      200.00           *         0.10    0.00    0.00      2.04  0.09  0.11  0.11  0.03    0.12    0.00  0.19  0.20     0.04
+      500.00           *         0.10    0.00    0.00      1.73  0.05  0.09  0.09  0.02    0.09    0.00  0.16  0.13     0.03
+     1000.00           *         0.10    0.00    0.00      2.91  0.08  0.09  0.09  0.04    0.08    0.00  0.13  0.14  3.50E-3
+     2000.00           *         0.10    0.00    0.00      3.28  0.12  0.06  0.06  0.07    0.08    0.00  0.15  0.11     0.01
+     5000.00           *         0.10    0.00    0.00      4.67  0.16  0.05  0.05  0.09    0.07    0.00  0.17  0.09  8.97E-3
+    10000.00           *         0.10    0.00    0.00      2.90  0.12  0.06  0.06  0.07    0.06    0.00  0.15  0.14  8.05E-3
 
 WORST CASE
 
 All edges
 
-  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR     AFPR  ATPRDP  AFPRDP  AHPC  AHRC     E
-      200.00           *         0.10   30.00   60.00     29.00  0.87  0.43  0.43     0.00    0.41    0.00  0.69  0.42  0.04
-      500.00           *         0.10   30.00   60.00     39.00  0.88  0.65  0.65     0.00    0.63    0.00  0.78  0.66  0.04
-     1000.00           *         0.10   30.00   60.00     48.00  0.78  0.75  0.75  2.33E-3    0.74    0.00  0.81  0.78  0.04
-     2000.00           *         0.10   30.00   60.00     55.00  0.71  0.87  0.87     0.00    0.88    0.00  0.69  0.65  0.04
-     5000.00           *         0.10   30.00   60.00     60.00  0.62  0.93  0.93     0.00    0.93    0.00  0.76  0.73  0.08
-    10000.00           *         0.10   30.00   60.00     60.00  0.59  0.97  0.97     0.00    0.98    0.00  0.82  0.76  0.10
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR  AFPR  ATPRDP  AFPRDP  AHPC  AHRC        E
+      200.00           *         0.10   10.00   20.00      8.00  0.73  0.40  0.40  0.00    0.33    0.00  0.29  0.25     0.01
+      500.00           *         0.10   10.00   20.00     13.00  0.80  0.60  0.60  0.02    0.67    0.00  0.38  0.36     0.01
+     1000.00           *         0.10   10.00   20.00     13.00  0.74  0.65  0.65  0.00    0.68    0.00  0.38  0.38  7.00E-3
+     2000.00           *         0.10   10.00   20.00     19.00  0.53  0.80  0.80  0.02    0.76    0.00  0.44  0.44  7.00E-3
+     5000.00           *         0.10   10.00   20.00     20.00  0.59  0.85  0.85  0.00    0.80    0.00  0.57  0.47     0.01
+    10000.00           *         0.10   10.00   20.00     20.00  0.62  0.80  0.80  0.00    0.83    0.00  0.50  0.47     0.02
 
 MEDIAN CASE
 
 All edges
 
-  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR     AFPR  ATPRDP  AFPRDP  AHPC  AHRC     E
-      200.00           *         0.10   30.00   60.00     32.50  0.97  0.52  0.52  2.46E-3    0.52    0.00  0.90  0.69  0.09
-      500.00           *         0.10   30.00   60.00     46.50  0.98  0.73  0.73  2.36E-3    0.72    0.00  0.91  0.76  0.07
-     1000.00           *         0.10   30.00   60.00     56.00  0.91  0.83  0.83     0.01    0.82    0.00  0.89  0.81  0.07
-     2000.00           *         0.10   30.00   60.00     60.00  0.92  0.92  0.92     0.01    0.94    0.00  0.90  0.82  0.07
-     5000.00           *         0.10   30.00   60.00     76.00  0.76  0.98  0.98     0.04    0.98    0.00  0.85  0.82  0.16
-    10000.00           *         0.10   30.00   60.00     66.50  0.88  0.98  0.98     0.02    1.00    0.00  0.90  0.78  0.16
+  sampleSize  semGicRule  zSRiskBound  NodesT  EdgesT  EdgesEst    AP    AR  ATPR  AFPR  ATPRDP  AFPRDP  AHPC  AHRC     E
+      200.00           *         0.10   10.00   20.00     11.00  1.00  0.50  0.50  0.00    0.50    0.00  0.71  0.43  0.02
+      500.00           *         0.10   10.00   20.00     15.50  0.93  0.70  0.70  0.03    0.73    0.00  0.63  0.59  0.02
+     1000.00           *         0.10   10.00   20.00     19.00  0.88  0.82  0.82  0.05    0.84    0.00  0.76  0.73  0.01
+     2000.00           *         0.10   10.00   20.00     21.00  0.87  0.90  0.90  0.06    0.88    0.00  0.78  0.74  0.01
+     5000.00           *         0.10   10.00   20.00     23.50  0.81  0.95  0.95  0.09    0.93    0.00  0.73  0.61  0.02
+    10000.00           *         0.10   10.00   20.00     23.50  0.82  0.95  0.95  0.08    0.94    0.00  0.69  0.63  0.02
 

@@ -44,7 +44,7 @@ public class ZhangShenBoundScore implements ScoreWrapper {
 //        score.setCalculateSquaredEuclideanNorms(parameters.getBoolean(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED));
         score.setRiskBound(parameters.getDouble(Params.ZS_RISK_BOUND));
         score.setCorrelationThreshold(parameters.getDouble(Params.CORRELATION_THRESHOLD));
-        score.setTakeLog(parameters.getBoolean(Params.TAKE_LOGS));
+//        score.setTakeLog(parameters.getBoolean(Params.TAKE_LOGS));
 //        score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
 //        score.setTrueErrorVariance(parameters.getDouble(Params.TRUE_ERROR_VARIANCE));
         return score;
@@ -66,7 +66,7 @@ public class ZhangShenBoundScore implements ScoreWrapper {
         parameters.add(Params.ZS_RISK_BOUND);
 //        parameters.add(Params.CORRELATION_THRESHOLD);
 //        parameters.add(Params.PENALTY_DISCOUNT);
-        parameters.add(Params.TAKE_LOGS);
+//        parameters.add(Params.TAKE_LOGS);
 //        parameters.add(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED);
 //        parameters.add(Params.TRUE_ERROR_VARIANCE);
         return parameters;
