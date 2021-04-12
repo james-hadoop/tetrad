@@ -254,7 +254,7 @@ public class ZhangShenBoundScore implements Score {
             }
         }
 
-        return low;
+        return low - 0.1;
     }
 
     public static double getP(int pn, int m0, double lambda) {
