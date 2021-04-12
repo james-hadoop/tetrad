@@ -152,7 +152,7 @@ public class KimEtAlScores implements Score {
         pn = min(pn, sn);
         double n = N;
 
-        double varry = ZhangShenBoundScore.getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquareEuclideanNorms);
+        double varry = SemBicScore.getVarRy(i, parents, data, covariances, calculateRowSubsets);
 
         double lambda;
 

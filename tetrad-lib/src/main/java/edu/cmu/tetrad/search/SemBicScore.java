@@ -28,10 +28,13 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.StatUtils;
+import org.apache.commons.math3.linear.SingularMatrixException;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 import static edu.cmu.tetrad.util.MatrixUtils.convertCovToCorr;
+import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.Double.NaN;
 import static java.lang.Math.abs;
 import static java.lang.Math.log;
@@ -44,6 +47,7 @@ import static java.lang.Math.log;
 public class SemBicScore implements Score {
 
     private boolean calculateRowSubsets = false;
+
     // The dataset.
     private DataSet dataSet;
 
@@ -76,7 +80,6 @@ public class SemBicScore implements Score {
 
     // The rule type to use.
     private RuleType ruleType = RuleType.CHICKERING;
-    private boolean calculateSquareEuclideanNorms = false;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -104,7 +107,6 @@ public class SemBicScore implements Score {
         this.data = dataSet.getDoubleData();
 
         if (!dataSet.existsMissingValue()) {
-//            setCovariances(new CorrelationMatrix(new CovarianceMatrix(dataSet, false)));
             setCovariances(new CovarianceMatrix(dataSet, false));
             this.variables = covariances.getVariables();
             this.sampleSize = covariances.getSampleSize();
@@ -117,6 +119,101 @@ public class SemBicScore implements Score {
         this.sampleSize = dataSet.getNumRows();
         this.indexMap = indexMap(this.variables);
         this.calculateRowSubsets = true;
+    }
+
+    public static double getVarRy(int i, int[] parents, Matrix data, ICovarianceMatrix covariances, boolean calculateRowSubsets) {
+        try {
+            int[] all = concat(i, parents);
+            Matrix cov = getCov(getRows(i, parents, data, calculateRowSubsets), all, all, data, covariances);
+            int[] pp = indexedParents(parents);
+            Matrix covxx = cov.getSelection(pp, pp);
+            Matrix covxy = cov.getSelection(pp, new int[]{0});
+            Matrix b = (covxx.inverse().times(covxy));
+            Matrix bStar = bStar(b);
+            return (bStar.transpose().times(cov).times(bStar).get(0, 0));
+        } catch (SingularMatrixException e) {
+            List<Node> variables = covariances.getVariables();
+            List<Node> p = new ArrayList<>();
+            for (int _p : parents) p.add(variables.get(_p));
+            System.out.println("Singularity " + variables.get(i) + " | " + p);
+            return NEGATIVE_INFINITY;
+        }
+    }
+
+    @NotNull
+    public static Matrix bStar(Matrix b) {
+        Matrix byx = new Matrix(b.rows() + 1, 1);
+        byx.set(0, 0, 1);
+        for (int j = 0; j < b.rows(); j++) byx.set(j + 1, 0, -b.get(j, 0));
+        return byx;
+    }
+
+    private static int[] indexedParents(int[] parents) {
+        int[] pp = new int[parents.length];
+        for (int j = 0; j < pp.length; j++) pp[j] = j + 1;
+        return pp;
+    }
+
+    private static int[] concat(int i, int[] parents) {
+        int[] all = new int[parents.length + 1];
+        all[0] = i;
+        System.arraycopy(parents, 0, all, 1, parents.length);
+        return all;
+    }
+
+    private static Matrix getCov(List<Integer> rows, int[] _rows, int[] cols, Matrix data, ICovarianceMatrix covarianceMatrix) {
+        if (rows == null) {
+            return covarianceMatrix.getSelection(_rows, cols);
+        }
+
+        Matrix cov = new Matrix(_rows.length, cols.length);
+
+        for (int i = 0; i < _rows.length; i++) {
+            for (int j = 0; j < cols.length; j++) {
+                double mui = 0.0;
+                double muj = 0.0;
+
+                for (int k : rows) {
+                    mui += data.get(k, _rows[i]);
+                    muj += data.get(k, cols[j]);
+                }
+
+                mui /= rows.size() - 1;
+                muj /= rows.size() - 1;
+
+                double _cov = 0.0;
+
+                for (int k : rows) {
+                    _cov += (data.get(k, _rows[i]) - mui) * (data.get(k, cols[j]) - muj);
+                }
+
+                double mean = _cov / (rows.size());
+                cov.set(i, j, mean);
+            }
+        }
+
+        return cov;
+    }
+
+    private static List<Integer> getRows(int i, int[] parents, Matrix data, boolean calculateRowSubsets) {
+        if (!calculateRowSubsets) {
+            return null;
+        }
+
+        List<Integer> rows = new ArrayList<>();
+
+        K:
+        for (int k = 0; k < data.rows(); k++) {
+            if (Double.isNaN(data.get(k, i))) continue;
+
+            for (int p : parents) {
+                if (Double.isNaN(data.get(k, p))) continue K;
+            }
+
+            rows.add(k);
+        }
+
+        return rows;
     }
 
     @Override
@@ -144,7 +241,7 @@ public class SemBicScore implements Score {
 
         double r = partialCorrelation(_x, _y, _z, rows);
 
-        double c = 1;//getPenaltyDiscount();
+        double c = getPenaltyDiscount();
 
         return -sampleSize * log(1.0 - r * r) - c * log(sampleSize)
                 - 2.0 * (sp1 - sp2);
@@ -163,7 +260,7 @@ public class SemBicScore implements Score {
 
         double varey;
 
-        varey = ZhangShenBoundScore.getVarRy(i, parents, data, covariances, calculateRowSubsets, calculateSquareEuclideanNorms);
+        varey = getVarRy(i, parents, data, covariances, calculateRowSubsets);
 
         double c = getPenaltyDiscount();
 
@@ -412,10 +509,6 @@ public class SemBicScore implements Score {
 
     public void setRuleType(RuleType ruleType) {
         this.ruleType = ruleType;
-    }
-
-    public void setCalculateSquareEuclideanNorms(boolean calculateSquareEuclideanNorms) {
-        this.calculateSquareEuclideanNorms = calculateSquareEuclideanNorms;
     }
 
     public enum RuleType {CHICKERING, NANDY}

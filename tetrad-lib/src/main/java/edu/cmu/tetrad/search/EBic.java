@@ -117,7 +117,7 @@ public class EBic implements Score {
         // Only do this once.
         double n = sampleSize;
 
-        double varey = ZhangShenBoundScore.getVarRy(i, parents, data, covariances, calculateRowSubsets, false);
+        double varey = SemBicScore.getVarRy(i, parents, data, covariances, calculateRowSubsets);
 
         return -(n * log(varey) + pi * log(n) + 2 * getGamma() * log(pi));
     }
