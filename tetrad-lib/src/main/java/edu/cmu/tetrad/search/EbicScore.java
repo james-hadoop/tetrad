@@ -25,18 +25,14 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.Matrix;
-import org.apache.commons.math3.linear.SingularMatrixException;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.Math.*;
 
 /**
- * Implements the continuous BIC score for FGES.
+ * Implements the extended BIC score (Chen and Chen)..
  *
  * @author Joseph Ramsey
  */
@@ -63,20 +59,10 @@ public class EbicScore implements Score {
     // True if row subsets should be calculated.
     private boolean calculateRowSubsets = false;
 
-    // The running maximum score, for estimating the true minimal model.
-    double[] maxScores;
-
-    // The running estimate of the number of parents in the true minimal model.
-    int[] estMinParents;
-
-    // The running estimate of the residual variance of the true minimal model.
-    double[] estVarRys;
-
-    private boolean changed = false;
-
     private double correlationThreshold = 1.0;
-    private double riskBound = 0;
-//    private double trueErrorVariance;
+
+    // The gamma paramter for EBIC.
+    private double gamma = 1;
 
     /**
      * Constructs the score using a covariance matrix.
@@ -89,9 +75,6 @@ public class EbicScore implements Score {
         setCovariances(covariances);
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
-        this.estMinParents = new int[variables.size()];
-        this.maxScores = new double[variables.size()];
-        this.estVarRys = new double[variables.size()];
     }
 
     /**
@@ -134,106 +117,17 @@ public class EbicScore implements Score {
     }
 
     public double localScore(int i, int... parents) throws RuntimeException {
-        int pn = variables.size() - 1;
-
-        // True if sume of squares should be calculated, false if estimated.
-        if (this.estMinParents == null) {
-            this.estMinParents = new int[variables.size()];
-            this.maxScores = new double[variables.size()];
-            this.estVarRys = new double[variables.size()];
-
-            for (int j = 0; j < variables.size(); j++) {
-                this.estMinParents[j] = 0;
-                this.maxScores[j] = localScore(j, new int[0]);
-                this.estVarRys[j] = getVarRy(j, new int[0], data, covariances, calculateRowSubsets, false);
-            }
-        }
-
         final int pi = parents.length + 1;
-        double varRy = getVarRy(i, parents, data, covariances, calculateRowSubsets, false);
+        double varRy = SemBicScore.getVarRy(i, parents, data, covariances, calculateRowSubsets);
 
-//        double kappa = log(N) / log(pn);
-//
-//        double gamma = 1.0 - 1.0 / (2 * kappa);
+        double gamma = this.gamma;//  1.0 - riskBound;
 
-//        System.out.println("gamma = " + gamma);
-
-
-        double gamma = riskBound;//  1.0 - riskBound;
-
-        double score = -(N * log(varRy)
-                + (pi * log(N)
+        return -(N * log(varRy) + (pi * log(N)
                 + 2 * gamma * ChoiceGenerator.logCombinations(variables.size() - 1, pi)));
-
-        if (score > maxScores[i] && parents.length < pn) {
-            estMinParents[i] = parents.length;
-            estVarRys[i] = varRy;
-            maxScores[i] = score;
-            changed = true;
-        }
-
-        return score;
-    }
-
-    public static double getVarRy(int i, int[] parents, Matrix data, ICovarianceMatrix covariances, boolean calculateRowSubsets, boolean calculateSquareEuclideanNorms) {
-        if (calculateSquareEuclideanNorms) {
-            return (1. / data.rows()) * getSquaredEucleanNorm(i, parents, data);
-        }
-
-        try {
-            int[] all = concat(i, parents);
-            Matrix cov = getCov(getRows(i, parents, data, calculateRowSubsets), all, all, data, covariances);
-            int[] pp = indexedParents(parents);
-            Matrix covxx = cov.getSelection(pp, pp);
-            Matrix covxy = cov.getSelection(pp, new int[]{0});
-            Matrix b = (covxx.inverse().times(covxy));
-            Matrix bStar = bStar(b);
-            return (bStar.transpose().times(cov).times(bStar).get(0, 0));
-        } catch (SingularMatrixException e) {
-            List<Node> variables = covariances.getVariables();
-            List<Node> p = new ArrayList<>();
-            for (int _p : parents) p.add(variables.get(_p));
-            System.out.println("Singularity " + variables.get(i) + " | " + p);
-            return NEGATIVE_INFINITY;
-        }
     }
 
     public static double getP(int pn, int m0, double lambda) {
         return 2 - pow((1 + (exp(-(lambda - 1) / 2.)) * sqrt(lambda)), pn - m0);
-    }
-
-    private static double getSquaredEucleanNorm(int i, int[] parents, Matrix data) {
-        int[] rows = new int[data.rows()];
-        for (int t = 0; t < rows.length; t++) rows[t] = t;
-
-        Matrix y = data.getSelection(rows, new int[]{i});
-        Matrix x = data.getSelection(rows, parents);
-
-        Matrix xT = x.transpose();
-        Matrix xTx = xT.times(x);
-        Matrix xTxInv = xTx.inverse();
-        Matrix xTy = xT.times(y);
-        Matrix b = xTxInv.times(xTy);
-
-        Matrix yhat = x.times(b);
-
-        double sum = 0.0;
-
-        for (int q = 0; q < data.rows(); q++) {
-            double diff = data.get(q, i) - yhat.get(q, 0);
-            sum += diff * diff;
-        }
-
-        return sum;
-    }
-
-
-    @NotNull
-    public static Matrix bStar(Matrix b) {
-        Matrix byx = new Matrix(b.rows() + 1, 1);
-        byx.set(0, 0, 1);
-        for (int j = 0; j < b.rows(); j++) byx.set(j + 1, 0, -b.get(j, 0));
-        return byx;
     }
 
     /**
@@ -310,7 +204,6 @@ public class EbicScore implements Score {
 
     private void setCovariances(ICovarianceMatrix covariances) {
         CorrelationMatrix correlations = new CorrelationMatrix(covariances);
-//        this.covariances = correlations;
         this.covariances = covariances;
 
         boolean exists = false;
@@ -341,89 +234,12 @@ public class EbicScore implements Score {
         return _z;
     }
 
-    private static int[] indexedParents(int[] parents) {
-        int[] pp = new int[parents.length];
-        for (int j = 0; j < pp.length; j++) pp[j] = j + 1;
-        return pp;
-    }
-
-    private static int[] concat(int i, int[] parents) {
-        int[] all = new int[parents.length + 1];
-        all[0] = i;
-        System.arraycopy(parents, 0, all, 1, parents.length);
-        return all;
-    }
-
-    private static Matrix getCov(List<Integer> rows, int[] _rows, int[] cols, Matrix data, ICovarianceMatrix covarianceMatrix) {
-        if (rows == null) {
-            return covarianceMatrix.getSelection(_rows, cols);
-        }
-
-        Matrix cov = new Matrix(_rows.length, cols.length);
-
-        for (int i = 0; i < _rows.length; i++) {
-            for (int j = 0; j < cols.length; j++) {
-                double mui = 0.0;
-                double muj = 0.0;
-
-                for (int k : rows) {
-                    mui += data.get(k, _rows[i]);
-                    muj += data.get(k, cols[j]);
-                }
-
-                mui /= rows.size() - 1;
-                muj /= rows.size() - 1;
-
-                double _cov = 0.0;
-
-                for (int k : rows) {
-                    _cov += (data.get(k, _rows[i]) - mui) * (data.get(k, cols[j]) - muj);
-                }
-
-                double mean = _cov / (rows.size());
-                cov.set(i, j, mean);
-            }
-        }
-
-        return cov;
-    }
-
-    private static List<Integer> getRows(int i, int[] parents, Matrix data, boolean calculateRowSubsets) {
-        if (!calculateRowSubsets) {
-            return null;
-        }
-
-        List<Integer> rows = new ArrayList<>();
-
-        K:
-        for (int k = 0; k < data.rows(); k++) {
-            if (Double.isNaN(data.get(k, i))) continue;
-
-            for (int p : parents) {
-                if (Double.isNaN(data.get(k, p))) continue K;
-            }
-
-            rows.add(k);
-        }
-
-        return rows;
-    }
-
-
-    public boolean isChanged() {
-        return changed;
-    }
-
-    public void setChanged(boolean b) {
-        changed = b;
-    }
-
     public void setCorrelationThreshold(double correlationThreshold) {
         this.correlationThreshold = correlationThreshold;
     }
 
-    public void setRiskBound(double riskBound) {
-        this.riskBound = riskBound;
+    public void setGamma(double gamma) {
+        this.gamma = gamma;
     }
 }
 

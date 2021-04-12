@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Wrapper for linear, Gaussian SEM BIC score.
+ * Wrapper for linear, Gaussian Extended BIC score (Chen and Chen).
  *
  * @author jdramsey
  */
@@ -41,11 +41,8 @@ public class EbicScore implements ScoreWrapper {
             throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
         }
 
-//        score.setCalculateSquaredEuclideanNorms(parameters.getBoolean(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED));
-        score.setRiskBound(parameters.getDouble(Params.EBIC_GAMMA));
+        score.setGamma(parameters.getDouble(Params.EBIC_GAMMA));
         score.setCorrelationThreshold(parameters.getDouble(Params.CORRELATION_THRESHOLD));
-//        score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
-//        score.setTrueErrorVariance(parameters.getDouble(Params.TRUE_ERROR_VARIANCE));
         return score;
     }
 
@@ -64,10 +61,6 @@ public class EbicScore implements ScoreWrapper {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.EBIC_GAMMA);
 //        parameters.add(Params.CORRELATION_THRESHOLD);
-//        parameters.add(Params.PENALTY_DISCOUNT);
-//        parameters.add(Params.TAKE_LOGS);
-//        parameters.add(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED);
-//        parameters.add(Params.TRUE_ERROR_VARIANCE);
         return parameters;
     }
 
