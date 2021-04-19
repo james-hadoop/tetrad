@@ -273,7 +273,6 @@ public class Kpc implements GraphSearch {
         graph = fas.search();
         this.sepset = fas.getSepsets();
         this.numIndependenceTests = fas.getNumIndependenceTests();
-        this.numFalseDependenceJudgements = fas.getNumFalseDependenceJudgments();
         this.numDependenceJudgements = fas.getNumDependenceJudgments();
 
         enumerateTriples();

@@ -43,7 +43,12 @@ import java.util.*;
  *
  * @author Joseph Ramsey.
  */
-public class Fas implements IFas {
+public class FasOrig implements IFas {
+
+    /**
+     * The search nodes.
+     */
+    private final List<Node> nodes;
 
     /**
      * The independence test. This should be appropriate to the types
@@ -82,6 +87,11 @@ public class Fas implements IFas {
      */
     private SepsetMap sepset = new SepsetMap();
 
+    /**
+     * The depth 0 graph, specified initially.
+     */
+    private Graph initialGraph;
+
     private final NumberFormat nf = new DecimalFormat("0.00E0");
 
     /**
@@ -90,23 +100,23 @@ public class Fas implements IFas {
     private boolean verbose = false;
 
     private PrintStream out = System.out;
-    private Graph initialGraph = null;
-    private boolean h3 = true;
 
     //==========================CONSTRUCTORS=============================//
 
     /**
      * Constructs a new FastAdjacencySearch.
      */
-    public Fas(Graph initialGraph, IndependenceTest test) {
+    public FasOrig(Graph initialGraph, IndependenceTest test) {
         if (initialGraph != null) {
             this.initialGraph = new EdgeListGraph(initialGraph);
         }
         this.test = test;
+        this.nodes = test.getVariables();
     }
 
-    public Fas(IndependenceTest test) {
+    public FasOrig(IndependenceTest test) {
         this.test = test;
+        this.nodes = test.getVariables();
     }
 
     //==========================PUBLIC METHODS===========================//
@@ -124,90 +134,51 @@ public class Fas implements IFas {
     public Graph search() {
         this.logger.log("info", "Starting Fast Adjacency Search.");
 
-        if (!h3) {
-            return new FasOrig(initialGraph, test).search();
-        } else {
+        sepset = new SepsetMap();
+//        sepset.setReturnEmptyIfNotSet(sepsetsReturnEmptyIfNotFixed);
 
-            List<Edge> edges = new ArrayList<>();
-            Map<Edge, Double> unconditionalEdgeScores = new HashMap<>();
-            List<Node> nodes = test.getVariables();
+        int _depth = depth;
 
-            for (int i = 0; i < nodes.size(); i++) {
-                for (int j = i + 1; j < nodes.size(); j++) {
-                    edges.add(Edges.undirectedEdge(nodes.get(i), nodes.get(j)));
-                }
-            }
-
-            sortedEdges(test, edges, unconditionalEdgeScores);
-
-            sepset = new SepsetMap();
-
-            int _depth = depth;
-
-            if (_depth == -1) {
-                _depth = 1000;
-            }
-
-            Map<Node, Set<Node>> adjacencies = new HashMap<>();
-
-            for (Node node : nodes) {
-                Set<Node> set = new LinkedHashSet<>();
-
-                for (Node _node : nodes) {
-                    if (_node == node) continue;
-                    set.add(_node);
-                }
-
-                adjacencies.put(node, set);
-            }
-
-            for (Edge edge : new LinkedHashSet<>(unconditionalEdgeScores.keySet())) {
-                if (unconditionalEdgeScores.get(edge) < 0) {
-                    edges.remove(edge);
-                    adjacencies.get(edge.getNode1()).remove(edge.getNode2());
-                    adjacencies.get(edge.getNode2()).remove(edge.getNode1());
-                    unconditionalEdgeScores.remove(edge);
-                }
-            }
-
-            for (int d = 0; d <= _depth; d++) {
-                boolean more;
-
-                more = searchAtDepth(edges, nodes, test, adjacencies, d);
-
-                if (!more) {
-                    break;
-                }
-            }
-
-            // The search graph. It is assumed going in that all of the true adjacencies of x are in this graph for every node
-            // x. It is hoped (i.e. true in the large sample limit) that true adjacencies are never removed.
-            Graph graph = new EdgeListGraph(nodes);
-
-            for (int i = 0; i < nodes.size(); i++) {
-                for (int j = i + 1; j < nodes.size(); j++) {
-                    Node x = nodes.get(i);
-                    Node y = nodes.get(j);
-
-                    if (adjacencies.get(x).contains(y)) {
-                        graph.addUndirectedEdge(x, y);
-                    }
-                }
-            }
-
-            this.logger.log("info", "Finishing Fast Adjacency Search.");
-
-            return graph;
-        }
-    }
-
-    private void sortedEdges(IndependenceTest test, List<Edge> edges, Map<Edge, Double> scores) {
-        for (Edge edge : edges) {
-            test.isIndependent(edge.getNode1(), edge.getNode2(), new ArrayList<>());
-            scores.put(edge, test.getScore());
+        if (_depth == -1) {
+            _depth = 1000;
         }
 
-        edges.sort(Comparator.comparing(scores::get));
+        Map<Node, Set<Node>> adjacencies = new HashMap<>();
+
+        for (Node node : nodes) {
+            adjacencies.put(node, new TreeSet<>());
+        }
+
+        for (int d = 0; d <= _depth; d++) {
+            boolean more;
+
+            if (d == 0) {
+                more = searchAtDepth0(nodes, test, adjacencies);
+            } else {
+                more = searchAtDepth(nodes, test, adjacencies, d);
+            }
+
+            if (!more) {
+                break;
+            }
+        }
+
+        Graph graph = new EdgeListGraph(nodes);
+
+        for (int i = 0; i < nodes.size(); i++) {
+            for (int j = i + 1; j < nodes.size(); j++) {
+                Node x = nodes.get(i);
+                Node y = nodes.get(j);
+
+                if (adjacencies.get(x).contains(y)) {
+                    graph.addUndirectedEdge(x, y);
+                }
+            }
+        }
+
+        this.logger.log("info", "Finishing Fast Adjacency Search.");
+
+        return graph;
     }
 
     public int getDepth() {
@@ -236,6 +207,73 @@ public class Fas implements IFas {
 
     //==============================PRIVATE METHODS======================/
 
+    private boolean searchAtDepth0(List<Node> nodes, IndependenceTest test, Map<Node, Set<Node>> adjacencies) {
+        List<Node> empty = Collections.emptyList();
+        for (int i = 0; i < nodes.size(); i++) {
+            if (verbose) {
+                if ((i + 1) % 100 == 0) out.println("Node # " + (i + 1));
+            }
+
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+
+            Node x = nodes.get(i);
+
+            for (int j = i + 1; j < nodes.size(); j++) {
+
+                Node y = nodes.get(j);
+
+                if (initialGraph != null) {
+                    Node x2 = initialGraph.getNode(x.getName());
+                    Node y2 = initialGraph.getNode(y.getName());
+
+                    if (!initialGraph.isAdjacentTo(x2, y2)) {
+                        continue;
+                    }
+                }
+
+                boolean independent;
+
+                try {
+                    numIndependenceTests++;
+                    independent = test.isIndependent(x, y, empty);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    independent = false;
+                }
+
+                if (!independent) {
+                    numDependenceJudgement++;
+                }
+
+                boolean noEdgeRequired =
+                        knowledge.noEdgeRequired(x.getName(), y.getName());
+
+
+                if (independent && noEdgeRequired) {
+//                    if (!getSepsets().isReturnEmptyIfNotSet()) {
+                    getSepsets().set(x, y, empty);
+//                    }
+
+                    if (verbose) {
+                        TetradLogger.getInstance().forceLogMessage(
+                                SearchLogUtils.independenceFact(x, y, empty) + " p-value = " +
+                                        nf.format(test.getPValue()));
+                        out.println(SearchLogUtils.independenceFact(x, y, empty) + " p-value = " +
+                                nf.format(test.getPValue()));
+                    }
+
+                } else if (!forbiddenEdge(x, y)) {
+                    adjacencies.get(x).add(y);
+                    adjacencies.get(y).add(x);
+                }
+            }
+        }
+
+        return freeDegree(nodes, adjacencies) > 0;
+    }
+
     private int freeDegree(List<Node> nodes, Map<Node, Set<Node>> adjacencies) {
         int max = 0;
 
@@ -255,89 +293,88 @@ public class Fas implements IFas {
         return max;
     }
 
-    private boolean searchAtDepth(List<Edge> edges, List<Node> nodes, final IndependenceTest test, Map<Node, Set<Node>> adjacencies, int depth) {
-        for (Edge edge : edges) {
-            Node x = edge.getNode1();
-            Node y = edge.getNode2();
+    private boolean forbiddenEdge(Node x, Node y) {
+        String name1 = x.getName();
+        String name2 = y.getName();
+
+        if (knowledge.isForbidden(name1, name2) &&
+                knowledge.isForbidden(name2, name1)) {
+            System.out.println(Edges.undirectedEdge(x, y) + " because it was " +
+                    "forbidden by background knowledge.");
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean searchAtDepth(List<Node> nodes, final IndependenceTest test, Map<Node, Set<Node>> adjacencies, int depth) {
+        int count = 0;
+
+        for (Node x : nodes) {
+            if (verbose) {
+                if (++count % 100 == 0) out.println("count " + count + " of " + nodes.size());
+            }
 
             if (Thread.currentThread().isInterrupted()) {
                 break;
             }
 
-            if (depth == 0 && initialGraph != null) {
-                Node x2 = initialGraph.getNode(x.getName());
-                Node y2 = initialGraph.getNode(y.getName());
+            List<Node> adjx = new ArrayList<>(adjacencies.get(x));
 
-                if (!initialGraph.isAdjacentTo(x2, y2)) {
-                    continue;
-                }
-            }
+            EDGE:
+            for (Node y : adjx) {
+                List<Node> _adjx = new ArrayList<>(adjacencies.get(x));
+                _adjx.remove(y);
+                List<Node> ppx = possibleParents(x, _adjx, knowledge, y);
 
-            checkSide(test, adjacencies, depth, x, y);
-            checkSide(test, adjacencies, depth, y, x);
-        }
+                if (ppx.size() >= depth) {
+                    ChoiceGenerator cg = new ChoiceGenerator(ppx.size(), depth);
+                    int[] choice;
 
-        return freeDegree(nodes, adjacencies) > depth;
-    }
+                    while ((choice = cg.next()) != null) {
+                        if (Thread.currentThread().isInterrupted()) {
+                            break;
+                        }
 
-    private void checkSide(IndependenceTest test, Map<Node, Set<Node>> adjacencies, int depth, Node x, Node y) {
-        if (!adjacencies.get(x).contains(y)) return;
+                        List<Node> condSet = GraphUtils.asList(choice, ppx);
 
-        List<Node> _adjx = new ArrayList<>(adjacencies.get(x));
-        _adjx.remove(y);
-        List<Node> ppx = possibleParents(x, _adjx, knowledge, y);
+                        boolean independent;
 
-        Map<Node, Double> scores = new HashMap<>();
+                        try {
+                            numIndependenceTests++;
+                            independent = test.isIndependent(x, y, condSet);
+                        } catch (Exception e) {
+                            independent = false;
+                        }
 
-        for (Node node : ppx) {
-            test.isIndependent(x, node, new ArrayList<>());
-            scores.put(node, test.getScore());
-        }
+                        if (!independent) {
+                            numDependenceJudgement++;
+                        }
 
-        ppx.sort(Comparator.comparing(scores::get));
-        Collections.reverse(ppx);
+                        boolean noEdgeRequired =
+                                knowledge.noEdgeRequired(x.getName(), y.getName());
 
-        if (ppx.size() >= depth) {
-            ChoiceGenerator cg = new ChoiceGenerator(ppx.size(), depth);
-            int[] choice;
+                        if (independent && noEdgeRequired) {
+                            adjacencies.get(x).remove(y);
+                            adjacencies.get(y).remove(x);
 
-            while ((choice = cg.next()) != null) {
-                if (Thread.currentThread().isInterrupted()) {
-                    break;
-                }
+                            getSepsets().set(x, y, condSet);
 
-                List<Node> Z = GraphUtils.asList(choice, ppx);
+                            if (verbose) {
+                                TetradLogger.getInstance().forceLogMessage(SearchLogUtils.independenceFact(x, y, condSet) +
+                                        " score = " + nf.format(test.getScore()));
+                                out.println(SearchLogUtils.independenceFactMsg(x, y, condSet, test.getPValue()));
+                            }
 
-                boolean independent;
-
-                try {
-                    numIndependenceTests++;
-                    independent = test.isIndependent(x, y, Z);
-                } catch (Exception e) {
-                    independent = false;
-                }
-
-                if (!independent) {
-                    numDependenceJudgement++;
-                }
-
-                boolean noEdgeRequired =
-                        knowledge.noEdgeRequired(x.getName(), y.getName());
-
-                if (independent && noEdgeRequired) {
-                    adjacencies.get(x).remove(y);
-                    adjacencies.get(y).remove(x);
-
-                    getSepsets().set(x, y, Z);
-
-                    if (verbose) {
-                        TetradLogger.getInstance().forceLogMessage(SearchLogUtils.independenceFact(x, y, Z) +
-                                " score = " + nf.format(test.getScore()));
-                        out.println(SearchLogUtils.independenceFactMsg(x, y, Z, test.getPValue()));
+                            continue EDGE;
+                        }
                     }
                 }
             }
         }
+
+        return freeDegree(nodes, adjacencies) > depth;
     }
 
     private List<Node> possibleParents(Node x, List<Node> adjx,
@@ -424,8 +461,5 @@ public class Fas implements IFas {
         this.out = out;
     }
 
-    public void setH3(boolean fasOrig) {
-        this.h3 = fasOrig;
-    }
 }
 

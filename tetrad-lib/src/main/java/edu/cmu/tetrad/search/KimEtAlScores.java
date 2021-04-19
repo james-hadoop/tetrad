@@ -165,12 +165,12 @@ public class KimEtAlScores implements Score {
 
             // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
             // The Journal 0of Machine Learning Research, 13(1), 1037-1057.
-            lambda = pow(pn, 1. / 3.);
+            lambda = pow(n, .33);
         } else if (ruleType == RuleType.RIC) {
 
             // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.
             // The Journal 0of Machine Learning Research, 13(1), 1037-1057.
-            lambda = 2 * (log(pn));
+            lambda = 2.2 * (log(pn));
         } else if (ruleType == RuleType.RICc) {
 
             // Following Kim, Y., Kwon, S., & Choi, H. (2012). Consistent model selection criteria on high dimensions.

@@ -151,7 +151,7 @@ public final class FciMax implements GraphSearch {
     }
 
     public Graph search() {
-        Fas fas = new Fas(initialGraph, getIndependenceTest());
+        Fas fas = new Fas(getIndependenceTest());
         fas.setVerbose(verbose);
         return search(fas);
     }

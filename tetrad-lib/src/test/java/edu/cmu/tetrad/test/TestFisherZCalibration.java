@@ -237,6 +237,7 @@ public class TestFisherZCalibration {
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new AdjacencyFDR());
         statistics.add(new ArrowheadFDR());
+        statistics.add(new AhpcCriterion());
         statistics.add(new ElapsedTime());
 
         Algorithms algorithms = new Algorithms();
@@ -431,8 +432,8 @@ public class TestFisherZCalibration {
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
                 new edu.cmu.tetrad.algcomparison.score.EbicScore()));
 //        } else {
-            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
-                    new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
 //            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
 //                    new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
 //        }
@@ -459,9 +460,9 @@ public class TestFisherZCalibration {
 
     @Test
     public void test3c() {
-        int numMeasures = 40;
+        int numMeasures = 50;
         double avgDegree = 4;
-        Integer[] sampleSizes = new Integer[] {200, 500, 1000, 2000, 5000, 10000};//, 20000,
+        Integer[] sampleSizes = new Integer[]{200, 500, 1000, 2000, 5000, 10000};//, 20000,
 //            50000};
 //        Integer[] sampleSizes = new Integer[]{1000, 10000, 100000};
 
@@ -474,7 +475,7 @@ public class TestFisherZCalibration {
 
     private void visit3c(int numMeasures, double avgDegree, Integer[] sampleSizes, boolean faithfulness, boolean zhangshen) {
         Parameters parameters = new Parameters();
-        parameters.set(Params.NUM_RUNS, 10);
+        parameters.set(Params.NUM_RUNS, 2);
 
         parameters.set(Params.NUM_MEASURES, numMeasures);
         parameters.set(Params.AVG_DEGREE, avgDegree);
@@ -493,14 +494,20 @@ public class TestFisherZCalibration {
         parameters.set(Params.PARALLELISM, 20);
 
         parameters.set(Params.SEM_GIC_RULE, 1);
-        parameters.set(Params.PENALTY_DISCOUNT, 1);
+        parameters.set(Params.PENALTY_DISCOUNT, 2);
         parameters.set(Params.TAKE_LOGS, true);
         parameters.set(Params.TRUE_ERROR_VARIANCE, 1);
         parameters.set(Params.CALCULATE_EUCLIDEAN_NORM_SQUARED, false);
-        parameters.set(Params.ZS_RISK_BOUND, 0.1);//0, .1, .2, .3, .4, .5, .6, .7, .8, .9);
+        parameters.set(Params.ZS_RISK_BOUND, 0.01);//0, .1, .2, .3, .4, .5, .6, .7, .8, .9);
 
         parameters.set(Params.USE_MAX_P_ORIENTATION_HEURISTIC, true);
         parameters.set(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH, -1);
+
+        parameters.set(Params.COLLIDER_DISCOVERY_RULE, 3);
+        parameters.set(Params.ALPHA, 0.01);
+//        parameters.set(Params.CONFLICT_RULE);
+
+        parameters.set(Params.SEM_GIC_RULE, 1, 2, 3, 4, 5, 6);
 
         Statistics statistics = new Statistics();
 
@@ -511,26 +518,32 @@ public class TestFisherZCalibration {
         statistics.add(new NumberOfEdgesTrue());
         statistics.add(new NumberOfEdgesEst());
         statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new AdjacencyTPR());
-        statistics.add(new AdjacencyFPR());
-        statistics.add(new AdjacencyTPRDirectedParts());
-        statistics.add(new AdjacencyFPRDirectedParts());
+//        statistics.add(new AdjacencyRecall());
+//        statistics.add(new AdjacencyTPR());
+//        statistics.add(new AdjacencyFPR());
+//        statistics.add(new AdjacencyTPRDirectedParts());
+//        statistics.add(new AdjacencyFPRDirectedParts());
         statistics.add(new ArrowheadPrecisionCommonEdges());
-        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new AdjacencyTP());
+        statistics.add(new AdjacencyFP());
+//        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new Misorientations());
+        statistics.add(new AhpcCriterion());
         statistics.add(new ElapsedTime());
 
         Algorithms algorithms = new Algorithms();
 
-        if (zhangshen) {
-            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
-                    new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
-        } else {
-            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
-                    new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                new edu.cmu.tetrad.algcomparison.score.EbicScore()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
+                new edu.cmu.tetrad.algcomparison.score.KimEtAlScores()));
 //            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges(
 //                    new edu.cmu.tetrad.algcomparison.score.SemBicScore()));
-        }
+
+
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new FisherZ()));
 
         Simulations simulations = new Simulations();
 
@@ -541,6 +554,7 @@ public class TestFisherZCalibration {
 
         comparison.setSaveGraphs(false);
         comparison.setSaveData(false);
+        comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
         String file = "Comparison." + numMeasures;

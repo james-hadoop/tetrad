@@ -118,10 +118,10 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * Constructs a new (empty) EdgeListGraph.
      */
     public EdgeListGraph() {
-        this.edgeLists = new HashMap<>();
+        this.edgeLists = new TreeMap<>();
         this.nodes = new ArrayList<>();
-        this.edgesSet = new HashSet<>();
-        this.namesHash = new HashMap<>();
+        this.edgesSet = new TreeSet<>();
+        this.namesHash = new TreeMap<>();
     }
 
     /**
@@ -421,7 +421,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public boolean existsDirectedPathFromTo(Node node1, Node node2) {
         Queue<Node> Q = new LinkedList<>();
-        Set<Node> V = new HashSet<>();
+        Set<Node> V = new TreeSet<>();
 
         Q.add(node1);
         V.add(node1);
@@ -522,7 +522,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
     @Override
     public boolean existsUndirectedPathFromTo(Node node1, Node node2) {
-        return existsUndirectedPathVisit(node1, node2, new HashSet<>());
+        return existsUndirectedPathVisit(node1, node2, new TreeSet<>());
     }
 
     @Override
@@ -586,10 +586,9 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
     @Override
     public List<Node> getDescendants(List<Node> nodes) {
-        Set<Node> descendants = new HashSet<>();
+        Set<Node> descendants = new TreeSet<>();
 
-        for (Object node1 : nodes) {
-            Node node = (Node) node1;
+        for (Node node : nodes) {
             collectDescendantsVisit(node, descendants);
         }
 
@@ -735,10 +734,9 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
     @Override
     public List<Node> getAncestors(List<Node> nodes) {
-        HashSet<Node> ancestors = new HashSet<>();
+        Set<Node> ancestors = new TreeSet<>();
 
-        for (Object node1 : nodes) {
-            Node node = (Node) node1;
+        for (Node node : nodes) {
             collectAncestorsVisit(node, ancestors);
         }
 
@@ -1168,17 +1166,20 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public List<Node> getAdjacentNodes(Node node) {
         List<Edge> edges = edgeLists.get(node);
-        Set<Node> adj = new HashSet<>();
+        List<Node> adj = new ArrayList<>();
 
         for (Edge edge : edges) {
             if (edge == null) {
                 continue;
             }
             Node z = edge.getDistalNode(node);
-            adj.add(z);
+
+            if (!adj.contains(z)) {
+                adj.add(z);
+            }
         }
 
-        return new ArrayList<>(adj);
+        return adj;
     }
 
     /**
@@ -1245,9 +1246,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         List<Node> nodes = new ArrayList<>(4);
         List<Edge> edges = getEdges(node);
 
-        for (Object edge1 : edges) {
-            Edge edge = (Edge) edge1;
-
+        for (Edge edge : edges) {
             if (edge.getProximalEndpoint(node) == endpoint) {
                 nodes.add(edge.getDistalNode(node));
             }
@@ -1264,9 +1263,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         List<Node> nodes = new ArrayList<>(4);
         List<Edge> edges = getEdges(node);
 
-        for (Object edge1 : edges) {
-            Edge edge = (Edge) edge1;
-
+        for (Edge edge : edges) {
             if (edge.getDistalEndpoint(node) == endpoint) {
                 nodes.add(edge.getDistalNode(node));
             }
@@ -1392,7 +1389,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public Set<Edge> getEdges() {
-        return new HashSet<>(this.edgesSet);
+        return new TreeSet<>(this.edgesSet);
     }
 
     /**
@@ -1740,13 +1737,11 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
     @Override
     public Set<Triple> getAmbiguousTriples() {
-//        removeTriplesNotInGraph();
         return new HashSet<>(ambiguousTriples);
     }
 
     @Override
     public Set<Triple> getUnderLines() {
-//        removeTriplesNotInGraph();
         return new HashSet<>(underLineTriples);
     }
 

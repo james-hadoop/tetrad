@@ -37,6 +37,8 @@ import java.util.*;
  */
 public final class PcAll implements GraphSearch {
 
+    private boolean h3 = false;
+
     public void setUseHeuristic(boolean useHeuristic) {
         this.useHeuristic = useHeuristic;
     }
@@ -55,6 +57,10 @@ public final class PcAll implements GraphSearch {
 
     public void setConcurrent(Concurrent concurrent) {
         this.concurrent = concurrent;
+    }
+
+    public void setH3(boolean h3) {
+        this.h3 = h3;
     }
 
     public enum FasType {REGULAR, STABLE}
@@ -294,6 +300,7 @@ public final class PcAll implements GraphSearch {
         if (fasType == FasType.REGULAR) {
             if (concurrent == Concurrent.NO) {
                 fas = new Fas(initialGraph, getIndependenceTest());
+                ((Fas) fas).setH3(h3);
             } else {
                 fas = new FasConcurrent(initialGraph, getIndependenceTest());
                 ((FasConcurrent) fas).setStable(false);

@@ -96,6 +96,7 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
                 search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.STABLE);
             } else {
                 search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.REGULAR);
+                search.setH3(parameters.getBoolean(Params.ADJACENCY_FAITHFULNESS_ASSUMED));
             }
 
             if (parameters.getBoolean(Params.CONCURRENT_FAS)) {
@@ -171,6 +172,7 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
         parameters.add(Params.DEPTH);
         parameters.add(Params.USE_MAX_P_ORIENTATION_HEURISTIC);
         parameters.add(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH);
+        parameters.add(Params.ADJACENCY_FAITHFULNESS_ASSUMED);
 
         parameters.add(Params.VERBOSE);
         return parameters;

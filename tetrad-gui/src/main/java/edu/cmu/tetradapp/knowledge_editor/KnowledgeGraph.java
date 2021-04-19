@@ -28,11 +28,7 @@ import edu.cmu.tetrad.util.TetradSerializableExcluded;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
 
 import java.beans.PropertyChangeListener;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class represents a directed acyclic graph.  In addition to the
