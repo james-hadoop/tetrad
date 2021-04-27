@@ -72,7 +72,7 @@ public final class StatUtils {
      * @param N     the number of values of array which should be considered.
      * @return the mean of the first N values in this array.
      */
-    public static double mean(long[] array, int N) {
+    public static double mean(long array[], int N) {
         double sum = 0.0;
         int count = 0;
 
@@ -91,7 +91,7 @@ public final class StatUtils {
      * @param N     the number of values of array which should be considered.
      * @return the mean of the first N values in this array.
      */
-    public static double mean(double[] array, int N) {
+    public static double mean(double array[], int N) {
         double sum = 0.0;
         int count = 0;
 
@@ -665,7 +665,7 @@ public final class StatUtils {
      * products of the sample means for the first N values in array1 and
      * array2..
      */
-    public static double sxy(long[] array1, long[] array2, int N) {
+    public static double sxy(long array1[], long array2[], int N) {
 
         int i;
         double sum = 0.0;
@@ -687,7 +687,7 @@ public final class StatUtils {
      * products of the sample means for the first N values in array1 and
      * array2..
      */
-    public static double sxy(double[] array1, double[] array2, int N) {
+    public static double sxy(double array1[], double array2[], int N) {
         double sum = 0.0;
         double meanX = mean(array1, N);
         double meanY = mean(array2, N);
@@ -831,7 +831,7 @@ public final class StatUtils {
      *               array2.
      * @return the covariance of the first N values in array1 and array2.
      */
-    public static double covariance(long[] array1, long[] array2, int N) {
+    public static double covariance(long array1[], long array2[], int N) {
         return sxy(array1, array2, N) / (N - 1);
     }
 
@@ -842,7 +842,7 @@ public final class StatUtils {
      *               array2.
      * @return the covariance of the first N values in array1 and array2.
      */
-    public static double covariance(double[] array1, double[] array2, int N) {
+    public static double covariance(double array1[], double array2[], int N) {
         return sxy(array1, array2, N) / (N - 1);
     }
 
@@ -862,7 +862,7 @@ public final class StatUtils {
                             "unequal lengths.");
         }
 
-        return correlation(array1, array2, N1 - 1);
+        return correlation(array1, array2, N1);
     }
 
     /**
@@ -1756,31 +1756,31 @@ public final class StatUtils {
 
     public static double partialCorrelationPrecisionMatrix(Matrix submatrix) {
         Matrix inverse = submatrix.inverse();
-        return (-inverse.get(0, 1)) / (sqrt(inverse.get(0, 0) * inverse.get(1, 1)));
+        return (-inverse.get(0, 1)) / sqrt(inverse.get(0, 0) * inverse.get(1, 1));
     }
 
-    public static synchronized double partialCorrelationWhittaker(Matrix submatrix) {
-        double cov = partialCovariance(submatrix);
-
-        int[] selection1 = new int[submatrix.rows()];
-        int[] selection2 = new int[submatrix.rows()];
-
-        selection1[0] = 0;
-        selection1[1] = 0;
-        for (int i = 2; i < selection1.length; i++) selection1[i] = i;
-
-        Matrix var1Matrix = submatrix.getSelection(selection1, selection1);
-        double var1 = partialCovariance(var1Matrix);
-
-        selection2[0] = 1;
-        selection2[1] = 1;
-        for (int i = 2; i < selection2.length; i++) selection2[i] = i;
-
-        Matrix var2Matrix = submatrix.getSelection(selection2, selection2);
-        double var2 = partialCovariance(var2Matrix);
-
-        return cov / Math.sqrt(var1 * var2);
-    }
+//    public static synchronized double partialCorrelationWhittaker(Matrix submatrix) {
+//        double cov = partialCovariance(submatrix);
+//
+//        int[] selection1 = new int[submatrix.rows()];
+//        int[] selection2 = new int[submatrix.rows()];
+//
+//        selection1[0] = 0;
+//        selection1[1] = 0;
+//        for (int i = 2; i < selection1.length; i++) selection1[i] = i;
+//
+//        Matrix var1Matrix = submatrix.getSelection(selection1, selection1);
+//        double var1 = partialCovariance(var1Matrix);
+//
+//        selection2[0] = 1;
+//        selection2[1] = 1;
+//        for (int i = 2; i < selection2.length; i++) selection2[i] = i;
+//
+//        Matrix var2Matrix = submatrix.getSelection(selection2, selection2);
+//        double var2 = partialCovariance(var2Matrix);
+//
+//        return cov / Math.sqrt(var1 * var2);
+//    }
 
     /**
      * @return the partial correlation(x, y | z) where these represent the column/row indices

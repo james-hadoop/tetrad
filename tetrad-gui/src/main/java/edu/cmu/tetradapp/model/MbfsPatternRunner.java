@@ -96,6 +96,7 @@ public class MbfsPatternRunner extends AbstractAlgorithmRunner
 
     public ImpliedOrientation getMeekRules() {
         MeekRules rules = new MeekRules();
+        rules.setAggressivelyPreventCycles(this.isAggressivelyPreventCycles());
         rules.setKnowledge((IKnowledge) getParams().get("knowledge", new Knowledge2()));
         return rules;
     }

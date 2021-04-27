@@ -101,12 +101,11 @@ public class TestSemIm {
         Graph randomGraph = new Dag(GraphUtils.randomGraph(nodes, 0, 8, 30, 15, 15, false));
         SemPm semPm1 = new SemPm(randomGraph);
         SemIm semIm1 = new SemIm(semPm1);
-        semIm1.setSimulationType(SemIm.SimulationType.RECURSIVE);
 
         Matrix implCovarC = semIm1.getImplCovar(true);
         implCovarC.toArray();
 
-        DataSet dataSet = semIm1.simulateData(1000, false);
+        DataSet dataSet = semIm1.simulateDataRecursive(1000, false);
         new CovarianceMatrix(dataSet);
     }
 

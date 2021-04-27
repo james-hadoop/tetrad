@@ -148,7 +148,7 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
             if (getAlgorithmType() == AlgorithmType.BEAM) {
                 search = new HbsmsBeam(graph2, dataSet, knowledge);
             } else if (getAlgorithmType() == AlgorithmType.FGES) {
-                search = new HbsmsGes(graph2, dataSet);
+                search = new BffGes(graph2, dataSet);
                 search.setKnowledge(knowledge);
             } else {
                 throw new IllegalStateException();

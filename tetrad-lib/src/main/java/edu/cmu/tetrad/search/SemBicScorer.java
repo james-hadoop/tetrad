@@ -15,7 +15,7 @@ public class SemBicScorer {
     public static double scoreDag(Graph dag, DataModel data) {
         if (dag == null) throw new NullPointerException("DAG not specified.");
 
-        SemBicScore score;
+        Score score;
 
         if (data instanceof ICovarianceMatrix) {
             score = new SemBicScore((ICovarianceMatrix) dag);

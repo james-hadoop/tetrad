@@ -219,6 +219,7 @@ public class LingamPattern2 {
 //        System.out.println();
 
         MeekRules meekRules = new MeekRules();
+        meekRules.setAggressivelyPreventCycles(true);
         meekRules.orientImplied(ngDagPattern);
 
         this.ngDagPattern = ngDagPattern;

@@ -14,6 +14,7 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.StandardizedSemIm;
 import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.Delimiter;
@@ -33,6 +34,42 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TestFisherZCalibration {
+
+    public static Graph loadMyGraph(File file, boolean dir) {
+        DataSet eg = null;
+
+        try {
+            ContinuousTabularDatasetFileReader reader = new ContinuousTabularDatasetFileReader(file.toPath(), Delimiter.COMMA);
+            reader.setHasHeader(false);
+            Data data = reader.readInData();
+            eg = (DataSet) DataConvertUtils.toDataModel(data);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+
+        if (eg == null) throw new NullPointerException();
+
+        List<Node> vars = eg.getVariables();
+
+        Graph graph = new EdgeListGraph(vars);
+
+        for (int i = 0; i < vars.size(); i++) {
+            for (int j = 0; j < vars.size(); j++) {
+                if (i == j) continue;
+                if (eg.getDouble(i, j) == 1 && eg.getDouble(j, i) == 1) {
+                    if (!graph.isAdjacentTo(vars.get(i), vars.get(j))) {
+                        graph.addUndirectedEdge(vars.get(i), vars.get(j));
+                    }
+                } else if (dir && eg.getDouble(i, j) == 0 && eg.getDouble(j, i) == 1) {
+                    graph.addDirectedEdge(vars.get(i), vars.get(j));
+                } else if (!dir && eg.getDouble(i, j) == 1 && eg.getDouble(j, i) == 0) {
+                    graph.addDirectedEdge(vars.get(i), vars.get(j));
+                }
+            }
+        }
+
+        return graph;
+    }
 
     @Test
     public void test1() {
@@ -189,7 +226,7 @@ public class TestFisherZCalibration {
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.VERBOSE, false);
-        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, true);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.PARALLELISM, 20);
 
         parameters.set(Params.SEM_BIC_STRUCTURE_PRIOR, 0);
@@ -291,7 +328,7 @@ public class TestFisherZCalibration {
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.VERBOSE, true);
-        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, true);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.PARALLELISM, 20);
 
         parameters.set(Params.SEM_GIC_RULE, 1, 2, 3, 4, 5, 6);
@@ -305,7 +342,7 @@ public class TestFisherZCalibration {
         parameters.set(Params.USE_MAX_P_ORIENTATION_HEURISTIC, true);
         parameters.set(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH, -1);
 
-//        parameters.set(Params.ZS_RISK_BOUND, 0, 0.001, 0.01, 0.2, 0.3);
+//        parameters.set(Params.ZS_RISK_BOUND, 0, 0.001, 0.01, 0.199, 0.3);
 
         Statistics statistics = new Statistics();
 
@@ -354,7 +391,6 @@ public class TestFisherZCalibration {
                 "/Users/josephramsey/tetrad/comparison2040", simulations, algorithms, statistics, parameters);
     }
 
-
     @Test
     public void test3b() {
         int[] numMeasures = {600};//{300, 600, 1200, 2400, 500};
@@ -392,7 +428,7 @@ public class TestFisherZCalibration {
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.VERBOSE, true);
-        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, faithfulness);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, faithfulness);
         parameters.set(Params.PARALLELISM, 20);
 
         parameters.set(Params.SEM_GIC_RULE, 4, 6);
@@ -490,7 +526,7 @@ public class TestFisherZCalibration {
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
         parameters.set(Params.VERBOSE, true);
-        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, faithfulness);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, faithfulness);
         parameters.set(Params.PARALLELISM, 20);
 
         parameters.set(Params.SEM_GIC_RULE, 1);
@@ -583,9 +619,9 @@ public class TestFisherZCalibration {
         parameters.set("maxOutdegree", 100);
         parameters.set("connected", false);
 //        parameters.set("depth", 1);
-        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
 
-        parameters.set("coefLow", 0.2);
+        parameters.set("coefLow", 0.199);
         parameters.set("coefHigh", 1.0);
         parameters.set("varLow", 1);
         parameters.set("varHigh", 3);
@@ -842,42 +878,6 @@ public class TestFisherZCalibration {
 
         }
 
-    }
-
-    public static Graph loadMyGraph(File file, boolean dir) {
-        DataSet eg = null;
-
-        try {
-            ContinuousTabularDatasetFileReader reader = new ContinuousTabularDatasetFileReader(file.toPath(), Delimiter.COMMA);
-            reader.setHasHeader(false);
-            Data data = reader.readInData();
-            eg = (DataSet) DataConvertUtils.toDataModel(data);
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
-
-        if (eg == null) throw new NullPointerException();
-
-        List<Node> vars = eg.getVariables();
-
-        Graph graph = new EdgeListGraph(vars);
-
-        for (int i = 0; i < vars.size(); i++) {
-            for (int j = 0; j < vars.size(); j++) {
-                if (i == j) continue;
-                if (eg.getDouble(i, j) == 1 && eg.getDouble(j, i) == 1) {
-                    if (!graph.isAdjacentTo(vars.get(i), vars.get(j))) {
-                        graph.addUndirectedEdge(vars.get(i), vars.get(j));
-                    }
-                } else if (dir && eg.getDouble(i, j) == 0 && eg.getDouble(j, i) == 1) {
-                    graph.addDirectedEdge(vars.get(i), vars.get(j));
-                } else if (!dir && eg.getDouble(i, j) == 1 && eg.getDouble(j, i) == 0) {
-                    graph.addDirectedEdge(vars.get(i), vars.get(j));
-                }
-            }
-        }
-
-        return graph;
     }
 
     @Test
@@ -1298,5 +1298,88 @@ public class TestFisherZCalibration {
             System.out.println("GIC" + i + " lambda = " + nf.format(lambda[i])
                     + " penalty discount = " + nf.format((lambda[i]) / log(n)));
         }
+    }
+
+    @Test
+    public void test16() {
+
+        Graph gStar = new EdgeListGraph();
+        Node x1 = new GraphNode("X1");
+        Node x2 = new GraphNode("X2");
+        Node x3 = new GraphNode("X3");
+        Node x4 = new GraphNode("X4");
+
+        gStar.addNode(x1);
+        gStar.addNode(x2);
+        gStar.addNode(x3);
+        gStar.addNode(x4);
+
+        gStar.addDirectedEdge(x1, x2);
+        gStar.addDirectedEdge(x2, x3);
+        gStar.addDirectedEdge(x3, x4);
+        gStar.addDirectedEdge(x1, x4);
+
+        SemPm semPm = new SemPm(gStar);
+        SemIm semIm = new SemIm(semPm);
+
+        Parameters parameters = new Parameters();
+        parameters.set(Params.SAMPLE_SIZE, 1000000);
+
+        StandardizedSemIm sem = new StandardizedSemIm(semIm, parameters);
+
+        for (double d2 = -1; d2 <= 1; d2 += 0.1) {
+            for (double d3 = -1; d3 <= 1; d3 += 0.1) {
+                for (double d4 = -1; d4 <= 1; d4 += 0.1) {
+                    for (double d1 = -1; d1 <= 1; d1 += 0.1) {
+                        if ((d1 > -0.801 && d1 < -0.199) || (d1 > 0.199 && d1 < 0.801)) {
+                            if ((d2 > -0.801 && d2 < -0.199) || (d2 > 0.199 && d2 < 0.801)) {
+                                if ((d3 > -0.801 && d3 < -0.199) || (d3 > 0.199 && d3 < 0.801)) {
+                                    if ((d4 > -0.801 && d4 < -0.199) || (d4 > 0.199 && d4 < 0.801)) {
+                                        d1 = Math.round(d1 * 10000.00) / 10000.00;
+                                        d2 = Math.round(d2 * 10000.00) / 10000.00;
+                                        d3 = Math.round(d3 * 10000.00) / 10000.00;
+                                        d4 = Math.round(d4 * 10000.00) / 10000.00;
+
+//                                        System.out.println("d1 = " + d1 + " d2 = " + d2 + " d3 = " + d3 + " d4 = " + d4);
+
+                                        try {
+                                            assertTrue(sem.setEdgeCoefficient(x1, x2, d1));
+                                            assertTrue(sem.setEdgeCoefficient(x2, x3, d2));
+                                            assertTrue(sem.setEdgeCoefficient(x3, x4, d3));
+                                            assertTrue(sem.setEdgeCoefficient(x1, x4, d4));
+
+                                            DataSet dataSet = sem.simulateDataReducedForm(50000, false);
+
+                                            CovarianceMatrix covarianceMatrix = new CovarianceMatrix(dataSet);
+                                            IndependenceTest test = new IndTestFisherZ(covarianceMatrix, 0.0001);
+
+                                            Node _x1 = dataSet.getVariable("X1");
+                                            Node _x2 = dataSet.getVariable("X2");
+                                            Node _x3 = dataSet.getVariable("X3");
+                                            Node _x4 = dataSet.getVariable("X4");
+
+                                            if (!test.isIndependent(_x1, _x2, Collections.singletonList(_x4))) continue;
+
+                                            Fges fges = new Fges(new SemBicScore(dataSet));
+
+                                            Graph out = fges.search();
+
+                                            if (out.getNumEdges() == 5) {
+                                                System.out.println("\nd1 = " + d1 + " d2 = " + d2 + " d3 = " + d3 + " d4 = " + d4);
+                                                System.out.println(out);
+                                            }
+                                        } catch (AssertionError e) {
+                                            // continue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
     }
 }

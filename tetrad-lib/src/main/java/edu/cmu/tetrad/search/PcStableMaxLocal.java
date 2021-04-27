@@ -134,6 +134,7 @@ public class PcStableMaxLocal implements GraphSearch {
         sepsetProducer = new SepsetsMinScore(graph, getIndependenceTest(), -1);
 
         meekRules = new MeekRules();
+        meekRules.setAggressivelyPreventCycles(isAggressivelyPreventCycles());
         meekRules.setKnowledge(knowledge);
 
         List<Node> nodes = getIndependenceTest().getVariables();
@@ -343,8 +344,6 @@ public class PcStableMaxLocal implements GraphSearch {
     }
 
     private void applyMeek(List<Node> y) {
-        List<Node> start = new ArrayList<>();
-        for (Node n : y) start.add(n);
         meekRules.orientImplied(graph);
     }
 

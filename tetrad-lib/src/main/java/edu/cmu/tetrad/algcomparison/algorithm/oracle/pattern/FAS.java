@@ -9,7 +9,7 @@ import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.Fas;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -48,9 +48,10 @@ public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Fas search = new Fas(test.getTest(dataSet, parameters));
+            search.setStable(parameters.getBoolean(Params.STABLE_FAS));
+            search.setHeuristic(parameters.getInt(Params.FAS_HEURISTIC));
             search.setDepth(parameters.getInt(Params.DEPTH));
             search.setKnowledge(knowledge);
-            search.setH3(parameters.getBoolean(Params.ADJACENCY_FAITHFULNESS_ASSUMED));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
@@ -108,8 +109,8 @@ public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.DEPTH);
-        parameters.add(Params.ADJACENCY_FAITHFULNESS_ASSUMED);
-
+        parameters.add(Params.FAS_HEURISTIC);
+        parameters.add(Params.STABLE_FAS);
         parameters.add(Params.VERBOSE);
         return parameters;
     }
@@ -125,12 +126,12 @@ public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     }
 
     @Override
-    public void setIndependenceWrapper(IndependenceWrapper test) {
-        this.test = test;
+    public IndependenceWrapper getIndependenceWrapper() {
+        return test;
     }
 
     @Override
-    public IndependenceWrapper getIndependenceWrapper() {
-        return test;
+    public void setIndependenceWrapper(IndependenceWrapper test) {
+        this.test = test;
     }
 }

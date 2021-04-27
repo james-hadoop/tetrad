@@ -53,8 +53,6 @@ public class LingamStudy {
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-//        statistics.add(new F1All());
-//        statistics.add(new GraphExactlyRight());
         statistics.add(new ElapsedTime());
 
         statistics.setWeight("AP", 1);
@@ -94,15 +92,13 @@ public class LingamStudy {
 
         parameters.set(Params.COEF_LOW, 0.2);
         parameters.set(Params.COEF_HIGH, 0.7);
-//        parameters.set(Params.VAR_LOW, 1);
-//        parameters.set(Params.VAR_HIGH, 3);
         parameters.set(Params.COEF_SYMMETRIC, true);
         parameters.set(Params.RANDOMIZE_COLUMNS, true);
 
         parameters.set(Params.DEPTH, -1);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, true);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.MAX_DEGREE, 100);
         parameters.set(Params.MAX_INDEGREE, 100);
         parameters.set(Params.MAX_OUTDEGREE, 100);

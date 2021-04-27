@@ -25,7 +25,6 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
-import edu.cmu.tetrad.util.TetradLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +77,7 @@ public class GraphScore implements Score {
 
     @Override
     public double localScoreDiff(int x, int y, int[] z) {
-        return locallyConsistentScoringCriterion(y, x, z);
+        return locallyConsistentScoringCriterion(x, y, z);
 //        return aBetterScore(x, y, z);
     }
 
@@ -94,13 +93,11 @@ public class GraphScore implements Score {
         List<Node> _z = getVariableList(z);
         boolean dSeparatedFrom = dag.isDSeparatedFrom(_x, _y, _z);
 
-        if (verbose) {
-            if (dSeparatedFrom) {
-                TetradLogger.getInstance().forceLogMessage("INDEP: " + SearchLogUtils.independenceFact(_x, _y, _z));
-            } else {
-                TetradLogger.getInstance().forceLogMessage("DEP " + SearchLogUtils.independenceFact(_x, _y, _z));
-            }
-        }
+//        if (dSeparatedFrom) {
+//            System.out.println(SearchLogUtils.independenceFact(_x, _y, _z));
+//        } else {
+//            System.out.println("\t NOT " + SearchLogUtils.independenceFact(_x, _y, _z));
+//        }
 
         return dSeparatedFrom ? -1.0 : 1.0;
     }

@@ -265,6 +265,7 @@ public class VcpcRunner extends AbstractAlgorithmRunner
 
     public ImpliedOrientation getMeekRules() {
         MeekRules meekRules = new MeekRules();
+        meekRules.setAggressivelyPreventCycles(this.isAggressivelyPreventCycles());
         meekRules.setKnowledge((IKnowledge) getParams().get("knowledge", new Knowledge2()));
         return meekRules;
     }

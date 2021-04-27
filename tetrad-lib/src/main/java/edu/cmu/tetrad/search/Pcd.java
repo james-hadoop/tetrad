@@ -229,7 +229,7 @@ public class Pcd implements GraphSearch {
      * All of the given nodes must be in the domain of the given conditional independence test.
      */
     public Graph search(List<Node> nodes) {
-        return search(new Fas(getIndependenceTest()), nodes);
+        return search(new Fas(initialGraph, getIndependenceTest()), nodes);
     }
 
     public Graph search(IFas fas, List<Node> nodes) {
@@ -267,6 +267,7 @@ public class Pcd implements GraphSearch {
         SearchGraphUtils.pcdOrientC(sepsets, getIndependenceTest(), knowledge, graph);
 
         MeekRules rules = new MeekRules();
+        rules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
         rules.setKnowledge(knowledge);
         rules.orientImplied(graph);
 

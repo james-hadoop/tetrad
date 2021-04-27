@@ -50,7 +50,7 @@ public class TestFgesFa {
         Parameters parameters = new Parameters();
         parameters.set(Params.PENALTY_DISCOUNT, 8);
         parameters.set(Params.SYMMETRIC_FIRST_STEP, true);
-        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
         parameters.set(Params.MAX_DEGREE, 100);
         parameters.set(Params.VERBOSE, true);
         parameters.set(Params.DETERMINISM_THRESHOLD, .2);

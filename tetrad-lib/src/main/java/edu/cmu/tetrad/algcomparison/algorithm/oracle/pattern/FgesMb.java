@@ -63,7 +63,7 @@ public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesS
 
             Score score = this.score.getScore(dataSet, parameters);
             edu.cmu.tetrad.search.FgesMb search = new edu.cmu.tetrad.search.FgesMb(score);
-            search.setFaithfulnessAssumed(parameters.getBoolean(Params.ADJACENCY_FAITHFULNESS_ASSUMED));
+            search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
@@ -132,7 +132,7 @@ public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesS
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.TARGET_NAME);
-        parameters.add(Params.ADJACENCY_FAITHFULNESS_ASSUMED);
+        parameters.add(Params.FAITHFULNESS_ASSUMED);
         parameters.add(Params.MAX_DEGREE);
         parameters.add(Params.VERBOSE);
 

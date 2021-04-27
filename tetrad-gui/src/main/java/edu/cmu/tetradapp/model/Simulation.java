@@ -53,7 +53,7 @@ import java.util.Map;
  * @author jdramsey
  */
 public class Simulation extends DataWrapper implements SessionModel,
-        SimulationParamsSource, MultipleGraphSource, MultipleDataSource, GraphSource {
+        SimulationParamsSource, MultipleGraphSource, MultipleDataSource {
 
     static final long serialVersionUID = 23L;
 
@@ -330,13 +330,5 @@ public class Simulation extends DataWrapper implements SessionModel,
 
     public List<DataModel> getInputDataModelList() {
         return inputDataModelList;
-    }
-
-    @Override
-    public Graph getGraph() {
-        if (getGraphs().size() != 1) {
-            throw new IllegalArgumentException("Expecting one graph.");
-        }
-        return getGraphs().get(0);
     }
 }

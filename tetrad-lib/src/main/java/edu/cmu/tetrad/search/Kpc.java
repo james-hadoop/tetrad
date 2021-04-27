@@ -102,11 +102,6 @@ public class Kpc implements GraphSearch {
     private Graph trueGraph;
 
     /**
-     * The number of false dependence judgements from FAS, judging from the true graph, if set. Temporary.
-     */
-    private int numFalseDependenceJudgements;
-
-    /**
      * The number of dependence judgements from FAS. Temporary.
      */
     private int numDependenceJudgements;
@@ -280,6 +275,7 @@ public class Kpc implements GraphSearch {
         SearchGraphUtils.pcOrientbk(knowledge, graph, nodes);
         SearchGraphUtils.orientCollidersUsingSepsets(sepset, knowledge, graph, verbose, true);
         MeekRules rules = new MeekRules();
+        rules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
         rules.setKnowledge(knowledge);
         rules.orientImplied(graph);
 
@@ -427,10 +423,6 @@ public class Kpc implements GraphSearch {
 
     public void setTrueGraph(Graph trueGraph) {
         this.trueGraph = trueGraph;
-    }
-
-    public int getNumFalseDependenceJudgements() {
-        return numFalseDependenceJudgements;
     }
 
     public int getNumDependenceJudgements() {

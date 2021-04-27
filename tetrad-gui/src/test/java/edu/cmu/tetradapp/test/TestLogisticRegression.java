@@ -63,8 +63,7 @@ public class TestLogisticRegression {
 
         SemPm pm = new SemPm(graph);
         SemIm im = new SemIm(pm);
-        im.setSimulationType(SemIm.SimulationType.RECURSIVE);
-        DataSet data = im.simulateData(1000, false);
+        DataSet data = im.simulateDataRecursive(1000, false);
 
         Node x1 = data.getVariable("X1");
         Node x2 = data.getVariable("X2");

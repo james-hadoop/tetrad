@@ -142,6 +142,7 @@ public class GesMe implements Algorithm, TakesInitialGraph/*, HasKnowledge*/ {
             Score score = this.score.getScore(covFa, parameters);
 
             edu.cmu.tetrad.search.Fges search = new edu.cmu.tetrad.search.Fges(score);
+            search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
 
             if (parameters.getBoolean("enforceMinimumLeafNodes")) {
                 search.setKnowledge(knowledge2);
@@ -230,7 +231,7 @@ public class GesMe implements Algorithm, TakesInitialGraph/*, HasKnowledge*/ {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.SYMMETRIC_FIRST_STEP);
-        parameters.add(Params.ADJACENCY_FAITHFULNESS_ASSUMED);
+        parameters.add(Params.FAITHFULNESS_ASSUMED);
         parameters.add(Params.MAX_DEGREE);
         parameters.add(Params.DETERMINISM_THRESHOLD);
         parameters.add("convergenceThreshold");

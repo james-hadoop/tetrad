@@ -65,6 +65,7 @@ public class FgesConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
 			}
 
 			edu.cmu.tetrad.search.Fges search = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters));
+			search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
 			search.setKnowledge(knowledge);
 			search.setVerbose(parameters.getBoolean(Params.VERBOSE));
 			search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
@@ -171,7 +172,7 @@ public class FgesConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
 	@Override
 	public List<String> getParameters() {
             List<String> parameters = new ArrayList<>();
-            parameters.add(Params.ADJACENCY_FAITHFULNESS_ASSUMED);
+            parameters.add(Params.FAITHFULNESS_ASSUMED);
             parameters.add(Params.MAX_DEGREE);
 
             parameters.add(Params.NUM_RUNS);

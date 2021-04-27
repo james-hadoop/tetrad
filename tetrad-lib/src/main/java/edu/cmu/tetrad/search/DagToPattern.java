@@ -243,6 +243,7 @@ public class DagToPattern {
         SearchGraphUtils.orientCollidersUsingSepsets(this.sepsets, knowledge, graph, verbose, true);
 
         MeekRules rules = new MeekRules();
+        rules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
         rules.setKnowledge(knowledge);
         rules.orientImplied(graph);
 

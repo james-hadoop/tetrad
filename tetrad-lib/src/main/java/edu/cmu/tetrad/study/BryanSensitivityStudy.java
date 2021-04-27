@@ -130,11 +130,11 @@ public class BryanSensitivityStudy {
         parameters.set(Params.DEPTH, -1);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
         parameters.set("verbose", false);
 
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
-        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, true);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.MAX_DEGREE, 100);
         parameters.set(Params.MAX_INDEGREE, 100);
         parameters.set(Params.MAX_OUTDEGREE, 100);

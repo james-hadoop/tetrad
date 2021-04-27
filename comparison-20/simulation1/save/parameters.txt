@@ -1,3 +1,0 @@
-Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
-printStream = java.io.PrintStream@429bd883
-numRuns = 10

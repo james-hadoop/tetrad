@@ -70,20 +70,20 @@ public class ParameterTab extends JPanel {
     private static final long serialVersionUID = 7074205549192562786L;
 
     private static final String[] GRAPH_ITEMS = new String[]{
-        GraphTypes.RANDOM_FOWARD_DAG,
-        GraphTypes.SCALE_FREE_DAG,
-        GraphTypes.CYCLIC_CONSTRUCTED_FROM_SMALL_LOOPS,
-        GraphTypes.RANDOM_ONE_FACTOR_MIM,
-        GraphTypes.RANDOM_TWO_FACTOR_MIM
+            GraphTypes.RANDOM_FOWARD_DAG,
+            GraphTypes.SCALE_FREE_DAG,
+            GraphTypes.CYCLIC_CONSTRUCTED_FROM_SMALL_LOOPS,
+            GraphTypes.RANDOM_ONE_FACTOR_MIM,
+            GraphTypes.RANDOM_TWO_FACTOR_MIM
     };
 
     private static final String[] SOURCE_GRAPH_ITEMS = {
-        SimulationTypes.BAYS_NET,
-        SimulationTypes.STRUCTURAL_EQUATION_MODEL,
-        SimulationTypes.LINEAR_FISHER_MODEL,
-        SimulationTypes.LEE_AND_HASTIE,
-        SimulationTypes.CONDITIONAL_GAUSSIAN,
-        SimulationTypes.TIME_SERIES
+            SimulationTypes.BAYS_NET,
+            SimulationTypes.STRUCTURAL_EQUATION_MODEL,
+            SimulationTypes.LINEAR_FISHER_MODEL,
+            SimulationTypes.LEE_AND_HASTIE,
+            SimulationTypes.CONDITIONAL_GAUSSIAN,
+            SimulationTypes.TIME_SERIES
     };
 
     private static final JLabel NO_PARAM_LBL = new JLabel("No parameters to edit");
@@ -352,27 +352,27 @@ public class ParameterTab extends JPanel {
         if (simulation.isFixedSimulation()) {
             if (simulation.getSimulation() instanceof BayesNetSimulation) {
                 items = new String[]{
-                    SimulationTypes.BAYS_NET
+                        SimulationTypes.BAYS_NET
                 };
             } else if (simulation.getSimulation() instanceof SemSimulation) {
                 items = new String[]{
-                    SimulationTypes.STRUCTURAL_EQUATION_MODEL
+                        SimulationTypes.STRUCTURAL_EQUATION_MODEL
                 };
             } else if (simulation.getSimulation() instanceof LinearFisherModel) {
                 items = new String[]{
-                    SimulationTypes.LINEAR_FISHER_MODEL
+                        SimulationTypes.LINEAR_FISHER_MODEL
                 };
             } else if (simulation.getSimulation() instanceof StandardizedSemSimulation) {
                 items = new String[]{
-                    SimulationTypes.STANDARDIZED_STRUCTURAL_EQUATION_MODEL
+                        SimulationTypes.STANDARDIZED_STRUCTURAL_EQUATION_MODEL
                 };
             } else if (simulation.getSimulation() instanceof GeneralSemSimulation) {
                 items = new String[]{
-                    SimulationTypes.GENERAL_STRUCTURAL_EQUATION_MODEL
+                        SimulationTypes.GENERAL_STRUCTURAL_EQUATION_MODEL
                 };
             } else if (simulation.getSimulation() instanceof LoadContinuousDataAndGraphs) {
                 items = new String[]{
-                    SimulationTypes.LOADED_FROM_FILES
+                        SimulationTypes.LOADED_FROM_FILES
                 };
             } else {
                 throw new IllegalStateException("Not expecting that model type: "

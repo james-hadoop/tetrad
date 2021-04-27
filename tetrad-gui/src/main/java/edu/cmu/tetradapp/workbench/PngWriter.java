@@ -37,7 +37,7 @@ import java.util.ArrayList;
 /**
  * Writes PNG files.
  */
-public class PngWriter {
+class PngWriter {
     public static void writePng(Graph graph, File file) {
 //        circleLayout(graph, 200, 200, 175);
 

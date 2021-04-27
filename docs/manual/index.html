@@ -2253,8 +2253,9 @@ raf mek pip2    erk akt cd3_s   cd3_v   icam
     <h4>Parameters</h4>
 
     <p><a href="#samplePrior">samplePrior</a>, <a href="#structurePrior">structurePrior</a>, <a href="#penaltyDiscount">penaltyDiscount</a>,
-        <a href="#symmetricFirstStep">symmetricFirstStep</a>, <a href="#adjacencyFaithfulnessAssumed">faithfulnessAssumed</a>, <a
-                href="#maxDegree">maxDegree</a></p>
+        <a href="#symmetricFirstStep">symmetricFirstStep</a>, <a href="#faithfulnessAssumed">faithfulnessAssumed</a>, <a
+                href="#maxDegree">maxDegree</a>, <a href="#parallalism">parallelism</a>, <a href="#verbose">verbose</a>
+        <a href="#meekVerbose">meekVerbose</a></p>
 
 
     <h3>The IMaGES Discrete Algorithm (BDeu Score)</h3>
@@ -3348,6 +3349,21 @@ there is a single latent for each output cluster. For MimBuild, a pattern over t
 
     <p><a href="#penaltyDiscount">penaltyDiscount</a></p>
 
+    <h3>EBIC Score</h3>
+
+    <div id="ebic-score">
+        <p>
+            This is the Extended BIC (EBIC) score of Chen and Chen (Chen, J., & Chen, Z. (2008). Extended Bayesian
+            information criteria for model selection with large model spaces. Biometrika, 95(3), 759-771.). This score
+            is adapted to score-based search in high dimensions. There is one parameter, gamma, which takes a value
+            between 0 and 1; if it's 0, the score is standard BIC. A value of 0.5 or 1 is recommended depending on how
+            many variables there are per sample.
+        </p>
+    </div>
+
+    <h4>Parameters</h4>
+
+    <p><a href="#ebicGamma">ebicGamma</a></p>
 
     <div id="parameters">
         <h2>Search Parameters</h2>
@@ -3813,16 +3829,28 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="faskAdjacencyMethod_value_type">Integer</span></li>
         </ul>
 
-        <h3 id="adjacencyFaithfulnessAssumed" class="parameter_description">adjacencyFaithfulnessAssumed</h3>
+        <h3 id="faithfulnessAssumed" class="parameter_description">faithfulnessAssumed</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="adjacencyFaithfulnessAssumed_short_desc">Yes if (one edge) faithfulness should be assumed</span>
+            <li>Short Description: <span id="faithfulnessAssumed_short_desc">Yes if (one edge) faithfulness should be assumed</span>
             </li>
-            <li>Long Description: <span id="adjacencyFaithfulnessAssumed_long_desc">Assumes that if X _||_ Y, by an independence test, then X _||_ Y | Z for nonempty Z.</span>
+            <li>Long Description: <span id="faithfulnessAssumed_long_desc">Assumes that if X _||_ Y, by an independence test, then X _||_ Y | Z for nonempty Z.</span>
             </li>
-            <li>Default Value: <span id="adjacencyFaithfulnessAssumed_default_value">false</span></li>
-            <li>Lower Bound: <span id="adjacencyFaithfulnessAssumed_lower_bound"></span></li>
-            <li>Upper Bound: <span id="adjacencyFaithfulnessAssumed_upper_bound"></span></li>
-            <li>Value Type: <span id="adjacencyFaithfulnessAssumed_value_type">Boolean</span></li>
+            <li>Default Value: <span id="faithfulnessAssumed_default_value">false</span></li>
+            <li>Lower Bound: <span id="faithfulnessAssumed_lower_bound"></span></li>
+            <li>Upper Bound: <span id="faithfulnessAssumed_upper_bound"></span></li>
+            <li>Value Type: <span id="faithfulnessAssumed_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="fasHeuristic" class="parameter_description">fasHeuristic</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="fasHeuristic_short_desc">Test ordering: 1 = PC-1 1, 2 = PC-2, 3 = PC-3</span>
+            </li>
+            <li>Long Description: <span id="fasHeuristic_long_desc">See Causation, Prediction, and Search (2000).</span>
+            </li>
+            <li>Default Value: <span id="fasHeuristic_default_value">1</span></li>
+            <li>Lower Bound: <span id="fasHeuristic_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="fasHeuristic_upper_bound">3</span></li>
+            <li>Value Type: <span id="fasHeuristic_value_type">Integer</span></li>
         </ul>
 
         <h3 id="fasRule" class="parameter_description">fasRule</h3>
@@ -4237,7 +4265,8 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
 
         <h3 id="zsMaxIndegree" class="parameter_description">zsMaxIndegree</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="zsMaxIndegree_short_desc">Maximum indegree of true graph (min = 0)</span></li>
+            <li>Short Description: <span id="zsMaxIndegree_short_desc">Maximum indegree of true graph (min = 0)</span>
+            </li>
             <li>Long Description: <span id="zsMaxIndegree_long_desc">This is the maximum number of parents one expects any node to have in the true model.</span>
             </li>
             <li>Default Value: <span id="zsMaxIndegree_default_value">4</span></li>
@@ -5592,6 +5621,7 @@ The “Max P” method for orienting an unshielded triple X—Y—Z records p-va
 <script>
 window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
 ga('create','UA-XXXXX-Y','auto');ga('send','pageview')
+
 
 
 

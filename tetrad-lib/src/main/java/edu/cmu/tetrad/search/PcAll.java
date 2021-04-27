@@ -37,7 +37,7 @@ import java.util.*;
  */
 public final class PcAll implements GraphSearch {
 
-    private boolean h3 = false;
+    private int heuristic = 0;
 
     public void setUseHeuristic(boolean useHeuristic) {
         this.useHeuristic = useHeuristic;
@@ -59,13 +59,13 @@ public final class PcAll implements GraphSearch {
         this.concurrent = concurrent;
     }
 
-    public void setH3(boolean h3) {
-        this.h3 = h3;
+    public void setHeuristic(int heuristic) {
+        this.heuristic = heuristic;
     }
 
     public enum FasType {REGULAR, STABLE}
 
-    public enum Concurrent {YES, NO};
+    public enum Concurrent {YES, NO}
 
     public enum ColliderDiscovery {FAS_SEPSETS, CONSERVATIVE, MAX_P}
 
@@ -74,7 +74,7 @@ public final class PcAll implements GraphSearch {
     /**
      * The independence test used for the PC search.
      */
-    private IndependenceTest independenceTest;
+    private final IndependenceTest independenceTest;
 
     /**
      * Forbidden and required edges for the search.
@@ -119,7 +119,7 @@ public final class PcAll implements GraphSearch {
     /**
      * The logger for this class. The config needs to be set.
      */
-    private TetradLogger logger = TetradLogger.getInstance();
+    private final TetradLogger logger = TetradLogger.getInstance();
 
     /**
      * The sepsets.
@@ -285,11 +285,8 @@ public final class PcAll implements GraphSearch {
 
         long startTime = System.currentTimeMillis();
 
-        if (getIndependenceTest() == null) {
-            throw new NullPointerException();
-        }
-
         List<Node> allNodes = getIndependenceTest().getVariables();
+
         if (!allNodes.containsAll(nodes)) {
             throw new IllegalArgumentException("All of the given nodes must " +
                     "be in the domain of the independence test provided.");
@@ -300,14 +297,15 @@ public final class PcAll implements GraphSearch {
         if (fasType == FasType.REGULAR) {
             if (concurrent == Concurrent.NO) {
                 fas = new Fas(initialGraph, getIndependenceTest());
-                ((Fas) fas).setH3(h3);
+                ((Fas) fas).setHeuristic(heuristic);
             } else {
                 fas = new FasConcurrent(initialGraph, getIndependenceTest());
                 ((FasConcurrent) fas).setStable(false);
             }
         } else {
             if (concurrent == Concurrent.NO) {
-                fas = new FasStable(initialGraph, getIndependenceTest());
+                fas = new Fas(initialGraph, getIndependenceTest());
+                ((Fas) fas).setStable(true);
             } else {
                 fas = new FasConcurrent(initialGraph, getIndependenceTest());
                 ((FasConcurrent) fas).setStable(true);
@@ -344,8 +342,6 @@ public final class PcAll implements GraphSearch {
             }
 
             orientUnshieldedTriplesConservative(knowledge);
-
-            //            orientUnshieldedTriplesConcurrent(knowledge, getIndependenceTest(), getMaxIndegree());
         }
 
         graph = GraphUtils.replaceNodes(graph, nodes);
@@ -354,29 +350,6 @@ public final class PcAll implements GraphSearch {
         meekRules.setKnowledge(knowledge);
         meekRules.setVerbose(true);
         meekRules.orientImplied(graph);
-//
-//        // Remove ambiguities whose status have been determined.
-//        Set<Triple> ambiguities = graph.getAmbiguousTriples();
-//
-//        for (Triple triple : new HashSet<>(ambiguities)) {
-//            final Node x = triple.getX();
-//            final Node y = triple.getY();
-//            final Node z = triple.getZ();
-//
-//            if (!graph.isAdjacentTo(x, y) || !graph.isAdjacentTo(y, x)) {
-//                graph.removeAmbiguousTriple(x, y, z);
-//            }
-//
-//            if (graph.isDefCollider(x, y, z)) {
-//                graph.removeAmbiguousTriple(x, y, z);
-//            }
-//
-//            if (graph.getEdge(x, y).pointsTowards(x) || graph.getEdge(y, z).pointsTowards(z)) {
-//                graph.removeAmbiguousTriple(x, y, z);
-//            }
-//        }
-
-//        graph = SearchGraphUtils.patternFromEPattern(graph);
 
         TetradLogger.getInstance().log("graph", "\nReturning this graph: " + graph);
 
@@ -384,15 +357,10 @@ public final class PcAll implements GraphSearch {
         this.elapsedTime = endTime - startTime;
 
         TetradLogger.getInstance().log("info", "Elapsed time = " + (elapsedTime) / 1000. + " s");
-        TetradLogger.getInstance().log("info", "Finishing CPC algorithm.");
 
         logTriples();
 
         TetradLogger.getInstance().flush();
-
-        System.out.println("now graph = " + graph);
-
-
 
         return graph;
     }
@@ -645,21 +613,6 @@ public final class PcAll implements GraphSearch {
                 }
             }
         }
-
-//        List<Triple> tripleList = new ArrayList<>(scoredTriples.keySet());
-//        tripleList.sort((o1, o2) -> Double.compare(scoredTriples.get(o2), scoredTriples.get(o1)));
-//
-//        for (Triple triple : tripleList) {
-//            final Node x = triple.getX();
-//            final Node y = triple.getY();
-//            final Node z = triple.getZ();
-//            if (!(graph.getEndpoint(y, x) == Endpoint.ARROW || graph.getEndpoint(y, z) == Endpoint.ARROW)) {
-//                graph.removeEdge(x, y);
-//                graph.removeEdge(z, y);
-//                graph.addDirectedEdge(x, y);
-//                graph.addDirectedEdge(z, y);
-//            }
-//        }
     }
 
     /**

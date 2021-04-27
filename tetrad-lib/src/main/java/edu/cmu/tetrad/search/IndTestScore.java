@@ -43,8 +43,9 @@ public class IndTestScore implements IndependenceTest {
 
     private final Score score;
     private final List<Node> variables;
+    private final HashMap<Node, Integer> variablesHash;
     private double bump = Double.NaN;
-    private final DataModel data;
+    private DataModel data = null;
     private boolean verbose = false;
 
     public  IndTestScore(Score score) {
@@ -55,6 +56,12 @@ public class IndTestScore implements IndependenceTest {
         if (score == null) throw new NullPointerException();
         this.score = score;
         this.variables = score.getVariables();
+        this.variablesHash = new HashMap<>();
+
+        for (int i = 0; i < variables.size(); i++) {
+            this.variablesHash.put(variables.get(i), i);
+        }
+
         this.data = data;
     }
 
@@ -75,6 +82,11 @@ public class IndTestScore implements IndependenceTest {
      * @throws RuntimeException if a matrix singularity is encountered.
      */
     public boolean isIndependent(Node x, Node y, List<Node> z) {
+        List<Node> z1 = new ArrayList<>(z);
+
+        if (determines(z1, x)) return false;
+        if (determines(z1, y)) return false;
+
         double v = this.score.localScoreDiff(variables.indexOf(x), variables.indexOf(y), varIndices(z));
         this.bump = v;
         return  v <= 0;
@@ -113,7 +125,11 @@ public class IndTestScore implements IndependenceTest {
      * not meaningful for tis test.
      */
     public double getPValue() {
-        return -bump;
+        return bump;
+    }
+
+    public double getPValue(Node x, Node y, List<Node> z) {
+        return getPValue();
     }
 
     /**
@@ -199,6 +215,10 @@ public class IndTestScore implements IndependenceTest {
      */
     public double getScore() {
         return bump;
+    }
+
+    public Score getWrappedScore() {
+        return score;
     }
 
     @Override

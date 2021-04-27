@@ -194,6 +194,7 @@ public class Jcpc implements GraphSearch {
     public Graph search() {
 
         meekRules = new MeekRules();
+        meekRules.setAggressivelyPreventCycles(isAggressivelyPreventCycles());
         meekRules.setKnowledge(knowledge);
 
         long time1 = System.currentTimeMillis();
@@ -330,8 +331,6 @@ public class Jcpc implements GraphSearch {
     }
 
     private void applyMeek(List<Node> y, Graph graph) {
-        List<Node> start = new ArrayList<>();
-        for (Node n : y) start.add(n);
         meekRules.orientImplied(graph);
     }
 
@@ -628,14 +627,15 @@ public class Jcpc implements GraphSearch {
         SearchGraphUtils.pcOrientbk(knowledge, graph, graph.getNodes());
         orientUnshieldedTriples(graph, test, depth, knowledge);
         MeekRules meekRules = new MeekRules();
+        meekRules.setAggressivelyPreventCycles(isAggressivelyPreventCycles());
         meekRules.setKnowledge(knowledge);
         meekRules.orientImplied(graph);
     }
 
     private void undirectedGraph(Graph graph) {
         for (Edge edge : graph.getEdges()) {
-            graph.removeEdge(edge);
-            graph.addUndirectedEdge(edge.getNode1(), edge.getNode2());
+            edge.setEndpoint1(Endpoint.TAIL);
+            edge.setEndpoint2(Endpoint.TAIL);
         }
     }
 

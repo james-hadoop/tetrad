@@ -11,7 +11,6 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.ZhangShenBoundScore;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -61,14 +60,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
             int parallelism = parameters.getInt(Params.PARALLELISM);
 
             Score score = this.score.getScore(dataSet, parameters);
-            Graph graph = null;
-
-            boolean changed = false;
-
-            if (score instanceof ZhangShenBoundScore) {
-                ((ZhangShenBoundScore) score).setChanged(false);
-            }
-
+            Graph graph;
 
             edu.cmu.tetrad.search.Fges search
                     = new edu.cmu.tetrad.search.Fges(score, parallelism);
@@ -77,7 +69,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
             search.setMeekVerbose(parameters.getBoolean(Params.MEEK_VERBOSE));
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
             search.setSymmetricFirstStep(parameters.getBoolean(Params.SYMMETRIC_FIRST_STEP));
-            search.setAdjacencyFaithfulnessAssumed(parameters.getBoolean(Params.ADJACENCY_FAITHFULNESS_ASSUMED));
+            search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
             if (obj instanceof PrintStream) {
@@ -145,7 +137,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
         parameters.add(Params.SYMMETRIC_FIRST_STEP);
         parameters.add(Params.MAX_DEGREE);
         parameters.add(Params.PARALLELISM);
-        parameters.add(Params.ADJACENCY_FAITHFULNESS_ASSUMED);
+        parameters.add(Params.FAITHFULNESS_ASSUMED);
 
         parameters.add(Params.VERBOSE);
         parameters.add(Params.MEEK_VERBOSE);

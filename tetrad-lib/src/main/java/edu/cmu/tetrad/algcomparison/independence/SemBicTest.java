@@ -1,5 +1,6 @@
 package edu.cmu.tetrad.algcomparison.independence;
 
+import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.annotation.TestOfIndependence;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.search.*;
@@ -18,38 +19,24 @@ import java.util.*;
         command = "sem-bic-test",
         dataType = {DataType.Continuous, DataType.Covariance}
 )
-//@Experimental
+@Experimental
 public class SemBicTest implements IndependenceWrapper {
 
     static final long serialVersionUID = 23L;
 
     @Override
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
-        SemBicScore semBicScore;
+        SemBicScore score;
 
-        if (dataSet instanceof DataSet) {
-            semBicScore = new edu.cmu.tetrad.search.SemBicScore((DataSet) dataSet);
-        } else if (dataSet instanceof ICovarianceMatrix) {
-            semBicScore = new edu.cmu.tetrad.search.SemBicScore((ICovarianceMatrix) dataSet);
+        if (dataSet instanceof ICovarianceMatrix) {
+            score = new SemBicScore((ICovarianceMatrix) dataSet);
         } else {
-            throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
+            score = new SemBicScore((DataSet) dataSet);
         }
+        score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
+        score.setStructurePrior(parameters.getDouble(Params.STRUCTURE_PRIOR));
 
-        semBicScore.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
-        semBicScore.setStructurePrior(parameters.getDouble(Params.SEM_BIC_STRUCTURE_PRIOR));
-
-        switch (parameters.getInt(Params.SEM_BIC_RULE)) {
-            case 1:
-                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.CHICKERING);
-                break;
-            case 2:
-                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.NANDY);
-                break;
-            default:
-                throw new IllegalStateException("Expecting 1 or 2: " + parameters.getInt(Params.SEM_BIC_RULE));
-        }
-
-        return new IndTestScore(semBicScore, dataSet);
+        return new IndTestScore(score, dataSet);
     }
 
     @Override
@@ -66,8 +53,7 @@ public class SemBicTest implements IndependenceWrapper {
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
         params.add(Params.PENALTY_DISCOUNT);
-//        params.add(Params.SEM_BIC_STRUCTURE_PRIOR);
-        params.add(Params.SEM_BIC_RULE);
+        params.add(Params.STRUCTURE_PRIOR);
         return params;
     }
 }

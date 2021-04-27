@@ -25,6 +25,7 @@ import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.bayes.BayesProperties;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.search.ImpliedOrientation;
 import edu.cmu.tetrad.search.IndTestType;
 import edu.cmu.tetrad.search.PatternToDag;
 import edu.cmu.tetrad.search.SearchGraphUtils;

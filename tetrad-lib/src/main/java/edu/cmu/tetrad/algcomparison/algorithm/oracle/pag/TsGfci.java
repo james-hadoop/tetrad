@@ -119,7 +119,7 @@ public class TsGfci implements Algorithm, TakesInitialGraph, HasKnowledge, Takes
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         
-        parameters.add(Params.ADJACENCY_FAITHFULNESS_ASSUMED);
+        parameters.add(Params.FAITHFULNESS_ASSUMED);
         parameters.add(Params.MAX_INDEGREE);
         parameters.add(Params.PRINT_STREAM);
 

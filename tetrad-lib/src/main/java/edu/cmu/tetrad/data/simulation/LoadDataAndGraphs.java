@@ -40,6 +40,7 @@ public class LoadDataAndGraphs implements Simulation {
     @Override
     public void createData(Parameters parameters, boolean newModel) {
         if (!newModel && !dataSets.isEmpty()) return;
+        if (!dataSets.isEmpty()) return;
 
         this.dataSets = new ArrayList<>();
 

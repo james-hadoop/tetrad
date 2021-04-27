@@ -65,7 +65,7 @@ public class MeekRulesPattern implements ImpliedOrientation {
 
     }
 
-    /* ======================== Public Methods ========================// */
+    //======================== Public Methods ========================//
 
 
     public Set<Node> orientImplied(Graph graph) {

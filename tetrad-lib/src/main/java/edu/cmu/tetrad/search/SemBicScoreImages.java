@@ -73,7 +73,7 @@ public class SemBicScoreImages implements ISemBicScore, Score {
                 semBicScores.add(semBicScore);
             } else if (model instanceof ICovarianceMatrix) {
                 SemBicScore semBicScore = new SemBicScore((ICovarianceMatrix) model);
-                semBicScore.setStructurePrior(penaltyDiscount);
+                semBicScore.setPenaltyDiscount(penaltyDiscount);
                 semBicScores.add(semBicScore);
             } else {
                 throw new IllegalArgumentException("Only continuous data sets and covariance matrices may be used as input.");

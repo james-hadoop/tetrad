@@ -807,6 +807,7 @@ public class RBExperiments {
 		sd.setStructurePrior(1.0);
 		Fges fgs = new Fges(sd);
 		fgs.setVerbose(false);
+		fgs.setFaithfulnessAssumed(true);
 		Graph fgsPattern = fgs.search();
 		fgsPattern = GraphUtils.replaceNodes(fgsPattern, data.getVariables());
 		return fgsPattern;

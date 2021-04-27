@@ -109,6 +109,7 @@ public final class GFciMax implements GraphSearch {
         Fges fges = new Fges(score);
         fges.setKnowledge(getKnowledge());
         fges.setVerbose(verbose);
+        fges.setFaithfulnessAssumed(faithfulnessAssumed);
         fges.setMaxDegree(maxDegree);
         fges.setOut(out);
         graph = fges.search();

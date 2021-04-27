@@ -74,7 +74,7 @@ public class ExampleCompareSimulation {
 
         parameters.set(Params.USE_MAX_P_ORIENTATION_HEURISTIC, false);
         parameters.set(Params.SYMMETRIC_FIRST_STEP, true);
-        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, false);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, false);
         parameters.set("maxPOrientationMaxPathLength", 3);
         parameters.set("verbose", false);
 

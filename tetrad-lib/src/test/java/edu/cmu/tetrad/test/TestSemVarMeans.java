@@ -60,7 +60,6 @@ public class TestSemVarMeans {
         }
 
         SemIm semIm1 = new SemIm(semPm1);
-        semIm1.setSimulationType(SemIm.SimulationType.RECURSIVE);
 
         double[] means = {5.0, 4.0, 3.0, 2.0, 1.0};
 
@@ -71,7 +70,7 @@ public class TestSemVarMeans {
             semIm1.setMean(node, means[i]);
         }
 
-        DataSet dataSet = semIm1.simulateData(1000, false);
+        DataSet dataSet = semIm1.simulateDataRecursive(1000, false);
 
         SemEstimator semEst = new SemEstimator(dataSet, semPm1);
         semEst.estimate();

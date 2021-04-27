@@ -73,12 +73,12 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
             edgesSet.addAll(_graph.edgesSet);
             edgeLists.clear();
             edgeLists.putAll(_graph.edgeLists);
-            
+
             for (Node node : nodes) {
-            	this.edgeLists.put(node, new ArrayList<>(_graph.edgeLists.get(node)));
-            	node.getAllAttributes().clear();
+                this.edgeLists.put(node, new ArrayList<>(_graph.edgeLists.get(node)));
+                node.getAllAttributes().clear();
             }
-            
+
             ambiguousTriples = new HashSet<>(_graph.ambiguousTriples);
             underLineTriples = new HashSet<>(_graph.underLineTriples);
             dottedUnderLineTriples = new HashSet<>(_graph.dottedUnderLineTriples);
@@ -141,18 +141,18 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
         graph.edgeLists.putAll(_graph.edgeLists);
 
         for (Node node : graph.nodes) {
-        	graph.edgeLists.put(node, new ArrayList<>(_graph.edgeLists.get(node)));
+            graph.edgeLists.put(node, new ArrayList<>(_graph.edgeLists.get(node)));
         }
-        
+
         graph.ambiguousTriples = new HashSet<>(_graph.ambiguousTriples);
         graph.underLineTriples = new HashSet<>(_graph.underLineTriples);
         graph.dottedUnderLineTriples = new HashSet<>(_graph.dottedUnderLineTriples);
         graph.stuffRemovedSinceLastTripleAccess = _graph.stuffRemovedSinceLastTripleAccess;
         graph.highlightedEdges = new HashSet<>(_graph.highlightedEdges);
         graph.namesHash = new HashMap<>(_graph.namesHash);
-        
+
         graph.getAllAttributes().putAll(_graph.getAllAttributes());
-        
+
         return _graph;
     }
 

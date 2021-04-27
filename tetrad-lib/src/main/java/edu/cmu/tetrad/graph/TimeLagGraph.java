@@ -53,7 +53,7 @@ public class TimeLagGraph implements Graph {
     private boolean pattern;
 
     private Map<String, Object> attributes = new HashMap<>();
-    
+
     public TimeLagGraph() {
     }
 
@@ -588,7 +588,7 @@ public class TimeLagGraph implements Graph {
     public void transferNodesAndEdges(Graph graph) throws IllegalArgumentException {
         getGraph().transferNodesAndEdges(graph);
     }
-    
+
     public void transferAttributes(Graph graph) throws IllegalArgumentException {
     	getGraph().transferAttributes(graph);
     }

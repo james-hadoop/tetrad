@@ -158,9 +158,11 @@ public class IndTestDSep implements IndependenceTest {
             if (dSeparated) {
                 double pValue = 1.0;
                 TetradLogger.getInstance().log("independencies", SearchLogUtils.independenceFactMsg(x, y, z, pValue));
+                System.out.println(SearchLogUtils.independenceFactMsg(x, y, z, pValue));
             } else {
                 double pValue = 0.0;
                 TetradLogger.getInstance().log("dependencies", SearchLogUtils.dependenceFactMsg(x, y, z, pValue));
+                System.out.println(SearchLogUtils.dependenceFactMsg(x, y, z, pValue));
             }
         }
 

@@ -20,7 +20,7 @@ public class RandomForward implements RandomGraph {
         return GraphUtils.randomGraphRandomForwardEdges(
                 parameters.getInt("numMeasures") + parameters.getInt("numLatents"),
                 parameters.getInt("numLatents"),
-                (int) (parameters.getDouble("avgDegree") * parameters.getInt("numMeasures") / 2.0),
+                parameters.getInt("avgDegree") * parameters.getInt("numMeasures") / 2,
                 parameters.getInt("maxDegree"),
                 parameters.getInt("maxIndegree"),
                 parameters.getInt("maxOutdegree"),

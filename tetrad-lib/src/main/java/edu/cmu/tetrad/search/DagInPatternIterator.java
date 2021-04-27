@@ -248,7 +248,6 @@ public class DagInPatternIterator {
 
                 MeekRules meek = new MeekRules();
                 meek.setKnowledge(getKnowledge());
-                meek.setRevertToUnshieldedColliders(false);
                 meek.orientImplied(graph);
 
                 // Keep track of changed edges for highlighting

@@ -68,10 +68,10 @@ final class ConvertToCovMatixAction extends AbstractAction {
                 return;
             }
 
-            CovarianceMatrix cov = new CovarianceMatrix(dataSet);
+            CovarianceMatrix corrMatrix = new CovarianceMatrix(dataSet);
 
             DataModelList list = new DataModelList();
-            list.add(cov);
+            list.add(corrMatrix);
             getDataEditor().reset(list);
             getDataEditor().selectFirstTab();
         }

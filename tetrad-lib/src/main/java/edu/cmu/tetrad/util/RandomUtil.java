@@ -29,7 +29,6 @@ import org.apache.commons.math3.random.Well44497b;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Provides a common random number generator to be used throughout Tetrad, to avoid problems that happen when random
@@ -56,11 +55,11 @@ public class RandomUtil {
     // Random number generator from the Apache library.
     private RandomGenerator randomGenerator;
 
-    private Random random;
+    private NormalDistribution normal = new NormalDistribution(0, 1);
 
     private long seed;
 
-    private final Map<Long, RandomGenerator> seedsToGenerators = new HashedMap<>();
+    private Map<Long, RandomGenerator> seedsToGenerators = new HashedMap<>();
 
 
     //========================================CONSTRUCTORS===================================//
@@ -95,11 +94,11 @@ public class RandomUtil {
      * @return Ibid.
      */
     public int nextInt(int n) {
-        return random.nextInt(n);
+        return randomGenerator.nextInt(n);
     }
 
     public double nextDouble() {
-        return random.nextDouble();
+        return randomGenerator.nextDouble();
     }
 
     /**
@@ -108,9 +107,11 @@ public class RandomUtil {
      * @return Ibid.
      */
     public double nextUniform(double low, double high) {
-        return low + random.nextDouble() * (high - low);
+        if (low == high) return low;
+        else {
+            return new UniformRealDistribution(randomGenerator, low, high).sample();
+        }
     }
-
 
     /**
      * @param mean The mean of the Normal.
@@ -122,8 +123,10 @@ public class RandomUtil {
             throw new IllegalArgumentException("Standard deviation must be non-negative: " + sd);
         }
 
-        double sample = random.nextGaussian();
+        double sample = normal.sample();
         return sample * sd + mean;
+
+//        return new NormalDistribution(randomGenerator, mean, sd).sample();
     }
 
     /**
@@ -142,9 +145,10 @@ public class RandomUtil {
 
         double d;
 
-        do {
+        while (true) {
             d = nextNormal(mean, sd);
-        } while (!(d >= low) || !(d <= high));
+            if (d >= low && d <= high) break;
+        }
 
         return d;
     }
@@ -160,7 +164,7 @@ public class RandomUtil {
         // Do not change this generator; you will screw up innuerable unit tests!
         randomGenerator = new SynchronizedRandomGenerator(new Well44497b(seed));
         seedsToGenerators.put(seed, randomGenerator);
-        random = new Random(seed);
+        normal = new NormalDistribution(randomGenerator, 0, 1);
         this.seed = seed;
     }
 
@@ -168,7 +172,7 @@ public class RandomUtil {
 
         // Do not change this generator; you will screw up innuerable unit tests!
         randomGenerator = seedsToGenerators.get(seed);
-        random = new Random(seed);
+        normal = new NormalDistribution(randomGenerator, 0, 1);
         this.seed = seed;
 
     }
@@ -185,11 +189,23 @@ public class RandomUtil {
     /**
      * @param mean  The mean of the normal to be used.
      * @param sd    The standard deviation of the normal to be used.
+     * @param value The domain value for the PDF.
+     * @return Ibid.
+     */
+    public double normalPdf(double mean, double sd, double value) {
+        return new NormalDistribution(randomGenerator, mean, sd).density(value);
+    }
+
+    /**
+     * @param mean  The mean of the normal to be used.
+     * @param sd    The standard deviation of the normal to be used.
      * @param value The domain value for the CDF.
      * @return Ibid.
      */
     public double normalCdf(double mean, double sd, double value) {
-        return new NormalDistribution().cumulativeProbability((value - mean) / sd);
+        return normal.cumulativeProbability((value - mean) / sd);
+//        value = (value - mean) / sd;
+//        return ProbUtils.normalCdf(value);
     }
 
     /**
@@ -198,7 +214,7 @@ public class RandomUtil {
      * @return Ibid.
      */
     public double nextBeta(double alpha, double beta) {
-         return ProbUtils.betaRand(alpha, beta);
+        return ProbUtils.betaRand(alpha, beta);
     }
 
     /**
@@ -240,6 +256,10 @@ public class RandomUtil {
 
     public RandomGenerator getRandomGenerator() {
         return randomGenerator;
+    }
+
+    public long nextLong() {
+        return randomGenerator.nextLong();
     }
 }
 

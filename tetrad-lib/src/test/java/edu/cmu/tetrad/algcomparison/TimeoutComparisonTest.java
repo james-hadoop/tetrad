@@ -33,7 +33,7 @@ import edu.cmu.tetrad.algcomparison.statistic.ElapsedTime;
 import edu.cmu.tetrad.algcomparison.statistic.F1Adj;
 import edu.cmu.tetrad.algcomparison.statistic.F1Arrow;
 import edu.cmu.tetrad.algcomparison.statistic.MathewsCorrAdj;
-import edu.cmu.tetrad.algcomparison.statistic .MathewsCorrArrow;
+import edu.cmu.tetrad.algcomparison.statistic.MathewsCorrArrow;
 import edu.cmu.tetrad.algcomparison.statistic.SHD;
 import edu.cmu.tetrad.algcomparison.statistic.Statistics;
 import edu.cmu.tetrad.util.Parameters;

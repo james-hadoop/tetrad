@@ -84,7 +84,7 @@ public class FgsApiExample {
         // fges parameters
         parameters.set(Params.DEPTH, 100);
         parameters.set(Params.PENALTY_DISCOUNT, 1.0);
-        parameters.set(Params.ADJACENCY_FAITHFULNESS_ASSUMED, true);
+        parameters.set(Params.FAITHFULNESS_ASSUMED, true);
         parameters.set(Params.VERBOSE, true);
         parameters.set(Params.SYMMETRIC_FIRST_STEP, false);
 

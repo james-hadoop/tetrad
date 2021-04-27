@@ -260,7 +260,7 @@ public final class LargeScaleSimulation {
      *                   integer.
      */
     public DataSet simulateDataFisher(int sampleSize) {
-        return simulateDataFisher(getUncorrelatedGaussianShocks(sampleSize), 50, 1e-5);
+        return simulateDataFisher(getSoCalledPoissonShocks(sampleSize), 50, 1e-5);
     }
 
     /**
@@ -788,17 +788,23 @@ public final class LargeScaleSimulation {
     }
 
     public double[][] getUncorrelatedShocks(int sampleSize) {
+        AbstractRealDistribution distribution;
+        AbstractRealDistribution varDist = null;
+
+        distribution = new NormalDistribution(new Well1024a(++seed), 0, 1);
+        varDist = new UniformRealDistribution(varLow, varHigh);
+
         int numVars = variableNodes.size();
         setupModel(numVars);
 
         double[][] shocks = new double[sampleSize][numVars];
 
         for (int j = 0; j < numVars; j++) {
-            double var = errorVars[j];//  RandomUtil.getInstance().nextUniform(varLow, varHigh);
-            double sd = sqrt(var);
+            double sd = sqrt(varDist.sample());
 
             for (int i = 0; i < sampleSize; i++) {
-                double sample = RandomUtil.getInstance().nextNormal(0, sd);
+                double sample = distribution.sample();
+                sample *= sd;
 
                 if (!errorsNormal) {
                     sample = sample * sample;

@@ -282,6 +282,7 @@ public class RfciBsc implements GraphSearch {
 
 		Fges fges = new Fges(sd);
 		fges.setVerbose(false);
+		fges.setFaithfulnessAssumed(true);
 
 		Graph depPattern = fges.search();
 		depPattern = GraphUtils.replaceNodes(depPattern, depData.getVariables());

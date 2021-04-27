@@ -201,11 +201,13 @@ public class Comparison {
         } else if (params.getAlgorithm() == ComparisonParameters.Algorithm.FGES) {
             if (score == null) throw new IllegalArgumentException("Score not set.");
             Fges search = new Fges(score);
+            search.setFaithfulnessAssumed(params.isOneEdgeFaithfulnessAssumed());
             result.setResultGraph(search.search());
             result.setCorrectResult(SearchGraphUtils.patternForDag(new EdgeListGraph(trueDag)));
         } else if (params.getAlgorithm() == ComparisonParameters.Algorithm.FGES2) {
             if (score == null) throw new IllegalArgumentException("Score not set.");
             Fges search = new Fges(score);
+            search.setFaithfulnessAssumed(params.isOneEdgeFaithfulnessAssumed());
             result.setResultGraph(search.search());
             result.setCorrectResult(SearchGraphUtils.patternForDag(new EdgeListGraph(trueDag)));
         } else if (params.getAlgorithm() == ComparisonParameters.Algorithm.FCI) {
