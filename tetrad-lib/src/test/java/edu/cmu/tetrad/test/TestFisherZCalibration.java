@@ -1367,6 +1367,7 @@ public class TestFisherZCalibration {
                                             if (out.getNumEdges() == 5) {
                                                 System.out.println("\nd1 = " + d1 + " d2 = " + d2 + " d3 = " + d3 + " d4 = " + d4);
                                                 System.out.println(out);
+                                                System.out.println(sem.getImplCovar());
                                             }
                                         } catch (AssertionError e) {
                                             // continue;

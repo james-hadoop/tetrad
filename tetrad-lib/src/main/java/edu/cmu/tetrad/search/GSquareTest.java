@@ -90,7 +90,7 @@ public final class GSquareTest extends ChiSquareTest {
 
         // Reset the cell table for the columns referred to in
         // 'testIndices.' Do cell coefs for those columns.
-        getCellTable().addToTable(getDataSet(), testIndices);
+        this.getCellTable().addToTable(getDataSet(), testIndices);
 
         // Indicator arrays to tell the cell table which margins
         // to calculate. For x _||_ y | z1, z2, ..., we want to
@@ -111,66 +111,50 @@ public final class GSquareTest extends ChiSquareTest {
         int numRows = this.getCellTable().getNumValues(0);
         int numCols = this.getCellTable().getNumValues(1);
 
-        boolean[] attestedRows = new boolean[numRows];
-        boolean[] attestedCols = new boolean[numCols];
-
         CombinationIterator combinationIterator =
                 new CombinationIterator(condDims);
 
+        // Make a chi square table for each condition combination, strike zero rows and columns and calculate
+        // chi square and degrees of freedom for the remaining rows and columns in the table. See Friedman.
         while (combinationIterator.hasNext()) {
-            int[] combination = (int[]) combinationIterator.next();
+            boolean[] attestedRows = new boolean[numRows];
+            boolean[] attestedCols = new boolean[numCols];
 
-            System.arraycopy(combination, 0, coords, 2, combination.length);
             Arrays.fill(attestedRows, true);
             Arrays.fill(attestedCols, true);
 
-            long total = this.getCellTable().calcMargin(coords, bothVars);
+            int[] combination = combinationIterator.next();
+
+            System.arraycopy(combination, 0, coords, 2, combination.length);
+
+            long total = getCellTable().calcMargin(coords, bothVars);
+
+            if (total == 0) continue;
 
             double _gSquare = 0.0;
-
-            List<Double> e = new ArrayList<>();
-            List<Long> o = new ArrayList<>();
 
             for (int i = 0; i < numRows; i++) {
                 for (int j = 0; j < numCols; j++) {
                     coords[0] = i;
                     coords[1] = j;
 
-                    long sumRow = this.getCellTable().calcMargin(coords, secondVar);
-                    long sumCol = this.getCellTable().calcMargin(coords, firstVar);
-                    long observed = (int) this.getCellTable().getValue(coords);
+                    long sumRow = getCellTable().calcMargin(coords, firstVar);
+                    long sumCol = getCellTable().calcMargin(coords, secondVar);
+                    long observed = getCellTable().getValue(coords);
 
-                    boolean skip = false;
-
-                    if (sumRow == 0) {
+                    if (sumRow == 0L) {
                         attestedRows[i] = false;
-                        skip = true;
-                    }
-
-                    if (sumCol == 0) {
-                        attestedCols[j] = false;
-                        skip = true;
-                    }
-
-                    if (skip) {
                         continue;
                     }
 
-                    e.add((double) sumCol * sumRow);
-                    o.add(observed);
+                    if (sumCol == 0L) {
+                        attestedCols[j] = false;
+                        continue;
+                    }
+
+                    double expected = (sumRow * sumCol) / (double) total;
+                    _gSquare += 2.0 * observed * log(observed / expected);
                 }
-            }
-
-            for (int i = 0; i < o.size(); i++) {
-                double expected = e.get(i) / (double) total;
-
-                if (o.get(i) != 0) {
-                    _gSquare += 2.0 * o.get(i) * log(o.get(i) / expected);
-                }
-            }
-
-            if (total == 0) {
-                continue;
             }
 
             int numAttestedRows = 0;
@@ -188,10 +172,8 @@ public final class GSquareTest extends ChiSquareTest {
                 }
             }
 
-            int _df = (numAttestedRows - 1) * (numAttestedCols - 1);
-
-            if (_df > 0) {
-                df += _df;
+            if (numAttestedRows > 0 && numAttestedCols > 0) {
+                df += (numAttestedRows - 1) * (numAttestedCols - 1);
                 g2 += _gSquare;
             }
         }
