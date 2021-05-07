@@ -70,9 +70,9 @@ public class Lingam {
         FastIca fastIca = new FastIca(X, X.rows());
         fastIca.setVerbose(false);
         fastIca.setMaxIterations(fastIcaMaxIter);
-        fastIca.setAlgorithmType(FastIca.PARALLEL);
+        fastIca.setAlgorithmType(FastIca.DEFLATION);
         fastIca.setTolerance(fastIcaTolerance);
-        fastIca.setFunction(FastIca.EXP);
+        fastIca.setFunction(FastIca.LOGCOSH);
         fastIca.setRowNorm(false);
         fastIca.setAlpha(fastIcaA);
         FastIca.IcaResult result11 = fastIca.findComponents();
