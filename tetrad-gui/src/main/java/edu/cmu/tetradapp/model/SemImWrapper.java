@@ -158,7 +158,7 @@ public class SemImWrapper implements SessionModel {
         setSemIm(semImWrapper.getSemIm());
     }
 
-    public SemImWrapper(PValueImproverWrapper wrapper) {
+    public SemImWrapper(HbsmsWrapper wrapper) {
         SemIm oldSemIm = wrapper.getNewSemIm();
         setSemIm(oldSemIm);
     }

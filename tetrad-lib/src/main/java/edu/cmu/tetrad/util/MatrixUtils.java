@@ -797,7 +797,7 @@ public final class MatrixUtils {
             }
         }
 
-        if (m == null) {
+        if (m == null || m.length == 0) {
             result = nullMessage();
         } else {
             TextTable textTable = new TextTable(m.length + 1, m[0].length + 1);
