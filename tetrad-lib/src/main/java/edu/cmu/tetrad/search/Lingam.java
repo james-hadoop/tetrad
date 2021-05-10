@@ -24,8 +24,8 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.PermutationGenerator;
 import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.PermutationGenerator;
 
 import java.util.Arrays;
 import java.util.List;
@@ -45,7 +45,10 @@ public class Lingam {
     private double fastIcaA = 1.1;
     private int fastIcaMaxIter = 2000;
     private double fastIcaTolerance = 1e-6;
-//    private double pruneFactor = 1;
+//    private final double pruneFactor = 2;
+
+    private IcaAlgorithm algorithm = IcaAlgorithm.DEFLATION;
+    private IcaFunction function = IcaFunction.LOGCOSH;
 
     //================================CONSTRUCTORS==========================//
 
@@ -70,9 +73,21 @@ public class Lingam {
         FastIca fastIca = new FastIca(X, X.rows());
         fastIca.setVerbose(false);
         fastIca.setMaxIterations(fastIcaMaxIter);
-        fastIca.setAlgorithmType(FastIca.DEFLATION);
+
+        if (algorithm == IcaAlgorithm.DEFLATION) {
+            fastIca.setAlgorithmType(FastIca.DEFLATION);
+        } else {
+            fastIca.setAlgorithmType(FastIca.PARALLEL);
+        }
+
         fastIca.setTolerance(fastIcaTolerance);
-        fastIca.setFunction(FastIca.LOGCOSH);
+
+        if (function == IcaFunction.LOGCOSH) {
+            fastIca.setFunction(FastIca.LOGCOSH);
+        } else {
+            fastIca.setFunction(FastIca.EXP);
+        }
+
         fastIca.setRowNorm(false);
         fastIca.setAlpha(fastIcaA);
         FastIca.IcaResult result11 = fastIca.findComponents();
@@ -110,8 +125,6 @@ public class Lingam {
             }
         }
 
-//        System.out.println("WPrime = " + WPrime);
-
         final int m = data.getNumColumns();
         Matrix BHat = Matrix.identity(m).minus(WPrime);
 
@@ -136,10 +149,6 @@ public class Lingam {
             }
         }
 
-//        TetradMatrix BTilde = BHat.getSelection(perm2, perm2);
-//
-//        System.out.println("BTilde = " + BTilde);
-
         final SemBicScore score = new SemBicScore(new CovarianceMatrix(data));
         score.setPenaltyDiscount(penaltyDiscount);
         Fges fges = new Fges(score);
@@ -158,12 +167,12 @@ public class Lingam {
 
 //        Graph graph2 = new EdgeListGraph(variables);
 //
-//        TetradMatrix bFinal = pruneEdgesByResampling(X, perm2);
+//        Matrix bFinal = pruneEdgesByResampling(X, perm2, 20, 2);
 //
 //        for (int i = 0; i < bFinal.rows(); i++) {
 //            for (int j = 0; j < bFinal.columns(); j++) {
 //                if (i == j) continue;
-//                if (bFinal.get(i, j) != 0.0) {
+//                if (abs(bFinal.get(i, j)) > 0) {
 //                    graph2.addDirectedEdge(variables.get(j), variables.get(i));
 //                }
 //            }
@@ -179,12 +188,6 @@ public class Lingam {
 //        for (int i = 0; i < ki.length; i++) {
 //            ki[k[i]] = i;
 //        }
-//
-////        int[] kj = new int[k.length];
-////
-////        for (int i = 0; i < k.length; i++) {
-////            kj[i] = ki[k[i]];
-////        }
 //
 //        return ki;
 //    }
@@ -207,25 +210,30 @@ public class Lingam {
         this.fastIcaTolerance = tolerance;
     }
 
+    public void setFunction(IcaFunction function) {
+        this.function = function;
+    }
+
+    public void setAlgorithm(IcaAlgorithm algorithm) {
+        this.algorithm = algorithm;
+    }
+
 //    /**
 //     * This is the method used in Patrik's code.
 //     */
-//    private TetradMatrix pruneEdgesByResamplingyResampling(TetradMatrix X, int[] k) {
-//        int npieces = 20;
+//    private Matrix pruneEdgesByResampling(Matrix X, int[] k, int npieces, double pruneFactor) {
 //        int piecesize = (int) Math.floor(X.columns() / (double) npieces);
 //        int[] ki = inverse(k);
 //
-//        List<TetradMatrix> bpieces = new ArrayList<>();
+//        List<Matrix> bpieces = new ArrayList<>();
 //
 //        for (int p = 0; p < npieces; p++) {
-//            TetradMatrix Xp = X.getSelection(k, range((p) * piecesize, (p + 1) * piecesize - 1));
+//            Matrix Xp = X.getSelection(k, range((p) * piecesize, (p + 1) * piecesize - 1));
 //
-////            System.out.println("Xp = " + Xp);
+//            Xp = DataUtils.centerData(Xp.transpose()).transpose();
+//            Matrix cov = Xp.times(Xp.transpose()).scalarMult(1.0 / Xp.columns());
 //
-//            Xp = DataUtils.centerData(Xp);
-//            TetradMatrix cov = Xp.times(Xp.transpose()).scalarMult(1.0 / Xp.columns());
-//
-//            TetradMatrix invSqrt;
+//            Matrix invSqrt;
 //
 //            try {
 //                invSqrt = cov.sqrt().inverse();
@@ -233,45 +241,43 @@ public class Lingam {
 //                continue;
 //            }
 //
-//            QRDecomposition qr = new QRDecomposition(invSqrt.getRealMatrix());
-//            TetradMatrix R = new TetradMatrix(qr.getR().transpose());
+//            QRDecomposition qr = new QRDecomposition(new BlockRealMatrix(invSqrt.toArray()));
+//            Matrix L = new Matrix(qr.getR().getData()).transpose();
 //
 //            for (int s = 0; s < Xp.rows(); s++) {
 //                for (int t = 0; t < Xp.rows(); t++) {
-//                    R.set(s, t, R.get(s, t) / R.get(s, s));
+//                    L.set(s, t, L.get(s, t) / L.get(s, s));
 //                }
 //            }
 //
-//            if (checkNaN(R)) continue;
+//            if (checkNaN(L)) continue;
 //
-//            TetradMatrix bnewest = TetradMatrix.identity(Xp.rows()).minus(R);
+//            Matrix bnewest = Matrix.identity(Xp.rows()).minus(L);
 //            bpieces.add(bnewest.getSelection(ki, ki));
 //
 //            System.out.println("piece = " + bnewest);
 //        }
 //
-//        TetradMatrix means = new TetradMatrix(X.rows(), X.rows());
-//        TetradMatrix stds = new TetradMatrix(X.rows(), X.rows());
+//        Matrix means = new Matrix(X.rows(), X.rows());
+//        Matrix stds = new Matrix(X.rows(), X.rows());
 //
-//        TetradMatrix BFinal = new TetradMatrix(X.rows(), X.rows());
+//        Matrix BFinal = new Matrix(X.rows(), X.rows());
 //
 //        for (int i = 0; i < X.rows(); i++) {
 //            for (int j = 0; j < X.rows(); j++) {
 //                double[] b = new double[bpieces.size()];
 //
 //                for (int y = 0; y < bpieces.size(); y++) {
-//                    b[y] = abs(bpieces.get(y).get(i, j));
+//                    b[y] = (bpieces.get(y).get(i, j));
 //                }
 //
-//                means.set(i, j, mean(b));
+//                means.set(i, j, StatUtils.mean(b));
 //
-////                if (means.get(i, j) != 0) {
-//                stds.set(i, j, sd(b));
+//                stds.set(i, j, StatUtils.sd(b));
 //
 //                if (abs(means.get(i, j)) < pruneFactor * stds.get(i, j)) {
 //                    BFinal.set(i, j, means.get(i, j));
 //                }
-////                }
 //            }
 //        }
 //
@@ -283,7 +289,7 @@ public class Lingam {
 //        return BFinal;
 //    }
 
-//    private boolean checkNaN(TetradMatrix r) {
+//    private boolean checkNaN(Matrix r) {
 //        for (int i = 0; i < r.rows(); i++) {
 //            for (int j = 0; j < r.rows(); j++) {
 //                if (Double.isNaN(r.get(i, j))) return true;
@@ -291,7 +297,7 @@ public class Lingam {
 //        }
 //        return false;
 //    }
-//
+
 //    private int[] range(int i1, int i2) {
 //        if (i2 < i1) throw new IllegalArgumentException("i2 must be >=  i2 " + i1 + ", " + i2);
 //        int[] series = new int[i2 - i1 + 1];
@@ -301,5 +307,7 @@ public class Lingam {
 //        return series;
 //    }
 
+    public enum IcaAlgorithm {DEFLATION, PARALLEL}
+    public enum IcaFunction {LOGCOSH, EXP}
 }
 

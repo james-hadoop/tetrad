@@ -41,6 +41,19 @@ public class Lingam implements Algorithm {
             lingam.setFastIcaA(parameters.getDouble(Params.FAST_ICA_A));
             lingam.setFastMaxIter(parameters.getInt(Params.FAST_ICA_MAX_ITER));
             lingam.setFastIcaTolerance(parameters.getDouble(Params.FAST_ICA_TOLERANCE));
+
+            if (parameters.getInt(Params.ICA_ALGORITHM) == 1) {
+                lingam.setAlgorithm(edu.cmu.tetrad.search.Lingam.IcaAlgorithm.DEFLATION);
+            } else {
+                lingam.setAlgorithm(edu.cmu.tetrad.search.Lingam.IcaAlgorithm.PARALLEL);
+            }
+
+            if (parameters.getInt(Params.ICA_FUNCTION) == 1) {
+                lingam.setFunction(edu.cmu.tetrad.search.Lingam.IcaFunction.LOGCOSH);
+            } else {
+                lingam.setFunction(edu.cmu.tetrad.search.Lingam.IcaFunction.EXP);
+            }
+
             return lingam.search(DataUtils.getContinuousDataSet(dataSet));
         } else {
             Lingam algorithm = new Lingam();
@@ -93,6 +106,8 @@ public class Lingam implements Algorithm {
 //        parameters.add(Params.FAST_ICA_A);
         parameters.add(Params.FAST_ICA_MAX_ITER);
         parameters.add(Params.FAST_ICA_TOLERANCE);
+        parameters.add(Params.ICA_ALGORITHM);
+        parameters.add(Params.ICA_FUNCTION);
         return parameters;
     }
 }
