@@ -28,7 +28,6 @@ import edu.cmu.tetrad.regression.RegressionCovariance;
 import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.sem.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
-import edu.cmu.tetrad.util.ProbUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.text.DecimalFormat;
@@ -44,18 +43,19 @@ import java.util.*;
  */
 
 public final class HbsmsBeam implements Hbsms {
-    private CovarianceMatrix cov = null;
-    private IKnowledge knowledge = new Knowledge2();
-    private Graph initialGraph;
+    private final CovarianceMatrix cov;
+    private IKnowledge knowledge;
+    private final Graph initialGraph;
     private Graph graph;
     private double alpha = 0.05;
     private double highPValueAlpha = 0.05;
     private final NumberFormat nf = new DecimalFormat("0.0#########");
-    private Set<GraphWithPValue> significantModels = new LinkedHashSet<>();
+    private final Set<GraphWithPValue> significantModels = new LinkedHashSet<>();
     private Graph trueModel;
     private SemIm originalSemIm;
     private SemIm newSemIm;
-    private Scorer scorer;
+    private final Scorer scorer;
+    private final Scorer scorer2;
     private boolean checkingCycles = true;
     private Graph newDag;
     private int beamWidth = 1;
@@ -67,18 +67,31 @@ public final class HbsmsBeam implements Hbsms {
         this.graph = graph;
         this.initialGraph = new EdgeListGraph(graph);
         this.cov = new CovarianceMatrix(data);
-        this.scorer = new DagScorer(cov);
+//        this.scorer = new DagScorer(cov);
+
+        List<DataSet> split = DataUtils.split(data, 0.8);
+
+
+        this.scorer = new DagScorer(split.get(0));
+        this.scorer2 = new DagScorer(split.get(1));
+
     }
 
-    public HbsmsBeam(Graph graph, CovarianceMatrix cov, IKnowledge knowledge) {
-        if (graph == null) graph = new EdgeListGraph(cov.getVariables());
-
-        this.knowledge = knowledge;
-        this.graph = graph;
-        this.initialGraph = new EdgeListGraph(graph);
-        this.cov = cov;
-        this.scorer = new DagScorer(cov);
-    }
+//    public HbsmsBeam(Graph graph, CovarianceMatrix cov, IKnowledge knowledge) {
+//        if (graph == null) graph = new EdgeListGraph(cov.getVariables());
+//
+//        this.knowledge = knowledge;
+//        this.graph = graph;
+//        this.initialGraph = new EdgeListGraph(graph);
+//        this.cov = cov;
+////        this.scorer = new DagScorer(cov);
+//
+//        List<DataSet> split = DataUtils.split(data, 0.8);
+//
+//        this.scorer = new DagScorer(split.get(0));
+//        this.scorer2 = new DagScorer(split.get(1));
+//
+//    }
 
     public Graph search() {
         EdgeListGraph _graph = new EdgeListGraph(initialGraph);
@@ -97,7 +110,7 @@ public final class HbsmsBeam implements Hbsms {
             System.out.println("Found one!");
         }
 
-        Score score0 = scoreGraph(bestGraph);
+        Score score0 = scoreGraph(bestGraph, scorer);
         double bestScore = score0.getScore();
         this.originalSemIm = score0.getEstimatedSem();
 
@@ -117,7 +130,10 @@ public final class HbsmsBeam implements Hbsms {
             bestGraph = removeZeroEdges(bestGraph);
         }
 
-        Score score = scoreGraph(bestGraph);
+//        Score score = scoreGraph(bestGraph);
+
+        Score score = scoreGraph(bestGraph, scorer2);
+
         SemIm estSem = score.getEstimatedSem();
 
         this.newSemIm = estSem;
@@ -130,7 +146,7 @@ public final class HbsmsBeam implements Hbsms {
     private Graph increaseScoreLoop(Graph bestGraph, double alpha) {
         System.out.println("Increase score loop2");
 
-        double initialScore = scoreGraph(bestGraph).getScore();
+        double initialScore = scoreGraph(bestGraph, scorer).getScore();
 
         Map<Graph, Double> S = new HashMap<>();
         S.put(bestGraph, initialScore);
@@ -172,7 +188,7 @@ public final class HbsmsBeam implements Hbsms {
                         continue;
                     }
 
-                    Score _score = scoreGraph(graph);
+                    Score _score = scoreGraph(graph, scorer);
                     double score = _score.getScore();
 
                     if (S.keySet().size() < this.beamWidth) {
@@ -185,7 +201,7 @@ public final class HbsmsBeam implements Hbsms {
                         S.put(graph, score);
                         changed = true;
 
-                        if (scoreGraph(removeZeroEdges(graph)).getPValue() > alpha) {
+                        if (scoreGraph(removeZeroEdges(graph), scorer).getPValue() > alpha) {
                             found = true;
                         }
                     }
@@ -195,7 +211,7 @@ public final class HbsmsBeam implements Hbsms {
             }
         }
 
-        System.out.println("DOF = " + scoreGraph(maximumScore(S)).getDof());
+        System.out.println("DOF = " + scoreGraph(maximumScore(S), scorer).getDof());
         this.graph = maximumScore(S);
         return maximumScore(S);
     }
@@ -204,7 +220,7 @@ public final class HbsmsBeam implements Hbsms {
     private Graph increaseDfLoop(Graph bestGraph, double alpha) {
         System.out.println("Increase df loop");
 
-        Score score1 = scoreGraph(getGraph());
+        Score score1 = scoreGraph(getGraph(), scorer);
         int initialDof = score1.getDof();
 
         Map<Graph, Integer> S = new LinkedHashMap<>();
@@ -233,7 +249,7 @@ public final class HbsmsBeam implements Hbsms {
                         continue;
                     }
 
-                    Score _score = scoreGraph(graph);
+                    Score _score = scoreGraph(graph, scorer);
                     int dof = _score.getDof();
 
                     if (S.keySet().contains(graph)) {
@@ -361,7 +377,7 @@ public final class HbsmsBeam implements Hbsms {
 
         while (changed) {
             changed = false;
-            Score score = scoreGraph(graph);
+            Score score = scoreGraph(graph, scorer);
             SemIm estSem = score.getEstimatedSem();
 
             for (Parameter param : estSem.getSemPm().getParameters()) {
@@ -802,13 +818,15 @@ public final class HbsmsBeam implements Hbsms {
         }
     }
 
-    public Score scoreGraph(Graph graph) {
-        if (graph == null) {
+    public Score scoreGraph(Graph graph, Scorer scorer) {
+        Graph dag = SearchGraphUtils.dagFromPattern(graph, getKnowledge());
+
+        if (dag == null) {
             return Score.negativeInfinity();
         }
 
-        scorer.score(graph);
-        return new Score(scorer);
+        scorer.score(dag);
+        return new Score(this.scorer);
     }
 
     public void setKnowledge(IKnowledge knowledge) {
@@ -896,12 +914,9 @@ public final class HbsmsBeam implements Hbsms {
 
     public static class Score {
         private Scorer scorer;
-        private double pValue;
         private double fml;
         private double chisq;
         private double bic;
-        private double aic;
-        private double kic;
         private int dof;
 
         public Score(Scorer scorer) {
@@ -911,9 +926,9 @@ public final class HbsmsBeam implements Hbsms {
             int sampleSize = scorer.getSampleSize();
 
             this.chisq = (sampleSize - 1) * getFml();
-            this.pValue = 1.0 - ProbUtils.chisqCdf(chisq, dof);
+//            this.pValue = 1.0 - ProbUtils.chisqCdf(chisq, dof);
             this.bic = chisq - dof * Math.log(sampleSize);
-            this.aic = chisq - 2 * dof;
+//            this.aic = chisq - 2 * dof;
 
 //            this.chisq = scorer.getChiSquare();
 //            this.pValue = scorer.getScore();
@@ -922,13 +937,13 @@ public final class HbsmsBeam implements Hbsms {
         }
 
         private Score() {
-            this.scorer = null;
-            this.pValue = 0.0;
-            int sampleSize = scorer.getSampleSize();
-            this.fml = Double.POSITIVE_INFINITY;
-            this.chisq = (sampleSize - 1) * fml;
-            this.bic = chisq - dof * Math.log(sampleSize);
-            this.aic = chisq - 2 * dof;
+//            this.scorer = null;
+//            this.pValue = 0.0;
+//            int sampleSize = scorer.getSampleSize();
+//            this.fml = Double.POSITIVE_INFINITY;
+//            this.chisq = (sampleSize - 1) * fml;
+//            this.bic = chisq - dof * Math.log(sampleSize);
+//            this.aic = chisq - 2 * dof;
         }
 
         public SemIm getEstimatedSem() {
