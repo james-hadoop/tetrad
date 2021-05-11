@@ -24,13 +24,11 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.sem.DagScorer;
 import edu.cmu.tetrad.sem.Scorer;
 import edu.cmu.tetrad.sem.SemIm;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -40,7 +38,6 @@ import java.util.Set;
  *
  * @author Joseph Ramsey
  */
-
 public final class HbsmsGes implements Hbsms {
     private final DataSet data;
     private IKnowledge knowledge = new Knowledge2();
@@ -50,35 +47,31 @@ public final class HbsmsGes implements Hbsms {
     private SemIm originalSemIm;
     private SemIm newSemIm;
     private final Scorer scorer;
-    private final Scorer scorer2;
 
     public HbsmsGes(Graph graph, DataSet data) {
         if (graph == null) throw new NullPointerException("Graph not specified.");
-        this.data = DataUtils.getBootstrapSample(data, (int) (data.getNumRows() * 0.8));
-
-        DagInPatternIterator iterator = new DagInPatternIterator(graph, getKnowledge(), true,
-                true);
-        graph = iterator.next();
-        graph = SearchGraphUtils.patternForDag(graph);
-
-        if (GraphUtils.containsBidirectedEdge(graph)) {
-            throw new IllegalArgumentException("Contains bidirected edge.");
-        }
-
-        this.graph = graph;
-
-        List<DataSet> split = DataUtils.split(data, 0.8);
-
-        this.scorer = new DagScorer(split.get(0));
-        this.scorer2 = new DagScorer(split.get(1));
+        this.data = data;
+        this.graph = SearchGraphUtils.patternForDag(graph);
+        this.scorer = new DagScorer(data);
     }
 
-    private void saveModelIfSignificant(Graph graph) {
-        double pValue = scoreGraph(graph, scorer).getPValue();
+    public Graph search() {
+        Score score1 = scoreGraph(getGraph(), scorer);
 
-        if (pValue > alpha) {
-            getSignificantModels().add(new GraphWithPValue(graph, pValue));
-        }
+        originalSemIm = score1.getEstimatedSem();
+
+        Fges fges = new Fges(new SemBicScore(data));
+        fges.setInitialGraph(graph);
+        fges.setKnowledge(knowledge);
+
+        Graph model = SearchGraphUtils.dagFromPattern(fges.search(), knowledge);
+
+        saveModelIfSignificant(model);
+
+        Score _score = scoreGraph(model, scorer);
+        newSemIm = _score.getEstimatedSem();
+
+        return new EdgeListGraph(getGraph());
     }
 
     public static class GraphWithPValue {
@@ -111,11 +104,7 @@ public final class HbsmsGes implements Hbsms {
     }
 
     public Score scoreGraph(Graph graph, Scorer scorer) {
-        Graph dag = SearchGraphUtils.dagFromPattern(graph, getKnowledge());
-
-        if (dag == null) {
-            return Score.negativeInfinity();
-        }
+        Graph dag = SearchGraphUtils.dagFromPattern(graph, knowledge);
 
         scorer.score(dag);
         return new Score(this.scorer);
@@ -141,27 +130,6 @@ public final class HbsmsGes implements Hbsms {
         return new Score(scorer);
     }
 
-    public Graph search() {
-        Score score1 = scoreGraph(getGraph(), scorer);
-        double score = score1.getScore();
-        System.out.println(getGraph());
-        System.out.println(score);
-
-        originalSemIm = score1.getEstimatedSem();
-
-        Fges fges = new Fges(new SemBicScore(data));
-        fges.setInitialGraph(graph);
-        fges.setKnowledge(knowledge);
-
-        Graph model = SearchGraphUtils.dagFromPattern(fges.search());
-
-        saveModelIfSignificant(model);
-
-        Score _score = scoreGraph(getGraph(), scorer2);
-        newSemIm = _score.getEstimatedSem();
-
-        return new EdgeListGraph(getGraph());
-    }
 
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
@@ -176,8 +144,6 @@ public final class HbsmsGes implements Hbsms {
     }
 
     public void setBeamWidth(int beamWidth) {
-//        if (beamWidth < 1) throw new IllegalArgumentException();
-        // Do nothing. We don't care about beam width.
     }
 
     public IKnowledge getKnowledge() {
@@ -193,9 +159,8 @@ public final class HbsmsGes implements Hbsms {
         private final double pValue;
         private final double fml;
         private final double chisq;
-        private double bic;
-        //        private double aic;
-        private int dof;
+        private final double bic;
+        private final int dof;
 
         public Score(Scorer scorer) {
             this.scorer = scorer;
@@ -204,13 +169,6 @@ public final class HbsmsGes implements Hbsms {
             this.chisq = scorer.getChiSquare();
             this.bic = scorer.getBicScore();
             this.dof = scorer.getDof();
-        }
-
-        private Score() {
-            this.scorer = null;
-            this.pValue = 0.0;
-            this.fml = Double.POSITIVE_INFINITY;
-            this.chisq = 0.0;
         }
 
         public SemIm getEstimatedSem() {
@@ -229,10 +187,6 @@ public final class HbsmsGes implements Hbsms {
             return fml;
         }
 
-        public static Score negativeInfinity() {
-            return new Score();
-        }
-
         public int getDof() {
             return dof;
         }
@@ -243,6 +197,14 @@ public final class HbsmsGes implements Hbsms {
 
         public double getBic() {
             return bic;
+        }
+    }
+
+    private void saveModelIfSignificant(Graph graph) {
+        double pValue = scoreGraph(graph, scorer).getPValue();
+
+        if (pValue > alpha) {
+            getSignificantModels().add(new GraphWithPValue(graph, pValue));
         }
     }
 }

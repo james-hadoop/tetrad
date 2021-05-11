@@ -50,14 +50,11 @@ public final class HbsmsBeam implements Hbsms {
     private double alpha = 0.05;
     private double highPValueAlpha = 0.05;
     private final NumberFormat nf = new DecimalFormat("0.0#########");
-    private final Set<GraphWithPValue> significantModels = new LinkedHashSet<>();
     private Graph trueModel;
     private SemIm originalSemIm;
     private SemIm newSemIm;
     private final Scorer scorer;
-    private final Scorer scorer2;
-    private boolean checkingCycles = true;
-    private Graph newDag;
+//    private final Scorer scorer2;
     private int beamWidth = 1;
 
     public HbsmsBeam(Graph graph, DataSet data, IKnowledge knowledge) {
@@ -67,31 +64,14 @@ public final class HbsmsBeam implements Hbsms {
         this.graph = graph;
         this.initialGraph = new EdgeListGraph(graph);
         this.cov = new CovarianceMatrix(data);
-//        this.scorer = new DagScorer(cov);
+        this.scorer = new DagScorer(cov);
 
-        List<DataSet> split = DataUtils.split(data, 0.8);
-
-
-        this.scorer = new DagScorer(split.get(0));
-        this.scorer2 = new DagScorer(split.get(1));
-
-    }
-
-//    public HbsmsBeam(Graph graph, CovarianceMatrix cov, IKnowledge knowledge) {
-//        if (graph == null) graph = new EdgeListGraph(cov.getVariables());
-//
-//        this.knowledge = knowledge;
-//        this.graph = graph;
-//        this.initialGraph = new EdgeListGraph(graph);
-//        this.cov = cov;
-////        this.scorer = new DagScorer(cov);
-//
 //        List<DataSet> split = DataUtils.split(data, 0.8);
 //
 //        this.scorer = new DagScorer(split.get(0));
 //        this.scorer2 = new DagScorer(split.get(1));
-//
-//    }
+
+    }
 
     public Graph search() {
         EdgeListGraph _graph = new EdgeListGraph(initialGraph);
@@ -132,12 +112,9 @@ public final class HbsmsBeam implements Hbsms {
 
 //        Score score = scoreGraph(bestGraph);
 
-        Score score = scoreGraph(bestGraph, scorer2);
+        Score score = scoreGraph(bestGraph, scorer);
 
-        SemIm estSem = score.getEstimatedSem();
-
-        this.newSemIm = estSem;
-        this.newDag = bestGraph;
+        this.newSemIm = score.getEstimatedSem();
 
         return bestGraph;
     }
@@ -150,8 +127,6 @@ public final class HbsmsBeam implements Hbsms {
 
         Map<Graph, Double> S = new HashMap<>();
         S.put(bestGraph, initialScore);
-//        Set<Graph> P = new HashSet<Graph>();
-//        P.add(bestGraph);
         boolean changed = true;
 
         LOOP:
@@ -161,20 +136,18 @@ public final class HbsmsBeam implements Hbsms {
             for (Graph s : new HashMap<>(S).keySet()) {
                 List<Move> moves = new ArrayList<>();
                 moves.addAll(getAddMoves(s));
-//                moves.addAll(getRemoveMoves(s));
+                moves.addAll(getRemoveMoves(s));
                 moves.addAll(getRedirectMoves(s));
-//                moves.addAll(getAddColliderMoves(s));
-//                moves.addAll(getDoubleRemoveMoves(s));
-//                moves.addAll(getRemoveColliderMoves(s));
-//                moves.addAll(getRemoveTriangleMoves(s));
-//                moves.addAll(getSwapMoves(s));
+                moves.addAll(getAddColliderMoves(s));
+                moves.addAll(getDoubleRemoveMoves(s));
+                moves.addAll(getRemoveColliderMoves(s));
+                moves.addAll(getRemoveTriangleMoves(s));
+                moves.addAll(getSwapMoves(s));
 
                 boolean found = false;
 
                 for (Move move : moves) {
-                    Graph graph = makeMove(s, move, false);
-//                    if (P.contains(graph)) continue;
-//                    P.add(graph);
+                    Graph graph = makeMove(s, move);
 
                     if (getKnowledge().isViolatedBy(graph)) {
                         continue;
@@ -184,7 +157,7 @@ public final class HbsmsBeam implements Hbsms {
                         continue;
                     }
 
-                    if (S.keySet().contains(graph)) {
+                    if (S.containsKey(graph)) {
                         continue;
                     }
 
@@ -217,89 +190,88 @@ public final class HbsmsBeam implements Hbsms {
     }
 
 
-    private Graph increaseDfLoop(Graph bestGraph, double alpha) {
-        System.out.println("Increase df loop");
+//    private Graph increaseDfLoop(Graph bestGraph, double alpha) {
+//        System.out.println("Increase df loop");
+//
+//        Score score1 = scoreGraph(getGraph(), scorer);
+//        int initialDof = score1.getDof();
+//
+//        Map<Graph, Integer> S = new LinkedHashMap<>();
+//        S.put(bestGraph, initialDof);
+//        boolean changed = true;
+//
+//        while (changed) {
+//            changed = false;
+//
+//            Map<Graph, Integer> SPrime = new LinkedHashMap<>(S);
+//
+//            for (Graph s : SPrime.keySet()) {
+//                List<Move> moves = new ArrayList<>();
+//                moves.addAll(getAddMoves(s));
+//                moves.addAll(getRedirectMoves(s));
+//
+//                for (Move move : moves) {
+//                    Graph graph = makeMove(s, move);
+//
+//                    if (getKnowledge().isViolatedBy(graph)) {
+//                        continue;
+//                    }
+//
+//                    if (isCheckingCycles() && graph.existsDirectedCycle()) {
+//                        continue;
+//                    }
+//
+//                    Score _score = scoreGraph(graph, scorer);
+//                    int dof = _score.getDof();
+//
+//                    if (S.containsKey(graph)) {
+//                        continue;
+//                    }
+//
+//                    if (S.keySet().size() < this.beamWidth) {
+//                        S.put(graph, dof);
+//                        changed = true;
+//                    } else if (increasesDof(S, dof)) {
+//                        removeMinimalDof(S);
+//                        S.put(new EdgeListGraph(graph), dof);
+//                        System.out.println("==INSERTING== DOF = " + dof);
+//                        changed = true;
+//                    }
+//                }
+//            }
+//        }
+//
+//        this.graph = maximum(S);
+//        return this.graph;
+//    }
 
-        Score score1 = scoreGraph(getGraph(), scorer);
-        int initialDof = score1.getDof();
+//    private Graph maximum(Map<Graph, Integer> s) {
+//        int maxDof = Integer.MIN_VALUE;
+//        Graph maxGraph = null;
+//
+//        for (Graph graph : s.keySet()) {
+//            if (s.containsKey(graph) && s.get(graph) > maxDof) {
+//                maxDof = s.get(graph);
+//                maxGraph = graph;
+//            }
+//        }
+//
+//        return maxGraph;
+//    }
 
-        Map<Graph, Integer> S = new LinkedHashMap<>();
-        S.put(bestGraph, initialDof);
-        boolean changed = true;
-        boolean switched = false;
-
-        while (changed) {
-            changed = false;
-
-            Map<Graph, Integer> SPrime = new LinkedHashMap<>(S);
-
-            for (Graph s : SPrime.keySet()) {
-                List<Move> moves = new ArrayList<>();
-                moves.addAll(getAddMoves(s));
-                moves.addAll(getRedirectMoves(s));
-
-                for (Move move : moves) {
-                    Graph graph = makeMove(s, move, false);
-
-                    if (getKnowledge().isViolatedBy(graph)) {
-                        continue;
-                    }
-
-                    if (isCheckingCycles() && graph.existsDirectedCycle()) {
-                        continue;
-                    }
-
-                    Score _score = scoreGraph(graph, scorer);
-                    int dof = _score.getDof();
-
-                    if (S.keySet().contains(graph)) {
-                        continue;
-                    }
-
-                    if (S.keySet().size() < this.beamWidth) {
-                        S.put(graph, dof);
-                        changed = true;
-                    } else if (increasesDof(S, dof)) {
-                        removeMinimalDof(S);
-                        S.put(new EdgeListGraph(graph), dof);
-                        System.out.println("==INSERTING== DOF = " + dof);
-                        changed = true;
-                    }
-                }
-            }
-        }
-
-        this.graph = maximum(S);
-        return this.graph;
-    }
-
-    private Graph maximum(Map<Graph, Integer> s) {
-        int maxDof = Integer.MIN_VALUE;
-        Graph maxGraph = null;
-
-        for (Graph graph : s.keySet()) {
-            if (s.containsKey(graph) && s.get(graph) > maxDof) {
-                maxDof = s.get(graph);
-                maxGraph = graph;
-            }
-        }
-
-        return maxGraph;
-    }
-
-    private void removeMinimalDof(Map<Graph, Integer> s) {
-        int minDof = Integer.MAX_VALUE;
-        Graph minGraph = null;
-
-        for (Graph graph : s.keySet()) {
-            if (s.get(graph) < minDof) {
-                minDof = s.get(graph);
-                minGraph = graph;
-            }
-        }
-
-        s.remove(minGraph);
-    }
+//    private void removeMinimalDof(Map<Graph, Integer> s) {
+//        int minDof = Integer.MAX_VALUE;
+//        Graph minGraph = null;
+//
+//        for (Graph graph : s.keySet()) {
+//            if (s.get(graph) < minDof) {
+//                minDof = s.get(graph);
+//                minGraph = graph;
+//            }
+//        }
+//
+//        s.remove(minGraph);
+//    }
 
     private boolean increasesScore(Map<Graph, Double> s, double score) {
         double minScore = Double.MAX_VALUE;
@@ -347,29 +319,17 @@ public final class HbsmsBeam implements Hbsms {
         s.remove(minGraph);
     }
 
-    private double minimalScore(Map<Graph, Double> s) {
-        double minScore = Integer.MAX_VALUE;
-
-        for (Graph graph : s.keySet()) {
-            if (s.get(graph) < minScore) {
-                minScore = s.get(graph);
-            }
-        }
-
-        return minScore;
-    }
-
-    private boolean increasesDof(Map<Graph, Integer> s, int dof) {
-        int minDof = Integer.MAX_VALUE;
-
-        for (Graph graph : s.keySet()) {
-            if (s.get(graph) < minDof) {
-                minDof = s.get(graph);
-            }
-        }
-
-        return dof > minDof;
-    }
+//    private boolean increasesDof(Map<Graph, Integer> s, int dof) {
+//        int minDof = Integer.MAX_VALUE;
+//
+//        for (Graph graph : s.keySet()) {
+//            if (s.get(graph) < minDof) {
+//                minDof = s.get(graph);
+//            }
+//        }
+//
+//        return dof > minDof;
+//    }
 
     public Graph removeZeroEdges(Graph bestGraph) {
         boolean changed = true;
@@ -423,7 +383,7 @@ public final class HbsmsBeam implements Hbsms {
         return graph;
     }
 
-    private Graph makeMove(Graph graph, Move move, boolean finalMove) {
+    private Graph makeMove(Graph graph, Move move) {
         graph = new EdgeListGraph(graph);
         Edge firstEdge = move.getFirstEdge();
         Edge secondEdge = move.getSecondEdge();
@@ -431,22 +391,6 @@ public final class HbsmsBeam implements Hbsms {
         if (firstEdge != null && move.getType() == Move.Type.ADD) {
             graph.removeEdge(firstEdge.getNode1(), firstEdge.getNode2());
             graph.addEdge(firstEdge);
-
-            if (finalMove) {
-                Node node1 = firstEdge.getNode1();
-                Node node2 = firstEdge.getNode2();
-
-                for (Node node3 : graph.getNodes()) {
-                    if (graph.isAdjacentTo(node1, node3) && graph.isAdjacentTo(node2, node3)) {
-                        System.out.println("TRIANGLE completed:");
-                        System.out.println("\t" + graph.getEdge(node1, node3));
-                        System.out.println("\t" + graph.getEdge(node2, node3));
-                        System.out.println("\t" + graph.getEdge(node1, node2) + " added");
-                    }
-                }
-            }
-
-
         } else if (firstEdge != null && move.getType() == Move.Type.REMOVE) {
             graph.removeEdge(firstEdge);
         } else if (firstEdge != null && move.getType() == Move.Type.DOUBLE_REMOVE) {
@@ -526,7 +470,7 @@ public final class HbsmsBeam implements Hbsms {
 
         // Remove moves:
         List<Edge> edges = new ArrayList<>(graph.getEdges());
-        Collections.sort(edges);
+//        Collections.sort(edges);
 
         for (Edge edge : edges) {
             Node i = edge.getNode1();
@@ -547,7 +491,7 @@ public final class HbsmsBeam implements Hbsms {
 
         // Reverse moves:
         List<Edge> edges = new ArrayList<>(graph.getEdges());
-        Collections.sort(edges);
+//        Collections.sort(edges);
 
         for (Edge edge : edges) {
             Node i = edge.getNode1();
@@ -740,15 +684,7 @@ public final class HbsmsBeam implements Hbsms {
     }
 
     public boolean isCheckingCycles() {
-        return checkingCycles;
-    }
-
-    public void setCheckingCycles(boolean checkingCycles) {
-        this.checkingCycles = checkingCycles;
-    }
-
-    public Graph getNewDag() {
-        return newDag;
+        return true;
     }
 
     private static class Move {
@@ -756,9 +692,9 @@ public final class HbsmsBeam implements Hbsms {
             ADD, REMOVE, REDIRECT, ADD_COLLIDER, REMOVE_COLLIDER, SWAP, DOUBLE_REMOVE
         }
 
-        private Edge edge;
+        private final Edge edge;
         private Edge secondEdge;
-        private Type type;
+        private final Type type;
 
         public Move(Edge edge, Type type) {
             this.edge = edge;
@@ -790,41 +726,37 @@ public final class HbsmsBeam implements Hbsms {
         }
     }
 
-    public static class GraphWithPValue {
-        private Graph graph;
-        private double pValue;
-
-        public GraphWithPValue(Graph graph, double pValue) {
-            this.graph = graph;
-            this.pValue = pValue;
-        }
-
-        public Graph getGraph() {
-            return graph;
-        }
-
-        public double getPValue() {
-            return pValue;
-        }
-
-        public int hashCode() {
-            return 17 * graph.hashCode();
-        }
-
-        public boolean equals(Object o) {
-            if (o == null) return false;
-            GraphWithPValue p = (GraphWithPValue) o;
-            return (p.graph.equals(graph));
-        }
-    }
+//    public static class GraphWithPValue {
+//        private final Graph graph;
+//        private final double pValue;
+//
+//        public GraphWithPValue(Graph graph, double pValue) {
+//            this.graph = graph;
+//            this.pValue = pValue;
+//        }
+//
+//        public Graph getGraph() {
+//            return graph;
+//        }
+//
+//        public double getPValue() {
+//            return pValue;
+//        }
+//
+//        public int hashCode() {
+//            return 17 * graph.hashCode();
+//        }
+//
+//        public boolean equals(Object o) {
+//            if (!(o instanceof GraphWithPValue))
+//            if (o == null) return false;
+//            GraphWithPValue p = (GraphWithPValue) o;
+//            return (p.graph.equals(graph));
+//        }
+//    }
 
     public Score scoreGraph(Graph graph, Scorer scorer) {
         Graph dag = SearchGraphUtils.dagFromPattern(graph, getKnowledge());
-
-        if (dag == null) {
-            return Score.negativeInfinity();
-        }
-
         scorer.score(dag);
         return new Score(this.scorer);
     }
@@ -835,10 +767,6 @@ public final class HbsmsBeam implements Hbsms {
         if (knowledge.isViolatedBy(graph)) {
             throw new IllegalArgumentException("Graph violates knowledge.");
         }
-    }
-
-    public void setTrueModel(Graph trueModel) {
-        this.trueModel = trueModel;
     }
 
     public double getAlpha() {
@@ -856,10 +784,6 @@ public final class HbsmsBeam implements Hbsms {
 
     public IKnowledge getKnowledge() {
         return knowledge;
-    }
-
-    public Set<GraphWithPValue> getSignificantModels() {
-        return significantModels;
     }
 
     private void addRequiredEdges(Graph graph) {
@@ -913,37 +837,18 @@ public final class HbsmsBeam implements Hbsms {
     }
 
     public static class Score {
-        private Scorer scorer;
-        private double fml;
-        private double chisq;
-        private double bic;
-        private int dof;
+        private final Scorer scorer;
+        private final double chisq;
+        private final double bic;
+        private final int dof;
 
         public Score(Scorer scorer) {
             this.scorer = scorer;
-            this.fml = scorer.getFml();
             this.dof = scorer.getDof();
             int sampleSize = scorer.getSampleSize();
 
             this.chisq = (sampleSize - 1) * getFml();
-//            this.pValue = 1.0 - ProbUtils.chisqCdf(chisq, dof);
             this.bic = chisq - dof * Math.log(sampleSize);
-//            this.aic = chisq - 2 * dof;
-
-//            this.chisq = scorer.getChiSquare();
-//            this.pValue = scorer.getScore();
-//            this.bic = scorer.getBicScore();
-//            this.aic = scorer.getAicScore();
-        }
-
-        private Score() {
-//            this.scorer = null;
-//            this.pValue = 0.0;
-//            int sampleSize = scorer.getSampleSize();
-//            this.fml = Double.POSITIVE_INFINITY;
-//            this.chisq = (sampleSize - 1) * fml;
-//            this.bic = chisq - dof * Math.log(sampleSize);
-//            this.aic = chisq - 2 * dof;
         }
 
         public SemIm getEstimatedSem() {
@@ -955,19 +860,11 @@ public final class HbsmsBeam implements Hbsms {
         }
 
         public double getScore() {
-//                return pValue;
-//                return -fml;
-//            return -chisq;
             return -bic;
-//                return -aic;
         }
 
         public double getFml() {
             return scorer.getFml();
-        }
-
-        public static Score negativeInfinity() {
-            return new Score();
         }
 
         public int getDof() {
