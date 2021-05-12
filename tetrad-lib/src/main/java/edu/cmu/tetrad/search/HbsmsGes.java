@@ -32,9 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Best Fit Finder using the GES algorithm.
- * </p>
- * Improves the P value of a SEM IM by adding, removing, or reversing single edges.
+ * Heuristic Best Significant Model Search using the GES algorithm.
  *
  * @author Joseph Ramsey
  */

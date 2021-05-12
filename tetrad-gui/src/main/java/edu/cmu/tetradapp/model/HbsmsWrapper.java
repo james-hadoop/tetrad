@@ -163,9 +163,9 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
 
         Parameters params = getParams();
 
-        search.setAlpha(params.getDouble("alpha", 0.001));
-        search.setBeamWidth(params.getInt("beamWidth", 5));
-        search.setHighPValueAlpha(params.getDouble("zeroEdgeP", 0.05));
+        search.setAlpha(params.getDouble(Params.ALPHA));
+        search.setBeamWidth(params.getInt(Params.BEAM_WIDTH));
+        search.setHighPValueAlpha(params.getDouble(Params.ZERO_EDGE_P));
         this.graph = search.search();
 
 //        this.graph = search.getNewSemIm().getSemPm().getGraph();

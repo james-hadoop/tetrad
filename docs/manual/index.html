@@ -3926,6 +3926,30 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="icaAlgorithm_value_type">Integer</span></li>
         </ul>
 
+        <h3 id="beamWidth" class="parameter_description">beamWidth</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="beamWidth_short_desc">Width of the beam search (default 1)</span>
+            </li>
+            <li>Long Description: <span id="beamWidth_long_desc">The number of top scoring graphs to store.</span>
+            </li>
+            <li>Default Value: <span id="beamWidth_default_value">1</span></li>
+            <li>Lower Bound: <span id="beamWidth_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="beamWidth_upper_bound">10</span></li>
+            <li>Value Type: <span id="beamWidth_value_type">Integer</span></li>
+        </ul>
+
+        <h3 id="zeroEdgeP" class="parameter_description">zeroEdgeP</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="zeroEdgeP_short_desc">P value for judging a coefficient to be zero.</span>
+            </li>
+            <li>Long Description: <span id="zeroEdgeP_long_desc">Edges with insignificant p-values are removed.</span>
+            </li>
+            <li>Default Value: <span id="zeroEdgeP_default_value">0.01</span></li>
+            <li>Lower Bound: <span id="zeroEdgeP_lower_bound">0</span></li>
+            <li>Upper Bound: <span id="zeroEdgeP_upper_bound">1</span></li>
+            <li>Value Type: <span id="zeroEdgeP_value_type">Double</span></li>
+        </ul>
+
         <h3 id="icaFunction" class="parameter_description">icaFunction</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="icaFunction_short_desc">ICA function (1 = Log cosh, 2 = Exp)</span>

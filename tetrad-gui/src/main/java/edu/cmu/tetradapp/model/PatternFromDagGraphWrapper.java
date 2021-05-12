@@ -45,11 +45,11 @@ public class PatternFromDagGraphWrapper extends GraphWrapper implements DoNotAdd
         super(new EdgeListGraph());
 
         // make sure the given graph is a dag.
-        try {
-            new Dag(graph);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("The source graph is not a DAG.");
-        }
+//        try {
+//            new Dag(graph);
+//        } catch (Exception e) {
+//            throw new IllegalArgumentException("The source graph is not a DAG.");
+//        }
 
         Graph pattern = getPattern(new EdgeListGraph(graph));
         setGraph(pattern);

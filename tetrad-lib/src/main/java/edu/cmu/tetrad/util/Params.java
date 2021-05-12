@@ -199,6 +199,8 @@ public final class Params {
     public static final String SEM_BIC_RULE = "semBicRule";
     public static final String SEM_BIC_STRUCTURE_PRIOR = "semBicStructurePrior";
     public static final String CORRELATION_THRESHOLD = "correlationThreshold";
+    public static final String BEAM_WIDTH = "beamWidth";
+    public static final String ZERO_EDGE_P = "zeroEdgeP";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(

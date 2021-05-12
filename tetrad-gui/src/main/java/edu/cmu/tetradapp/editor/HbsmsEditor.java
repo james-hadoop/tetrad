@@ -33,6 +33,7 @@ import edu.cmu.tetrad.sem.Scorer;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetradapp.model.HbsmsWrapper;
 import edu.cmu.tetradapp.model.SemImWrapper;
 import edu.cmu.tetradapp.util.DoubleTextField;
@@ -90,32 +91,28 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
         }
 
         final Parameters params = getParams();
-        double alpha = params.getDouble("alpha", 0.001);
-        int beamWidth = params.getInt("beamWidth", 5);
-        double zeroEdgeP = params.getDouble("zeroEdgeP", 0.05);
+        double alpha = params.getDouble(Params.ALPHA);
+        int beamWidth = params.getInt(Params.BEAM_WIDTH);
+        double zeroEdgeP = params.getDouble(Params.ZERO_EDGE_P);
 
         alphaField = new DoubleTextField(alpha, 6,
                 new DecimalFormat("0.0########"));
-        alphaField.setFilter(new DoubleTextField.Filter() {
-            public double filter(double value, double oldValue) {
-                if (value >= 0 && value <= 1) {
-                    params.set("alpha", 0.001);
-                    return value;
-                } else {
-                    return oldValue;
-                }
+        alphaField.setFilter((value, oldValue) -> {
+            if (value >= 0 && value <= 1) {
+                params.set("alpha", 0.001);
+                return value;
+            } else {
+                return oldValue;
             }
         });
 
         beamWidthField = new IntTextField(beamWidth, 6);
-        beamWidthField.setFilter(new IntTextField.Filter() {
-            public int filter(int value, int oldValue) {
-                if (value >= 1) {
-                    params.set("beamwidth", value);
-                    return value;
-                } else {
-                    return oldValue;
-                }
+        beamWidthField.setFilter((value, oldValue) -> {
+            if (value >= 1) {
+                params.set(Params.BEAM_WIDTH, value);
+                return value;
+            } else {
+                return oldValue;
             }
         });
 
@@ -125,7 +122,7 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
         zeroEdgePField.setFilter(new DoubleTextField.Filter() {
             public double filter(double value, double oldValue) {
                 if (value >= 0 && value <= 1) {
-                    params.set("zeroEdgeP", value);
+                    params.set(Params.ZERO_EDGE_P, value);
                     return value;
                 } else {
                     return oldValue;
@@ -344,7 +341,7 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
                         System.out.println(propertyChangeEvent);
                         Graph graph = workbench.getGraph();
 
-                        System.out.println(graph);
+//                        System.out.println(graph);
 
                         try {
                             new Dag(graph);
