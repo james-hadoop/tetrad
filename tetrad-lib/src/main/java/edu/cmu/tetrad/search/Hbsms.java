@@ -33,8 +33,6 @@ public interface Hbsms {
 
     void setBeamWidth(int beamWidth);
 
-    void setHighPValueAlpha(double alpha);
-
     void setKnowledge(IKnowledge knowledge);
 
     Graph search();

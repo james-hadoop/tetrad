@@ -27,6 +27,8 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
+import edu.cmu.tetrad.search.Fges;
+import edu.cmu.tetrad.search.SemBicScore;
 import edu.cmu.tetrad.util.*;
 
 import java.io.IOException;
@@ -35,6 +37,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.TreeSet;
+
+import static java.lang.Math.log;
 
 /**
  * Estimates a SemIm given a CovarianceMatrix and a SemPm. (A DataSet may be
@@ -47,7 +51,7 @@ import java.util.TreeSet;
  *
  * @author Joseph Ramsey
  */
-public final class DagScorer implements TetradSerializable, Scorer {
+public final class FmlScorer implements TetradSerializable, Scorer {
     static final long serialVersionUID = 23L;
 
     private ICovarianceMatrix covMatrix;
@@ -61,6 +65,8 @@ public final class DagScorer implements TetradSerializable, Scorer {
     private double logDetSample;
     private double fml = Double.NaN;
 
+    private Fges fges;
+
 
     //=============================CONSTRUCTORS============================//
 
@@ -70,9 +76,10 @@ public final class DagScorer implements TetradSerializable, Scorer {
      * @param dataSet a DataSet, all of whose variables are contained in
      *                the given SemPm. (They are identified by name.)
      */
-    public DagScorer(DataSet dataSet) {
+    public FmlScorer(DataSet dataSet) {
         this(new CovarianceMatrix(dataSet));
         this.dataSet = dataSet;
+        this.fges = new Fges(new SemBicScore(dataSet));
     }
 
     /**
@@ -82,7 +89,7 @@ public final class DagScorer implements TetradSerializable, Scorer {
      *                  contained in the given SemPm. (They are identified by
      *                  name.)
      */
-    public DagScorer(ICovarianceMatrix covMatrix) {
+    public FmlScorer(ICovarianceMatrix covMatrix) {
         if (covMatrix == null) {
             throw new NullPointerException(
                     "CovarianceMatrix must not be null.");
@@ -101,7 +108,7 @@ public final class DagScorer implements TetradSerializable, Scorer {
      * Generates a simple exemplar of this class to test serialization.
      */
     public static Scorer serializableInstance() {
-        return new DagScorer(CovarianceMatrix.serializableInstance());
+        return new FmlScorer(CovarianceMatrix.serializableInstance());
     }
 
     //==============================PUBLIC METHODS=========================//
@@ -135,7 +142,7 @@ public final class DagScorer implements TetradSerializable, Scorer {
                 }
             }
 
-            double variance = getSampleCovar().get(idx, idx);
+            double variance = sampleCovar.get(idx, idx);
 
             if (parents.size() > 0) {
                 Vector nodeParentsCov = new Vector(parents.size());
@@ -143,12 +150,12 @@ public final class DagScorer implements TetradSerializable, Scorer {
 
                 for (int i = 0; i < parents.size(); i++) {
                     int idx2 = indexOf(parents.get(i));
-                    nodeParentsCov.set(i, getSampleCovar().get(idx, idx2));
+                    nodeParentsCov.set(i, sampleCovar.get(idx, idx2));
 
                     for (int j = i; j < parents.size(); j++) {
                         int idx3 = indexOf(parents.get(j));
-                        parentsCov.set(i, j, getSampleCovar().get(idx2, idx3));
-                        parentsCov.set(j, i, getSampleCovar().get(idx3, idx2));
+                        parentsCov.set(i, j, sampleCovar.get(idx2, idx3));
+                        parentsCov.set(j, i, sampleCovar.get(idx3, idx2));
                     }
                 }
 
@@ -236,7 +243,7 @@ public final class DagScorer implements TetradSerializable, Scorer {
             return Double.NaN;
         }
 
-        Matrix sampleCovar = sampleCovar();
+        Matrix sampleCovar = this.sampleCovar;
 
         double logDetSigma = logDet(implCovarMeas);
         double traceSSigmaInv = traceABInv(sampleCovar, implCovarMeas);
@@ -262,7 +269,7 @@ public final class DagScorer implements TetradSerializable, Scorer {
             return Double.NaN;
         }
 
-        Matrix sStar = sampleCovar();
+        Matrix sStar = this.sampleCovar;
 
         double logDetSigmaTheta = logDet(SigmaTheta);
         double traceSStarSigmaInv = traceABInv(sStar, SigmaTheta);
@@ -285,18 +292,18 @@ public final class DagScorer implements TetradSerializable, Scorer {
 
         // Using (n - 1) / n * s as in Bollen p. 134 causes sinkholes to open
         // up immediately. Not sure why.
-        Matrix S = sampleCovar();
+        Matrix S = sampleCovar;
         int n = getSampleSize();
         return -(n - 1) / 2. * (logDet(Sigma) + traceAInvB(Sigma, S));
-    }
-
-    private Matrix sampleCovar() {
-        return getSampleCovar();
     }
 
     private Matrix implCovarMeas() {
         computeImpliedCovar();
         return this.implCovarMeasC;
+    }
+
+    public double getScore() {
+        return getEbicScore();
     }
 
     /**
@@ -305,6 +312,15 @@ public final class DagScorer implements TetradSerializable, Scorer {
     public double getBicScore() {
         int dof = getDof();
         return getChiSquare() - dof * Math.log(getSampleSize());
+    }
+
+    public double getEbicScore() {
+        int dof = getDof();
+
+        double gamma = 1;
+
+        return getChiSquare() - (dof * log(getSampleSize())
+                + 2 * gamma * ChoiceGenerator.logCombinations(dof - 1, getNumFreeParams()));
     }
 
     public double getAicScore() {
@@ -435,8 +451,8 @@ public final class DagScorer implements TetradSerializable, Scorer {
     }
 
     private double logDetSample() {
-        if (logDetSample == 0.0 && sampleCovar() != null) {
-            double det = sampleCovar().det();
+        if (logDetSample == 0.0 && this.sampleCovar != null) {
+            double det = this.sampleCovar.det();
             logDetSample = Math.log(det);
         }
 
@@ -504,10 +520,6 @@ public final class DagScorer implements TetradSerializable, Scorer {
 
     public List<Node> getMeasuredNodes() {
         return this.getVariables();
-    }
-
-    public Matrix getSampleCovar() {
-        return sampleCovar;
     }
 
     public Matrix getEdgeCoef() {

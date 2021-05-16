@@ -120,9 +120,6 @@ public final class HbsmsGes implements Hbsms {
         return newSemIm;
     }
 
-    public void setHighPValueAlpha(double highPValueAlpha) {
-    }
-
     public Score scoreDag(Graph dag) {
         scorer.score(dag);
         return new Score(scorer);

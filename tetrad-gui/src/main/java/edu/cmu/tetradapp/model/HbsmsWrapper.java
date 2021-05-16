@@ -161,16 +161,8 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
             throw new IllegalStateException();
         }
 
-        Parameters params = getParams();
-
-        search.setAlpha(params.getDouble(Params.ALPHA));
-        search.setBeamWidth(params.getInt(Params.BEAM_WIDTH));
-        search.setHighPValueAlpha(params.getDouble(Params.ZERO_EDGE_P));
         this.graph = search.search();
 
-//        this.graph = search.getNewSemIm().getSemPm().getGraph();
-
-        setOriginalSemIm(search.getOriginalSemIm());
         this.newSemIm = search.getNewSemIm();
         fireGraphChange(graph);
 
@@ -239,14 +231,6 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
         }
         return listeners;
     }
-
-
-    private void setOriginalSemIm(SemIm originalSemIm) {
-        if (this.originalSemIm == null) {
-            this.originalSemIm = originalSemIm;
-        }
-    }
-
 
     /**
      * Adds semantic checks to the default deserialization method. This method must have the standard signature for a

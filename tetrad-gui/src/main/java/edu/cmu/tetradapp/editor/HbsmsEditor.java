@@ -60,7 +60,7 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
     private HbsmsWrapper wrapper;
     private final Parameters params;
 
-    private final DoubleTextField alphaField;
+//    private final DoubleTextField alphaField;
     private final IntTextField beamWidthField;
 
     private JPanel panel = new JPanel();
@@ -95,16 +95,16 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
         int beamWidth = params.getInt(Params.BEAM_WIDTH);
         double zeroEdgeP = params.getDouble(Params.ZERO_EDGE_P);
 
-        alphaField = new DoubleTextField(alpha, 6,
-                new DecimalFormat("0.0########"));
-        alphaField.setFilter((value, oldValue) -> {
-            if (value >= 0 && value <= 1) {
-                params.set("alpha", 0.001);
-                return value;
-            } else {
-                return oldValue;
-            }
-        });
+//        alphaField = new DoubleTextField(alpha, 6,
+//                new DecimalFormat("0.0########"));
+//        alphaField.setFilter((value, oldValue) -> {
+//            if (value >= 0 && value <= 1) {
+//                params.set("alpha", 0.001);
+//                return value;
+//            } else {
+//                return oldValue;
+//            }
+//        });
 
         beamWidthField = new IntTextField(beamWidth, 6);
         beamWidthField.setFilter((value, oldValue) -> {
@@ -117,18 +117,18 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
         });
 
 
-        DoubleTextField zeroEdgePField = new DoubleTextField(zeroEdgeP, 6,
-                new DecimalFormat("0.0########"));
-        zeroEdgePField.setFilter(new DoubleTextField.Filter() {
-            public double filter(double value, double oldValue) {
-                if (value >= 0 && value <= 1) {
-                    params.set(Params.ZERO_EDGE_P, value);
-                    return value;
-                } else {
-                    return oldValue;
-                }
-            }
-        });
+//        DoubleTextField zeroEdgePField = new DoubleTextField(zeroEdgeP, 6,
+//                new DecimalFormat("0.0########"));
+//        zeroEdgePField.setFilter(new DoubleTextField.Filter() {
+//            public double filter(double value, double oldValue) {
+//                if (value >= 0 && value <= 1) {
+//                    params.set(Params.ZERO_EDGE_P, value);
+//                    return value;
+//                } else {
+//                    return oldValue;
+//                }
+//            }
+//        });
 
         final JButton search = new JButton("Search");
 
@@ -147,17 +147,17 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
             }
         });
 
-        alphaField.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                search.doClick();
-            }
-        });
-
-        zeroEdgePField.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                search.doClick();
-            }
-        });
+//        alphaField.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                search.doClick();
+//            }
+//        });
+//
+//        zeroEdgePField.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                search.doClick();
+//            }
+//        });
 
         beamWidthField.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -178,7 +178,7 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
         beamRadioButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 wrapper.setAlgorithmType(HbsmsWrapper.AlgorithmType.BEAM);
-                alphaField.setEnabled(true);
+//                alphaField.setEnabled(true);
                 beamWidthField.setEnabled(true);
             }
         });
@@ -193,19 +193,19 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
         gesRadioButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 wrapper.setAlgorithmType(HbsmsWrapper.AlgorithmType.FGES);
-                alphaField.setEnabled(false);
+//                alphaField.setEnabled(false);
                 beamWidthField.setEnabled(false);
             }
         });
 
         if (getWrapper().getAlgorithmType() == HbsmsWrapper.AlgorithmType.BEAM) {
             beamRadioButton.setSelected(true);
-            alphaField.setEnabled(true);
+//            alphaField.setEnabled(true);
             beamWidthField.setEnabled(true);
         }
         else if (getWrapper().getAlgorithmType() == HbsmsWrapper.AlgorithmType.FGES) {
             gesRadioButton.setSelected(true);
-            alphaField.setEnabled(false);
+//            alphaField.setEnabled(false);
             beamWidthField.setEnabled(false);
         }
         else {
@@ -215,17 +215,17 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
         Box b = Box.createHorizontalBox();
 
         Box b2 = Box.createVerticalBox();
-        Box b2a = Box.createHorizontalBox();
-        b2a.add(new JLabel("Search Alpha"));
-        b2a.add(Box.createHorizontalGlue());
-        b2a.add(alphaField);
-        b2.add(b2a);
+//        Box b2a = Box.createHorizontalBox();
+//        b2a.add(new JLabel("Search Alpha"));
+//        b2a.add(Box.createHorizontalGlue());
+//        b2a.add(alphaField);
+//        b2.add(b2a);
 
-        Box b2e = Box.createHorizontalBox();
-        b2e.add(new JLabel("Zero Edge Alpha"));
-        b2e.add(Box.createHorizontalGlue());
-        b2e.add(zeroEdgePField);
-        b2.add(b2e);
+//        Box b2e = Box.createHorizontalBox();
+//        b2e.add(new JLabel("Zero Edge Alpha"));
+//        b2e.add(Box.createHorizontalGlue());
+//        b2e.add(zeroEdgePField);
+//        b2.add(b2e);
 
         Box b2b = Box.createHorizontalBox();
         b2b.add(new JLabel("Beam Width"));
