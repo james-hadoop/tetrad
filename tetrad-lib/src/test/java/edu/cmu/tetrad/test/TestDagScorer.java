@@ -72,18 +72,11 @@ public class TestDagScorer {
 
         dag = GraphUtils.replaceNodes(dag, data.getVariables());
 
-        Scorer scorer = new DagScorer(data);
+        Scorer scorer = new FmlBicScorer(data);
         double _fml = scorer.score(dag);
 
         assertEquals(0.0369, _fml, 0.001);
 
-        double bicScore = scorer.getBicScore();
-        assertEquals(-205, bicScore, 1);
-
-        int dof = scorer.getDof();
-        assertEquals(35, dof);
-        int numFreeParams = scorer.getNumFreeParams();
-        assertEquals(20, numFreeParams);
     }
 }
 

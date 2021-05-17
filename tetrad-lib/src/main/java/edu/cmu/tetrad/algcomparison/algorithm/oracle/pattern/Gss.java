@@ -3,22 +3,18 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
-import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
-import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.sem.FmlScorer;
+import edu.cmu.tetrad.sem.FmlBicScorer;
 import edu.cmu.tetrad.sem.Scorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +29,7 @@ import java.util.List;
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class Gss implements Algorithm, TakesInitialGraph, HasKnowledge, UsesScoreWrapper {
+public class Gss implements Algorithm, HasKnowledge {
 
     static final long serialVersionUID = 23L;
 
@@ -62,16 +58,14 @@ public class Gss implements Algorithm, TakesInitialGraph, HasKnowledge, UsesScor
             int parallelism = parameters.getInt(Params.PARALLELISM);
 
             CovarianceMatrix cov = new CovarianceMatrix((DataSet) dataSet);
-            Scorer scorer = new FmlScorer(cov);
-//            Scorer scorer = new FgesScorer(data);
+            Scorer scorer = new FmlBicScorer(cov);
+//            Scorer scorer = new FgesScorer(cov);
 
             edu.cmu.tetrad.search.GlobalScoreSearch search
                     = new edu.cmu.tetrad.search.GlobalScoreSearch(scorer);
             search.setKnowledge(knowledge);
 
-            Graph graph = search.search();
-
-            return graph;
+            return search.search();
         } else {
             Gss fges = new Gss(score, algorithm);
 
@@ -111,12 +105,12 @@ public class Gss implements Algorithm, TakesInitialGraph, HasKnowledge, UsesScor
 
     @Override
     public String getDescription() {
-        return "FGES (Fast Greedy Equivalence Search) using " + score.getDescription();
+        return "Global Scoring Search";
     }
 
     @Override
     public DataType getDataType() {
-        return score.getDataType();
+        return DataType.Continuous;
     }
 
     @Override
@@ -141,32 +135,6 @@ public class Gss implements Algorithm, TakesInitialGraph, HasKnowledge, UsesScor
     @Override
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
-    }
-
-    @Override
-    public Graph getInitialGraph() {
-        return initialGraph;
-    }
-
-    @Override
-    public void setInitialGraph(Graph initialGraph) {
-        this.initialGraph = initialGraph;
-    }
-
-    @Override
-    public void setInitialGraph(Algorithm algorithm) {
-        this.algorithm = algorithm;
-
-    }
-
-    @Override
-    public ScoreWrapper getScoreWrapper() {
-        return score;
-    }
-
-    @Override
-    public void setScoreWrapper(ScoreWrapper score) {
-        this.score = score;
     }
 
 }

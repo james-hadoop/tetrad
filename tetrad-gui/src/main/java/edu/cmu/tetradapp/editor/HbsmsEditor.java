@@ -28,10 +28,7 @@ import edu.cmu.tetrad.graph.Dag;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.sem.DagScorer;
-import edu.cmu.tetrad.sem.Scorer;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetradapp.model.HbsmsWrapper;
@@ -326,9 +323,6 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
         JTabbedPane tabbedPane = new JTabbedPane();
 
         this.graphWorkbench = graphWorkbench;
-        if (getOriginalSemIm() != null) {
-            setOriginalSemIm(new SemIm(getWrapper().getOriginalSemIm()));
-        }
         this.newSemIm = getWrapper().getNewSemIm();
 
         if (getNewSemIm() != null) {
@@ -341,17 +335,9 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
                         System.out.println(propertyChangeEvent);
                         Graph graph = workbench.getGraph();
 
-//                        System.out.println(graph);
-
-                        try {
-                            new Dag(graph);
-                        } catch (IllegalArgumentException e) {
-                            return;
-                        }
-
-                        Scorer scorer = new DagScorer((DataSet) getWrapper().getDataModel());
-                        scorer.score(graph);
-                        getWrapper().setNewSemIm(scorer.getEstSem());
+                        SemPm pm = new SemPm(graph);
+                        SemEstimator est = new SemEstimator((DataSet) getWrapper().getDataModel(), pm);
+                        getWrapper().setNewSemIm(est.estimate());
                         setGraphWorkbench(graphWorkbench);
                     }
                 }

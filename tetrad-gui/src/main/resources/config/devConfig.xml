@@ -937,16 +937,16 @@
                 <params-editor-class>edu.cmu.tetradapp.editor.EMBayesEstimatorParamsEditor</params-editor-class>
             </model>
 
-            <!--            Heuristic Best Significant Model Search-->
-            <model name="HBSMS" acronym="HBSMS" help="hbsms">
-                <logger>
-                    <event id="info" description="Information" default="on"/>
-                    <event id="details" description="Misc Fine Details" default="on"/>
-                </logger>
-                <model-class>edu.cmu.tetradapp.model.HbsmsWrapper</model-class>
-                <editor-class>edu.cmu.tetradapp.editor.HbsmsEditor
-                </editor-class>
-            </model>
+<!--            &lt;!&ndash;            Heuristic Best Significant Model Search&ndash;&gt;-->
+<!--            <model name="HBSMS" acronym="HBSMS" help="hbsms">-->
+<!--                <logger>-->
+<!--                    <event id="info" description="Information" default="on"/>-->
+<!--                    <event id="details" description="Misc Fine Details" default="on"/>-->
+<!--                </logger>-->
+<!--                <model-class>edu.cmu.tetradapp.model.HbsmsWrapper</model-class>-->
+<!--                <editor-class>edu.cmu.tetradapp.editor.HbsmsEditor-->
+<!--                </editor-class>-->
+<!--            </model>-->
         </models>
         <display-component image="estimatorIcon.gif"/>
         <model-chooser title="Types of Estimators"/>

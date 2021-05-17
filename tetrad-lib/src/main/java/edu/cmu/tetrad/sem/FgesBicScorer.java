@@ -9,14 +9,14 @@ import edu.cmu.tetrad.search.SemBicScore;
 
 import java.util.List;
 
-public class FgesScorer implements Scorer {
-    private final DataSet dataSet;
+public class FgesBicScorer implements Scorer {
+    private final CovarianceMatrix cov;
     private final Fges fges;
     private double score = Double.NaN;
 
-    public FgesScorer(DataSet data) {
-        this.dataSet = data;
-        this.fges = new Fges(new SemBicScore(dataSet));
+    public FgesBicScorer(CovarianceMatrix cov) {
+        this.cov = cov;
+        this.fges = new Fges(new SemBicScore(cov));
     }
 
     @Override
@@ -33,21 +33,21 @@ public class FgesScorer implements Scorer {
 
     @Override
     public DataSet getDataSet() {
-        return dataSet;
+        return null;
     }
 
     @Override
     public int getSampleSize() {
-        return dataSet.getNumRows();
+        return cov.getSampleSize();
     }
 
     @Override
     public List<Node> getMeasuredNodes() {
-        return dataSet.getVariables();
+        return cov.getVariables();
     }
 
     @Override
     public List<Node> getVariables() {
-        return dataSet.getVariables();
+        return cov.getVariables();
     }
 }

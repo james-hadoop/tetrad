@@ -27,12 +27,8 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.sem.DagScorer;
-import edu.cmu.tetrad.sem.Scorer;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.util.ChoiceGenerator;
-
-import static java.lang.Math.log;
+import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.sem.*;
 
 /**
  * Heuristic Best Significant Model Search using a beam search.
@@ -42,23 +38,27 @@ import static java.lang.Math.log;
 public final class HbsmsBeam implements Hbsms {
     private final Graph initialGraph;
     private final Scorer scorer;
-    private GlobalImprovementSearch gis;
+    private final CovarianceMatrix cov;
+    private GlobalScoreSearch gis;
     private final IKnowledge knowledge = new Knowledge2();
     private SemIm newSemIm;
 
     public HbsmsBeam(Graph graph, DataSet data, IKnowledge knowledge) {
-        gis = new GlobalImprovementSearch(data);
+        graph = GraphUtils.replaceNodes(graph, data.getVariables());
+        CovarianceMatrix cov = new CovarianceMatrix(data);
+        this.cov = cov;
+        this.scorer = new FmlBicScorer(cov);
+//        this.scorer = new FgesScorer(data);
+        gis = new GlobalScoreSearch(this.scorer);
         gis.setKnowledge(knowledge);
         this.initialGraph = new EdgeListGraph(graph);
-        CovarianceMatrix cov = new CovarianceMatrix(data);
-        this.scorer = new DagScorer(cov);
     }
 
     public Graph search() {
-        Graph best = new EdgeListGraph(initialGraph);
-        best = gis.improve(best);
-        Score score = scoreGraph(best, scorer);
-        this.newSemIm = score.getEstimatedSem();
+        Graph best = gis.search();
+        SemPm pm = new SemPm(best);
+        SemEstimator est = new SemEstimator(cov, pm);
+        this.newSemIm = est.estimate();
         return best;
     }
 
@@ -101,35 +101,8 @@ public final class HbsmsBeam implements Hbsms {
             this.scorer = scorer;
         }
 
-        public SemIm getEstimatedSem() {
-            return scorer.getEstSem();
-        }
-
-        public double getPValue() {
-            return scorer.getPValue();
-        }
-
         public double getScore() {
-            double gamma = 1;
-
-            return getChiSquare() - (scorer.getDof() * log(scorer.getSampleSize())
-                    + 2 * gamma * ChoiceGenerator.logCombinations(scorer.getDof() - 1, scorer.getNumFreeParams()));
-        }
-
-        public double getFml() {
-            return scorer.getFml();
-        }
-
-        public int getDof() {
-            return scorer.getDof();
-        }
-
-        public double getChiSquare() {
-            return (scorer.getSampleSize() - 1) * getFml();
-        }
-
-        public double getBic() {
-            return getChiSquare() - scorer.getDof() * Math.log(scorer.getSampleSize());
+            return scorer.getScore();
         }
     }
 }

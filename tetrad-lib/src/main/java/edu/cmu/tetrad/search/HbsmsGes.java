@@ -24,9 +24,7 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.sem.DagScorer;
-import edu.cmu.tetrad.sem.Scorer;
-import edu.cmu.tetrad.sem.SemIm;
+import edu.cmu.tetrad.sem.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -50,24 +48,21 @@ public final class HbsmsGes implements Hbsms {
         if (graph == null) throw new NullPointerException("Graph not specified.");
         this.data = data;
         this.graph = SearchGraphUtils.patternForDag(graph);
-        this.scorer = new DagScorer(data);
+        this.scorer = new FmlBicScorer(data);
     }
 
     public Graph search() {
         Score score1 = scoreGraph(getGraph(), scorer);
 
-        originalSemIm = score1.getEstimatedSem();
-
         Fges fges = new Fges(new SemBicScore(data));
         fges.setInitialGraph(graph);
         fges.setKnowledge(knowledge);
 
-        Graph model = SearchGraphUtils.dagFromPattern(fges.search(), knowledge);
+        Graph best = SearchGraphUtils.dagFromPattern(fges.search(), knowledge);
 
-        saveModelIfSignificant(model);
-
-        Score _score = scoreGraph(model, scorer);
-        newSemIm = _score.getEstimatedSem();
+        SemPm pm = new SemPm(best);
+        SemEstimator est = new SemEstimator(data, pm);
+        this.newSemIm = est.estimate();
 
         return new EdgeListGraph(getGraph());
     }
@@ -151,55 +146,9 @@ public final class HbsmsGes implements Hbsms {
 
     public static class Score {
         private final Scorer scorer;
-        private final double pValue;
-        private final double fml;
-        private final double chisq;
-        private final double bic;
-        private final int dof;
 
         public Score(Scorer scorer) {
             this.scorer = scorer;
-            this.pValue = scorer.getPValue();
-            this.fml = scorer.getFml();
-            this.chisq = scorer.getChiSquare();
-            this.bic = scorer.getBicScore();
-            this.dof = scorer.getDof();
-        }
-
-        public SemIm getEstimatedSem() {
-            return scorer.getEstSem();
-        }
-
-        public double getPValue() {
-            return pValue;
-        }
-
-        public double getScore() {
-            return -bic;
-        }
-
-        public double getFml() {
-            return fml;
-        }
-
-        public int getDof() {
-            return dof;
-        }
-
-        public double getChiSquare() {
-            return chisq;
-        }
-
-        public double getBic() {
-            return bic;
-        }
-    }
-
-    private void saveModelIfSignificant(Graph graph) {
-        double pValue = scoreGraph(graph, scorer).getPValue();
-
-        if (pValue > alpha) {
-            getSignificantModels().add(new GraphWithPValue(graph, pValue));
         }
     }
 }

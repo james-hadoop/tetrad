@@ -35,45 +35,17 @@ import java.util.List;
 public interface Scorer {
     double score(Graph dag);
 
-    ICovarianceMatrix getCovMatrix();
-
     String toString();
 
-    double getFml();
-
-    double getLogLikelihood();
-
-    double getTruncLL();
-
-    double getBicScore();
-
-    double getAicScore();
-
-    double getKicScore();
-
-    double getChiSquare();
-
-    double getPValue();
+    double getScore();
 
     DataSet getDataSet();
-
-    int getNumFreeParams();
-
-    int getDof();
 
     int getSampleSize();
 
     List<Node> getMeasuredNodes();
 
-    Matrix getSampleCovar();
-
-    Matrix getEdgeCoef();
-
-    Matrix getErrorCovar();
-
     List<Node> getVariables();
-
-    SemIm getEstSem();
 }
 
 

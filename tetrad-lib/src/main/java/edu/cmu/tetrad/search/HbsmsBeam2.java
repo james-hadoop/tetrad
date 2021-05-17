@@ -26,14 +26,9 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.KnowledgeEdge;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.sem.DagScorer;
-import edu.cmu.tetrad.sem.Scorer;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.util.ChoiceGenerator;
+import edu.cmu.tetrad.sem.*;
 
 import java.util.*;
-
-import static java.lang.Math.log;
 
 /**
  * Heuristic Best Significant Model Search using a beam search.
@@ -43,6 +38,7 @@ import static java.lang.Math.log;
 public final class HbsmsBeam2 implements Hbsms {
     private final Graph initialGraph;
     private final Scorer scorer;
+    private final CovarianceMatrix cov;
     private IKnowledge knowledge;
     private Graph graph;
     private double alpha = 0.05;
@@ -57,7 +53,8 @@ public final class HbsmsBeam2 implements Hbsms {
         this.graph = graph;
         this.initialGraph = new EdgeListGraph(graph);
         CovarianceMatrix cov = new CovarianceMatrix(data);
-        this.scorer = new DagScorer(cov);
+        this.cov = cov;
+        this.scorer = new FmlBicScorer(cov);
     }
 
     public Graph search() {
@@ -66,7 +63,6 @@ public final class HbsmsBeam2 implements Hbsms {
         Graph best = SearchGraphUtils.dagFromPattern(_graph);
 
         Score score0 = scoreGraph(best, scorer);
-        this.originalSemIm = score0.getEstimatedSem();
         MeekRules meekRules = new MeekRules();
         meekRules.setKnowledge(getKnowledge());
 
@@ -74,7 +70,9 @@ public final class HbsmsBeam2 implements Hbsms {
 
         Score score = scoreGraph(best, scorer);
 
-        this.newSemIm = score.getEstimatedSem();
+        SemPm pm = new SemPm(best);
+        SemEstimator est = new SemEstimator(cov, pm);
+        this.newSemIm = est.getEstimatedSem();
 
         return best;
     }
@@ -510,36 +508,8 @@ public final class HbsmsBeam2 implements Hbsms {
             this.scorer = scorer;
         }
 
-        public SemIm getEstimatedSem() {
-            return scorer.getEstSem();
-        }
-
-        public double getPValue() {
-            return scorer.getPValue();
-        }
-
         public double getScore() {
-            double gamma = 1;
-
-            return getChiSquare() - (scorer.getDof() * log(scorer.getSampleSize())
-                    + 2 * gamma * ChoiceGenerator.logCombinations(scorer.getDof() - 1, scorer.getNumFreeParams()));
-//            return getBic();
-        }
-
-        public double getFml() {
-            return scorer.getFml();
-        }
-
-        public int getDof() {
-            return scorer.getDof();
-        }
-
-        public double getChiSquare() {
-            return (scorer.getSampleSize() - 1) * getFml();
-        }
-
-        public double getBic() {
-            return getChiSquare() - scorer.getDof() * Math.log(scorer.getSampleSize());
+            return scorer.getScore();
         }
     }
 }
