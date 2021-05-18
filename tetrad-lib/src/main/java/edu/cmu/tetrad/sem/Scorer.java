@@ -22,6 +22,7 @@
 package edu.cmu.tetrad.sem;
 
 import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
@@ -46,6 +47,8 @@ public interface Scorer {
     List<Node> getMeasuredNodes();
 
     List<Node> getVariables();
+
+    DataType getDataType();
 }
 
 

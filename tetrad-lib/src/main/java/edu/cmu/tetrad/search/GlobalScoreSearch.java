@@ -9,8 +9,8 @@ import edu.cmu.tetrad.sem.Scorer;
 import java.util.*;
 
 /**
- * Attempts to improve an initial graph using a global score the adding, removing or reversing
- * edges.
+ * Searches for a DAG in a pattern by adding or removing directed edges starting
+ * with an empty graph.
  *
  * @author josephramsey
  */

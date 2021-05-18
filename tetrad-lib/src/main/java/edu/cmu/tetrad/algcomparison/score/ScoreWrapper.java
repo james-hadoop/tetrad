@@ -53,5 +53,4 @@ public interface ScoreWrapper extends HasParameters, TetradSerializable {
      * Returns the variable with the given name.
      */
     Node getVariable(String name);
-
 }

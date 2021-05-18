@@ -1555,7 +1555,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         for (Node node : getVariables()) {
 
-            if (score instanceof SemBicScore) {
+//            if (score instanceof SemBicScore) {
                 List<Node> x = dag.getParents(node);
 
                 int[] parentIndices = new int[x.size()];
@@ -1572,7 +1572,7 @@ public final class Fges implements GraphSearch, GraphScorer {
                 }
 
                 _score += bic;
-            }
+//            }
         }
 
         if (recordScores) {

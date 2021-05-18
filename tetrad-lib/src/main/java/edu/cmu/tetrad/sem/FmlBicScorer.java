@@ -23,16 +23,16 @@ package edu.cmu.tetrad.sem;
 
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.util.*;
-import edu.cmu.tetrad.util.Vector;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.*;
+import java.util.List;
 
 /**
  * Estimates a SemIm given a CovarianceMatrix and a SemPm. (A DataSet may be
@@ -55,12 +55,18 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
     private final Matrix sampleCovar;
     private DataSet dataSet = null;
     private Graph dag = null;
-    private Matrix implCovarMeasC = null;
-    private double logDetSample = Double.NaN;
+    private Matrix implCovarMeasC;
+    private double logDetSample;
     private double fml = Double.NaN;
-    private Map<Node, Integer> nodesHash = null;
+    private double penaltyDiscount = 2.;
+
 
     //=============================CONSTRUCTORS============================//
+
+    public FmlBicScorer(CovarianceMatrix cov, double penaltyDiscount) {
+        this(cov);
+        setPenaltyDiscount(penaltyDiscount);
+    }
 
     /**
      * Constructs a new SemEstimator that uses the specified optimizer.
@@ -95,6 +101,43 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         this.sampleCovar = covMatrix.getMatrix();
     }
 
+    public DataSet getDataSet() {
+        return dataSet;
+    }
+
+    public int getNumFreeParams() {
+        return dag.getEdges().size() + dag.getNodes().size();
+    }
+
+    public int getDof() {
+        return (dag.getNodes().size() * (dag.getNodes().size() + 1)) / 2 - getNumFreeParams();
+    }
+
+    public int getSampleSize() {
+        return covMatrix.getSampleSize();
+    }
+
+    public List<Node> getMeasuredNodes() {
+        return this.getVariables();
+    }
+
+    public Matrix getEdgeCoef() {
+        return edgeCoef;
+    }
+
+    public Matrix getErrorCovar() {
+        return errorCovar;
+    }
+
+    public List<Node> getVariables() {
+        return variables;
+    }
+
+    @Override
+    public DataType getDataType() {
+        return DataType.Continuous;
+    }
+
     /**
      * Generates a simple exemplar of this class to test serialization.
      */
@@ -109,7 +152,7 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
      * constructor. Returns the fml score of the resulting model.
      */
     public double score(Graph dag) {
-        for (Node node : getVariables()) {
+        for (Node node : dag.getNodes()) {
             int i1 = indexOf(node);
             getErrorCovar().set(i1, i1, 0);
             for (int _j = 0; _j < getVariables().size(); _j++) {
@@ -161,6 +204,7 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
             errorCovar.set(i1, i1, variance);
         }
 
+
         this.dag = dag;
         this.fml = Double.NaN;
 
@@ -171,38 +215,6 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         return covMatrix;
     }
 
-    public DataSet getDataSet() {
-        return dataSet;
-    }
-
-    public int getNumFreeParams() {
-        return dag.getEdges().size() + dag.getNodes().size();
-    }
-
-    public int getDof() {
-        return (dag.getNodes().size() * (dag.getNodes().size() + 1)) / 2 - getNumFreeParams();
-    }
-
-    public int getSampleSize() {
-        return covMatrix.getSampleSize();
-    }
-
-    public List<Node> getMeasuredNodes() {
-        return this.getVariables();
-    }
-
-    public Matrix getEdgeCoef() {
-        return edgeCoef;
-    }
-
-    public Matrix getErrorCovar() {
-        return errorCovar;
-    }
-
-    public List<Node> getVariables() {
-        return variables;
-    }
-
     /**
      * @return a string representation of the Sem.
      */
@@ -210,9 +222,7 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         return "\nSemEstimator";
     }
 
-    //============================PRIVATE METHODS==========================//
-
-    /**
+     /**
      * The value of the maximum likelihood function for the getModel the model
      * (Bollen 107). To optimize, this should be minimized.
      */
@@ -247,6 +257,11 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         return fml;
     }
 
+    private Matrix implCovarMeas() {
+        computeImpliedCovar();
+        return this.implCovarMeasC;
+    }
+
     public double getScore() {
         return getBicScore();
     }
@@ -256,7 +271,7 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
      */
     public double getBicScore() {
         int dof = getDof();
-        return getChiSquare() - 2 * dof * Math.log(getSampleSize());
+        return getChiSquare() - penaltyDiscount * dof * Math.log(getSampleSize());
     }
 
     /**
@@ -273,7 +288,28 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         return 1.0 - ProbUtils.chisqCdf(getChiSquare(), getDof());
     }
 
-    //==============================PRIVATE METHODS=========================//
+    //============================PRIVATE METHODS==========================//
+
+    /**
+     * Adds semantic checks to the default deserialization method. This
+     * method must have the standard signature for a readObject method, and
+     * the body of the method must begin with "s.defaultReadObject();".
+     * Other than that, any semantic checks can be specified and do not need
+     * to stay the same from version to version. A readObject method of this
+     * form may be added to any class, even if Tetrad sessions were
+     * previously saved out using a version of the class that didn't include
+     * it. (That's what the "s.defaultReadObject();" is for. See J. Bloch,
+     * Effective Java, for help.
+     */
+    private void readObject(ObjectInputStream s)
+            throws IOException, ClassNotFoundException {
+        s.defaultReadObject();
+
+        if (getCovMatrix() == null) {
+            throw new NullPointerException();
+        }
+
+    }
 
     /**
      * Computes the implied covariance matrices of the Sem. There are two:
@@ -298,6 +334,18 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         }
     }
 
+    private Matrix errCovar() {
+        return getErrorCovar();
+    }
+
+    private Matrix edgeCoef() {
+        return getEdgeCoef();
+    }
+
+    private double logDet(Matrix matrix2D) {
+        return Math.log(matrix2D.det());
+    }
+
     private double traceABInv(Matrix A, Matrix B) {
 
         // Note that at this point the sem and the sample covar MUST have the
@@ -305,6 +353,7 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         try {
 
             Matrix product = A.times(B.inverse());
+
             double trace = product.trace();
 
             if (trace < -1e-8) {
@@ -318,34 +367,6 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         }
     }
 
-    private int indexOf(Node node) {
-        if (nodesHash == null) {
-            nodesHash = new HashMap<>();
-            for (int i = 0; i < variables.size(); i++) {
-                nodesHash.put(variables.get(i), i);
-            }
-        }
-
-        return nodesHash.get(node);
-    }
-
-    private Matrix implCovarMeas() {
-        computeImpliedCovar();
-        return this.implCovarMeasC;
-    }
-
-    private Matrix errCovar() {
-        return getErrorCovar();
-    }
-
-    private Matrix edgeCoef() {
-        return getEdgeCoef();
-    }
-
-    private double logDet(Matrix matrix2D) {
-        return Math.log(matrix2D.det());
-    }
-
     private double logDetSample() {
         if (logDetSample == 0.0 && this.sampleCovar != null) {
             double det = this.sampleCovar.det();
@@ -355,27 +376,19 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         return logDetSample;
     }
 
-    /**
-     * Adds semantic checks to the default deserialization method. This
-     * method must have the standard signature for a readObject method, and
-     * the body of the method must begin with "s.defaultReadObject();".
-     * Other than that, any semantic checks can be specified and do not need
-     * to stay the same from version to version. A readObject method of this
-     * form may be added to any class, even if Tetrad sessions were
-     * previously saved out using a version of the class that didn't include
-     * it. (That's what the "s.defaultReadObject();" is for. See J. Bloch,
-     * Effective Java, for help.
-     */
-    private void readObject(ObjectInputStream s)
-            throws IOException, ClassNotFoundException {
-        s.defaultReadObject();
-
-        if (getCovMatrix() == null) {
-            throw new NullPointerException();
+    private int indexOf(Node node) {
+        for (int i = 0; i < getVariables().size(); i++) {
+            if (node.getName().equals(this.getVariables().get(i).getName())) {
+                return i;
+            }
         }
 
+        throw new IllegalArgumentException("Dag must have the same nodes as the data.");
     }
 
+    public void setPenaltyDiscount(double penaltyDiscount) {
+        this.penaltyDiscount = penaltyDiscount;
+    }
 }
 
 

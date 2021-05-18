@@ -2,21 +2,33 @@ package edu.cmu.tetrad.sem;
 
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Fges;
+import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.search.SemBicScore;
 
 import java.util.List;
 
 public class FgesBicScorer implements Scorer {
-    private final CovarianceMatrix cov;
-    private final Fges fges;
+    private DataSet dataSet;
+    private Fges fges;
     private double score = Double.NaN;
 
-    public FgesBicScorer(CovarianceMatrix cov) {
-        this.cov = cov;
-        this.fges = new Fges(new SemBicScore(cov));
+    public FgesBicScorer(DataSet dataSet, double penaltyDiscount) {
+
+        if (dataSet == null) throw new NullPointerException();
+
+        this.dataSet = dataSet;
+        SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
+        score.setPenaltyDiscount(penaltyDiscount);
+        this.fges = new Fges(score);
+    }
+
+    public FgesBicScorer(Score score, DataSet dataSet) {
+        this.fges = new Fges(score);
+        this.dataSet = dataSet;
     }
 
     @Override
@@ -38,16 +50,22 @@ public class FgesBicScorer implements Scorer {
 
     @Override
     public int getSampleSize() {
-        return cov.getSampleSize();
+        return dataSet.getNumRows();
     }
 
     @Override
     public List<Node> getMeasuredNodes() {
-        return cov.getVariables();
+        return dataSet.getVariables();
     }
 
     @Override
     public List<Node> getVariables() {
-        return cov.getVariables();
+        return dataSet.getVariables();
+    }
+
+    @Override
+    public DataType getDataType() {
+        if (dataSet.isDiscrete()) return DataType.Discrete;
+        else return DataType.Continuous;
     }
 }
