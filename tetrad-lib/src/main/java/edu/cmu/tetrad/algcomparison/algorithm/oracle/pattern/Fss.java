@@ -9,6 +9,8 @@ import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.search.ForwardScoreSearch;
 import edu.cmu.tetrad.sem.FgesBicScorer;
 import edu.cmu.tetrad.sem.FmlBicScorer;
 import edu.cmu.tetrad.sem.Scorer;
@@ -18,6 +20,7 @@ import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,52 +29,48 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GSS",
-        command = "gss",
+        name = "FSS",
+        command = "fss",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class Gss implements Algorithm, HasKnowledge, UsesScoreWrapper {
+public class Fss implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     static final long serialVersionUID = 23L;
 
-    private Scorer scorer;
-    private DataSet dataSet;
-    private Algorithm algorithm = null;
-    private Graph initialGraph = null;
     private IKnowledge knowledge = new Knowledge2();
     private ScoreWrapper scoreWrapper;
 
-    public Gss() {
+    public Fss() {
 
     }
 
-    public Gss(ScoreWrapper score) {
+    public Fss(ScoreWrapper score) {
         this.scoreWrapper = score;
-    }
-
-    public Gss(ScoreWrapper score, Algorithm algorithm) {
-        this.scoreWrapper = score;
-        this.algorithm = algorithm;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 
+            Scorer scorer;
             if (dataSet.isContinuous()) {
-                scorer = new FmlBicScorer(new CovarianceMatrix((DataSet) dataSet), 2.);
+                scorer = new FmlBicScorer((DataSet) dataSet,
+                        parameters.getDouble(Params.PENALTY_DISCOUNT));
             } else {
                 scorer = new FgesBicScorer(getScoreWrapper().getScore(dataSet, parameters), ((DataSet) dataSet));
             }
 
-            edu.cmu.tetrad.search.GlobalScoreSearch search
-                    = new edu.cmu.tetrad.search.GlobalScoreSearch(scorer);
-            search.setKnowledge(knowledge);
+            ForwardScoreSearch search
+                    = new ForwardScoreSearch(scorer);
+//            search.setKnowledge(knowledge);
 
-            return search.search();
+            List<Node> variables = new ArrayList<>(scorer.getVariables());
+            Collections.sort(variables);
+
+            return search.search(variables);
         } else {
-            Gss fges = new Gss();
+            Fss fges = new Fss();
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));

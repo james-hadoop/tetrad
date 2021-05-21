@@ -125,20 +125,6 @@ public class PcGesSearchEditor extends AbstractSearchEditor
         super(runner, "Result forbid_latent_common_causes");
     }
 
-    public PcGesSearchEditor(PValueImproverWrapper runner) {
-        super(runner, "Result Graph");
-
-        runner.addPropertyChangeListener(new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent evt) {
-
-                if ("graph".equals(evt.getPropertyName())) {
-                    Graph graph = (Graph) evt.getNewValue();
-                    getWorkbench().setGraph(graph);
-                }
-            }
-        });
-    }
-
     public PcGesSearchEditor(MmhcRunner runner) {
         super(runner, "Result forbid_latent_common_causes");
     }

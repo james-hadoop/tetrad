@@ -48,7 +48,7 @@ public final class HbsmsGes implements Hbsms {
         if (graph == null) throw new NullPointerException("Graph not specified.");
         this.data = data;
         this.graph = SearchGraphUtils.patternForDag(graph);
-        this.scorer = new FmlBicScorer(data);
+        this.scorer = new FmlBicScorer(data, 2);
     }
 
     public Graph search() {

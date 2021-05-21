@@ -24,9 +24,12 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.sem.FmlBicScorer;
+import edu.cmu.tetrad.sem.Scorer;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.PermutationGenerator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -151,19 +154,33 @@ public class Lingam {
 
         final SemBicScore score = new SemBicScore(new CovarianceMatrix(data));
         score.setPenaltyDiscount(penaltyDiscount);
-        Fges fges = new Fges(score);
 
-        IKnowledge knowledge = new Knowledge2();
-        final List<Node> variables = data.getVariables();
+        if (true) {
+            Scorer scorer = new FmlBicScorer(data, 2);
 
-        for (int i = 0; i < variables.size(); i++) {
-            knowledge.addToTier(i, variables.get(perm2[i]).getName());
-        }
+            ForwardScoreSearch gss = new ForwardScoreSearch(scorer);
 
-        fges.setKnowledge(knowledge);
+            List<Node> order = new ArrayList<>();
+            final List<Node> variables = data.getVariables();
+            for (int i = 0; i < variables.size(); i++) {
+                order.add(variables.get(perm2[i]));
+            }
 
-        final Graph graph = fges.search();
-        System.out.println("graph Returning this graph: " + graph);
+            return gss.search(order);
+        } else {
+            Fges fges = new Fges(score);
+
+            IKnowledge knowledge = new Knowledge2();
+            final List<Node> variables = data.getVariables();
+
+            for (int i = 0; i < variables.size(); i++) {
+                knowledge.addToTier(i, variables.get(perm2[i]).getName());
+            }
+
+            fges.setKnowledge(knowledge);
+
+            final Graph graph = fges.search();
+            System.out.println("graph Returning this graph: " + graph);
 
 //        Graph graph2 = new EdgeListGraph(variables);
 //
@@ -178,7 +195,8 @@ public class Lingam {
 //            }
 //        }
 
-        return graph;
+            return graph;
+        }
     }
 
 //    // Inverse permutation, restores original order.

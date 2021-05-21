@@ -38,8 +38,6 @@ public interface Scorer {
 
     String toString();
 
-    double getScore();
-
     DataSet getDataSet();
 
     int getSampleSize();

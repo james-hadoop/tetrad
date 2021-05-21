@@ -39,7 +39,7 @@ public final class HbsmsBeam implements Hbsms {
     private final Graph initialGraph;
     private final Scorer scorer;
     private final CovarianceMatrix cov;
-    private GlobalScoreSearch gis;
+    private ForwardScoreSearch gis;
     private final IKnowledge knowledge = new Knowledge2();
     private SemIm newSemIm;
 
@@ -49,13 +49,15 @@ public final class HbsmsBeam implements Hbsms {
         this.cov = cov;
         this.scorer = new FmlBicScorer(cov);
 //        this.scorer = new FgesScorer(data);
-        gis = new GlobalScoreSearch(this.scorer);
-        gis.setKnowledge(knowledge);
+        gis = new ForwardScoreSearch(this.scorer);
+//        gis.setKnowledge(knowledge);
         this.initialGraph = new EdgeListGraph(graph);
     }
 
     public Graph search() {
-        Graph best = gis.search();
+
+
+        Graph best = gis.search(scorer.getVariables());
         SemPm pm = new SemPm(best);
         SemEstimator est = new SemEstimator(cov, pm);
         this.newSemIm = est.estimate();
@@ -72,10 +74,9 @@ public final class HbsmsBeam implements Hbsms {
         return newSemIm;
     }
 
-    public Score scoreGraph(Graph graph, Scorer scorer) {
-        Graph dag = new EdgeListGraph(graph);// SearchGraphUtils.dagFromPattern(graph, getKnowledge());
-        scorer.score(dag);
-        return new Score(scorer);
+    public double scoreGraph(Graph graph, Scorer scorer) {
+        Graph dag = new EdgeListGraph(graph);
+        return scorer.score(dag);
     }
 
     public void setAlpha(double alpha) {
@@ -91,19 +92,7 @@ public final class HbsmsBeam implements Hbsms {
     }
 
     public void setKnowledge(IKnowledge knowledge) {
-        this.gis.setKnowledge(knowledge);
-    }
-
-    public static class Score {
-        private final Scorer scorer;
-
-        public Score(Scorer scorer) {
-            this.scorer = scorer;
-        }
-
-        public double getScore() {
-            return scorer.getScore();
-        }
+//        this.gis.setKnowledge(knowledge);
     }
 }
 

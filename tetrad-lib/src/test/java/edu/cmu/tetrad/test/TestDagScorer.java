@@ -72,7 +72,7 @@ public class TestDagScorer {
 
         dag = GraphUtils.replaceNodes(dag, data.getVariables());
 
-        Scorer scorer = new FmlBicScorer(data);
+        Scorer scorer = new FmlBicScorer(data, 2);
         double _fml = scorer.score(dag);
 
         assertEquals(0.0369, _fml, 0.001);

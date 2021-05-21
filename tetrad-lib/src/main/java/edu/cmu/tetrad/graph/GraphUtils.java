@@ -3066,8 +3066,6 @@ public final class GraphUtils {
 
         notFound.removeIf(node -> node.getNodeType() == NodeType.ERROR);
 
-        List<Node> allNodes = new ArrayList<>(notFound);
-
         while (!notFound.isEmpty()) {
             for (Iterator<Node> it = notFound.iterator(); it.hasNext(); ) {
                 Node node = it.next();

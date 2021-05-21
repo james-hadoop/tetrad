@@ -5,6 +5,7 @@ import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.data.KnowledgeEdge;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.sem.Scorer;
+import edu.cmu.tetrad.util.TetradLogger;
 
 import java.util.*;
 
@@ -14,11 +15,11 @@ import java.util.*;
  *
  * @author josephramsey
  */
-public class GlobalScoreSearch {
+public class GlobalScoreSearchOrig {
     private final Scorer scorer;
     private IKnowledge knowledge = new Knowledge2();
 
-    public GlobalScoreSearch(Scorer scorer) {
+    public GlobalScoreSearchOrig(Scorer scorer) {
         this.scorer = scorer;
     }
 
@@ -33,7 +34,7 @@ public class GlobalScoreSearch {
     }
 
     private Graph decreaseScoreLoop(Graph graph) {
-        double score0 = scoreGraph(graph, scorer).getScore();
+        double score0 = scorer.score(graph);
 
         List<Move> addMoves = getAddMoves(graph);
         List<Move> addMovesRecall = new ArrayList<>(addMoves);
@@ -45,12 +46,12 @@ public class GlobalScoreSearch {
 
                 if (knowledge.isViolatedBy(graph)) continue;
 
-                Score _score = scoreGraph(graph, scorer);
+                double _score = scorer.score(graph);
 
-                if (_score.getScore() < score0) {
-                    score0 = _score.getScore();
+                if (_score < score0) {
+                    score0 = _score;
 
-                    System.out.println("Decreases score (" + move.getType() + "): score = " + _score.getScore());
+                    TetradLogger.getInstance().forceLogMessage("Decreases score (" + move.getType() + "): score = " + _score);
 
                     addMoves.remove(move);
                     continue MOVES;
@@ -63,20 +64,18 @@ public class GlobalScoreSearch {
                 addMoves = new ArrayList<>(addMovesRecall);
             }
 
-            for (Move move : new LinkedList<>(addMoves)) {
-                if (graph.isAdjacentTo(move.edge.getNode1(), move.edge.getNode2())) continue;
-                if (graph.existsDirectedPathFromTo(move.edge.getNode2(), move.edge.getNode1())) continue;
+            for (Move move : new LinkedList<>(getAddMoves(graph))) {
 
                 Edge edge = makeMove(graph, move);
 
                 if (knowledge.isViolatedBy(graph)) continue;
 
-                Score _score = scoreGraph(graph, scorer);
+                double _score = scorer.score(graph);
 
-                if (_score.getScore() < score0) {
-                    score0 = _score.getScore();
+                if (_score < score0) {
+                    score0 = _score;
 
-                    System.out.println("Decreases score (" + move.getType() + "): score = " + _score.getScore());
+                    TetradLogger.getInstance().forceLogMessage("Decreases score (" + move.getType() + "): score = " + _score);
 
                     addMoves.remove(move);
                     continue MOVES;
@@ -89,11 +88,6 @@ public class GlobalScoreSearch {
         }
 
         return graph;
-    }
-
-    private Score scoreGraph(Graph graph, Scorer scorer) {
-        scorer.score(graph);
-        return new Score(scorer);
     }
 
     private Edge makeMove(Graph graph, Move move) {
@@ -134,6 +128,7 @@ public class GlobalScoreSearch {
 
         List<Node> nodes = graph.getNodes();
         Collections.sort(nodes);
+//        Collections.reverse(nodes);
 
         for (int i = 0; i < nodes.size(); i++) {
             for (int j = 0; j < nodes.size(); j++) {
@@ -153,6 +148,8 @@ public class GlobalScoreSearch {
                     continue;
                 }
 
+                if (graph.existsDirectedPathFromTo(nodes.get(j), nodes.get(i))) continue;
+
                 Edge edge = Edges.directedEdge(nodes.get(i), nodes.get(j));
                 moves.add(new Move(edge, Move.Type.ADD));
             }
@@ -163,7 +160,7 @@ public class GlobalScoreSearch {
 
     private void addRequiredEdges(Graph graph) {
         for (Iterator<KnowledgeEdge> it =
-            knowledge.requiredEdgesIterator(); it.hasNext(); ) {
+             knowledge.requiredEdgesIterator(); it.hasNext(); ) {
             KnowledgeEdge next = it.next();
             String a = next.getFrom();
             String b = next.getTo();
@@ -182,7 +179,7 @@ public class GlobalScoreSearch {
             graph.addDirectedEdge(nodeA, nodeB);
         }
         for (Iterator<KnowledgeEdge> it =
-            knowledge.forbiddenEdgesIterator(); it.hasNext(); ) {
+             knowledge.forbiddenEdgesIterator(); it.hasNext(); ) {
             KnowledgeEdge next = it.next();
             String a = next.getFrom();
             String b = next.getTo();
@@ -237,16 +234,6 @@ public class GlobalScoreSearch {
 
         public enum Type {
             ADD, REMOVE
-        }
-    }
-
-    private static class Score {
-        private final Scorer scorer;
-        public Score(Scorer scorer) {
-            this.scorer = scorer;
-        }
-        public double getScore() {
-            return scorer.getScore();
         }
     }
 }

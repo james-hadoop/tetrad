@@ -32,7 +32,9 @@ import edu.cmu.tetrad.util.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Estimates a SemIm given a CovarianceMatrix and a SemPm. (A DataSet may be
@@ -59,14 +61,10 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
     private double logDetSample;
     private double fml = Double.NaN;
     private double penaltyDiscount = 2.;
+    private Map<Node, Integer> nodesHash;
 
 
     //=============================CONSTRUCTORS============================//
-
-    public FmlBicScorer(CovarianceMatrix cov, double penaltyDiscount) {
-        this(cov);
-        setPenaltyDiscount(penaltyDiscount);
-    }
 
     /**
      * Constructs a new SemEstimator that uses the specified optimizer.
@@ -74,9 +72,10 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
      * @param dataSet a DataSet, all of whose variables are contained in
      *                the given SemPm. (They are identified by name.)
      */
-    public FmlBicScorer(DataSet dataSet) {
+    public FmlBicScorer(DataSet dataSet, double penaltyDiscount) {
         this(new CovarianceMatrix(dataSet));
         this.dataSet = dataSet;
+        this.penaltyDiscount = penaltyDiscount;
     }
 
     /**
@@ -99,6 +98,9 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         this.edgeCoef = new Matrix(m, m);
         this.errorCovar = new Matrix(m, m);
         this.sampleCovar = covMatrix.getMatrix();
+
+        this.nodesHash = new HashMap<>();
+        for (int i = 0; i < variables.size(); i++) nodesHash.put(variables.get(i), i);
     }
 
     public DataSet getDataSet() {
@@ -208,7 +210,7 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         this.dag = dag;
         this.fml = Double.NaN;
 
-        return getFml();
+        return getBicScore();
     }
 
     public ICovarianceMatrix getCovMatrix() {
@@ -260,10 +262,6 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
     private Matrix implCovarMeas() {
         computeImpliedCovar();
         return this.implCovarMeasC;
-    }
-
-    public double getScore() {
-        return getBicScore();
     }
 
     /**
@@ -377,13 +375,7 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
     }
 
     private int indexOf(Node node) {
-        for (int i = 0; i < getVariables().size(); i++) {
-            if (node.getName().equals(this.getVariables().get(i).getName())) {
-                return i;
-            }
-        }
-
-        throw new IllegalArgumentException("Dag must have the same nodes as the data.");
+        return nodesHash.get(node);
     }
 
     public void setPenaltyDiscount(double penaltyDiscount) {
