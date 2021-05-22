@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Searches for a DAG by adding or removing directed edges starting
  * with an empty graph, using a score (default FML BIC), given variables
- * im causal order. Implements the Global Score Search (GSS) algorithm.
+ * im causal order. Implements the Global Score Search (FSS) algorithm.
  *
  * @author josephramsey
  */

@@ -10,7 +10,7 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.ForwardScoreSearch;
+import edu.cmu.tetrad.search.GlobalScoreSearch;
 import edu.cmu.tetrad.sem.FgesBicScorer;
 import edu.cmu.tetrad.sem.FmlBicScorer;
 import edu.cmu.tetrad.sem.Scorer;
@@ -20,7 +20,6 @@ import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -61,12 +60,12 @@ public class Fss implements Algorithm, HasKnowledge, UsesScoreWrapper {
                 scorer = new FgesBicScorer(getScoreWrapper().getScore(dataSet, parameters), ((DataSet) dataSet));
             }
 
-            ForwardScoreSearch search
-                    = new ForwardScoreSearch(scorer);
+            GlobalScoreSearch search
+                    = new GlobalScoreSearch(scorer);
 //            search.setKnowledge(knowledge);
 
             List<Node> variables = new ArrayList<>(scorer.getVariables());
-            Collections.sort(variables);
+//            Collections.sort(variables);
 
             return search.search(variables);
         } else {
