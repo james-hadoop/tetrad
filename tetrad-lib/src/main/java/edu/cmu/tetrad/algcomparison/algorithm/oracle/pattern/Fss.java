@@ -53,12 +53,12 @@ public class Fss implements Algorithm, HasKnowledge, UsesScoreWrapper {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 
             Scorer scorer;
-            if (dataSet.isContinuous()) {
-                scorer = new FmlBicScorer((DataSet) dataSet,
-                        parameters.getDouble(Params.PENALTY_DISCOUNT));
-            } else {
+//            if (dataSet.isContinuous()) {
+//                scorer = new FmlBicScorer((DataSet) dataSet,
+//                        parameters.getDouble(Params.PENALTY_DISCOUNT));
+//            } else {
                 scorer = new FgesBicScorer(getScoreWrapper().getScore(dataSet, parameters), ((DataSet) dataSet));
-            }
+//            }
 
             GlobalScoreSearch search
                     = new GlobalScoreSearch(scorer);
@@ -67,7 +67,11 @@ public class Fss implements Algorithm, HasKnowledge, UsesScoreWrapper {
             List<Node> variables = new ArrayList<>(scorer.getVariables());
 //            Collections.sort(variables);
 
-            return search.search(variables);
+            Graph graph = search.search(variables);
+
+//            System.out.println("Causal order: " + graph.getCausalOrdering());
+
+            return graph;
         } else {
             Fss fges = new Fss();
 

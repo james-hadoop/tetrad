@@ -32,29 +32,143 @@ public class GlobalScoreSearch {
     /**
      * Does the search.
      *
-     * @param variables The variables for the graph.
+     * @param order The order for the graph.
      * @return The estimated DAG.
      */
-    public Graph search(List<Node> variables) {
-        Graph graph = new EdgeListGraph(variables);
+    public Graph search(List<Node> order) {
+        Graph graph = new EdgeListGraph(order);
         double score0 = scorer.score(graph);
 
+        boolean changed = true;
+
         MOVES:
-        while (true) {
-            for (Edge edge : getRemoveMoves(graph)) {
+        while (changed) {
+            changed = false;
+
+            for (Edge edge : getGraphEdges(graph)) {
+                Edge edge2 = edge.reverse();
+                Node x = edge2.getNode1();
+                Node y = edge2.getNode2();
+
+                List<Node> adj = graph.getAdjacentNodes(x);
+                adj.retainAll(graph.getAdjacentNodes(y));
+
+                for (Node z : adj) {
+
+                    {
+                        Graph graph1 = new EdgeListGraph(graph);
+
+
+                        // z x y
+                        graph1.removeEdge(x, y);
+                        graph1.removeEdge(x, z);
+                        graph1.removeEdge(z, y);
+                        graph1.addDirectedEdge(z, x);
+                        graph1.addDirectedEdge(z, y);
+
+                        double score1 = scorer.score(graph);
+
+                        if (!graph1.existsDirectedCycle()) {
+                            System.out.println(edge2 + " Z-X-Y");
+
+                            if (score1 < score0) {
+                                graph = graph1;
+                                score0 = score1;
+                                changed = true;
+                                TetradLogger.getInstance().forceLogMessage("Decreases score (FLIP-REMOVE): score = " + score1);
+                            }
+                        }
+                    }
+
+                    if (graph.isAdjacentTo(x, y)) {
+                        Graph graph1 = new EdgeListGraph(graph);
+
+
+                        // x y z
+                        graph1.removeEdge(x, y);
+                        graph1.removeEdge(x, z);
+                        graph1.removeEdge(z, y);
+                        graph1.addDirectedEdge(y, z);
+                        graph1.addDirectedEdge(x, z);
+
+                        double score1 = scorer.score(graph);
+
+                        if (!graph1.existsDirectedCycle()) {
+                            System.out.println(edge2 + " X Y Z");
+
+                            if (score1 <= score0) {
+                                graph = graph1;
+                                score0 = score1;
+                                changed = true;
+                                TetradLogger.getInstance().forceLogMessage("Decreases score (FLIP-REMOVE): score = " + score1);
+                            }
+                        }
+                    }
+
+                    if (graph.isAdjacentTo(x, y)) {
+                        Graph graph1 = new EdgeListGraph(graph);
+
+
+                        // x z y
+                        graph1.removeEdge(x, y);
+                        graph1.removeEdge(x, z);
+                        graph1.removeEdge(z, y);
+                        graph1.addDirectedEdge(x, z);
+                        graph1.addDirectedEdge(z, y);
+
+                        double score1 = scorer.score(graph);
+
+                        if (!graph1.existsDirectedCycle()) {
+                            System.out.println(edge2 + " X Z Y");
+
+                            if (score1 <= score0) {
+                                graph = graph1;
+                                score0 = score1;
+                                changed = true;
+                                TetradLogger.getInstance().forceLogMessage("Decreases score (FLIP-REMOVE): score = " + score1);
+                            }
+                        }
+                    }
+
+//                        {
+//                            Graph graph1 = new EdgeListGraph(graph);
+//
+//                            // x z y
+//                            graph1.removeEdge(x, y);
+//                            graph1.removeEdge(x, z);
+//                            graph1.removeEdge(z, y);
+//                            graph1.addDirectedEdge(x, z);
+//                            graph1.addDirectedEdge(z, y);
+//
+//                            double score1 = scorer.score(graph);
+//
+//                            if (score1 < score0) {
+//                                graph = graph1;
+//                                score0 = score1;
+//                                changed = true;
+//                            }
+//                        }
+                }
+
+            }
+
+
+            for (Edge edge : getGraphEdges(graph)) {
                 graph.removeEdge(edge);
                 double score = scorer.score(graph);
 
-                if (score < score0) {
+                if (score <= score0) {
                     score0 = score;
+                    changed = true;
                     TetradLogger.getInstance().forceLogMessage("Decreases score (REMOVE): score = " + score);
                     continue MOVES;
+                } else {
+                    graph.addEdge(edge);
                 }
-
-                graph.addEdge(edge);
             }
 
-            for (Edge edge : getAddOrReverseMoves(graph)) {
+
+            for (Edge edge : getAddEdges(graph)) {
                 Edge _edge = edge;
 
                 double score1 = score(_edge, graph);
@@ -68,11 +182,14 @@ public class GlobalScoreSearch {
                 if (score1 < score0) {
                     graph.removeEdge(_edge.getNode1(), _edge.getNode2());
                     graph.addEdge(_edge);
-                    continue MOVES;
+                    score0 = score1;
+                    changed = true;
+                    TetradLogger.getInstance().forceLogMessage("Decreases score (ADD): score = " + score1);
+                    continue  MOVES;
+                } else {
+                    graph.removeEdge(_edge.getNode1(), _edge.getNode2());
                 }
             }
-
-            break;
         }
 
         return graph;
@@ -100,40 +217,40 @@ public class GlobalScoreSearch {
         return v;
     }
 
-//    private Graph permute(Graph graph, List<Node> order) {
-//        Graph permuted = new EdgeListGraph(order);
-//
-//        for (int i = 0; i < order.size(); i++) {
-//            for (int j = i + 1; j < order.size(); j++) {
-//                if (graph.isAdjacentTo(order.get(i), order.get(j))) {
-//                    permuted.addDirectedEdge(order.get(i), order.get(j));
-//                }
-//            }
-//        }
-//
-//        return permuted;
-//    }
+    private Graph permute(Graph graph, List<Node> order) {
+        Graph permuted = new EdgeListGraph(order);
 
-//    private List<Node> reverse(List<Node> order, Node n1, Node n2) {
-//        order = new ArrayList<>(order);
-//
-//        int i1 = order.indexOf(n1);
-//        int i2 = order.indexOf(n2);
-//
-//        order.remove(i1);
-//        order.add(i1, n2);
-//
-//        order.remove(i2);
-//        order.add(i2, n1);
-//
-//        return order;
-//    }
+        for (int i = 0; i < order.size(); i++) {
+            for (int j = i + 1; j < order.size(); j++) {
+                if (graph.isAdjacentTo(order.get(i), order.get(j))) {
+                    permuted.addDirectedEdge(order.get(i), order.get(j));
+                }
+            }
+        }
 
-    private List<Edge> getRemoveMoves(Graph graph) {
+        return permuted;
+    }
+
+    private List<Node> reverse(List<Node> order, Node n1, Node n2) {
+        order = new ArrayList<>(order);
+
+        int i1 = order.indexOf(n1);
+        int i2 = order.indexOf(n2);
+
+        order.remove(i1);
+        order.add(i1, n2);
+
+        order.remove(i2);
+        order.add(i2, n1);
+
+        return order;
+    }
+
+    private List<Edge> getGraphEdges(Graph graph) {
         return new ArrayList<>(graph.getEdges());
     }
 
-    private List<Edge> getAddOrReverseMoves(Graph graph) {
+    private List<Edge> getAddEdges(Graph graph) {
         List<Edge> edges = new ArrayList<>();
         List<Node> nodes = graph.getNodes();
 
