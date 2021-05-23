@@ -10,7 +10,7 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.GlobalScoreSearch;
+import edu.cmu.tetrad.search.BestOrderScoreSearch;
 import edu.cmu.tetrad.sem.FgesBicScorer;
 import edu.cmu.tetrad.sem.FmlBicScorer;
 import edu.cmu.tetrad.sem.Scorer;
@@ -53,15 +53,14 @@ public class Fss implements Algorithm, HasKnowledge, UsesScoreWrapper {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 
             Scorer scorer;
-//            if (dataSet.isContinuous()) {
-//                scorer = new FmlBicScorer((DataSet) dataSet,
-//                        parameters.getDouble(Params.PENALTY_DISCOUNT));
-//            } else {
+            if (dataSet.isContinuous()) {
+                scorer = new FmlBicScorer((DataSet) dataSet,
+                        parameters.getDouble(Params.PENALTY_DISCOUNT));
+            } else {
                 scorer = new FgesBicScorer(getScoreWrapper().getScore(dataSet, parameters), ((DataSet) dataSet));
-//            }
+            }
 
-            GlobalScoreSearch search
-                    = new GlobalScoreSearch(scorer);
+            BestOrderScoreSearch search = new BestOrderScoreSearch(scorer);
 //            search.setKnowledge(knowledge);
 
             List<Node> variables = new ArrayList<>(scorer.getVariables());

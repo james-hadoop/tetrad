@@ -168,13 +168,13 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
             int idx = indexOf(node);
             List<Node> parents = dag.getParents(node);
 
-            for (int i = 0; i < parents.size(); i++) {
-                Node nextParent = parents.get(i);
-                if (nextParent.getNodeType() == NodeType.ERROR) {
-                    parents.remove(nextParent);
-                    break;
-                }
-            }
+//            for (int i = 0; i < parents.size(); i++) {
+//                Node nextParent = parents.get(i);
+//                if (nextParent.getNodeType() == NodeType.ERROR) {
+//                    parents.remove(nextParent);
+//                    break;
+//                }
+//            }
 
             double variance = sampleCovar.get(idx, idx);
 

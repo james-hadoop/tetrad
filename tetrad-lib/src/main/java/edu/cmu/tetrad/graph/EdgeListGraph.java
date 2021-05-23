@@ -647,7 +647,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         List<Node> parents = new ArrayList<>();
         List<Edge> edges = edgeLists.get(node);
 
-        for (Edge edge : new ArrayList<>(edges)) {
+        for (Edge edge : edges) {
             if (edge == null) continue;
 
             Endpoint endpoint1 = edge.getDistalEndpoint(node);

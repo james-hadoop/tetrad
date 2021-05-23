@@ -18,9 +18,11 @@ public class ForwardScoreSearch {
 
     // The score used (default FML BIC). Lower is better.
     private final Scorer scorer;
+    private boolean verbose = false;
 
     /**
-     * Constructs a GSS search
+     * Constructs a FSS search
+     *
      * @param scorer the scorer used, by default FML BIC (for linear models). The score
      *               in general should be lower for better models.
      */
@@ -40,18 +42,6 @@ public class ForwardScoreSearch {
 
         MOVES:
         while (true) {
-            for (Edge edge : getRemoveMoves(graph)) {
-                graph.removeEdge(edge);
-                double score = scoreGraph(graph);
-
-                if (score < score0) {
-                    score0 = score;
-                    TetradLogger.getInstance().forceLogMessage("Decreases score (REMOVE): score = " + score);
-                    continue MOVES;
-                }
-
-                graph.addEdge(edge);
-            }
 
             for (Edge edge : getAddMoves(graph)) {
                 graph.addEdge(edge);
@@ -59,11 +49,32 @@ public class ForwardScoreSearch {
 
                 if (_score < score0) {
                     score0 = _score;
-                    TetradLogger.getInstance().forceLogMessage("Decreases score (ADD): score = " + _score);
+
+                    if (verbose) {
+                        TetradLogger.getInstance().forceLogMessage("Decreases score (ADD): score = " + _score);
+                    }
+
                     continue MOVES;
                 }
 
                 graph.removeEdge(edge);
+            }
+
+            for (Edge edge : getRemoveMoves(graph)) {
+                graph.removeEdge(edge);
+                double score = scoreGraph(graph);
+
+                if (score < score0) {
+                    score0 = score;
+
+                    if (verbose) {
+                        TetradLogger.getInstance().forceLogMessage("Decreases score (REMOVE): score = " + score);
+                    }
+
+                    continue MOVES;
+                } else {
+                    graph.addEdge(edge);
+                }
             }
 
             break;
@@ -96,5 +107,9 @@ public class ForwardScoreSearch {
         }
 
         return edges;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 }
