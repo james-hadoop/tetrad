@@ -37,50 +37,74 @@ public class ForwardScoreSearch {
      * @return The estimated DAG.
      */
     public Graph search(List<Node> order) {
-        EdgeListGraph graph = new EdgeListGraph(order);
-        double score0 = scoreGraph(graph);
+        EdgeListGraph G0 = new EdgeListGraph(order);
+        double s0 = scoreGraph(G0);
 
-        MOVES:
-        while (true) {
+//        MOVES:
+//        while (true) {
+//            for (Edge edge : getRemoveMoves(graph)) {
+//                graph.removeEdge(edge);
+//                double score = scoreGraph(graph);
+//
+//                if (score < score0) {
+//                    score0 = score;
+////                    TetradLogger.getInstance().forceLogMessage("Decreases score (REMOVE): score = " + score);
+//                    continue MOVES;
+//                }
+//
+//                graph.addEdge(edge);
+//            }
+//
+//            for (Edge edge : getAddMoves(order)) {
+//                if (!graph.containsEdge(edge)) {
+//                    graph.addEdge(edge);
+//                    double _score = scoreGraph(graph);
+//
+//                    if (_score < score0) {
+//                        score0 = _score;
+//                        continue MOVES;
+//                    }
+//
+//                    graph.removeEdge(edge);
+//                }
+//            }
+//
+//            break;
+//        }
 
-            for (Edge edge : getAddMoves(graph)) {
-                graph.addEdge(edge);
-                double _score = scoreGraph(graph);
+        boolean changed = true;
 
-                if (_score < score0) {
-                    score0 = _score;
+        while (changed) {
+            changed = false;
 
-                    if (verbose) {
-                        TetradLogger.getInstance().forceLogMessage("Decreases score (ADD): score = " + _score);
+            for (Edge edge : getAddMoves(order)) {
+                if (!G0.containsEdge(edge)) {
+                    G0.addEdge(edge);
+                    double s = scoreGraph(G0);
+
+                    if (s < s0) {
+                        s0 = s;
+                        changed = true;
+                    } else {
+                        G0.removeEdge(edge);
                     }
-
-                    continue MOVES;
                 }
-
-                graph.removeEdge(edge);
             }
 
-            for (Edge edge : getRemoveMoves(graph)) {
-                graph.removeEdge(edge);
-                double score = scoreGraph(graph);
+            for (Edge edge : getRemoveMoves(G0)) {
+                G0.removeEdge(edge);
+                double s = scoreGraph(G0);
 
-                if (score < score0) {
-                    score0 = score;
-
-                    if (verbose) {
-                        TetradLogger.getInstance().forceLogMessage("Decreases score (REMOVE): score = " + score);
-                    }
-
-                    continue MOVES;
+                if (s < s0) {
+                    s0 = s;
+                    changed = true;
                 } else {
-                    graph.addEdge(edge);
+                    G0.addEdge(edge);
                 }
             }
-
-            break;
         }
 
-        return graph;
+        return G0;
     }
 
     private double scoreGraph(EdgeListGraph graph) {
@@ -91,16 +115,11 @@ public class ForwardScoreSearch {
         return new ArrayList<>(graph.getEdges());
     }
 
-    private List<Edge> getAddMoves(Graph graph) {
+    private List<Edge> getAddMoves(List<Node> nodes) {
         List<Edge> edges = new ArrayList<>();
-        List<Node> nodes = graph.getNodes();
 
         for (int i = 0; i < nodes.size(); i++) {
             for (int j = i + 1; j < nodes.size(); j++) {
-                if (graph.isAdjacentTo(nodes.get(i), nodes.get(j))) {
-                    continue;
-                }
-
                 Edge edge = Edges.directedEdge(nodes.get(i), nodes.get(j));
                 edges.add(edge);
             }
