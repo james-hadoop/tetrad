@@ -1,13 +1,12 @@
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.graph.Edge;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.sem.Scorer;
-import edu.cmu.tetrad.util.TetradLogger;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Collections.shuffle;
 
 /**
  * Searches for a DAG by adding or removing directed edges starting
@@ -20,6 +19,9 @@ public class BestOrderScoreSearch {
 
     // The score used (default FML BIC). Lower is better.
     private final Scorer scorer;
+
+    private double scoreOriginalOrder = Double.NaN;
+    private double scoreLearnedOrder = Double.NaN;
 
     /**
      * Constructs a GSS search
@@ -34,69 +36,54 @@ public class BestOrderScoreSearch {
     /**
      * Does the search.
      *
-     * @param order The order for the graph.
+     * @param variables The variables for the graph.
      * @return The estimated DAG.
      */
-    public Graph search(List<Node> order) {
+    public Graph search(List<Node> variables) {
         ForwardScoreSearch fss = new ForwardScoreSearch(scorer);
 
-        List<Node> bestOrder = new ArrayList<>(order);
-        Graph graph = fss.search(bestOrder);
-//        double score = Double.POSITIVE_INFINITY;
+        List<Node> b0 = new ArrayList<>(variables);
+        Graph g0 = fss.search(b0);
+        double s0 = scorer.score(g0);
 
-//        for (int i = 0; i < 5; i++) {
-//            List<Node> _order = new ArrayList<>(bestOrder);
-//            shuffle(_order);
-//            Graph _graph = fss.search(_order);
-//            double _score = scorer.score(_graph);
-//
-//            if (_score < score) {
-//                bestOrder = new ArrayList<>(_order);
-//                graph = _graph;
-//                score = _score;
-//            }
-//        }
+        scoreOriginalOrder = s0;
 
-        double score = scorer.score(graph);
+        boolean changed = true;
 
-        MOVES:
-        while (true) {
-            for (Edge edge : graph.getEdges()) {
-//                if (graph.existsDirectedPathFromTo(edge.getNode2(), edge.getNode1())) {
-//                    continue;
-//                }
+        while (changed) {
+            changed = false;
 
-                List<Node> _order = reverse(bestOrder, edge.getNode1(), edge.getNode2());
-                Graph _graph = fss.search(_order);
-                double _score = scorer.score(_graph);
+            for (Node n : variables) {
+                for (int j = 0; j < variables.size(); j++) {
+                    List<Node> b1 = new ArrayList<>(b0);
+                    b1.remove(n);
+                    b1.add(j, n);
 
-                if (_score < score) {
-                    bestOrder = _order;
-                    graph = _graph;
-                    score = _score;
-                    TetradLogger.getInstance().forceLogMessage("Decreases score: score = " + _score);
-                    continue MOVES;
+                    Graph g1 = fss.search(b1);
+                    double s1 = fss.score();
+
+                    if (s1 < s0 - 0.001) {
+                        s0 = s1;
+                        b0 = b1;
+                        g0 = g1;
+                        changed = true;
+                    }
                 }
             }
-
-            break;
         }
 
-        return graph;
+        System.out.println("Best order = " + b0);
+
+        scoreLearnedOrder = s0;
+
+        return g0;
     }
 
-    private List<Node> reverse(List<Node> order, Node n1, Node n2) {
-        order = new ArrayList<>(order);
+    public double getScoreOriginalOrder() {
+        return scoreOriginalOrder;
+    }
 
-        int i1 = order.indexOf(n1);
-        int i2 = order.indexOf(n2);
-
-        order.remove(i1);
-        order.add(i1, n2);
-
-        order.remove(i2);
-        order.add(i2, n1);
-
-        return order;
+    public double getScoreLearnedOrder() {
+        return scoreLearnedOrder;
     }
 }

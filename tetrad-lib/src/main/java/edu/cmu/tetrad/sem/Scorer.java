@@ -23,10 +23,9 @@ package edu.cmu.tetrad.sem;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.data.ICovarianceMatrix;
+import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.Matrix;
 
 import java.util.List;
 
@@ -35,6 +34,9 @@ import java.util.List;
  */
 public interface Scorer {
     double score(Graph dag);
+
+    // Use this method when only the give edge has changed. Faster.
+    double score(Edge edge);
 
     String toString();
 
@@ -47,6 +49,8 @@ public interface Scorer {
     List<Node> getVariables();
 
     DataType getDataType();
+
+    void resetParameters(Edge edge);
 }
 
 

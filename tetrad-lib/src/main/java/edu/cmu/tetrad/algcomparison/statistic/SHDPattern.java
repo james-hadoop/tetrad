@@ -11,25 +11,25 @@ import edu.cmu.tetrad.search.SearchGraphUtils;
  *
  * @author jdramsey
  */
-public class SHD implements Statistic {
+public class SHDPattern implements Statistic {
     static final long serialVersionUID = 23L;
 
     @Override
     public String getAbbreviation() {
-        return "SHD";
+        return "SHDPat";
     }
 
     @Override
     public String getDescription() {
-        return "Structural Hamming Distance";
+        return "Structural Hamming Distance comparing CPDAGs";
     }
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        return SearchGraphUtils.structuralHammingDistance(trueGraph, estGraph);
-
-//        GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison3(estGraph, trueGraph, System.out);
-//        return comparison.getShd();
+        GraphUtils.GraphComparison comparison
+                = SearchGraphUtils.getGraphComparison3(SearchGraphUtils.patternFromDag(estGraph),
+                SearchGraphUtils.patternFromDag(trueGraph), System.out);
+        return comparison.getShd();
     }
 
     @Override

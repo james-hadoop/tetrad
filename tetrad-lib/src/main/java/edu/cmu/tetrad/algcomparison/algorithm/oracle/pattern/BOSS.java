@@ -3,6 +3,7 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
@@ -11,6 +12,8 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.BestOrderScoreSearch;
+import edu.cmu.tetrad.search.ForwardScoreSearch;
+import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.sem.FgesBicScorer;
 import edu.cmu.tetrad.sem.FmlBicScorer;
 import edu.cmu.tetrad.sem.Scorer;
@@ -20,31 +23,34 @@ import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * GSS (Global Scoring Search).
+ * BOSS (Best Order Scoring Search).
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "FSS",
-        command = "fss",
+        name = "BOSS",
+        command = "boss",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class Fss implements Algorithm, HasKnowledge, UsesScoreWrapper {
+public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     static final long serialVersionUID = 23L;
 
     private IKnowledge knowledge = new Knowledge2();
     private ScoreWrapper scoreWrapper;
+//    private Graph initialGraph;
+//    private Algorithm algorithm;
 
-    public Fss() {
+    public BOSS() {
 
     }
 
-    public Fss(ScoreWrapper score) {
+    public BOSS(ScoreWrapper score) {
         this.scoreWrapper = score;
     }
 
@@ -53,26 +59,23 @@ public class Fss implements Algorithm, HasKnowledge, UsesScoreWrapper {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 
             Scorer scorer;
+
             if (dataSet.isContinuous()) {
-                scorer = new FmlBicScorer((DataSet) dataSet,
-                        parameters.getDouble(Params.PENALTY_DISCOUNT));
+                scorer = new FmlBicScorer((DataSet) dataSet, parameters.getDouble(Params.PENALTY_DISCOUNT));
             } else {
                 scorer = new FgesBicScorer(getScoreWrapper().getScore(dataSet, parameters), ((DataSet) dataSet));
             }
 
             BestOrderScoreSearch search = new BestOrderScoreSearch(scorer);
-//            search.setKnowledge(knowledge);
-
             List<Node> variables = new ArrayList<>(scorer.getVariables());
-//            Collections.sort(variables);
-
             Graph graph = search.search(variables);
 
-//            System.out.println("Causal order: " + graph.getCausalOrdering());
+            System.out.println("Score for original order = " + search.getScoreOriginalOrder());
+            System.out.println("Score for learned order = " + search.getScoreLearnedOrder());
 
-            return graph;
+            return SearchGraphUtils.patternForDag(graph);
         } else {
-            Fss fges = new Fss();
+            BOSS fges = new BOSS();
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -110,7 +113,7 @@ public class Fss implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "Global Scoring Search";
+        return "Best Order Scoring Search";
     }
 
     @Override
@@ -120,16 +123,7 @@ public class Fss implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = new ArrayList<>();
-        parameters.add(Params.SYMMETRIC_FIRST_STEP);
-        parameters.add(Params.MAX_DEGREE);
-        parameters.add(Params.PARALLELISM);
-        parameters.add(Params.FAITHFULNESS_ASSUMED);
-
-        parameters.add(Params.VERBOSE);
-        parameters.add(Params.MEEK_VERBOSE);
-
-        return parameters;
+        return new ArrayList<>();
     }
 
     @Override
@@ -143,12 +137,24 @@ public class Fss implements Algorithm, HasKnowledge, UsesScoreWrapper {
     }
 
     @Override
+    public ScoreWrapper getScoreWrapper() {
+        return scoreWrapper;
+    }
+
+    @Override
     public void setScoreWrapper(ScoreWrapper score) {
         this.scoreWrapper = score;
     }
 
-    @Override
-    public ScoreWrapper getScoreWrapper() {
-        return scoreWrapper;
-    }
+//    public Graph getInitialGraph() {
+//        return initialGraph;
+//    }
+//
+//    public void setInitialGraph(Graph initialGraph) {
+//        this.initialGraph = initialGraph;
+//    }
+//
+//    public void setInitialGraph(Algorithm algorithm) {
+//        this.algorithm = algorithm;
+//    }
 }

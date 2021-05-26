@@ -479,37 +479,9 @@ public final class MatrixUtils {
     }
 
     public static Matrix impliedCovar(Matrix edgeCoef, Matrix errCovar) {
-        if (containsNaN(edgeCoef)) {
-            System.out.println(edgeCoef);
-            throw new IllegalArgumentException("Edge coefficient matrix must not "
-                    + "contain undefined values. Probably the search put them "
-                    + "there.");
-        }
-
-        if (containsNaN(errCovar)) {
-            throw new IllegalArgumentException("Error covariance matrix must not "
-                    + "contain undefined values. Probably the search put them "
-                    + "there.");
-        }
-
-//        TetradMatrix g = TetradMatrix.identity(edgeCoef.rows()).minus(edgeCoef);
-//        return g.times(errCovar).times(g.transpose());
-//        return g.transpose().times(errCovar).times(g);
-        // I - B
         Matrix m1 = Matrix.identity(edgeCoef.rows()).minus(edgeCoef);
-//
-//        // (I - B) ^ -1
-        Matrix m3 = m1.inverse();
-//
-//        // ((I - B) ^ -1)'
-        Matrix m4 = m3.transpose();
-//
-//        // ((I - B) ^ -1) Cov(e)
-        Matrix m5 = m3.times(errCovar);
-//
-//        // ((I - B) ^ -1) Cov(e) ((I - B) ^ -1)'
-//
-        return m5.times(m4);
+        Matrix m2 = m1.inverse();
+        return m2.times(errCovar).times(m2.transpose());
     }
 
     private static boolean containsNaN(Matrix m) {

@@ -25,15 +25,20 @@ import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.util.*;
+import edu.cmu.tetrad.graph.Edge;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.MatrixUtils;
+import edu.cmu.tetrad.util.ProbUtils;
+import edu.cmu.tetrad.util.TetradSerializable;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static edu.cmu.tetrad.search.SemBicScore.bStar;
+import static java.lang.Math.log;
 
 /**
  * Estimates a SemIm given a CovarianceMatrix and a SemPm. (A DataSet may be
@@ -54,15 +59,14 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
     private final Matrix errorCovar;
     private final List<Node> variables;
     private final Matrix sampleCovar;
+    private final Map<Node, Integer> nodesHash;
     private DataSet dataSet = null;
-    private Matrix implCovarMeasC;
+    private Graph dag = null;
+    private Matrix implCovar;
     private double logDetSample;
-    private double fml = Double.NaN;
-    private double penaltyDiscount = 2.;
-    private Map<Node, Integer> nodesHash;
-    private Graph graph;
-    private Map<Node, List<Node>> parents;
-
+    private double penaltyDiscount = 1;
+    private final Map<Integer, Set<Node>> parentsMap = new HashMap<>();
+    private Edge changedEdge = null;
 
     //=============================CONSTRUCTORS============================//
 
@@ -94,19 +98,20 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         this.variables = covMatrix.getVariables();
         this.covMatrix = covMatrix;
 
-        int m = this.getVariables().size();
+        int m = getVariables().size();
         this.edgeCoef = new Matrix(m, m);
         this.errorCovar = new Matrix(m, m);
         this.sampleCovar = covMatrix.getMatrix();
 
         this.nodesHash = new HashMap<>();
         for (int i = 0; i < variables.size(); i++) nodesHash.put(variables.get(i), i);
+    }
 
-        this.graph = new EdgeListGraph(variables);
-
-        for (Node node : graph.getNodes()) {
-            updateParameters(graph, node, true);
-        }
+    /**
+     * Generates a simple exemplar of this class to test serialization.
+     */
+    public static Scorer serializableInstance() {
+        return new FmlBicScorer(CovarianceMatrix.serializableInstance());
     }
 
     public DataSet getDataSet() {
@@ -114,11 +119,11 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
     }
 
     public int getNumFreeParams() {
-        return graph.getEdges().size() + graph.getNodes().size();
+        return dag.getEdges().size() + dag.getNodes().size();
     }
 
     public int getDof() {
-        return (graph.getNodes().size() * (graph.getNodes().size() + 1)) / 2 - getNumFreeParams();
+        return (dag.getNodes().size() * (dag.getNodes().size() + 1)) / 2 - getNumFreeParams();
     }
 
     public int getSampleSize() {
@@ -146,11 +151,54 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         return DataType.Continuous;
     }
 
-    /**
-     * Generates a simple exemplar of this class to test serialization.
-     */
-    public static Scorer serializableInstance() {
-        return new FmlBicScorer(CovarianceMatrix.serializableInstance());
+    @Override
+    public void resetParameters(Edge edge) {
+        List<Node> variables;
+
+        if (changedEdge != null) {
+            variables = new ArrayList<>();
+//            variables.add(changedEdge.getNode1());
+            variables.add(changedEdge.getNode2());
+        } else {
+            variables = this.variables;
+        }
+
+        resetParameters(variables);
+    }
+
+    private void resetParameters(List<Node> variables) {
+        for (Node node : variables) {
+            int idx = nodesHash.get(node);
+            List<Node> parents = dag.getParents(node);
+
+            if (new HashSet<>(parents).equals(parentsMap.get(idx))) continue;
+            parentsMap.put(idx, new HashSet<>(parents));
+
+            for (int _j = 0; _j < getVariables().size(); _j++) {
+                edgeCoef.set(_j, idx, 0);
+            }
+
+            int[] pp = new int[parents.size()];
+            for (int j = 0; j < parents.size(); j++) pp[j] = nodesHash.get(parents.get(j));
+            Matrix covxx = sampleCovar.getSelection(pp, pp);
+            Matrix covxy = sampleCovar.getSelection(pp, new int[]{idx});
+            Matrix b = (covxx.inverse().times(covxy));
+
+            for (int i = 0; i < parents.size(); i++) {
+                int idx2 = nodesHash.get(parents.get(i));
+                edgeCoef.set(idx2, idx, b.get(i, 0));
+            }
+
+            int[] all = concat(idx, pp);
+            Matrix cov = sampleCovar.getSelection(all, all);
+
+            Matrix bStar = bStar(b);
+            double variance = (bStar.transpose().times(cov).times(bStar).get(0, 0));
+
+//            double variance = sampleCovar.get(idx, idx);
+//            variance -= covxy.getColumn(0).dotProduct(b.getColumn(0));
+            errorCovar.set(idx, idx, variance);
+        }
     }
 
     //==============================PUBLIC METHODS=========================//
@@ -159,73 +207,16 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
      * Runs the estimator on the data and SemPm passed in through the
      * constructor. Returns the fml score of the resulting model.
      */
-    public double score(Graph graph) {
-        for (Node node : graph.getNodes()) {
-            updateParameters(graph, node, false);
-        }
-
-        this.graph = graph;
-        this.fml = Double.NaN;
-
+    public double score(Graph dag) {
+        this.dag = dag;
+        this.changedEdge = null;
         return getBicScore();
     }
 
-    private void updateParameters(Graph graph, Node node, boolean init) {
-        List<Node> parents1 = graph.getNodesInTo(node, Endpoint.ARROW);
-//        List<Node> parents2 = this.graph.getParents(node);
-//        if (!init && new HashSet<>(parents1).equals(new HashSet<>(parents2))) {
-//            return;
-//        }
-
-        int i1 = indexOf(node);
-        getErrorCovar().set(i1, i1, 0);
-        for (int _j = 0; _j < getVariables().size(); _j++) {
-            getEdgeCoef().set(_j, i1, 0);
-        }
-
-//        if (node.getNodeType() != NodeType.MEASURED) {
-//            return;
-//        }
-
-        int idx = indexOf(node);
-        List<Node> parents = parents1;
-
-//            for (int i = 0; i < parents.size(); i++) {
-//                Node nextParent = parents.get(i);
-//                if (nextParent.getNodeType() == NodeType.ERROR) {
-//                    parents.remove(nextParent);
-//                    break;
-//                }
-//            }
-
-        double variance = sampleCovar.get(idx, idx);
-
-//        if (parents.size() > 0) {
-            Vector nodeParentsCov = new Vector(parents.size());
-            Matrix parentsCov = new Matrix(parents.size(), parents.size());
-
-            for (int i = 0; i < parents.size(); i++) {
-                int idx2 = indexOf(parents.get(i));
-                nodeParentsCov.set(i, sampleCovar.get(idx, idx2));
-
-                for (int j = i; j < parents.size(); j++) {
-                    int idx3 = indexOf(parents.get(j));
-                    parentsCov.set(i, j, sampleCovar.get(idx2, idx3));
-                    parentsCov.set(j, i, sampleCovar.get(idx3, idx2));
-                }
-            }
-
-            Vector edges = parentsCov.inverse().times(nodeParentsCov);
-
-            for (int i = 0; i < edges.size(); i++) {
-                int idx2 = indexOf(parents.get(i));
-                edgeCoef.set(idx2, idx, edges.get(i));
-            }
-
-            variance -= nodeParentsCov.dotProduct(edges);
-//        }
-
-        errorCovar.set(i1, i1, variance);
+    @Override
+    public double score(Edge edge) {
+        this.changedEdge = edge;
+        return getBicScore();
     }
 
     public ICovarianceMatrix getCovMatrix() {
@@ -239,25 +230,18 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         return "\nSemEstimator";
     }
 
-     /**
+    /**
      * The value of the maximum likelihood function for the getModel the model
      * (Bollen 107). To optimize, this should be minimized.
      */
-    public double getFml() {
-        if (!Double.isNaN(this.fml)) {
-            return this.fml;
+    private double getFml() {
+        if (changedEdge != null) {
+            resetParameters(changedEdge);
+        } else {
+            resetParameters(variables);
         }
 
-        Matrix implCovarMeas; // Do this once.
-
-        try {
-            implCovarMeas = implCovarMeas();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Double.NaN;
-        }
-
-        Matrix sampleCovar = this.sampleCovar;
+        Matrix implCovarMeas = implCovarMeas();
 
         double logDetSigma = logDet(implCovarMeas);
         double traceSSigmaInv = traceABInv(sampleCovar, implCovarMeas);
@@ -270,27 +254,32 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
             fml = 0.0;
         }
 
-        this.fml = fml;
         return fml;
+    }
+
+    private static int[] concat(int i, int[] parents) {
+        int[] all = new int[parents.length + 1];
+        all[0] = i;
+        System.arraycopy(parents, 0, all, 1, parents.length);
+        return all;
     }
 
     private Matrix implCovarMeas() {
         computeImpliedCovar();
-        return this.implCovarMeasC;
+        return this.implCovar;
     }
 
     /**
      * @return BIC score, calculated as chisq - dof. This is equal to getFullBicScore() up to a constant.
      */
-    public double getBicScore() {
-        int dof = getDof();
-        return getChiSquare() - penaltyDiscount * dof * Math.log(getSampleSize());
+    private double getBicScore() {
+        return getChiSquare() + penaltyDiscount * getNumFreeParams() * log(getSampleSize());
     }
 
     /**
      * @return the chi square value for the model.
      */
-    public double getChiSquare() {
+    private double getChiSquare() {
         return (getSampleSize() - 1) * getFml();
     }
 
@@ -298,7 +287,7 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
      * @return the p-value for the model.
      */
     public double getPValue() {
-        return 1.0 - ProbUtils.chisqCdf(getChiSquare(), getDof());
+        return 1.0 - ProbUtils.chisqCdf(getChiSquare(), getNumFreeParams());
     }
 
     //============================PRIVATE METHODS==========================//
@@ -331,20 +320,7 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
      * only.
      */
     private void computeImpliedCovar() {
-
-        // Note. Since the sizes of the temp matrices in this calculation
-        // never change, we ought to be able to reuse them.
-        Matrix implCovarC = MatrixUtils.impliedCovar(edgeCoef().transpose(), errCovar());
-
-        // Submatrix of implied covar for measured vars only.
-        int size = getMeasuredNodes().size();
-        this.implCovarMeasC = new Matrix(size, size);
-
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                this.implCovarMeasC.set(i, j, implCovarC.get(i, j));
-            }
-        }
+        this.implCovar = MatrixUtils.impliedCovar(edgeCoef().transpose(), errCovar());
     }
 
     private Matrix errCovar() {
@@ -356,7 +332,7 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
     }
 
     private double logDet(Matrix matrix2D) {
-        return Math.log(matrix2D.det());
+        return log(matrix2D.det());
     }
 
     private double traceABInv(Matrix A, Matrix B) {
@@ -383,14 +359,10 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
     private double logDetSample() {
         if (logDetSample == 0.0 && this.sampleCovar != null) {
             double det = this.sampleCovar.det();
-            logDetSample = Math.log(det);
+            logDetSample = log(det);
         }
 
         return logDetSample;
-    }
-
-    private int indexOf(Node node) {
-        return nodesHash.get(node);
     }
 
     public void setPenaltyDiscount(double penaltyDiscount) {

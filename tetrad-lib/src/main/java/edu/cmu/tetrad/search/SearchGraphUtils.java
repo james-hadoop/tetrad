@@ -2507,45 +2507,45 @@ public final class SearchGraphUtils {
 //        return dag;
 //    }
 
-    public static int structuralHammingDistance(Graph trueGraph, Graph estGraph) {
-        int error = 0;
-
-        estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
-
-        Set<Node> _allNodes = new HashSet<>();
-
-        List<Node> trueLatents = trueGraph.getNodes();
-        List<Node> estLatents = estGraph.getNodes();
-
-//        List<Node> trueLatents = GraphUtils.getLatents(trueGraph);
-//        List<Node> estLatents = GraphUtils.getLatents(graph);
-        Graph u = trueGraph.subgraph(trueLatents);
-        Graph t = estGraph.subgraph(estLatents);
-
-        Graph G = u; //patternForDag(u);
-        Graph H = t; //patternForDag(t);
-
-//        System.out.println("Pattern of true graph over latents = " + G);
-        _allNodes.addAll(trueLatents);
-        _allNodes.addAll(estLatents);
-
-        List<Node> allNodes = new ArrayList<>(_allNodes);
-
-        for (int i1 = 0; i1 < allNodes.size(); i1++) {
-            for (int i2 = i1 + 1; i2 < allNodes.size(); i2++) {
-                Node l1 = allNodes.get(i1);
-                Node l2 = allNodes.get(i2);
-
-                Edge e1 = G.getEdge(l1, l2);
-                Edge e2 = H.getEdge(l1, l2);
-
-                int shd = structuralHammingDistanceOneEdge(e1, e2);
-
-                error += shd;
-            }
-        }
-        return error;
-    }
+//    public static int structuralHammingDistance(Graph trueGraph, Graph estGraph) {
+//        int error = 0;
+//
+//        estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
+//
+//        Set<Node> _allNodes = new HashSet<>();
+//
+//        List<Node> trueLatents = trueGraph.getNodes();
+//        List<Node> estLatents = estGraph.getNodes();
+//
+////        List<Node> trueLatents = GraphUtils.getLatents(trueGraph);
+////        List<Node> estLatents = GraphUtils.getLatents(graph);
+//        Graph u = trueGraph.subgraph(trueLatents);
+//        Graph t = estGraph.subgraph(estLatents);
+//
+//        Graph G = u; //patternForDag(u);
+//        Graph H = t; //patternForDag(t);
+//
+////        System.out.println("Pattern of true graph over latents = " + G);
+//        _allNodes.addAll(trueLatents);
+//        _allNodes.addAll(estLatents);
+//
+//        List<Node> allNodes = new ArrayList<>(_allNodes);
+//
+//        for (int i1 = 0; i1 < allNodes.size(); i1++) {
+//            for (int i2 = i1 + 1; i2 < allNodes.size(); i2++) {
+//                Node l1 = allNodes.get(i1);
+//                Node l2 = allNodes.get(i2);
+//
+//                Edge e1 = G.getEdge(l1, l2);
+//                Edge e2 = H.getEdge(l1, l2);
+//
+//                int shd = structuralHammingDistanceOneEdge(e1, e2);
+//
+//                error += shd;
+//            }
+//        }
+//        return error;
+//    }
 
     private static int structuralHammingDistanceOneEdge(Edge e1, Edge e2) {
         if (noEdge(e1) && undirected(e2)) {
@@ -2587,7 +2587,7 @@ public final class SearchGraphUtils {
         return e1 == null;
     }
 
-    public static int structuralHammingDistance3a(Graph trueGraph, Graph estGraph) {
+    public static int structuralHammingDistance(Graph trueGraph, Graph estGraph) {
         int error = 0;
 
         estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
@@ -2958,7 +2958,7 @@ public final class SearchGraphUtils {
             }
         }
 
-        int shd = structuralHammingDistance3a(trueGraph, graph);
+        int shd = structuralHammingDistance(trueGraph, graph);
 
         for (Edge edge : trueGraph.getEdges()) {
             if (graph.containsEdge(edge)) {

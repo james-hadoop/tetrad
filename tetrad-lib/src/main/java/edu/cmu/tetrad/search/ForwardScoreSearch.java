@@ -2,7 +2,6 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.sem.Scorer;
-import edu.cmu.tetrad.util.TetradLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +17,7 @@ public class ForwardScoreSearch {
 
     // The score used (default FML BIC). Lower is better.
     private final Scorer scorer;
-    private boolean verbose = false;
+    private double score = Double.NaN;
 
     /**
      * Constructs a FSS search
@@ -37,40 +36,10 @@ public class ForwardScoreSearch {
      * @return The estimated DAG.
      */
     public Graph search(List<Node> order) {
-        EdgeListGraph G0 = new EdgeListGraph(order);
-        double s0 = scoreGraph(G0);
+        score = Double.NaN;
 
-//        MOVES:
-//        while (true) {
-//            for (Edge edge : getRemoveMoves(graph)) {
-//                graph.removeEdge(edge);
-//                double score = scoreGraph(graph);
-//
-//                if (score < score0) {
-//                    score0 = score;
-////                    TetradLogger.getInstance().forceLogMessage("Decreases score (REMOVE): score = " + score);
-//                    continue MOVES;
-//                }
-//
-//                graph.addEdge(edge);
-//            }
-//
-//            for (Edge edge : getAddMoves(order)) {
-//                if (!graph.containsEdge(edge)) {
-//                    graph.addEdge(edge);
-//                    double _score = scoreGraph(graph);
-//
-//                    if (_score < score0) {
-//                        score0 = _score;
-//                        continue MOVES;
-//                    }
-//
-//                    graph.removeEdge(edge);
-//                }
-//            }
-//
-//            break;
-//        }
+        EdgeListGraph G0 = new EdgeListGraph(order);
+        double s0 = scorer.score(G0);
 
         boolean changed = true;
 
@@ -80,35 +49,35 @@ public class ForwardScoreSearch {
             for (Edge edge : getAddMoves(order)) {
                 if (!G0.containsEdge(edge)) {
                     G0.addEdge(edge);
-                    double s = scoreGraph(G0);
+                    double s = scorer.score(edge);
 
                     if (s < s0) {
                         s0 = s;
                         changed = true;
                     } else {
                         G0.removeEdge(edge);
+                        scorer.resetParameters(edge);
                     }
                 }
             }
 
             for (Edge edge : getRemoveMoves(G0)) {
                 G0.removeEdge(edge);
-                double s = scoreGraph(G0);
+                double s = scorer.score(edge);
 
                 if (s < s0) {
                     s0 = s;
                     changed = true;
                 } else {
                     G0.addEdge(edge);
+                    scorer.resetParameters(edge);
                 }
             }
         }
 
-        return G0;
-    }
+        this.score = s0;
 
-    private double scoreGraph(EdgeListGraph graph) {
-        return scorer.score(graph);
+        return G0;
     }
 
     private List<Edge> getRemoveMoves(Graph graph) {
@@ -120,15 +89,17 @@ public class ForwardScoreSearch {
 
         for (int i = 0; i < nodes.size(); i++) {
             for (int j = i + 1; j < nodes.size(); j++) {
-                Edge edge = Edges.directedEdge(nodes.get(i), nodes.get(j));
-                edges.add(edge);
+                edges.add(Edges.directedEdge(nodes.get(i), nodes.get(j)));
             }
         }
 
         return edges;
     }
 
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
+    /**
+     * Returns the score of the most recent search.
+     */
+    public double score() {
+        return score;
     }
 }
