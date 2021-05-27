@@ -287,7 +287,7 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
      * @return the p-value for the model.
      */
     public double getPValue() {
-        return 1.0 - ProbUtils.chisqCdf(getChiSquare(), getNumFreeParams());
+        return 1.0 - ProbUtils.chisqCdf(getChiSquare(), getDof());
     }
 
     //============================PRIVATE METHODS==========================//

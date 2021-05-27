@@ -1,7 +1,16 @@
 package edu.cmu.tetrad.test;
 
+import edu.cmu.tetrad.algcomparison.Comparison;
+import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
+import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.Simulations;
+import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.*;
@@ -380,5 +389,39 @@ public class TestFisherZCalibration {
         } catch (AssertionError e) {
             return Double.NaN;
         }
+    }
+
+    @Test
+    public void testBoss() {
+        Parameters params = new Parameters();
+        params.set(Params.NUM_MEASURES, 10);
+        params.set(Params.AVG_DEGREE, 4);
+        params.set(Params.SAMPLE_SIZE, 50000);
+        params.set(Params.NUM_RUNS, 20);
+        params.set(Params.RANDOMIZE_COLUMNS, false);
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new BOSS(new SemBicScore()));
+        algorithms.add(new Fges(new SemBicScore()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new SemSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new SHD());
+        statistics.add(new F1All());
+        statistics.add(new PValue());
+        statistics.add(new FfsScoreDataOrder());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
     }
 }

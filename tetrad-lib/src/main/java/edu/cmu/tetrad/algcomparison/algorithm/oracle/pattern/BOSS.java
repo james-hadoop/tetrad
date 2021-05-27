@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.shuffle;
+
 /**
  * BOSS (Best Order Scoring Search).
  *
@@ -68,6 +70,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
             BestOrderScoreSearch search = new BestOrderScoreSearch(scorer);
             List<Node> variables = new ArrayList<>(scorer.getVariables());
+            shuffle(variables);
             Graph graph = search.search(variables);
 
             System.out.println("Score for original order = " + search.getScoreOriginalOrder());
@@ -113,7 +116,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "Best Order Scoring Search";
+        return "Best Order Scoring Search (BOSS)";
     }
 
     @Override
