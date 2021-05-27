@@ -56,8 +56,6 @@ public class BestOrderScoreSearch {
         List<Node> b2 = new ArrayList<>(variables);
 
         do {
-            changed = false;
-
             for (Node n : variables) {
                 double s5 = Double.POSITIVE_INFINITY;
 
@@ -66,17 +64,12 @@ public class BestOrderScoreSearch {
                     b1.remove(n);
                     b1.add(j, n);
 
-                    Graph g1 = fss.search(b1);
+                    fss.search(b1);
                     double s1 = fss.score();
 
                     if (s1 < s5) {
                         pos[variables.indexOf(n)] = j;
                         s5 = s1;
-
-//                        s0 = s1;
-//                        b0 = b1;
-//                        g0 = g1;
-                        changed = true;
                     }
                 }
             }
@@ -86,44 +79,15 @@ public class BestOrderScoreSearch {
             b0.sort(Comparator.comparingInt(o -> pos[variables.indexOf(o)]));
         } while (!b2.equals(b0));
 
-
-//        for (int ii1 = 0; ii1 < variables.size(); ii1++) {
-//            Node n1 = variables.get(ii1);
-//
-//            for (int i = 0; i < b0.indexOf(n1); i++) {
-//                List<Node> b1 = new ArrayList<>(b0);
-//                b1.remove(n1);
-//                b1.add(i, n1);
-//
-//                for (int ii2 = ii1; ii2 < variables.size(); ii2++) {
-//                    Node n2 = variables.get(ii2);
-//
-//                    for (int j = 0; j < b1.indexOf(n2); j++) {
-//                        List<Node> b2 = new ArrayList<>(b1);
-//                        b2.remove(n2);
-//                        b2.add(j, n2);
-//
-//                        Graph g2 = fss.search(b2);
-//                        double s2 = fss.score();
-//
-//                        if (s2 < s0) {
-//                            s0 = s2;
-//                            b0 = b2;
-//                            g0 = g2;
-////                            changed = true;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
         System.out.println("Best order = " + b0);
 
         scoreLearnedOrder = s0;
 
-        return fss.search(b0);
+        Graph g2 = fss.search(b0);
 
-//        return g0;
+        scoreLearnedOrder = fss.score();
+
+        return g2;
     }
 
     public double getScoreOriginalOrder() {
