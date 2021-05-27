@@ -49,9 +49,6 @@ public class BestOrderScoreSearch {
 
         scoreOriginalOrder = s0;
 
-
-        boolean changed = true;
-
         int[] pos = new int[variables.size()];
         List<Node> b2 = new ArrayList<>(variables);
 
