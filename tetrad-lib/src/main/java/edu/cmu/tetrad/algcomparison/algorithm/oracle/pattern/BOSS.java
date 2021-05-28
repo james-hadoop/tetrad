@@ -3,7 +3,6 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
-import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
@@ -12,7 +11,6 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.BestOrderScoreSearch;
-import edu.cmu.tetrad.search.ForwardScoreSearch;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.sem.FgesBicScorer;
 import edu.cmu.tetrad.sem.FmlBicScorer;
@@ -68,6 +66,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
             BestOrderScoreSearch search = new BestOrderScoreSearch(scorer);
             List<Node> variables = new ArrayList<>(scorer.getVariables());
+            Collections.shuffle(variables);
             Graph graph = search.search(variables);
 
             System.out.println("Score for original order = " + search.getScoreOriginalOrder());

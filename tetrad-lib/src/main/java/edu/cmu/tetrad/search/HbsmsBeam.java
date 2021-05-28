@@ -39,7 +39,7 @@ public final class HbsmsBeam implements Hbsms {
     private final Graph initialGraph;
     private final Scorer scorer;
     private final CovarianceMatrix cov;
-    private ForwardScoreSearch gis;
+    private FastForwardSearch gis;
     private final IKnowledge knowledge = new Knowledge2();
     private SemIm newSemIm;
 
@@ -49,7 +49,7 @@ public final class HbsmsBeam implements Hbsms {
         this.cov = cov;
         this.scorer = new FmlBicScorer(cov);
 //        this.scorer = new FgesScorer(data);
-        gis = new ForwardScoreSearch(this.scorer);
+        gis = new FastForwardSearch(this.scorer);
 //        gis.setKnowledge(knowledge);
         this.initialGraph = new EdgeListGraph(graph);
     }

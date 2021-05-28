@@ -1,6 +1,5 @@
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.sem.Scorer;
@@ -40,10 +39,10 @@ public class BestOrderScoreSearch {
      * @return The estimated DAG.
      */
     public Graph search(List<Node> variables) {
-        ForwardScoreSearch fss = new ForwardScoreSearch(scorer);
+        FastForwardSearch ffs = new FastForwardSearch(scorer);
 
         List<Node> b0 = new ArrayList<>(variables);
-        Graph g0 = fss.search(b0);
+        Graph g0 = ffs.search(b0);
         double s0 = scorer.score(g0);
 
         scoreOriginalOrder = s0;
@@ -54,15 +53,15 @@ public class BestOrderScoreSearch {
             changed = false;
 
             for (Node n : variables) {
-                for (int j = 0; j < variables.size(); j++) {
+                for (int j = 0; j < b0.indexOf(n); j++) {
                     List<Node> b1 = new ArrayList<>(b0);
                     b1.remove(n);
                     b1.add(j, n);
 
-                    Graph g1 = fss.search(b1);
-                    double s1 = fss.score();
+                    Graph g1 = ffs.search(b1);
+                    double s1 = ffs.score();
 
-                    if (s1 < s0 - 0.001) {
+                    if (s1 < s0 - 0.0001) {
                         s0 = s1;
                         b0 = b1;
                         g0 = g1;
