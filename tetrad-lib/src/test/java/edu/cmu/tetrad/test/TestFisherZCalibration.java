@@ -396,9 +396,9 @@ public class TestFisherZCalibration {
         Parameters params = new Parameters();
         params.set(Params.NUM_MEASURES, 10);
         params.set(Params.AVG_DEGREE, 6);
-        params.set(Params.SAMPLE_SIZE, 5000);
+        params.set(Params.SAMPLE_SIZE, 50000);
         params.set(Params.NUM_RUNS, 20);
-        params.set(Params.RANDOMIZE_COLUMNS, false);
+        params.set(Params.RANDOMIZE_COLUMNS, true);
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new SemBicScore()));

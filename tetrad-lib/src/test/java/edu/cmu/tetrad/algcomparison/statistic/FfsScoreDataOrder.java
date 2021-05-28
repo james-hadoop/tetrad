@@ -4,12 +4,8 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.ForwardScoreSearch;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.sem.FmlBicScorer;
-import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemPm;
 
-import static java.lang.Math.addExact;
 import static java.lang.Math.tanh;
 
 /**

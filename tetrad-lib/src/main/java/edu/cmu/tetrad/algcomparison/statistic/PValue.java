@@ -6,8 +6,6 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.search.SemBicScorer;
 import edu.cmu.tetrad.sem.FmlBicScorer;
-import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemPm;
 
 import static java.lang.Math.tanh;
 
@@ -31,16 +29,9 @@ public class PValue implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        Graph dag = SearchGraphUtils.dagFromPattern(estGraph);
-        SemPm pm = new SemPm(dag);
-        SemEstimator est = new SemEstimator((DataSet) dataModel, pm);
-        est.estimate();
-        return est.getEstimatedSem().getPValue();
-
-
-//        FmlBicScorer scorer = new FmlBicScorer((DataSet) dataModel, 1);
-//        scorer.score(SearchGraphUtils.dagFromPattern(estGraph));
-//        return scorer.getPValue();
+        FmlBicScorer scorer = new FmlBicScorer((DataSet) dataModel, 1);
+        scorer.score(SearchGraphUtils.dagFromPattern(estGraph));
+        return scorer.getPValue();
     }
 
     @Override
