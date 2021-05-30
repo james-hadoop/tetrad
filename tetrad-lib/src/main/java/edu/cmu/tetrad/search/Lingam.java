@@ -158,7 +158,7 @@ public class Lingam {
         if (true) {
             Scorer scorer = new FmlBicScorer(data, 2);
 
-            ForwardScoreSearch gss = new ForwardScoreSearch(scorer);
+            FastForwardGlobalScore gss = new FastForwardGlobalScore(scorer);
 
             List<Node> order = new ArrayList<>();
             final List<Node> variables = data.getVariables();

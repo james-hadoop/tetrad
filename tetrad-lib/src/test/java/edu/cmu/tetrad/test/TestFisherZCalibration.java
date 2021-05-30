@@ -2,7 +2,7 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
@@ -394,20 +394,30 @@ public class TestFisherZCalibration {
     @Test
     public void testBoss() {
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 10);
-        params.set(Params.AVG_DEGREE, 6);
-        params.set(Params.SAMPLE_SIZE, 50000);
-        params.set(Params.NUM_RUNS, 20);
+        params.set(Params.NUM_MEASURES, 8);
+        params.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7);
+        params.set(Params.SAMPLE_SIZE, 1000, 10000);
+        params.set(Params.NUM_RUNS, 100);
         params.set(Params.RANDOMIZE_COLUMNS, true);
+        params.set(Params.PENALTY_DISCOUNT, 2);
+        params.set(Params.COEF_LOW, 0.25);
+        params.set(Params.COEF_HIGH, 1.0);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore()));
-        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new BOSSGlobal(new SemBicScore()));
+        algorithms.add(new BOSSK3(new SemBicScore()));
+        algorithms.add(new BOSSMinEdges(new SemBicScore()));
+//        algorithms.add(new BOSSRegression(new SemBicScore()));
+//        algorithms.add(new BOSSFges(new SemBicScore()));
+//        algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new SemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+        statistics.add(new CorrectSkeleton());
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
@@ -415,12 +425,13 @@ public class TestFisherZCalibration {
         statistics.add(new SHD());
         statistics.add(new F1All());
         statistics.add(new PValue());
-        statistics.add(new FfsScoreDataOrder());
+//        statistics.add(new FfsScoreDataOrder());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setSaveData(false);
 
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
     }

@@ -3,7 +3,6 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
-import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
@@ -11,9 +10,7 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.BestOrderScoreSearch;
-import edu.cmu.tetrad.search.ForwardScoreSearch;
-import edu.cmu.tetrad.search.SearchGraphUtils;
+import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.FgesBicScorer;
 import edu.cmu.tetrad.sem.FmlBicScorer;
 import edu.cmu.tetrad.sem.Scorer;
@@ -23,7 +20,6 @@ import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,12 +28,12 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "BOSS",
-        command = "boss",
+        name = "BOSSReg",
+        command = "bossreg",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper {
+public class BOSSRegression implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     static final long serialVersionUID = 23L;
 
@@ -46,11 +42,11 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper {
 //    private Graph initialGraph;
 //    private Algorithm algorithm;
 
-    public BOSS() {
+    public BOSSRegression() {
 
     }
 
-    public BOSS(ScoreWrapper score) {
+    public BOSSRegression(ScoreWrapper score) {
         this.scoreWrapper = score;
     }
 
@@ -58,24 +54,28 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper {
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 
+            Score score = getScoreWrapper().getScore(dataSet, parameters);
+
+
             Scorer scorer;
 
             if (dataSet.isContinuous()) {
                 scorer = new FmlBicScorer((DataSet) dataSet, parameters.getDouble(Params.PENALTY_DISCOUNT));
             } else {
-                scorer = new FgesBicScorer(getScoreWrapper().getScore(dataSet, parameters), ((DataSet) dataSet));
+                scorer = new FgesBicScorer(score, (DataSet) dataSet);
             }
 
-            BestOrderScoreSearch search = new BestOrderScoreSearch(scorer);
-            List<Node> variables = new ArrayList<>(scorer.getVariables());
+            BestOrderScoreSearch search = new BestOrderScoreSearch(new FastFowardRegression(scorer));
+            List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
 
             System.out.println("Score for original order = " + search.getScoreOriginalOrder());
             System.out.println("Score for learned order = " + search.getScoreLearnedOrder());
 
+//            return graph;
             return SearchGraphUtils.patternForDag(graph);
         } else {
-            BOSS fges = new BOSS();
+            BOSSRegression fges = new BOSSRegression();
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -113,7 +113,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "Best Order Scoring Search";
+        return "BOSS Regression";
     }
 
     @Override

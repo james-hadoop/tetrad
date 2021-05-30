@@ -1,9 +1,7 @@
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.Scorer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +16,7 @@ import java.util.List;
 public class BestOrderScoreSearch {
 
     // The score used (default FML BIC). Lower is better.
-    private final Scorer scorer;
+    private final FastForward fastForward;
 
     private double scoreOriginalOrder = Double.NaN;
     private double scoreLearnedOrder = Double.NaN;
@@ -26,11 +24,10 @@ public class BestOrderScoreSearch {
     /**
      * Constructs a GSS search
      *
-     * @param scorer the scorer used, by default FML BIC (for linear models). The score
-     *               in general should be lower for better models.
+     * @param forward the fastForward algorithm used.
      */
-    public BestOrderScoreSearch(Scorer scorer) {
-        this.scorer = scorer;
+    public BestOrderScoreSearch(FastForward forward) {
+        this.fastForward = forward;
     }
 
     /**
@@ -40,13 +37,13 @@ public class BestOrderScoreSearch {
      * @return The estimated DAG.
      */
     public Graph search(List<Node> variables) {
-        ForwardScoreSearch fss = new ForwardScoreSearch(scorer);
-
         List<Node> b0 = new ArrayList<>(variables);
-        Graph g0 = fss.search(b0);
-        double s0 = scorer.score(g0);
+        Graph g0 = fastForward.search(b0);
+        double s0 = fastForward.score();
 
         scoreOriginalOrder = s0;
+
+        System.out.println("Original order = " + b0);
 
         boolean changed = true;
 
@@ -59,10 +56,10 @@ public class BestOrderScoreSearch {
                     b1.remove(n);
                     b1.add(j, n);
 
-                    Graph g1 = fss.search(b1);
-                    double s1 = fss.score();
+                    Graph g1 = fastForward.search(b1);
+                    double s1 = fastForward.score();
 
-                    if (s1 < s0 - 0.001) {
+                    if (s1 < s0) {
                         s0 = s1;
                         b0 = b1;
                         g0 = g1;
@@ -70,9 +67,9 @@ public class BestOrderScoreSearch {
                     }
                 }
             }
-        }
 
-        System.out.println("Best order = " + b0);
+            System.out.println("Updated order = " + b0);
+        }
 
         scoreLearnedOrder = s0;
 

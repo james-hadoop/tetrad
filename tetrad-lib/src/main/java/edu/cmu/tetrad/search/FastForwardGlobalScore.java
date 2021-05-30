@@ -9,23 +9,23 @@ import java.util.List;
 /**
  * Searches for a DAG by adding or removing directed edges starting
  * with an empty graph, using a score (default FML BIC), given variables
- * im causal order. Implements the Global Score Search (FSS) algorithm.
+ * im causal order. Implements the Global Score Search (FFS) algorithm.
  *
  * @author josephramsey
  */
-public class ForwardScoreSearch {
+public class FastForwardGlobalScore implements FastForward {
 
     // The score used (default FML BIC). Lower is better.
     private final Scorer scorer;
     private double score = Double.NaN;
 
     /**
-     * Constructs a FSS search
+     * Constructs a FFS search
      *
      * @param scorer the scorer used, by default FML BIC (for linear models). The score
      *               in general should be lower for better models.
      */
-    public ForwardScoreSearch(Scorer scorer) {
+    public FastForwardGlobalScore(Scorer scorer) {
         this.scorer = scorer;
     }
 
@@ -35,10 +35,11 @@ public class ForwardScoreSearch {
      * @param order The variables in causal order.
      * @return The estimated DAG.
      */
+    @Override
     public Graph search(List<Node> order) {
-        score = Double.NaN;
+        this.score = Double.NaN;
 
-        EdgeListGraph G0 = new EdgeListGraph(order);
+        Graph G0 = new EdgeListGraph(order);
         double s0 = scorer.score(G0);
 
         boolean changed = true;
@@ -56,7 +57,7 @@ public class ForwardScoreSearch {
                         changed = true;
                     } else {
                         G0.removeEdge(edge);
-                        scorer.resetParameters(edge);
+                        scorer.score(edge);
                     }
                 }
             }
@@ -70,7 +71,7 @@ public class ForwardScoreSearch {
                     changed = true;
                 } else {
                     G0.addEdge(edge);
-                    scorer.resetParameters(edge);
+                    scorer.score(edge);
                 }
             }
         }
@@ -99,6 +100,7 @@ public class ForwardScoreSearch {
     /**
      * Returns the score of the most recent search.
      */
+    @Override
     public double score() {
         return score;
     }

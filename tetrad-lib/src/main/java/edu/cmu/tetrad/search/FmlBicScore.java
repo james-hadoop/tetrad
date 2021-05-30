@@ -27,10 +27,14 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.MatrixUtils;
+import edu.cmu.tetrad.util.ProbUtils;
 import edu.cmu.tetrad.util.StatUtils;
 import org.apache.commons.math3.linear.SingularMatrixException;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.*;
 
 import static edu.cmu.tetrad.util.MatrixUtils.convertCovToCorr;
@@ -44,7 +48,7 @@ import static java.lang.Math.log;
  *
  * @author Joseph Ramsey
  */
-public class SemBicScore implements Score {
+public class FmlBicScore implements Score {
 
     private boolean calculateRowSubsets = false;
 
@@ -81,10 +85,20 @@ public class SemBicScore implements Score {
     // The rule type to use.
     private RuleType ruleType = RuleType.CHICKERING;
 
+    private ICovarianceMatrix covMatrix;
+    private Matrix edgeCoef;
+    private Matrix errorCovar;
+    private Matrix sampleCovar;
+    private Map<Node, Integer> nodesHash;
+    private final Map<Integer, Set<Node>> parentsMap = new HashMap<>();
+    private Matrix implCovar;
+    private double logDetSample;
+
+
     /**
      * Constructs the score using a covariance matrix.
      */
-    public SemBicScore(ICovarianceMatrix covariances) {
+    public FmlBicScore(ICovarianceMatrix covariances) {
         if (covariances == null) {
             throw new NullPointerException();
         }
@@ -98,7 +112,7 @@ public class SemBicScore implements Score {
     /**
      * Constructs the score using a covariance matrix.
      */
-    public SemBicScore(DataSet dataSet) {
+    public FmlBicScore(DataSet dataSet) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
@@ -119,25 +133,6 @@ public class SemBicScore implements Score {
         this.sampleSize = dataSet.getNumRows();
         this.indexMap = indexMap(this.variables);
         this.calculateRowSubsets = true;
-    }
-
-    public static double getVarRy(int i, int[] parents, Matrix data, ICovarianceMatrix covariances, boolean calculateRowSubsets) {
-        try {
-            int[] all = concat(i, parents);
-            Matrix cov = getCov(getRows(i, parents, data, calculateRowSubsets), all, all, data, covariances);
-            int[] pp = indexedParents(parents);
-            Matrix covxx = cov.getSelection(pp, pp);
-            Matrix covxy = cov.getSelection(pp, new int[]{0});
-            Matrix b = (covxx.inverse().times(covxy));
-            Matrix bStar = bStar(b);
-            return (bStar.transpose().times(cov).times(bStar).get(0, 0));
-        } catch (SingularMatrixException e) {
-            List<Node> variables = covariances.getVariables();
-            List<Node> p = new ArrayList<>();
-            for (int _p : parents) p.add(variables.get(_p));
-            System.out.println("Singularity " + variables.get(i) + " | " + p);
-            return NEGATIVE_INFINITY;
-        }
     }
 
     @NotNull
@@ -260,7 +255,30 @@ public class SemBicScore implements Score {
 
         double varey;
 
-        varey = getVarRy(i, parents, data, covariances, calculateRowSubsets);
+        double result;
+        try {
+            int[] all = concat(i, parents);
+            Matrix cov = getCov(getRows(i, parents, data, calculateRowSubsets), all, all, data, covariances);
+            int[] pp = indexedParents(parents);
+            Matrix covxx = cov.getSelection(pp, pp);
+            Matrix covxy = cov.getSelection(pp, new int[]{0});
+            Matrix b = (covxx.inverse().times(covxy));
+            Matrix bStar = bStar(b);
+            result = (bStar.transpose().times(cov).times(bStar).get(0, 0));
+
+            edgeCoef = b;
+            errorCovar = new Matrix(1, 1);
+            errorCovar.set(0, 0, result);
+
+            return getBicScore();
+        } catch (SingularMatrixException e) {
+            List<Node> variables1 = covariances.getVariables();
+            List<Node> p = new ArrayList<>();
+            for (int _p : parents) p.add(variables1.get(_p));
+            System.out.println("Singularity " + variables1.get(i) + " | " + p);
+            result = NEGATIVE_INFINITY;
+        }
+        varey = result;
 
         double c = getPenaltyDiscount();
 
@@ -379,7 +397,7 @@ public class SemBicScore implements Score {
 
 //        double n = covariances.getSampleSize();
 //        double ess = DataUtils.getEss(covariances);
-//
+
 //        System.out.println("n = " + n + " ess = " + ess);
     }
 
@@ -509,6 +527,136 @@ public class SemBicScore implements Score {
 
     public void setRuleType(RuleType ruleType) {
         this.ruleType = ruleType;
+    }
+
+    /**
+     * The value of the maximum likelihood function for the getModel the model
+     * (Bollen 107). To optimize, this should be minimized.
+     */
+    private double getFml() {
+        Matrix implCovarMeas = implCovarMeas();
+
+        double logDetSigma = logDet(implCovarMeas);
+        double traceSSigmaInv = traceABInv(sampleCovar, implCovarMeas);
+        double logDetSample = logDetSample();
+        int pPlusQ = variables.size();
+
+        double fml = logDetSigma + traceSSigmaInv - logDetSample - pPlusQ;
+
+        if (Math.abs(fml) < 0) {
+            fml = 0.0;
+        }
+
+        return fml;
+    }
+
+    private Matrix implCovarMeas() {
+        computeImpliedCovar();
+        return this.implCovar;
+    }
+
+    /**
+     * @return BIC score, calculated as chisq - dof. This is equal to getFullBicScore() up to a constant.
+     */
+    private double getBicScore() {
+        return getChiSquare() + penaltyDiscount * getNumFreeParams() * log(getSampleSize());
+    }
+
+    /**
+     * @return the chi square value for the model.
+     */
+    private double getChiSquare() {
+        return (getSampleSize() - 1) * getFml();
+    }
+
+    /**
+     * @return the p-value for the model.
+     */
+    public double getPValue() {
+        return 1.0 - ProbUtils.chisqCdf(getChiSquare(), getNumFreeParams());
+    }
+
+    //============================PRIVATE METHODS==========================//
+
+    /**
+     * Adds semantic checks to the default deserialization method. This
+     * method must have the standard signature for a readObject method, and
+     * the body of the method must begin with "s.defaultReadObject();".
+     * Other than that, any semantic checks can be specified and do not need
+     * to stay the same from version to version. A readObject method of this
+     * form may be added to any class, even if Tetrad sessions were
+     * previously saved out using a version of the class that didn't include
+     * it. (That's what the "s.defaultReadObject();" is for. See J. Bloch,
+     * Effective Java, for help.
+     */
+    private void readObject(ObjectInputStream s)
+            throws IOException, ClassNotFoundException {
+        s.defaultReadObject();
+
+        if (covariances == null) {
+            throw new NullPointerException();
+        }
+
+    }
+
+    /**
+     * Computes the implied covariance matrices of the Sem. There are two:
+     * <code>implCovar </code> contains the covariances of all the variables and
+     * <code>implCovarMeas</code> contains covariance for the measured variables
+     * only.
+     */
+    private void computeImpliedCovar() {
+        this.implCovar = MatrixUtils.impliedCovar(edgeCoef().transpose(), errCovar());
+    }
+
+    private Matrix errCovar() {
+        return errorCovar;
+    }
+
+    private Matrix edgeCoef() {
+        return edgeCoef;
+    }
+
+    private double logDet(Matrix matrix2D) {
+        return log(matrix2D.det());
+    }
+
+    private double traceABInv(Matrix A, Matrix B) {
+
+        // Note that at this point the sem and the sample covar MUST have the
+        // same variables in the same order.
+        try {
+
+            Matrix product = A.times(B.inverse());
+
+            double trace = product.trace();
+
+            if (trace < -1e-8) {
+                throw new IllegalArgumentException("Trace was negative: " + trace);
+            }
+
+            return trace;
+        } catch (Exception e) {
+            System.out.println(B);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private double logDetSample() {
+        if (logDetSample == 0.0 && this.sampleCovar != null) {
+            double det = this.sampleCovar.det();
+            logDetSample = log(det);
+        }
+
+        return logDetSample;
+    }
+
+    public int getNumFreeParams() {
+        return edgeCoef.rows() + (edgeCoef.rows() + 1);
+    }
+
+    public int getDof() {
+        return (1*2) / 2 - getNumFreeParams();
     }
 
     public enum RuleType {CHICKERING, NANDY}
