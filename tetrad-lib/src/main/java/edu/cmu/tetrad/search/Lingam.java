@@ -156,9 +156,7 @@ public class Lingam {
         score.setPenaltyDiscount(penaltyDiscount);
 
         if (true) {
-            Scorer scorer = new FmlBicScorer(data, 2);
-
-            FastForwardGlobalScore gss = new FastForwardGlobalScore(scorer);
+            K2 gss = new K2(score);
 
             List<Node> order = new ArrayList<>();
             final List<Node> variables = data.getVariables();

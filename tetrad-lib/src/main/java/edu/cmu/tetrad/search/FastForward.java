@@ -7,6 +7,5 @@ import java.util.List;
 
 public interface FastForward {
     Graph search(List<Node> order);
-
-    double score();
+    double score(List<Node> order);
 }

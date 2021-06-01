@@ -39,7 +39,7 @@ public final class HbsmsBeam implements Hbsms {
     private final Graph initialGraph;
     private final Scorer scorer;
     private final CovarianceMatrix cov;
-    private FastForwardGlobalScore gis;
+    private K2 gis;
     private final IKnowledge knowledge = new Knowledge2();
     private SemIm newSemIm;
 
@@ -49,7 +49,7 @@ public final class HbsmsBeam implements Hbsms {
         this.cov = cov;
         this.scorer = new FmlBicScorer(cov);
 //        this.scorer = new FgesScorer(data);
-        gis = new FastForwardGlobalScore(this.scorer);
+        gis = new K2(new SemBicScore(scorer.getDataSet()));
 //        gis.setKnowledge(knowledge);
         this.initialGraph = new EdgeListGraph(graph);
     }
