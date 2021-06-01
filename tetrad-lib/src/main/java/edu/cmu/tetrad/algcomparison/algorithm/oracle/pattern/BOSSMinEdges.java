@@ -11,7 +11,7 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.BestOrderScoreSearch;
-import edu.cmu.tetrad.search.FastForwardK3;
+import edu.cmu.tetrad.search.K2;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.sem.FgesBicScorer;
@@ -67,7 +67,7 @@ public class BOSSMinEdges implements Algorithm, HasKnowledge, UsesScoreWrapper {
                 scorer = new FgesBicScorer(score, (DataSet) dataSet);
             }
 
-            BestOrderScoreSearch search = new BestOrderScoreSearch(new FastForwardK3(score, scorer));
+            BestOrderScoreSearch search = new BestOrderScoreSearch(new K2(score));
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
 

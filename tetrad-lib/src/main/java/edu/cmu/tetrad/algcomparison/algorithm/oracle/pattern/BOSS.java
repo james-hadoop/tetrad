@@ -3,6 +3,7 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
@@ -10,13 +11,8 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.BestOrderScoreSearch;
-import edu.cmu.tetrad.search.FastForwardK3;
-import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.SearchGraphUtils;
+import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.FgesBicScorer;
-import edu.cmu.tetrad.sem.FmlBicScorer;
-import edu.cmu.tetrad.sem.MinEdgeScorer;
 import edu.cmu.tetrad.sem.Scorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -32,43 +28,49 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "BOSSK3",
-        command = "bossk3",
+        name = "BOSS",
+        command = "boss",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSSK3 implements Algorithm, HasKnowledge, UsesScoreWrapper {
+public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
 
     private IKnowledge knowledge = new Knowledge2();
     private ScoreWrapper scoreWrapper;
-//    private Graph initialGraph;
-//    private Algorithm algorithm;
+    private Graph initialGraph;
+    private Algorithm algorithm;
 
-    public BOSSK3() {
+    public BOSS() {
 
     }
 
-    public BOSSK3(ScoreWrapper score) {
+    public BOSS(ScoreWrapper score) {
         this.scoreWrapper = score;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
+        if (algorithm != null) {
+            this.initialGraph = algorithm.search(dataSet, parameters);
+        }
+
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-
             Score score = getScoreWrapper().getScore(dataSet, parameters);
+            Scorer scorer = new FgesBicScorer(score, (DataSet) dataSet);
 
-            Scorer scorer;
+//            score = new GraphScore(initialGraph);
 
-            if (dataSet.isContinuous()) {
-                scorer = new FmlBicScorer((DataSet) dataSet, parameters.getDouble(Params.PENALTY_DISCOUNT));
-            } else {
-                scorer = new FgesBicScorer(score, (DataSet) dataSet);
-            }
 
-            BestOrderScoreSearch search = new BestOrderScoreSearch(new FastForwardK3(score, scorer));
+//            if (dataSet.isContinuous()) {
+//                scorer = new FmlBicScorer((DataSet) dataSet, parameters.getDouble(Params.PENALTY_DISCOUNT));
+//            } else {
+//                scorer = new FgesBicScorer(score, (DataSet) dataSet);
+//            }
+
+            BestOrderScoreSearch search = new BestOrderScoreSearch(new K2(score));
+//            BestOrderScoreSearch search = new BestOrderScoreSearch(new FastFowardDsep(initialGraph, scorer));
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
 
@@ -78,7 +80,7 @@ public class BOSSK3 implements Algorithm, HasKnowledge, UsesScoreWrapper {
 //            return graph;
             return SearchGraphUtils.patternForDag(graph);
         } else {
-            BOSSK3 fges = new BOSSK3();
+            BOSS fges = new BOSS();
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -149,15 +151,15 @@ public class BOSSK3 implements Algorithm, HasKnowledge, UsesScoreWrapper {
         this.scoreWrapper = score;
     }
 
-//    public Graph getInitialGraph() {
-//        return initialGraph;
-//    }
-//
-//    public void setInitialGraph(Graph initialGraph) {
-//        this.initialGraph = initialGraph;
-//    }
-//
-//    public void setInitialGraph(Algorithm algorithm) {
-//        this.algorithm = algorithm;
-//    }
+    public Graph getInitialGraph() {
+        return initialGraph;
+    }
+
+    public void setInitialGraph(Graph initialGraph) {
+        this.initialGraph = initialGraph;
+    }
+
+    public void setInitialGraph(Algorithm algorithm) {
+        this.algorithm = algorithm;
+    }
 }
