@@ -39,8 +39,9 @@ public class BestOrderScoreSearch {
      * @return The estimated DAG.
      */
     public Graph search(List<Node> variables) {
+        long start = System.currentTimeMillis();
+
         List<Node> b0 = new ArrayList<>(variables);
-//        Graph g0 = fastForward.search(b0);
         double s0 = fastForward.score(b0);
 
         scoreOriginalOrder = s0;
@@ -67,7 +68,6 @@ public class BestOrderScoreSearch {
                     if (s1 < s0) {
                         s0 = s1;
                         b0 = b1;
-//                        g0 = g1;
                         changed = true;
                     }
                 }
@@ -77,6 +77,10 @@ public class BestOrderScoreSearch {
         }
 
         scoreLearnedOrder = s0;
+
+        long stop = System.currentTimeMillis();
+
+        System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
 
         return fastForward.search(b0);
     }

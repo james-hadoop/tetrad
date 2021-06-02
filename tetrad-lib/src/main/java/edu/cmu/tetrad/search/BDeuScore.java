@@ -81,7 +81,7 @@ public class BDeuScore implements LocalDiscreteScore, IBDeuScore, Score {
     }
 
     @Override
-    public double localScore(int node, int parents[]) {
+    public double localScore(int node, int[] parents) {
 
         // Number of categories for node.
         int c = numCategories[node];

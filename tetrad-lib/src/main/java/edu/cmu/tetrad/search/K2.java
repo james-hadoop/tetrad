@@ -21,8 +21,10 @@ public class K2 implements FastForward {
     private final Score _score;
     private final Map<Node, Set<Node>> predecessors = new HashMap<>();
     private final Map<Node, Set<Node>> previousPis = new HashMap<>();
-    private double score = Double.NaN;
-    private final Map<List<Node>, Double> permutationScores = new HashMap<>();
+    private final Map<List<Node>, Double> permutationScores = new WeakHashMap<>();
+    private final Map<ScoreSpec, Double> predecessorScores = new WeakHashMap<>();
+    private final Map<ScoreSpec, Set<Node>> predecessorPis = new WeakHashMap<>();
+    private final Map<ScoreSpec, Double> scores = new WeakHashMap<>();
 
     /**
      * Constructs a FFS search
@@ -35,38 +37,102 @@ public class K2 implements FastForward {
 
     public Graph search(List<Node> order) {
         List<Node> variables = _score.getVariables();
-        this.score = 0;
+        double score = 0;
 
         for (int i = 0; i < order.size(); i++) {
             Node n = order.get(i);
             Set<Node> predecessors = predecessors(order, n);
+            Set<Node> previousPredecessors = this.predecessors.get(n);
+            Set<Node> previousPi = previousPis.get(n);
 
-            Set<Node> pi = new HashSet<>();
-            boolean changed = true;
             double s_node = score(variables, n, new HashSet<>());
-            boolean add = true;
 
-            if (this.predecessors.get(n) != null) {
-                if (!predecessors.containsAll(this.predecessors.get(n))) {
-                    if (this.predecessors.get(n).containsAll(predecessors)) {
+            List<Node> _predecessors = new ArrayList<>(predecessors);
+            _predecessors.add(0, n);
+
+            if (predecessorScores.get(new ScoreSpec(n, new HashSet<>(_predecessors))) != null) {
+                double _score1 = predecessorScores.get(new ScoreSpec(n, new HashSet<>(_predecessors)));
+
+                if (_score1 < score) {
+                    s_node = _score1;
+                }
+            } else {
+
+//            if (previousPredecessors != null && predecessors.equals(previousPi)
+//                    && previousPredecessors.equals(predecessors)) {
+//                double score1 = score(variables, n, previousPi);
+//
+//                if (score1 < s_node) {
+//                    s_node = score1;
+//                }
+//            } else {
+
+                Set<Node> pi = new HashSet<>();
+                boolean changed = true;
+                boolean add;
+
+                if (previousPredecessors != null) {
+                    // If adding, add = true
+                    // If removing, add = false
+                    // If mixture, add = true but forget previous pi's (i.e. build from empty)
+
+                    if (predecessors.containsAll(previousPredecessors)) {
+                        add = true;
+                    } else if (previousPredecessors.containsAll(predecessors)) {
                         add = false;
                     } else {
+                        add = true;
                         previousPis.put(n, null);
                     }
+                } else {
+                    add = true;
+                    previousPis.put(n, null);
                 }
-            }
 
-            double s_new = POSITIVE_INFINITY;
+                double s_new = POSITIVE_INFINITY;
 
-            if (previousPis.get(n) != null) {
-                previousPis.get(n).retainAll(predecessors);
+                if (previousPis.get(n) != null) {
+                    previousPis.get(n).retainAll(predecessors);
+
+                    while (changed) {
+                        changed = false;
+
+                        Node z = null;
+
+                        {
+                            for (Node z0 : previousPis.get(n)) {
+                                if (pi.contains(z0)) continue;
+                                pi.add(z0);
+
+                                double s2 = score(variables, n, pi);
+
+                                if (s2 < s_new) {
+                                    s_new = s2;
+                                    z = z0;
+                                }
+
+                                pi.remove(z0);
+                            }
+
+                            if (s_new < s_node) {
+                                pi.add(z);
+                                s_node = s_new;
+                                changed = true;
+                            }
+                        }
+                    }
+                }
+
+                changed = true;
 
                 while (changed) {
                     changed = false;
+
+                    // Let z be the node that maximizes the score...
                     Node z = null;
 
-                    {
-                        for (Node z0 : previousPis.get(n)) {
+                    if (add) {
+                        for (Node z0 : predecessors) {
                             if (pi.contains(z0)) continue;
                             pi.add(z0);
 
@@ -86,63 +152,35 @@ public class K2 implements FastForward {
                             changed = true;
                         }
                     }
-                }
-            }
 
-            changed = true;
+                    if (!add) {
+                        for (Node z0 : new HashSet<>(pi)) {
+                            pi.remove(z0);
 
-            while (changed) {
-                changed = false;
+                            double s2 = score(variables, n, pi);
 
-                // Let z be the node that maximizes the score...
-                Node z = null;
+                            if (s2 < s_new) {
+                                s_new = s2;
+                                z = z0;
+                            }
 
-                if (add) {
-                    for (Node z0 : getNodes(predecessors)) {
-                        if (pi.contains(z0)) continue;
-                        pi.add(z0);
-
-                        double s2 = score(variables, n, pi);
-
-                        if (s2 < s_new) {
-                            s_new = s2;
-                            z = z0;
+                            pi.add(z0);
                         }
 
-                        pi.remove(z0);
-                    }
-
-                    if (s_new < s_node) {
-                        pi.add(z);
-                        s_node = s_new;
-                        changed = true;
-                    }
-                }
-
-                if (!add) {
-                    for (Node z0 : new HashSet<>(pi)) {
-                        pi.remove(z0);
-
-                        double s2 = score(variables, n, pi);
-
-                        if (s2 < s_new) {
-                            s_new = s2;
-                            z = z0;
+                        if (s_new < s_node) {
+                            pi.remove(z);
+                            s_node = s_new;
+                            changed = true;
                         }
-
-                        pi.add(z0);
-                    }
-
-                    if (s_new < s_node) {
-                        pi.remove(z);
-                        s_node = s_new;
-                        changed = true;
                     }
                 }
-            }
 
-            this.predecessors.put(n, predecessors);
-            this.previousPis.put(n, pi);
+                this.predecessors.put(n, predecessors);
+                this.previousPis.put(n, pi);
+
+                this.predecessorScores.put(new ScoreSpec(n, new HashSet<>(_predecessors)), s_node);
+                this.predecessorPis.put(new ScoreSpec(n, new HashSet<>(_predecessors)), pi);
+            }
 
             score += s_node;
         }
@@ -163,44 +201,98 @@ public class K2 implements FastForward {
     }
 
     public double score(List<Node> order) {
-        if (permutationScores.containsKey(order)) {
-            return permutationScores.get(order);
+        Double score0 = permutationScores.get(order);
+
+        if (score0 != null) {
+            return score0;
         }
 
         List<Node> variables = _score.getVariables();
-        this.score = 0;
+        double score = 0;
 
         for (int i = 0; i < order.size(); i++) {
             Node n = order.get(i);
             Set<Node> predecessors = predecessors(order, n);
+            Set<Node> previousPredecessors = this.predecessors.get(n);
+            Set<Node> previousPi = previousPis.get(n);
 
-            Set<Node> pi = new HashSet<>();
-            boolean changed = true;
             double s_node = score(variables, n, new HashSet<>());
-            boolean add = true;
 
-            if (this.predecessors.get(n) != null) {
-                if (predecessors.containsAll(this.predecessors.get(n))) {
-                    add = true;
-                } else if (this.predecessors.get(n).containsAll(predecessors)) {
-                    add = false;
+            if (previousPredecessors != null && predecessors.equals(previousPi)
+                    && previousPredecessors.equals(predecessors)) {
+                double score1 = score(variables, n, previousPi);
+
+                if (score1 < s_node) {
+                    s_node = score1;
+                }
+            } else {
+
+                Set<Node> pi = new HashSet<>();
+                boolean changed = true;
+                boolean add;
+
+                if (previousPredecessors != null) {
+                    // If adding, add = true
+                    // If removing, add = false
+                    // If mixture, add = true but forget previous pi's (i.e. build from empty)
+
+                    if (predecessors.containsAll(previousPredecessors)) {
+                        add = true;
+                    } else if (previousPredecessors.containsAll(predecessors)) {
+                        add = false;
+                    } else {
+                        add = true;
+                        previousPis.put(n, null);
+                    }
                 } else {
+                    add = true;
                     previousPis.put(n, null);
                 }
-            }
 
-            double s_new = POSITIVE_INFINITY;
+                double s_new = POSITIVE_INFINITY;
 
-            if (previousPis.get(n) != null) {
-                previousPis.get(n).retainAll(predecessors);
+                if (previousPis.get(n) != null) {
+                    previousPis.get(n).retainAll(predecessors);
+
+                    while (changed) {
+                        changed = false;
+
+                        Node z = null;
+
+                        {
+                            for (Node z0 : previousPis.get(n)) {
+                                if (pi.contains(z0)) continue;
+                                pi.add(z0);
+
+                                double s2 = score(variables, n, pi);
+
+                                if (s2 < s_new) {
+                                    s_new = s2;
+                                    z = z0;
+                                }
+
+                                pi.remove(z0);
+                            }
+
+                            if (s_new < s_node) {
+                                pi.add(z);
+                                s_node = s_new;
+                                changed = true;
+                            }
+                        }
+                    }
+                }
+
+                changed = true;
 
                 while (changed) {
                     changed = false;
 
+                    // Let z be the node that maximizes the score...
                     Node z = null;
 
-                    {
-                        for (Node z0 : previousPis.get(n)) {
+                    if (add) {
+                        for (Node z0 : predecessors) {
                             if (pi.contains(z0)) continue;
                             pi.add(z0);
 
@@ -220,72 +312,49 @@ public class K2 implements FastForward {
                             changed = true;
                         }
                     }
-                }
-            }
 
-            changed = true;
+                    if (!add) {
+                        for (Node z0 : new HashSet<>(pi)) {
+                            pi.remove(z0);
 
-            while (changed) {
-                changed = false;
+                            double s2 = score(variables, n, pi);
 
-                // Let z be the node that maximizes the score...
-                Node z = null;
+                            if (s2 < s_new) {
+                                s_new = s2;
+                                z = z0;
+                            }
 
-                if (add) {
-                    for (Node z0 : predecessors) {
-                        if (pi.contains(z0)) continue;
-                        pi.add(z0);
-
-                        double s2 = score(variables, n, pi);
-
-                        if (s2 < s_new) {
-                            s_new = s2;
-                            z = z0;
+                            pi.add(z0);
                         }
 
-                        pi.remove(z0);
-                    }
-
-                    if (s_new < s_node) {
-                        pi.add(z);
-                        s_node = s_new;
-                        changed = true;
-                    }
-                }
-
-                if (!add) {
-                    for (Node z0 : new HashSet<>(pi)) {
-                        pi.remove(z0);
-
-                        double s2 = score(variables, n, pi);
-
-                        if (s2 < s_new) {
-                            s_new = s2;
-                            z = z0;
+                        if (s_new < s_node) {
+                            pi.remove(z);
+                            s_node = s_new;
+                            changed = true;
                         }
-
-                        pi.add(z0);
-                    }
-
-                    if (s_new < s_node) {
-                        pi.remove(z);
-                        s_node = s_new;
-                        changed = true;
                     }
                 }
-            }
 
-            this.predecessors.put(n, predecessors);
-            this.previousPis.put(n, pi);
+                this.predecessors.put(n, predecessors);
+                this.previousPis.put(n, pi);
+            }
 
             score += s_node;
         }
 
-        this.permutationScores.put(order, score);
+        this.permutationScores.put(new ArrayList<>(order), score);
         return score;
     }
 
     private double score(List<Node> variables, Node n, Set<Node> pi) {
+        ScoreSpec key = new ScoreSpec(n, pi);
+
+        Double score = scores.get(key);
+
+        if (score != null) {
+            return score;
+        }
+
         int[] parentIndices = new int[pi.size()];
 
         int k = 0;
@@ -294,7 +363,12 @@ public class K2 implements FastForward {
             parentIndices[k++] = variables.indexOf(p);
         }
 
-        return -_score.localScore(variables.indexOf(n), parentIndices);
+        score = -_score.localScore(variables.indexOf(n), parentIndices);
+
+        key = new ScoreSpec(n, new HashSet<>(pi));
+        scores.put(key, score);
+
+        return score;
     }
 
     private Set<Node> predecessors(List<Node> order, Node n) {
@@ -303,10 +377,26 @@ public class K2 implements FastForward {
         return _predecessors;
     }
 
-    /**
-     * Returns the score of the most recent search.
-     */
-    public double score() {
-        return score;
+    private static class ScoreSpec {
+        private final Node y;
+        private final Set<Node> p;
+
+        public ScoreSpec(Node y, Set<Node> p) {
+            this.y = y;
+            this.p = p;
+        }
+
+        public int hashCode() {
+            return 17 * y.hashCode() + 3 * p.hashCode();
+        }
+
+        public boolean equals(Object o) {
+            if (!(o instanceof ScoreSpec)) {
+                return false;
+            }
+
+            ScoreSpec spec = (ScoreSpec) o;
+            return spec.y.equals(this.y) && spec.p.equals(this.p);
+        }
     }
 }
