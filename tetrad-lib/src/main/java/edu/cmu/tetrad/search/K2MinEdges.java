@@ -15,21 +15,21 @@ import static java.lang.Double.POSITIVE_INFINITY;
  *
  * @author josephramsey
  */
-public class K2 implements FastForward {
+public class K2MinEdges implements FastForward {
 
     // The score used.
     private final Score _score;
-    private final Map<Node, Set<Node>> families = new HashMap<>();
-    private final Map<Node, Set<Node>> familyPis = new HashMap<>();
+    private final Map<Node, Set<Node>> predecessors = new HashMap<>();
+    private final Map<Node, Set<Node>> previousPis = new HashMap<>();
     private final Map<ScoreSpec, Double> scores = new WeakHashMap<>();
-    private final IndTestScore test;
+    private final IndependenceTest test;
 
     /**
      * Constructs a FFS search
      *
      * @param score the score used. A score that works well with FGES (GES) will do fine.
      */
-    public K2(Score score) {
+    public K2MinEdges(Score score) {
         this._score = score;
         this.test = new IndTestScore(score);
     }
@@ -66,15 +66,15 @@ public class K2 implements FastForward {
 
         for (int i = 0; i < order.size(); i++) {
             Node n = order.get(i);
-            Set<Node> families = family(order, n);
-            Set<Node> previousFamilies = this.families.get(n);
-            Set<Node> previousFamilyPis = familyPis.get(n);
+            Set<Node> predecessors = predecessors(order, n);
+            Set<Node> previousPredecessors = this.predecessors.get(n);
+            Set<Node> previousPi = previousPis.get(n);
 
             double s_node = score(variables, n, new HashSet<>());
 
-            if (previousFamilies != null && families.equals(previousFamilyPis)
-                    && previousFamilies.equals(families)) {
-                double score1 = score(variables, n, previousFamilyPis);
+            if (previousPredecessors != null && predecessors.equals(previousPi)
+                    && previousPredecessors.equals(predecessors)) {
+                double score1 = score(variables, n, previousPi);
 
                 if (score1 < s_node) {
                     s_node = score1;
@@ -85,24 +85,24 @@ public class K2 implements FastForward {
                 boolean changed = true;
                 boolean add;
 
-                if (previousFamilies != null) {
-                    if (families.containsAll(previousFamilies)) {
+                if (previousPredecessors != null) {
+                    if (predecessors.containsAll(previousPredecessors)) {
                         add = true;
-                    } else if (previousFamilies.containsAll(families)) {
+                    } else if (previousPredecessors.containsAll(predecessors)) {
                         add = false;
                     } else {
                         add = true;
-                        familyPis.put(n, null);
+                        previousPis.put(n, null);
                     }
                 } else {
                     add = true;
-                    familyPis.put(n, null);
+                    previousPis.put(n, null);
                 }
 
                 double s_new = POSITIVE_INFINITY;
 
-                if (familyPis.get(n) != null) {
-                    familyPis.get(n).retainAll(families);
+                if (previousPis.get(n) != null) {
+                    previousPis.get(n).retainAll(predecessors);
 
                     while (changed) {
                         changed = false;
@@ -110,7 +110,7 @@ public class K2 implements FastForward {
                         Node z = null;
 
                         {
-                            for (Node z0 : familyPis.get(n)) {
+                            for (Node z0 : previousPis.get(n)) {
                                 if (pi.contains(z0)) continue;
                                 pi.add(z0);
 
@@ -142,7 +142,7 @@ public class K2 implements FastForward {
                     Node z = null;
 
                     if (add) {
-                        for (Node z0 : families) {
+                        for (Node z0 : predecessors) {
                             if (pi.contains(z0)) continue;
                             pi.add(z0);
 
@@ -185,8 +185,8 @@ public class K2 implements FastForward {
                     }
                 }
 
-                this.families.put(n, families);
-                this.familyPis.put(n, pi);
+                this.predecessors.put(n, predecessors);
+                this.previousPis.put(n, pi);
             }
 
             score += s_node;
@@ -195,7 +195,7 @@ public class K2 implements FastForward {
         List<Set<Node>> pis = new ArrayList<>();
 
         for (Node n : order) {
-            Set<Node> pi = familyPis.get(n);
+            Set<Node> pi = previousPis.get(n);
             pis.add(pi);
         }
 
@@ -227,7 +227,7 @@ public class K2 implements FastForward {
         return score;
     }
 
-    private Set<Node> family(List<Node> order, Node n) {
+    private Set<Node> predecessors(List<Node> order, Node n) {
         Set<Node> _predecessors = new HashSet<>();
         for (int j = 0; j < order.indexOf(n); j++) _predecessors.add(order.get(j));
         return _predecessors;

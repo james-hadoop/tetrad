@@ -10,13 +10,7 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.BestOrderScoreSearch;
-import edu.cmu.tetrad.search.K2;
-import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.SearchGraphUtils;
-import edu.cmu.tetrad.sem.FgesBicScorer;
-import edu.cmu.tetrad.sem.MinEdgeScorer;
-import edu.cmu.tetrad.sem.Scorer;
+import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -31,25 +25,23 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "BOSSMinEdges",
-        command = "bossminedges",
+        name = "GSP",
+        command = "gsp",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSSMinEdges implements Algorithm, HasKnowledge, UsesScoreWrapper {
+public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     static final long serialVersionUID = 23L;
 
     private IKnowledge knowledge = new Knowledge2();
     private ScoreWrapper scoreWrapper;
-//    private Graph initialGraph;
-//    private Algorithm algorithm;
 
-    public BOSSMinEdges() {
+    public GSP() {
 
     }
 
-    public BOSSMinEdges(ScoreWrapper score) {
+    public GSP(ScoreWrapper score) {
         this.scoreWrapper = score;
     }
 
@@ -59,25 +51,17 @@ public class BOSSMinEdges implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
             Score score = getScoreWrapper().getScore(dataSet, parameters);
 
-            Scorer scorer;
-
-            if (dataSet.isContinuous()) {
-                scorer = new MinEdgeScorer(((DataSet) dataSet));
-            } else {
-                scorer = new FgesBicScorer(score, (DataSet) dataSet);
-            }
-
-            BestOrderScoreSearch search = new BestOrderScoreSearch(new K2(score));
+            BestOrderScoreSearch search = new BestOrderScoreSearch(new K2MinEdges(score));
+            search.setAlgorithm(parameters.getInt(Params.DEPTH));
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
 
             System.out.println("Score for original order = " + search.getScoreOriginalOrder());
             System.out.println("Score for learned order = " + search.getScoreLearnedOrder());
 
-//            return graph;
             return SearchGraphUtils.patternForDag(graph);
         } else {
-            BOSSMinEdges fges = new BOSSMinEdges();
+            GSP fges = new GSP();
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -115,7 +99,7 @@ public class BOSSMinEdges implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "BOSS Min Edges";
+        return "GSP";
     }
 
     @Override
@@ -125,9 +109,10 @@ public class BOSSMinEdges implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public List<String> getParameters() {
-        return new ArrayList<>();
+        ArrayList<String> strings = new ArrayList<>();
+        strings.add(Params.DEPTH);
+        return strings;
     }
-
     @Override
     public IKnowledge getKnowledge() {
         return knowledge;

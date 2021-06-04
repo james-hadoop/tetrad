@@ -58,18 +58,9 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = getScoreWrapper().getScore(dataSet, parameters);
-            Scorer scorer = new FgesBicScorer(score, (DataSet) dataSet);
-
-//            score = new GraphScore(initialGraph);
-
-
-//            if (dataSet.isContinuous()) {
-//                scorer = new FmlBicScorer((DataSet) dataSet, parameters.getDouble(Params.PENALTY_DISCOUNT));
-//            } else {
-//                scorer = new FgesBicScorer(score, (DataSet) dataSet);
-//            }
 
             BestOrderScoreSearch search = new BestOrderScoreSearch(new K2(score));
+            search.setAlgorithm(parameters.getInt(Params.DEPTH));
 //            BestOrderScoreSearch search = new BestOrderScoreSearch(new FastFowardDsep(initialGraph, scorer));
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
@@ -118,7 +109,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public String getDescription() {
-        return "BOSS K3";
+        return "BOSS K2";
     }
 
     @Override
@@ -128,7 +119,9 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public List<String> getParameters() {
-        return new ArrayList<>();
+        ArrayList<String> strings = new ArrayList<>();
+        strings.add(Params.DEPTH);
+        return strings;
     }
 
     @Override

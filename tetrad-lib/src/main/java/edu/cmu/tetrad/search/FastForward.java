@@ -8,4 +8,6 @@ import java.util.List;
 public interface FastForward {
     Graph search(List<Node> order);
     double score(List<Node> order);
+
+    boolean isAssociated(Node w, Node v);
 }

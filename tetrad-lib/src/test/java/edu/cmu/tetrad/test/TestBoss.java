@@ -23,21 +23,16 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSS;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSSMinEdges;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
-import edu.cmu.tetrad.data.AndersonDarlingTest;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.RandomUtil;
-import edu.cmu.tetrad.util.StatUtils;
 import org.junit.Test;
-
-import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 
@@ -54,25 +49,26 @@ public final class TestBoss {
         RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 8);
-        params.set(Params.AVG_DEGREE, 2);
-//        params.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7);
-//        params.set(Params.SAMPLE_SIZE, 1000, 10000);
-        params.set(Params.SAMPLE_SIZE, 10000);
-        params.set(Params.NUM_RUNS, 1);
+        params.set(Params.DEPTH, 1, 2);
+        params.set(Params.NUM_MEASURES, 10);
+        params.set(Params.AVG_DEGREE, 0, 1, 2, 4, 4, 5, 6, 7, 8);
+        params.set(Params.SAMPLE_SIZE, 1000, 10000);
+        params.set(Params.NUM_RUNS, 10);
         params.set(Params.RANDOMIZE_COLUMNS, true);
-        params.set(Params.PENALTY_DISCOUNT, 2);
+        params.set(Params.PENALTY_DISCOUNT, 1);
         params.set(Params.COEF_LOW, 0.25);
         params.set(Params.COEF_HIGH, 1.0);
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new SemBicScore()));
-        algorithms.add(new BOSSMinEdges(new SemBicScore()));
+        algorithms.add(new GSP(new SemBicScore()));
+        algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new SemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.DEPTH));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new CorrectSkeleton());
@@ -82,7 +78,7 @@ public final class TestBoss {
         statistics.add(new ArrowheadRecall());
         statistics.add(new SHD());
         statistics.add(new F1All());
-        statistics.add(new PValue());
+//        statistics.add(new PValue());
 //        statistics.add(new FfsScoreDataOrder());
         statistics.add(new ElapsedTime());
 
