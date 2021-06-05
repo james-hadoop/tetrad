@@ -1,7 +1,9 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -55,32 +57,28 @@ public class BestOrderScoreSearch {
         if (algorithm == 1) {
             Map<Node, Set<Node>> associates = getAssociates(variables);
 
-            LinkedList<List<Node>> tabu = new LinkedList<>();
+            List<Node> br = new ArrayList<>(b0);
+            double sr = s0;
 
-            int c1 = 0;
-            boolean changed2 = true;
-
-            while (true) {
-                changed2 = false;
-
+            for (int R = 0; R < 5; R++) {
                 List<Node> b3 = new ArrayList<>(variables);
                 shuffle(b3);
                 double s3 = fastForward.score(b3);
 
-                if (s3 < s0) {
-                    s0 = s3;
-                    b0 = b3;
+                if (s3 < sr) {
+                    sr = s3;
+                    br = b3;
                 }
 
                 while (changed) {
                     changed = false;
 
                     List<Node> b2 = new ArrayList<>(b0);
-                    double s2 = s0;
+                    double s2 = sr;
 
-                    for (int i = 0; i < b0.size() - 1; i++) {
+                    for (int i = 0; i < br.size() - 1; i++) {
 //                        if (!associates.get(b0.get(i)).contains(b0.get(i + 1))) continue;
-                        List<Node> b1 = swap(b0, i);
+                        List<Node> b1 = swap(br, i);
 
                         double s1 = fastForward.score(b1);
 
@@ -90,56 +88,66 @@ public class BestOrderScoreSearch {
                         }
                     }
 
-                    if (s2 < s0) {
-                        s0 = s2;
-                        b0 = b2;
+                    if (s2 < sr) {
+                        sr = s2;
+                        br = b2;
                         changed = true;
                     }
                 }
 
-                tabu.add(new ArrayList<>(b0));
+                if (sr < s0) {
+                    s0 = sr;
+                    b0 = br;
 
-                if (tabu.size() > 20) break;
+                    System.out.println("Updated order = " + b0 + " count = " + count);
+                }
             }
         } else if (algorithm == 2) {
-
             Map<Node, Set<Node>> associates = getAssociates(variables);
 
-//            for (Node v :  variables) System.out.println("Node " + v + " # associates = " + associates.get(v).size());
+            for (int R = 0; R < 5; R++) {
+                List<Node> br = new ArrayList<>(b0);
+                double sr = s0;
 
-            // Until you can't do it anymore...
-            while (changed) {
-                changed = false;
+                // Until you can't do it anymore...
+                while (changed) {
+                    changed = false;
 
-                List<Node> b2 = new ArrayList<>(b0);
-                double s2 = s0;
+                    List<Node> b2 = new ArrayList<>(br);
+                    double s2 = sr;
 
-                // ...pick a variable v...
-                for (Node v : variables) {
+                    // ...pick a variable v...
+                    for (Node v : variables) {
 
-                    // ...and move v to an optimal position.
-                    for (Node w : associates.get(v)) {
-                        int j = b2.indexOf(w);
-                        List<Node> b1 = new ArrayList<>(b2);
-                        b1.remove(v);
-                        b1.add(j, v);
+                        // ...and move v to an optimal position.
+                        for (Node w : associates.get(v)) {
+                            int j = b2.indexOf(w);
+                            List<Node> b1 = new ArrayList<>(b2);
+                            b1.remove(v);
+                            b1.add(j, v);
 
-                        count++;
+                            count++;
 
-                        double s1 = fastForward.score(b1);
+                            double s1 = fastForward.score(b1);
 
-                        if (s1 < s2) {
-                            s2 = s1;
-                            b2 = b1;
+                            if (s1 < s2) {
+                                s2 = s1;
+                                b2 = b1;
+                            }
                         }
+                    }
+
+                    // Output the best order you find.
+                    if (s2 < sr) {
+                        br = b2;
+                        sr = s2;
+                        changed = true;
                     }
                 }
 
-                // Output the best order you find.
-                if (s2 < s0) {
-                    b0 = b2;
-                    s0 = s2;
-                    changed = true;
+                if (sr < s0) {
+                    s0 = sr;
+                    b0 = br;
 
                     System.out.println("Updated order = " + b0 + " count = " + count);
                 }
@@ -166,6 +174,23 @@ public class BestOrderScoreSearch {
 //                    s0 = s1;
 //                }
 //            }
+        } else if (algorithm == 5) {
+            PermutationGenerator gen = new PermutationGenerator(variables.size());
+            int[] perm;
+
+            b0 = new ArrayList<>(variables);
+            s0 = fastForward.score(b0);
+
+            while ((perm = gen.next()) != null) {
+                List<Node> b1 = GraphUtils.asList(perm, variables);
+
+                double s1 = fastForward.score(b1);
+
+                if (s1 < s0) {
+                    s0 = s1;
+                    b0 = b1;
+                }
+            }
         } else {
             throw new IllegalArgumentException("Expecting algorithm 1 (theirs) or 2 (mine), 3 (esp)");
         }

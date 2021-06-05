@@ -37,8 +37,8 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     static final long serialVersionUID = 23L;
 
+    private ScoreWrapper score;
     private IKnowledge knowledge = new Knowledge2();
-    private ScoreWrapper scoreWrapper;
     private Graph initialGraph;
     private Algorithm algorithm;
 
@@ -47,7 +47,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     }
 
     public BOSS(ScoreWrapper score) {
-        this.scoreWrapper = score;
+        this.score = score;
     }
 
     @Override
@@ -57,11 +57,10 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         }
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            Score score = getScoreWrapper().getScore(dataSet, parameters);
+            Score score = this.score.getScore(dataSet, parameters);
 
-            BestOrderScoreSearch search = new BestOrderScoreSearch(new K2(score));
+            BestOrderScoreSearch search = new BestOrderScoreSearch(new K2(score, false));
             search.setAlgorithm(parameters.getInt(Params.DEPTH));
-//            BestOrderScoreSearch search = new BestOrderScoreSearch(new FastFowardDsep(initialGraph, scorer));
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
 
@@ -114,7 +113,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public DataType getDataType() {
-        return scoreWrapper.getDataType();
+        return score.getDataType();
     }
 
     @Override
@@ -136,23 +135,28 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public ScoreWrapper getScoreWrapper() {
-        return scoreWrapper;
+        return score;
     }
+
 
     @Override
-    public void setScoreWrapper(ScoreWrapper score) {
-        this.scoreWrapper = score;
-    }
-
     public Graph getInitialGraph() {
         return initialGraph;
     }
 
+    @Override
     public void setInitialGraph(Graph initialGraph) {
         this.initialGraph = initialGraph;
     }
 
+    @Override
     public void setInitialGraph(Algorithm algorithm) {
         this.algorithm = algorithm;
     }
+
+    @Override
+    public void setScoreWrapper(ScoreWrapper score) {
+        this.score = score;
+    }
+
 }

@@ -60,9 +60,10 @@ public class GraphScore implements Score {
     }
 
     /**
-     * Calculates the sample likelihood and BIC score for i given its parents in a simple SEM model
+     * Calculates the sample likelihood and BIC score for y given its z in a simple SEM model
      */
-    public double localScore(int i, int[] parents) {
+    public double localScore(int y, int[] z) {
+//        return -localScoreDiff(0, y, z);
         throw new UnsupportedOperationException();
     }
 

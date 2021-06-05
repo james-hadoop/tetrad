@@ -168,7 +168,6 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
     @Override
     public void setInitialGraph(Algorithm algorithm) {
         this.algorithm = algorithm;
-
     }
 
     @Override

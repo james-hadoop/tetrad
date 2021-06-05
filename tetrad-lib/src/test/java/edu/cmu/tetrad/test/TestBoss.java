@@ -49,9 +49,9 @@ public final class TestBoss {
         RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
-        params.set(Params.DEPTH, 1, 2);
+        params.set(Params.DEPTH, 1, 2, 3, 4);
         params.set(Params.NUM_MEASURES, 10);
-        params.set(Params.AVG_DEGREE, 0, 1, 2, 4, 4, 5, 6, 7, 8);
+        params.set(Params.AVG_DEGREE, 1, 2, 4, 4, 5, 6, 7, 8);
         params.set(Params.SAMPLE_SIZE, 1000, 10000);
         params.set(Params.NUM_RUNS, 10);
         params.set(Params.RANDOMIZE_COLUMNS, true);

@@ -15,7 +15,7 @@ import static java.lang.Double.POSITIVE_INFINITY;
  *
  * @author josephramsey
  */
-public class K2 implements FastForward {
+public class K2b implements FastForward {
 
     // The score used.
     private final Score _score;
@@ -23,23 +23,15 @@ public class K2 implements FastForward {
     private final Map<Family, Set<Node>> familyPis = new HashMap<>();
     private final Map<Family, Double> scores = new HashMap<>();
     private final IndTestScore test;
-    private final boolean returnEdgeCounts;
 
     /**
      * Constructs a FFS search
      *
      * @param score the score used. A score that works well with FGES (GES) will do fine.
      */
-    public K2(Score score) {
+    public K2b(Score score) {
         this._score = score;
         this.test = new IndTestScore(score);
-        this.returnEdgeCounts = false;
-    }
-
-    public K2(Score score, boolean returnEdgeCounts) {
-        this._score = score;
-        this.test = new IndTestScore(score);
-        this.returnEdgeCounts = returnEdgeCounts;
     }
 
     public Graph search(List<Node> order) {
@@ -80,8 +72,12 @@ public class K2 implements FastForward {
 
             double s_node = score(variables, n, new HashSet<>());
 
-            if (previousFamily != null && previousFamilyPis != null && this.familyPis.containsKey(family)) {
-                Double score1 = scores.get(new Family(n, previousFamilyPis));
+            if (previousFamily != null && previousFamilyPis != null && previousFamily.equals(family)) {
+                Double score1 = scores.get(family);
+
+                if (score1 == null) {
+                    score1 = score(variables, n, previousFamilyPis);
+                }
 
                 if (score1 < s_node) {
                     s_node = score1;
@@ -200,17 +196,7 @@ public class K2 implements FastForward {
             pis.add(pi);
         }
 
-        if (returnEdgeCounts) {
-            int count = 0;
-
-            for (int i = 0; i < order.size(); i++) {
-                count += pis.get(i).size();
-            }
-
-            return new ScoreResult(pis, -count);
-        } else {
-            return new ScoreResult(pis, score);
-        }
+        return new ScoreResult(pis, score);
     }
 
     private double score(List<Node> variables, Node n, Set<Node> pi) {
