@@ -23,11 +23,11 @@ public class K3 implements ForwardScore {
     // Used to find dependent variables.
     private final IndTestScore test;
 
-    // Map from families to parent sets.
-    private final Map<Family, Set<Node>> familyPis = new HashMap<>();
+    // Map from subproblems to parent sets.
+    private final Map<Subproblem, Set<Node>> subproblemPis = new HashMap<>();
 
-    // Map from families to scores.
-    private final Map<Family, Double> familyScores = new HashMap<>();
+    // Map from subproblem to scores.
+    private final Map<Subproblem, Double> subproblemScores = new HashMap<>();
 
     /**
      * Constructs a K3 search
@@ -81,14 +81,14 @@ public class K3 implements ForwardScore {
 
         for (int i = 0; i < order.size(); i++) {
             Node n = order.get(i);
-            Family family = family(order, n);
+            Subproblem subproblem = subproblem(order, n);
 
             double s_node = score(variables, n, new HashSet<>());
             Set<Node> pi;
 
-            if (familyPis.containsKey(family)) {
-                s_node = familyScores.get(family);
-                pi = familyPis.get(family);
+            if (subproblemPis.containsKey(subproblem)) {
+                s_node = subproblemScores.get(subproblem);
+                pi = subproblemPis.get(subproblem);
             } else {
                 pi = new HashSet<>();
                 boolean changed = true;
@@ -100,7 +100,7 @@ public class K3 implements ForwardScore {
                     // Let z be the node that maximizes the score...
                     Node z = null;
 
-                    for (Node z0 : family.getPredeceessors()) {
+                    for (Node z0 : subproblem.getPredeceessors()) {
                         if (pi.contains(z0)) continue;
                         pi.add(z0);
 
@@ -140,8 +140,8 @@ public class K3 implements ForwardScore {
                     }
                 }
 
-                this.familyPis.put(family, pi);
-                this.familyScores.put(family, s_node);
+                this.subproblemPis.put(subproblem, pi);
+                this.subproblemScores.put(subproblem, s_node);
             }
 
             pis.add(pi);
@@ -163,17 +163,17 @@ public class K3 implements ForwardScore {
         return -_score.localScore(variables.indexOf(n), parentIndices);
     }
 
-    private Family family(List<Node> order, Node n) {
+    private Subproblem subproblem(List<Node> order, Node n) {
         Set<Node> _predecessors = new HashSet<>();
         for (int j = 0; j < order.indexOf(n); j++) _predecessors.add(order.get(j));
-        return new Family(n, _predecessors);
+        return new Subproblem(n, _predecessors);
     }
 
-    private static class Family {
+    private static class Subproblem {
         private final Node y;
         private final Set<Node> predeceessors;
 
-        public Family(Node y, Set<Node> predecessors) {
+        public Subproblem(Node y, Set<Node> predecessors) {
             this.y = y;
             this.predeceessors = new HashSet<>(predecessors);
         }
@@ -183,11 +183,11 @@ public class K3 implements ForwardScore {
         }
 
         public boolean equals(Object o) {
-            if (!(o instanceof Family)) {
+            if (!(o instanceof Subproblem)) {
                 return false;
             }
 
-            Family spec = (Family) o;
+            Subproblem spec = (Subproblem) o;
             return spec.y.equals(this.y) && spec.predeceessors.equals(this.predeceessors);
         }
 

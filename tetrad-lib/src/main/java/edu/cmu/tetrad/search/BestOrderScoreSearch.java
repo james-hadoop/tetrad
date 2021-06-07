@@ -21,7 +21,8 @@ public class BestOrderScoreSearch {
     private final ForwardScore forwardScore;
     private double scoreOriginalOrder = Double.NaN;
     private double scoreLearnedOrder = Double.NaN;
-    private Method method = Method.NORECURSIVE;
+    private Method method = Method.NONRECURSIVE;
+    private int numRestarts = 1;
 
     /**
      * Constructs a GSS search
@@ -59,8 +60,8 @@ public class BestOrderScoreSearch {
         br = new ArrayList<>(br);
         double sr = forwardScore.score(br);
 
-        for (int r = 0; r < 5; r++) {
-            if (method == Method.NORECURSIVE) {
+        for (int r = 0; r < numRestarts; r++) {
+            if (method == Method.NONRECURSIVE) {
 
                 // Until you can't do it anymore...
                 while (changed) {
@@ -169,7 +170,7 @@ public class BestOrderScoreSearch {
                 }
             }
 
-            associates.put(v, nodes);
+            associates.put(v,  nodes);
         }
 
         return associates;
@@ -187,5 +188,9 @@ public class BestOrderScoreSearch {
         this.method = method;
     }
 
-    public enum Method{NORECURSIVE, RECURSIVE}
+    public void setNumRestarts(int numRestarts) {
+        this.numRestarts = numRestarts;
+    }
+
+    public enum Method{NONRECURSIVE, RECURSIVE}
 }

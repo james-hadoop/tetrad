@@ -58,7 +58,14 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             Score score = this.score.getScore(dataSet, parameters);
 
             BestOrderScoreSearch search = new BestOrderScoreSearch(new K3(score));
-            search.setMethod(BestOrderScoreSearch.Method.NORECURSIVE);
+            search.setMethod(BestOrderScoreSearch.Method.NONRECURSIVE);
+            search.setNumRestarts(parameters.getInt(Params.NUM_RESTARTS));
+
+            if (parameters.getBoolean(Params.RECURSIVE)) {
+                search.setMethod(BestOrderScoreSearch.Method.RECURSIVE);
+            } else {
+                search.setMethod(BestOrderScoreSearch.Method.NONRECURSIVE);
+            }
 
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
@@ -117,7 +124,10 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public List<String> getParameters() {
-        return new ArrayList<>();
+        ArrayList<String> params = new ArrayList<>();
+        params.add(Params.RECURSIVE);
+        params.add(Params.NUM_RESTARTS);
+        return params;
     }
 
     @Override

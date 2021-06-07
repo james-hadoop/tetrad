@@ -21,7 +21,8 @@ public class GreedySparsestPermutation {
     private final ForwardScore forwardScore;
     private double scoreOriginalOrder = Double.NaN;
     private double scoreLearnedOrder = Double.NaN;
-    private int algorithm = 1;
+    private Method method = Method.NORECURSIVE;
+    private int numRestarts = 1;
 
     /**
      * Constructs a GSS search
@@ -43,39 +44,28 @@ public class GreedySparsestPermutation {
 
         List<Node> b0 = new ArrayList<>(variables);
         double s0 = forwardScore.score(b0);
-
         scoreOriginalOrder = s0;
 
         System.out.println("Original order = " + b0);
 
         boolean changed = true;
-
         int count = 0;
 
-        if (algorithm == 1) {
-            Map<Node, Set<Node>> associates = getAssociates(variables);
+        Map<Node, Set<Node>> associates = getAssociates(variables);
 
-            List<Node> br = new ArrayList<>(b0);
-            double sr = s0;
+        List<Node> br = new ArrayList<>(b0);
+        double sr = s0;
 
-            for (int R = 0; R < 10; R++) {
-                List<Node> b3 = new ArrayList<>(variables);
-                shuffle(b3);
-                double s3 = forwardScore.score(b3);
-
-                if (s3 < sr) {
-                    sr = s3;
-                    br = b3;
-                }
-
+        for (int r = 0; r < numRestarts; r++) {
+            if (method == Method.NORECURSIVE) {
                 while (changed) {
                     changed = false;
 
-                    List<Node> b2 = new ArrayList<>(b0);
+                    List<Node> b2 = new ArrayList<>(br);
                     double s2 = sr;
 
                     for (int i = 0; i < br.size() - 1; i++) {
-                        if (!associates.get(b0.get(i)).contains(b0.get(i + 1))) continue;
+                        if (!associates.get(br.get(i)).contains(br.get(i + 1))) continue;
                         List<Node> b1 = swap(br, i);
 
                         double s1 = forwardScore.score(b1);
@@ -92,26 +82,22 @@ public class GreedySparsestPermutation {
                         changed = true;
                     }
                 }
-
-                if (sr < s0) {
-                    s0 = sr;
-                    b0 = br;
-
-                    System.out.println("Updated order = " + b0 + " count = " + count);
-                }
+            } else if (method == Method.RECURSIVE) {
+                br = gspRecursive(br, sr);
+                sr = forwardScore.score(br);
+            } else {
+                throw new IllegalStateException("Unrecognized method: " + method);
             }
-        } else if (algorithm == 2) {
-            List<Node> b1 = gspRecursive(b0, s0);
-            double s1 = forwardScore.score(b0);
 
-            if (s1 < s0) {
-                s0 = s1;
-                b0 = b1;
+            if (sr < s0) {
+                s0 = sr;
+                b0 = new ArrayList<>(br);
 
                 System.out.println("Updated order = " + b0 + " count = " + count);
             }
-        } else {
-            throw new IllegalArgumentException("Expecting algorithm 1 (theirs) or 2 (mine), 3 (esp)");
+
+            shuffle(br);
+            sr = forwardScore.score(br);
         }
 
         scoreLearnedOrder = s0;
@@ -147,69 +133,6 @@ public class GreedySparsestPermutation {
         }
     }
 
-    private List<Node> bossRecursive(List<Node> b0, double s0, Map<Node, Set<Node>> associates) {
-
-        List<Node> b2 = new ArrayList<>(b0);
-        double s2 = s0;
-
-        boolean found = false;
-
-        for (Node v : b0) {
-            for (Node w : associates.get(v)) {
-                int j = b2.indexOf(w);
-                List<Node> b1 = new ArrayList<>(b2);
-                b1.remove(v);
-                b1.add(j, v);
-
-                double s1 = forwardScore.score(b1);
-
-                if (s1 < s2) {
-                    s2 = s1;
-                    b2 = b1;
-                    found = true;
-                }
-            }
-        }
-
-        if (found) {
-            return bossRecursive(b2, s2, associates);
-        } else {
-            return b2;
-        }
-
-    }
-
-    @NotNull
-    private Map<Node, Set<Node>> getAssociates(List<Node> variables) {
-        Map<Node, Set<Node>> associates = new HashMap<>();
-
-        for (Node v : variables) {
-            Set<Node> nodes = new HashSet<>();
-
-            for (Node w : variables) {
-                if (forwardScore.isAssociated(w, v)) {
-                    nodes.add(w);
-                }
-//
-//                for (Node r : nodes) {
-//                    if (forwardScore.isAssociated(w, r)) {
-//                        nodes.add(r);
-//                    }
-//
-//                    for (Node s : nodes) {
-//                        if (forwardScore.isAssociated(w, s)) {
-//                            nodes.add(s);
-//                        }
-//                    }
-//                }
-            }
-
-            associates.put(v, nodes);
-        }
-
-        return associates;
-    }
-
     @NotNull
     private List<Node> swap(List<Node> b0, int i) {
         List<Node> b1 = new ArrayList<>(b0);
@@ -225,6 +148,25 @@ public class GreedySparsestPermutation {
         return b1;
     }
 
+    @NotNull
+    private Map<Node, Set<Node>> getAssociates(List<Node> variables) {
+        Map<Node, Set<Node>> associates = new HashMap<>();
+
+        for (Node v : variables) {
+            Set<Node> nodes = new HashSet<>();
+
+            for (Node w : variables) {
+                if (forwardScore.isAssociated(w, v)) {
+                    nodes.add(w);
+                }
+            }
+
+            associates.put(v, nodes);
+        }
+
+        return associates;
+    }
+
     public double getScoreOriginalOrder() {
         return scoreOriginalOrder;
     }
@@ -233,7 +175,13 @@ public class GreedySparsestPermutation {
         return scoreLearnedOrder;
     }
 
-    public void setAlgorithm(int anInt) {
-        this.algorithm = anInt;
+    public void setMethod(Method method) {
+        this.method = method;
     }
+
+    public void setNumRestarts(int numRestarts) {
+        this.numRestarts = numRestarts;
+    }
+
+    public enum Method{NORECURSIVE, RECURSIVE}
 }

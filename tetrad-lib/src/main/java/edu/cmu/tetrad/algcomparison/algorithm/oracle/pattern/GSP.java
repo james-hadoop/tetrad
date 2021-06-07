@@ -10,7 +10,10 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.GreedySparsestPermutation;
+import edu.cmu.tetrad.search.K2;
+import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -51,8 +54,10 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
             Score score = getScoreWrapper().getScore(dataSet, parameters);
 
-            BestOrderScoreSearch search = new BestOrderScoreSearch(new K2(score));
-            search.setAlgorithm(1);
+            GreedySparsestPermutation search = new GreedySparsestPermutation(new K2(score));
+            search.setMethod(GreedySparsestPermutation.Method.NORECURSIVE);
+            search.setNumRestarts(5);
+
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
 
@@ -109,10 +114,9 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public List<String> getParameters() {
-        ArrayList<String> strings = new ArrayList<>();
-//        strings.add(Params.DEPTH);
-        return strings;
+        return new ArrayList<>();
     }
+
     @Override
     public IKnowledge getKnowledge() {
         return knowledge;
@@ -132,16 +136,4 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper {
     public void setScoreWrapper(ScoreWrapper score) {
         this.scoreWrapper = score;
     }
-
-//    public Graph getInitialGraph() {
-//        return initialGraph;
-//    }
-//
-//    public void setInitialGraph(Graph initialGraph) {
-//        this.initialGraph = initialGraph;
-//    }
-//
-//    public void setInitialGraph(Algorithm algorithm) {
-//        this.algorithm = algorithm;
-//    }
 }

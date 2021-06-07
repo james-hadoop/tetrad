@@ -23,7 +23,9 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.GSP;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
@@ -33,8 +35,6 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests to make sure the DelimiterType enumeration hasn't been tampered with.
@@ -49,7 +49,6 @@ public final class TestBoss {
         RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
-//        params.set(Params.DEPTH, 1);
         params.set(Params.NUM_MEASURES, 10);
         params.set(Params.AVG_DEGREE, 1, 2, 4, 5, 6, 7, 8);
         params.set(Params.SAMPLE_SIZE, 100000);
@@ -78,8 +77,6 @@ public final class TestBoss {
         statistics.add(new ArrowheadRecall());
         statistics.add(new SHD());
         statistics.add(new F1All());
-//        statistics.add(new PValue());
-//        statistics.add(new FfsScoreDataOrder());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
@@ -95,7 +92,6 @@ public final class TestBoss {
         RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
-//        params.set(Params.DEPTH, 1);
         params.set(Params.NUM_MEASURES, 20);
         params.set(Params.AVG_DEGREE, 4);
         params.set(Params.SAMPLE_SIZE, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000,
@@ -115,7 +111,6 @@ public final class TestBoss {
         simulations.add(new SemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
-//        statistics.add(new ParameterColumn(Params.DEPTH));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new CorrectSkeleton());
@@ -125,8 +120,6 @@ public final class TestBoss {
         statistics.add(new ArrowheadRecall());
         statistics.add(new SHD());
         statistics.add(new F1All());
-//        statistics.add(new PValue());
-//        statistics.add(new FfsScoreDataOrder());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
