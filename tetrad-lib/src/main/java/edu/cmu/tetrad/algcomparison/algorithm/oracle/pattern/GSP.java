@@ -51,8 +51,8 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
             Score score = getScoreWrapper().getScore(dataSet, parameters);
 
-            BestOrderScoreSearch search = new BestOrderScoreSearch(new K2MinEdges(score));
-            search.setAlgorithm(parameters.getInt(Params.DEPTH));
+            BestOrderScoreSearch search = new BestOrderScoreSearch(new K2(score));
+            search.setAlgorithm(1);
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
 
@@ -110,7 +110,7 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper {
     @Override
     public List<String> getParameters() {
         ArrayList<String> strings = new ArrayList<>();
-        strings.add(Params.DEPTH);
+//        strings.add(Params.DEPTH);
         return strings;
     }
     @Override

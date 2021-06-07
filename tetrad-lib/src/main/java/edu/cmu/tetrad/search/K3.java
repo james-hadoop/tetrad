@@ -15,7 +15,7 @@ import static java.lang.Double.POSITIVE_INFINITY;
  *
  * @author josephramsey
  */
-public class K2 implements ForwardScore {
+public class K3 implements ForwardScore {
 
     // The score used.
     private final Score _score;
@@ -34,7 +34,7 @@ public class K2 implements ForwardScore {
      *
      * @param score the score used. A score that works well with FGES (GES) will do fine.
      */
-    public K2(Score score) {
+    public K3(Score score) {
         this._score = score;
         this.test = new IndTestScore(score);
     }
@@ -77,19 +77,21 @@ public class K2 implements ForwardScore {
     private ScoreResult scoreResult(List<Node> order) {
         List<Node> variables = _score.getVariables();
         double score = 0;
+        List<Set<Node>> pis = new ArrayList<>();
 
         for (int i = 0; i < order.size(); i++) {
             Node n = order.get(i);
             Family family = family(order, n);
 
             double s_node = score(variables, n, new HashSet<>());
+            Set<Node> pi;
 
             if (familyPis.containsKey(family)) {
                 s_node = familyScores.get(family);
+                pi = familyPis.get(family);
             } else {
-                Set<Node> pi = new HashSet<>();
+                pi = new HashSet<>();
                 boolean changed = true;
-
                 double s_new = POSITIVE_INFINITY;
 
                 while (changed) {
@@ -117,38 +119,39 @@ public class K2 implements ForwardScore {
                         s_node = s_new;
                         changed = true;
                     }
+
+                    for (Node z0 : new HashSet<>(pi)) {
+                        pi.remove(z0);
+
+                        double s2 = score(variables, n, pi);
+
+                        if (s2 < s_new) {
+                            s_new = s2;
+                            z = z0;
+                        }
+
+                        pi.add(z0);
+                    }
+
+                    if (s_new < s_node) {
+                        pi.remove(z);
+                        s_node = s_new;
+                        changed = true;
+                    }
                 }
 
                 this.familyPis.put(family, pi);
                 this.familyScores.put(family, s_node);
-
-                Family family2 = new Family(n, pi);
-                this.familyPis.put(family2, pi);
-                this.familyScores.put(family2, s_node);
             }
 
-            score += s_node;
-        }
-
-        List<Set<Node>> pis = new ArrayList<>();
-
-        for (Node n : order) {
-            Set<Node> pi = familyPis.get(family(order, n));
             pis.add(pi);
+            score += s_node;
         }
 
         return new ScoreResult(pis, score);
     }
 
     private double score(List<Node> variables, Node n, Set<Node> pi) {
-        Family family = new Family(n, pi);
-
-        Double score = familyScores.get(family);
-
-        if (score != null) {
-            return score;
-        }
-
         int[] parentIndices = new int[pi.size()];
 
         int k = 0;

@@ -15,7 +15,7 @@ import static java.lang.Double.POSITIVE_INFINITY;
  *
  * @author josephramsey
  */
-public class K2b implements FastForward {
+public class K2Old implements ForwardScore {
 
     // The score used.
     private final Score _score;
@@ -29,7 +29,7 @@ public class K2b implements FastForward {
      *
      * @param score the score used. A score that works well with FGES (GES) will do fine.
      */
-    public K2b(Score score) {
+    public K2Old(Score score) {
         this._score = score;
         this.test = new IndTestScore(score);
     }

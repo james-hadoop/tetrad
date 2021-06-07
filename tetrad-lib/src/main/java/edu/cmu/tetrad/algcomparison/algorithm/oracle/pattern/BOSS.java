@@ -12,8 +12,6 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.FgesBicScorer;
-import edu.cmu.tetrad.sem.Scorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -59,8 +57,9 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
 
-            BestOrderScoreSearch search = new BestOrderScoreSearch(new K2(score, false));
-            search.setAlgorithm(parameters.getInt(Params.DEPTH));
+            BestOrderScoreSearch search = new BestOrderScoreSearch(new K3(score));
+            search.setMethod(BestOrderScoreSearch.Method.NORECURSIVE);
+
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
 
@@ -108,7 +107,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public String getDescription() {
-        return "BOSS K2";
+        return "BOSS";
     }
 
     @Override
@@ -118,9 +117,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public List<String> getParameters() {
-        ArrayList<String> strings = new ArrayList<>();
-        strings.add(Params.DEPTH);
-        return strings;
+        return new ArrayList<>();
     }
 
     @Override

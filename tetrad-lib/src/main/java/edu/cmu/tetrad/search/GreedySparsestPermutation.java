@@ -15,20 +15,20 @@ import static java.util.Collections.shuffle;
  *
  * @author josephramsey
  */
-public class BestOrderScoreSearch {
+public class GreedySparsestPermutation {
 
     // The score used (default FML BIC). Lower is better.
     private final ForwardScore forwardScore;
     private double scoreOriginalOrder = Double.NaN;
     private double scoreLearnedOrder = Double.NaN;
-    private Method method = Method.NORECURSIVE;
+    private int algorithm = 1;
 
     /**
      * Constructs a GSS search
      *
      * @param forward the fastForward algorithm used.
      */
-    public BestOrderScoreSearch(ForwardScore forward) {
+    public GreedySparsestPermutation(ForwardScore forward) {
         this.forwardScore = forward;
     }
 
@@ -52,67 +52,66 @@ public class BestOrderScoreSearch {
 
         int count = 0;
 
-        List<Node> br = new ArrayList<>(b0);
+        if (algorithm == 1) {
+            Map<Node, Set<Node>> associates = getAssociates(variables);
 
-        Map<Node, Set<Node>> associates = getAssociates(variables);
+            List<Node> br = new ArrayList<>(b0);
+            double sr = s0;
 
-        br = new ArrayList<>(br);
-        double sr = forwardScore.score(br);
+            for (int R = 0; R < 10; R++) {
+                List<Node> b3 = new ArrayList<>(variables);
+                shuffle(b3);
+                double s3 = forwardScore.score(b3);
 
-        for (int r = 0; r < 5; r++) {
-            if (method == Method.NORECURSIVE) {
+                if (s3 < sr) {
+                    sr = s3;
+                    br = b3;
+                }
 
-                // Until you can't do it anymore...
                 while (changed) {
                     changed = false;
 
-                    List<Node> b2 = new ArrayList<>(br);
+                    List<Node> b2 = new ArrayList<>(b0);
                     double s2 = sr;
 
-                    // ...pick a variable v...
-                    for (Node v : variables) {
+                    for (int i = 0; i < br.size() - 1; i++) {
+                        if (!associates.get(b0.get(i)).contains(b0.get(i + 1))) continue;
+                        List<Node> b1 = swap(br, i);
 
-                        // ...and move v to an optimal position.
-                        for (Node w : associates.get(v)) {
-                            int j = b2.indexOf(w);
-                            List<Node> b1 = new ArrayList<>(b2);
-                            b1.remove(v);
-                            b1.add(j, v);
+                        double s1 = forwardScore.score(b1);
 
-                            count++;
-
-                            double s1 = forwardScore.score(b1);
-
-                            if (s1 < s2) {
-                                s2 = s1;
-                                b2 = b1;
-                            }
+                        if (s1 < s2) {
+                            s2 = s1;
+                            b2 = b1;
                         }
                     }
 
-                    // Output the best order you find.
                     if (s2 < sr) {
-                        br = b2;
                         sr = s2;
+                        br = b2;
                         changed = true;
                     }
                 }
-            } else if (method == Method.RECURSIVE) {
-                br = bossRecursive(br, sr, associates);
-                sr = forwardScore.score(br);
-            } else {
-                throw new IllegalStateException("Unrecognized method: " + method);
-            }
 
-            if (sr < s0) {
-                s0 = sr;
-                b0 = new ArrayList<>(br);
+                if (sr < s0) {
+                    s0 = sr;
+                    b0 = br;
+
+                    System.out.println("Updated order = " + b0 + " count = " + count);
+                }
+            }
+        } else if (algorithm == 2) {
+            List<Node> b1 = gspRecursive(b0, s0);
+            double s1 = forwardScore.score(b0);
+
+            if (s1 < s0) {
+                s0 = s1;
+                b0 = b1;
 
                 System.out.println("Updated order = " + b0 + " count = " + count);
             }
-
-            shuffle(br);
-            sr = forwardScore.score(br);
+        } else {
+            throw new IllegalArgumentException("Expecting algorithm 1 (theirs) or 2 (mine), 3 (esp)");
         }
 
         scoreLearnedOrder = s0;
@@ -122,6 +121,30 @@ public class BestOrderScoreSearch {
         System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
 
         return forwardScore.search(b0);
+    }
+
+    private List<Node> gspRecursive(List<Node> b0, double s0) {
+        List<Node> b2 = new ArrayList<>(b0);
+        double s2 = s0;
+        boolean found = false;
+
+        for (int i = 0; i < b2.size() - 1; i++) {
+            List<Node> b1 = swap(b2, i);
+
+            double s1 = forwardScore.score(b1);
+
+            if (s1 < s2) {
+                b2 = b1;
+                s2 = s1;
+                found = true;
+            }
+        }
+
+        if (found) {
+            return gspRecursive(b2, s2);
+        } else {
+            return b2;
+        }
     }
 
     private List<Node> bossRecursive(List<Node> b0, double s0, Map<Node, Set<Node>> associates) {
@@ -167,12 +190,39 @@ public class BestOrderScoreSearch {
                 if (forwardScore.isAssociated(w, v)) {
                     nodes.add(w);
                 }
+//
+//                for (Node r : nodes) {
+//                    if (forwardScore.isAssociated(w, r)) {
+//                        nodes.add(r);
+//                    }
+//
+//                    for (Node s : nodes) {
+//                        if (forwardScore.isAssociated(w, s)) {
+//                            nodes.add(s);
+//                        }
+//                    }
+//                }
             }
 
             associates.put(v, nodes);
         }
 
         return associates;
+    }
+
+    @NotNull
+    private List<Node> swap(List<Node> b0, int i) {
+        List<Node> b1 = new ArrayList<>(b0);
+
+        Node n1 = b0.get(i);
+        Node n2 = b0.get(i + 1);
+
+        b1.remove(n1);
+        b1.add(i + 1, n1);
+
+        b1.remove(n2);
+        b1.add(i, n2);
+        return b1;
     }
 
     public double getScoreOriginalOrder() {
@@ -183,9 +233,7 @@ public class BestOrderScoreSearch {
         return scoreLearnedOrder;
     }
 
-    public void setMethod(Method method) {
-        this.method = method;
+    public void setAlgorithm(int anInt) {
+        this.algorithm = anInt;
     }
-
-    public enum Method{NORECURSIVE, RECURSIVE}
 }
