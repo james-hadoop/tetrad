@@ -47,11 +47,7 @@ public class BestOrderScoreSearch {
 
         scoreOriginalOrder = s0;
 
-        System.out.println("Original order = " + b0);
-
         boolean changed = true;
-
-        int count = 0;
 
         List<Node> br = new ArrayList<>(b0);
 
@@ -80,8 +76,6 @@ public class BestOrderScoreSearch {
                             b1.remove(v);
                             b1.add(j, v);
 
-                            count++;
-
                             double s1 = forwardScore.score(b1);
 
                             if (s1 < s2) {
@@ -108,9 +102,9 @@ public class BestOrderScoreSearch {
             if (sr < s0) {
                 s0 = sr;
                 b0 = new ArrayList<>(br);
-
-                System.out.println("Updated order = " + b0 + " count = " + count);
             }
+
+            System.out.println("Completed round " + (r + 1) + " elapsed = " + (System.currentTimeMillis() - start) / 1000.0 + " s");
 
             shuffle(br);
             sr = forwardScore.score(br);
@@ -126,11 +120,13 @@ public class BestOrderScoreSearch {
     }
 
     private List<Node> bossRecursive(List<Node> b0, double s0, Map<Node, Set<Node>> associates) {
-
         List<Node> b2 = new ArrayList<>(b0);
         double s2 = s0;
 
         boolean found = false;
+
+        List<Node> best = new ArrayList<>(b0);
+        double sBest = s0;
 
         for (Node v : b0) {
             for (Node w : associates.get(v)) {
@@ -147,14 +143,14 @@ public class BestOrderScoreSearch {
                     found = true;
                 }
             }
+
+            if (found && s2 < sBest) {
+                best = bossRecursive(b2, s2, associates);
+                sBest = forwardScore.score(best);
+            }
         }
 
-        if (found) {
-            return bossRecursive(b2, s2, associates);
-        } else {
-            return b2;
-        }
-
+        return best;
     }
 
     @NotNull

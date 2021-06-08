@@ -1,92 +1,82 @@
-package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
+package edu.cmu.tetrad.algcomparison.algorithm.oracle.pag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
-import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
+import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.DagToPag2;
+import edu.cmu.tetrad.search.GFciBoss;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
- * BOSS (Best Order Scoring Search).
+ * GFCI.
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "BOSS",
-        command = "boss",
-        algoType = AlgType.forbid_latent_common_causes
+        name = "GFCI-BOSS",
+        command = "gfciboss",
+        algoType = AlgType.allow_latent_common_causes
 )
 @Bootstrapping
-public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
+public class GfciBoss implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
-
+    private IndependenceWrapper test;
     private ScoreWrapper score;
     private IKnowledge knowledge = new Knowledge2();
-    private Graph initialGraph;
-    private Algorithm algorithm;
 
-    public BOSS() {
-
+    public GfciBoss() {
     }
 
-    public BOSS(ScoreWrapper score) {
+    public GfciBoss(IndependenceWrapper test, ScoreWrapper score) {
+        this.test = test;
         this.score = score;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
-        if (algorithm != null) {
-            this.initialGraph = algorithm.search(dataSet, parameters);
-        }
-
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            Score score = this.score.getScore(dataSet, parameters);
+            GFciBoss search = new GFciBoss(test.getTest(dataSet, parameters), score.getScore(dataSet, parameters));
+            search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
+            search.setKnowledge(knowledge);
+            search.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
+            search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
+            search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
 
-            BestOrderScoreSearch search = new BestOrderScoreSearch(new K3(score));
-            search.setMethod(BestOrderScoreSearch.Method.NONRECURSIVE);
-            search.setNumRestarts(parameters.getInt(Params.NUM_RESTARTS));
 
-            if (parameters.getBoolean(Params.RECURSIVE)) {
-                search.setMethod(BestOrderScoreSearch.Method.RECURSIVE);
-            } else {
-                search.setMethod(BestOrderScoreSearch.Method.NONRECURSIVE);
+            Object obj = parameters.get(Params.PRINT_STREAM);
+
+            if (obj instanceof PrintStream) {
+                search.setOut((PrintStream) obj);
             }
 
-            List<Node> variables = new ArrayList<>(score.getVariables());
-            Graph graph = search.search(variables);
-
-            System.out.println("Score for original order = " + search.getScoreOriginalOrder());
-            System.out.println("Score for learned order = " + search.getScoreLearnedOrder());
-
-//            return graph;
-            return SearchGraphUtils.patternForDag(graph);
+            return search.search();
         } else {
-            BOSS fges = new BOSS();
-
+            GfciBoss algorithm = new GfciBoss(test, score);
             DataSet data = (DataSet) dataSet;
-            GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
+            GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(knowledge);
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
-
             switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
                 case 0:
                     edgeEnsemble = ResamplingEdgeEnsemble.Preserved;
@@ -97,7 +87,6 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
                 case 2:
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
             }
-
             search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
 
@@ -109,25 +98,32 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public Graph getComparisonGraph(Graph graph) {
-        return new EdgeListGraph(graph);
+        return new DagToPag2(graph).convert();
     }
 
     @Override
     public String getDescription() {
-        return "BOSS";
+        return "GFCI (Greedy Fast Causal Inference) using " + test.getDescription()
+                + " and " + score.getDescription();
     }
 
     @Override
     public DataType getDataType() {
-        return score.getDataType();
+        return test.getDataType();
     }
 
     @Override
     public List<String> getParameters() {
-        ArrayList<String> params = new ArrayList<>();
-        params.add(Params.RECURSIVE);
-        params.add(Params.NUM_RESTARTS);
-        return params;
+        List<String> parameters = new ArrayList<>();
+
+        parameters.add(Params.FAITHFULNESS_ASSUMED);
+        parameters.add(Params.MAX_DEGREE);
+//        parameters.add("printStream");
+        parameters.add(Params.MAX_PATH_LENGTH);
+        parameters.add(Params.COMPLETE_RULE_SET_USED);
+
+        parameters.add(Params.VERBOSE);
+        return parameters;
     }
 
     @Override
@@ -141,27 +137,23 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     }
 
     @Override
+    public IndependenceWrapper getIndependenceWrapper() {
+        return test;
+    }
+
+    @Override
+    public void setIndependenceWrapper(IndependenceWrapper test) {
+        this.test = test;
+    }
+
+    @Override
     public ScoreWrapper getScoreWrapper() {
         return score;
-    }
-
-    @Override
-    public Graph getInitialGraph() {
-        return initialGraph;
-    }
-
-    @Override
-    public void setInitialGraph(Graph initialGraph) {
-        this.initialGraph = initialGraph;
-    }
-
-    @Override
-    public void setInitialGraph(Algorithm algorithm) {
-        this.algorithm = algorithm;
     }
 
     @Override
     public void setScoreWrapper(ScoreWrapper score) {
         this.score = score;
     }
+
 }

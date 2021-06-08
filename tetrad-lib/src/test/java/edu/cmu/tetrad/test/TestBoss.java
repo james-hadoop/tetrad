@@ -101,6 +101,7 @@ public final class TestBoss {
         params.set(Params.PENALTY_DISCOUNT, 1);
         params.set(Params.COEF_LOW, 0.2);
         params.set(Params.COEF_HIGH, 0.8);
+        params.set(Params.VERBOSE, false);
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new SemBicScore()));

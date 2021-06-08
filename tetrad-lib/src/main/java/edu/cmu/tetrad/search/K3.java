@@ -29,6 +29,8 @@ public class K3 implements ForwardScore {
     // Map from subproblem to scores.
     private final Map<Subproblem, Double> subproblemScores = new HashMap<>();
 
+    private final Map<Subproblem, Double> allScores = new HashMap<>();
+
     /**
      * Constructs a K3 search
      *
@@ -152,6 +154,10 @@ public class K3 implements ForwardScore {
     }
 
     private double score(List<Node> variables, Node n, Set<Node> pi) {
+        if (allScores.containsKey(new Subproblem(n, pi))) {
+            return allScores.get(new Subproblem(n, pi));
+        }
+
         int[] parentIndices = new int[pi.size()];
 
         int k = 0;
@@ -160,7 +166,11 @@ public class K3 implements ForwardScore {
             parentIndices[k++] = variables.indexOf(p);
         }
 
-        return -_score.localScore(variables.indexOf(n), parentIndices);
+        double score = -_score.localScore(variables.indexOf(n), parentIndices);
+
+        allScores.put(new Subproblem(n, pi), score);
+
+        return score;
     }
 
     private Subproblem subproblem(List<Node> order, Node n) {
