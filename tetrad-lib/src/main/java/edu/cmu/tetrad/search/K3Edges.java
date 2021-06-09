@@ -15,7 +15,7 @@ import static java.lang.Double.POSITIVE_INFINITY;
  *
  * @author josephramsey
  */
-public class K2 implements ForwardScore {
+public class K3Edges implements ForwardScore {
 
     // The score used.
     private final Score _score;
@@ -26,15 +26,17 @@ public class K2 implements ForwardScore {
     // Map from subproblems to parent sets.
     private final Map<Subproblem, Set<Node>> subproblemPis = new HashMap<>();
 
-    // Map from subproblems to scores.
+    // Map from subproblem to scores.
     private final Map<Subproblem, Double> subproblemScores = new HashMap<>();
+
+    private final Map<Subproblem, Double> allScores = new HashMap<>();
 
     /**
      * Constructs a K3 search
      *
      * @param score the score used. A score that works well with FGES (GES) will do fine.
      */
-    public K2(Score score) {
+    public K3Edges(Score score) {
         this._score = score;
         this.test = new IndTestScore(score);
     }
@@ -77,19 +79,21 @@ public class K2 implements ForwardScore {
     private ScoreResult scoreResult(List<Node> order) {
         List<Node> variables = _score.getVariables();
         double score = 0;
+        List<Set<Node>> pis = new ArrayList<>();
 
         for (int i = 0; i < order.size(); i++) {
             Node n = order.get(i);
             Subproblem subproblem = subproblem(order, n);
 
             double s_node = score(variables, n, new HashSet<>());
+            Set<Node> pi;
 
             if (subproblemPis.containsKey(subproblem)) {
                 s_node = subproblemScores.get(subproblem);
+                pi = subproblemPis.get(subproblem);
             } else {
-                Set<Node> pi = new HashSet<>();
+                pi = new HashSet<>();
                 boolean changed = true;
-
                 double s_new = POSITIVE_INFINITY;
 
                 while (changed) {
@@ -102,10 +106,10 @@ public class K2 implements ForwardScore {
                         if (pi.contains(z0)) continue;
                         pi.add(z0);
 
-                        double s2 = scoreDiff(variables,z0, n, pi);
+                        double s2 = score(variables, n, pi);
 
-                        if (s2 < 0) {
-                            s_new += s2;
+                        if (s2 < s_new) {
+                            s_new = s2;
                             z = z0;
                         }
 
@@ -117,36 +121,41 @@ public class K2 implements ForwardScore {
                         s_node = s_new;
                         changed = true;
                     }
+
+                    for (Node z0 : new HashSet<>(pi)) {
+                        pi.remove(z0);
+
+                        double s2 = score(variables, n, pi);
+
+                        if (s2 < s_new) {
+                            s_new = s2;
+                            z = z0;
+                        }
+
+                        pi.add(z0);
+                    }
+
+                    if (s_new < s_node) {
+                        pi.remove(z);
+                        s_node = s_new;
+                        changed = true;
+                    }
                 }
 
                 this.subproblemPis.put(subproblem, pi);
                 this.subproblemScores.put(subproblem, s_node);
-
-                Subproblem subproblem2 = new Subproblem(n, pi);
-                this.subproblemPis.put(subproblem2, pi);
-                this.subproblemScores.put(subproblem2, s_node);
             }
 
-            score += s_node;
-        }
-
-        List<Set<Node>> pis = new ArrayList<>();
-
-        for (Node n : order) {
-            Set<Node> pi = subproblemPis.get(subproblem(order, n));
             pis.add(pi);
+            score += pi.size();
         }
 
         return new ScoreResult(pis, score);
     }
 
     private double score(List<Node> variables, Node n, Set<Node> pi) {
-        Subproblem subproblem = new Subproblem(n, pi);
-
-        Double score = subproblemScores.get(subproblem);
-
-        if (score != null) {
-            return score;
+        if (allScores.containsKey(new Subproblem(n, pi))) {
+            return allScores.get(new Subproblem(n, pi));
         }
 
         int[] parentIndices = new int[pi.size()];
@@ -157,27 +166,11 @@ public class K2 implements ForwardScore {
             parentIndices[k++] = variables.indexOf(p);
         }
 
-        return -_score.localScore(variables.indexOf(n), parentIndices);
-    }
+        double score = -_score.localScore(variables.indexOf(n), parentIndices);
 
-    private double scoreDiff(List<Node> variables, Node x, Node n, Set<Node> pi) {
-        Subproblem subproblem = new Subproblem(n, pi);
+        allScores.put(new Subproblem(n, pi), score);
 
-        Double score = subproblemScores.get(subproblem);
-
-        if (score != null) {
-            return score;
-        }
-
-        int[] parentIndices = new int[pi.size()];
-
-        int k = 0;
-
-        for (Node p : pi) {
-            parentIndices[k++] = variables.indexOf(p);
-        }
-
-        return -_score.localScoreDiff(variables.indexOf(n), variables.indexOf(x), parentIndices);
+        return score;
     }
 
     private Subproblem subproblem(List<Node> order, Node n) {

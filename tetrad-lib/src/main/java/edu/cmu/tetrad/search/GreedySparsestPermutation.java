@@ -21,7 +21,7 @@ public class GreedySparsestPermutation {
     private final ForwardScore forwardScore;
     private double scoreOriginalOrder = Double.NaN;
     private double scoreLearnedOrder = Double.NaN;
-    private Method method = Method.NORECURSIVE;
+    private Method method = Method.NONRECURSIVE;
     private int numRestarts = 1;
 
     /**
@@ -57,7 +57,7 @@ public class GreedySparsestPermutation {
         double sr = s0;
 
         for (int r = 0; r < numRestarts; r++) {
-            if (method == Method.NORECURSIVE) {
+            if (method == Method.NONRECURSIVE) {
                 while (changed) {
                     changed = false;
 
@@ -83,7 +83,7 @@ public class GreedySparsestPermutation {
                     }
                 }
             } else if (method == Method.RECURSIVE) {
-                br = gspRecursive(br, sr);
+                br = espRecursive(br, sr);
                 sr = forwardScore.score(br);
             } else {
                 throw new IllegalStateException("Unrecognized method: " + method);
@@ -109,10 +109,9 @@ public class GreedySparsestPermutation {
         return forwardScore.search(b0);
     }
 
-    private List<Node> gspRecursive(List<Node> b0, double s0) {
+    private List<Node> espRecursive(List<Node> b0, double s0) {
         List<Node> b2 = new ArrayList<>(b0);
         double s2 = s0;
-        boolean found = false;
 
         for (int i = 0; i < b2.size() - 1; i++) {
             List<Node> b1 = swap(b2, i);
@@ -120,18 +119,14 @@ public class GreedySparsestPermutation {
             double s1 = forwardScore.score(b1);
 
             if (s1 < s2) {
-                b2 = b1;
-                s2 = s1;
-                found = true;
+                b2 = espRecursive(b1, s1);
+                s2 = forwardScore.score(b2);
             }
         }
 
-        if (found) {
-            return gspRecursive(b2, s2);
-        } else {
-            return b2;
-        }
+        return b2;
     }
+
 
     @NotNull
     private List<Node> swap(List<Node> b0, int i) {
@@ -183,5 +178,5 @@ public class GreedySparsestPermutation {
         this.numRestarts = numRestarts;
     }
 
-    public enum Method{NORECURSIVE, RECURSIVE}
+    public enum Method{NONRECURSIVE, RECURSIVE}
 }

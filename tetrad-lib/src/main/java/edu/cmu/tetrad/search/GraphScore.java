@@ -64,7 +64,8 @@ public class GraphScore implements Score {
      */
     public double localScore(int y, int[] z) {
 //        return -localScoreDiff(0, y, z);
-        throw new UnsupportedOperationException();
+//        throw new UnsupportedOperationException();
+        return 0;
     }
 
     private List<Node> getVariableList(int[] indices) {

@@ -3,6 +3,7 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
@@ -10,10 +11,7 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.GreedySparsestPermutation;
-import edu.cmu.tetrad.search.K2;
-import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.SearchGraphUtils;
+import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -33,19 +31,21 @@ import java.util.List;
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper {
+public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
 
     private IKnowledge knowledge = new Knowledge2();
-    private ScoreWrapper scoreWrapper;
+    private ScoreWrapper score;
+    private Graph initialGraph;
+    private Algorithm algorithm;
 
     public GSP() {
 
     }
 
     public GSP(ScoreWrapper score) {
-        this.scoreWrapper = score;
+        this.score = score;
     }
 
     @Override
@@ -54,9 +54,9 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
             Score score = getScoreWrapper().getScore(dataSet, parameters);
 
-            GreedySparsestPermutation search = new GreedySparsestPermutation(new K2(score));
-            search.setMethod(GreedySparsestPermutation.Method.NORECURSIVE);
-            search.setNumRestarts(5);
+            GreedySparsestPermutation search = new GreedySparsestPermutation(new K2Edges(score));
+            search.setMethod(GreedySparsestPermutation.Method.NONRECURSIVE);
+            search.setNumRestarts(parameters.getInt(Params.NUM_RESTARTS));
 
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
@@ -109,12 +109,15 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public DataType getDataType() {
-        return scoreWrapper.getDataType();
+        return score.getDataType();
     }
 
     @Override
     public List<String> getParameters() {
-        return new ArrayList<>();
+        ArrayList<String> params = new ArrayList<>();
+        params.add(Params.RECURSIVE);
+        params.add(Params.NUM_RESTARTS);
+        return params;
     }
 
     @Override
@@ -129,11 +132,26 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public ScoreWrapper getScoreWrapper() {
-        return scoreWrapper;
+        return score;
     }
 
     @Override
     public void setScoreWrapper(ScoreWrapper score) {
-        this.scoreWrapper = score;
+        this.score = score;
+    }
+
+    @Override
+    public Graph getInitialGraph() {
+        return initialGraph;
+    }
+
+    @Override
+    public void setInitialGraph(Graph initialGraph) {
+        this.initialGraph = initialGraph;
+    }
+
+    @Override
+    public void setInitialGraph(Algorithm algorithm) {
+        this.algorithm = algorithm;
     }
 }

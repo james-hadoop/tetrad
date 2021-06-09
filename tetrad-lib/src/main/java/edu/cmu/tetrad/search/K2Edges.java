@@ -15,7 +15,7 @@ import static java.lang.Double.POSITIVE_INFINITY;
  *
  * @author josephramsey
  */
-public class K2 implements ForwardScore {
+public class K2Edges implements ForwardScore {
 
     // The score used.
     private final Score _score;
@@ -34,7 +34,7 @@ public class K2 implements ForwardScore {
      *
      * @param score the score used. A score that works well with FGES (GES) will do fine.
      */
-    public K2(Score score) {
+    public K2Edges(Score score) {
         this._score = score;
         this.test = new IndTestScore(score);
     }
@@ -102,10 +102,10 @@ public class K2 implements ForwardScore {
                         if (pi.contains(z0)) continue;
                         pi.add(z0);
 
-                        double s2 = scoreDiff(variables,z0, n, pi);
+                        double s2 = score(variables, n, pi);
 
-                        if (s2 < 0) {
-                            s_new += s2;
+                        if (s2 < s_new) {
+                            s_new = s2;
                             z = z0;
                         }
 
@@ -131,13 +131,15 @@ public class K2 implements ForwardScore {
         }
 
         List<Set<Node>> pis = new ArrayList<>();
+        int sum = 0;
 
         for (Node n : order) {
             Set<Node> pi = subproblemPis.get(subproblem(order, n));
             pis.add(pi);
+            sum += pi.size();
         }
 
-        return new ScoreResult(pis, score);
+        return new ScoreResult(pis, sum);
     }
 
     private double score(List<Node> variables, Node n, Set<Node> pi) {
@@ -158,26 +160,6 @@ public class K2 implements ForwardScore {
         }
 
         return -_score.localScore(variables.indexOf(n), parentIndices);
-    }
-
-    private double scoreDiff(List<Node> variables, Node x, Node n, Set<Node> pi) {
-        Subproblem subproblem = new Subproblem(n, pi);
-
-        Double score = subproblemScores.get(subproblem);
-
-        if (score != null) {
-            return score;
-        }
-
-        int[] parentIndices = new int[pi.size()];
-
-        int k = 0;
-
-        for (Node p : pi) {
-            parentIndices[k++] = variables.indexOf(p);
-        }
-
-        return -_score.localScoreDiff(variables.indexOf(n), variables.indexOf(x), parentIndices);
     }
 
     private Subproblem subproblem(List<Node> order, Node n) {
