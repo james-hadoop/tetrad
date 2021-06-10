@@ -11,7 +11,7 @@ import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.DagToPag2;
-import edu.cmu.tetrad.search.GFciBoss;
+import edu.cmu.tetrad.search.GFciGsps;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -51,7 +51,7 @@ public class GfciBoss implements Algorithm, HasKnowledge, UsesScoreWrapper, Take
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            GFciBoss search = new GFciBoss(test.getTest(dataSet, parameters), score.getScore(dataSet, parameters));
+            GFciGsps search = new GFciGsps(test.getTest(dataSet, parameters), score.getScore(dataSet, parameters));
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));

@@ -29,7 +29,7 @@ public class GreedySparsestPermutation {
      *
      * @param forward the fastForward algorithm used.
      */
-    public GreedySparsestPermutation(ForwardScore forward) {
+    public  GreedySparsestPermutation(ForwardScore forward) {
         this.forwardScore = forward;
     }
 
@@ -104,7 +104,7 @@ public class GreedySparsestPermutation {
 
         long stop = System.currentTimeMillis();
 
-        System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
+        System.out.println("GSPS Elapsed time = " + (stop - start) / 1000.0 + " s");
 
         return forwardScore.search(b0);
     }

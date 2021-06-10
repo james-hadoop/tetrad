@@ -23,7 +23,7 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.GSPS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.GSP;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
@@ -43,11 +43,11 @@ import org.junit.Test;
  *
  * @author Joseph Ramsey
  */
-public final class TestBoss {
+public final class TestGsp {
 
 
     @Test
-    public void testBoss() {
+    public void testGsps() {
         RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
@@ -61,7 +61,7 @@ public final class TestBoss {
         params.set(Params.COEF_HIGH, 1.0);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore()));
+        algorithms.add(new GSPS(new SemBicScore()));
         algorithms.add(new GSP(new SemBicScore()));
 //        algorithms.add(new Fges(new SemBicScore()));
 
@@ -90,7 +90,7 @@ public final class TestBoss {
     }
 
     @Test
-    public void testBoss2() {
+    public void testGsps2() {
         RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
@@ -106,7 +106,7 @@ public final class TestBoss {
         params.set(Params.VERBOSE, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore()));
+        algorithms.add(new GSPS(new SemBicScore()));
 //        algorithms.add(new GSP(new SemBicScore()));
         algorithms.add(new Fges(new SemBicScore()));
         algorithms.add(new PcAll(new FisherZ()));

@@ -21,17 +21,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * BOSS (Best Order Scoring Search).
+ * GSPS (Greedy Sparest Permutation, Simplified).
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "BOSS",
-        command = "boss",
+        name = "GSPS",
+        command = "gsps",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
+public class GSPS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
 
@@ -40,11 +40,11 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     private Graph initialGraph;
     private Algorithm algorithm;
 
-    public BOSS() {
+    public GSPS() {
 
     }
 
-    public BOSS(ScoreWrapper score) {
+    public GSPS(ScoreWrapper score) {
         this.score = score;
     }
 
@@ -76,7 +76,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 //            return graph;
             return SearchGraphUtils.patternForDag(graph);
         } else {
-            BOSS fges = new BOSS();
+            GSPS fges = new GSPS();
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -114,7 +114,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public String getDescription() {
-        return "BOSS";
+        return "GSPS";
     }
 
     @Override

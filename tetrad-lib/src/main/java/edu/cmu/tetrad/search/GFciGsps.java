@@ -20,14 +20,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSS;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.data.KnowledgeEdge;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
-import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
@@ -42,7 +40,7 @@ import java.util.List;
  * @author ps7z
  * @author jdramsey
  */
-public final class GFciBoss implements GraphSearch {
+public final class GFciGsps implements GraphSearch {
 
     // The PAG being constructed.
     private Graph graph;
@@ -87,7 +85,7 @@ public final class GFciBoss implements GraphSearch {
     private long elapsedTime;
 
     //============================CONSTRUCTORS============================//
-    public GFciBoss(IndependenceTest test, Score score) {
+    public GFciGsps(IndependenceTest test, Score score) {
         if (score == null) {
             throw new NullPointerException();
         }

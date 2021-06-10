@@ -29,6 +29,8 @@ public class K2Edges implements ForwardScore {
     // Map from subproblems to scores.
     private final Map<Subproblem, Double> subproblemScores = new HashMap<>();
 
+    private final Map<Subproblem, Double> allScores = new HashMap<>();
+
     /**
      * Constructs a K3 search
      *
@@ -145,7 +147,7 @@ public class K2Edges implements ForwardScore {
     private double score(List<Node> variables, Node n, Set<Node> pi) {
         Subproblem subproblem = new Subproblem(n, pi);
 
-        Double score = subproblemScores.get(subproblem);
+        Double score = allScores.get(subproblem);
 
         if (score != null) {
             return score;
@@ -159,7 +161,11 @@ public class K2Edges implements ForwardScore {
             parentIndices[k++] = variables.indexOf(p);
         }
 
-        return -_score.localScore(variables.indexOf(n), parentIndices);
+        double _score = -this._score.localScore(variables.indexOf(n), parentIndices);
+
+        allScores.put(subproblem, _score);
+
+        return _score;
     }
 
     private Subproblem subproblem(List<Node> order, Node n) {
