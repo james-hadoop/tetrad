@@ -29,7 +29,7 @@ public class GreedySparsestPermutation {
      *
      * @param forward the fastForward algorithm used.
      */
-    public  GreedySparsestPermutation(ForwardScore forward) {
+    public GreedySparsestPermutation(ForwardScore forward) {
         this.forwardScore = forward;
     }
 
