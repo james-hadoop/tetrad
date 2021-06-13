@@ -1,10 +1,11 @@
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.util.Collections.shuffle;
 
@@ -26,11 +27,9 @@ public class BestOrderScoreSearch {
 
     /**
      * Constructs a GSS search
-     *
-     * @param forward the fastForward algorithm used.
      */
-    public BestOrderScoreSearch(ForwardScore forward) {
-        this.forwardScore = forward;
+    public BestOrderScoreSearch(Score score) {
+        this.forwardScore = new K3(score);
     }
 
     /**
@@ -44,16 +43,13 @@ public class BestOrderScoreSearch {
 
         List<Node> b0 = new ArrayList<>(variables);
         double s0 = forwardScore.score(b0);
+        int m = variables.size();
 
         scoreOriginalOrder = s0;
 
         boolean changed = true;
 
         List<Node> br = new ArrayList<>(b0);
-
-        Map<Node, Set<Node>> associates = getAssociates(variables);
-
-        br = new ArrayList<>(br);
         double sr = forwardScore.score(br);
 
         for (int r = 0; r < numRestarts; r++) {
@@ -67,21 +63,29 @@ public class BestOrderScoreSearch {
                     double s2 = sr;
 
                     // ...pick a variable v...
-                    for (Node v : variables) {
+                    for (int i = 0; i < m; i++) {
+                        Node v = b0.get(i);
+
+                        List<Node> bt = new ArrayList<>(b2);
+                        double st = forwardScore.score(bt);
 
                         // ...and move v to an optimal position.
-                        for (Node w : associates.get(v)) {
-                            int j = b2.indexOf(w);
+                        for (int j = 0; j < m; j++) {
                             List<Node> b1 = new ArrayList<>(b2);
                             b1.remove(v);
                             b1.add(j, v);
 
                             double s1 = forwardScore.score(b1);
 
-                            if (s1 < s2) {
-                                s2 = s1;
-                                b2 = b1;
+                            if (s1 < st) {
+                                st = s1;
+                                bt = b1;
                             }
+                        }
+
+                        if (st < s2) {
+                            s2 = st;
+                            b2 = bt;
                         }
                     }
 
@@ -89,11 +93,12 @@ public class BestOrderScoreSearch {
                     if (s2 < sr) {
                         br = b2;
                         sr = s2;
+                        System.out.println("br = " + br);
                         changed = true;
                     }
                 }
             } else if (method == Method.RECURSIVE) {
-                br = bossRecursive(br, sr, associates);
+                br = bossRecursive(br, sr, variables);
                 sr = forwardScore.score(br);
             } else {
                 throw new IllegalStateException("Unrecognized method: " + method);
@@ -105,8 +110,10 @@ public class BestOrderScoreSearch {
             }
 
             System.out.println("Completed round " + (r + 1) + " elapsed = " + (System.currentTimeMillis() - start) / 1000.0 + " s");
+            System.out.println("br = " + br);
 
             shuffle(br);
+            System.out.println("shufflng br");
             sr = forwardScore.score(br);
         }
 
@@ -119,57 +126,124 @@ public class BestOrderScoreSearch {
         return forwardScore.search(b0);
     }
 
-    private List<Node> bossRecursive(List<Node> b0, double s0, Map<Node, Set<Node>> associates) {
+    public Graph search2(List<Node> variables) {
+        long start = System.currentTimeMillis();
+
+        List<Node> b0 = new ArrayList<>(variables);
+        double s0 = forwardScore.score(b0);
+        int m = variables.size();
+
+        scoreOriginalOrder = s0;
+
+        boolean changed = true;
+
+        List<Node> br = new ArrayList<>(b0);
+        double sr = forwardScore.score(br);
+
+        for (int r = 0; r < numRestarts; r++) {
+            if (method == Method.NONRECURSIVE) {
+
+                // Until you can't do it anymore...
+                while (changed) {
+                    changed = false;
+
+                    List<Node> b2 = new ArrayList<>(br);
+                    double s2 = sr;
+
+                    // ...pick a variable v...
+                    for (int i = 0; i < m; i++) {
+                        Node v = b0.get(i);
+
+                        List<Node> bt = new ArrayList<>(b2);
+                        double st = forwardScore.score(bt);
+
+                        // ...and move v to an optimal position.
+                        for (int j = 0; j < m; j++) {
+                            List<Node> b1 = new ArrayList<>(b2);
+                            b1.remove(v);
+                            b1.add(j, v);
+
+                            double s1 = forwardScore.score(b1);
+
+                            if (s1 < st) {
+                                st = s1;
+                                bt = b1;
+                            }
+                        }
+
+                        if (st < s2) {
+                            s2 = st;
+                            b2 = bt;
+                        }
+                    }
+
+                    // Output the best order you find.
+                    if (s2 < sr) {
+                        br = b2;
+                        sr = s2;
+                        System.out.println("br = " + br);
+                        changed = true;
+                    }
+                }
+            } else if (method == Method.RECURSIVE) {
+                br = bossRecursive(br, sr, variables);
+                sr = forwardScore.score(br);
+            } else {
+                throw new IllegalStateException("Unrecognized method: " + method);
+            }
+
+            if (sr < s0) {
+                s0 = sr;
+                b0 = new ArrayList<>(br);
+            }
+
+            System.out.println("Completed round " + (r + 1) + " elapsed = " + (System.currentTimeMillis() - start) / 1000.0 + " s");
+            System.out.println("br = " + br);
+
+            shuffle(br);
+            System.out.println("shufflng br");
+            sr = forwardScore.score(br);
+        }
+
+        scoreLearnedOrder = s0;
+
+        long stop = System.currentTimeMillis();
+
+        System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
+
+        return forwardScore.search(b0);
+    }
+
+    private List<Node> bossRecursive(List<Node> b0, double s0, List<Node> variables) {
+        int m = variables.size();
         List<Node> b2 = new ArrayList<>(b0);
-        double s2 = s0;
 
-        boolean found = false;
+        // ...pick a variable v...
+        for (Node v : variables) {
 
-        List<Node> best = new ArrayList<>(b0);
-        double sBest = s0;
+            List<Node> bt = new ArrayList<>(b2);
+            double st = forwardScore.score(bt);
 
-        for (Node v : b0) {
-            for (Node w : associates.get(v)) {
-                int j = b2.indexOf(w);
+            // ...and move v to an optimal position.
+            for (int j = 0; j < m; j++) {
                 List<Node> b1 = new ArrayList<>(b2);
                 b1.remove(v);
                 b1.add(j, v);
 
                 double s1 = forwardScore.score(b1);
 
-                if (s1 < s2) {
-                    s2 = s1;
-                    b2 = b1;
-                    found = true;
+                if (s1 < st) {
+                    st = s1;
+                    bt = b1;
                 }
             }
 
-            if (found && s2 < sBest) {
-                best = bossRecursive(b2, s2, associates);
-                sBest = forwardScore.score(best);
+            if (st < s0) {
+                return bossRecursive(bt, st, variables);
             }
         }
 
-        return best;
-    }
-
-    @NotNull
-    private Map<Node, Set<Node>> getAssociates(List<Node> variables) {
-        Map<Node, Set<Node>> associates = new HashMap<>();
-
-        for (Node v : variables) {
-            Set<Node> nodes = new HashSet<>();
-
-            for (Node w : variables) {
-                if (forwardScore.isAssociated(w, v)) {
-                    nodes.add(w);
-                }
-            }
-
-            associates.put(v,  nodes);
-        }
-
-        return associates;
+        return b0;
     }
 
     public double getScoreOriginalOrder() {
@@ -188,5 +262,9 @@ public class BestOrderScoreSearch {
         this.numRestarts = numRestarts;
     }
 
-    public enum Method{NONRECURSIVE, RECURSIVE}
+    public void setKnowledge(IKnowledge knowledge) {
+        this.forwardScore.setKnowledge(knowledge);
+    }
+
+    public enum Method {NONRECURSIVE, RECURSIVE}
 }

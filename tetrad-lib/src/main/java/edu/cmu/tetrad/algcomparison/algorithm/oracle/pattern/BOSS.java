@@ -21,17 +21,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * GSPS (Greedy Sparest Permutation, Simplified).
+ * BOSS (Greedy Sparest Permutation, Simplified).
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GSPS",
-        command = "gsps",
+        name = "BOSS",
+        command = "boss",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class GSPS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
+public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
 
@@ -40,11 +40,11 @@ public class GSPS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     private Graph initialGraph;
     private Algorithm algorithm;
 
-    public GSPS() {
+    public BOSS() {
 
     }
 
-    public GSPS(ScoreWrapper score) {
+    public BOSS(ScoreWrapper score) {
         this.score = score;
     }
 
@@ -57,9 +57,10 @@ public class GSPS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
 
-            BestOrderScoreSearch search = new BestOrderScoreSearch(new K3(score));
+            BestOrderScoreSearch search = new BestOrderScoreSearch(score);
             search.setMethod(BestOrderScoreSearch.Method.NONRECURSIVE);
             search.setNumRestarts(parameters.getInt(Params.NUM_RESTARTS));
+            search.setKnowledge(knowledge);
 
             if (parameters.getBoolean(Params.RECURSIVE)) {
                 search.setMethod(BestOrderScoreSearch.Method.RECURSIVE);
@@ -73,10 +74,10 @@ public class GSPS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             System.out.println("Score for original order = " + search.getScoreOriginalOrder());
             System.out.println("Score for learned order = " + search.getScoreLearnedOrder());
 
-//            return graph;
-            return SearchGraphUtils.patternForDag(graph);
+            return graph;
+//            return SearchGraphUtils.patternForDag(graph);
         } else {
-            GSPS fges = new GSPS();
+            BOSS fges = new BOSS();
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -114,7 +115,7 @@ public class GSPS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public String getDescription() {
-        return "GSPS";
+        return "BOSS";
     }
 
     @Override

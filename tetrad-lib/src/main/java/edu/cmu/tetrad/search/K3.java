@@ -1,8 +1,11 @@
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -24,12 +27,19 @@ public class K3 implements ForwardScore {
     private final IndTestScore test;
 
     // Map from subproblems to parent sets.
-    private final Map<Subproblem, Set<Node>> subproblemPis = new HashMap<>();
+    private final Map<Subproblem, List<Node>> subproblemPis = new HashMap<>();
 
     // Map from subproblem to scores.
     private final Map<Subproblem, Double> subproblemScores = new HashMap<>();
 
+    // All scores of variables given their putative parents.
     private final Map<Subproblem, Double> allScores = new HashMap<>();
+
+    // The variables from the score.
+    List<Node> variables;
+
+    // The knowledge; we use forbidden edges from this.
+    private IKnowledge knowledge = new Knowledge2();
 
     /**
      * Constructs a K3 search
@@ -39,6 +49,7 @@ public class K3 implements ForwardScore {
     public K3(Score score) {
         this._score = score;
         this.test = new IndTestScore(score);
+        this.variables = _score.getVariables();
     }
 
     /**
@@ -46,7 +57,7 @@ public class K3 implements ForwardScore {
      */
     public Graph search(List<Node> order) {
         ScoreResult result = scoreResult(order);
-        List<Set<Node>> pis = result.getPis();
+        List<List<Node>> pis = result.getPis();
 
         Graph G1 = new EdgeListGraph(order);
 
@@ -60,39 +71,31 @@ public class K3 implements ForwardScore {
         return G1;
     }
 
+    @Override
+    public double score(List<Node> order) {
+        return scoreResult(order).getScore();
+    }
+
     /**
      * Returns the score of a graph found with the given topological order.
      */
-    public double score(List<Node> order) {
-        ScoreResult result = scoreResult(order);
-        return result.getScore();
-    }
-
-    /**
-     * Returns true iff x an y are associated.
-     */
-    @Override
-    public boolean isAssociated(Node x, Node y) {
-        return test.isDependent(x, y);
-    }
-
-    private ScoreResult scoreResult(List<Node> order) {
-        List<Node> variables = _score.getVariables();
+    public ScoreResult scoreResult(List<Node> order) {
         double score = 0;
-        List<Set<Node>> pis = new ArrayList<>();
+
+        List<List<Node>> pis = new ArrayList<>();
 
         for (int i = 0; i < order.size(); i++) {
             Node n = order.get(i);
             Subproblem subproblem = subproblem(order, n);
 
-            double s_node = score(variables, n, new HashSet<>());
-            Set<Node> pi;
+            double s_node = score(n, new ArrayList<>());
+            List<Node> pi;
 
             if (subproblemPis.containsKey(subproblem)) {
                 s_node = subproblemScores.get(subproblem);
                 pi = subproblemPis.get(subproblem);
             } else {
-                pi = new HashSet<>();
+                pi = new ArrayList<>();
                 boolean changed = true;
                 double s_new = POSITIVE_INFINITY;
 
@@ -102,11 +105,12 @@ public class K3 implements ForwardScore {
                     // Let z be the node that maximizes the score...
                     Node z = null;
 
-                    for (Node z0 : subproblem.getPredeceessors()) {
+                    for (Node z0 : subproblem.getPrefix()) {
                         if (pi.contains(z0)) continue;
+                        if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
                         pi.add(z0);
 
-                        double s2 = score(variables, n, pi);
+                        double s2 = score(n, pi);
 
                         if (s2 < s_new) {
                             s_new = s2;
@@ -120,25 +124,32 @@ public class K3 implements ForwardScore {
                         pi.add(z);
                         s_node = s_new;
                         changed = true;
-                    }
 
-                    for (Node z0 : new HashSet<>(pi)) {
-                        pi.remove(z0);
+                        boolean changed2 = true;
 
-                        double s2 = score(variables, n, pi);
+                        while (changed2) {
+                            changed2 = false;
 
-                        if (s2 < s_new) {
-                            s_new = s2;
-                            z = z0;
+                            for (Node z0 : new HashSet<>(pi)) {
+                                if (z0 == z) continue;
+                                pi.remove(z0);
+
+                                double s2 = score(n, pi);
+
+                                if (s2 < s_new) {
+                                    s_new = s2;
+                                    z = z0;
+                                }
+
+                                pi.add(z0);
+                            }
+
+                            if (s_new < s_node) {
+                                pi.remove(z);
+                                s_node = s_new;
+                                changed2 = true;
+                            }
                         }
-
-                        pi.add(z0);
-                    }
-
-                    if (s_new < s_node) {
-                        pi.remove(z);
-                        s_node = s_new;
-                        changed = true;
                     }
                 }
 
@@ -147,13 +158,27 @@ public class K3 implements ForwardScore {
             }
 
             pis.add(pi);
+
             score += s_node;
         }
 
         return new ScoreResult(pis, score);
     }
 
-    private double score(List<Node> variables, Node n, Set<Node> pi) {
+    /**
+     * Returns true iff x an y are associated.
+     */
+    @Override
+    public boolean isAssociated(Node x, Node y) {
+        return test.isDependent(x, y);
+    }
+
+    @Override
+    public void setKnowledge(IKnowledge knowledge) {
+        this.knowledge = knowledge;
+    }
+
+    private double score(Node n, List<Node> pi) {
         if (allScores.containsKey(new Subproblem(n, pi))) {
             return allScores.get(new Subproblem(n, pi));
         }
@@ -174,22 +199,30 @@ public class K3 implements ForwardScore {
     }
 
     private Subproblem subproblem(List<Node> order, Node n) {
-        Set<Node> _predecessors = new HashSet<>();
-        for (int j = 0; j < order.indexOf(n); j++) _predecessors.add(order.get(j));
-        return new Subproblem(n, _predecessors);
+        List<Node> prefix = getPrefix(order, n);
+        return new Subproblem(n, prefix);
+    }
+
+    @NotNull
+    public List<Node> getPrefix(List<Node> order, Node n) {
+        List<Node> prefix = new ArrayList<>();
+        for (int j = 0; j < order.indexOf(n); j++) {
+            prefix.add(order.get(j));
+        }
+        return prefix;
     }
 
     private static class Subproblem {
         private final Node y;
-        private final Set<Node> predeceessors;
+        private final Set<Node> prefix;
 
-        public Subproblem(Node y, Set<Node> predecessors) {
+        public Subproblem(Node y, List<Node> prefix) {
             this.y = y;
-            this.predeceessors = new HashSet<>(predecessors);
+            this.prefix = new HashSet<>(prefix);
         }
 
         public int hashCode() {
-            return 17 * y.hashCode() + 3 * predeceessors.hashCode();
+            return 17 * y.hashCode() + 3 * prefix.hashCode();
         }
 
         public boolean equals(Object o) {
@@ -198,28 +231,28 @@ public class K3 implements ForwardScore {
             }
 
             Subproblem spec = (Subproblem) o;
-            return spec.y.equals(this.y) && spec.predeceessors.equals(this.predeceessors);
+            return spec.y.equals(this.y) && spec.prefix.equals(this.prefix);
         }
 
         public Node getY() {
             return y;
         }
 
-        public Set<Node> getPredeceessors() {
-            return predeceessors;
+        public Set<Node> getPrefix() {
+            return prefix;
         }
     }
 
     private static class ScoreResult {
-        private final List<Set<Node>> pis;
+        private final List<List<Node>> pis;
         private final double score;
 
-        public ScoreResult(List<Set<Node>> pis, double score) {
+        public ScoreResult(List<List<Node>> pis, double score) {
             this.pis = pis;
             this.score = score;
         }
 
-        public List<Set<Node>> getPis() {
+        public List<List<Node>> getPis() {
             return pis;
         }
 

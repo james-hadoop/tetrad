@@ -235,6 +235,10 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                 if (scoreWrapper instanceof DSeparationScore) {
                     ((DSeparationScore) scoreWrapper).setGraph(getSourceGraph());
                 }
+
+                if (algo instanceof HasKnowledge) {
+                    ((HasKnowledge) algo).setKnowledge(getKnowledge());
+                }
             } else if (algo instanceof TakesIndependenceWrapper) {
                 IndependenceWrapper wrapper = ((TakesIndependenceWrapper) algo).getIndependenceWrapper();
                 if (wrapper instanceof DSeparationTest) {
@@ -262,9 +266,6 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                         sub.add(dataSets.get(j));
                     }
 
-                    if (algo instanceof HasKnowledge) {
-                        ((HasKnowledge) algo).setKnowledge(getKnowledge());
-                    }
                     graphList.add(((MultiDataSetAlgorithm) algo).search(sub, parameters));
                 }
             } else if (getAlgorithm() instanceof ClusterAlgorithm) {
@@ -296,10 +297,6 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                             this.knowledge = knowledgeFromData;
                         }
 
-                        if (algo instanceof HasKnowledge) {
-                            ((HasKnowledge) algo).setKnowledge(getKnowledge());
-                        }
-
                         DataType algDataType = algo.getDataType();
 
                         if (data.isContinuous() && (algDataType == DataType.Continuous || algDataType == DataType.Mixed)) {
@@ -314,6 +311,10 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                     });
                 }
             }
+        }
+
+        if (algo instanceof HasKnowledge) {
+            ((HasKnowledge) algo).setKnowledge(getKnowledge());
         }
 
         if (getKnowledge().getVariablesNotInTiers().size()

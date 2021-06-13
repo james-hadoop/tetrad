@@ -1,5 +1,6 @@
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
@@ -72,6 +73,11 @@ public class K2 implements ForwardScore {
     @Override
     public boolean isAssociated(Node x, Node y) {
         return test.isDependent(x, y);
+    }
+
+    @Override
+    public void setKnowledge(IKnowledge knowledge) {
+
     }
 
     private ScoreResult scoreResult(List<Node> order) {

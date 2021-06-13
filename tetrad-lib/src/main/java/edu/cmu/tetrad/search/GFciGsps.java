@@ -105,7 +105,7 @@ public final class GFciGsps implements GraphSearch {
 
         this.graph = new EdgeListGraphSingleConnections(nodes);
 
-        BestOrderScoreSearch fges = new BestOrderScoreSearch(new K3(score));
+        BestOrderScoreSearch fges = new BestOrderScoreSearch(score);
         fges.setMethod(BestOrderScoreSearch.Method.NONRECURSIVE);
         fges.setNumRestarts(5);
 
