@@ -27,7 +27,7 @@ public class K3 implements ForwardScore {
     private final IndTestScore test;
 
     // Map from subproblems to parent sets.
-    private final Map<Subproblem, List<Node>> subproblemPis = new HashMap<>();
+    private final Map<Subproblem, Set<Node>> subproblemPis = new HashMap<>();
 
     // Map from subproblem to scores.
     private final Map<Subproblem, Double> subproblemScores = new HashMap<>();
@@ -56,8 +56,8 @@ public class K3 implements ForwardScore {
      * Searches for a DAG with the given topological order.
      */
     public Graph search(List<Node> order) {
-        ScoreResult result = scoreResult(order);
-        List<List<Node>> pis = result.getPis();
+        ScoreResult result = scoreResult(order, true);
+        List<Set<Node>> pis = result.getPis();
 
         Graph G1 = new EdgeListGraph(order);
 
@@ -73,29 +73,35 @@ public class K3 implements ForwardScore {
 
     @Override
     public double score(List<Node> order) {
-        return scoreResult(order).getScore();
+        return scoreResult(order, false).getScore();
     }
 
     /**
      * Returns the score of a graph found with the given topological order.
      */
-    public ScoreResult scoreResult(List<Node> order) {
+    public ScoreResult scoreResult(List<Node> order, boolean savePis) {
         double score = 0;
 
-        List<List<Node>> pis = new ArrayList<>();
+        List<Set<Node>> pis;
+
+        if (savePis) {
+            pis = new ArrayList<>();
+        } else {
+            pis = null;
+        }
 
         for (int i = 0; i < order.size(); i++) {
             Node n = order.get(i);
             Subproblem subproblem = subproblem(order, n);
 
-            double s_node = score(n, new ArrayList<>());
-            List<Node> pi;
+            double s_node = score(n, new HashSet<>());
+            Set<Node> pi;
 
             if (subproblemPis.containsKey(subproblem)) {
                 s_node = subproblemScores.get(subproblem);
                 pi = subproblemPis.get(subproblem);
             } else {
-                pi = new ArrayList<>();
+                pi = new HashSet<>();
                 boolean changed = true;
                 double s_new = POSITIVE_INFINITY;
 
@@ -157,7 +163,9 @@ public class K3 implements ForwardScore {
                 this.subproblemScores.put(subproblem, s_node);
             }
 
-            pis.add(pi);
+            if (savePis) {
+                pis.add(pi);
+            }
 
             score += s_node;
         }
@@ -178,7 +186,7 @@ public class K3 implements ForwardScore {
         this.knowledge = knowledge;
     }
 
-    private double score(Node n, List<Node> pi) {
+    private double score(Node n, Set<Node> pi) {
         if (allScores.containsKey(new Subproblem(n, pi))) {
             return allScores.get(new Subproblem(n, pi));
         }
@@ -199,13 +207,13 @@ public class K3 implements ForwardScore {
     }
 
     private Subproblem subproblem(List<Node> order, Node n) {
-        List<Node> prefix = getPrefix(order, n);
+        Set<Node> prefix = getPrefix(order, n);
         return new Subproblem(n, prefix);
     }
 
     @NotNull
-    public List<Node> getPrefix(List<Node> order, Node n) {
-        List<Node> prefix = new ArrayList<>();
+    public Set<Node> getPrefix(List<Node> order, Node n) {
+        Set<Node> prefix = new HashSet<>();
         for (int j = 0; j < order.indexOf(n); j++) {
             prefix.add(order.get(j));
         }
@@ -216,7 +224,7 @@ public class K3 implements ForwardScore {
         private final Node y;
         private final Set<Node> prefix;
 
-        public Subproblem(Node y, List<Node> prefix) {
+        public Subproblem(Node y, Set<Node> prefix) {
             this.y = y;
             this.prefix = new HashSet<>(prefix);
         }
@@ -244,15 +252,15 @@ public class K3 implements ForwardScore {
     }
 
     private static class ScoreResult {
-        private final List<List<Node>> pis;
+        private final List<Set<Node>> pis;
         private final double score;
 
-        public ScoreResult(List<List<Node>> pis, double score) {
+        public ScoreResult(List<Set<Node>> pis, double score) {
             this.pis = pis;
             this.score = score;
         }
 
-        public List<List<Node>> getPis() {
+        public List<Set<Node>> getPis() {
             return pis;
         }
 

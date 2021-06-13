@@ -3,11 +3,12 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Collections.shuffle;
+
 
 /**
  * Searches for a DAG by adding or removing directed edges starting
@@ -17,14 +18,13 @@ import static java.util.Collections.shuffle;
  * @author josephramsey
  */
 public class BestOrderScoreSearch {
-
     // The score used (default FML BIC). Lower is better.
     private final ForwardScore forwardScore;
+    long stop = System.currentTimeMillis();
     private double scoreOriginalOrder = Double.NaN;
     private double scoreLearnedOrder = Double.NaN;
     private Method method = Method.NONRECURSIVE;
     private int numRestarts = 1;
-
     /**
      * Constructs a GSS search
      */
@@ -32,13 +32,62 @@ public class BestOrderScoreSearch {
         this.forwardScore = new K3(score);
     }
 
-    /**
-     * Does the search.
-     *
-     * @param variables The variables for the graph.
-     * @return The estimated DAG.
-     */
-    public Graph search(List<Node> variables) {
+    @NotNull
+    public Graph search(List<Node> b0) {
+        long start = System.currentTimeMillis();
+
+        List<Node> br = new ArrayList<>(b0);
+
+        for (int k = 0; k < numRestarts; k++) {
+
+            for (int i = 0; i < b0.size(); i++) {
+                List<Node> best = new ArrayList<>(br);
+                double sss = forwardScore.score(getPrefix(br, i));
+
+                // ...and move v to an optimal position.
+                for (int j = i; j < br.size(); j++) {
+                    List<Node> b1 = new ArrayList<>(br);
+                    Node v = b1.get(j);
+                    b1.remove(v);
+                    b1.add(i, v);
+
+                    for (int w = 0; w <= i; w++) {
+                        List<Node> b12 = new ArrayList<>(b1);
+                        Node v2 = b1.get(j);
+                        b12.remove(v2);
+                        b12.add(w, v2);
+
+                        double ss = forwardScore.score(getPrefix(b12, i));
+
+                        if (ss < sss) {
+                            best = b12;
+                            sss = ss;
+                        }
+                    }
+                }
+
+                br = best;
+            }
+
+            long stop = System.currentTimeMillis();
+            System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
+
+            b0 = br;
+        }
+
+        System.out.println("Final b0 = " + br);
+        return forwardScore.search(b0);
+    }
+
+    public List<Node> getPrefix(List<Node> order, int i) {
+        List<Node> prefix = new ArrayList<>();
+        for (int j = 0; j <= i; j++) {
+            prefix.add(order.get(j));
+        }
+        return prefix;
+    }
+
+    public Graph search2(List<Node> variables) {
         long start = System.currentTimeMillis();
 
         List<Node> b0 = new ArrayList<>(variables);
@@ -126,7 +175,7 @@ public class BestOrderScoreSearch {
         return forwardScore.search(b0);
     }
 
-    public Graph search2(List<Node> variables) {
+    public Graph search3(List<Node> variables) {
         long start = System.currentTimeMillis();
 
         List<Node> b0 = new ArrayList<>(variables);

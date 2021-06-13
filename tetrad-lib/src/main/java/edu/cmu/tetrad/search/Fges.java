@@ -264,6 +264,12 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         this.modelScore = scoreDag(SearchGraphUtils.dagFromPattern(graph), true);
 
+
+//        if (true) {
+//            K3 k3 = new K3(score);
+//            return SearchGraphUtils.patternForDag(k3.search(graph.getCausalOrdering()));
+//        }
+
         return graph;
     }
 
