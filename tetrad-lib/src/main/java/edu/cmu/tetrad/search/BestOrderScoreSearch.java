@@ -23,6 +23,7 @@ public class BestOrderScoreSearch {
     private final List<Node> variables;
     private IKnowledge knowledge = new Knowledge2();
     private final Map<Node, Set<Node>> pis = new HashMap<>();
+    private final Map<Subproblem, Double> allScores = new HashMap<>();
 
     public BestOrderScoreSearch(Score score) {
         this.score = score;
@@ -66,10 +67,11 @@ public class BestOrderScoreSearch {
 
                 for (int l = 1; l < i; l++) {
                     swap(order, l, scores);
+                    double ss = sumScores(scores);
 
-                    if (sumScores(scores) < min) {
+                    if (ss < min) {
                         b = l;
-                        min = sumScores(scores);
+                        min = ss;
                     }
                 }
 
@@ -183,7 +185,42 @@ public class BestOrderScoreSearch {
         scores[x] = score;
     }
 
+    public static class Subproblem {
+        private final Node y;
+        private final Set<Node> prefix;
+
+        public Subproblem(Node y, Set<Node> prefix) {
+            this.y = y;
+            this.prefix = new HashSet<>(prefix);
+        }
+
+        public int hashCode() {
+            return 17 * y.hashCode() + 3 * prefix.hashCode();
+        }
+
+        public boolean equals(Object o) {
+            if (!(o instanceof Subproblem)) {
+                return false;
+            }
+
+            Subproblem spec = (Subproblem) o;
+            return spec.y.equals(this.y) && spec.getPrefix().equals(this.prefix);
+        }
+
+        public Node getY() {
+            return y;
+        }
+
+        public Set<Node> getPrefix() {
+            return prefix;
+        }
+    }
+
     private double score(Node n, Set<Node> pi) {
+        if (allScores.containsKey(new Subproblem(n, pi))) {
+            return allScores.get(new Subproblem(n, pi));
+        }
+
         int[] parentIndices = new int[pi.size()];
 
         int k = 0;
@@ -192,6 +229,10 @@ public class BestOrderScoreSearch {
             parentIndices[k++] = variables.indexOf(p);
         }
 
-        return -this.score.localScore(variables.indexOf(n), parentIndices);
+        double score = -this.score.localScore(variables.indexOf(n), parentIndices);
+
+        allScores.put(new Subproblem(n, pi), score);
+
+        return score;
     }
 }
