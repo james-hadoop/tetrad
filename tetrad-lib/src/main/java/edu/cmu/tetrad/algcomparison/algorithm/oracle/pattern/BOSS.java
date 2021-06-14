@@ -58,24 +58,13 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             Score score = this.score.getScore(dataSet, parameters);
 
             BestOrderScoreSearch search = new BestOrderScoreSearch(score);
-            search.setMethod(BestOrderScoreSearch.Method.NONRECURSIVE);
-            search.setNumRestarts(parameters.getInt(Params.NUM_RESTARTS));
             search.setKnowledge(knowledge);
-
-            if (parameters.getBoolean(Params.RECURSIVE)) {
-                search.setMethod(BestOrderScoreSearch.Method.RECURSIVE);
-            } else {
-                search.setMethod(BestOrderScoreSearch.Method.NONRECURSIVE);
-            }
 
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
 
-            System.out.println("Score for original order = " + search.getScoreOriginalOrder());
-            System.out.println("Score for learned order = " + search.getScoreLearnedOrder());
-
-            return graph;
-//            return SearchGraphUtils.patternForDag(graph);
+//            return graph;
+            return SearchGraphUtils.patternForDag(graph);
         } else {
             BOSS fges = new BOSS();
 
@@ -125,10 +114,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public List<String> getParameters() {
-        ArrayList<String> params = new ArrayList<>();
-        params.add(Params.RECURSIVE);
-        params.add(Params.NUM_RESTARTS);
-        return params;
+        return new ArrayList<>();
     }
 
     @Override

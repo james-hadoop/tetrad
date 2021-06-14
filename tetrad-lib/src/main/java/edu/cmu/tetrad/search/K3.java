@@ -52,6 +52,20 @@ public class K3 implements ForwardScore {
         this.variables = _score.getVariables();
     }
 
+    public static Subproblem subproblem(List<Node> order, Node n) {
+        Set<Node> prefix = getPrefix(order, n);
+        return new Subproblem(n, prefix);
+    }
+
+    @NotNull
+    public static Set<Node> getPrefix(List<Node> order, Node n) {
+        Set<Node> prefix = new HashSet<>();
+        for (int j = 0; j < order.indexOf(n); j++) {
+            prefix.add(order.get(j));
+        }
+        return prefix;
+    }
+
     /**
      * Searches for a DAG with the given topological order.
      */
@@ -206,21 +220,71 @@ public class K3 implements ForwardScore {
         return score;
     }
 
-    private Subproblem subproblem(List<Node> order, Node n) {
-        Set<Node> prefix = getPrefix(order, n);
-        return new Subproblem(n, prefix);
-    }
+    public double getScore(Subproblem subproblem) {
+        Set<Node> pi = new HashSet<>();
+        boolean changed = true;
+        double s_new = POSITIVE_INFINITY;
+        Node n = subproblem.getY();
+        double s_node = score(n, new HashSet<>());
 
-    @NotNull
-    public Set<Node> getPrefix(List<Node> order, Node n) {
-        Set<Node> prefix = new HashSet<>();
-        for (int j = 0; j < order.indexOf(n); j++) {
-            prefix.add(order.get(j));
+        while (changed) {
+            changed = false;
+
+            // Let z be the node that maximizes the score...
+            Node z = null;
+
+            for (Node z0 : subproblem.getPrefix()) {
+                if (pi.contains(z0)) continue;
+                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+                pi.add(z0);
+
+                double s2 = score(n, pi);
+
+                if (s2 < s_new) {
+                    s_new = s2;
+                    z = z0;
+                }
+
+                pi.remove(z0);
+            }
+
+            if (s_new < s_node) {
+                pi.add(z);
+                s_node = s_new;
+                changed = true;
+
+                boolean changed2 = true;
+
+                while (changed2) {
+                    changed2 = false;
+
+                    for (Node z0 : new HashSet<>(pi)) {
+                        if (z0 == z) continue;
+                        pi.remove(z0);
+
+                        double s2 = score(n, pi);
+
+                        if (s2 < s_new) {
+                            s_new = s2;
+                            z = z0;
+                        }
+
+                        pi.add(z0);
+                    }
+
+                    if (s_new < s_node) {
+                        pi.remove(z);
+                        s_node = s_new;
+                        changed2 = true;
+                    }
+                }
+            }
         }
-        return prefix;
+
+        return s_node;
     }
 
-    private static class Subproblem {
+    public static class Subproblem {
         private final Node y;
         private final Set<Node> prefix;
 

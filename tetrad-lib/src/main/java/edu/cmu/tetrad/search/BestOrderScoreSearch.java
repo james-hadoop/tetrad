@@ -1,13 +1,14 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static java.util.Collections.shuffle;
+import static java.lang.Double.POSITIVE_INFINITY;
 
 
 /**
@@ -18,302 +19,211 @@ import static java.util.Collections.shuffle;
  * @author josephramsey
  */
 public class BestOrderScoreSearch {
-    // The score used (default FML BIC). Lower is better.
-    private final ForwardScore forwardScore;
-    long stop = System.currentTimeMillis();
-    private double scoreOriginalOrder = Double.NaN;
-    private double scoreLearnedOrder = Double.NaN;
-    private Method method = Method.NONRECURSIVE;
-    private int numRestarts = 1;
+    private final Score score;
+    private final List<Node> variables;
+    private final Map<ScoreProblem, Double> scoresHash = new HashMap<>();
+    private IKnowledge knowledge = new Knowledge2();
+
     /**
      * Constructs a GSS search
      */
     public BestOrderScoreSearch(Score score) {
-        this.forwardScore = new K3(score);
+        this.score = score;
+        this.variables = score.getVariables();
     }
 
     @NotNull
     public Graph search(List<Node> b0) {
         long start = System.currentTimeMillis();
 
-        List<Node> br = new ArrayList<>(b0);
+        LinkedList<Node> br = new LinkedList<>(b0);
 
-        for (int k = 0; k < numRestarts; k++) {
+        // Modeled on an insertion sort. Each insertions a BIC comparison of models over the same
+        // variables.
+        for (int i = 0; i < br.size(); i++) {
 
-            for (int i = 0; i < b0.size(); i++) {
-                List<Node> best = new ArrayList<>(br);
-                double sss = forwardScore.score(getPrefix(br, i));
+            // Pick a various nodes beyond i and move it up into the i.
+            for (int j = i; j < br.size(); j++) {
+                Node v = br.get(j);
+                move(br, v, 0);
 
-                // ...and move v to an optimal position.
-                for (int j = i; j < br.size(); j++) {
-                    List<Node> b1 = new ArrayList<>(br);
-                    Node v = b1.get(j);
-                    b1.remove(v);
-                    b1.add(i, v);
+                double[] scores = new double[i];
 
-                    for (int w = 0; w <= i; w++) {
-                        List<Node> b12 = new ArrayList<>(b1);
-                        Node v2 = b1.get(j);
-                        b12.remove(v2);
-                        b12.add(w, v2);
+                for (int k = 0; k < i; k++) {
+                    scores[k] = getScore(br, k);
+                }
 
-                        double ss = forwardScore.score(getPrefix(b12, i));
+                double min = sumScores(scores);
+                int b = -0;
 
-                        if (ss < sss) {
-                            best = b12;
-                            sss = ss;
-                        }
+                for (int l = 1; l < i; l++) {
+                    swap(l, scores, br, i);
+
+                    if (sumScores(scores) < min) {
+                        b = l;
+                        min = sumScores(scores);
                     }
                 }
 
-                br = best;
+                move(br, v, b);
             }
-
-            long stop = System.currentTimeMillis();
-            System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
-
-            b0 = br;
         }
 
-        System.out.println("Final b0 = " + br);
-        return forwardScore.search(b0);
+        long stop = System.currentTimeMillis();
+        System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
+        System.out.println("Final order = " + br);
+        return SearchGraphUtils.patternForDag(new K3(score).search(br));
+    }
+
+    private void move(LinkedList<Node> br, Node v, int b) {
+        br.remove(v);
+        br.add(b, v);
+    }
+
+    private double sumScores(double[] scores) {
+        double s2 = 0;
+        for (double _s : scores) s2 += _s;
+        return s2;
+    }
+
+    private double getScore(LinkedList<Node> br, int p) {
+        Node n = br.get(p);
+        Set<Node> pi = new HashSet<>();
+        boolean changed = true;
+        double s_new = POSITIVE_INFINITY;
+        double s_node = score(n, new HashSet<>());
+
+        while (changed) {
+            changed = false;
+
+            // Let z be the node that maximizes the score...
+            Node z = null;
+
+            for (Node z0 : new HashSet<>(getPrefix(br, p))) {
+                if (pi.contains(z0)) continue;
+                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+                pi.add(z0);
+
+                double s2 = score(n, pi);
+
+                if (s2 < s_new) {
+                    s_new = s2;
+                    z = z0;
+                }
+
+                pi.remove(z0);
+            }
+
+            if (s_new < s_node) {
+                pi.add(z);
+                s_node = s_new;
+                changed = true;
+
+                boolean changed2 = true;
+
+                while (changed2) {
+                    changed2 = false;
+
+                    for (Node z0 : new HashSet<>(pi)) {
+                        if (z0 == z) continue;
+                        pi.remove(z0);
+
+                        double s2 = score(n, pi);
+
+                        if (s2 < s_new) {
+                            s_new = s2;
+                            z = z0;
+                        }
+
+                        pi.add(z0);
+                    }
+
+                    if (s_new < s_node) {
+                        pi.remove(z);
+                        s_node = s_new;
+                        changed2 = true;
+                    }
+                }
+            }
+        }
+
+        return s_node;
+    }
+
+    private void swap(int ww, double[] scores, LinkedList<Node> br, int prefixSize) {
+        if (ww < 0) throw new IllegalArgumentException("ww < 1");
+        if (ww >= prefixSize) throw new IllegalArgumentException("ww >= prefixSize");
+
+        move(br, br.get(ww - 1), ww);
+        recalculate(ww - 1, scores, br);
+        recalculate(ww, scores, br);
+    }
+
+    private void recalculate(int x, double[] scores, LinkedList<Node> br) {
+        double score = getScore(br, x);
+        scores[x] = score;
     }
 
     public List<Node> getPrefix(List<Node> order, int i) {
         List<Node> prefix = new ArrayList<>();
-        for (int j = 0; j <= i; j++) {
+        for (int j = 0; j < i; j++) {
             prefix.add(order.get(j));
         }
         return prefix;
     }
 
-    public Graph search2(List<Node> variables) {
-        long start = System.currentTimeMillis();
-
-        List<Node> b0 = new ArrayList<>(variables);
-        double s0 = forwardScore.score(b0);
-        int m = variables.size();
-
-        scoreOriginalOrder = s0;
-
-        boolean changed = true;
-
-        List<Node> br = new ArrayList<>(b0);
-        double sr = forwardScore.score(br);
-
-        for (int r = 0; r < numRestarts; r++) {
-            if (method == Method.NONRECURSIVE) {
-
-                // Until you can't do it anymore...
-                while (changed) {
-                    changed = false;
-
-                    List<Node> b2 = new ArrayList<>(br);
-                    double s2 = sr;
-
-                    // ...pick a variable v...
-                    for (int i = 0; i < m; i++) {
-                        Node v = b0.get(i);
-
-                        List<Node> bt = new ArrayList<>(b2);
-                        double st = forwardScore.score(bt);
-
-                        // ...and move v to an optimal position.
-                        for (int j = 0; j < m; j++) {
-                            List<Node> b1 = new ArrayList<>(b2);
-                            b1.remove(v);
-                            b1.add(j, v);
-
-                            double s1 = forwardScore.score(b1);
-
-                            if (s1 < st) {
-                                st = s1;
-                                bt = b1;
-                            }
-                        }
-
-                        if (st < s2) {
-                            s2 = st;
-                            b2 = bt;
-                        }
-                    }
-
-                    // Output the best order you find.
-                    if (s2 < sr) {
-                        br = b2;
-                        sr = s2;
-                        System.out.println("br = " + br);
-                        changed = true;
-                    }
-                }
-            } else if (method == Method.RECURSIVE) {
-                br = bossRecursive(br, sr, variables);
-                sr = forwardScore.score(br);
-            } else {
-                throw new IllegalStateException("Unrecognized method: " + method);
-            }
-
-            if (sr < s0) {
-                s0 = sr;
-                b0 = new ArrayList<>(br);
-            }
-
-            System.out.println("Completed round " + (r + 1) + " elapsed = " + (System.currentTimeMillis() - start) / 1000.0 + " s");
-            System.out.println("br = " + br);
-
-            shuffle(br);
-            System.out.println("shufflng br");
-            sr = forwardScore.score(br);
-        }
-
-        scoreLearnedOrder = s0;
-
-        long stop = System.currentTimeMillis();
-
-        System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
-
-        return forwardScore.search(b0);
-    }
-
-    public Graph search3(List<Node> variables) {
-        long start = System.currentTimeMillis();
-
-        List<Node> b0 = new ArrayList<>(variables);
-        double s0 = forwardScore.score(b0);
-        int m = variables.size();
-
-        scoreOriginalOrder = s0;
-
-        boolean changed = true;
-
-        List<Node> br = new ArrayList<>(b0);
-        double sr = forwardScore.score(br);
-
-        for (int r = 0; r < numRestarts; r++) {
-            if (method == Method.NONRECURSIVE) {
-
-                // Until you can't do it anymore...
-                while (changed) {
-                    changed = false;
-
-                    List<Node> b2 = new ArrayList<>(br);
-                    double s2 = sr;
-
-                    // ...pick a variable v...
-                    for (int i = 0; i < m; i++) {
-                        Node v = b0.get(i);
-
-                        List<Node> bt = new ArrayList<>(b2);
-                        double st = forwardScore.score(bt);
-
-                        // ...and move v to an optimal position.
-                        for (int j = 0; j < m; j++) {
-                            List<Node> b1 = new ArrayList<>(b2);
-                            b1.remove(v);
-                            b1.add(j, v);
-
-                            double s1 = forwardScore.score(b1);
-
-                            if (s1 < st) {
-                                st = s1;
-                                bt = b1;
-                            }
-                        }
-
-                        if (st < s2) {
-                            s2 = st;
-                            b2 = bt;
-                        }
-                    }
-
-                    // Output the best order you find.
-                    if (s2 < sr) {
-                        br = b2;
-                        sr = s2;
-                        System.out.println("br = " + br);
-                        changed = true;
-                    }
-                }
-            } else if (method == Method.RECURSIVE) {
-                br = bossRecursive(br, sr, variables);
-                sr = forwardScore.score(br);
-            } else {
-                throw new IllegalStateException("Unrecognized method: " + method);
-            }
-
-            if (sr < s0) {
-                s0 = sr;
-                b0 = new ArrayList<>(br);
-            }
-
-            System.out.println("Completed round " + (r + 1) + " elapsed = " + (System.currentTimeMillis() - start) / 1000.0 + " s");
-            System.out.println("br = " + br);
-
-            shuffle(br);
-            System.out.println("shufflng br");
-            sr = forwardScore.score(br);
-        }
-
-        scoreLearnedOrder = s0;
-
-        long stop = System.currentTimeMillis();
-
-        System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
-
-        return forwardScore.search(b0);
-    }
-
-    private List<Node> bossRecursive(List<Node> b0, double s0, List<Node> variables) {
-        int m = variables.size();
-        List<Node> b2 = new ArrayList<>(b0);
-
-        // ...pick a variable v...
-        for (Node v : variables) {
-
-            List<Node> bt = new ArrayList<>(b2);
-            double st = forwardScore.score(bt);
-
-            // ...and move v to an optimal position.
-            for (int j = 0; j < m; j++) {
-                List<Node> b1 = new ArrayList<>(b2);
-                b1.remove(v);
-                b1.add(j, v);
-
-                double s1 = forwardScore.score(b1);
-
-                if (s1 < st) {
-                    st = s1;
-                    bt = b1;
-                }
-            }
-
-            if (st < s0) {
-                return bossRecursive(bt, st, variables);
-            }
-        }
-
-        return b0;
-    }
-
-    public double getScoreOriginalOrder() {
-        return scoreOriginalOrder;
-    }
-
-    public double getScoreLearnedOrder() {
-        return scoreLearnedOrder;
-    }
-
-    public void setMethod(Method method) {
-        this.method = method;
-    }
-
-    public void setNumRestarts(int numRestarts) {
-        this.numRestarts = numRestarts;
-    }
-
     public void setKnowledge(IKnowledge knowledge) {
-        this.forwardScore.setKnowledge(knowledge);
+        this.knowledge = knowledge;
     }
 
-    public enum Method {NONRECURSIVE, RECURSIVE}
+    private double score(Node n, Set<Node> pi) {
+        if (scoresHash.containsKey(new ScoreProblem(n, pi))) {
+            return scoresHash.get(new ScoreProblem(n, pi));
+        }
+
+        int[] parentIndices = new int[pi.size()];
+
+        int k = 0;
+
+        for (Node p : pi) {
+            parentIndices[k++] = variables.indexOf(p);
+        }
+
+        double score = -this.score.localScore(variables.indexOf(n), parentIndices);
+
+        scoresHash.put(new ScoreProblem(n, pi), score);
+
+        return score;
+    }
+
+    public static class ScoreProblem {
+        private final Node y;
+        private final Set<Node> prefix;
+
+        public ScoreProblem(Node y, Set<Node> prefix) {
+            this.y = y;
+            this.prefix = new HashSet<>(prefix);
+        }
+
+        public int hashCode() {
+            return 17 * y.hashCode() + 3 * prefix.hashCode();
+        }
+
+        public boolean equals(Object o) {
+            if (!(o instanceof ScoreProblem)) {
+                return false;
+            }
+
+            ScoreProblem spec = (ScoreProblem) o;
+            return spec.y.equals(this.y) && spec.getPrefix().equals(this.prefix);
+        }
+
+        public Node getY() {
+            return y;
+        }
+
+        public Set<Node> getPrefix() {
+            return prefix;
+        }
+    }
 }
