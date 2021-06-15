@@ -58,10 +58,9 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             Score score = this.score.getScore(dataSet, parameters);
 
             BestOrderScoreSearch search = new BestOrderScoreSearch(score);
-            search.setKnowledge(knowledge);
 
             List<Node> variables = new ArrayList<>(score.getVariables());
-            Graph graph = search.search(variables);
+            Graph graph = search.search(variables, 1);
 
 //            return graph;
             return SearchGraphUtils.patternForDag(graph);

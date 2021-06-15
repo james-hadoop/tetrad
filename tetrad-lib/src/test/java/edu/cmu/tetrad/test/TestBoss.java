@@ -77,8 +77,8 @@ public final class TestBoss {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new SemBicScore()));
-        algorithms.add(new GSP(new SemBicScore()));
-//        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new GSP(new SemBicScore()));
+        algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new SemSimulation(new RandomForward()));
@@ -237,81 +237,6 @@ public final class TestBoss {
             prefix.add(order.get(j));
         }
         return prefix;
-    }
-
-    @Test
-    public void test4() {
-        int numNodes = 7;
-        int numEdges = 10;
-        int sampleSize = 1000;
-
-        Graph graph = GraphUtils.randomGraph(numNodes, 0,
-                numEdges, 100, 100, 100, false);
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
-        DataSet data = im.simulateData(sampleSize, false);
-
-        Score score = new edu.cmu.tetrad.search.SemBicScore(data);
-        K3 k3 = new K3(score);
-
-
-        System.out.println(search2(k3, data));
-
-    }
-
-    @NotNull
-    public Graph search2(K3 k3, DataSet data) {
-        long start = System.currentTimeMillis();
-
-        LinkedList<Node> b0 = new LinkedList<>(data.getVariables());
-        LinkedList<Node> br = new LinkedList<>(b0);
-
-        // Modeled on an insertion sort. Each insertions a BIC comparison of models over the same
-        // variables.
-        for (int prefix = 0; prefix < b0.size(); prefix++) {
-
-            // Pick a various nodes beyond prefix and move it up into the prefix.
-            for (int fetchedIndex = prefix; fetchedIndex < br.size(); fetchedIndex++) {
-                Node fetched = br.get(fetchedIndex);
-
-                br.remove(fetched);
-                br.add(0, fetched);
-
-                double[] scores = new double[prefix];
-
-                for (int p = 0; p < prefix; p++) {
-                    scores[p] = k3.getScore(new K3.Subproblem(br.get(p), new HashSet<>(getPrefix(br, p))));
-                }
-
-                double _score3 = 0;
-                for (double s : scores) _score3 += s;
-                double min = _score3;
-                int bestw = -0;
-
-                for (int w = 1; w < prefix; w++) {
-                    swap(w - 1, w, scores, br, prefix, k3);
-
-                    double _score2 = 0;
-                    for (double s : scores) _score2 += s;
-
-                    if (_score2 < min) {
-                        bestw = w;
-                        min = _score2;
-                    }
-                }
-
-                br.remove(fetched);
-                br.add(bestw, fetched);
-            }
-
-
-            b0 = br;
-        }
-
-        long stop = System.currentTimeMillis();
-        System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
-        System.out.println("Final b0 = " + br);
-        return SearchGraphUtils.patternForDag(k3.search(b0));
     }
 }
 

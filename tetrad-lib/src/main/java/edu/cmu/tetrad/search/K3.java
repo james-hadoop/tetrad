@@ -38,6 +38,8 @@ public class K3 implements ForwardScore {
     // The variables from the score.
     List<Node> variables;
 
+    Map<Node, Set<Node>> pis;
+
     // The knowledge; we use forbidden edges from this.
     private IKnowledge knowledge = new Knowledge2();
 
@@ -315,7 +317,7 @@ public class K3 implements ForwardScore {
         }
     }
 
-    private static class ScoreResult {
+    public static class ScoreResult {
         private final List<Set<Node>> pis;
         private final double score;
 
