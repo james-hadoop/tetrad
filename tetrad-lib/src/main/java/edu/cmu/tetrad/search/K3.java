@@ -147,31 +147,31 @@ public class K3 implements ForwardScore {
                         s_node = s_new;
                         changed = true;
 
-                        boolean changed2 = true;
-
-                        while (changed2) {
-                            changed2 = false;
-
-                            for (Node z0 : new HashSet<>(pi)) {
-                                if (z0 == z) continue;
-                                pi.remove(z0);
-
-                                double s2 = score(n, pi);
-
-                                if (s2 < s_new) {
-                                    s_new = s2;
-                                    z = z0;
-                                }
-
-                                pi.add(z0);
-                            }
-
-                            if (s_new < s_node) {
-                                pi.remove(z);
-                                s_node = s_new;
-                                changed2 = true;
-                            }
-                        }
+//                        boolean changed2 = true;
+//
+//                        while (changed2) {
+//                            changed2 = false;
+//
+//                            for (Node z0 : new HashSet<>(pi)) {
+//                                if (z0 == z) continue;
+//                                pi.remove(z0);
+//
+//                                double s2 = score(n, pi);
+//
+//                                if (s2 < s_new) {
+//                                    s_new = s2;
+//                                    z = z0;
+//                                }
+//
+//                                pi.add(z0);
+//                            }
+//
+//                            if (s_new < s_node) {
+//                                pi.remove(z);
+//                                s_node = s_new;
+//                                changed2 = true;
+//                            }
+//                        }
                     }
                 }
 
