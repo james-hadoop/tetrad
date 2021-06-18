@@ -105,9 +105,9 @@ public final class GFciGsps implements GraphSearch {
 
         this.graph = new EdgeListGraphSingleConnections(nodes);
 
-        BestOrderScoreSearch fges = new BestOrderScoreSearch(score);
+        BestOrderScoreSearch boss = new BestOrderScoreSearch(score);
 
-        graph = fges.search(score.getVariables(), 1);
+        graph = boss.search(score.getVariables());
         Graph fgesGraph = new EdgeListGraphSingleConnections(graph);
 
         sepsets = new SepsetsGreedy(fgesGraph, independenceTest, null, maxDegree);

@@ -203,6 +203,7 @@ public final class Params {
     public static final String ZERO_EDGE_P = "zeroEdgeP";
     public static final String NUM_RESTARTS = "numRestarts";
     public static final String RECURSIVE = "recursive";
+    public static final String CACHE_SCORES = "cacheScores";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(

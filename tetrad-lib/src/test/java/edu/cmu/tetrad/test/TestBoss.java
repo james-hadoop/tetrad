@@ -29,6 +29,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.GSP;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
+import edu.cmu.tetrad.algcomparison.score.EbicScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
@@ -62,7 +63,7 @@ public final class TestBoss {
 
 
     @Test
-    public void testGsps() {
+    public void testBoss() {
         RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
@@ -105,7 +106,7 @@ public final class TestBoss {
     }
 
     @Test
-    public void testGsps2() {
+    public void testBoss2() {
         RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
@@ -125,6 +126,50 @@ public final class TestBoss {
 //        algorithms.add(new GSP(new SemBicScore()));
         algorithms.add(new Fges(new SemBicScore()));
         algorithms.add(new PcAll(new FisherZ()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new SemSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+        statistics.add(new CorrectSkeleton());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new SHD());
+        statistics.add(new F1All());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setSaveData(false);
+
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
+    }
+
+    @Test
+    public void testBoss3() {
+        RandomUtil.getInstance().setSeed(386829384L);
+
+        Parameters params = new Parameters();
+        params.set(Params.NUM_MEASURES, 60);
+        params.set(Params.AVG_DEGREE, 5);
+        params.set(Params.SAMPLE_SIZE, 500);
+        params.set(Params.NUM_RUNS, 1);
+        params.set(Params.RANDOMIZE_COLUMNS, true);
+        params.set(Params.PENALTY_DISCOUNT, 2);
+        params.set(Params.COEF_LOW, 0.1);
+        params.set(Params.COEF_HIGH, 0.9);
+        params.set(Params.VERBOSE, false);
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new BOSS(new EbicScore()));
+//        algorithms.add(new GSP(new SemBicScore()));
+//        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new PcAll(new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new SemSimulation(new RandomForward()));

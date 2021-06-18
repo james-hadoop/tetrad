@@ -11,7 +11,9 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.BestOrderScoreSearch;
+import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -56,11 +58,11 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
-
-            BestOrderScoreSearch search = new BestOrderScoreSearch(score);
+            BestOrderScoreSearch boss = new BestOrderScoreSearch(score);
+            boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
 
             List<Node> variables = new ArrayList<>(score.getVariables());
-            Graph graph = search.search(variables, 2);
+            Graph graph = boss.search(variables);
 
             return SearchGraphUtils.patternForDag(graph);
         } else {
@@ -112,7 +114,9 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public List<String> getParameters() {
-        return new ArrayList<>();
+        ArrayList<String> params = new ArrayList<>();
+        params.add(Params.CACHE_SCORES);
+        return params;
     }
 
     @Override
@@ -131,6 +135,11 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     }
 
     @Override
+    public void setScoreWrapper(ScoreWrapper score) {
+        this.score = score;
+    }
+
+    @Override
     public Graph getInitialGraph() {
         return initialGraph;
     }
@@ -143,10 +152,5 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     @Override
     public void setInitialGraph(Algorithm algorithm) {
         this.algorithm = algorithm;
-    }
-
-    @Override
-    public void setScoreWrapper(ScoreWrapper score) {
-        this.score = score;
     }
 }

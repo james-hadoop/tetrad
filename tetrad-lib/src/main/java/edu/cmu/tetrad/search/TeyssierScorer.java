@@ -8,21 +8,32 @@ import java.util.*;
 
 import static java.lang.Double.POSITIVE_INFINITY;
 
+/**
+ * Implements a scorer as in Teyssier, M., & Koller, D. (2012). Ordering-based search: A simple and effective
+ * algorithm for learning Bayesian networks. arXiv preprint arXiv:1207.1429. You give it a score function
+ * and a variable ordering, and it computes the score. You can move any variable left or right and it will
+ * keep track of the score using the Teyssier and Kohler method. You can move a vairable to a new position,
+ * and you can bookmark a state and come baqck to it.
+ *
+ * @author josephramsey
+ */
 public class TeyssierScorer {
-    private final Score score;
-    private final Map<ScoreKey, Double> cache = new HashMap<>();
-    private final IndTestScore test;
     private List<Node> variables;
+    private List<Node> order;
+    private final Score score;
     private double[] scores;
-    private LinkedList<Node> order;
-    private IKnowledge knowledge = new Knowledge2();
     private Node nodeMoving = null;
     private double[] movingScores = null;
-    private Map<Node, Set<Node>> associates;
+    private List<Node> bookmarkedOrder;
+    private double[] bookmarkedScores;
+    private double[] bookmarkedMovingScores;
+    private Node bookmarkedNodeMoving;
+    private boolean cachingScores = true;
+    private final Map<ScoreKey, Double> cache = new HashMap<>();
+    private IKnowledge knowledge = new Knowledge2();
 
     public TeyssierScorer(Score score) {
         this.score = score;
-        this.test = new IndTestScore(score);
     }
 
     public void setKnowledge(IKnowledge knowledge) {
@@ -30,10 +41,9 @@ public class TeyssierScorer {
     }
 
     public double score(List<Node> order) {
-        this.order = new LinkedList<>(order);
+        this.order = new ArrayList<>(order);
         this.variables = score.getVariables();
-        this.associates = getAssociates(variables);
-        this.scores = new double[variables.size()];
+        this.scores = new double[order.size()];
         initializeScores();
         return score();
     }
@@ -47,8 +57,11 @@ public class TeyssierScorer {
         if (index <= 0) return false;
         if (index >= order.size()) return false;
 
-        order.remove(v);
-        order.add(index - 1, v);
+        Node v1 = order.get(index - 1);
+        Node v2 = order.get(index);
+
+        order.set(index - 1, v2);
+        order.set(index, v1);
 
         recalculate(index);
         recalculate(index - 1);
@@ -61,28 +74,16 @@ public class TeyssierScorer {
         if (index < 0) return false;
         if (index == order.size() - 1) return false;
 
-        order.remove(v);
-        order.add(index + 1, v);
+        Node v1 = order.get(index + 1);
+        Node v2 = order.get(index);
+
+        order.set(index + 1, v2);
+        order.set(index, v1);
 
         recalculate(index);
         recalculate(index + 1);
 
         return true;
-    }
-
-    public void moveTo(Node v, int i) {
-        int index = order.indexOf(v);
-        if (index == i) return;
-
-        if (i < index) {
-            while (--index >= i) {
-                if (!moveLeft(v)) break;
-            }
-        } else {
-            while (++index <= i) {
-                if (!moveRight(v)) break;
-            }
-        }
     }
 
     public List<Node> getOrder() {
@@ -91,10 +92,6 @@ public class TeyssierScorer {
 
     public int indexOf(Node v) {
         return order.indexOf(v);
-    }
-
-    public boolean isAssociated(Node x, Node y) {
-        return test.isDependent(x, y);
     }
 
     private double sum() {
@@ -118,7 +115,7 @@ public class TeyssierScorer {
     }
 
     private double score(Node n, Set<Node> pi) {
-        if (cache.containsKey(new ScoreKey(n, pi))) {
+        if (cachingScores && cache.containsKey(new ScoreKey(n, pi))) {
             return cache.get(new ScoreKey(n, pi));
         }
 
@@ -132,7 +129,9 @@ public class TeyssierScorer {
 
         double v = -this.score.localScore(variables.indexOf(n), parentIndices);
 
-        cache.put(new ScoreKey(n, pi), v);
+        if (cachingScores) {
+            cache.put(new ScoreKey(n, pi), v);
+        }
 
         return v;
     }
@@ -162,7 +161,7 @@ public class TeyssierScorer {
             return movingScores[p];
         }
 
-        Set<Node> pi = new HashSet<>();
+        Set<Node> mb = new HashSet<>();
         boolean changed = true;
         double s_new = POSITIVE_INFINITY;
         double s_node = score(n, new HashSet<>());
@@ -175,28 +174,22 @@ public class TeyssierScorer {
             Node z = null;
 
             for (Node z0 : new HashSet<>(getPrefix(p))) {
-                if (pi.contains(z0)) continue;
-                if (!associates.get(n).contains(z0)) continue;
+                if (mb.contains(z0)) continue;
+
                 if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
-                pi.add(z0);
-                double s2 = score(n, pi);
+                mb.add(z0);
+                double s2 = score(n, mb);
 
                 if (s2 < s_new) {
                     s_new = s2;
                     z = z0;
                 }
 
-                pi.remove(z0);
-            }
-
-            if (s_new < s_node) {
-                pi.add(z);
-                s_node = s_new;
-                changed = true;
+                mb.remove(z0);
             }
 
             if (z != null) {
-                pi.add(z);
+                mb.add(z);
                 s_node = s_new;
                 changed = true;
                 boolean changed2 = true;
@@ -206,27 +199,26 @@ public class TeyssierScorer {
 
                     Node w = null;
 
-                    for (Node z0 : new HashSet<>(pi)) {
-                        pi.remove(z0);
+                    for (Node z0 : new HashSet<>(mb)) {
+                        mb.remove(z0);
 
-                        double s2 = score(n, pi);
+                        double s2 = score(n, mb);
 
                         if (s2 < s_new) {
                             s_new = s2;
                             w = z0;
                         }
 
-                        pi.add(z0);
+                        mb.add(z0);
                     }
 
                     if (w != null) {
-                        pi.remove(w);
+                        mb.remove(w);
                         s_node = s_new;
                         changed2 = true;
                     }
                 }
             }
-
         }
 
         if (n == nodeMoving) {
@@ -234,6 +226,46 @@ public class TeyssierScorer {
         }
 
         return s_node;
+    }
+
+    public void bookmark() {
+        if (bookmarkedOrder == null) {
+            bookmarkedOrder = new ArrayList<>();
+        }
+
+        bookmarkedOrder.clear();
+        bookmarkedOrder.addAll(order);
+
+        if (bookmarkedScores == null) {
+            bookmarkedScores = new double[scores.length];
+        }
+
+        System.arraycopy(scores, 0, bookmarkedScores, 0, scores.length);
+
+        if (bookmarkedMovingScores == null) {
+            bookmarkedMovingScores = new double[scores.length];
+        }
+
+        bookmarkedMovingScores = Arrays.copyOf(movingScores, movingScores.length);
+        bookmarkedNodeMoving = nodeMoving;
+    }
+
+    public void restoreBookmark() {
+        if (bookmarkedOrder == null) {
+            throw new IllegalArgumentException("The state has not yet been bookmarked.");
+        }
+
+        order.clear();
+        order.addAll(bookmarkedOrder);
+
+        System.arraycopy(bookmarkedScores, 0, scores, 0, bookmarkedScores.length);
+        System.arraycopy(bookmarkedMovingScores, 0, movingScores, 0, bookmarkedMovingScores.length);
+
+        nodeMoving = bookmarkedNodeMoving;
+    }
+
+    public void setCachingScores(boolean cachingScores) {
+        this.cachingScores = cachingScores;
     }
 
     public static class ScoreKey {
@@ -265,23 +297,5 @@ public class TeyssierScorer {
         public Set<Node> getPrefix() {
             return prefix;
         }
-    }
-
-    public Map<Node, Set<Node>> getAssociates(List<Node> variables) {
-        Map<Node, Set<Node>> associates = new HashMap<>();
-
-        for (Node v : variables) {
-            Set<Node> nodes = new HashSet<>();
-
-            for (Node w : variables) {
-                if (isAssociated(w, v)) {
-                    nodes.add(w);
-                }
-            }
-
-            associates.put(v, nodes);
-        }
-
-        return associates;
     }
 }
