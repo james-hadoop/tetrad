@@ -3,6 +3,7 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Set;
@@ -17,15 +18,27 @@ import java.util.Set;
  */
 public class BestOrderScoreSearch {
     private final Score score;
+    private final K3 k3;
     private boolean cachingScores = true;
 
-    public BestOrderScoreSearch(Score score) {
+    public BestOrderScoreSearch(Score score)
+    {
         this.score = score;
+        k3 = new K3(score);
+
+
     }
 
     public Graph search(List<Node> initialOrder) {
         List<Node> order = getBestOrdering(initialOrder);
 
+        Graph G1 = getGraph(order);
+
+        return SearchGraphUtils.patternForDag(G1);
+    }
+
+    @NotNull
+    private Graph getGraph(List<Node> order) {
         K3 k3 = new K3(score);
 
         List<Set<Node>> pis = k3.scoreResult(order, true).getPis();
@@ -38,7 +51,7 @@ public class BestOrderScoreSearch {
             }
         }
 
-        return SearchGraphUtils.patternForDag(G1);
+        return G1;
     }
 
     // Using Teyssier and Kohler's neighbor swaps.
@@ -57,10 +70,10 @@ public class BestOrderScoreSearch {
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
         double overall = scorer.score(initialOrder);
+        double bestScore = overall;
 
         while (true) {
             for (Node node : scorer.getOrder()) {
-                double bestScore = scorer.score();
                 scorer.bookmark();
 
                 while (true) {
@@ -82,6 +95,40 @@ public class BestOrderScoreSearch {
                 System.out.println("Updated order = " + scorer.getOrder());
             } else {
                 break;
+            }
+        }
+
+        long stop = System.currentTimeMillis();
+
+        System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
+
+        return scorer.getOrder();
+    }
+
+    public List<Node> getBestOrdering2(List<Node> initialOrder) {
+        long start = System.currentTimeMillis();
+        System.out.println("Original order = " + initialOrder);
+
+        TeyssierScorer scorer = new TeyssierScorer(score);
+        scorer.setCachingScores(cachingScores);
+
+        // Take each variable in turn and try moving it to each position to the left (i.e.,
+        // try promoting it in the causal order). Score each causal order by building
+        // a DAG using something like the K2 method. (We actually use Grow-Shrink, a
+        // Markov blanket algorithm, to find putative parents for each node.) Finally,
+        // place the node in whichever position yielded the highest score. Do this
+        // for each variable in turn. Once you're done, do it all again, until no more
+        // variables can be relocated.
+        double bestScore = scorer.score(initialOrder);
+
+        for (Node node : scorer.getOrder()) {
+
+            boolean moved = scorer.moveLeft(node);
+
+            if (!moved) return initialOrder;
+
+            if (scorer.score() <= bestScore) {
+                return getBestOrdering(scorer.getOrder());
             }
         }
 

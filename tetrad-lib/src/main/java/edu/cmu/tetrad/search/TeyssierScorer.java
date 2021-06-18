@@ -44,6 +44,7 @@ public class TeyssierScorer {
         this.order = new ArrayList<>(order);
         this.variables = score.getVariables();
         this.scores = new double[order.size()];
+
         initializeScores();
         return score();
     }
@@ -69,22 +70,37 @@ public class TeyssierScorer {
         return true;
     }
 
-    public boolean moveRight(Node v) {
-        int index = order.indexOf(v);
-        if (index < 0) return false;
-        if (index == order.size() - 1) return false;
+//    public boolean moveRight(Node v) {
+//        int index = order.indexOf(v);
+//        if (index < 0) return false;
+//        if (index == order.size() - 1) return false;
+//
+//        Node v1 = order.get(index + 1);
+//        Node v2 = order.get(index);
+//
+//        order.set(index + 1, v2);
+//        order.set(index, v1);
+//
+//        recalculate(index);
+//        recalculate(index + 1);
+//
+//        return true;
+//    }
 
-        Node v1 = order.get(index + 1);
-        Node v2 = order.get(index);
-
-        order.set(index + 1, v2);
-        order.set(index, v1);
-
-        recalculate(index);
-        recalculate(index + 1);
-
-        return true;
-    }
+//    public void moveTo(Node v, int i) {
+//        int index = order.indexOf(v);
+//        if (index == i) return;
+//
+//        if (i < index) {
+//            while (--index >= i) {
+//                if (!moveLeft(v)) break;
+//            }
+//        } else {
+//            while (++index <= i) {
+//                if (!moveRight(v)) break;
+//            }
+//        }
+//    }
 
     public List<Node> getOrder() {
         return new ArrayList<>(order);
@@ -112,6 +128,8 @@ public class TeyssierScorer {
             double nodeScore = getGrowShrink(i);
             scores[i] = nodeScore;
         }
+
+//        growShrinks.clear();
     }
 
     private double score(Node n, Set<Node> pi) {
