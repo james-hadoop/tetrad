@@ -1,12 +1,13 @@
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -18,44 +19,33 @@ import java.util.Set;
  */
 public class BestOrderScoreSearch {
     private final Score score;
-    private final K3 k3;
     private boolean cachingScores = true;
 
-    public BestOrderScoreSearch(Score score)
-    {
+    public BestOrderScoreSearch(Score score) {
         this.score = score;
-        k3 = new K3(score);
-
-
     }
 
     public Graph search(List<Node> initialOrder) {
-        List<Node> order = getBestOrdering(initialOrder);
+        Graph graph = bossSearch(initialOrder);
+        return SearchGraphUtils.patternForDag(graph);
+    }
 
-        Graph G1 = getGraph(order);
+    @NotNull
+    private Graph getGraph(TeyssierScorer scorer) {
+        List<Node> order = scorer.getOrder();
+        Graph G1 = new EdgeListGraph(order);
+
+        for (int p = 0; p < order.size(); p++) {
+            for (Node z : scorer.getMb(p)) {
+                G1.addDirectedEdge(z, order.get(p));
+            }
+        }
 
         return SearchGraphUtils.patternForDag(G1);
     }
 
-    @NotNull
-    private Graph getGraph(List<Node> order) {
-        K3 k3 = new K3(score);
-
-        List<Set<Node>> pis = k3.scoreResult(order, true).getPis();
-
-        Graph G1 = new EdgeListGraph(order);
-
-        for (int i = 0; i < order.size(); i++) {
-            for (Node z : pis.get(i)) {
-                G1.addDirectedEdge(z, order.get(i));
-            }
-        }
-
-        return G1;
-    }
-
     // Using Teyssier and Kohler's neighbor swaps.
-    public List<Node> getBestOrdering(List<Node> initialOrder) {
+    private Graph bossSearch(List<Node> initialOrder) {
         long start = System.currentTimeMillis();
         System.out.println("Original order = " + initialOrder);
 
@@ -70,10 +60,10 @@ public class BestOrderScoreSearch {
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
         double overall = scorer.score(initialOrder);
-        double bestScore = overall;
 
         while (true) {
             for (Node node : scorer.getOrder()) {
+                double bestScore = scorer.score();
                 scorer.bookmark();
 
                 while (true) {
@@ -102,10 +92,10 @@ public class BestOrderScoreSearch {
 
         System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
 
-        return scorer.getOrder();
+        return getGraph(scorer);
     }
 
-    public List<Node> getBestOrdering2(List<Node> initialOrder) {
+    private Graph bossSearch2(List<Node> initialOrder) {
         long start = System.currentTimeMillis();
         System.out.println("Original order = " + initialOrder);
 
@@ -119,16 +109,33 @@ public class BestOrderScoreSearch {
         // place the node in whichever position yielded the highest score. Do this
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
-        double bestScore = scorer.score(initialOrder);
+        double overall = scorer.score(initialOrder);
 
-        for (Node node : scorer.getOrder()) {
+        while (true) {
+            for (Node node : scorer.getOrder()) {
+                scorer.moveTo(node, 0);
+                double bestScore = scorer.score();
+                scorer.bookmark();
 
-            boolean moved = scorer.moveLeft(node);
+                while (true) {
+                    boolean moved = scorer.moveRight(node);
 
-            if (!moved) return initialOrder;
+                    if (!moved) break;
 
-            if (scorer.score() <= bestScore) {
-                return getBestOrdering(scorer.getOrder());
+                    if (scorer.score() < bestScore) {
+                        bestScore = scorer.score();
+                        scorer.bookmark();
+                    }
+                }
+
+                scorer.restoreBookmark();
+            }
+
+            if (scorer.score() < overall) {
+                overall = scorer.score();
+                System.out.println("Updated order = " + scorer.getOrder());
+            } else {
+                break;
             }
         }
 
@@ -136,7 +143,87 @@ public class BestOrderScoreSearch {
 
         System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
 
-        return scorer.getOrder();
+        return getGraph(scorer);
+    }
+
+    private Graph bossSearch3(List<Node> initialOrder) {
+        long start = System.currentTimeMillis();
+        System.out.println("Original order = " + initialOrder);
+
+        TeyssierScorer scorer = new TeyssierScorer(score);
+        scorer.setCachingScores(cachingScores);
+        List<Node> running = new ArrayList<>();
+
+        // Take each variable in turn and try moving it to each position to the left (i.e.,
+        // try promoting it in the causal order). Score each causal order by building
+        // a DAG using something like the K2 method. (We actually use Grow-Shrink, a
+        // Markov blanket algorithm, to find putative parents for each node.) Finally,
+        // place the node in whichever position yielded the highest score. Do this
+        // for each variable in turn. Once you're done, do it all again, until no more
+        // variables can be relocated.
+        for (Node m : initialOrder) {
+            running.add(m);
+            double bestScore = scorer.score(running);
+
+//            for (Node node : running) {
+            scorer.bookmark();
+
+            for (int k = running.size() - 1; k >= 0; k--) {
+                Node n = running.get(k);
+
+                while (true) {
+                    boolean moved = scorer.moveLeft(n);
+
+                    if (!moved) break;
+
+                    if (scorer.score() <= bestScore) {
+                        bestScore = scorer.score();
+                        scorer.bookmark();
+                    }
+                }
+            }
+
+            scorer.restoreBookmark();
+//            }
+
+//            if (scorer.score() < overall) {
+//                overall = scorer.score();
+//                System.out.println("Updated order = " + scorer.getOrder());
+//            }
+//            else {
+//                break;
+//            }
+
+            running = scorer.getOrder();
+        }
+
+        long stop = System.currentTimeMillis();
+
+        System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
+
+        return getGraph(scorer);
+    }
+
+    private void printReversible(TeyssierScorer scorer) {
+        Graph dag = getGraph(scorer);
+
+        for (Edge edge : dag.getEdges()) {
+            if (!edge.isDirected()) continue;
+
+            Node m = edge.getNode1();
+            Node n = edge.getNode2();
+
+            double score1 = scorer.score();
+            scorer.bookmark();
+            scorer.swap(m, n);
+            double score2 = scorer.score();
+            scorer.restoreBookmark();
+
+            if (score2 - score1 <= 0) {
+                System.out.println("Swapping " + n + " and " + m + " does not increase the score; diff = "
+                        + (score2 - score1));
+            }
+        }
     }
 
     public void setCachingScores(boolean cachingScores) {

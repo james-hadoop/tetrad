@@ -25,6 +25,7 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.GSP;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
@@ -39,12 +40,15 @@ import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.K3;
 import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.RandomUtil;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -63,8 +67,8 @@ public final class TestBoss {
         RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 5);
-        params.set(Params.AVG_DEGREE, 0, 1, 2, 3, 4);
+        params.set(Params.NUM_MEASURES, 10);
+        params.set(Params.AVG_DEGREE, 1, 2, 4, 5, 6, 7, 8);
         params.set(Params.SAMPLE_SIZE, 100000);
         params.set(Params.NUM_RUNS, 50);
         params.set(Params.RANDOMIZE_COLUMNS, true);
@@ -75,7 +79,7 @@ public final class TestBoss {
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new SemBicScore()));
 //        algorithms.add(new GSP(new SemBicScore()));
-//        algorithms.add(new Fges(new SemBicScore()));
+        algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new SemSimulation(new RandomForward()));
@@ -148,24 +152,23 @@ public final class TestBoss {
 
     @Test
     public void testBoss3() {
-//        RandomUtil.getInstance().setSeed(386829384L);
+        RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
         params.set(Params.NUM_MEASURES, 60);
         params.set(Params.AVG_DEGREE, 5);
-        params.set(Params.SAMPLE_SIZE, 1000);
+        params.set(Params.SAMPLE_SIZE, 500);
         params.set(Params.NUM_RUNS, 1);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.PENALTY_DISCOUNT, 2);
-        params.set(Params.COEF_LOW, 0.1);
-        params.set(Params.COEF_HIGH, 0.9);
+        params.set(Params.COEF_LOW, 0.2);
+        params.set(Params.COEF_HIGH, 0.8);
         params.set(Params.VERBOSE, false);
-        params.set(Params.CACHE_SCORES, true);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new EbicScore()));
+        algorithms.add(new BOSS(new SemBicScore()));
 //        algorithms.add(new GSP(new SemBicScore()));
-//        algorithms.add(new Fges(new SemBicScore()));
+        algorithms.add(new Fges(new SemBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
 
         Simulations simulations = new Simulations();
@@ -193,7 +196,7 @@ public final class TestBoss {
 
     @Test
     public void test3() {
-        int numNodes = 7;
+        int numNodes = 5;
         int numEdges = 10;
         int sampleSize = 1000;
 

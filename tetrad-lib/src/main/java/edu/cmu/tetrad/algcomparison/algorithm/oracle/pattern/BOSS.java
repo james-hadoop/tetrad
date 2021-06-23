@@ -13,7 +13,6 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.BestOrderScoreSearch;
 import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -60,11 +59,8 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             Score score = this.score.getScore(dataSet, parameters);
             BestOrderScoreSearch boss = new BestOrderScoreSearch(score);
             boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
-
             List<Node> variables = new ArrayList<>(score.getVariables());
-            Graph graph = boss.search(variables);
-
-            return SearchGraphUtils.patternForDag(graph);
+            return boss.search(variables);
         } else {
             BOSS fges = new BOSS();
 
