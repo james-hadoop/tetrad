@@ -59,6 +59,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             Score score = this.score.getScore(dataSet, parameters);
             BestOrderScoreSearch boss = new BestOrderScoreSearch(score);
             boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
+            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             List<Node> variables = new ArrayList<>(score.getVariables());
             return boss.search(variables);
         } else {
@@ -112,6 +113,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     public List<String> getParameters() {
         ArrayList<String> params = new ArrayList<>();
         params.add(Params.CACHE_SCORES);
+        params.add(Params.NUM_STARTS);
         return params;
     }
 

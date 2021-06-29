@@ -4644,16 +4644,18 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="numberResampling_value_type">Integer</span></li>
         </ul>
 
-        <h3 id="numRestarts" class="parameter_description">numRestarts</h3>
+        <h3 id="numStarts" class="parameter_description">numStarts</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="numRestarts_short_desc">The number of random restarts</span>
+            <li>Short Description: <span id="numStarts_short_desc">The number of random restarts (default 1)</span>
             </li>
-            <li>Long Description: <span id="numRestarts_long_desc">The number of times the algorithm should be run from different initializations</span>
+            <li>Long Description: <span id="numStarts_long_desc">The number of times the algorithm should srarted from different initializations.
+                By default, the algorithm will be run through at least once using the initialized parameters
+                (zero random restarts).</span>
             </li>
-            <li>Default Value: <span id="numRestarts_default_value">1</span></li>
-            <li>Lower Bound: <span id="numRestarts_lower_bound">1</span></li>
-            <li>Upper Bound: <span id="numRestarts_upper_bound">2147483647</span></li>
-            <li>Value Type: <span id="numRestarts_value_type">Integer</span></li>
+            <li>Default Value: <span id="numStarts_default_value">1</span></li>
+            <li>Lower Bound: <span id="numStarts_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="numStarts_upper_bound">2147483647</span></li>
+            <li>Value Type: <span id="numStarts_value_type">Integer</span></li>
         </ul>
 
         <h3 id="recursive" class="parameter_description">recursive</h3>

@@ -6,8 +6,6 @@ import edu.cmu.tetrad.graph.Node;
 
 import java.util.*;
 
-import static java.lang.Double.POSITIVE_INFINITY;
-
 /**
  * Implements a scorer as in Teyssier, M., & Koller, D. (2012). Ordering-based search: A simple and effective
  * algorithm for learning Bayesian networks. arXiv preprint arXiv:1207.1429. You give it a score function
@@ -18,20 +16,20 @@ import static java.lang.Double.POSITIVE_INFINITY;
  * @author josephramsey
  */
 public class TeyssierScorer {
+    private final Score score;
+    private final Map<ScoreKey, Pair> cache = new HashMap<>();
     private List<Node> variables;
     private List<Node> order;
-    private final Score score;
-    private double[] scores;
+    private Pair[] scores;
     private Node nodeMoving = null;
-    private double[] movingScores = null;
-    private List<Node> bookmarkedOrder;
-    private double[] bookmarkedScores;
-    private double[] bookmarkedMovingScores;
-    private Node bookmarkedNodeMoving;
+    private Pair[] movingScores = null;
+    private Map<Integer, List<Node>> bookmarkedOrder = new HashMap<>();
+    private Map<Integer, Pair[]> bookmarkedScores = new HashMap<>();
+    private final Map<Integer, Pair[]> bookmarkedMovingScores = new HashMap<>();
+    private final Map<Integer, Node> bookmarkedNodeMoving = new HashMap<>();
     private boolean cachingScores = true;
-    private final Map<ScoreKey, Double> cache = new HashMap<>();
     private IKnowledge knowledge = new Knowledge2();
-    private final Map<ScoreKey, Double> precedentScores = new HashMap<>();
+    private Set[] prefixes;
 
     public TeyssierScorer(Score score) {
         this.score = score;
@@ -44,9 +42,10 @@ public class TeyssierScorer {
     public double score(List<Node> order) {
         this.order = new ArrayList<>(order);
         this.variables = score.getVariables();
-        this.scores = new double[order.size()];
-        this.precedentScores.clear();
+        this.scores = new Pair[order.size()];
+        this.prefixes = new Set[order.size()];
         initializeScores();
+        bookmark(1);
         return score();
     }
 
@@ -74,7 +73,7 @@ public class TeyssierScorer {
     public boolean moveRight(Node v) {
         int index = order.indexOf(v);
         if (index < 0) return false;
-        if (index == order.size() - 1) return false;
+        if (index >= order.size() - 1) return false;
 
         Node v1 = order.get(index + 1);
         Node v2 = order.get(index);
@@ -125,29 +124,31 @@ public class TeyssierScorer {
         double score = 0;
 
         for (int i = 0; i < order.size(); i++) {
-            score += scores[i];
+            score += scores[i].getScore();
         }
 
         return score;
     }
 
     private void initializeScores() {
-        movingScores = new double[order.size()];
-        Arrays.fill(movingScores, Double.NaN);
+        movingScores = new Pair[order.size()];
+        Arrays.fill(movingScores, null);
 
         for (int i = 0; i < order.size(); i++) {
-            double nodeScore = getGrowShrink(i);
-            scores[i] = nodeScore;
+            recalculate(i);
         }
 
-        bookmarkedOrder = null;
-        bookmarkedScores = null;
+        bookmarkedOrder = new HashMap<>();
+        bookmarkedScores = new HashMap<>();
         nodeMoving = null;
     }
 
     private double score(Node n, Set<Node> pi) {
-        if (cachingScores && cache.containsKey(new ScoreKey(n, pi))) {
-            return cache.get(new ScoreKey(n, pi));
+        if (cachingScores) {
+            ScoreKey key = new ScoreKey(n, pi);
+            if (cache.containsKey(key)) {
+                return cache.get(key).getScore();
+            }
         }
 
         int[] parentIndices = new int[pi.size()];
@@ -158,10 +159,11 @@ public class TeyssierScorer {
             parentIndices[k++] = variables.indexOf(p);
         }
 
-        double v = -this.score.localScore(variables.indexOf(n), parentIndices);
+        double v = this.score.localScore(variables.indexOf(n), parentIndices);
 
         if (cachingScores) {
-            cache.put(new ScoreKey(n, pi), v);
+            ScoreKey key = new ScoreKey(n, pi);
+            cache.put(key, new Pair(pi, v));
         }
 
         return v;
@@ -175,104 +177,42 @@ public class TeyssierScorer {
         return prefix;
     }
 
-    private void recalculate(int i) {
-        Set<Node> precedent = new HashSet<>(getPrefix(i));
-        ScoreKey key = new ScoreKey(order.get(i), new HashSet<>(precedent));
+    private void recalculate(int p) {
 
-        if (precedentScores.containsKey(key)) {
-            scores[i] = precedentScores.get(key);
-            return;
-        }
-
-        double score = getGrowShrink(i);
-
-        precedentScores.put(key, score);
-        scores[i] = score;
-    }
-
-    private double getGrowShrink(int p) {
         Node n = order.get(p);
 
         if (n != nodeMoving) {
             nodeMoving = n;
-            for (int i = p; i < movingScores.length; i++) {
-                movingScores[i] = Double.NaN;
+            for (int k = p; k < movingScores.length; k++) {
+                movingScores[k] = null;
             }
-        } else if (!Double.isNaN(movingScores[p])) {
-            return movingScores[p];
+        } else if (movingScores[p] != null) {
+            scores[p] = movingScores[p];
+            return;
         }
 
-        Set<Node> mb = new HashSet<>();
-        boolean changed = true;
-        double sMin = score(n, new HashSet<>());;
-        Set<Node> prefix = new HashSet<>(getPrefix(p));
-
-        // Grow-shrink
-        while (changed) {
-            changed = false;
-
-            // Let z be the node that maximizes the score...
-            Node z = null;
-
-            for (Node z0 : prefix) {
-                if (mb.contains(z0)) continue;
-
-                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
-                mb.add(z0);
-                double s2 = score(n, mb);
-
-                if (s2 < sMin) {
-                    sMin = s2;
-                    z = z0;
-                }
-
-                mb.remove(z0);
-            }
-
-            if (z != null) {
-                mb.add(z);
-                changed = true;
-                boolean changed2 = true;
-
-                while (changed2) {
-                    changed2 = false;
-
-                    Node w = null;
-
-                    for (Node z0 : new HashSet<>(mb)) {
-                        mb.remove(z0);
-
-                        double s2 = score(n, mb);
-
-                        if (s2 < sMin) {
-                            sMin = s2;
-                            w = z0;
-                        }
-
-                        mb.add(z0);
-                    }
-
-                    if (w != null) {
-                        mb.remove(w);
-                        changed2 = true;
-                    }
-                }
-            }
+        if (new HashSet<>(getPrefix(p)).equals(prefixes[p])) {
+            prefixes[p] = new HashSet<>(getPrefix(p));
+        } else {
+            scores[p] = getGrowShrink(p);
         }
 
         if (n == nodeMoving) {
-            movingScores[p] = sMin;
+            movingScores[p] = scores[p];
         }
-
-        return sMin;
     }
 
     public Set<Node> getMb(int p) {
+        return scores[p].getMb();
+    }
+
+    private Pair getGrowShrink(int p) {
         Node n = order.get(p);
 
         Set<Node> mb = new HashSet<>();
         boolean changed = true;
-        double sMin = score(n, new HashSet<>());
+
+        double sMax = score(n, new HashSet<>());
         Set<Node> prefix = new HashSet<>(getPrefix(p));
 
         // Grow-shrink
@@ -284,12 +224,13 @@ public class TeyssierScorer {
 
             for (Node z0 : prefix) {
                 if (mb.contains(z0)) continue;
+
                 if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
                 mb.add(z0);
                 double s2 = score(n, mb);
 
-                if (s2 < sMin) {
-                    sMin = s2;
+                if (s2 > sMax) {
+                    sMax = s2;
                     z = z0;
                 }
 
@@ -311,8 +252,8 @@ public class TeyssierScorer {
 
                         double s2 = score(n, mb);
 
-                        if (s2 < sMin) {
-                            sMin = s2;
+                        if (s2 > sMax) {
+                            sMax = s2;
                             w = z0;
                         }
 
@@ -327,43 +268,47 @@ public class TeyssierScorer {
             }
         }
 
-        return mb;
+        return new Pair(mb, -sMax);
     }
 
-    public void bookmark() {
-        if (bookmarkedOrder == null) {
-            bookmarkedOrder = new ArrayList<>();
-        }
+    public void bookmark(int index) {
+        bookmarkedOrder.computeIfAbsent(index, k -> new ArrayList<>());
 
-        bookmarkedOrder.clear();
-        bookmarkedOrder.addAll(order);
+        bookmarkedOrder.get(index).clear();
+        bookmarkedOrder.get(index).addAll(order);
 
-        if (bookmarkedScores == null) {
-            bookmarkedScores = new double[scores.length];
-        }
+        bookmarkedScores.computeIfAbsent(index, k -> new Pair[scores.length]);
 
-        System.arraycopy(scores, 0, bookmarkedScores, 0, scores.length);
+        System.arraycopy(scores, 0, bookmarkedScores.get(index), 0, scores.length);
 
-        if (bookmarkedMovingScores == null) {
-            bookmarkedMovingScores = new double[scores.length];
-        }
+        bookmarkedMovingScores.computeIfAbsent(index, k -> new Pair[scores.length]);
 
-        bookmarkedMovingScores = Arrays.copyOf(movingScores, movingScores.length);
-        bookmarkedNodeMoving = nodeMoving;
+        bookmarkedMovingScores.put(index, Arrays.copyOf(movingScores, movingScores.length));
+        bookmarkedNodeMoving.put(index, nodeMoving);
+
+        System.out.println("BOOKMARKING: " + order + " score = " + score());
+
     }
 
-    public void restoreBookmark() {
+    public void restoreBookmark(int index) {
+        System.out.println("RESTORING BOOKMARK FROM: " + order + " score = " + score());
+
+
         if (bookmarkedOrder == null) {
-            throw new IllegalArgumentException("The state has not yet been bookmarked.");
-        }
+            bookmarkedOrder = new HashMap<>();
+            bookmarkedOrder.put(index, new ArrayList<>());
+         }
 
         order.clear();
-        order.addAll(bookmarkedOrder);
+        order.addAll(bookmarkedOrder.get(index));
 
-        System.arraycopy(bookmarkedScores, 0, scores, 0, bookmarkedScores.length);
-        System.arraycopy(bookmarkedMovingScores, 0, movingScores, 0, bookmarkedMovingScores.length);
+        System.arraycopy(bookmarkedScores.get(index), 0, scores, 0, bookmarkedScores.get(index).length);
+        System.arraycopy(bookmarkedMovingScores.get(index), 0, movingScores, 0, bookmarkedMovingScores.get(index).length);
 
-        nodeMoving = bookmarkedNodeMoving;
+        nodeMoving = bookmarkedNodeMoving.get(index);
+
+        System.out.println("RESTORING BOOKMARK TO: " + order + " score = " + score());
+
     }
 
     public void setCachingScores(boolean cachingScores) {
@@ -372,6 +317,37 @@ public class TeyssierScorer {
 
     public int size() {
         return order.size();
+    }
+
+    public boolean weaklyBetterThanBookmark(int index) {
+        for (int p = 0; p < order.size(); p++) {
+            double currentScore = scores[p].getScore();
+            int bookmarkedIndex = bookmarkedOrder.get(index).indexOf(order.get(p));
+            double bookmarkedScore = bookmarkedScores.get(index)[bookmarkedIndex].getScore();
+            if (currentScore > bookmarkedScore) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static class Pair {
+        private final Set<Node> mb;
+        private final double score;
+
+        private Pair(Set<Node> mb, double score) {
+            this.mb = mb;
+            this.score = score;
+        }
+
+        public Set<Node> getMb() {
+            return mb;
+        }
+
+        public double getScore() {
+            return score;
+        }
     }
 
     public static class ScoreKey {

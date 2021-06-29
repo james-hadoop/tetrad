@@ -116,8 +116,9 @@ public class IndependenceFacts implements DataModel {
 
     public boolean isIndependent(Node x, Node y, List<Node> z) {
         IndependenceFact fact = new IndependenceFact(x, y, z);
-        System.out.println("Looking up " + fact + " in " + unsortedFacts);
-        return unsortedFacts.contains(fact);
+        boolean contains = unsortedFacts.contains(fact);
+//        System.out.println("Looking up " + fact + " in " + unsortedFacts + (contains ? " Independence fact holds" : ""));
+        return contains;
     }
 
     public IKnowledge getKnowledge() {

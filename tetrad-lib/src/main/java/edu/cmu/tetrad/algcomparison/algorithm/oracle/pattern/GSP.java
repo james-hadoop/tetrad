@@ -7,7 +7,6 @@ import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
@@ -57,7 +56,7 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
 
             GreedySparsestPermutation search = new GreedySparsestPermutation(new K2Edges(score));
             search.setMethod(GreedySparsestPermutation.Method.NONRECURSIVE);
-            search.setNumRestarts(parameters.getInt(Params.NUM_RESTARTS));
+            search.setNumRestarts(parameters.getInt(Params.NUM_STARTS));
 
             List<Node> variables = new ArrayList<>(score.getVariables());
             Graph graph = search.search(variables);
@@ -117,7 +116,7 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
     public List<String> getParameters() {
         ArrayList<String> params = new ArrayList<>();
         params.add(Params.RECURSIVE);
-        params.add(Params.NUM_RESTARTS);
+        params.add(Params.NUM_STARTS);
         return params;
     }
 

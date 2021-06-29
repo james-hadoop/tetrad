@@ -447,7 +447,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
     @Override
     public DataModel copy() {
-        return null;
+        return new CovarianceMatrix(this);
     }
 
     @Override
