@@ -453,6 +453,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
     @Override
     public void setValue(int i, int j, double v) {
         _covariancesMatrix.set(i, j, v);
+        _covariancesMatrix.set(j, i, v);
     }
 
     @Override

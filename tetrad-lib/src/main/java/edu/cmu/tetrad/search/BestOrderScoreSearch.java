@@ -20,16 +20,14 @@ import static java.util.Collections.shuffle;
 public class BestOrderScoreSearch {
     private final Score score;
     private boolean cachingScores = true;
-    private int numStarts = 0;
+    private int numStarts = 1;
+    private Method method = Method.PROMOTION;
 
     public BestOrderScoreSearch(Score score) {
         this.score = score;
     }
 
     public Graph search(List<Node> initialOrder) {
-        shuffle(initialOrder);
-
-
         long start = System.currentTimeMillis();
         System.out.println("Original order = " + initialOrder);
 
@@ -40,7 +38,15 @@ public class BestOrderScoreSearch {
         List<Node> bestP = scorer.getOrder();
 
         for (int r = 0; r < numStarts; r++) {
-            bossSearchPromotion(scorer);
+            if (method == Method.PROMOTION) {
+                bossSearchPromotion(scorer);
+            } else if (method == Method.PROMOTION_PAIRS) {
+                bossSearchPromotionPairs(scorer);
+            } else if (method == Method.ALL_INDICES) {
+                bossSearchAllIndices(scorer);
+            } else if (method == Method.SP) {
+                sparsestPermutation(scorer);
+            }
 
             if (scorer.score() < best) {
                 best = scorer.score();
@@ -50,10 +56,6 @@ public class BestOrderScoreSearch {
             List<Node> shuffled = new ArrayList<>(scorer.getOrder());
             shuffle(shuffled);
             scorer.score(shuffled);
-
-//            sparsestPermutation(scorer);
-
-
         }
 
         scorer.score(bestP);
@@ -64,7 +66,9 @@ public class BestOrderScoreSearch {
 
         System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
 
-        return SearchGraphUtils.patternForDag(getGraph(scorer));
+        return getGraph(scorer);
+
+//        return SearchGraphUtils.patternForDag(getGraph(scorer));
     }
 
     // Using Teyssier and Kohler's neighbor swaps.
@@ -351,7 +355,7 @@ public class BestOrderScoreSearch {
         }
     }
 
-    private void sparsestPermutation(TeyssierScorer scorer) {
+    public void sparsestPermutation(TeyssierScorer scorer) {
         double minScore = Double.POSITIVE_INFINITY;
         List<Node> minP = null;
 
@@ -385,7 +389,8 @@ public class BestOrderScoreSearch {
             }
         }
 
-        return SearchGraphUtils.patternForDag(G1);
+        return G1;
+//        return SearchGraphUtils.patternForDag(G1);
     }
 
 
@@ -396,4 +401,14 @@ public class BestOrderScoreSearch {
     public void setNumStarts(int numStarts) {
         this.numStarts = numStarts;
     }
+
+    public Method getMethod() {
+        return method;
+    }
+
+    public void setMethod(Method method) {
+        this.method = method;
+    }
+
+    public enum Method {PROMOTION, PROMOTION_PAIRS, ALL_INDICES, SP}
 }

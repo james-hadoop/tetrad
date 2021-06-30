@@ -201,7 +201,7 @@ public final class Params {
     public static final String CORRELATION_THRESHOLD = "correlationThreshold";
     public static final String BEAM_WIDTH = "beamWidth";
     public static final String ZERO_EDGE_P = "zeroEdgeP";
-    public static final String NUM_STARTS = "numRestarts";
+    public static final String NUM_STARTS = "numStarts";
     public static final String RECURSIVE = "recursive";
     public static final String CACHE_SCORES = "cacheScores";
 

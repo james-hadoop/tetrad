@@ -22,12 +22,16 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.IndependenceFacts;
+import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Implements Chickering and Meek's (2002) locally consistent score criterion.
@@ -36,7 +40,8 @@ import java.util.List;
  */
 public class GraphScore implements Score {
 
-    private final Graph dag;
+    private Graph dag;
+    private IndependenceFacts facts;
 
     // The variables of the covariance matrix.
     private List<Node> variables;
@@ -59,13 +64,39 @@ public class GraphScore implements Score {
         }
     }
 
+    public GraphScore(IndependenceFacts facts) {
+        this.facts = facts;
+
+        this.variables = new ArrayList<>();
+
+        for (Node node : facts.getVariables()) {
+            if (node.getNodeType() == NodeType.MEASURED) {
+                this.variables.add(node);
+            }
+        }
+    }
+
     /**
      * Calculates the sample likelihood and BIC score for y given its z in a simple SEM model
      */
     public double localScore(int y, int[] z) {
-//        return -localScoreDiff(0, y, z);
-//        throw new UnsupportedOperationException();
-        return 0;
+        return localScoreVisit(y, z) - z.length * 0.01;
+    }
+
+    private double localScoreVisit(int y, int[] z) {
+        if (z.length == 0) {
+            return 0;
+        }
+
+        int zn = z[z.length - 1];
+        int[] sub1 = new int[z.length - 1];
+        System.arraycopy(z, 0, sub1, 0, z.length - 1);
+
+        int[] sub2 = new int[z.length - 1];
+        System.arraycopy(sub1, 0, sub2, 0, z.length - 1);
+        if (sub2.length > 0) sub2[sub2.length - 1] = zn;
+
+        return (localScoreDiff(zn, y, sub1)) + localScoreVisit(y, sub2);
     }
 
     private List<Node> getVariableList(int[] indices) {
@@ -80,7 +111,6 @@ public class GraphScore implements Score {
     @Override
     public double localScoreDiff(int x, int y, int[] z) {
         return locallyConsistentScoringCriterion(x, y, z);
-//        return aBetterScore(x, y, z);
     }
 
     @Override
@@ -93,49 +123,18 @@ public class GraphScore implements Score {
         Node _y = variables.get(y);
         Node _x = variables.get(x);
         List<Node> _z = getVariableList(z);
-        boolean dSeparatedFrom = dag.isDSeparatedFrom(_x, _y, _z);
 
-//        if (dSeparatedFrom) {
-//            System.out.println(SearchLogUtils.independenceFact(_x, _y, _z));
-//        } else {
-//            System.out.println("\t NOT " + SearchLogUtils.independenceFact(_x, _y, _z));
-//        }
+        boolean dSeparatedFrom;
 
-        return dSeparatedFrom ? -1.0 : 1.0;
-    }
-
-    private double aBetterScore(int x, int y, int[] z) {
-        Node _y = variables.get(y);
-        Node _x = variables.get(x);
-        List<Node> _z = getVariableList(z);
-        boolean dsep = dag.isDSeparatedFrom(_x, _y, _z);
-        int count = 0;
-
-        if (!dsep) count++;
-
-        for (Node z0 : _z) {
-            if (dag.isDSeparatedFrom(_x, z0, _z)) {
-                count += 1;
-            }
+        if (dag != null) {
+            dSeparatedFrom = dag.isDSeparatedFrom(_x, _y, _z);
+        } else if (facts != null) {
+            dSeparatedFrom = facts.isIndependent(_x, _y, _z);
+        } else {
+            throw new IllegalStateException("Expecting either a graph or a IndependenceFacts object.");
         }
 
-        double score = dsep ? -1 - count : 1 + count;
-
-//        if (score == 1) score -= Math.tanh(z.length);
-        return score;
-    }
-
-    private List<Node> minus(List<Node> z, Node z0) {
-        List<Node> diff = new ArrayList<>(z);
-        diff.remove(z0);
-        return diff;
-    }
-
-    int[] append(int[] parents, int extra) {
-        int[] all = new int[parents.length + 1];
-        System.arraycopy(parents, 0, all, 0, parents.length);
-        all[parents.length] = extra;
-        return all;
+        return dSeparatedFrom ? -1.0 : 1.0;
     }
 
     /**
@@ -208,7 +207,20 @@ public class GraphScore implements Score {
     }
 
     public Graph getDag() {
-        return dag;
+        return new EdgeListGraph(dag);
+    }
+
+    public boolean isDSeparatedFrom(Node x, Node y, List<Node> z) {
+        if (dag != null) {
+            return dag.isDSeparatedFrom(x, y, z);
+        } else if (facts != null) {
+            return facts.isIndependent(x, y, z);
+        }
+
+        throw new IllegalArgumentException("Expecting either a DAG or an IndependenceFacts object.");
+    }
+    public boolean isDConnectedTo(Node x, Node y, List<Node> z) {
+        return !isDSeparatedFrom(x, y, z);
     }
 }
 

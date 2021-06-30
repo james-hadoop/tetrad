@@ -2,6 +2,8 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 
 import java.util.*;
@@ -18,6 +20,8 @@ import java.util.*;
 public class TeyssierScorer {
     private final Score score;
     private final Map<ScoreKey, Pair> cache = new HashMap<>();
+    private final Map<Integer, Pair[]> bookmarkedMovingScores = new HashMap<>();
+    private final Map<Integer, Node> bookmarkedNodeMoving = new HashMap<>();
     private List<Node> variables;
     private List<Node> order;
     private Pair[] scores;
@@ -25,8 +29,6 @@ public class TeyssierScorer {
     private Pair[] movingScores = null;
     private Map<Integer, List<Node>> bookmarkedOrder = new HashMap<>();
     private Map<Integer, Pair[]> bookmarkedScores = new HashMap<>();
-    private final Map<Integer, Pair[]> bookmarkedMovingScores = new HashMap<>();
-    private final Map<Integer, Node> bookmarkedNodeMoving = new HashMap<>();
     private boolean cachingScores = true;
     private IKnowledge knowledge = new Knowledge2();
     private Set[] prefixes;
@@ -207,6 +209,10 @@ public class TeyssierScorer {
     }
 
     private Pair getGrowShrink(int p) {
+        if (score instanceof GraphScore) {
+            return getGrowShrinkIndep(p);
+        }
+
         Node n = order.get(p);
 
         Set<Node> mb = new HashSet<>();
@@ -269,6 +275,61 @@ public class TeyssierScorer {
         }
 
         return new Pair(mb, -sMax);
+//        return new Pair(mb, mb.size());
+    }
+
+    private Pair getGrowShrinkIndep(int p) {
+        Node n = order.get(p);
+
+        Set<Node> mb = new HashSet<>();
+        boolean changed = true;
+
+        Set<Node> prefix = new HashSet<>(getPrefix(p));
+
+        // Grow-shrink
+        while (changed) {
+            changed = false;
+
+            for (Node z0 : prefix) {
+                if (mb.contains(z0)) continue;
+
+                if (((GraphScore) score).isDConnectedTo(n, z0, new ArrayList<>(mb))) {
+                    mb.add(z0);
+                    changed = true;
+                }
+            }
+
+            boolean changed2 = true;
+
+            while (changed2) {
+                changed2 = false;
+
+                for (Node z1 : new HashSet<>(mb)) {
+                    Set<Node> _mb = new HashSet<>(mb);
+                    _mb.remove(z1);
+
+                    if (((GraphScore) score).isDSeparatedFrom(n, z1, new ArrayList<>(_mb))) {
+                        mb.remove(z1);
+                        changed2 = true;
+                    }
+                }
+            }
+        }
+
+//        Set<Node> mb2 = new HashSet<>();
+//
+//        for (Node z0 : prefix) {
+//            List<Node> cond = new ArrayList<>(prefix);
+//            cond.remove(z0);
+//
+//            if (((GraphScore) score).isDConnectedTo(n, z0, cond)) {
+//                mb2.add(z0);
+//            }
+//        }
+
+//        if (!mb.equals(mb2)) throw new IllegalArgumentException();
+
+        return new Pair(mb, mb.size());
     }
 
     public void bookmark(int index) {
@@ -286,18 +347,15 @@ public class TeyssierScorer {
         bookmarkedMovingScores.put(index, Arrays.copyOf(movingScores, movingScores.length));
         bookmarkedNodeMoving.put(index, nodeMoving);
 
-        System.out.println("BOOKMARKING: " + order + " score = " + score());
+//        System.out.println("BOOKMARKING: " + order + " score = " + score());
 
     }
 
     public void restoreBookmark(int index) {
-        System.out.println("RESTORING BOOKMARK FROM: " + order + " score = " + score());
-
-
         if (bookmarkedOrder == null) {
             bookmarkedOrder = new HashMap<>();
             bookmarkedOrder.put(index, new ArrayList<>());
-         }
+        }
 
         order.clear();
         order.addAll(bookmarkedOrder.get(index));
@@ -307,7 +365,7 @@ public class TeyssierScorer {
 
         nodeMoving = bookmarkedNodeMoving.get(index);
 
-        System.out.println("RESTORING BOOKMARK TO: " + order + " score = " + score());
+//        System.out.println("RESTORING BOOKMARK TO: " + order + " score = " + score());
 
     }
 

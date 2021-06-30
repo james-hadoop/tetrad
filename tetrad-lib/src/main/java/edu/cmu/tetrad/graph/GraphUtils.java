@@ -4049,15 +4049,14 @@ public final class GraphUtils {
         return isDConnectedTo1(x, y, z, graph);
 //        return isDConnectedTo2(x, y, z, graph);
 //        return isDConnectedTo3(x, y, z, graph);
-//        return isDConnectedTo4(x, y, z, graph);
     }
 
     // Breadth first.
     private static boolean isDConnectedTo1(Node x, Node y, List<Node> z, Graph graph) {
         class EdgeNode {
 
-            private Edge edge;
-            private Node node;
+            private final Edge edge;
+            private final Node node;
 
             public EdgeNode(Edge edge, Node node) {
                 this.edge = edge;
