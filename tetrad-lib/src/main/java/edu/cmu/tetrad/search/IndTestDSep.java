@@ -23,6 +23,7 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
+import edu.cmu.tetrad.data.IndependenceFacts;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
@@ -39,6 +40,7 @@ import java.util.*;
  */
 public class IndTestDSep implements IndependenceTest {
 
+    private IndependenceFacts independenceFacts;
     /**
      * The graph for which this is a variable map.
      */
@@ -57,6 +59,10 @@ public class IndTestDSep implements IndependenceTest {
         this(graph, false);
     }
 
+    public IndTestDSep(IndependenceFacts facts) {
+        this(facts, false);
+    }
+
     /**
      * Constructs a new independence test that returns d-separation facts for the given graph as independence results.
      */
@@ -67,7 +73,18 @@ public class IndTestDSep implements IndependenceTest {
 
         this.graph = graph;
 
-        this._observedVars = calcVars(graph, keepLatents);
+        this._observedVars = calcVars(graph.getNodes(), keepLatents);
+        this.observedVars = new HashSet<>(_observedVars);
+    }
+
+    public IndTestDSep(IndependenceFacts facts, boolean keepLatents) {
+        if (facts == null) {
+            throw new NullPointerException();
+        }
+
+        this.independenceFacts = facts;
+
+        this._observedVars = calcVars(facts.getVariables(), keepLatents);
         this.observedVars = new HashSet<>(_observedVars);
     }
 
@@ -103,13 +120,13 @@ public class IndTestDSep implements IndependenceTest {
     /**
      * @return the list of observed nodes in the given graph.
      */
-    private List<Node> calcVars(Graph graph, boolean keepLatents) {
+    private List<Node> calcVars(List<Node> nodes, boolean keepLatents) {
         if (keepLatents) {
-            return graph.getNodes();
+            return nodes;
         } else {
             List<Node> observedVars = new ArrayList<>();
 
-            for (Node node : graph.getNodes()) {
+            for (Node node : nodes) {
                 if (node.getNodeType() == NodeType.MEASURED) {
                     observedVars.add(node);
                 }
@@ -152,7 +169,13 @@ public class IndTestDSep implements IndependenceTest {
             }
         }
 
-        boolean dSeparated = !getGraph().isDConnectedTo(x, y, z);
+        boolean dSeparated;
+
+        if (graph != null) {
+            dSeparated = !getGraph().isDConnectedTo(x, y, z);
+        } else {
+            dSeparated = independenceFacts.isIndependent(x, y, z);
+        }
 
         if (verbose) {
             if (dSeparated) {

@@ -49,12 +49,14 @@ import org.junit.Test;
 import java.util.*;
 
 import static java.util.Collections.shuffle;
+import static java.util.Collections.sort;
 
 /**
  * Tests to make sure the DelimiterType enumeration hasn't been tampered with.
  *
  * @author Joseph Ramsey
  */
+@SuppressWarnings("ALL")
 public final class TestBoss {
 
 
@@ -220,53 +222,145 @@ public final class TestBoss {
         return prefix;
     }
 
-    @Test
-    public void testAllFacts() {
-        List<IndependenceFacts> allFacts = new ArrayList<>();
-        allFacts.add(getFacts1());
-        allFacts.add(getFacts2());
-        allFacts.add(getFacts3());
-        allFacts.add(getFacts4());
-        allFacts.add(getFacts5());
-        allFacts.add(getFacts6());
+    private static class Ret {
+        private final String label;
+        private final IndependenceFacts facts;
 
-        List<String> labels = new ArrayList<>();
-        labels.add("");
-        labels.add("Figure 8");
-        labels.add("Figure 11");
-        labels.add("");
-        labels.add("Figure 6");
-        labels.add("Figure 7");
+        public Ret(String label, IndependenceFacts facts) {
+            this.label = label;
+            this.facts = facts;
+        }
 
-        int count = 0;
+        public String getLabel() {
+            return label;
+        }
 
-        List<BestOrderScoreSearch.Method> methods = new ArrayList<>();
-        methods.add(BestOrderScoreSearch.Method.SP);
-        methods.add(BestOrderScoreSearch.Method.PROMOTION);
-        methods.add(BestOrderScoreSearch.Method.PROMOTION_PAIRS);
-        methods.add(BestOrderScoreSearch.Method.ALL_INDICES);
-
-        for (IndependenceFacts facts : allFacts) {
-            count++;
-
-            for (BestOrderScoreSearch.Method method : methods) {
-                System.out.println("Method = " + method + "\n");
-                System.out.println("Model " + count + ": " + labels.get(count - 1) + "\n");
-                System.out.println("Facts: \n\n" + facts);
-
-                BestOrderScoreSearch boss = new BestOrderScoreSearch(new GraphScore(facts));
-                boss.setCachingScores(false);
-                boss.setMethod(method);
-                List<Node> order = facts.getVariables();
-                shuffle(order);
-                System.out.print(boss.search(order));
-
-                System.out.println(("--------------\n"));
-            }
+        public IndependenceFacts getFacts() {
+            return facts;
         }
     }
 
-    public IndependenceFacts getFacts1() {
+    @Test
+    public void testAllFacts() {
+        List<Ret> allFacts = new ArrayList<>();
+        allFacts.add(getFactsSimpleCanceling());
+        allFacts.add(getFactsRaskutti());
+        allFacts.add(getFigure6());
+        allFacts.add(getFigure7());
+        allFacts.add(getFigure8());
+        allFacts.add(getFigure12());
+
+        int count = 0;
+
+        List<BestOrderScoreSearch.Method> bossMethods = new ArrayList<>();
+        bossMethods.add(BestOrderScoreSearch.Method.SP);
+        bossMethods.add(BestOrderScoreSearch.Method.PROMOTION);
+        bossMethods.add(BestOrderScoreSearch.Method.ALL_INDICES);
+        bossMethods.add(BestOrderScoreSearch.Method.ESP);
+        bossMethods.add(BestOrderScoreSearch.Method.TSP);
+
+        for (Ret facts : allFacts) {
+            count++;
+
+            List<Node> order = facts.facts.getVariables();
+
+            System.out.println("Model " + count + ": " + facts.label + "\n");
+            System.out.println("\nFacts: \n\n" + facts.facts);
+
+            int numRuns = 5;
+
+            for (BestOrderScoreSearch.Method method : bossMethods) {
+                System.out.println("Method = " + method + " " + facts.label + "\n");
+
+                Set<Graph> graphs = new HashSet<>();
+
+                for (int i = 0; i < numRuns; i++) {
+                    shuffle(order);
+
+                    BestOrderScoreSearch boss = new BestOrderScoreSearch(new IndTestDSep(facts.getFacts()));
+                    boss.setCachingScores(true);
+                    boss.setMethod(method);
+                    boss.setNumStarts(10);
+                    Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
+                    graphs.add(pattern);
+                }
+
+                printGraphs(graphs);
+
+            }
+
+//            {
+//                {
+//                    System.out.println("Method = " + "FGES" + "\n");
+//                    Set<Graph> graphs = new HashSet<>();
+//
+//                    for (int i = 0; i < numRuns; i++) {
+//                        shuffle(order);
+//                        facts.getFacts().setOrder(order);
+//                        edu.cmu.tetrad.search.Fges fges = new edu.cmu.tetrad.search.Fges(new GraphScore(facts.getFacts()));
+//                        Graph pattern = fges.search();
+//                        graphs.add(pattern);
+//                    }
+//
+//                    printGraphs(graphs);
+//                }
+//
+//                {
+//                    System.out.println("Method = " + "PC" + "\n");
+//                    Set<Graph> graphs = new HashSet<>();
+//
+//                    for (int i = 0; i < numRuns; i++) {
+//                        shuffle(order);
+//                        facts.getFacts().setOrder(order);
+//                        edu.cmu.tetrad.search.PcAll cpc = new edu.cmu.tetrad.search.PcAll(new IndTestDSep(facts.getFacts()), null);
+//                        cpc.setColliderDiscovery(edu.cmu.tetrad.search.PcAll.ColliderDiscovery.FAS_SEPSETS);
+//                        Graph pattern = cpc.search();
+//                        graphs.add(pattern);
+//                    }
+//
+//                    printGraphs(graphs);
+//                }
+//
+//                {
+//                    System.out.println("Method = " + "CPC" + "\n");
+//                    Set<Graph> graphs = new HashSet<>();
+//
+//                    for (int i = 0; i < numRuns; i++) {
+//                        shuffle(order);
+//                        facts.facts.setOrder(order);
+//                        edu.cmu.tetrad.search.PcAll cpc = new edu.cmu.tetrad.search.PcAll(new IndTestDSep(facts.facts), null);
+//                        cpc.setColliderDiscovery(edu.cmu.tetrad.search.PcAll.ColliderDiscovery.CONSERVATIVE);
+//                        Graph pattern = cpc.search();
+//                        graphs.add(pattern);
+//                    }
+//
+//                    printGraphs(graphs);
+//                }
+//            }
+
+            System.out.println(("\n\n--------------\n"));
+        }
+    }
+
+    private void printGraphs(Set<Graph> graphs) {
+        List<Graph> _graphs = new ArrayList<>(graphs);
+
+        for (int i = 0; i < _graphs.size(); i++) {
+            System.out.println("Found this CPDAG (" + (i + 1) + "):\n\n" + _graphs.get(i) + "\n");
+        }
+    }
+
+    @Test
+    public void test12345() {
+        IndependenceFacts facts = getFigure6().facts;
+        List<Node> nodes = facts.getVariables();
+
+        sort(nodes);
+        TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts));
+        assert (scorer.score(nodes) == 7);
+    }
+
+    public Ret getFactsSimpleCanceling() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
         Node x3 = new GraphNode("3");
@@ -277,12 +371,13 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x3, list(x2)));
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
         facts.add(new IndependenceFact(x3, x1, list(x2)));
-        facts.add(new IndependenceFact(x1, x4, list(x2))); // unfaithful.
+        facts.add(new IndependenceFact(x1, x4, list())); // unfaithful.
+//        facts.add(new IndependenceFact(x1, x4, list(x2))); // unfaithful.
 
-        return facts;
+        return new Ret("Simple 4-node path canceling model that GES should get right", facts);
     }
 
-    public IndependenceFacts getFacts2() {
+    public Ret getFigure8() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
         Node x3 = new GraphNode("3");
@@ -295,11 +390,11 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
         facts.add(new IndependenceFact(x4, x5, list()));
 
-        return facts;
+        return new Ret("Solus Theorem 11, SMR !==> ESP (Figure 8)", facts);
     }
 
 
-    public IndependenceFacts getFacts3() {
+    public Ret getFigure12() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
         Node x3 = new GraphNode("3");
@@ -314,10 +409,10 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x4, x6, list(x1, x2, x3, x5)));
         facts.add(new IndependenceFact(x1, x3, list(x2, x4, x5, x6)));
 
-        return facts;
+        return new Ret("Solus Theorem 12, TSP !==> Orientation Faithfulness (Figure 11)", facts);
     }
 
-    public IndependenceFacts getFacts4() {
+    public Ret getFigure7() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
         Node x3 = new GraphNode("3");
@@ -329,10 +424,10 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x3, list(x2)));
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
 
-        return facts;
+        return new Ret("Solus Theorem 12, ESP !==> TSP (Figure 7)", facts);
     }
 
-    public IndependenceFacts getFacts5() {
+    public Ret getFigure6() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
         Node x3 = new GraphNode("3");
@@ -347,10 +442,11 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x4, list(x2, x3, x5)));
         facts.add(new IndependenceFact(x1, x4, list(x2, x3)));
 
-        return facts;
+        return new Ret("Solus Theorem 11, TSP !==> Faithfulness counterexample (Figure 6)", facts);
     }
 
-    public IndependenceFacts getFacts6() {
+
+    public Ret getFacts6() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
         Node x3 = new GraphNode("3");
@@ -362,7 +458,22 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x3, list(x2)));
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
 
-        return facts;
+        return new Ret("", facts);
+    }
+
+    public Ret getFactsRaskutti() {
+        Node x1 = new GraphNode("1");
+        Node x2 = new GraphNode("2");
+        Node x3 = new GraphNode("3");
+        Node x4 = new GraphNode("4");
+
+        IndependenceFacts facts = new IndependenceFacts();
+
+        facts.add(new IndependenceFact(x1, x3, list(x2)));
+        facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
+        facts.add(new IndependenceFact(x1, x2, list(x4)));
+
+        return new Ret("Raskutti Theorem 2.4 SMR !==> Restricted Faithfulness", facts);
     }
 
     @Test

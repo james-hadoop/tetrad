@@ -204,6 +204,7 @@ public final class Params {
     public static final String NUM_STARTS = "numStarts";
     public static final String RECURSIVE = "recursive";
     public static final String CACHE_SCORES = "cacheScores";
+    public static final String BOSS_METHOD = "bossMethod";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(
@@ -256,21 +257,18 @@ public final class Params {
     }
 
     public static Set<String> getAlgorithmParameters(Algorithm algorithm) {
-        return algorithm.getParameters()
-                .stream().collect(Collectors.toSet());
+        return new HashSet<>(algorithm.getParameters());
     }
 
     public static Set<String> getTestParameters(Algorithm algorithm) {
         return (algorithm instanceof TakesIndependenceWrapper)
-                ? ((TakesIndependenceWrapper) algorithm).getIndependenceWrapper().getParameters()
-                        .stream().collect(Collectors.toSet())
+                ? new HashSet<>(((TakesIndependenceWrapper) algorithm).getIndependenceWrapper().getParameters())
                 : Collections.emptySet();
     }
 
     public static Set<String> getScoreParameters(Algorithm algorithm) {
         return (algorithm instanceof UsesScoreWrapper)
-                ? ((UsesScoreWrapper) algorithm).getScoreWrapper().getParameters()
-                        .stream().collect(Collectors.toSet())
+                ? new HashSet<>(((UsesScoreWrapper) algorithm).getScoreWrapper().getParameters())
                 : Collections.emptySet();
     }
 
@@ -280,7 +278,7 @@ public final class Params {
                 : Collections.emptySet();
     }
 
-    public static final Set<String> getParameters() {
+    public static Set<String> getParameters() {
         return ALL_PARAMS_IN_HTML_MANUAL;
     }
 

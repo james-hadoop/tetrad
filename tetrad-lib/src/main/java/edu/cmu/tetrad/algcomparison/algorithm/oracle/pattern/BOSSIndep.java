@@ -1,8 +1,10 @@
 package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
@@ -28,28 +30,25 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "BOSS",
-        command = "boss",
+        name = "BOSSIndep",
+        command = "boss-indep",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
+public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapper, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
-    private IndependenceTest test = null;
-    private ScoreWrapper score = null;
+    private IndependenceWrapper test = null;
+//    private ScoreWrapper score = null;
     private IKnowledge knowledge = new Knowledge2();
     private Graph initialGraph;
     private Algorithm algorithm;
 
-    public BOSS() {
+    public BOSSIndep() {
 
     }
 
-    public BOSS(ScoreWrapper score) {
-        this.score = score;
-    }
-    public BOSS(IndependenceTest test) {
+    public BOSSIndep(IndependenceWrapper test) {
         this.test = test;
     }
 
@@ -60,12 +59,12 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         }
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            Score score = this.score.getScore(dataSet, parameters);
-            BestOrderScoreSearch boss = new BestOrderScoreSearch(score);
+//            Score score = this.score.getScore(dataSet, parameters);
+            IndependenceTest test = this.test.getTest(dataSet, parameters);
+            BestOrderScoreSearch boss = new BestOrderScoreSearch(test);
             boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-
-            boss.setMethod(BestOrderScoreSearch.Method.PROMOTION);
+            List<Node> variables = new ArrayList<>(test.getVariables());
 
             if (parameters.getInt(Params.BOSS_METHOD) == 1) {
                 boss.setMethod(BestOrderScoreSearch.Method.PROMOTION);
@@ -81,10 +80,9 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
             }
 
-             List<Node> variables = new ArrayList<>(score.getVariables());
             return boss.search(variables);
         } else {
-            BOSS fges = new BOSS();
+            BOSSIndep fges = new BOSSIndep();
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -127,7 +125,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     @Override
     public DataType getDataType() {
-        return score.getDataType();
+        return test.getDataType();
     }
 
     @Override
@@ -150,16 +148,6 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     }
 
     @Override
-    public ScoreWrapper getScoreWrapper() {
-        return score;
-    }
-
-    @Override
-    public void setScoreWrapper(ScoreWrapper score) {
-        this.score = score;
-    }
-
-    @Override
     public Graph getInitialGraph() {
         return initialGraph;
     }
@@ -172,5 +160,15 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     @Override
     public void setInitialGraph(Algorithm algorithm) {
         this.algorithm = algorithm;
+    }
+
+    @Override
+    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
+        this.test = independenceWrapper;
+    }
+
+    @Override
+    public IndependenceWrapper getIndependenceWrapper() {
+        return test;
     }
 }

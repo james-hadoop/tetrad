@@ -28,10 +28,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Implements Chickering and Meek's (2002) locally consistent score criterion.
@@ -80,7 +77,26 @@ public class GraphScore implements Score {
      * Calculates the sample likelihood and BIC score for y given its z in a simple SEM model
      */
     public double localScore(int y, int[] z) {
-        return localScoreVisit(y, z) - z.length * 0.01;
+        return  getPearlParentsTest(y).size();
+//        return localScoreVisit(y, z) - z.length * 0.01;
+    }
+
+    private Node n = null;
+    private List<Node> prefix = null;
+
+    private Set<Node> getPearlParentsTest(int p) {
+        Set<Node> mb = new HashSet<>();
+
+        for (Node z0 : prefix) {
+            List<Node> cond = new ArrayList<>(prefix);
+            cond.remove(z0);
+
+            if (dag.isDConnectedTo(n, z0, cond)) {
+                mb.add(z0);
+            }
+        }
+
+        return mb;
     }
 
     private double localScoreVisit(int y, int[] z) {
@@ -221,6 +237,14 @@ public class GraphScore implements Score {
     }
     public boolean isDConnectedTo(Node x, Node y, List<Node> z) {
         return !isDSeparatedFrom(x, y, z);
+    }
+
+    public void setPrefix(List<Node> prefix) {
+        this.prefix = prefix;
+    }
+
+    public void setN(Node n) {
+        this.n = n;
     }
 }
 

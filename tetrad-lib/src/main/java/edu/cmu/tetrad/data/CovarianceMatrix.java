@@ -380,7 +380,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
         buf.append(sampleSize).append("\n");
 
         // Build the variable names
-        buf.append(getVariableNames().stream().collect(Collectors.joining("\t")));
+        buf.append(String.join("\t", getVariableNames()));
 
         int numVars = getVariableNames().size();
         buf.append("\n");
