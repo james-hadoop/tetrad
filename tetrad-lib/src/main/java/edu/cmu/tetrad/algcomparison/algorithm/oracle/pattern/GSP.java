@@ -11,7 +11,9 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.BestOrderScoreSearch;
+import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -51,18 +53,15 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-
-            Score score = getScoreWrapper().getScore(dataSet, parameters);
-
-            GreedySparsestPermutation search = new GreedySparsestPermutation(new K2Edges(score));
-            search.setMethod(GreedySparsestPermutation.Method.NONRECURSIVE);
-            search.setNumRestarts(parameters.getInt(Params.NUM_STARTS));
+            Score score = this.score.getScore(dataSet, parameters);
+            BestOrderScoreSearch boss = new BestOrderScoreSearch(score);
+            boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
+            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            boss.setGspDepth(parameters.getInt(Params.DEPTH));
+            boss.setMethod(BestOrderScoreSearch.Method.GSP);
 
             List<Node> variables = new ArrayList<>(score.getVariables());
-            Graph graph = search.search(variables);
-
-            System.out.println("Score for original order = " + search.getScoreOriginalOrder());
-            System.out.println("Score for learned order = " + search.getScoreLearnedOrder());
+            Graph graph = boss.search(variables);
 
             return SearchGraphUtils.patternForDag(graph);
         } else {
@@ -115,8 +114,9 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
     @Override
     public List<String> getParameters() {
         ArrayList<String> params = new ArrayList<>();
-        params.add(Params.RECURSIVE);
+        params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
+        params.add(Params.DEPTH);
         return params;
     }
 

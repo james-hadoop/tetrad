@@ -64,6 +64,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             BestOrderScoreSearch boss = new BestOrderScoreSearch(score);
             boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            boss.setGspDepth(parameters.getInt(Params.DEPTH));
 
             boss.setMethod(BestOrderScoreSearch.Method.PROMOTION);
 
@@ -76,7 +77,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             } else if (parameters.getInt(Params.BOSS_METHOD) == 4) {
                 boss.setMethod(BestOrderScoreSearch.Method.ESP);
             } else if (parameters.getInt(Params.BOSS_METHOD) == 5) {
-                boss.setMethod(BestOrderScoreSearch.Method.TSP);
+                boss.setMethod(BestOrderScoreSearch.Method.GSP);
             } else {
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
             }
@@ -136,6 +137,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);
+        params.add(Params.DEPTH);
         return params;
     }
 

@@ -256,8 +256,8 @@ public final class TestBoss {
         bossMethods.add(BestOrderScoreSearch.Method.SP);
         bossMethods.add(BestOrderScoreSearch.Method.PROMOTION);
         bossMethods.add(BestOrderScoreSearch.Method.ALL_INDICES);
-        bossMethods.add(BestOrderScoreSearch.Method.ESP);
-        bossMethods.add(BestOrderScoreSearch.Method.TSP);
+//        bossMethods.add(BestOrderScoreSearch.Method.ESP);
+        bossMethods.add(BestOrderScoreSearch.Method.GSP);
 
         for (Ret facts : allFacts) {
             count++;

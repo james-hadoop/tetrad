@@ -2,11 +2,9 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
-import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
@@ -15,7 +13,6 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.BestOrderScoreSearch;
 import edu.cmu.tetrad.search.IndependenceTest;
-import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -30,12 +27,12 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "BOSSIndep",
-        command = "boss-indep",
+        name = "GSPIndep",
+        command = "gsp-indep",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapper, TakesInitialGraph {
+public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapper, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test = null;
@@ -44,11 +41,11 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
     private Graph initialGraph;
     private Algorithm algorithm;
 
-    public BOSSIndep() {
+    public GSPIndep() {
 
     }
 
-    public BOSSIndep(IndependenceWrapper test) {
+    public GSPIndep(IndependenceWrapper test) {
         this.test = test;
     }
 
@@ -59,32 +56,17 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
         }
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-//            Score score = this.score.getScore(dataSet, parameters);
             IndependenceTest test = this.test.getTest(dataSet, parameters);
             BestOrderScoreSearch boss = new BestOrderScoreSearch(test);
             boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setGspDepth(parameters.getInt(Params.DEPTH));
+            boss.setMethod(BestOrderScoreSearch.Method.GSP);
 
             List<Node> variables = new ArrayList<>(test.getVariables());
-
-            if (parameters.getInt(Params.BOSS_METHOD) == 1) {
-                boss.setMethod(BestOrderScoreSearch.Method.PROMOTION);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 2) {
-                boss.setMethod(BestOrderScoreSearch.Method.ALL_INDICES);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 3) {
-                boss.setMethod(BestOrderScoreSearch.Method.SP);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 4) {
-                boss.setMethod(BestOrderScoreSearch.Method.ESP);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 5) {
-                boss.setMethod(BestOrderScoreSearch.Method.GSP);
-            } else {
-                throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
-            }
-
             return boss.search(variables);
         } else {
-            BOSSIndep fges = new BOSSIndep();
+            GSPIndep fges = new GSPIndep();
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -122,7 +104,7 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
 
     @Override
     public String getDescription() {
-        return "BOSS from test";
+        return "GSP from test";
     }
 
     @Override
@@ -135,7 +117,6 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
         ArrayList<String> params = new ArrayList<>();
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
-        params.add(Params.BOSS_METHOD);
         params.add(Params.DEPTH);
         return params;
     }
