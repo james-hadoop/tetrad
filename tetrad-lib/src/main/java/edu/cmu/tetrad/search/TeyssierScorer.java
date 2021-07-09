@@ -6,7 +6,7 @@ import edu.cmu.tetrad.graph.Node;
 
 import java.util.*;
 
-import static java.lang.Math.log;
+import static java.lang.Math.*;
 
 /**
  * Implements a scorer as in Teyssier, M., & Koller, D. (2012). Ordering-based search: A simple and effective
@@ -120,6 +120,11 @@ public class TeyssierScorer {
         order.set(j, m);
 
         score(order);
+
+//        for (int k = min(i, j); k < max(i, j); k++) {
+//            recalculate(k);
+//        }
+
     }
 
     public List<Node> getOrder() {
@@ -584,6 +589,16 @@ public class TeyssierScorer {
         }
 
         return true;
+    }
+
+    public int getNumEdges() {
+        int numEdges = 0;
+
+        for (int p = 0; p < order.size(); p++) {
+            numEdges += getMb(p).size();
+        }
+
+        return numEdges;
     }
 
     private static class Pair {

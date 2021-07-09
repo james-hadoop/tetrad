@@ -4,10 +4,7 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Collections.shuffle;
 
@@ -195,48 +192,48 @@ public class BestOrderScoreSearch {
     }
 
     public void gsp(TeyssierScorer scorer) {
-        GspVisit visit0;
-        GspVisit visit1 = new GspVisit(scorer);
+        int num0;
+        int num1 = scorer.getNumEdges();
 
         do {
-            visit0 = visit1;
-            visit1 = gspVisit(scorer, visit0, this.gspDepth == -1 ? Integer.MAX_VALUE : this.gspDepth, 0);
-        } while (visit1 != visit0);
-
-        scorer.score(visit1.getOrder());
+            num0 = num1;
+            gspVisit(scorer, this.gspDepth == -1 ? Integer.MAX_VALUE : this.gspDepth,
+                    0, new HashSet<>());
+            num1 = scorer.getNumEdges();
+        } while (num0 != num1);
     }
 
-    public GspVisit gspVisit(TeyssierScorer scorer, GspVisit visit0, int maxDepth, int depth) {
-        for (Edge edge : visit0.getGraph().getEdges()) {
+    public void gspVisit(TeyssierScorer scorer, int maxDepth, int depth, Set<Node> path) {
+        Graph graph0 = getGraph(scorer);
+        int num0 = scorer.getNumEdges();
+
+        for (Edge edge : graph0.getEdges()) {
             Node v = Edges.getDirectedEdgeTail(edge);
             Node w = Edges.getDirectedEdgeHead(edge);
 
-            List<Node> parentsv = visit0.getGraph().getParents(v);
-            List<Node> parentsw = visit0.getGraph().getParents(w);
+            if (path.contains(v)) continue;
+            if (path.contains(w)) continue;
 
+            Set<Node> parentsv = new HashSet<>(graph0.getParents(v));
+            Set<Node> parentsw = new HashSet<>(graph0.getParents(w));
             parentsw.remove(v);
 
             if (parentsv.equals(parentsw)) {
                 scorer.swap(v, w);
-                GspVisit visit2 = new GspVisit(scorer);
 
-                if (depth < maxDepth && visit2.getNumEdges() <= visit0.getNumEdges()) {
-                    if (visit2.getNumEdges() == visit0.getNumEdges()) depth++;
-                    else depth = 0;
+                if (depth <= maxDepth && scorer.getNumEdges() <= num0) {
+                    path.add(v);
+                    gspVisit(scorer, maxDepth, ++depth, path);
+                    path.remove(v);
 
-                    GspVisit visit1 = gspVisit(scorer, visit2, maxDepth, depth);
-
-                    if (visit1.getNumEdges() < visit0.getNumEdges()) {
-                        scorer.swap(v, w);
-                        return visit1;
+                    if (scorer.getNumEdges() < num0) {
+                        return;
                     }
                 }
 
                 scorer.swap(v, w);
             }
         }
-
-        return visit0;
     }
 
     public boolean isVerbose() {
@@ -351,6 +348,16 @@ public class BestOrderScoreSearch {
             }
 
             return G1;
+        }
+
+        public boolean equals(Object o) {
+            if (o == null) return false;
+            GspVisit visit2 = (GspVisit) o;
+            return ((GspVisit) o).graph.equals(graph) && ((GspVisit) o).order.equals(order);
+        }
+
+        public int hashcode() {
+            return graph.hashCode() + order.hashCode();
         }
     }
 }

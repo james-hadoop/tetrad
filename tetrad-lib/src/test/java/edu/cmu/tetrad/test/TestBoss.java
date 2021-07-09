@@ -44,6 +44,9 @@ import edu.cmu.tetrad.util.MatrixUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.RandomUtil;
+import org.apache.commons.collections4.OrderedMap;
+import org.apache.commons.collections4.map.ListOrderedMap;
+import org.apache.commons.collections4.set.ListOrderedSet;
 import org.junit.Test;
 
 import java.util.*;
@@ -222,24 +225,6 @@ public final class TestBoss {
         return prefix;
     }
 
-    private static class Ret {
-        private final String label;
-        private final IndependenceFacts facts;
-
-        public Ret(String label, IndependenceFacts facts) {
-            this.label = label;
-            this.facts = facts;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public IndependenceFacts getFacts() {
-            return facts;
-        }
-    }
-
     @Test
     public void testAllFacts() {
         List<Ret> allFacts = new ArrayList<>();
@@ -257,37 +242,58 @@ public final class TestBoss {
         bossMethods.add(BestOrderScoreSearch.Method.PROMOTION);
         bossMethods.add(BestOrderScoreSearch.Method.ALL_INDICES);
 //        bossMethods.add(BestOrderScoreSearch.Method.ESP);
-        bossMethods.add(BestOrderScoreSearch.Method.GSP);
+//        bossMethods.add(BestOrderScoreSearch.Method.GSP);
 
         for (Ret facts : allFacts) {
             count++;
 
             List<Node> order = facts.facts.getVariables();
 
-            System.out.println("Model " + count + ": " + facts.label + "\n");
-            System.out.println("\nFacts: \n\n" + facts.facts);
+            int numRuns = 20;
 
-            int numRuns = 5;
+            OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
+            OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
 
-            for (BestOrderScoreSearch.Method method : bossMethods) {
-                System.out.println("Method = " + method + " " + facts.label + "\n");
+            for (int t = 0; t < numRuns; t++) {
+                shuffle(order);
+                IndTestDSep test = new IndTestDSep(facts.getFacts());
 
-                Set<Graph> graphs = new HashSet<>();
-
-                for (int i = 0; i < numRuns; i++) {
-                    shuffle(order);
-
-                    BestOrderScoreSearch boss = new BestOrderScoreSearch(new IndTestDSep(facts.getFacts()));
+                for (BestOrderScoreSearch.Method method : bossMethods) {
+                    BestOrderScoreSearch boss = new BestOrderScoreSearch(test);
                     boss.setCachingScores(true);
                     boss.setMethod(method);
-                    boss.setNumStarts(10);
+                    boss.setNumStarts(1);
                     Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
-                    graphs.add(pattern);
+
+                    if (graphs.get(method.toString()) == null) {
+                        graphs.put(method.toString(), new HashSet<>());
+                        labels.put(method.toString(), new HashSet<>());
+                    }
+
+                    graphs.get(method.toString()).add(pattern);
+                    labels.get(method.toString()).add(facts.getLabel());
                 }
 
-                printGraphs(graphs);
+                {
+                    BestOrderScoreSearch boss = new BestOrderScoreSearch(test);
+                    boss.setCachingScores(true);
+                    boss.setMethod(BestOrderScoreSearch.Method.GSP);
+                    boss.setNumStarts(1);
+                    boss.setGspDepth(5);
+                    Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
 
+                    if (graphs.get("GSP") == null) {
+                        graphs.put("GSP", new HashSet<>());
+                        labels.put("GSP", new HashSet<>());
+                    }
+
+                    graphs.get("GSP").add(pattern);
+                    labels.get("GSP").add(facts.getLabel());
+                }
             }
+
+
+
 
 //            {
 //                {
@@ -339,7 +345,17 @@ public final class TestBoss {
 //            }
 
             System.out.println(("\n\n--------------\n"));
+
+            for (String key : graphs.keySet()) {
+                System.out.println(key + " " + labels.get(key));
+
+                for (Graph pattern : graphs.get(key)) {
+                    System.out.println(pattern);
+                }
+            }
+
         }
+
     }
 
     private void printGraphs(Set<Graph> graphs) {
@@ -393,7 +409,6 @@ public final class TestBoss {
         return new Ret("Solus Theorem 11, SMR !==> ESP (Figure 8)", facts);
     }
 
-
     public Ret getFigure12() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
@@ -444,7 +459,6 @@ public final class TestBoss {
 
         return new Ret("Solus Theorem 11, TSP !==> Faithfulness counterexample (Figure 6)", facts);
     }
-
 
     public Ret getFacts6() {
         Node x1 = new GraphNode("1");
@@ -501,7 +515,6 @@ public final class TestBoss {
         boss.setCachingScores(false);
         System.out.println(boss.search(score.getVariables()));
     }
-
 
     @Test
     public void testFromIndependenceFacts3() {
@@ -700,11 +713,28 @@ public final class TestBoss {
         return true;
     }
 
-
     private List<Node> list(Node... nodes) {
         List<Node> list = new ArrayList<>();
         Collections.addAll(list, nodes);
         return list;
+    }
+
+    private static class Ret {
+        private final String label;
+        private final IndependenceFacts facts;
+
+        public Ret(String label, IndependenceFacts facts) {
+            this.label = label;
+            this.facts = facts;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public IndependenceFacts getFacts() {
+            return facts;
+        }
     }
 }
 
