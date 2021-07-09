@@ -12,7 +12,6 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.BestOrderScoreSearch;
-import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -36,7 +35,6 @@ import java.util.List;
 public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
-    private IndependenceTest test = null;
     private ScoreWrapper score = null;
     private IKnowledge knowledge = new Knowledge2();
     private Graph initialGraph;
@@ -48,9 +46,6 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
     public BOSS(ScoreWrapper score) {
         this.score = score;
-    }
-    public BOSS(IndependenceTest test) {
-        this.test = test;
     }
 
     @Override
@@ -65,6 +60,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setGspDepth(parameters.getInt(Params.DEPTH));
+            boss.setReturnCpdag(true);
 
             boss.setMethod(BestOrderScoreSearch.Method.PROMOTION);
 
@@ -82,7 +78,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
             }
 
-             List<Node> variables = new ArrayList<>(score.getVariables());
+            List<Node> variables = new ArrayList<>(score.getVariables());
             return boss.search(variables);
         } else {
             BOSS fges = new BOSS();

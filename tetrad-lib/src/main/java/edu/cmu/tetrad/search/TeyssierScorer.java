@@ -6,8 +6,6 @@ import edu.cmu.tetrad.graph.Node;
 
 import java.util.*;
 
-import static java.lang.Math.*;
-
 /**
  * Implements a scorer as in Teyssier, M., & Koller, D. (2012). Ordering-based search: A simple and effective
  * algorithm for learning Bayesian networks. arXiv preprint arXiv:1207.1429. You give it a score function
@@ -120,11 +118,6 @@ public class TeyssierScorer {
         order.set(j, m);
 
         score(order);
-
-//        for (int k = min(i, j); k < max(i, j); k++) {
-//            recalculate(k);
-//        }
-
     }
 
     public List<Node> getOrder() {
@@ -175,32 +168,6 @@ public class TeyssierScorer {
         }
 
         double v = this.score.localScore(variables.indexOf(n), parentIndices);
-
-        if (cachingScores) {
-            ScoreKey key = new ScoreKey(n, pi);
-            cache.put(key, new Pair(pi, v));
-        }
-
-        return v;
-    }
-
-    private double scoreDiff(Node n, Node x, Set<Node> pi) {
-        if (cachingScores) {
-            ScoreKey key = new ScoreKey(n, pi);
-            if (cache.containsKey(key)) {
-                return cache.get(key).getScore();
-            }
-        }
-
-        int[] parentIndices = new int[pi.size()];
-
-        int k = 0;
-
-        for (Node p : pi) {
-            parentIndices[k++] = variables.indexOf(p);
-        }
-
-        double v = this.score.localScoreDiff(variables.indexOf(n), variables.indexOf(x), parentIndices);
 
         if (cachingScores) {
             ScoreKey key = new ScoreKey(n, pi);
@@ -361,176 +328,7 @@ public class TeyssierScorer {
             }
         }
 
-//        Set<Node> mb1 = getPearlParentsTest(p).getMb();
-//        return new Pair(mb1, mb1.size());
         return new Pair(mb, mb.size());
-    }
-
-    private Pair getGrowShrinkIndep2(int p) {
-        if (test != null) {
-//            return getGrowShrinkIndep(p);
-            return getPearlParentsTest(p);
-        }
-
-        Node n = order.get(p);
-
-        Set<Node> mb = new HashSet<>();
-        boolean changed = true;
-
-        double sMax = 1.0;
-
-//        double sMax = score(n, new HashSet<>());
-        Set<Node> prefix = new HashSet<>(getPrefix(p));
-
-        // Grow-shrink
-        while (changed) {
-            changed = false;
-
-            // Let z be the node that maximizes the score...
-            Node z = null;
-
-            for (Node z0 : prefix) {
-                if (mb.contains(z0)) continue;
-
-                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
-                mb.add(z0);
-
-                test.isDependent(n, z0, new ArrayList<>(mb));
-
-                if (test.getPValue() < sMax) {
-                    sMax = log(test.getPValue() + 1e-8);
-                    z = z0;
-                }
-
-                mb.remove(z0);
-            }
-
-            if (z != null) {
-                mb.add(z);
-                changed = true;
-                boolean changed2 = true;
-
-                while (changed2) {
-                    changed2 = false;
-
-                    Node w = null;
-
-                    for (Node z0 : new HashSet<>(mb)) {
-                        mb.remove(z0);
-
-                        test.isIndependent(n, z0, new ArrayList<>(mb));
-
-                        if (test.getPValue() > sMax) {
-                            sMax = log(test.getPValue() + 1e-8);
-                            w = z0;
-                        }
-
-                        mb.add(z0);
-                    }
-
-                    if (w != null) {
-                        mb.remove(w);
-                        changed2 = true;
-                    }
-                }
-            }
-        }
-
-        return new Pair(mb, sMax);
-//        return new Pair(mb, mb.size());
-    }
-
-
-    private Pair getPearlParentsTest(int p) {
-        Node n = order.get(p);
-        Set<Node> prefix = new HashSet<>(getPrefix(p));
-
-        Set<Node> mb = new HashSet<>();
-
-        for (Node z0 : prefix) {
-            List<Node> cond = new ArrayList<>(prefix);
-            cond.remove(z0);
-
-            if (test.isDependent(n, z0, cond)) {
-                mb.add(z0);
-            }
-        }
-
-        return new Pair(mb, mb.size());
-    }
-
-    private Pair getPearlParentsScore(int p) {
-        Node n = order.get(p);
-        Set<Node> prefix = new HashSet<>(getPrefix(p));
-
-        Set<Node> mb = new HashSet<>();
-        double smax = Double.NEGATIVE_INFINITY;
-        boolean changed = true;
-
-        while (changed) {
-            changed = false;
-            Node z0 = null;
-            List<Node> cond = new ArrayList<>(prefix);
-
-            for (Node z : prefix) {
-                cond.remove(z);
-
-                double s = scoreDiff(n, z, new HashSet<>(cond));
-
-                if (s > smax) {
-                    smax = s;
-                    z0 = z;
-                    changed = true;
-                }
-
-                cond.add(z);
-            }
-
-            if (z0 != null) {
-                mb.add(z0);
-            }
-        }
-
-        return new Pair(mb, -smax);
-    }
-
-    private Set<Node> growShrinkIndep(int p, Node n, Set<Node> prefix) {
-        Set<Node> mb = new HashSet<>();
-        boolean changed = true;
-
-        // Grow-shrink
-        while (changed) {
-            changed = false;
-
-            for (Node z0 : prefix) {
-                if (mb.contains(z0)) continue;
-
-                if (test.isDependent(n, z0, new ArrayList<>(mb))) {
-                    System.out.println("Adding " + z0 + " to mb(" + order.get(p) + ") " + SearchLogUtils.dependenceFact(n, z0, new ArrayList<>(mb)));
-                    mb.add(z0);
-                    changed = true;
-                }
-            }
-
-            boolean changed2 = true;
-//
-            while (changed2) {
-                changed2 = false;
-
-                for (Node z1 : new HashSet<>(mb)) {
-                    Set<Node> _mb = new HashSet<>(mb);
-                    _mb.remove(z1);
-
-                    if (test.isIndependent(n, z1, new ArrayList<>(_mb))) {
-                        System.out.println("Removing " + z1 + " " + SearchLogUtils.independenceFact(n, z1, new ArrayList<>(_mb)));
-                        mb.remove(z1);
-                        changed2 = true;
-                    }
-                }
-            }
-        }
-
-        return mb;
     }
 
     public void bookmark(int index) {
@@ -565,9 +363,6 @@ public class TeyssierScorer {
         System.arraycopy(bookmarkedMovingScores.get(index), 0, movingScores, 0, bookmarkedMovingScores.get(index).length);
 
         nodeMoving = bookmarkedNodeMoving.get(index);
-
-//        System.out.println("RESTORING BOOKMARK TO: " + order + " score = " + score());
-
     }
 
     public void setCachingScores(boolean cachingScores) {
@@ -576,19 +371,6 @@ public class TeyssierScorer {
 
     public int size() {
         return order.size();
-    }
-
-    public boolean weaklyBetterThanBookmark(int index) {
-        for (int p = 0; p < order.size(); p++) {
-            double currentScore = scores[p].getScore();
-            int bookmarkedIndex = bookmarkedOrder.get(index).indexOf(order.get(p));
-            double bookmarkedScore = bookmarkedScores.get(index)[bookmarkedIndex].getScore();
-            if (currentScore > bookmarkedScore) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public int getNumEdges() {

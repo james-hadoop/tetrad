@@ -296,6 +296,14 @@ public class BestOrderScoreSearch {
 
     }
 
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+
+    public void setReturnCpdag(boolean returnCpdag) {
+        this.returnCpdag = returnCpdag;
+    }
+
     public enum Method {PROMOTION, ALL_INDICES, SP, ESP, GSP}
 
     private static class EspVisit {
@@ -313,51 +321,6 @@ public class BestOrderScoreSearch {
 
         public double getScore() {
             return score;
-        }
-    }
-
-    private static class GspVisit {
-        private final Graph graph;
-        private final List<Node> order;
-
-        public GspVisit(TeyssierScorer scorer) {
-            this.graph = getGraph(scorer);
-            this.order = scorer.getOrder();
-        }
-
-        public Graph getGraph() {
-            return graph;
-        }
-
-        public double getNumEdges() {
-            return this.graph.getNumEdges();
-        }
-
-        public List<Node> getOrder() {
-            return order;
-        }
-
-        private Graph getGraph(TeyssierScorer scorer) {
-            List<Node> order = scorer.getOrder();
-            Graph G1 = new EdgeListGraph(order);
-
-            for (int p = 0; p < order.size(); p++) {
-                for (Node z : scorer.getMb(p)) {
-                    G1.addDirectedEdge(z, order.get(p));
-                }
-            }
-
-            return G1;
-        }
-
-        public boolean equals(Object o) {
-            if (o == null) return false;
-            GspVisit visit2 = (GspVisit) o;
-            return ((GspVisit) o).graph.equals(graph) && ((GspVisit) o).order.equals(order);
-        }
-
-        public int hashcode() {
-            return graph.hashCode() + order.hashCode();
         }
     }
 }
