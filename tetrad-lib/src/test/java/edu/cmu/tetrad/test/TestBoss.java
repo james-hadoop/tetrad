@@ -34,6 +34,7 @@ import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IndependenceFacts;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
@@ -46,7 +47,6 @@ import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
-import org.apache.commons.collections4.set.ListOrderedSet;
 import org.junit.Test;
 
 import java.util.*;
@@ -237,29 +237,67 @@ public final class TestBoss {
 
         int count = 0;
 
-        List<BestOrderScoreSearch.Method> bossMethods = new ArrayList<>();
-        bossMethods.add(BestOrderScoreSearch.Method.SP);
-        bossMethods.add(BestOrderScoreSearch.Method.PROMOTION);
-        bossMethods.add(BestOrderScoreSearch.Method.ALL_INDICES);
+        boolean printPattern = false;
+
+        List<Boss.Method> bossMethods = new ArrayList<>();
+        bossMethods.add(Boss.Method.SP);
+        bossMethods.add(Boss.Method.BOSS_PROMOTION);
+        bossMethods.add(Boss.Method.BOSS_ALL_INDICES);
 //        bossMethods.add(BestOrderScoreSearch.Method.ESP);
 //        bossMethods.add(BestOrderScoreSearch.Method.GSP);
 
         for (Ret facts : allFacts) {
             count++;
 
+            OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
+            OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
+
+            System.out.println();
+            System.out.println(facts.getLabel());
+            System.out.println(facts.getFacts());
+
             List<Node> order = facts.facts.getVariables();
 
             int numRuns = 20;
 
-            OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
-            OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
-
             for (int t = 0; t < numRuns; t++) {
+                System.out.println("Run " + (t + 1));
+
                 shuffle(order);
                 IndTestDSep test = new IndTestDSep(facts.getFacts());
 
-                for (BestOrderScoreSearch.Method method : bossMethods) {
-                    BestOrderScoreSearch boss = new BestOrderScoreSearch(test);
+                Graph pattern0 = null;
+
+                {
+                    Gsp boss = new Gsp(test);
+                    boss.setCachingScores(true);
+                    boss.setNumStarts(1);
+                    boss.setGspDepth(-1);
+                    Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
+
+                    if (graphs.get("GSP") == null) {
+                        graphs.put("GSP", new HashSet<>());
+                        labels.put("GSP", new HashSet<>());
+                    }
+
+                    graphs.get("GSP").add(pattern);
+                    labels.get("GSP").add(facts.getLabel());
+
+                    if (pattern0 != null && !pattern.equals(pattern0)) {
+                        System.out.println("Different at GSP");
+                    }
+
+                    if (printPattern) {
+                        System.out.println(pattern);
+                    }
+
+                    pattern0 = pattern;
+                }
+
+                {
+                    Boss.Method method = Boss.Method.BOSS_PROMOTION;
+
+                    Boss boss = new Boss(test);
                     boss.setCachingScores(true);
                     boss.setMethod(method);
                     boss.setNumStarts(1);
@@ -272,94 +310,239 @@ public final class TestBoss {
 
                     graphs.get(method.toString()).add(pattern);
                     labels.get(method.toString()).add(facts.getLabel());
+
+                    if (pattern0 != null && !pattern.equals(pattern0)) {
+                        System.out.println("Different at BOSS Promotion");
+                    }
+
+                    if (printPattern) {
+                        System.out.println(pattern);
+                    }
+
+                    pattern0 = pattern;
                 }
 
                 {
-                    BestOrderScoreSearch boss = new BestOrderScoreSearch(test);
+                    Boss.Method method = Boss.Method.BOSS_ALL_INDICES;
+
+                    Boss boss = new Boss(test);
                     boss.setCachingScores(true);
-                    boss.setMethod(BestOrderScoreSearch.Method.GSP);
+                    boss.setMethod(method);
                     boss.setNumStarts(1);
-                    boss.setGspDepth(5);
                     Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
 
-                    if (graphs.get("GSP") == null) {
-                        graphs.put("GSP", new HashSet<>());
-                        labels.put("GSP", new HashSet<>());
+                    if (graphs.get(method.toString()) == null) {
+                        graphs.put(method.toString(), new HashSet<>());
+                        labels.put(method.toString(), new HashSet<>());
                     }
 
-                    graphs.get("GSP").add(pattern);
-                    labels.get("GSP").add(facts.getLabel());
+                    graphs.get(method.toString()).add(pattern);
+                    labels.get(method.toString()).add(facts.getLabel());
+
+                    if (pattern0 != null && !pattern.equals(pattern0)) {
+                        System.out.println("Different at BOSS All indices");
+                    }
+
+                    if (printPattern) {
+                        System.out.println(pattern);
+                    }
+
+                    pattern0 = pattern;
+                }
+
+
+                {
+                    Boss.Method method = Boss.Method.SP;
+
+                    Boss boss = new Boss(test);
+                    boss.setCachingScores(true);
+                    boss.setMethod(method);
+                    boss.setNumStarts(1);
+                    Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
+
+                    if (graphs.get(method.toString()) == null) {
+                        graphs.put(method.toString(), new HashSet<>());
+                        labels.put(method.toString(), new HashSet<>());
+                    }
+
+                    graphs.get(method.toString()).add(pattern);
+                    labels.get(method.toString()).add(facts.getLabel());
+
+                    if (pattern0 != null && !pattern.equals(pattern0)) {
+                        System.out.println("Different at SP");
+                    }
+
+                    if (printPattern) {
+                        System.out.println(pattern);
+                    }
+
+                    pattern0 = pattern;
                 }
             }
 
+            printGraphs("GSP", graphs);
+            printGraphs("BOSS_PROMOTION", graphs);
+            printGraphs("BOSS_ALL_INDICES", graphs);
+            printGraphs("SP", graphs);
+        }
+    }
+
+    @Test
+    public void testFromData() {
+        for (int i = 0; i < 20; i++) {
+            System.out.println("\nRun " + (i + 1));
+
+            Graph g = GraphUtils.randomGraph(7, 0, 7, 100,
+                    100, 100, false);
+            SemPm pm = new SemPm(g);
+            SemIm im = new SemIm(pm);
+            DataSet data = im.simulateData(100000, false);
+
+            data = DataUtils.shuffleColumns(data);
+//x
+            List<Node> order = data.getVariables();
+//            shuffle(order);
 
 
+            edu.cmu.tetrad.search.SemBicScore score = new edu.cmu.tetrad.search.SemBicScore(data);
+            edu.cmu.tetrad.search.IndependenceTest test = new edu.cmu.tetrad.search.IndTestFisherZ(data, 0.01);
 
-//            {
-//                {
-//                    System.out.println("Method = " + "FGES" + "\n");
-//                    Set<Graph> graphs = new HashSet<>();
-//
-//                    for (int i = 0; i < numRuns; i++) {
-//                        shuffle(order);
-//                        facts.getFacts().setOrder(order);
-//                        edu.cmu.tetrad.search.Fges fges = new edu.cmu.tetrad.search.Fges(new GraphScore(facts.getFacts()));
-//                        Graph pattern = fges.search();
-//                        graphs.add(pattern);
-//                    }
-//
-//                    printGraphs(graphs);
-//                }
-//
-//                {
-//                    System.out.println("Method = " + "PC" + "\n");
-//                    Set<Graph> graphs = new HashSet<>();
-//
-//                    for (int i = 0; i < numRuns; i++) {
-//                        shuffle(order);
-//                        facts.getFacts().setOrder(order);
-//                        edu.cmu.tetrad.search.PcAll cpc = new edu.cmu.tetrad.search.PcAll(new IndTestDSep(facts.getFacts()), null);
-//                        cpc.setColliderDiscovery(edu.cmu.tetrad.search.PcAll.ColliderDiscovery.FAS_SEPSETS);
-//                        Graph pattern = cpc.search();
-//                        graphs.add(pattern);
-//                    }
-//
-//                    printGraphs(graphs);
-//                }
-//
-//                {
-//                    System.out.println("Method = " + "CPC" + "\n");
-//                    Set<Graph> graphs = new HashSet<>();
-//
-//                    for (int i = 0; i < numRuns; i++) {
-//                        shuffle(order);
-//                        facts.facts.setOrder(order);
-//                        edu.cmu.tetrad.search.PcAll cpc = new edu.cmu.tetrad.search.PcAll(new IndTestDSep(facts.facts), null);
-//                        cpc.setColliderDiscovery(edu.cmu.tetrad.search.PcAll.ColliderDiscovery.CONSERVATIVE);
-//                        Graph pattern = cpc.search();
-//                        graphs.add(pattern);
-//                    }
-//
-//                    printGraphs(graphs);
-//                }
-//            }
-
-            System.out.println(("\n\n--------------\n"));
-
-            for (String key : graphs.keySet()) {
-                System.out.println(key + " " + labels.get(key));
-
-                for (Graph pattern : graphs.get(key)) {
-                    System.out.println(pattern);
-                }
-            }
-
+            runTestLoop(g, score, test, true);
         }
 
     }
 
-    private void printGraphs(Set<Graph> graphs) {
-        List<Graph> _graphs = new ArrayList<>(graphs);
+    @Test
+    public void testFromDsep() {
+
+        for (int i = 0; i < 10; i++) {
+            System.out.println("\nRun " + (i + 1));
+
+            Graph g = GraphUtils.randomGraph(10, 0, 15, 100,
+                    100, 100, false);
+
+            List<Node> shuffled = new ArrayList<>(g.getNodes());
+            shuffle(shuffled);
+
+            g = GraphUtils.replaceNodes(g, shuffled);
+
+            IndependenceTest test = new IndTestDSep(g);
+
+            runTestLoop(g, null, test, true);
+        }
+    }
+
+
+    private void runTestLoop(Graph g, edu.cmu.tetrad.search.SemBicScore score, IndependenceTest test, boolean useTest) {
+        Graph pattern0 = SearchGraphUtils.patternForDag(g);
+
+        List<Node> variables;
+
+        if (useTest) {
+            variables = new ArrayList<>(test.getVariables());
+        } else {
+            variables = new ArrayList<>(score.getVariables());
+        }
+
+        shuffle(variables);
+
+        pattern0 = GraphUtils.replaceNodes(pattern0, variables);
+
+        {
+            Gsp gsp;
+
+            if (true) {
+                gsp = new Gsp(test);
+            } else {
+                gsp = new Gsp(score);
+            }
+
+            gsp.setCachingScores(true);
+            gsp.setNumStarts(1);
+            gsp.setGspDepth(-1);
+            gsp.setReturnCpdag(true);
+            Graph pattern = gsp.search(variables);
+            pattern = GraphUtils.replaceNodes(pattern, variables);
+
+            printFailed(pattern0, pattern, "GSP");
+        }
+
+        {
+            Boss boss;
+
+            if (true) {
+                boss = new Boss(test);
+            } else {
+                boss = new Boss(score);
+            }
+
+            boss.setCachingScores(true);
+            boss.setMethod(Boss.Method.BOSS_PROMOTION);
+            boss.setNumStarts(1);
+            boss.setReturnCpdag(true);
+            Graph pattern = boss.search(variables);
+            pattern = GraphUtils.replaceNodes(pattern, variables);
+
+            printFailed(pattern0, pattern, "BOSS Promotion Only");
+        }
+
+        {
+            Boss boss;
+
+            if (true) {
+                boss = new Boss(test);
+            } else {
+                boss = new Boss(score);
+            }
+
+            boss.setCachingScores(true);
+            boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
+            boss.setNumStarts(1);
+            boss.setReturnCpdag(true);
+            Graph pattern = boss.search(variables);
+            pattern = GraphUtils.replaceNodes(pattern, variables);
+
+            printFailed(pattern0, pattern, "BOSS All Indices");
+        }
+
+//        {
+//            Boss boss;
+//
+//            if (true) {
+//                boss = new Boss(test);
+//            } else {
+//                boss = new Boss(score);
+//            }
+//
+//            boss.setCachingScores(true);
+//            boss.setMethod(Boss.Method.SP);
+//            boss.setNumStarts(1);
+//            boss.setReturnCpdag(true);
+//            Graph pattern = boss.search(variables);
+//            pattern = GraphUtils.replaceNodes(pattern, variables);
+//
+//            printFailed(pattern0, pattern, "SP");
+//        }
+
+    }
+
+    private void printFailed(Graph pattern0, Graph pattern, String alg) {
+        AdjacencyPrecision _ap = new AdjacencyPrecision();
+        double ap = _ap.getValue(pattern0, pattern, null);
+
+        AdjacencyRecall _ar = new AdjacencyRecall();
+        double ar = _ar.getValue(pattern0, pattern, null);
+
+        if (!pattern.equals(pattern0)) {
+            System.out.println("Fails " + alg + " ap = " + ap + " ar = " + ar);
+        }
+    }
+
+
+    private void printGraphs(String label, Map<String, Set<Graph>> graphs) {
+        List<Graph> _graphs = new ArrayList<>(graphs.get(label));
+
+        System.out.println(label);
 
         for (int i = 0; i < _graphs.size(); i++) {
             System.out.println("Found this CPDAG (" + (i + 1) + "):\n\n" + _graphs.get(i) + "\n");
@@ -511,9 +694,9 @@ public final class TestBoss {
 
         GraphScore score = new GraphScore(graph);
 
-        BestOrderScoreSearch boss = new BestOrderScoreSearch(score);
+        Boss boss = new Boss(score);
         boss.setCachingScores(false);
-        System.out.println(boss.search(score.getVariables()));
+        System.out.println(boss.search(nodes));
     }
 
     @Test
@@ -565,7 +748,7 @@ public final class TestBoss {
         fges.setVerbose(true);
         System.out.println("FGES " + fges.search());
 
-        BestOrderScoreSearch boss = new BestOrderScoreSearch(new edu.cmu.tetrad.search.SemBicScore(data));
+        Boss boss = new Boss(new edu.cmu.tetrad.search.SemBicScore(data));
         boss.setCachingScores(false);
         System.out.println("BOSS " + boss.search(data.getVariables()));
     }
@@ -610,7 +793,7 @@ public final class TestBoss {
         fges.setVerbose(true);
         System.out.println("FGES " + fges.search());
 
-        BestOrderScoreSearch boss = new BestOrderScoreSearch(new edu.cmu.tetrad.search.SemBicScore(data));
+        Boss boss = new Boss(new edu.cmu.tetrad.search.SemBicScore(data));
         boss.setCachingScores(false);
         System.out.println("BOSS " + boss.search(data.getVariables()));
     }

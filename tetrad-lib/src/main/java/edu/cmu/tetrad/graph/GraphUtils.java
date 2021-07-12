@@ -38,6 +38,7 @@ import java.util.concurrent.RecursiveTask;
 import java.util.regex.Matcher;
 
 import static java.lang.Math.min;
+import static java.util.Collections.shuffle;
 
 /**
  * Basic graph utilities.
@@ -117,7 +118,7 @@ public final class GraphUtils {
     }
 
     public static Graph randomGraph(int numNodes, int numLatentConfounders,
-                                    int maxNumEdges, int maxDegree,
+                                    int numEdges, int maxDegree,
                                     int maxIndegree, int maxOutdegree,
                                     boolean connected) {
         List<Node> nodes = new ArrayList<>();
@@ -126,7 +127,7 @@ public final class GraphUtils {
             nodes.add(new GraphNode("X" + (i + 1)));
         }
 
-        return randomGraph(nodes, numLatentConfounders, maxNumEdges, maxDegree,
+        return randomGraph(nodes, numLatentConfounders, numEdges, maxDegree,
                 maxIndegree, maxOutdegree, connected);
     }
 
@@ -334,7 +335,9 @@ public final class GraphUtils {
             GraphUtils.circleLayout(dag, 200, 200, 150);
         }
 
-        return dag;
+        List<Node> order =dag.getNodes();
+        shuffle(order);
+        return GraphUtils.replaceNodes(dag, order);
     }
 
     public static Graph scaleFreeGraph(int numNodes, int numLatentConfounders,
@@ -472,7 +475,7 @@ public final class GraphUtils {
 //                G.add_edge(v,w)
 //
 //                return G
-        Collections.shuffle(_nodes);
+        shuffle(_nodes);
 
         LinkedList<Node> nodes = new LinkedList<>();
         nodes.add(_nodes.get(0));
@@ -856,7 +859,7 @@ public final class GraphUtils {
 
     public static void addTwoCycles(Graph graph, int numTwoCycles) {
         List<Edge> edges = new ArrayList<>(graph.getEdges());
-        Collections.shuffle(edges);
+        shuffle(edges);
 
         for (int i = 0; i < min(numTwoCycles, edges.size()); i++) {
             Edge edge = edges.get(i);

@@ -3,8 +3,11 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.NodeEqualityMode;
 
 import java.util.*;
+
+import static java.util.Collections.shuffle;
 
 /**
  * Implements a scorer as in Teyssier, M., & Koller, D. (2012). Ordering-based search: A simple and effective
@@ -34,10 +37,14 @@ public class TeyssierScorer {
 
     public TeyssierScorer(Score score) {
         this.score = score;
+        this.order = score.getVariables();
+
+        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
     }
 
     public TeyssierScorer(IndependenceTest test) {
         this.test = test;
+        this.order = test.getVariables();
     }
 
     public void setKnowledge(IKnowledge knowledge) {
@@ -332,37 +339,22 @@ public class TeyssierScorer {
     }
 
     public void bookmark(int index) {
-        bookmarkedOrder.computeIfAbsent(index, k -> new ArrayList<>());
-
-        bookmarkedOrder.get(index).clear();
-        bookmarkedOrder.get(index).addAll(order);
-
-        bookmarkedScores.computeIfAbsent(index, k -> new Pair[scores.length]);
-
-        System.arraycopy(scores, 0, bookmarkedScores.get(index), 0, scores.length);
-
-        bookmarkedMovingScores.computeIfAbsent(index, k -> new Pair[scores.length]);
-
+        bookmarkedOrder.put(index, new ArrayList<>(order));
+        bookmarkedScores.put(index, Arrays.copyOf(scores, scores.length));
         bookmarkedMovingScores.put(index, Arrays.copyOf(movingScores, movingScores.length));
         bookmarkedNodeMoving.put(index, nodeMoving);
-
-//        System.out.println("BOOKMARKING: " + order + " score = " + score());
-
     }
 
     public void restoreBookmark(int index) {
-        if (bookmarkedOrder == null) {
-            bookmarkedOrder = new HashMap<>();
-            bookmarkedOrder.put(index, new ArrayList<>());
-        }
-
-        order.clear();
-        order.addAll(bookmarkedOrder.get(index));
-
-        System.arraycopy(bookmarkedScores.get(index), 0, scores, 0, bookmarkedScores.get(index).length);
-        System.arraycopy(bookmarkedMovingScores.get(index), 0, movingScores, 0, bookmarkedMovingScores.get(index).length);
-
+        order = bookmarkedOrder.get(index);
+        scores = bookmarkedScores.get(index);
+        movingScores = bookmarkedMovingScores.get(index);
         nodeMoving = bookmarkedNodeMoving.get(index);
+
+        bookmarkedOrder.put(index, null);
+        bookmarkedNodeMoving.put(index, null);
+        bookmarkedScores.put(index, null);
+        bookmarkedMovingScores.put(index, null);
     }
 
     public void setCachingScores(boolean cachingScores) {
@@ -381,6 +373,11 @@ public class TeyssierScorer {
         }
 
         return numEdges;
+    }
+
+    public void shuffleVariables() {
+        shuffle(order);
+        score(order);
     }
 
     private static class Pair {
@@ -403,15 +400,15 @@ public class TeyssierScorer {
 
     public static class ScoreKey {
         private final Node y;
-        private final Set<Node> prefix;
+        private final Set<Node> pi;
 
-        public ScoreKey(Node y, Set<Node> prefix) {
+        public ScoreKey(Node y, Set<Node> pi) {
             this.y = y;
-            this.prefix = new HashSet<>(prefix);
+            this.pi = new HashSet<>(pi);
         }
 
         public int hashCode() {
-            return 17 * y.hashCode() + 3 * prefix.hashCode();
+            return y.hashCode() + 11 * pi.hashCode();
         }
 
         public boolean equals(Object o) {
@@ -420,15 +417,15 @@ public class TeyssierScorer {
             }
 
             ScoreKey spec = (ScoreKey) o;
-            return spec.y.equals(this.y) && spec.getPrefix().equals(this.prefix);
+            return spec.y.equals(this.y) && spec.pi.equals(this.pi);
         }
 
         public Node getY() {
             return y;
         }
 
-        public Set<Node> getPrefix() {
-            return prefix;
+        public Set<Node> getPi() {
+            return pi;
         }
     }
 }

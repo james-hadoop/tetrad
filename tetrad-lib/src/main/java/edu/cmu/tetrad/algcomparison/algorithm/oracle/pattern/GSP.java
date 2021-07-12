@@ -11,7 +11,7 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.BestOrderScoreSearch;
+import edu.cmu.tetrad.search.Gsp;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
@@ -54,14 +54,13 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
-            BestOrderScoreSearch boss = new BestOrderScoreSearch(score);
-            boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
-            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            boss.setGspDepth(parameters.getInt(Params.DEPTH));
-            boss.setMethod(BestOrderScoreSearch.Method.GSP);
+            Gsp gsp = new Gsp(score);
+            gsp.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
+            gsp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            gsp.setGspDepth(parameters.getInt(Params.DEPTH));
+            gsp.setReturnCpdag(true);
 
-            List<Node> variables = new ArrayList<>(score.getVariables());
-            Graph graph = boss.search(variables);
+            Graph graph = gsp.search(score.getVariables());
 
             return SearchGraphUtils.patternForDag(graph);
         } else {

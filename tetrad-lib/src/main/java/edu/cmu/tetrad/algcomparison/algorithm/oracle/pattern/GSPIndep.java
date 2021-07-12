@@ -11,7 +11,7 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.BestOrderScoreSearch;
+import edu.cmu.tetrad.search.Gsp;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -36,10 +36,11 @@ public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapp
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test = null;
-//    private ScoreWrapper score = null;
+    //    private ScoreWrapper score = null;
     private IKnowledge knowledge = new Knowledge2();
     private Graph initialGraph;
     private Algorithm algorithm;
+
 
     public GSPIndep() {
 
@@ -57,14 +58,12 @@ public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapp
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             IndependenceTest test = this.test.getTest(dataSet, parameters);
-            BestOrderScoreSearch boss = new BestOrderScoreSearch(test);
-            boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
-            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            boss.setGspDepth(parameters.getInt(Params.DEPTH));
-            boss.setMethod(BestOrderScoreSearch.Method.GSP);
-
-            List<Node> variables = new ArrayList<>(test.getVariables());
-            return boss.search(variables);
+            Gsp gsp = new Gsp(test);
+            gsp.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
+            gsp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            gsp.setGspDepth(parameters.getInt(Params.DEPTH));
+            gsp.setReturnCpdag(true);
+            return gsp.search(test.getVariables());
         } else {
             GSPIndep fges = new GSPIndep();
 
@@ -147,12 +146,12 @@ public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapp
     }
 
     @Override
-    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
-        this.test = independenceWrapper;
+    public IndependenceWrapper getIndependenceWrapper() {
+        return test;
     }
 
     @Override
-    public IndependenceWrapper getIndependenceWrapper() {
-        return test;
+    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
+        this.test = independenceWrapper;
     }
 }

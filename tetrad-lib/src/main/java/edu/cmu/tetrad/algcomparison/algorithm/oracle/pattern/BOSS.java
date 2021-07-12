@@ -10,8 +10,7 @@ import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.BestOrderScoreSearch;
+import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -56,30 +55,24 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
-            BestOrderScoreSearch boss = new BestOrderScoreSearch(score);
+            Boss boss = new Boss(score);
             boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            boss.setGspDepth(parameters.getInt(Params.DEPTH));
             boss.setReturnCpdag(true);
 
-            boss.setMethod(BestOrderScoreSearch.Method.PROMOTION);
+            boss.setMethod(Boss.Method.BOSS_PROMOTION);
 
             if (parameters.getInt(Params.BOSS_METHOD) == 1) {
-                boss.setMethod(BestOrderScoreSearch.Method.PROMOTION);
+                boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
             } else if (parameters.getInt(Params.BOSS_METHOD) == 2) {
-                boss.setMethod(BestOrderScoreSearch.Method.ALL_INDICES);
+                boss.setMethod(Boss.Method.BOSS_PROMOTION);
             } else if (parameters.getInt(Params.BOSS_METHOD) == 3) {
-                boss.setMethod(BestOrderScoreSearch.Method.SP);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 4) {
-                boss.setMethod(BestOrderScoreSearch.Method.ESP);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 5) {
-                boss.setMethod(BestOrderScoreSearch.Method.GSP);
+                boss.setMethod(Boss.Method.SP);
             } else {
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
             }
 
-            List<Node> variables = new ArrayList<>(score.getVariables());
-            return boss.search(variables);
+            return boss.search(score.getVariables());
         } else {
             BOSS fges = new BOSS();
 
@@ -133,7 +126,6 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);
-        params.add(Params.DEPTH);
         return params;
     }
 

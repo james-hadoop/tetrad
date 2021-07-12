@@ -2,20 +2,16 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
-import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.BestOrderScoreSearch;
+import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.IndependenceTest;
-import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -39,7 +35,7 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test = null;
-//    private ScoreWrapper score = null;
+    //    private ScoreWrapper score = null;
     private IKnowledge knowledge = new Knowledge2();
     private Graph initialGraph;
     private Algorithm algorithm;
@@ -59,30 +55,23 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
         }
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-//            Score score = this.score.getScore(dataSet, parameters);
             IndependenceTest test = this.test.getTest(dataSet, parameters);
-            BestOrderScoreSearch boss = new BestOrderScoreSearch(test);
+            Boss boss = new Boss(test);
             boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            boss.setGspDepth(parameters.getInt(Params.DEPTH));
-
-            List<Node> variables = new ArrayList<>(test.getVariables());
+            boss.setReturnCpdag(true);
 
             if (parameters.getInt(Params.BOSS_METHOD) == 1) {
-                boss.setMethod(BestOrderScoreSearch.Method.PROMOTION);
+                boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
             } else if (parameters.getInt(Params.BOSS_METHOD) == 2) {
-                boss.setMethod(BestOrderScoreSearch.Method.ALL_INDICES);
+                boss.setMethod(Boss.Method.BOSS_PROMOTION);
             } else if (parameters.getInt(Params.BOSS_METHOD) == 3) {
-                boss.setMethod(BestOrderScoreSearch.Method.SP);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 4) {
-                boss.setMethod(BestOrderScoreSearch.Method.ESP);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 5) {
-                boss.setMethod(BestOrderScoreSearch.Method.GSP);
+                boss.setMethod(Boss.Method.SP);
             } else {
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
             }
 
-            return boss.search(variables);
+            return boss.search(test.getVariables());
         } else {
             BOSSIndep fges = new BOSSIndep();
 
@@ -136,7 +125,6 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);
-        params.add(Params.DEPTH);
         return params;
     }
 
@@ -166,12 +154,12 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
     }
 
     @Override
-    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
-        this.test = independenceWrapper;
+    public IndependenceWrapper getIndependenceWrapper() {
+        return test;
     }
 
     @Override
-    public IndependenceWrapper getIndependenceWrapper() {
-        return test;
+    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
+        this.test = independenceWrapper;
     }
 }

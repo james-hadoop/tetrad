@@ -4661,19 +4661,19 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
         <h3 id="bossMethod" class="parameter_description">bossMethod</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="bossMethod_short_desc">
-                1 = promote single, 2 = all indices, 3 = SP, 4 = ESP, 5 = GSP</span>
+                1 = BOSS, 2 = BOSS Promotion Only, 3 = SP</span>
             </li>
             <li>Long Description: <span id="bossMethod_long_desc">
-                This is the outer loop of the algorithms. "Promote single" promotes each variable at a time
-                to each position to the left. "All indices"
-                places each variable in all positions in the list and picks the best position. "SP" is the
-                sparsest permutation algorithm, for comparison, for very small models. (See Raskulti and
-                Uhler, "Learning directed acyclic graph models based on sparsest permutations.)
+                 "All indices" places each variable in all positions in the list and picks the best
+                position."Promote single" promotes each variable at a time to each position to the
+                left. "SP" is the sparsest permutation algorithm, for comparison, for very small
+                models. (See Raskulti and Uhler, "Learning directed acyclic graph models based on
+                sparsest permutations.)
             </span>
             </li>
             <li>Default Value: <span id="bossMethod_default_value">1</span></li>
             <li>Lower Bound: <span id="bossMethod_lower_bound">1</span></li>
-            <li>Upper Bound: <span id="bossMethod_upper_bound">5</span></li>
+            <li>Upper Bound: <span id="bossMethod_upper_bound">3</span></li>
             <li>Value Type: <span id="bossMethod_value_type">Integer</span></li>
         </ul>
 
