@@ -7,6 +7,7 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -36,6 +37,7 @@ public class Boss {
 
     public Graph search(List<Node> order) {
         long start = System.currentTimeMillis();
+        order = new ArrayList<>(order);
 
         TeyssierScorer scorer;
 
@@ -48,11 +50,11 @@ public class Boss {
         scorer.setCachingScores(cachingScores);
 
         double best = Double.NEGATIVE_INFINITY;
-        List<Node> bestP = null;
-
-        scorer.score(order);
 
         for (int r = 0; r < numStarts; r++) {
+            if (r > 0) scorer.shuffleVariables();
+            scorer.score(order);
+
             if (method == Method.BOSS_PROMOTION) {
                 bossSearchPromotion(scorer);
             } else if (method == Method.BOSS_ALL_INDICES) {
@@ -61,20 +63,15 @@ public class Boss {
                 sp(scorer);
             }
 
-            if (bestP == null || scorer.score() < best) {
+            if (scorer.score() < best) {
                 best = scorer.score();
-                bestP = scorer.getOrder();
             }
-
-            scorer.shuffleVariables();
         }
-
-        scorer.score(bestP);
 
         long stop = System.currentTimeMillis();
 
         if (verbose) {
-            System.out.println("Final " + scorer.getOrder());
+            System.out.println("Final order = " + scorer.getOrder());
             System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
         }
 
@@ -95,26 +92,28 @@ public class Boss {
         // place the node in whichever position yielded the highest score. Do this
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
-        double overall = Double.POSITIVE_INFINITY;
+        double overall = scorer.score();
 
         while (true) {
             for (Node v : scorer.getOrder()) {
                 double bestScore = scorer.score();
                 scorer.bookmark(1);
 
-                do {
+                while (scorer.moveLeft(v)) {
                     if (scorer.score() <= bestScore) {
                         bestScore = scorer.score();
                         scorer.bookmark(1);
                     }
-                } while (scorer.moveLeft(v));
+                }
 
                 scorer.restoreBookmark(1);
             }
 
             if (scorer.score() < overall) {
                 overall = scorer.score();
-//                System.out.println("Updated order = " + scorer.getOrder());
+                if (verbose) {
+                    System.out.println("Updated order = " + scorer.getOrder());
+                }
             } else {
                 break;
             }
@@ -130,7 +129,7 @@ public class Boss {
         // place the node in whichever position yielded the highest score. Do this
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
-        double overall = Double.POSITIVE_INFINITY;
+        double overall = scorer.score();
 
         while (true) {
             for (Node v : scorer.getOrder()) {
@@ -138,18 +137,23 @@ public class Boss {
                 double bestScore = scorer.score();
                 scorer.bookmark(1);
 
-                do {
+                while (scorer.moveRight(v)) {
                     if (scorer.score() <= bestScore) {
                         bestScore = scorer.score();
                         scorer.bookmark(1);
+
+//                        System.out.println("\t** " + scorer.getOrder() + " " + getGraph(scorer).getNumEdges());
                     }
-                } while (scorer.moveRight(v));
+                }
 
                 scorer.restoreBookmark(1);
             }
 
             if (scorer.score() < overall) {
                 overall = scorer.score();
+                if (verbose) {
+                    System.out.println("Updated order = " + scorer.getOrder());
+                }
             } else {
                 break;
             }
@@ -217,7 +221,7 @@ public class Boss {
     }
 
     @NotNull
-    private Graph getGraph(TeyssierScorer scorer) {
+    public Graph getGraph(TeyssierScorer scorer) {
         List<Node> order = scorer.getOrder();
         Graph G1 = new EdgeListGraph(order);
 
@@ -230,7 +234,7 @@ public class Boss {
         return G1;
     }
 
-    public void setCachingScores(boolean cachingScores) {
+    public void setCacheScores(boolean cachingScores) {
         this.cachingScores = cachingScores;
     }
 

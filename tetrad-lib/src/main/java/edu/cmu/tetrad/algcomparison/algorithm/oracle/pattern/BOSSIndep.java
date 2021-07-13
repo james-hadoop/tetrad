@@ -57,9 +57,10 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             IndependenceTest test = this.test.getTest(dataSet, parameters);
             Boss boss = new Boss(test);
-            boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
+            boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setReturnCpdag(true);
+            boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
             if (parameters.getInt(Params.BOSS_METHOD) == 1) {
                 boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
@@ -125,6 +126,7 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);
+        params.add(Params.VERBOSE);
         return params;
     }
 

@@ -4,14 +4,9 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import javax.sql.rowset.JoinRowSet;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static java.util.Collections.min;
-import static java.util.Collections.shuffle;
 
 
 /**
@@ -57,14 +52,14 @@ public class Gsp {
         scorer.score(order);
 
         for (int r = 0; r < numStarts; r++) {
+            if (r > 0) scorer.shuffleVariables();
+
             gsp(scorer);
 
             if (bestP == null || scorer.score() < best) {
                 best = scorer.score();
                 bestP = scorer.getOrder();
             }
-
-            scorer.shuffleVariables();
         }
 
         scorer.score(bestP);
@@ -115,28 +110,31 @@ public class Gsp {
     }
 
     private void gsp(TeyssierScorer scorer) {
-        int num0;
-        int num1 = scorer.getNumEdges();
+        Graph g0;
+        Graph g1 = SearchGraphUtils.patternForDag(getGraph(scorer));
 
-        do {
-            num0 = num1;
+        int count = 0;
+
+        while (++count <= 50) {
+            g0 = g1;
             gspVisit(scorer, this.gspDepth == -1 ? Integer.MAX_VALUE : this.gspDepth,
-                    0, new HashSet<>(), null);
-            num1 = scorer.getNumEdges();
-            break;
-        } while (num0 != num1);
+                    1, new HashSet<>(), null);
+            g1 = SearchGraphUtils.patternForDag(getGraph(scorer));
+
+            if (g0.equals(g1)) break;
+        }
     }
 
     private void gspVisit(TeyssierScorer scorer, int maxDepth, int depth, Set<Node> path, Node node) {
+        if (depth > maxDepth) return;
+
         path.add(node);
         Graph graph0 = getGraph(scorer);
         int num0 = scorer.getNumEdges();
-
-        List<Node> order = scorer.getOrder();
-        List<Node> minOrder = order;
+        scorer.bookmark(depth);
 
         for (Edge edge : graph0.getEdges()) {
-            scorer.score(order);
+            scorer.restoreBookmark(depth);
 
             Node v = Edges.getDirectedEdgeTail(edge);
             Node w = Edges.getDirectedEdgeHead(edge);
@@ -153,17 +151,11 @@ public class Gsp {
 
                 if (scorer.getNumEdges() < num0) {
                     gspVisit(scorer, maxDepth, ++depth, path, v);
-
-                    if (scorer.getNumEdges() < num0) {
-                        if (scorer.getOrder().size() <= minOrder.size()) {
-                            minOrder = scorer.getOrder();
-                        }
-                    }
+                    break;
                 }
             }
         }
 
-        scorer.score(minOrder);
         path.remove(node);
     }
 

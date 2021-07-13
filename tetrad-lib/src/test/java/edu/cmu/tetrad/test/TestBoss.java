@@ -41,14 +41,13 @@ import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.sem.StandardizedSemIm;
-import edu.cmu.tetrad.util.MatrixUtils;
-import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.Params;
-import edu.cmu.tetrad.util.RandomUtil;
+import edu.cmu.tetrad.util.*;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.junit.Test;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 
 import static java.util.Collections.shuffle;
@@ -258,7 +257,7 @@ public final class TestBoss {
 
             List<Node> order = facts.facts.getVariables();
 
-            int numRuns = 20;
+            int numRuns = 100;
 
             for (int t = 0; t < numRuns; t++) {
                 System.out.println("Run " + (t + 1));
@@ -298,7 +297,7 @@ public final class TestBoss {
                     Boss.Method method = Boss.Method.BOSS_PROMOTION;
 
                     Boss boss = new Boss(test);
-                    boss.setCachingScores(true);
+                    boss.setCacheScores(true);
                     boss.setMethod(method);
                     boss.setNumStarts(1);
                     Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
@@ -326,7 +325,7 @@ public final class TestBoss {
                     Boss.Method method = Boss.Method.BOSS_ALL_INDICES;
 
                     Boss boss = new Boss(test);
-                    boss.setCachingScores(true);
+                    boss.setCacheScores(true);
                     boss.setMethod(method);
                     boss.setNumStarts(1);
                     Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
@@ -355,7 +354,7 @@ public final class TestBoss {
                     Boss.Method method = Boss.Method.SP;
 
                     Boss boss = new Boss(test);
-                    boss.setCachingScores(true);
+                    boss.setCacheScores(true);
                     boss.setMethod(method);
                     boss.setNumStarts(1);
                     Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
@@ -388,37 +387,59 @@ public final class TestBoss {
     }
 
     @Test
+    public void testRaskutti() {
+        Ret facts = getFactsRaskutti();
+
+        IndTestDSep test = new IndTestDSep(facts.getFacts());
+
+        Boss boss = new Boss(test);
+        boss.setCacheScores(true);
+        boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
+        boss.setNumStarts(1);
+
+        List<Node> variables = test.getVariables();
+        PermutationGenerator gen = new PermutationGenerator(variables.size());
+        int[] perm;
+
+        while ((perm = gen.next()) != null) {
+            List<Node> p = GraphUtils.asList(perm, variables);
+
+            Graph pattern = SearchGraphUtils.patternForDag(boss.search(p));
+
+            System.out.println(p + " " + pattern.getNumEdges());
+        }
+    }
+
+    @Test
     public void testFromData() {
         for (int i = 0; i < 20; i++) {
             System.out.println("\nRun " + (i + 1));
 
-            Graph g = GraphUtils.randomGraph(7, 0, 7, 100,
+            Graph g = GraphUtils.randomGraph(20, 0, 40, 100,
                     100, 100, false);
             SemPm pm = new SemPm(g);
             SemIm im = new SemIm(pm);
             DataSet data = im.simulateData(100000, false);
 
             data = DataUtils.shuffleColumns(data);
-//x
             List<Node> order = data.getVariables();
-//            shuffle(order);
 
-
-            edu.cmu.tetrad.search.SemBicScore score = new edu.cmu.tetrad.search.SemBicScore(data);
+            edu.cmu.tetrad.search.EbicScore score = new edu.cmu.tetrad.search.EbicScore(data);
             edu.cmu.tetrad.search.IndependenceTest test = new edu.cmu.tetrad.search.IndTestFisherZ(data, 0.01);
 
-            runTestLoop(g, score, test, true);
+            runTestLoop(g, score, test, false);
         }
 
     }
 
     @Test
     public void testFromDsep() {
+        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
 
         for (int i = 0; i < 10; i++) {
             System.out.println("\nRun " + (i + 1));
 
-            Graph g = GraphUtils.randomGraph(10, 0, 15, 100,
+            Graph g = GraphUtils.randomGraph(15, 0, 30, 100,
                     100, 100, false);
 
             List<Node> shuffled = new ArrayList<>(g.getNodes());
@@ -433,7 +454,8 @@ public final class TestBoss {
     }
 
 
-    private void runTestLoop(Graph g, edu.cmu.tetrad.search.SemBicScore score, IndependenceTest test, boolean useTest) {
+    private void runTestLoop(Graph g, edu.cmu.tetrad.search.Score score, IndependenceTest test, boolean useTest) {
+
         Graph pattern0 = SearchGraphUtils.patternForDag(g);
 
         List<Node> variables;
@@ -448,24 +470,24 @@ public final class TestBoss {
 
         pattern0 = GraphUtils.replaceNodes(pattern0, variables);
 
-        {
-            Gsp gsp;
-
-            if (true) {
-                gsp = new Gsp(test);
-            } else {
-                gsp = new Gsp(score);
-            }
-
-            gsp.setCachingScores(true);
-            gsp.setNumStarts(1);
-            gsp.setGspDepth(-1);
-            gsp.setReturnCpdag(true);
-            Graph pattern = gsp.search(variables);
-            pattern = GraphUtils.replaceNodes(pattern, variables);
-
-            printFailed(pattern0, pattern, "GSP");
-        }
+//        {
+//            Gsp gsp;
+//
+//            if (true) {
+//                gsp = new Gsp(test);
+//            } else {
+//                gsp = new Gsp(score);
+//            }
+//
+//            gsp.setCachingScores(true);
+//            gsp.setNumStarts(1);
+//            gsp.setGspDepth(-1);
+//            gsp.setReturnCpdag(true);
+//            Graph pattern = gsp.search(variables);
+//            pattern = GraphUtils.replaceNodes(pattern, variables);
+//
+//            printFailed(pattern0, pattern, "GSP");
+//        }
 
         {
             Boss boss;
@@ -476,14 +498,14 @@ public final class TestBoss {
                 boss = new Boss(score);
             }
 
-            boss.setCachingScores(true);
+            boss.setCacheScores(true);
             boss.setMethod(Boss.Method.BOSS_PROMOTION);
             boss.setNumStarts(1);
             boss.setReturnCpdag(true);
             Graph pattern = boss.search(variables);
             pattern = GraphUtils.replaceNodes(pattern, variables);
 
-            printFailed(pattern0, pattern, "BOSS Promotion Only");
+            printFailed(pattern0, pattern, "BOSS Promotion");
         }
 
         {
@@ -495,7 +517,7 @@ public final class TestBoss {
                 boss = new Boss(score);
             }
 
-            boss.setCachingScores(true);
+            boss.setCacheScores(true);
             boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
             boss.setNumStarts(1);
             boss.setReturnCpdag(true);
@@ -526,16 +548,22 @@ public final class TestBoss {
 
     }
 
-    private void printFailed(Graph pattern0, Graph pattern, String alg) {
-        AdjacencyPrecision _ap = new AdjacencyPrecision();
-        double ap = _ap.getValue(pattern0, pattern, null);
+    private boolean printFailed(Graph pattern0, Graph pattern, String alg) {
+        double ap = new AdjacencyPrecision().getValue(pattern0, pattern, null);
+        double ar = new AdjacencyRecall().getValue(pattern0, pattern, null);
+        double ahp = new ArrowheadPrecision().getValue(pattern0, pattern, null);
+        double ahr = new ArrowheadRecall().getValue(pattern0, pattern, null);
 
-        AdjacencyRecall _ar = new AdjacencyRecall();
-        double ar = _ar.getValue(pattern0, pattern, null);
+        NumberFormat nf = new DecimalFormat("0.00");
 
         if (!pattern.equals(pattern0)) {
-            System.out.println("Fails " + alg + " ap = " + ap + " ar = " + ar);
+            System.out.println("Failed " + alg +
+                    " ap = " + nf.format(ap) + " ar = " + nf.format(ar)
+                    + " ahp = " + nf.format(ahp) + " ahr = " + nf.format(ahr));
+            return true;
         }
+
+        return false;
     }
 
 
@@ -695,7 +723,7 @@ public final class TestBoss {
         GraphScore score = new GraphScore(graph);
 
         Boss boss = new Boss(score);
-        boss.setCachingScores(false);
+        boss.setCacheScores(false);
         System.out.println(boss.search(nodes));
     }
 
@@ -749,7 +777,7 @@ public final class TestBoss {
         System.out.println("FGES " + fges.search());
 
         Boss boss = new Boss(new edu.cmu.tetrad.search.SemBicScore(data));
-        boss.setCachingScores(false);
+        boss.setCacheScores(false);
         System.out.println("BOSS " + boss.search(data.getVariables()));
     }
 
@@ -794,7 +822,7 @@ public final class TestBoss {
         System.out.println("FGES " + fges.search());
 
         Boss boss = new Boss(new edu.cmu.tetrad.search.SemBicScore(data));
-        boss.setCachingScores(false);
+        boss.setCacheScores(false);
         System.out.println("BOSS " + boss.search(data.getVariables()));
     }
 

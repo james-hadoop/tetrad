@@ -2394,6 +2394,11 @@ public final class SearchGraphUtils {
         rules.setKnowledge(knowledge);
         rules.setRevertToUnshieldedColliders(true);
         rules.orientImplied(pattern);
+
+        for (Node a : dag.getNodes()) {
+            List<Node> adja = dag.getAdjacentNodes(a);
+        }
+
         return pattern;
     }
 

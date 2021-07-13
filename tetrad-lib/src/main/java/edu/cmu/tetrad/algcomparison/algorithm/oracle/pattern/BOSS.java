@@ -56,9 +56,10 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
             Boss boss = new Boss(score);
-            boss.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
+            boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setReturnCpdag(true);
+            boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
             boss.setMethod(Boss.Method.BOSS_PROMOTION);
 
@@ -126,6 +127,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);
+        params.add(Params.VERBOSE);
         return params;
     }
 

@@ -20,8 +20,6 @@ import static java.util.Collections.shuffle;
  */
 public class TeyssierScorer {
     private final Map<ScoreKey, Pair> cache = new HashMap<>();
-    private final Map<Integer, Pair[]> bookmarkedMovingScores = new HashMap<>();
-    private final Map<Integer, Node> bookmarkedNodeMoving = new HashMap<>();
     private Score score;
     private IndependenceTest test;
     private List<Node> variables;
@@ -29,8 +27,10 @@ public class TeyssierScorer {
     private Pair[] scores;
     private Node nodeMoving = null;
     private Pair[] movingScores = null;
-    private Map<Integer, List<Node>> bookmarkedOrder = new HashMap<>();
-    private Map<Integer, Pair[]> bookmarkedScores = new HashMap<>();
+    private final Map<Integer, List<Node>> bookmarkedOrder = new HashMap<>();
+    private final Map<Integer, Pair[]> bookmarkedScores = new HashMap<>();
+    private final Map<Integer, Node> bookmarkedNodeMoving = new HashMap<>();
+    private final Map<Integer, Pair[]> bookmarkedMovingScores = new HashMap<>();
     private boolean cachingScores = true;
     private IKnowledge knowledge = new Knowledge2();
     private List<Set<Node>> prefixes;
@@ -60,7 +60,6 @@ public class TeyssierScorer {
         this.prefixes = new ArrayList<>();
         for (int i = 0; i < order.size(); i++) prefixes.add(null);
         initializeScores();
-        bookmark(1);
         return score();
     }
 
@@ -107,11 +106,11 @@ public class TeyssierScorer {
         if (index == i) return;
 
         if (i < index) {
-            while (--index >= i) {
+            while (i < index--) {
                 if (!moveLeft(v)) break;
             }
         } else {
-            while (++index <= i) {
+            while (i > index++) {
                 if (!moveRight(v)) break;
             }
         }
@@ -121,10 +120,8 @@ public class TeyssierScorer {
         int i = order.indexOf(m);
         int j = order.indexOf(n);
 
-        order.set(i, n);
-        order.set(j, m);
-
-        score(order);
+        moveTo(m, j);
+        moveTo(n, i);
     }
 
     public List<Node> getOrder() {
@@ -147,15 +144,15 @@ public class TeyssierScorer {
 
     private void initializeScores() {
         movingScores = new Pair[order.size()];
-        Arrays.fill(movingScores, null);
+        scores = new Pair[order.size()];
+        bookmarkedScores.clear();
+        bookmarkedMovingScores.clear();
+        bookmarkedOrder.clear();
+        bookmarkedNodeMoving.clear();
 
         for (int i = 0; i < order.size(); i++) {
             recalculate(i);
         }
-
-        bookmarkedOrder = new HashMap<>();
-        bookmarkedScores = new HashMap<>();
-        nodeMoving = null;
     }
 
     private double score(Node n, Set<Node> pi) {
@@ -193,14 +190,12 @@ public class TeyssierScorer {
     }
 
     private void recalculate(int p) {
-
         Node n = order.get(p);
 
-        if (score instanceof GraphScore) {
-            ((GraphScore) score).setN(n);
-            ((GraphScore) score).setPrefix(getPrefix(p));
-        }
-
+//        if (score instanceof GraphScore) {
+//            ((GraphScore) score).setN(n);
+//            ((GraphScore) score).setPrefix(getPrefix(p));
+//        }
 
         if (n != nodeMoving) {
             nodeMoving = n;
@@ -238,7 +233,7 @@ public class TeyssierScorer {
         boolean changed = true;
 
         double sMax = score(n, new HashSet<>());
-        Set<Node> prefix = new HashSet<>(getPrefix(p));
+        List<Node> prefix = getPrefix(p);
 
         // Grow-shrink
         while (changed) {
@@ -294,7 +289,6 @@ public class TeyssierScorer {
         }
 
         return new Pair(mb, -sMax);
-//        return new Pair(mb, mb.size());
     }
 
     private Pair getGrowShrinkIndep(int p) {
@@ -346,15 +340,10 @@ public class TeyssierScorer {
     }
 
     public void restoreBookmark(int index) {
-        order = bookmarkedOrder.get(index);
-        scores = bookmarkedScores.get(index);
-        movingScores = bookmarkedMovingScores.get(index);
+        order = new ArrayList<>(bookmarkedOrder.get(index));
+        scores = Arrays.copyOf(bookmarkedScores.get(index), bookmarkedScores.get(index).length);
+        movingScores = Arrays.copyOf(bookmarkedMovingScores.get(index), bookmarkedMovingScores.get(index).length);
         nodeMoving = bookmarkedNodeMoving.get(index);
-
-        bookmarkedOrder.put(index, null);
-        bookmarkedNodeMoving.put(index, null);
-        bookmarkedScores.put(index, null);
-        bookmarkedMovingScores.put(index, null);
     }
 
     public void setCachingScores(boolean cachingScores) {
@@ -376,6 +365,7 @@ public class TeyssierScorer {
     }
 
     public void shuffleVariables() {
+        order = new ArrayList<>(order);
         shuffle(order);
         score(order);
     }

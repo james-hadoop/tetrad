@@ -49,9 +49,9 @@ public class IndTestDSep implements IndependenceTest {
     /**
      * The list of observed variables (i.e. variables for observed nodes).
      */
-    private Set<Node> observedVars;
+    private List<Node> observedVars;
     private List<Node> _observedVars;
-    private HashSet<IndependenceFact> facts;
+    private List<IndependenceFact> facts;
     private boolean verbose = false;
     private double pvalue = 0;
 
@@ -74,7 +74,7 @@ public class IndTestDSep implements IndependenceTest {
         this.graph = graph;
 
         this._observedVars = calcVars(graph.getNodes(), keepLatents);
-        this.observedVars = new HashSet<>(_observedVars);
+        this.observedVars = new ArrayList<>(_observedVars);
     }
 
     public IndTestDSep(IndependenceFacts facts, boolean keepLatents) {
@@ -85,7 +85,7 @@ public class IndTestDSep implements IndependenceTest {
         this.independenceFacts = facts;
 
         this._observedVars = calcVars(facts.getVariables(), keepLatents);
-        this.observedVars = new HashSet<>(_observedVars);
+        this.observedVars = new ArrayList<>(_observedVars);
     }
 
     /**
@@ -110,9 +110,9 @@ public class IndTestDSep implements IndependenceTest {
         }
 
         this._observedVars = _vars;
-        this.observedVars = new HashSet<>(_observedVars);
+        this.observedVars = new ArrayList<>(_observedVars);
 
-        facts = new HashSet<>();
+        facts = new ArrayList<>();
 
         return this;
     }
@@ -327,10 +327,10 @@ public class IndTestDSep implements IndependenceTest {
     }
 
     public void startRecordingFacts() {
-        this.facts = new HashSet<>();
+        this.facts = new ArrayList<>();
     }
 
-    public HashSet<IndependenceFact> getFacts() {
+    public List<IndependenceFact> getFacts() {
         return facts;
     }
 
