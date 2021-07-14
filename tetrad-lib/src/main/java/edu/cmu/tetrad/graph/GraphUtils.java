@@ -4007,15 +4007,20 @@ public final class GraphUtils {
             }
 
             public int hashCode() {
-                return edge.hashCode() + node.hashCode();
+                return edge.hashCode() + 7 * node.hashCode();
             }
 
             public boolean equals(Object o) {
-                if (!(o instanceof EdgeNode)) {
-                    throw new IllegalArgumentException();
+                if (o == null) {
+                    return false;
                 }
+
+                if (!(o instanceof EdgeNode)) {
+                    return false;
+                }
+
                 EdgeNode _o = (EdgeNode) o;
-                return _o.edge == edge && _o.node == node;
+                return _o.edge.equals(edge) && _o.node.equals(node);
             }
         }
 
@@ -4027,7 +4032,7 @@ public final class GraphUtils {
         }
 
         for (Edge edge : graph.getEdges(x)) {
-            if (edge.getDistalNode(x) == y) {
+            if (graph.isAdjacentTo(x, y)) {
                 return true;
             }
             EdgeNode edgeNode = new EdgeNode(edge, x);

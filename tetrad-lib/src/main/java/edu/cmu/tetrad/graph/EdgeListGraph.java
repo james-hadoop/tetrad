@@ -731,9 +731,10 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public boolean isDConnectedTo(Node x, Node y, List<Node> z) {
         return GraphUtils.isDConnectedTo(x, y, z, this);
+//        return isDConnectedTo(Collections.singletonList(x), Collections.singletonList(y), z);
     }
 
-    protected boolean isDConnectedTo(List<Node> x, List<Node> y, List<Node> z) {
+    public boolean isDConnectedTo(List<Node> x, List<Node> y, List<Node> z) {
         Set<Node> zAncestors = zAncestors(z);
 
         Queue<Pair> Q = new ArrayDeque<>();

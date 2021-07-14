@@ -260,8 +260,8 @@ public class IndTestDSep implements IndependenceTest {
         return nodeNames;
     }
 
-    public boolean determines(List z, Node x1) {
-        return false; //z.contains(x1);
+    public boolean determines(List<Node> z, Node x1) {
+        return false;
     }
 
     public double getAlpha() {
@@ -324,10 +324,6 @@ public class IndTestDSep implements IndependenceTest {
     @Override
     public double getScore() {
         return getPValue() == 1 ? -1 : 1;
-    }
-
-    public void startRecordingFacts() {
-        this.facts = new ArrayList<>();
     }
 
     public List<IndependenceFact> getFacts() {

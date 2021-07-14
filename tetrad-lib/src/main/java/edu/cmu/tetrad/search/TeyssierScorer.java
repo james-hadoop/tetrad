@@ -22,15 +22,11 @@ public class TeyssierScorer {
     private final Map<ScoreKey, Pair> cache = new HashMap<>();
     private final Map<Integer, List<Node>> bookmarkedOrder = new HashMap<>();
     private final Map<Integer, Pair[]> bookmarkedScores = new HashMap<>();
-    private final Map<Integer, Node> bookmarkedNodeMoving = new HashMap<>();
-    private final Map<Integer, Pair[]> bookmarkedMovingScores = new HashMap<>();
     private Score score;
     private IndependenceTest test;
     private List<Node> variables;
     private List<Node> order;
     private Pair[] scores;
-    private Node nodeMoving = null;
-    private Pair[] movingScores = null;
     private boolean cachingScores = true;
     private IKnowledge knowledge = new Knowledge2();
     private List<Set<Node>> prefixes;
@@ -69,8 +65,7 @@ public class TeyssierScorer {
 
     public boolean moveLeft(Node v) {
         int index = order.indexOf(v);
-        if (index <= 0) return false;
-        if (index >= order.size()) return false;
+        if (!(index >= 1 && index <= order.size() - 1)) return false;
 
         Node v1 = order.get(index - 1);
         Node v2 = order.get(index);
@@ -78,22 +73,21 @@ public class TeyssierScorer {
         order.set(index - 1, v2);
         order.set(index, v1);
 
-        recalculate(index);
         recalculate(index - 1);
+        recalculate(index);
 
         return true;
     }
 
     public boolean moveRight(Node v) {
         int index = order.indexOf(v);
-        if (index < 0) return false;
-        if (index >= order.size() - 1) return false;
+        if (!(index >= 0 && index <= order.size() - 2)) return false;
 
-        Node v1 = order.get(index + 1);
-        Node v2 = order.get(index);
+        Node v1 = order.get(index);
+        Node v2 = order.get(index + 1);
 
-        order.set(index + 1, v2);
-        order.set(index, v1);
+        order.set(index, v2);
+        order.set(index + 1, v1);
 
         recalculate(index);
         recalculate(index + 1);
@@ -142,12 +136,9 @@ public class TeyssierScorer {
     }
 
     private void initializeScores() {
-        movingScores = new Pair[order.size()];
         scores = new Pair[order.size()];
         bookmarkedScores.clear();
-        bookmarkedMovingScores.clear();
         bookmarkedOrder.clear();
-        bookmarkedNodeMoving.clear();
 
         for (int i = 0; i < order.size(); i++) {
             recalculate(i);
@@ -189,31 +180,8 @@ public class TeyssierScorer {
     }
 
     private void recalculate(int p) {
-        Node n = order.get(p);
-
-//        if (score instanceof GraphScore) {
-//            ((GraphScore) score).setN(n);
-//            ((GraphScore) score).setPrefix(getPrefix(p));
-//        }
-
-        if (n != nodeMoving) {
-            nodeMoving = n;
-            for (int k = p; k < movingScores.length; k++) {
-                movingScores[k] = null;
-            }
-        } else if (movingScores[p] != null) {
-            scores[p] = movingScores[p];
-            return;
-        }
-
-        if (new HashSet<>(getPrefix(p)).equals(prefixes.get(p))) {
-            prefixes.set(p, new HashSet<>(getPrefix(p)));
-        } else {
+        if (!new HashSet<>(getPrefix(p)).equals(prefixes.get(p))) {
             scores[p] = getGrowShrink(p);
-        }
-
-        if (n == nodeMoving) {
-            movingScores[p] = scores[p];
         }
     }
 
@@ -334,15 +302,11 @@ public class TeyssierScorer {
     public void bookmark(int index) {
         bookmarkedOrder.put(index, new ArrayList<>(order));
         bookmarkedScores.put(index, Arrays.copyOf(scores, scores.length));
-        bookmarkedMovingScores.put(index, Arrays.copyOf(movingScores, movingScores.length));
-        bookmarkedNodeMoving.put(index, nodeMoving);
     }
 
-    public void restoreBookmark(int index) {
+    public void goToBookmark(int index) {
         order = new ArrayList<>(bookmarkedOrder.get(index));
         scores = Arrays.copyOf(bookmarkedScores.get(index), bookmarkedScores.get(index).length);
-        movingScores = Arrays.copyOf(bookmarkedMovingScores.get(index), bookmarkedMovingScores.get(index).length);
-        nodeMoving = bookmarkedNodeMoving.get(index);
     }
 
     public void setCachingScores(boolean cachingScores) {

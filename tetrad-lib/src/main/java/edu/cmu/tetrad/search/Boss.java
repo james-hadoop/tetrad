@@ -95,13 +95,11 @@ public class Boss {
         // place the node in whichever position yielded the highest score. Do this
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
-        double best = scorer.score();
-        List<Node> perm = scorer.getOrder();
+        double best = Double.POSITIVE_INFINITY;
+        List<Node> perm = null;
 
         while (true) {
             for (Node v : scorer.getOrder()) {
-//                scorer.moveRight(v);
-//                scorer.moveRight(v);
                 double bestScore = scorer.score();
                 scorer.bookmark(1);
 
@@ -112,7 +110,7 @@ public class Boss {
                     }
                 }
 
-                scorer.restoreBookmark(1);
+                scorer.goToBookmark(1);
             }
 
             if (scorer.score() < best) {
@@ -139,13 +137,11 @@ public class Boss {
         // place the node in whichever position yielded the highest score. Do this
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
-        double overall = scorer.score();
-        List<Node> best = scorer.getOrder();
+        double overall = Double.POSITIVE_INFINITY;
+        List<Node> best = null;
 
         while (true) {
             for (Node v : scorer.getOrder()) {
-//                scorer.moveRight(v);
-//                scorer.moveRight(v);
                 scorer.moveTo(v, 0);
                 double bestScore = scorer.score();
                 scorer.bookmark(1);
@@ -157,7 +153,7 @@ public class Boss {
                     }
                 }
 
-                scorer.restoreBookmark(1);
+                scorer.goToBookmark(1);
             }
 
             if (scorer.score() < overall) {

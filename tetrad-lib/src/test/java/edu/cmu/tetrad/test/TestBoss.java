@@ -77,6 +77,7 @@ public final class TestBoss {
         params.set(Params.COEF_HIGH, 1.0);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
+        params.set(Params.BOSS_METHOD, 1);
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new SemBicScore()));
@@ -475,24 +476,24 @@ public final class TestBoss {
 
         pattern0 = GraphUtils.replaceNodes(pattern0, variables);
 
-//        {
-//            Gsp gsp;
-//
-//            if (true) {
-//                gsp = new Gsp(test);
-//            } else {
-//                gsp = new Gsp(score);
-//            }
-//
-//            gsp.setCachingScores(true);
-//            gsp.setNumStarts(1);
-//            gsp.setGspDepth(-1);
-//            gsp.setReturnCpdag(true);
-//            Graph pattern = gsp.search(variables);
-//            pattern = GraphUtils.replaceNodes(pattern, variables);
-//
-//            printFailed(pattern0, pattern, "GSP");
-//        }
+        {
+            Gsp gsp;
+
+            if (true) {
+                gsp = new Gsp(test);
+            } else {
+                gsp = new Gsp(score);
+            }
+
+            gsp.setCachingScores(true);
+            gsp.setNumStarts(1);
+            gsp.setGspDepth(-1);
+            gsp.setReturnCpdag(true);
+            Graph pattern = gsp.search(variables);
+            pattern = GraphUtils.replaceNodes(pattern, variables);
+
+            printFailed(pattern0, pattern, "GSP");
+        }
 
         {
             Boss boss;
@@ -618,7 +619,6 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
         facts.add(new IndependenceFact(x3, x1, list(x2)));
         facts.add(new IndependenceFact(x1, x4, list())); // unfaithful.
-//        facts.add(new IndependenceFact(x1, x4, list(x2))); // unfaithful.
 
         return new Ret("Simple 4-node path canceling model that GES should get right", facts);
     }
@@ -811,7 +811,6 @@ public final class TestBoss {
 
         List<List<Node>> existingPaths = new ArrayList<>();
 
-//        LOOK:
         for (int i = 0; i < nodes.size(); i++) {
             for (int j = 0; j < nodes.size(); j++) {
                 if (i == j) continue;
@@ -819,14 +818,9 @@ public final class TestBoss {
 
                 if (canceled) {
                     System.out.println("Canceled " + nodes.get(i) + " -----> " + nodes.get(j));
-//                    break LOOK;
                 }
             }
         }
-
-//        if (MatrixUtils.isPositiveDefinite(imsd.getImplCovar())) {
-//            System.out.println("Positive definite");
-//        }
 
         System.out.println(imsd.getImplCovar());
 
@@ -890,13 +884,6 @@ public final class TestBoss {
             sum += products.get(i);
         }
 
-//        for (int i = 0; i < paths.get(0).size() - 1; i++) {
-//            Node x = paths.get(0).get(i);
-//            Node y = paths.get(0).get(i + 1);
-//            imsd.setEdgeCoefficientUnchecked(x, y, factor * imsd.getEdgeCoef(x, y));
-//        }
-
-
         double factor = 1;
         Set<NodePair> pairs = new HashSet<>();
         boolean changed = true;
@@ -922,23 +909,6 @@ public final class TestBoss {
                 products.add(p);
             }
         }
-
-//        for (int i = 0; i < paths.get(0).size() - 1; i++) {
-//            Node x = paths.get(0).get(i);
-//            Node y = paths.get(0).get(i + 1);
-//            imsd.setEdgeCoefficientUnchecked(x, y, factor * imsd.getEdgeCoef(x, y));
-//        }
-
-
-//        for (List<Node> path : paths) {
-//            for (int i = 0; i < path.size() - 1; i++) {
-//                Node x = path.get(i);
-//                Node y = path.get(i + 1);
-//                if (pairs.contains(new NodePair(x, y))) continue;
-//                imsd.setEdgeCoefficientUnchecked(x, y, factor * imsd.getEdgeCoef(x, y));
-//                pairs.add(new NodePair(x, y));
-//            }
-//        }
 
         return true;
     }

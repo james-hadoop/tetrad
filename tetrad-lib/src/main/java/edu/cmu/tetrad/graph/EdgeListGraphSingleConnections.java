@@ -25,7 +25,6 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <p>Stores a graph a list of lists of edges adjacent to each node in the
@@ -85,9 +84,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
             stuffRemovedSinceLastTripleAccess = _graph.stuffRemovedSinceLastTripleAccess;
             highlightedEdges = new HashSet<>(_graph.highlightedEdges);
             namesHash = new HashMap<>(_graph.namesHash);
-        } else
-
-        {
+        } else {
             if (graph == null) {
                 throw new NullPointerException("Graph must not be null.");
             }
@@ -124,7 +121,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
         this.nodes.addAll(nodes);
 
         for (Node node : nodes) {
-            edgeLists.put(node, new ArrayList<Edge>());
+            edgeLists.put(node, new ArrayList<>());
             namesHash.put(node.getName(), node);
             node.getAllAttributes().clear();
         }
@@ -192,26 +189,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
         if (edge1.pointsTowards(node1)) return true;
         if (edge2.pointsTowards(node3)) return true;
 
-        if (circle12 && circle32) return true;
-
-//        List<Edge> edges = getEdges(node2);
-//        boolean circle12 = false;
-//        boolean circle32 = false;
-//
-//        for (int i = 0; i < edges.size(); i++) {
-//            Edge edge = edges.get(i);
-//            boolean _node1 = edge.getDistalNode(node2) == node1;
-//            boolean _node3 = edge.getDistalNode(node2) == node3;
-//
-//            if (_node1 && edge.pointsTowards(node1)) return true;
-//            if (_node3 && edge.pointsTowards(node3)) return true;
-//
-//            if (_node1 && edge.getProximalEndpoint(node2) == Endpoint.CIRCLE) circle12 = true;
-//            if (_node3 && edge.getProximalEndpoint(node2) == Endpoint.CIRCLE) circle32 = true;
-//            if (circle12 && circle32 && !isAdjacentTo(node1, node2)) return true;
-//        }
-
-        return false;
+        return circle12 && circle32;
     }
 
     /**
@@ -248,7 +226,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
     }
 
     public boolean existsUndirectedPathFromTo(Node node1, Node node2) {
-        return existsUndirectedPathVisit(node1, node2, new HashSet<Node>());
+        return existsUndirectedPathVisit(node1, node2, new HashSet<>());
     }
 
     /**
@@ -384,7 +362,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
             return false;
         }
 
-        edgeLists.put(node, new ArrayList<Edge>());
+        edgeLists.put(node, new ArrayList<>());
         nodes.add(node);
         namesHash.put(node.getName(), node);
 
@@ -454,10 +432,6 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
      * Removes a node from the graph.
      */
     public boolean removeNode(Node node) {
-//        if (nodes.contains(node) && !checkRemoveNode(node)) {
-//            return false;
-//        }
-
         boolean changed = false;
         List<Edge> edgeList1 = edgeLists.get(node);    //list of edges connected to that node
 
