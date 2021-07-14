@@ -10,6 +10,7 @@ import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.util.Parameters;
@@ -58,7 +59,6 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             Boss boss = new Boss(score);
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            boss.setReturnCpdag(true);
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
             boss.setMethod(Boss.Method.BOSS_PROMOTION);
@@ -73,7 +73,8 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
             }
 
-            return boss.search(score.getVariables());
+            List<Node> perm = boss.bestOrder(score.getVariables());
+            return boss.getGraph(perm, true);
         } else {
             BOSS fges = new BOSS();
 

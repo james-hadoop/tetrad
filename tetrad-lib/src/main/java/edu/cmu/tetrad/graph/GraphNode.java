@@ -21,6 +21,8 @@
 package edu.cmu.tetrad.graph;
 
 import edu.cmu.tetrad.util.TetradSerializable;
+import org.jetbrains.annotations.NotNull;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
@@ -272,7 +274,7 @@ public class GraphNode implements Node, TetradSerializable {
     }
 
     @Override
-    public int compareTo(Node node) {
+    public int compareTo(@NotNull Node node) {
         String node1 = getName();
         String node2 = node.getName();
 

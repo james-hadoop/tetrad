@@ -20,6 +20,10 @@ import static java.util.Collections.shuffle;
  */
 public class TeyssierScorer {
     private final Map<ScoreKey, Pair> cache = new HashMap<>();
+    private final Map<Integer, List<Node>> bookmarkedOrder = new HashMap<>();
+    private final Map<Integer, Pair[]> bookmarkedScores = new HashMap<>();
+    private final Map<Integer, Node> bookmarkedNodeMoving = new HashMap<>();
+    private final Map<Integer, Pair[]> bookmarkedMovingScores = new HashMap<>();
     private Score score;
     private IndependenceTest test;
     private List<Node> variables;
@@ -27,24 +31,20 @@ public class TeyssierScorer {
     private Pair[] scores;
     private Node nodeMoving = null;
     private Pair[] movingScores = null;
-    private final Map<Integer, List<Node>> bookmarkedOrder = new HashMap<>();
-    private final Map<Integer, Pair[]> bookmarkedScores = new HashMap<>();
-    private final Map<Integer, Node> bookmarkedNodeMoving = new HashMap<>();
-    private final Map<Integer, Pair[]> bookmarkedMovingScores = new HashMap<>();
     private boolean cachingScores = true;
     private IKnowledge knowledge = new Knowledge2();
     private List<Set<Node>> prefixes;
 
     public TeyssierScorer(Score score) {
         this.score = score;
-        this.order = score.getVariables();
+        this.order = new ArrayList<>(score.getVariables());
 
         NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
     }
 
     public TeyssierScorer(IndependenceTest test) {
         this.test = test;
-        this.order = test.getVariables();
+        this.order = new ArrayList<>(test.getVariables());
     }
 
     public void setKnowledge(IKnowledge knowledge) {
@@ -101,18 +101,17 @@ public class TeyssierScorer {
         return true;
     }
 
-    public void moveTo(Node v, int i) {
-        int index = order.indexOf(v);
-        if (index == i) return;
+    public void moveTo(Node v, int toIndex) {
+        int fromIndex = order.indexOf(v);
 
-        if (i < index) {
-            while (i < index--) {
-                if (!moveLeft(v)) break;
-            }
-        } else {
-            while (i > index++) {
-                if (!moveRight(v)) break;
-            }
+        while (toIndex < fromIndex) {
+            if (!moveLeft(v)) break;
+            fromIndex--;
+        }
+
+        while (toIndex > fromIndex) {
+            if (!moveRight(v)) break;
+            fromIndex++;
         }
     }
 

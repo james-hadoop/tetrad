@@ -257,10 +257,10 @@ public final class TestBoss {
 
             List<Node> order = facts.facts.getVariables();
 
-            int numRuns = 100;
+            int numRuns = 500;
 
             for (int t = 0; t < numRuns; t++) {
-                System.out.println("Run " + (t + 1));
+//                System.out.println("Run " + (t + 1));
 
                 shuffle(order);
                 IndTestDSep test = new IndTestDSep(facts.getFacts());
@@ -283,7 +283,7 @@ public final class TestBoss {
                     labels.get("GSP").add(facts.getLabel());
 
                     if (pattern0 != null && !pattern.equals(pattern0)) {
-                        System.out.println("Different at GSP");
+//                        System.out.println("Different at GSP");
                     }
 
                     if (printPattern) {
@@ -300,7 +300,9 @@ public final class TestBoss {
                     boss.setCacheScores(true);
                     boss.setMethod(method);
                     boss.setNumStarts(1);
-                    Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
+
+                    List<Node> perm = boss.bestOrder(test.getVariables());
+                    Graph pattern = boss.getGraph(perm, true);
 
                     if (graphs.get(method.toString()) == null) {
                         graphs.put(method.toString(), new HashSet<>());
@@ -311,7 +313,7 @@ public final class TestBoss {
                     labels.get(method.toString()).add(facts.getLabel());
 
                     if (pattern0 != null && !pattern.equals(pattern0)) {
-                        System.out.println("Different at BOSS Promotion");
+//                        System.out.println("Different at BOSS Promotion");
                     }
 
                     if (printPattern) {
@@ -328,7 +330,8 @@ public final class TestBoss {
                     boss.setCacheScores(true);
                     boss.setMethod(method);
                     boss.setNumStarts(1);
-                    Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
+                    List<Node> perm = boss.bestOrder(test.getVariables());
+                    Graph pattern = boss.getGraph(perm, true);
 
                     if (graphs.get(method.toString()) == null) {
                         graphs.put(method.toString(), new HashSet<>());
@@ -339,7 +342,7 @@ public final class TestBoss {
                     labels.get(method.toString()).add(facts.getLabel());
 
                     if (pattern0 != null && !pattern.equals(pattern0)) {
-                        System.out.println("Different at BOSS All indices");
+//                        System.out.println("Different at BOSS All indices");
                     }
 
                     if (printPattern) {
@@ -357,7 +360,8 @@ public final class TestBoss {
                     boss.setCacheScores(true);
                     boss.setMethod(method);
                     boss.setNumStarts(1);
-                    Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
+                    List<Node> perm = boss.bestOrder(test.getVariables());
+                    Graph pattern = boss.getGraph(perm, true);
 
                     if (graphs.get(method.toString()) == null) {
                         graphs.put(method.toString(), new HashSet<>());
@@ -368,7 +372,7 @@ public final class TestBoss {
                     labels.get(method.toString()).add(facts.getLabel());
 
                     if (pattern0 != null && !pattern.equals(pattern0)) {
-                        System.out.println("Different at SP");
+//                        System.out.println("Different at SP");
                     }
 
                     if (printPattern) {
@@ -404,7 +408,8 @@ public final class TestBoss {
         while ((perm = gen.next()) != null) {
             List<Node> p = GraphUtils.asList(perm, variables);
 
-            Graph pattern = SearchGraphUtils.patternForDag(boss.search(p));
+            List<Node> p2 = boss.bestOrder(test.getVariables());
+            Graph pattern = boss.getGraph(p2, true);
 
             System.out.println(p + " " + pattern.getNumEdges());
         }
@@ -501,9 +506,13 @@ public final class TestBoss {
             boss.setCacheScores(true);
             boss.setMethod(Boss.Method.BOSS_PROMOTION);
             boss.setNumStarts(1);
-            boss.setReturnCpdag(true);
-            Graph pattern = boss.search(variables);
-            pattern = GraphUtils.replaceNodes(pattern, variables);
+            List<Node> perm = boss.bestOrder(boss.getVariables());
+            Graph dag = boss.getGraph(perm, false);
+            Graph pattern = SearchGraphUtils.patternForDag(dag);
+
+            if (!isPatternForDag(pattern, dag)) {
+                throw new IllegalArgumentException();
+            }
 
             printFailed(pattern0, pattern, "BOSS Promotion");
         }
@@ -520,9 +529,13 @@ public final class TestBoss {
             boss.setCacheScores(true);
             boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
             boss.setNumStarts(1);
-            boss.setReturnCpdag(true);
-            Graph pattern = boss.search(variables);
-            pattern = GraphUtils.replaceNodes(pattern, variables);
+            List<Node> perm = boss.bestOrder(boss.getVariables());
+            Graph dag = boss.getGraph(perm, false);
+            Graph pattern = SearchGraphUtils.patternForDag(dag);
+
+            if (!isPatternForDag(pattern, dag)) {
+                throw new IllegalArgumentException();
+            }
 
             printFailed(pattern0, pattern, "BOSS All Indices");
         }
@@ -536,16 +549,22 @@ public final class TestBoss {
 //                boss = new Boss(score);
 //            }
 //
-//            boss.setCachingScores(true);
+//            boss.setCacheScores(true);
 //            boss.setMethod(Boss.Method.SP);
 //            boss.setNumStarts(1);
-//            boss.setReturnCpdag(true);
-//            Graph pattern = boss.search(variables);
-//            pattern = GraphUtils.replaceNodes(pattern, variables);
-//
+//            List<Node> perm = boss.bestOrder(boss.getVariables());
+//            Graph pattern = boss.getGraph(perm, true);
 //            printFailed(pattern0, pattern, "SP");
 //        }
 
+    }
+
+    private boolean isPatternForDag(Graph pattern, Graph dag) {
+        if (!GraphUtils.undirectedGraph(pattern).equals(GraphUtils.undirectedGraph(dag))) {
+            return false;
+        }
+
+        return  true;
     }
 
     private boolean printFailed(Graph pattern0, Graph pattern, String alg) {
@@ -724,7 +743,7 @@ public final class TestBoss {
 
         Boss boss = new Boss(score);
         boss.setCacheScores(false);
-        System.out.println(boss.search(nodes));
+        System.out.println(boss.bestOrder(nodes));
     }
 
     @Test
@@ -778,7 +797,7 @@ public final class TestBoss {
 
         Boss boss = new Boss(new edu.cmu.tetrad.search.SemBicScore(data));
         boss.setCacheScores(false);
-        System.out.println("BOSS " + boss.search(data.getVariables()));
+        System.out.println("BOSS " + boss.bestOrder(data.getVariables()));
     }
 
     @Test
@@ -823,7 +842,7 @@ public final class TestBoss {
 
         Boss boss = new Boss(new edu.cmu.tetrad.search.SemBicScore(data));
         boss.setCacheScores(false);
-        System.out.println("BOSS " + boss.search(data.getVariables()));
+        System.out.println("BOSS " + boss.bestOrder(data.getVariables()));
     }
 
     private boolean setPathsCanceling(Node x1, Node x4, StandardizedSemIm imsd, List<List<Node>> existingPaths) {

@@ -22,6 +22,7 @@ package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.NamingProtocol;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for variable specifications for DataSet. These objects govern the
@@ -130,7 +131,7 @@ public abstract class AbstractVariable implements Variable {
     public abstract Node like(String name);
 
     @Override
-    public int compareTo(Node node) {
+    public int compareTo(@NotNull Node node) {
         String node1 = getName();
         String node2 = node.getName();
 

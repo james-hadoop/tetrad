@@ -24,6 +24,8 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.graph.NodeVariableType;
 import edu.cmu.tetrad.util.*;
+import org.jetbrains.annotations.NotNull;
+
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -1085,7 +1087,7 @@ public class SessionNode implements Node, TetradSerializable {
     }
 
     @Override
-    public int compareTo(Node node) {
+    public int compareTo(@NotNull Node node) {
         return 0;
     }
 

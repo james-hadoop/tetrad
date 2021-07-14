@@ -10,6 +10,7 @@ import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
@@ -59,7 +60,6 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
             Boss boss = new Boss(test);
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            boss.setReturnCpdag(true);
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
             if (parameters.getInt(Params.BOSS_METHOD) == 1) {
@@ -72,7 +72,8 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
             }
 
-            return boss.search(test.getVariables());
+            List<Node> perm = boss.bestOrder(test.getVariables());
+            return boss.getGraph(perm, true);
         } else {
             BOSSIndep fges = new BOSSIndep();
 

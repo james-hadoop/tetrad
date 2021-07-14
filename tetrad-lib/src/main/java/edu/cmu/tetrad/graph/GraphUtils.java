@@ -3055,21 +3055,14 @@ public final class GraphUtils {
             throw new IllegalArgumentException("Graph must be acyclic.");
         }
 
-        List<Node> found = new LinkedList<>();
-        List<Node> notFound = new ArrayList<>(graph.getNodes());
+        Graph copy = new EdgeListGraph(graph);
+        List<Node> found = new ArrayList<>();
 
-        notFound.removeIf(node -> node.getNodeType() == NodeType.ERROR);
-
-        while (!notFound.isEmpty()) {
-            for (Iterator<Node> it = notFound.iterator(); it.hasNext(); ) {
-                Node node = it.next();
-
-                List<Node> parents = graph.getParents(node);
-//                parents.retainAll(allNodes);
-
-                if (found.containsAll(parents)) {
+        while (copy.getNumNodes() > 0) {
+            for (Node node : copy.getNodes()) {
+                if (copy.getParents(node).isEmpty()) {
                     found.add(node);
-                    it.remove();
+                    copy.removeNode(node);
                 }
             }
         }

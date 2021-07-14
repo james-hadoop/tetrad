@@ -3,6 +3,7 @@ package edu.cmu.tetrad.algcomparison.statistic;
 import edu.cmu.tetrad.algcomparison.statistic.utils.AdjacencyConfusion;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
 
 /**
  * The adjacency recall. The true positives are the number of adjacencies in both
@@ -25,11 +26,10 @@ public class AdjacencyRecall implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
+        estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
         AdjacencyConfusion adjConfusion = new AdjacencyConfusion(trueGraph, estGraph);
         int adjTp = adjConfusion.getAdjTp();
-//        int adjFp = adjConfusion.getAdjFp();
         int adjFn = adjConfusion.getAdjFn();
-//        int adjTn = adjConfusion.getAdjTn();
         return adjTp / (double) (adjTp + adjFn);
     }
 

@@ -25,6 +25,8 @@ import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import static edu.cmu.tetrad.graph.Edges.directedEdge;
 
@@ -66,28 +68,28 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * @serial
      */
     final Map<Node, List<Edge>> edgeLists;
-
+    private final Map<String, Object> attributes = new HashMap<>();
     /**
      * Fires property change events.
      */
     protected transient PropertyChangeSupport pcs;
-
     /**
      * Set of ambiguous triples. Note the name can't be changed due to
      * serialization.
      */
     protected Set<Triple> ambiguousTriples = Collections.newSetFromMap(new HashMap<>());
-
+    /**
+     * Determines whether one node is an ancestor of another.
+     */
+    protected Map<Node, Set<Node>> ancestors = null;
     /**
      * @serial
      */
     Set<Triple> underLineTriples = Collections.newSetFromMap(new HashMap<>());
-
     /**
      * @serial
      */
     Set<Triple> dottedUnderLineTriples = Collections.newSetFromMap(new HashMap<>());
-
     /**
      * True iff nodes were removed since the last call to an accessor for
      * ambiguous, underline, or dotted underline triples. If there are triples
@@ -95,33 +97,27 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * lists first, so as not to cause confusion.
      */
     boolean stuffRemovedSinceLastTripleAccess = false;
-
     /**
      * The set of highlighted edges.
      */
     Set<Edge> highlightedEdges = new HashSet<>();
-
     /**
      * A hash from node names to nodes;
      */
     Map<String, Node> namesHash;
-
     private boolean pattern = false;
 
-    private boolean pag = false;
-
-    private final Map<String, Object> attributes = new HashMap<>();
-
     //==============================CONSTUCTORS===========================//
+    private boolean pag = false;
 
     /**
      * Constructs a new (empty) EdgeListGraph.
      */
     public EdgeListGraph() {
-        this.edgeLists = new TreeMap<>();
+        this.edgeLists = new ConcurrentHashMap<>();
         this.nodes = new ArrayList<>();
-        this.edgesSet = new TreeSet<>();
-        this.namesHash = new TreeMap<>();
+        this.edgesSet = new ConcurrentSkipListSet<>();
+        this.namesHash = new ConcurrentHashMap<>();
     }
 
     /**
@@ -175,8 +171,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             throw new NullPointerException();
         }
 
-        for (Object variable : nodes) {
-            if (!addNode((Node) variable)) {
+        for (Node variable : nodes) {
+            if (!addNode(variable)) {
                 throw new IllegalArgumentException();
             }
         }
@@ -191,122 +187,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     public static EdgeListGraph serializableInstance() {
         return new EdgeListGraph();
-    }
-
-    //===============================PUBLIC METHODS========================//
-
-    /**
-     * Adds a directed edge to the graph from node A to node B.
-     *
-     * @param node1 the "from" node.
-     * @param node2 the "to" node.
-     */
-    @Override
-    public boolean addDirectedEdge(Node node1, Node node2) {
-        return addEdge(directedEdge(node1, node2));
-    }
-
-    /**
-     * Adds an undirected edge to the graph from node A to node B.
-     *
-     * @param node1 the "from" node.
-     * @param node2 the "to" node.
-     */
-    @Override
-    public boolean addUndirectedEdge(Node node1, Node node2) {
-        return addEdge(Edges.undirectedEdge(node1, node2));
-    }
-
-    /**
-     * Adds a nondirected edge to the graph from node A to node B.
-     *
-     * @param node1 the "from" node.
-     * @param node2 the "to" node.
-     */
-    @Override
-    public boolean addNondirectedEdge(Node node1, Node node2) {
-        return addEdge(Edges.nondirectedEdge(node1, node2));
-    }
-
-    /**
-     * Adds a partially oriented edge to the graph from node A to node B.
-     *
-     * @param node1 the "from" node.
-     * @param node2 the "to" node.
-     */
-    @Override
-    public boolean addPartiallyOrientedEdge(Node node1, Node node2) {
-        return addEdge(Edges.partiallyOrientedEdge(node1, node2));
-    }
-
-    /**
-     * Adds a bidirected edge to the graph from node A to node B.
-     *
-     * @param node1 the "from" node.
-     * @param node2 the "to" node.
-     */
-    @Override
-    public boolean addBidirectedEdge(Node node1, Node node2) {
-        return addEdge(Edges.bidirectedEdge(node1, node2));
-    }
-
-    @Override
-    public boolean existsDirectedCycle() {
-        for (Node node : getNodes()) {
-//            if (findDirectedPath(node, node).size() > 1) return true;
-//
-            if (existsDirectedPathFromTo(node, node)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean isDirectedFromTo(Node node1, Node node2) {
-        List<Edge> edges = getEdges(node1, node2);
-        if (edges.size() != 1) {
-            return false;
-        }
-        Edge edge = edges.get(0);
-        return edge.pointsTowards(node2);
-    }
-
-    @Override
-    public boolean isUndirectedFromTo(Node node1, Node node2) {
-        Edge edge = getEdge(node1, node2);
-        return edge != null && edge.getEndpoint1() == Endpoint.TAIL && edge.getEndpoint2() == Endpoint.TAIL;
-    }
-
-    /**
-     * added by ekorber, 2004/06/11
-     *
-     * @return true if the given edge is definitely visible (Jiji, pg 25)
-     * @throws IllegalArgumentException if the given edge is not a directed edge
-     *                                  in the graph
-     */
-    @Override
-    public boolean defVisible(Edge edge) {
-        if (containsEdge(edge)) {
-
-            Node A = Edges.getDirectedEdgeTail(edge);
-            Node B = Edges.getDirectedEdgeHead(edge);
-
-            for (Node C : getAdjacentNodes(A)) {
-                if (C != B && !isAdjacentTo(C, B)) {
-                    Edge e = getEdge(C, A);
-
-                    if (e.getProximalEndpoint(A) == Endpoint.ARROW) {
-                        return true;
-                    }
-                }
-            }
-
-            return visibleEdgeHelper(A, B, this);
-        } else {
-            throw new IllegalArgumentException(
-                    "Given edge is not in the graph.");
-        }
     }
 
     private static boolean visibleEdgeHelper(Node A, Node B, Graph graph) {
@@ -372,6 +252,116 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     }
 
     /**
+     * Adds a directed edge to the graph from node A to node B.
+     *
+     * @param node1 the "from" node.
+     * @param node2 the "to" node.
+     */
+    @Override
+    public boolean addDirectedEdge(Node node1, Node node2) {
+        return addEdge(directedEdge(node1, node2));
+    }
+
+    /**
+     * Adds an undirected edge to the graph from node A to node B.
+     *
+     * @param node1 the "from" node.
+     * @param node2 the "to" node.
+     */
+    @Override
+    public boolean addUndirectedEdge(Node node1, Node node2) {
+        return addEdge(Edges.undirectedEdge(node1, node2));
+    }
+
+    /**
+     * Adds a nondirected edge to the graph from node A to node B.
+     *
+     * @param node1 the "from" node.
+     * @param node2 the "to" node.
+     */
+    @Override
+    public boolean addNondirectedEdge(Node node1, Node node2) {
+        return addEdge(Edges.nondirectedEdge(node1, node2));
+    }
+
+    /**
+     * Adds a partially oriented edge to the graph from node A to node B.
+     *
+     * @param node1 the "from" node.
+     * @param node2 the "to" node.
+     */
+    @Override
+    public boolean addPartiallyOrientedEdge(Node node1, Node node2) {
+        return addEdge(Edges.partiallyOrientedEdge(node1, node2));
+    }
+
+    /**
+     * Adds a bidirected edge to the graph from node A to node B.
+     *
+     * @param node1 the "from" node.
+     * @param node2 the "to" node.
+     */
+    @Override
+    public boolean addBidirectedEdge(Node node1, Node node2) {
+        return addEdge(Edges.bidirectedEdge(node1, node2));
+    }
+
+    @Override
+    public boolean existsDirectedCycle() {
+        for (Node node : getNodes()) {
+            if (existsDirectedPathFromTo(node, node)) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isDirectedFromTo(Node node1, Node node2) {
+        List<Edge> edges = getEdges(node1, node2);
+        if (edges.size() != 1) {
+            return false;
+        }
+        Edge edge = edges.get(0);
+        return edge.pointsTowards(node2);
+    }
+
+    @Override
+    public boolean isUndirectedFromTo(Node node1, Node node2) {
+        Edge edge = getEdge(node1, node2);
+        return edge != null && edge.getEndpoint1() == Endpoint.TAIL && edge.getEndpoint2() == Endpoint.TAIL;
+    }
+
+    /**
+     * added by ekorber, 2004/06/11
+     *
+     * @return true if the given edge is definitely visible (Jiji, pg 25)
+     * @throws IllegalArgumentException if the given edge is not a directed edge
+     *                                  in the graph
+     */
+    @Override
+    public boolean defVisible(Edge edge) {
+        if (containsEdge(edge)) {
+
+            Node A = Edges.getDirectedEdgeTail(edge);
+            Node B = Edges.getDirectedEdgeHead(edge);
+
+            for (Node C : getAdjacentNodes(A)) {
+                if (C != B && !isAdjacentTo(C, B)) {
+                    Edge e = getEdge(C, A);
+
+                    if (e.getProximalEndpoint(A) == Endpoint.ARROW) {
+                        return true;
+                    }
+                }
+            }
+
+            return visibleEdgeHelper(A, B, this);
+        } else {
+            throw new IllegalArgumentException(
+                    "Given edge is not in the graph.");
+        }
+    }
+
+    /**
      * IllegalArgument exception raised (by isDirectedFromTo(getEndpoint) or by
      * getEdge) if there are multiple edges between any of the node pairs.
      */
@@ -421,7 +411,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public boolean existsDirectedPathFromTo(Node node1, Node node2) {
         Queue<Node> Q = new LinkedList<>();
-        Set<Node> V = new TreeSet<>();
+        Set<Node> V = new HashSet<>();
 
         Q.add(node1);
         V.add(node1);
@@ -486,39 +476,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         path.removeLast();
         return false;
     }
-
-    public List<Node> findSemidirectedPath(Node from, Node to) {
-        LinkedList<Node> path = new LinkedList<>();
-
-        List<Node> nonParents = getAdjacentNodes(from);
-        nonParents.removeAll(getParents(from));
-
-        for (Node next : nonParents) {
-            if (findSemidirectedPathVisit(next, to, path)) {
-                path.addFirst(from);
-                return path;
-            }
-        }
-
-        return path;
-    }
-
-    private boolean findSemidirectedPathVisit(Node next, Node to, LinkedList<Node> path) {
-        if (path.contains(next)) return false;
-        path.addLast(next);
-        if (next == to) return true;
-
-        List<Node> nonParents = getAdjacentNodes(next);
-        nonParents.removeAll(getParents(next));
-
-        for (Node d : nonParents) {
-            if (findSemidirectedPathVisit(d, to, path)) return true;
-        }
-
-        path.removeLast();
-        return false;
-    }
-
 
     @Override
     public boolean existsUndirectedPathFromTo(Node node1, Node node2) {
@@ -586,7 +543,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
     @Override
     public List<Node> getDescendants(List<Node> nodes) {
-        Set<Node> descendants = new TreeSet<>();
+        Set<Node> descendants = new HashSet<>();
 
         for (Node node : nodes) {
             collectDescendantsVisit(node, descendants);
@@ -703,11 +660,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     /**
      * Determines whether one node is an ancestor of another.
      */
-    protected Map<Node, Set<Node>> ancestors = null;
-
-    /**
-     * Determines whether one node is an ancestor of another.
-     */
     @Override
     public boolean isAncestorOf(Node node1, Node node2) {
         return getAncestors(Collections.singletonList(node2)).contains(node1);
@@ -724,8 +676,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * nodes2
      */
     protected boolean possibleAncestorSet(Node node1, List<Node> nodes2) {
-        for (Object aNodes2 : nodes2) {
-            if (possibleAncestor(node1, (Node) aNodes2)) {
+        for (Node node2 : nodes2) {
+            if (possibleAncestor(node1, node2)) {
                 return true;
             }
         }
@@ -734,7 +686,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
     @Override
     public List<Node> getAncestors(List<Node> nodes) {
-        Set<Node> ancestors = new TreeSet<>();
+        Set<Node> ancestors = new HashSet<>();
 
         for (Node node : nodes) {
             collectAncestorsVisit(node, ancestors);
@@ -748,8 +700,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public boolean isChildOf(Node node1, Node node2) {
-        for (Object o : getEdges(node2)) {
-            Edge edge = (Edge) (o);
+        for (Edge edge : getEdges(node2)) {
             Node sub = Edges.traverseDirected(node2, edge);
 
             if (sub == node1) {
@@ -837,17 +788,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         return GraphUtils.getSepset(x, y, this);
     }
 
-    @Override
-    public void setNodes(List<Node> nodes) {
-        if (nodes.size() != this.nodes.size()) {
-            throw new IllegalArgumentException("Sorry, there is a mismatch in the number of variables "
-                    + "you are trying to set.");
-        }
-
-        this.nodes.clear();
-        this.nodes.addAll(nodes);
-    }
-
     protected Set<Node> zAncestors(List<Node> z) {
         Queue<Node> Q = new ArrayDeque<>();
         Set<Node> V = new HashSet<>();
@@ -903,48 +843,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public void setPag(boolean pag) {
         this.pag = pag;
-    }
-
-    private static class Pair {
-
-        private final Node x;
-        private final Node y;
-
-        Pair(Node x, Node y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        public Node getX() {
-            return x;
-        }
-
-        public Node getY() {
-            return y;
-        }
-
-        @Override
-        public int hashCode() {
-            return x.hashCode() + 17 * y.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == this) {
-                return true;
-            }
-            if (!(o instanceof Pair)) {
-                return false;
-            }
-            Pair pair = (Pair) o;
-            return x == pair.getX() && y == pair.getY();
-        }
-
-        @Override
-        public String toString() {
-            return "(" + x.toString() + ", " + y.toString() + ")";
-        }
-
     }
 
     /**
@@ -1539,6 +1437,17 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         return new ArrayList<>(nodes);
     }
 
+    @Override
+    public void setNodes(List<Node> nodes) {
+        if (nodes.size() != this.nodes.size()) {
+            throw new IllegalArgumentException("Sorry, there is a mismatch in the number of variables "
+                    + "you are trying to set.");
+        }
+
+        this.nodes.clear();
+        this.nodes.addAll(nodes);
+    }
+
     /**
      * Removes all nodes (and therefore all edges) from the graph.
      */
@@ -1681,8 +1590,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     public boolean removeNodes(List<Node> newNodes) {
         boolean changed = false;
 
-        for (Object newNode : newNodes) {
-            boolean _changed = removeNode((Node) newNode);
+        for (Node node : newNodes) {
+            boolean _changed = removeNode(node);
             changed = changed || _changed;
         }
 
@@ -1702,9 +1611,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         Graph graph = new EdgeListGraph(nodes);
         Set<Edge> edges = getEdges();
 
-        for (Object edge1 : edges) {
-            Edge edge = (Edge) edge1;
-
+        for (Edge edge : edges) {
             if (nodes.contains(edge.getNode1())
                     && nodes.contains(edge.getNode2())) {
                 graph.addEdge(edge);
@@ -1738,6 +1645,15 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public Set<Triple> getAmbiguousTriples() {
         return new HashSet<>(ambiguousTriples);
+    }
+
+    @Override
+    public void setAmbiguousTriples(Set<Triple> triples) {
+        ambiguousTriples.clear();
+
+        for (Triple triple : triples) {
+            addAmbiguousTriple(triple.getX(), triple.getY(), triple.getZ());
+        }
     }
 
     @Override
@@ -1817,15 +1733,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public void removeDottedUnderlineTriple(Node x, Node y, Node z) {
         dottedUnderLineTriples.remove(new Triple(x, y, z));
-    }
-
-    @Override
-    public void setAmbiguousTriples(Set<Triple> triples) {
-        ambiguousTriples.clear();
-
-        for (Triple triple : triples) {
-            addAmbiguousTriple(triple.getX(), triple.getY(), triple.getZ());
-        }
     }
 
     @Override
@@ -1918,8 +1825,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         List<Node> children = getChildren(node);
 
         if (!children.isEmpty()) {
-            for (Object aChildren : children) {
-                Node child = (Node) aChildren;
+            for (Node child : children) {
                 doChildClosureVisit(child, descendants);
             }
         }
@@ -2144,6 +2050,48 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public void addAttribute(String key, Object value) {
         attributes.put(key, value);
+    }
+
+    private static class Pair {
+
+        private final Node x;
+        private final Node y;
+
+        Pair(Node x, Node y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public Node getX() {
+            return x;
+        }
+
+        public Node getY() {
+            return y;
+        }
+
+        @Override
+        public int hashCode() {
+            return x.hashCode() + 17 * y.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == this) {
+                return true;
+            }
+            if (!(o instanceof Pair)) {
+                return false;
+            }
+            Pair pair = (Pair) o;
+            return x == pair.getX() && y == pair.getY();
+        }
+
+        @Override
+        public String toString() {
+            return "(" + x.toString() + ", " + y.toString() + ")";
+        }
+
     }
 
 }
