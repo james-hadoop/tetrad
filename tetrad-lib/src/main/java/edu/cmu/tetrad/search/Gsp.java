@@ -138,7 +138,7 @@ public class Gsp {
         scorer.bookmark(depth);
 
         for (Edge edge : graph0.getEdges()) {
-            scorer.goToBookmark(depth);
+            scorer.flipToBookmark(depth);
 
             Node v = Edges.getDirectedEdgeTail(edge);
             Node w = Edges.getDirectedEdgeHead(edge);

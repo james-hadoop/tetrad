@@ -3853,6 +3853,7 @@ public final class GraphUtils {
         }
 
         List<Edge> edges = new ArrayList<>(graph.getEdges());
+
         Edges.sortEdges(edges);
 
         int size = edges.size();
@@ -3988,14 +3989,8 @@ public final class GraphUtils {
         );
     }
 
-    public static boolean isDConnectedTo(Node x, Node y, List<Node> z, Graph graph) {
-        return isDConnectedTo1(x, y, z, graph);
-//        return isDConnectedTo2(x, y, z, graph);
-//        return isDConnectedTo3(x, y, z, graph);
-    }
-
     // Breadth first.
-    private static boolean isDConnectedTo1(Node x, Node y, List<Node> z, Graph graph) {
+    public static boolean isDConnectedTo(Node x, Node y, List<Node> z, Graph graph) {
         class EdgeNode {
 
             private final Edge edge;
@@ -4022,38 +4017,42 @@ public final class GraphUtils {
                 EdgeNode _o = (EdgeNode) o;
                 return _o.edge.equals(edge) && _o.node.equals(node);
             }
+
+            public Edge getEdge() {
+                return edge;
+            }
+
+            public Node getNode() {
+                return node;
+            }
         }
+
+        if (x == y) return true;
 
         Queue<EdgeNode> Q = new ArrayDeque<>();
         Set<EdgeNode> V = new HashSet<>();
 
-        if (x == y) {
-            return true;
-        }
-
         for (Edge edge : graph.getEdges(x)) {
-            if (graph.isAdjacentTo(x, y)) {
+            EdgeNode edgeNode = new EdgeNode(edge, x);
+
+            if (edgeNode.edge.getDistalNode(x) == y) {
                 return true;
             }
-            EdgeNode edgeNode = new EdgeNode(edge, x);
+
             Q.offer(edgeNode);
             V.add(edgeNode);
         }
 
         while (!Q.isEmpty()) {
             EdgeNode t = Q.poll();
-
-            Edge edge1 = t.edge;
-            Node a = t.node;
+            Edge edge1 = t.getEdge();
+            Node a = t.getNode();
             Node b = edge1.getDistalNode(a);
 
             for (Edge edge2 : graph.getEdges(b)) {
-                Node c = edge2.getDistalNode(b);
-                if (c == a) {
-                    continue;
-                }
+                Node c = reachable(edge1, edge2, a, z, graph);
 
-                if (reachable(edge1, edge2, a, z, graph)) {
+                if (c != null) {
                     if (c == y) {
                         return true;
                     }
@@ -4061,14 +4060,34 @@ public final class GraphUtils {
                     EdgeNode u = new EdgeNode(edge2, b);
 
                     if (!V.contains(u)) {
-                        V.add(u);
                         Q.offer(u);
+                        V.add(u);
                     }
                 }
             }
         }
 
         return false;
+    }
+
+    private static Node reachable(Edge e1, Edge e2, Node a, List<Node> z, Graph graph) {
+        Node b = e1.getDistalNode(a);
+        Node c = e2.getDistalNode(b);
+
+        if (a == c) return null;
+
+        boolean collider = graph.isDefCollider(a, b, c);
+
+        if (!collider && !z.contains(b)) {
+            return c;
+        } else {
+            boolean ancestor = ((EdgeListGraph) graph).zAncestors(z).contains(b);
+            if (collider && ancestor) {
+                return c;
+            }
+        }
+
+        return null;
     }
 
     public static boolean isDConnectedTo(List<Node> x, List<Node> y, List<Node> z, Graph graph) {
@@ -4126,8 +4145,8 @@ public final class GraphUtils {
 
         class EdgeNode {
 
-            private Edge edge;
-            private Node node;
+            private final Edge edge;
+            private final Node node;
 
             public EdgeNode(Edge edge, Node node) {
                 this.edge = edge;
@@ -4165,12 +4184,9 @@ public final class GraphUtils {
             Node b = edge1.getDistalNode(a);
 
             for (Edge edge2 : graph.getEdges(b)) {
-                Node c = edge2.getDistalNode(b);
-                if (c == a) {
-                    continue;
-                }
+                Node c = reachable(edge1, edge2, a, z, graph);
 
-                if (reachable(edge1, edge2, a, z, graph)) {
+                if (c != null) {
                     EdgeNode u = new EdgeNode(edge2, b);
 
                     if (!V.contains(u)) {
@@ -4183,108 +4199,6 @@ public final class GraphUtils {
         }
 
         return Y;
-    }
-
-    // Depth first.
-    public static boolean isDConnectedTo2(Node x, Node y, List<Node> z, Graph graph) {
-        LinkedList<Node> path = new LinkedList<>();
-
-        path.add(x);
-
-        for (Node c : graph.getAdjacentNodes(x)) {
-            if (isDConnectedToVisit2(x, c, y, path, z, graph)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static boolean isDConnectedTo2(Node x, Node y, List<Node> z, Graph graph, LinkedList<Node> path) {
-        path.add(x);
-
-        for (Node c : graph.getAdjacentNodes(x)) {
-            if (isDConnectedToVisit2(x, c, y, path, z, graph)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static boolean isDConnectedToVisit2(Node a, Node b, Node y, LinkedList<Node> path, List<Node> z, Graph graph) {
-        if (b == y) {
-            path.addLast(b);
-            return true;
-        }
-
-        if (path.contains(b)) {
-            return false;
-        }
-
-        path.addLast(b);
-
-        for (Node c : graph.getAdjacentNodes(b)) {
-            if (a == c) {
-                continue;
-            }
-
-            if (reachable(a, b, c, z, graph)) {
-                if (isDConnectedToVisit2(b, c, y, path, z, graph)) {
-//                    path.removeLast();
-                    return true;
-                }
-            }
-        }
-
-        path.removeLast();
-        return false;
-    }
-
-    public static boolean isDConnectedTo3(Node x, Node y, List<Node> z, Graph graph) {
-        return reachableDConnectedNodes(x, z, graph).contains(y);
-    }
-
-    private static Set<Node> reachableDConnectedNodes(Node x, List<Node> z, Graph graph) {
-        Set<Node> R = new HashSet<>();
-        R.add(x);
-
-        Queue<OrderedPair<Node>> Q = new ArrayDeque<>();
-        Set<OrderedPair<Node>> V = new HashSet<>();
-
-        for (Node node : graph.getAdjacentNodes(x)) {
-            OrderedPair<Node> edge = new OrderedPair<>(x, node);
-            Q.offer(edge);
-            V.add(edge);
-            R.add(node);
-        }
-
-        while (!Q.isEmpty()) {
-            OrderedPair<Node> t = Q.poll();
-
-            Node a = t.getFirst();
-            Node b = t.getSecond();
-
-            for (Node c : graph.getAdjacentNodes(b)) {
-                if (c == a) {
-                    continue;
-                }
-                if (!reachable(a, b, c, z, graph, null)) {
-                    continue;
-                }
-                R.add(c);
-
-                OrderedPair<Node> u = new OrderedPair<>(b, c);
-                if (V.contains(u)) {
-                    continue;
-                }
-
-                V.add(u);
-                Q.offer(u);
-            }
-        }
-
-        return R;
     }
 
     // Finds a sepset for x and y, if there is one; otherwise, returns null.
@@ -4314,10 +4228,6 @@ public final class GraphUtils {
             Set<Triple> colliders = new HashSet<>();
 
             for (Node b : graph.getAdjacentNodes(x)) {
-//                if (b == y) {
-//                    return null;
-//                }
-
                 if (sepsetPathFound(x, b, y, path, z, graph, colliders, bound)) {
                     return null;
                 }
@@ -4344,7 +4254,7 @@ public final class GraphUtils {
         path.add(b);
 
         if (b.getNodeType() == NodeType.LATENT || z.contains(b)) {
-            final List<Node> passNodes = getPassNodes(a, b, z, graph, null);
+            final List<Node> passNodes = getPassNodes(a, b, z, graph);
 
             for (Node c : passNodes) {
                 if (sepsetPathFound(b, c, y, path, z, graph, colliders, bound)) {
@@ -4359,7 +4269,7 @@ public final class GraphUtils {
             boolean found1 = false;
             Set<Triple> _colliders1 = new HashSet<>();
 
-            for (Node c : getPassNodes(a, b, z, graph, _colliders1)) {
+            for (Node c : getPassNodes(a, b, z, graph)) {
                 if (sepsetPathFound(b, c, y, path, z, graph, _colliders1, bound)) {
                     found1 = true;
                     break;
@@ -4376,7 +4286,7 @@ public final class GraphUtils {
             boolean found2 = false;
             Set<Triple> _colliders2 = new HashSet<>();
 
-            for (Node c : getPassNodes(a, b, z, graph, null)) {
+            for (Node c : getPassNodes(a, b, z, graph)) {
                 if (sepsetPathFound(b, c, y, path, z, graph, _colliders2, bound)) {
                     found2 = true;
                     break;
@@ -4418,38 +4328,7 @@ public final class GraphUtils {
         return collider && ancestor;
     }
 
-    private static boolean reachable(Edge e1, Edge e2, Node a, List<Node> z, Graph graph) {
-        Node b = e1.getDistalNode(a);
-        Node c = e2.getDistalNode(b);
 
-        boolean collider = e1.getProximalEndpoint(b) == Endpoint.ARROW
-                && e2.getProximalEndpoint(b) == Endpoint.ARROW;
-
-        if ((!collider || graph.isUnderlineTriple(a, b, c)) && !z.contains(b)) {
-            return true;
-        }
-
-        boolean ancestor = isAncestor(b, z, graph);
-        return collider && ancestor;
-    }
-
-    private static boolean reachable(Node a, Node b, Node c, List<Node> z, Graph graph, Set<Triple> colliders) {
-        boolean collider = graph.isDefCollider(a, b, c);
-
-        if (!collider && !z.contains(b)) {
-            return true;
-        }
-
-        boolean ancestor = isAncestor(b, z, graph);
-
-        final boolean colliderReachable = collider && ancestor;
-
-        if (colliders != null && collider && !ancestor) {
-            colliders.add(new Triple(a, b, c));
-        }
-
-        return colliderReachable;
-    }
 
     private static boolean isAncestor(Node b, List<Node> z, Graph graph) {
 //        for (Node n : z) {
@@ -4459,6 +4338,7 @@ public final class GraphUtils {
 //        }
 //
 //        return false;
+//
         if (z.contains(b)) {
             return true;
         }
@@ -4489,7 +4369,7 @@ public final class GraphUtils {
 
     }
 
-    private static List<Node> getPassNodes(Node a, Node b, List<Node> z, Graph graph, Set<Triple> colliders) {
+    private static List<Node> getPassNodes(Node a, Node b, List<Node> z, Graph graph) {
         List<Node> passNodes = new ArrayList<>();
 
         for (Node c : graph.getAdjacentNodes(b)) {
@@ -4497,7 +4377,7 @@ public final class GraphUtils {
                 continue;
             }
 
-            if (reachable(a, b, c, z, graph, colliders)) {
+            if (reachable(a, b, c, z, graph)) {
                 passNodes.add(c);
             }
         }

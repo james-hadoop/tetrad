@@ -100,6 +100,7 @@ public class Boss {
 
         while (true) {
             for (Node v : scorer.getOrder()) {
+                scorer.moveRight(v);
                 double bestScore = scorer.score();
                 scorer.bookmark(1);
 
@@ -110,7 +111,7 @@ public class Boss {
                     }
                 }
 
-                scorer.goToBookmark(1);
+                scorer.flipToBookmark(1);
             }
 
             if (scorer.score() < best) {
@@ -137,8 +138,8 @@ public class Boss {
         // place the node in whichever position yielded the highest score. Do this
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
-        double overall = Double.POSITIVE_INFINITY;
-        List<Node> best = null;
+        double best = Double.POSITIVE_INFINITY;
+        List<Node> perm = null;
 
         while (true) {
             for (Node v : scorer.getOrder()) {
@@ -153,12 +154,13 @@ public class Boss {
                     }
                 }
 
-                scorer.goToBookmark(1);
+                scorer.flipToBookmark(1);
             }
 
-            if (scorer.score() < overall) {
-                overall = scorer.score();
-                best = scorer.getOrder();
+            if (scorer.score() < best) {
+                best = scorer.score();
+                perm = scorer.getOrder();
+
                 if (verbose) {
                     System.out.println("Updated order = " + scorer.getOrder());
                 }
@@ -167,7 +169,7 @@ public class Boss {
             }
         }
 
-        return best;
+        return perm;
     }
 
     public List<Node> esp(TeyssierScorer scorer) {

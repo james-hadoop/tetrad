@@ -25,6 +25,7 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * <p>Stores a graph a list of lists of edges adjacent to each node in the
@@ -74,7 +75,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
             edgeLists.putAll(_graph.edgeLists);
 
             for (Node node : nodes) {
-                this.edgeLists.put(node, new ArrayList<>(_graph.edgeLists.get(node)));
+                this.edgeLists.put(node, new ConcurrentSkipListSet<>(_graph.edgeLists.get(node)));
                 node.getAllAttributes().clear();
             }
 
@@ -121,7 +122,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
         this.nodes.addAll(nodes);
 
         for (Node node : nodes) {
-            edgeLists.put(node, new ArrayList<>());
+            edgeLists.put(node, new ConcurrentSkipListSet<>());
             namesHash.put(node.getName(), node);
             node.getAllAttributes().clear();
         }
@@ -138,7 +139,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
         graph.edgeLists.putAll(_graph.edgeLists);
 
         for (Node node : graph.nodes) {
-            graph.edgeLists.put(node, new ArrayList<>(_graph.edgeLists.get(node)));
+            graph.edgeLists.put(node, new ConcurrentSkipListSet<>(_graph.edgeLists.get(node)));
         }
 
         graph.ambiguousTriples = new HashSet<>(_graph.ambiguousTriples);
@@ -234,7 +235,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
      * exists.
      */
     public Edge getEdge(Node node1, Node node2) {
-        List<Edge> edges = edgeLists.get(node1);
+        Set<Edge> edges = edgeLists.get(node1);
 
         if (edges == null) return null;
 
@@ -315,16 +316,16 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
             throw new IllegalArgumentException("Already adjacent.");
         }
 
-        List<Edge> edgeList1 = edgeLists.get(edge.getNode1());
-        List<Edge> edgeList2 = edgeLists.get(edge.getNode2());
+        Set<Edge> edgeList1 = edgeLists.get(edge.getNode1());
+        Set<Edge> edgeList2 = edgeLists.get(edge.getNode2());
 
         if (edgeList1 == null || edgeList2 == null) {
             throw new NullPointerException("Can't add an edge unless both " +
                     "nodes are in the graph: " + edge);
         }
 
-        edgeList1 = new ArrayList<>(edgeList1);
-        edgeList2 = new ArrayList<>(edgeList2);
+        edgeList1 = new ConcurrentSkipListSet<>(edgeList1);
+        edgeList2 = new ConcurrentSkipListSet<>(edgeList2);
 
         edgeList1.add(edge);
         edgeList2.add(edge);
@@ -362,7 +363,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
             return false;
         }
 
-        edgeLists.put(node, new ArrayList<>());
+        edgeLists.put(node, new ConcurrentSkipListSet<>());
         nodes.add(node);
         namesHash.put(node.getName(), node);
 
@@ -374,7 +375,7 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
      * ordering of the edges in the list is guaranteed.
      */
     public synchronized List<Edge> getEdges(Node node) {
-        return edgeLists.get(node);
+        return new ArrayList<>(edgeLists.get(node));
     }
 
     /**
@@ -408,11 +409,11 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
      * @return true if the edge was removed, false if not.
      */
     public synchronized boolean removeEdge(Edge edge) {
-        List<Edge> edgeList1 = edgeLists.get(edge.getNode1());
-        List<Edge> edgeList2 = edgeLists.get(edge.getNode2());
+        Set<Edge> edgeList1 = edgeLists.get(edge.getNode1());
+        Set<Edge> edgeList2 = edgeLists.get(edge.getNode2());
 
-        edgeList1 = new ArrayList<>(edgeList1);
-        edgeList2 = new ArrayList<>(edgeList2);
+        edgeList1 = new ConcurrentSkipListSet<>(edgeList1);
+        edgeList2 = new ConcurrentSkipListSet<>(edgeList2);
 
         edgesSet.remove(edge);
         edgeList1.remove(edge);
@@ -433,13 +434,13 @@ public class EdgeListGraphSingleConnections extends EdgeListGraph implements Tri
      */
     public boolean removeNode(Node node) {
         boolean changed = false;
-        List<Edge> edgeList1 = edgeLists.get(node);    //list of edges connected to that node
+        Set<Edge> edgeList1 = edgeLists.get(node);    //list of edges connected to that node
 
         for (Edge edge : new ArrayList<>(edgeList1)) {
             Node node2 = edge.getDistalNode(node);
 
             if (node2 != node) {
-                List<Edge> edgeList2 = edgeLists.get(node2);
+                Set<Edge> edgeList2 = edgeLists.get(node2);
                 edgeList2.remove(edge);
                 edgesSet.remove(edge);
                 changed = true;

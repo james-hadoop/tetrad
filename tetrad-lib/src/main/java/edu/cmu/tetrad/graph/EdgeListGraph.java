@@ -67,7 +67,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      *
      * @serial
      */
-    final Map<Node, List<Edge>> edgeLists;
+    final Map<Node, Set<Edge>> edgeLists;
     private final Map<String, Object> attributes = new HashMap<>();
     /**
      * Fires property change events.
@@ -558,7 +558,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public Edge getEdge(Node node1, Node node2) {
-        List<Edge> edges = edgeLists.get(node1);
+        Set<Edge> edges = edgeLists.get(node1);
 
         if (edges == null) {
             return null;
@@ -602,7 +602,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public List<Node> getParents(Node node) {
         List<Node> parents = new ArrayList<>();
-        List<Edge> edges = edgeLists.get(node);
+        Set<Edge> edges = edgeLists.get(node);
 
         for (Edge edge : edges) {
             if (edge == null) continue;
@@ -731,65 +731,19 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public boolean isDConnectedTo(Node x, Node y, List<Node> z) {
         return GraphUtils.isDConnectedTo(x, y, z, this);
-//        return isDConnectedTo(Collections.singletonList(x), Collections.singletonList(y), z);
     }
 
     public boolean isDConnectedTo(List<Node> x, List<Node> y, List<Node> z) {
-        Set<Node> zAncestors = zAncestors(z);
-
-        Queue<Pair> Q = new ArrayDeque<>();
-        Set<Pair> V = new HashSet<>();
-
-        for (Node _x : x) {
-            for (Node node : getAdjacentNodes(_x)) {
-                if (y.contains(node)) {
-                    return true;
-                }
-                Pair edge = new Pair(_x, node);
-                Q.offer(edge);
-                V.add(edge);
-            }
-        }
-
-        while (!Q.isEmpty()) {
-            Pair t = Q.poll();
-
-            Node b = t.getY();
-            Node a = t.getX();
-
-            for (Node c : getAdjacentNodes(b)) {
-                if (c == a) {
-                    continue;
-                }
-
-                boolean collider = isDefCollider(a, b, c);
-                if (!((collider && zAncestors.contains(b)) || (!collider && !z.contains(b)))) {
-                    continue;
-                }
-
-                if (y.contains(c)) {
-                    return true;
-                }
-
-                Pair u = new Pair(b, c);
-                if (V.contains(u)) {
-                    continue;
-                }
-
-                V.add(u);
-                Q.offer(u);
-            }
-        }
-
-        return false;
+        return GraphUtils.isDConnectedTo(x, y, z, this);
     }
+
 
     @Override
     public List<Node> getSepset(Node x, Node y) {
         return GraphUtils.getSepset(x, y, this);
     }
 
-    protected Set<Node> zAncestors(List<Node> z) {
+    public Set<Node> zAncestors(List<Node> z) {
         Queue<Node> Q = new ArrayDeque<>();
         Set<Node> V = new HashSet<>();
 
@@ -1064,7 +1018,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public List<Node> getAdjacentNodes(Node node) {
-        List<Edge> edges = edgeLists.get(node);
+        Set<Edge> edges = edgeLists.get(node);
         List<Node> adj = new ArrayList<>();
 
         for (Edge edge : edges) {
@@ -1209,8 +1163,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         }
 
         synchronized (edgeLists) {
-            List<Edge> edgeList1 = edgeLists.get(edge.getNode1());
-            List<Edge> edgeList2 = edgeLists.get(edge.getNode2());
+            Set<Edge> edgeList1 = edgeLists.get(edge.getNode1());
+            Set<Edge> edgeList2 = edgeLists.get(edge.getNode2());
 
             if (edgeList1.contains(edge)) {
                 return true;
@@ -1271,7 +1225,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             return false;
         }
 
-        edgeLists.put(node, new ArrayList<>(4));
+        edgeLists.put(node, new ConcurrentSkipListSet<>());
         nodes.add(node);
         namesHash.put(node.getName(), node);
 
@@ -1313,7 +1267,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public List<Edge> getEdges(Node node) {
-        List<Edge> list = edgeLists.get(node);
+        Set<Edge> list = edgeLists.get(node);
         if (list == null) {
             return new ArrayList<>();
         }
@@ -1375,7 +1329,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         edgeLists.clear();
 
         for (Node node : nodes) {
-            edgeLists.put(node, new ArrayList<>(4));
+            edgeLists.put(node, new ConcurrentSkipListSet<>());
         }
 
         for (int i = 0; i < nodes.size(); i++) {
@@ -1429,7 +1383,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public int getNumEdges(Node node) {
-        List<Edge> list = edgeLists.get(node);
+        Set<Edge> list = edgeLists.get(node);
         return (list == null) ? 0 : list.size();
     }
 
@@ -1492,11 +1446,11 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         }
 
         synchronized (edgeLists) {
-            List<Edge> edgeList1 = edgeLists.get(edge.getNode1());
-            List<Edge> edgeList2 = edgeLists.get(edge.getNode2());
+            Set<Edge> edgeList1 = edgeLists.get(edge.getNode1());
+            Set<Edge> edgeList2 = edgeLists.get(edge.getNode2());
 
-            edgeList1 = new ArrayList<>(edgeList1);
-            edgeList2 = new ArrayList<>(edgeList2);
+            edgeList1 = new ConcurrentSkipListSet<>(edgeList1);
+            edgeList2 = new ConcurrentSkipListSet<>(edgeList2);
 
             edgesSet.remove(edge);
             edgeList1.remove(edge);
@@ -1554,15 +1508,14 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         }
 
         boolean changed = false;
-        List<Edge> edgeList1
-                = edgeLists.get(node);    //list of edges connected to that node
+        Set<Edge> edgeList1 = edgeLists.get(node);    //list of edges connected to that node
 
         for (Iterator<Edge> i = edgeList1.iterator(); i.hasNext(); ) {
             Edge edge = (i.next());
             Node node2 = edge.getDistalNode(node);
 
             if (node2 != node) {
-                List<Edge> edgeList2 = edgeLists.get(node2);
+                Set<Edge> edgeList2 = edgeLists.get(node2);
                 edgeList2.remove(edge);
                 edgesSet.remove(edge);
                 changed = true;
@@ -1627,7 +1580,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      */
     @Override
     public List<Edge> getEdges(Node node1, Node node2) {
-        List<Edge> edges = edgeLists.get(node1);
+        Set<Edge> edges = edgeLists.get(node1);
         if (edges == null) {
             return new ArrayList<>();
         }

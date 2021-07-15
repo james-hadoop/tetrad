@@ -190,123 +190,176 @@ public class TeyssierScorer {
     }
 
     private Pair getGrowShrink(int p) {
-        if (test != null) {
-            return getGrowShrinkIndep(p);
-        }
+        if (false) {
+            if (test != null) {
+                return getPearlIndep(p);
+            } else {
+                return getPearlScore(p);
+            }
+        }else {
+            if (test != null) {
+                return getGrowShrinkIndep(p);
+            } else {
 
+                Node n = order.get(p);
+
+                Set<Node> mb = new HashSet<>();
+                boolean changed = true;
+
+                double sMax = score(n, new HashSet<>());
+                List<Node> prefix = getPrefix(p);
+
+                // Grow-shrink
+                while (changed) {
+                    changed = false;
+
+                    // Let z be the node that maximizes the score...
+                    Node z = null;
+
+                    for (Node z0 : prefix) {
+                        if (mb.contains(z0)) continue;
+
+                        if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+                        mb.add(z0);
+                        double s2 = score(n, mb);
+
+                        if (s2 > sMax) {
+                            sMax = s2;
+                            z = z0;
+                        }
+
+                        mb.remove(z0);
+                    }
+
+                    if (z != null) {
+                        mb.add(z);
+                        changed = true;
+                        boolean changed2 = true;
+
+                        while (changed2) {
+                            changed2 = false;
+
+                            Node w = null;
+
+                            for (Node z0 : new HashSet<>(mb)) {
+                                mb.remove(z0);
+
+                                double s2 = score(n, mb);
+
+                                if (s2 > sMax) {
+                                    sMax = s2;
+                                    w = z0;
+                                }
+
+                                mb.add(z0);
+                            }
+
+                            if (w != null) {
+                                mb.remove(w);
+                                changed2 = true;
+                            }
+                        }
+                    }
+                }
+
+                return new Pair(mb, -sMax);
+            }
+        }
+    }
+
+    private Pair getGrowShrinkIndep(int p) {
         Node n = order.get(p);
 
-        Set<Node> mb = new HashSet<>();
+        List<Node> mb = new ArrayList<>();
         boolean changed = true;
 
-        double sMax = score(n, new HashSet<>());
         List<Node> prefix = getPrefix(p);
 
         // Grow-shrink
         while (changed) {
             changed = false;
 
-            // Let z be the node that maximizes the score...
-            Node z = null;
-
             for (Node z0 : prefix) {
                 if (mb.contains(z0)) continue;
 
-                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
-                mb.add(z0);
-                double s2 = score(n, mb);
-
-                if (s2 > sMax) {
-                    sMax = s2;
-                    z = z0;
+                if (test.isDependent(n, z0, mb)) {
+                    mb.add(z0);
+                    changed = true;
                 }
 
-                mb.remove(z0);
-            }
-
-            if (z != null) {
-                mb.add(z);
-                changed = true;
                 boolean changed2 = true;
 
                 while (changed2) {
                     changed2 = false;
 
-                    Node w = null;
+                    for (Node z1 : new ArrayList<>(mb)) {
+                        mb.remove(z1);
 
-                    for (Node z0 : new HashSet<>(mb)) {
-                        mb.remove(z0);
-
-                        double s2 = score(n, mb);
-
-                        if (s2 > sMax) {
-                            sMax = s2;
-                            w = z0;
+                        if (test.isIndependent(n, z1, mb)) {
+                            changed2 = true;
+                        } else {
+                            mb.add(z1);
                         }
-
-                        mb.add(z0);
-                    }
-
-                    if (w != null) {
-                        mb.remove(w);
-                        changed2 = true;
                     }
                 }
             }
         }
 
-        return new Pair(mb, -sMax);
+        return new Pair(new HashSet<>(mb), mb.size());
     }
 
-    private Pair getGrowShrinkIndep(int p) {
+    private Pair getPearlScore(int p) {
         Node n = order.get(p);
 
-        Set<Node> mb = new HashSet<>();
-        boolean changed = true;
+        List<Node> prefix = getPrefix(p);
+        prefix.remove(n);
+        Set<Node> parents = new HashSet<>();
 
-        Set<Node> prefix = new HashSet<>(getPrefix(p));
+        for (Node z : prefix) {
+            List<Node> w = new ArrayList<>(prefix);
+            w.remove(z);
 
-        // Grow-shrink
-        while (changed) {
-            changed = false;
+            double s2 = score(n, parents);
 
-            for (Node z0 : prefix) {
-                if (mb.contains(z0)) continue;
+            w.remove(z);
 
-                if (test.isDependent(n, z0, new ArrayList<>(mb))) {
-                    mb.add(z0);
-                    changed = true;
-                }
-            }
+            double s1 = score(n, parents);
 
-            boolean changed2 = true;
-
-            while (changed2) {
-                changed2 = false;
-
-                for (Node z1 : new HashSet<>(mb)) {
-                    Set<Node> _mb = new HashSet<>(mb);
-                    _mb.remove(z1);
-
-                    if (test.isIndependent(n, z1, new ArrayList<>(_mb))) {
-                        mb.remove(z1);
-                        changed2 = true;
-                    }
-                }
+            if (s2 <= s1) {
+                parents.add(z);
             }
         }
 
-        return new Pair(mb, mb.size());
+        return new Pair(parents, parents.size());
+    }
+
+    private Pair getPearlIndep(int p) {
+        Node n = order.get(p);
+
+        List<Node> prefix = getPrefix(p);
+        prefix.remove(n);
+        Set<Node> parents = new HashSet<>();
+
+        for (Node z : prefix) {
+            List<Node> w = new ArrayList<>(prefix);
+            w.remove(z);
+
+            if (test.isDependent(n, z, w)) {
+                parents.add(z);
+            }
+        }
+
+        return new Pair(parents, parents.size());
     }
 
     public void bookmark(int index) {
-        if (order == null) throw new IllegalArgumentException();
+        if (order == null) throw new IllegalArgumentException("Need to score an initial order first.");
 
         bookmarkedOrder.put(index, new ArrayList<>(order));
         bookmarkedScores.put(index, Arrays.copyOf(scores, scores.length));
     }
 
-    public void goToBookmark(int index) {
+    public void flipToBookmark(int index) {
         order = new ArrayList<>(bookmarkedOrder.get(index));
         scores = Arrays.copyOf(bookmarkedScores.get(index), bookmarkedScores.get(index).length);
     }
