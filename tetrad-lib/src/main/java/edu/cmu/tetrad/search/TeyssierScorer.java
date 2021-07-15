@@ -300,6 +300,8 @@ public class TeyssierScorer {
     }
 
     public void bookmark(int index) {
+        if (order == null) throw new IllegalArgumentException();
+
         bookmarkedOrder.put(index, new ArrayList<>(order));
         bookmarkedScores.put(index, Arrays.copyOf(scores, scores.length));
     }

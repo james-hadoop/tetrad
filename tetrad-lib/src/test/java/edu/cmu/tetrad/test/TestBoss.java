@@ -261,8 +261,6 @@ public final class TestBoss {
             int numRuns = 500;
 
             for (int t = 0; t < numRuns; t++) {
-//                System.out.println("Run " + (t + 1));
-
                 shuffle(order);
                 IndTestDSep test = new IndTestDSep(facts.getFacts());
 
@@ -272,7 +270,7 @@ public final class TestBoss {
                     Gsp boss = new Gsp(test);
                     boss.setCachingScores(true);
                     boss.setNumStarts(1);
-                    boss.setGspDepth(-1);
+                    boss.setGspDepth(5);
                     Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
 
                     if (graphs.get("GSP") == null) {
@@ -282,10 +280,6 @@ public final class TestBoss {
 
                     graphs.get("GSP").add(pattern);
                     labels.get("GSP").add(facts.getLabel());
-
-                    if (pattern0 != null && !pattern.equals(pattern0)) {
-//                        System.out.println("Different at GSP");
-                    }
 
                     if (printPattern) {
                         System.out.println(pattern);
@@ -313,10 +307,6 @@ public final class TestBoss {
                     graphs.get(method.toString()).add(pattern);
                     labels.get(method.toString()).add(facts.getLabel());
 
-                    if (pattern0 != null && !pattern.equals(pattern0)) {
-//                        System.out.println("Different at BOSS Promotion");
-                    }
-
                     if (printPattern) {
                         System.out.println(pattern);
                     }
@@ -342,17 +332,12 @@ public final class TestBoss {
                     graphs.get(method.toString()).add(pattern);
                     labels.get(method.toString()).add(facts.getLabel());
 
-                    if (pattern0 != null && !pattern.equals(pattern0)) {
-//                        System.out.println("Different at BOSS All indices");
-                    }
-
                     if (printPattern) {
                         System.out.println(pattern);
                     }
 
                     pattern0 = pattern;
                 }
-
 
                 {
                     Boss.Method method = Boss.Method.SP;
@@ -371,10 +356,6 @@ public final class TestBoss {
 
                     graphs.get(method.toString()).add(pattern);
                     labels.get(method.toString()).add(facts.getLabel());
-
-                    if (pattern0 != null && !pattern.equals(pattern0)) {
-//                        System.out.println("Different at SP");
-                    }
 
                     if (printPattern) {
                         System.out.println(pattern);
@@ -445,7 +426,7 @@ public final class TestBoss {
         for (int i = 0; i < 10; i++) {
             System.out.println("\nRun " + (i + 1));
 
-            Graph g = GraphUtils.randomGraph(15, 0, 30, 100,
+            Graph g = GraphUtils.randomGraph(15, 0, 15, 100,
                     100, 100, false);
 
             List<Node> shuffled = new ArrayList<>(g.getNodes());
@@ -487,7 +468,7 @@ public final class TestBoss {
 
             gsp.setCachingScores(true);
             gsp.setNumStarts(1);
-            gsp.setGspDepth(-1);
+            gsp.setGspDepth(9);
             gsp.setReturnCpdag(true);
             Graph pattern = gsp.search(variables);
             pattern = GraphUtils.replaceNodes(pattern, variables);
@@ -590,7 +571,7 @@ public final class TestBoss {
     private void printGraphs(String label, Map<String, Set<Graph>> graphs) {
         List<Graph> _graphs = new ArrayList<>(graphs.get(label));
 
-        System.out.println(label);
+        System.out.println("===== " + label + "\n");
 
         for (int i = 0; i < _graphs.size(); i++) {
             System.out.println("Found this CPDAG (" + (i + 1) + "):\n\n" + _graphs.get(i) + "\n");

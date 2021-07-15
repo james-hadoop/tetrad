@@ -46,7 +46,7 @@ public class Gsp {
 
         scorer.setCachingScores(cachingScores);
 
-        double best = Double.NEGATIVE_INFINITY;
+        double best = Double.POSITIVE_INFINITY;
         List<Node> bestP = null;
 
         scorer.score(order);
@@ -110,27 +110,31 @@ public class Gsp {
     }
 
     private void gsp(TeyssierScorer scorer) {
-        Graph g0;
-        Graph g1 = SearchGraphUtils.patternForDag(getGraph(scorer));
+        int maxDepth = this.gspDepth == -1 ? Integer.MAX_VALUE : this.gspDepth;
 
-        int count = 0;
+        List<Node> order;
+        List<Node> best = scorer.getOrder();
 
-        while (++count <= 50) {
-            g0 = g1;
-            gspVisit(scorer, this.gspDepth == -1 ? Integer.MAX_VALUE : this.gspDepth,
-                    1, new HashSet<>(), null);
-            g1 = SearchGraphUtils.patternForDag(getGraph(scorer));
+        do {
+            order = gspVisit(scorer, scorer.getNumEdges(), maxDepth,
+                    1, new HashSet<>(), null, null);
+            if (order != null) {
+                best = order;
+            }
+        } while (order != null);
 
-            if (g0.equals(g1)) break;
-        }
+        scorer.score(best);
     }
 
-    private void gspVisit(TeyssierScorer scorer, int maxDepth, int depth, Set<Node> path, Node node) {
-        if (depth > maxDepth) return;
+    private List<Node> gspVisit(TeyssierScorer scorer, int e, int maxDepth, int depth, Set<Node> path,
+                                Node vv, Node ww) {
+        if (depth > maxDepth) return null;
+        if (scorer.getNumEdges() < e) return scorer.getOrder();
+        if (scorer.getNumEdges() > e) return null;
 
-        path.add(node);
+//        path.add(vv);
+        path.add(ww);
         Graph graph0 = getGraph(scorer);
-        int num0 = scorer.getNumEdges();
         scorer.bookmark(depth);
 
         for (Edge edge : graph0.getEdges()) {
@@ -139,7 +143,7 @@ public class Gsp {
             Node v = Edges.getDirectedEdgeTail(edge);
             Node w = Edges.getDirectedEdgeHead(edge);
 
-            if (path.contains(v)) continue;
+//            if (path.contains(v)) continue;
             if (path.contains(w)) continue;
 
             Set<Node> parentsv = new HashSet<>(graph0.getParents(v));
@@ -149,14 +153,16 @@ public class Gsp {
             if (parentsv.equals(parentsw)) {
                 scorer.swap(v, w);
 
-                if (scorer.getNumEdges() < num0) {
-                    gspVisit(scorer, maxDepth, ++depth, path, v);
-                    break;
+                List<Node> order = gspVisit(scorer, e, maxDepth, depth + 1, path, v, w);
+
+                if (order != null) {
+                    return order;
                 }
             }
         }
 
-        path.remove(node);
+        path.remove(ww);
+        return null;
     }
 
     public boolean isVerbose() {
