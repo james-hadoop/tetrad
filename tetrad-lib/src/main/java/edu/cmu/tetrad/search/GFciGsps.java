@@ -103,13 +103,13 @@ public final class GFciGsps implements GraphSearch {
         logger.log("info", "Starting FCI algorithm.");
         logger.log("info", "Independence test = " + getIndependenceTest() + ".");
 
-        this.graph = new EdgeListGraphSingleConnections(nodes);
+        this.graph = new EdgeListGraph(nodes);
 
         Boss boss = new Boss(score);
 
         List<Node> perm = boss.bestOrder(score.getVariables());
         Graph graph = boss.getGraph(perm, true);
-        Graph fgesGraph = new EdgeListGraphSingleConnections(graph);
+        Graph fgesGraph = new EdgeListGraph(graph);
 
         sepsets = new SepsetsGreedy(fgesGraph, independenceTest, null, maxDegree);
 

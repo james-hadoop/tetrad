@@ -10,7 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.EdgeListGraphSingleConnections;
+import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.EdgeTypeProbability;
 import edu.cmu.tetrad.graph.Endpoint;
 import edu.cmu.tetrad.graph.Graph;
@@ -40,7 +40,7 @@ public class JsonUtils {
 		
 		// Node
 		List<Node> nodes = parseJSONArrayToTetradNodes(jObj.getJSONArray("nodes"));
-		EdgeListGraphSingleConnections graph = new EdgeListGraphSingleConnections(nodes);
+		EdgeListGraph graph = new EdgeListGraph(nodes);
 
 		// Edge
 		Set<Edge> edges = parseJSONArrayToTetradEdges(graph, jObj.getJSONArray("edgesSet"));

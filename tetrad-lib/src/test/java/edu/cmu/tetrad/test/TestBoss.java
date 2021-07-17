@@ -44,6 +44,7 @@ import edu.cmu.tetrad.sem.StandardizedSemIm;
 import edu.cmu.tetrad.util.*;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.text.DecimalFormat;
@@ -61,6 +62,120 @@ import static java.util.Collections.sort;
 @SuppressWarnings("ALL")
 public final class TestBoss {
 
+
+    private static void runTestLoop(Graph g, List<Node> order, Score score, IndependenceTest test, boolean useTest) {
+//        g = new EdgeListGraph(g);
+//        order = new ArrayList<>(order);
+
+//        {
+//            Gsp gsp;
+//
+//            if (true) {
+//                gsp = new Gsp(test);
+//            } else {
+//                gsp = new Gsp(score);
+//            }
+//
+//            gsp.setCachingScores(true);
+//            gsp.setNumStarts(1);
+//            gsp.setGspDepth(5);
+//            gsp.setReturnCpdag(true);
+//            Graph pattern = gsp.search(order);
+//            pattern = GraphUtils.replaceNodes(pattern, variables);
+//
+//            printFailed(SearchGraphUtils.patternForDag(g), pattern, "GSP");
+//        }
+
+//        {
+//            Boss boss = getBoss(score, test);
+//
+//            boss.setCacheScores(true);
+//            boss.setMethod(Boss.Method.BOSS_PROMOTION);
+//            boss.setNumStarts(1);
+//            List<Node> perm = boss.bestOrder(order);
+//            Graph dag = boss.getGraph(perm, false);
+//
+//            printFailed(g, dag, "BOSS Promotion " + order + " " + perm
+//                    + " " + g
+//                    + " " + dag);
+//        }
+
+        {
+            Boss boss = getBoss(score, test);
+
+            boss.setCacheScores(true);
+            boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
+            boss.setNumStarts(1);
+            List<Node> perm = boss.bestOrder(order);
+            Graph dag = boss.getGraph(perm, false);
+
+            printFailed(g, dag, "BOSS All Indices " + order + " " + perm
+                    + " " + g
+                    + " " + dag);
+        }
+
+//        {
+//            Boss boss = getBoss(score, test);
+//
+//            boss.setCacheScores(true);
+//            boss.setMethod(Boss.Method.SP);
+//            boss.setNumStarts(1);
+//            List<Node> perm = boss.bestOrder(order);
+//            Graph dag = boss.getGraph(perm, false);
+//
+//            printFailed(g, dag, "SP " + order + " " + perm
+//                    + " " + g
+//                    + " " + dag);
+//        }
+
+//        {
+//            Boss boss;
+//
+//            if (true) {
+//                boss = new Boss(test);
+//            } else {
+//                boss = new Boss(score);
+//            }
+//
+//            boss.setCacheScores(true);
+//            boss.setMethod(Boss.Method.SP);
+//            boss.setNumStarts(1);
+//            List<Node> perm = boss.bestOrder(order);
+//            Graph pattern = boss.getGraph(perm, true);
+//            printFailed(SearchGraphUtils.patternForDag(g), pattern, "SP");
+//        }
+
+    }
+
+    @NotNull
+    private static Boss getBoss(Score score, IndependenceTest test) {
+        Boss boss;
+
+        if (true) {
+            boss = new Boss(test);
+        } else {
+            boss = new Boss(score);
+        }
+        return boss;
+    }
+
+    private static boolean printFailed(Graph g, Graph dag, String alg) {
+        double ap = new AdjacencyPrecision().getValue(g, dag, null);
+        double ar = new AdjacencyRecall().getValue(g, dag, null);
+        double ahp = new ArrowheadPrecision().getValue(g, dag, null);
+        double ahr = new ArrowheadRecall().getValue(g, dag, null);
+
+        NumberFormat nf = new DecimalFormat("0.00");
+
+        if (dag.getNumEdges() != g.getNumEdges()) {
+            System.out.println("Failed " + alg +
+                    " ap = " + nf.format(ap) + " ar = " + nf.format(ar)
+                    + " ahp = " + nf.format(ahp) + " ahr = " + nf.format(ahr));
+            return true;
+        }
+
+        return false;
+    }
 
     @Test
     public void testBoss() {
@@ -394,7 +509,7 @@ public final class TestBoss {
         for (int i = 0; i < 10; i++) {
             System.out.println("\nRun " + (i + 1));
 
-            Graph g = GraphUtils.randomGraph(10, 0, 20, 100,
+            Graph g = GraphUtils.randomGraph(15, 0, 30, 100,
                     100, 100, false);
             SemPm pm = new SemPm(g);
             Parameters params = new Parameters();
@@ -406,126 +521,109 @@ public final class TestBoss {
             data = DataUtils.shuffleColumns(data);
             List<Node> order = data.getVariables();
 
-            edu.cmu.tetrad.search.SemBicScore score = new edu.cmu.tetrad.search.SemBicScore(data);
-            score.setPenaltyDiscount(2);
+            edu.cmu.tetrad.search.EbicScore score = new edu.cmu.tetrad.search.EbicScore(data);
+//            score.setPenaltyDiscount(2);
             edu.cmu.tetrad.search.IndependenceTest test = new edu.cmu.tetrad.search.IndTestFisherZ(data, 0.01);
 
-            runTestLoop(g, score, test, false);
+            runTestLoop(g, order, score, test, false);
         }
     }
 
     @Test
     public void testFromDsep() {
-        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.NAME);
-
         for (int i = 0; i < 10; i++) {
             System.out.println("\nRun " + (i + 1));
 
-            Graph g = GraphUtils.randomGraph(15, 0, 30, 100,
+            List<Node> nodes = new ArrayList<>();
+            for (int t = 0; t < 4; t++) {
+                nodes.add(new GraphNode("X" + (t + 1)));
+            }
+
+            Graph g = GraphUtils.randomGraph(nodes, 0, 4, 100,
                     100, 100, false);
+            g = new EdgeListGraph(g);
 
-            List<Node> shuffled = new ArrayList<>(g.getNodes());
-            shuffle(shuffled);
-
-            g = GraphUtils.replaceNodes(g, shuffled);
+            List<Node> order = g.getNodes();
+            shuffle(order);
 
             IndependenceTest test = new IndTestDSep(g);
 
-            runTestLoop(g, null, test, true);
+            runTestLoop(g, order, null, test, true);
         }
     }
 
+    @Test
+    public void testFromDsep1() {
+        List<Node> nodes = new ArrayList<>();
 
-    private void runTestLoop(Graph g, edu.cmu.tetrad.search.Score score, IndependenceTest test, boolean useTest) {
+        Node x1 = new GraphNode("X1");
+        Node x2 = new GraphNode("X2");
+        Node x3 = new GraphNode("X3");
+        Node x4 = new GraphNode("X4");
 
-        Graph pattern0 = SearchGraphUtils.patternForDag(g);
+        nodes.add(x1);
+        nodes.add(x2);
+        nodes.add(x3);
+        nodes.add(x4);
 
-        List<Node> variables;
+        Graph g = new EdgeListGraph(nodes);
 
-        if (useTest) {
-            variables = new ArrayList<>(test.getVariables());
-        } else {
-            variables = new ArrayList<>(score.getVariables());
-        }
+        g.addDirectedEdge(x1, x4);
+        g.addDirectedEdge(x3, x4);
+        g.addDirectedEdge(x2, x3);
 
-        shuffle(variables);
+        List<Node> order = new ArrayList<>();
 
-        pattern0 = GraphUtils.replaceNodes(pattern0, variables);
+        order.add(x1);
+        order.add(x4);
+        order.add(x3);
+        order.add(x2);
 
-//        {
-//            Gsp gsp;
-//
-//            if (true) {
-//                gsp = new Gsp(test);
-//            } else {
-//                gsp = new Gsp(score);
-//            }
-//
-//            gsp.setCachingScores(true);
-//            gsp.setNumStarts(1);
-//            gsp.setGspDepth(5);
-//            gsp.setReturnCpdag(true);
-//            Graph pattern = gsp.search(variables);
-//            pattern = GraphUtils.replaceNodes(pattern, variables);
-//
-//            printFailed(pattern0, pattern, "GSP");
-//        }
+        IndependenceTest test = new IndTestDSep(g);
 
-        {
-            Boss boss;
+        runTestLoop(g, order, null, test, true);
+    }
 
-            if (true) {
-                boss = new Boss(test);
-            } else {
-                boss = new Boss(score);
+    @Test
+    public void testFromDsep2() {
+        List<Node> nodes = new ArrayList<>();
+
+        Node x1 = new GraphNode("X1");
+        Node x2 = new GraphNode("X2");
+        Node x3 = new GraphNode("X3");
+        Node x4 = new GraphNode("X4");
+
+        nodes.add(x1);
+        nodes.add(x2);
+        nodes.add(x3);
+        nodes.add(x4);
+
+         List<Edge> edges = new ArrayList<>();
+        edges.add(Edges.directedEdge(x1, x3));
+        edges.add(Edges.directedEdge(x2, x3));
+        edges.add(Edges.directedEdge(x3, x4));
+
+        for (int i = 0; i < 100; i++) {
+            Graph g = new EdgeListGraph(nodes);
+
+            shuffle(edges);
+
+            for (Edge e : edges) {
+                g.addEdge(e);
             }
 
-            boss.setCacheScores(true);
-            boss.setMethod(Boss.Method.BOSS_PROMOTION);
-            boss.setNumStarts(1);
-            List<Node> perm = boss.bestOrder(boss.getVariables());
-            Graph dag = boss.getGraph(perm, false);
-            Graph pattern = SearchGraphUtils.patternForDag(dag);
+            IndependenceTest test = new IndTestDSep(g);
 
-            printFailed(pattern0, pattern, "BOSS Promotion");
+            List<Node> order = new ArrayList<>();
+
+            order.add(x3);
+            order.add(x4);
+            order.add(x1);
+            order.add(x2);
+
+            shuffle(order);
+            runTestLoop(g, order, null, test, true);
         }
-
-        {
-            Boss boss;
-
-            if (true) {
-                boss = new Boss(test);
-            } else {
-                boss = new Boss(score);
-            }
-
-            boss.setCacheScores(true);
-            boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
-            boss.setNumStarts(1);
-            List<Node> perm = boss.bestOrder(boss.getVariables());
-            Graph dag = boss.getGraph(perm, false);
-            Graph pattern = SearchGraphUtils.patternForDag(dag);
-
-            printFailed(pattern0, pattern, "BOSS All Indices");
-        }
-
-//        {
-//            Boss boss;
-//
-//            if (true) {
-//                boss = new Boss(test);
-//            } else {
-//                boss = new Boss(score);
-//            }
-//
-//            boss.setCacheScores(true);
-//            boss.setMethod(Boss.Method.SP);
-//            boss.setNumStarts(1);
-//            List<Node> perm = boss.bestOrder(boss.getVariables());
-//            Graph pattern = boss.getGraph(perm, true);
-//            printFailed(pattern0, pattern, "SP");
-//        }
-
     }
 
     private boolean isPatternForDag(Graph pattern, Graph dag) {
@@ -533,27 +631,8 @@ public final class TestBoss {
             return false;
         }
 
-        return  true;
+        return true;
     }
-
-    private boolean printFailed(Graph pattern0, Graph pattern, String alg) {
-        double ap = new AdjacencyPrecision().getValue(pattern0, pattern, null);
-        double ar = new AdjacencyRecall().getValue(pattern0, pattern, null);
-        double ahp = new ArrowheadPrecision().getValue(pattern0, pattern, null);
-        double ahr = new ArrowheadRecall().getValue(pattern0, pattern, null);
-
-        NumberFormat nf = new DecimalFormat("0.00");
-
-        if (!pattern.equals(pattern0)) {
-            System.out.println("Failed " + alg +
-                    " ap = " + nf.format(ap) + " ar = " + nf.format(ar)
-                    + " ahp = " + nf.format(ahp) + " ahr = " + nf.format(ahr));
-            return true;
-        }
-
-        return false;
-    }
-
 
     private void printGraphs(String label, Map<String, Set<Graph>> graphs) {
         List<Graph> _graphs = new ArrayList<>(graphs.get(label));

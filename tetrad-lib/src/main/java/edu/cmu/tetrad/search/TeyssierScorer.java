@@ -25,7 +25,7 @@ public class TeyssierScorer {
     private Score score;
     private IndependenceTest test;
     private List<Node> variables;
-    private List<Node> order;
+    private LinkedList<Node> order;
     private Pair[] scores;
     private boolean cachingScores = true;
     private IKnowledge knowledge = new Knowledge2();
@@ -33,14 +33,13 @@ public class TeyssierScorer {
 
     public TeyssierScorer(Score score) {
         this.score = score;
-        this.order = new ArrayList<>(score.getVariables());
+        this.order = new LinkedList<>(score.getVariables());
 
-        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
+//        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
     }
 
     public TeyssierScorer(IndependenceTest test) {
         this.test = test;
-        this.order = new ArrayList<>(test.getVariables());
     }
 
     public void setKnowledge(IKnowledge knowledge) {
@@ -48,7 +47,7 @@ public class TeyssierScorer {
     }
 
     public double score(List<Node> order) {
-        this.order = new ArrayList<>(order);
+        this.order = new LinkedList<>(order);
 
         this.variables = score != null ? score.getVariables() : test.getVariables();
 
@@ -63,7 +62,7 @@ public class TeyssierScorer {
         return sum();
     }
 
-    public boolean moveLeft(Node v) {
+    public boolean promote(Node v) {
         int index = order.indexOf(v);
         if (!(index >= 1 && index <= order.size() - 1)) return false;
 
@@ -76,10 +75,12 @@ public class TeyssierScorer {
         recalculate(index - 1);
         recalculate(index);
 
+//        System.out.println("Promoting " + v + " order = " + order + " # edges = " + getNumEdges());
+
         return true;
     }
 
-    public boolean moveRight(Node v) {
+    public boolean demote(Node v) {
         int index = order.indexOf(v);
         if (!(index >= 0 && index <= order.size() - 2)) return false;
 
@@ -92,21 +93,30 @@ public class TeyssierScorer {
         recalculate(index);
         recalculate(index + 1);
 
+//        System.out.println("\tDeomoting " + v + " order = " + order + " # edges = " + getNumEdges());
+
         return true;
     }
 
     public void moveTo(Node v, int toIndex) {
-        int fromIndex = order.indexOf(v);
+        order.remove(v);
+        order.add(toIndex, v);
 
-        while (toIndex < fromIndex) {
-            if (!moveLeft(v)) break;
-            fromIndex--;
+        for (int i = 0; i < order.size(); i++) {
+            recalculate(i);
         }
 
-        while (toIndex > fromIndex) {
-            if (!moveRight(v)) break;
-            fromIndex++;
-        }
+//        int fromIndex = order.indexOf(v);
+//
+//        while (toIndex < fromIndex) {
+//            if (!promote(v)) break;
+//            fromIndex--;
+//        }
+//
+//        while (toIndex > fromIndex) {
+//            if (!demote(v)) break;
+//            fromIndex++;
+//        }
     }
 
     public void swap(Node m, Node n) {
@@ -352,15 +362,15 @@ public class TeyssierScorer {
         return new Pair(parents, parents.size());
     }
 
-    public void bookmark(int index) {
+    public synchronized void bookmark(int index) {
         if (order == null) throw new IllegalArgumentException("Need to score an initial order first.");
 
         bookmarkedOrder.put(index, new ArrayList<>(order));
         bookmarkedScores.put(index, Arrays.copyOf(scores, scores.length));
     }
 
-    public void flipToBookmark(int index) {
-        order = new ArrayList<>(bookmarkedOrder.get(index));
+    public synchronized void flipToBookmark(int index) {
+        order = new LinkedList<>(bookmarkedOrder.get(index));
         scores = Arrays.copyOf(bookmarkedScores.get(index), bookmarkedScores.get(index).length);
     }
 
@@ -383,7 +393,7 @@ public class TeyssierScorer {
     }
 
     public void shuffleVariables() {
-        order = new ArrayList<>(order);
+        order = new LinkedList<>(order);
         shuffle(order);
         score(order);
     }

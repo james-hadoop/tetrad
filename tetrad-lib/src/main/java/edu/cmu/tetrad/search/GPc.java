@@ -146,7 +146,7 @@ public final class GPc implements GraphSearch {
         logger.log("info", "Starting FCI algorithm.");
         logger.log("info", "Independence test = " + getIndependenceTest() + ".");
 
-        this.graph = new EdgeListGraphSingleConnections(nodes);
+        this.graph = new EdgeListGraph(nodes);
 
         if (score == null) {
             setScore();
@@ -159,7 +159,7 @@ public final class GPc implements GraphSearch {
 //        fges.setMaxDegree(fgesDepth);
         graph = fges.search();
 
-        Graph fgesGraph = new EdgeListGraphSingleConnections(graph);
+        Graph fgesGraph = new EdgeListGraph(graph);
 
 //        System.out.println("GFCI: FGES done");
 

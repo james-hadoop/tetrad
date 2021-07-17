@@ -254,7 +254,7 @@ public final class GraphUtils {
                     + numLatentConfounders);
         }
 
-        final Graph dag = new EdgeListGraphSingleConnections(nodes);
+        final Graph dag = new EdgeListGraph(nodes);
 
         if (connected) {
             for (int i = 0; i < nodes.size() - 1; i++) {
@@ -335,9 +335,7 @@ public final class GraphUtils {
             GraphUtils.circleLayout(dag, 200, 200, 150);
         }
 
-        List<Node> order =dag.getNodes();
-        shuffle(order);
-        return GraphUtils.replaceNodes(dag, order);
+        return dag;
     }
 
     public static Graph scaleFreeGraph(int numNodes, int numLatentConfounders,
@@ -480,7 +478,7 @@ public final class GraphUtils {
         LinkedList<Node> nodes = new LinkedList<>();
         nodes.add(_nodes.get(0));
 
-        Graph G = new EdgeListGraphSingleConnections(_nodes);
+        Graph G = new EdgeListGraph(_nodes);
 
         if (alpha <= 0) {
             throw new IllegalArgumentException("alpha must be > 0.");
@@ -3989,43 +3987,51 @@ public final class GraphUtils {
         );
     }
 
+    private static class EdgeNode {
+
+        private final Edge edge;
+        private final Node node;
+
+        public EdgeNode(Edge edge, Node node) {
+            if (edge.getNode1() == node) {
+                this.edge = edge;
+            } else if (edge.getNode2() == node) {
+                this.edge = edge.reverse();
+            } else {
+                throw new IllegalArgumentException("Edge does not contain node.");
+            }
+
+            this.node = node;
+        }
+
+        public int hashCode() {
+            return edge.hashCode() + 7 * node.hashCode();
+        }
+
+        public boolean equals(Object o) {
+            if (o == null) {
+                return false;
+            }
+
+            if (!(o instanceof EdgeNode)) {
+                return false;
+            }
+
+            EdgeNode _o = (EdgeNode) o;
+            return _o.edge.equals(edge) && _o.node.equals(node);
+        }
+
+        public Edge getEdge() {
+            return edge;
+        }
+
+        public Node getNode() {
+            return node;
+        }
+    }
+
     // Breadth first.
     public static boolean isDConnectedTo(Node x, Node y, List<Node> z, Graph graph) {
-        class EdgeNode {
-
-            private final Edge edge;
-            private final Node node;
-
-            public EdgeNode(Edge edge, Node node) {
-                this.edge = edge;
-                this.node = node;
-            }
-
-            public int hashCode() {
-                return edge.hashCode() + 7 * node.hashCode();
-            }
-
-            public boolean equals(Object o) {
-                if (o == null) {
-                    return false;
-                }
-
-                if (!(o instanceof EdgeNode)) {
-                    return false;
-                }
-
-                EdgeNode _o = (EdgeNode) o;
-                return _o.edge.equals(edge) && _o.node.equals(node);
-            }
-
-            public Edge getEdge() {
-                return edge;
-            }
-
-            public Node getNode() {
-                return node;
-            }
-        }
 
         if (x == y) return true;
 
@@ -4035,7 +4041,7 @@ public final class GraphUtils {
         for (Edge edge : graph.getEdges(x)) {
             EdgeNode edgeNode = new EdgeNode(edge, x);
 
-            if (edgeNode.edge.getDistalNode(x) == y) {
+            if (edgeNode.edge.getNode2() == y) {
                 return true;
             }
 
@@ -4047,10 +4053,12 @@ public final class GraphUtils {
             EdgeNode t = Q.poll();
             Edge edge1 = t.getEdge();
             Node a = t.getNode();
-            Node b = edge1.getDistalNode(a);
+            Node b = edge1.getNode2();
 
             for (Edge edge2 : graph.getEdges(b)) {
-                Node c = reachable(edge1, edge2, a, z, graph);
+                EdgeNode t2 = new EdgeNode(edge2, b);
+
+                Node c = reachable(t, t2, a, z, graph);
 
                 if (c != null) {
                     if (c == y) {
@@ -4070,9 +4078,9 @@ public final class GraphUtils {
         return false;
     }
 
-    private static Node reachable(Edge e1, Edge e2, Node a, List<Node> z, Graph graph) {
-        Node b = e1.getDistalNode(a);
-        Node c = e2.getDistalNode(b);
+    private static Node reachable(EdgeNode e1, EdgeNode e2, Node a, List<Node> z, Graph graph) {
+        Node b = e1.getEdge().getNode2();
+        Node c = e2.getEdge().getNode2();
 
         if (a == c) return null;
 
@@ -4143,56 +4151,35 @@ public final class GraphUtils {
     public static Set<Node> getDconnectedVars(Node x, List<Node> z, Graph graph) {
         Set<Node> Y = new HashSet<>();
 
-        class EdgeNode {
-
-            private final Edge edge;
-            private final Node node;
-
-            public EdgeNode(Edge edge, Node node) {
-                this.edge = edge;
-                this.node = node;
-            }
-
-            public int hashCode() {
-                return edge.hashCode() + node.hashCode();
-            }
-
-            public boolean equals(Object o) {
-                if (!(o instanceof EdgeNode)) {
-                    throw new IllegalArgumentException();
-                }
-                EdgeNode _o = (EdgeNode) o;
-                return _o.edge == edge && _o.node == node;
-            }
-        }
-
         Queue<EdgeNode> Q = new ArrayDeque<>();
         Set<EdgeNode> V = new HashSet<>();
 
         for (Edge edge : graph.getEdges(x)) {
             EdgeNode edgeNode = new EdgeNode(edge, x);
+
             Q.offer(edgeNode);
             V.add(edgeNode);
-            Y.add(edge.getDistalNode(x));
+            Y.add(edge.getNode2());
         }
 
         while (!Q.isEmpty()) {
             EdgeNode t = Q.poll();
-
-            Edge edge1 = t.edge;
-            Node a = t.node;
-            Node b = edge1.getDistalNode(a);
+            Edge edge1 = t.getEdge();
+            Node a = t.getNode();
+            Node b = edge1.getNode2();
 
             for (Edge edge2 : graph.getEdges(b)) {
-                Node c = reachable(edge1, edge2, a, z, graph);
+                EdgeNode t2 = new EdgeNode(edge2, b);
+
+                Node c = reachable(t, t2, a, z, graph);
 
                 if (c != null) {
+                    Y.add(c);
                     EdgeNode u = new EdgeNode(edge2, b);
 
                     if (!V.contains(u)) {
-                        V.add(u);
                         Q.offer(u);
-                        Y.add(c);
+                        V.add(u);
                     }
                 }
             }

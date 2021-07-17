@@ -8,7 +8,9 @@ import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -19,13 +21,13 @@ import java.util.List;
  * @author josephramsey
  */
 public class Boss {
+    private final List<Node> variables;
     private Score score;
     private IndependenceTest test;
     private boolean cachingScores = true;
     private int numStarts = 1;
     private Method method = Method.BOSS_PROMOTION;
     private boolean verbose = false;
-    private final List<Node> variables;
 
     public Boss(Score score) {
         this.score = score;
@@ -60,7 +62,7 @@ public class Boss {
             List<Node> perm;
 
             if (method == Method.BOSS_PROMOTION) {
-                perm = bossSearchPromotion(scorer);
+                perm = bossSearchPromotion2(scorer);
             } else if (method == Method.BOSS_ALL_INDICES) {
                 perm = bossSearchAllIndices(scorer);
             } else if (method == Method.SP) {
@@ -96,15 +98,18 @@ public class Boss {
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
         double best = Double.POSITIVE_INFINITY;
-        List<Node> perm = null;
 
         while (true) {
             for (Node v : scorer.getOrder()) {
-                scorer.moveRight(v);
-                double bestScore = scorer.score();
-                scorer.bookmark(1);
+                double bestScore = Double.POSITIVE_INFINITY;// scorer.score();
+//                scorer.bookmark(1);
 
-                while (scorer.moveLeft(v)) {
+                if (scorer.score() <= bestScore) {
+                    bestScore = scorer.score();
+                    scorer.bookmark(1);
+                }
+
+                while (scorer.promote(v)) {
                     if (scorer.score() <= bestScore) {
                         bestScore = scorer.score();
                         scorer.bookmark(1);
@@ -115,8 +120,8 @@ public class Boss {
             }
 
             if (scorer.score() < best) {
+                scorer.bookmark(2);
                 best = scorer.score();
-                perm = scorer.getOrder();
 
                 if (verbose) {
                     System.out.println("Updated order = " + scorer.getOrder());
@@ -126,7 +131,157 @@ public class Boss {
             }
         }
 
-        return perm;
+        scorer.flipToBookmark(2);
+        return scorer.getOrder();
+    }
+
+    public List<Node> bossSearchPromotion2(TeyssierScorer scorer) {
+
+        // Take each variable in turn and try moving it to each position to the left (i.e.,
+        // try promoting it in the causal order). Score each causal order by building
+        // a DAG using something like the K2 method. (We actually use Grow-Shrink, a
+        // Markov blanket algorithm, to find putative parents for each node.) Finally,
+        // place the node in whichever position yielded the highest score. Do this
+        // for each variable in turn. Once you're done, do it all again, until no more
+        // variables can be relocated.
+        double best = Double.POSITIVE_INFINITY;
+
+        while (true) {
+            boolean reduced = false;
+            Set<Integer> equalPositions = new HashSet<>();
+
+            for (Node v : scorer.getOrder()) {
+                double bestScore = Double.POSITIVE_INFINITY;
+
+                if (scorer.score() <= bestScore) {
+                    bestScore = scorer.score();
+                    scorer.bookmark(1);
+                }
+
+                while (scorer.promote(v)) {
+                    if (scorer.score() <= bestScore) {
+                        bestScore = scorer.score();
+                        scorer.bookmark(1);
+                        equalPositions.clear();
+                        reduced = true;
+                    } else {
+                        equalPositions.add(scorer.indexOf(v));
+                    }
+                }
+
+                scorer.flipToBookmark(1);
+            }
+
+            List<Node> order = scorer.getOrder();
+
+            if (!reduced) {
+
+                FOUND:
+                for (int i : equalPositions) {
+                    for (int _w = i + 1; _w < scorer.size(); _w++) {
+                        Node w = order.get(_w);
+
+                        while (scorer.promote(w)) {
+                            if (scorer.score() < best) {
+                                scorer.bookmark(1);
+                                break FOUND;
+                            }
+                        }
+                    }
+                }
+            }
+
+            scorer.flipToBookmark(1);
+
+            if (scorer.score() < best) {
+                scorer.bookmark(2);
+                best = scorer.score();
+
+                if (verbose) {
+                    System.out.println("Updated order = " + scorer.getOrder());
+                }
+            } else {
+                break;
+            }
+        }
+
+        scorer.flipToBookmark(2);
+        return scorer.getOrder();
+    }
+
+    private double bestSub(TeyssierScorer scorer, Node v, double bestScore, Set<Integer> equalPositions, Node w) {
+        while (scorer.promote(w)) {
+            if (scorer.indexOf(w) < scorer.indexOf(v)) {
+                break;
+            }
+
+            if (scorer.score() < bestScore) {
+                bestScore = scorer.score();
+                scorer.bookmark(1);
+                break;
+            } else {
+                equalPositions.add(scorer.indexOf(v));
+            }
+        }
+        return bestScore;
+    }
+
+    public List<Node> bossSearchPromotionPairs(TeyssierScorer scorer) {
+
+        // Take each variable in turn and try moving it to each position to the left (i.e.,
+        // try promoting it in the causal order). Score each causal order by building
+        // a DAG using something like the K2 method. (We actually use Grow-Shrink, a
+        // Markov blanket algorithm, to find putative parents for each node.) Finally,
+        // place the node in whichever position yielded the highest score. Do this
+        // for each variable in turn. Once you're done, do it all again, until no more
+        // variables can be relocated.
+        double best = Double.POSITIVE_INFINITY;
+
+        while (true) {
+            for (Node v : scorer.getOrder()) {
+                double bestScore = scorer.score();
+                scorer.bookmark(1);
+
+                while (scorer.promote(v)) {
+                    if (scorer.score() <= bestScore) {
+                        bestScore = scorer.score();
+                        scorer.bookmark(1);
+                    }
+                }
+
+                scorer.flipToBookmark(1);
+
+                if (scorer.score() > bestScore) {
+                    for (Node w : scorer.getOrder()) {
+                        if (v == w) continue;
+                        scorer.moveTo(w, 0);
+
+                        while (scorer.demote(w)) {
+                            if (scorer.score() < bestScore) {
+                                bestScore = scorer.score();
+                                scorer.bookmark(1);
+                            }
+                        }
+                    }
+                }
+
+                scorer.flipToBookmark(1);
+            }
+
+            if (scorer.score() < best) {
+                scorer.bookmark(2);
+                best = scorer.score();
+
+                if (verbose) {
+                    System.out.println("Updated order = " + scorer.getOrder());
+                }
+            } else {
+                break;
+            }
+        }
+
+        scorer.flipToBookmark(2);
+        return scorer.getOrder();
     }
 
     public List<Node> bossSearchAllIndices(TeyssierScorer scorer) {
@@ -139,15 +294,20 @@ public class Boss {
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
         double best = Double.POSITIVE_INFINITY;
-        List<Node> perm = null;
 
         while (true) {
             for (Node v : scorer.getOrder()) {
-                scorer.moveTo(v, 0);
                 double bestScore = scorer.score();
                 scorer.bookmark(1);
 
-                while (scorer.moveRight(v)) {
+                scorer.moveTo(v, 0);//scorer.size() - 1);
+
+                if (scorer.score() <= bestScore) {
+                    bestScore = scorer.score();
+                    scorer.bookmark(1);
+                }
+
+                while (scorer.demote(v)) {
                     if (scorer.score() <= bestScore) {
                         bestScore = scorer.score();
                         scorer.bookmark(1);
@@ -158,8 +318,8 @@ public class Boss {
             }
 
             if (scorer.score() < best) {
+                scorer.bookmark(2);
                 best = scorer.score();
-                perm = scorer.getOrder();
 
                 if (verbose) {
                     System.out.println("Updated order = " + scorer.getOrder());
@@ -169,7 +329,8 @@ public class Boss {
             }
         }
 
-        return perm;
+        scorer.flipToBookmark(2);
+        return scorer.getOrder();
     }
 
     public List<Node> esp(TeyssierScorer scorer) {

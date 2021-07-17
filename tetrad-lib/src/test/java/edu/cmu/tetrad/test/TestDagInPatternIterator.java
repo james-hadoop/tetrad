@@ -52,7 +52,7 @@ public class TestDagInPatternIterator {
         RandomUtil.getInstance().setSeed(342233L);
         Graph graph = GraphUtils.randomGraphRandomForwardEdges(nodes, 0, 10, 3,
                 3, 3, false, true);
-        Graph p = new EdgeListGraphSingleConnections(graph);
+        Graph p = new EdgeListGraph(graph);
 
         Dag dag = new Dag(graph);
 

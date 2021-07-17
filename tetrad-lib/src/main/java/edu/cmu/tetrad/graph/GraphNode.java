@@ -231,11 +231,15 @@ public class GraphNode implements Node, TetradSerializable {
      * Two continuous variables are equal if they have the same name and the
      * same missing value marker.
      */
-    public boolean equals(Object o) {
+    public boolean equals(Object _o) {
+        if (_o == null) return false;
+        if (!(_o instanceof GraphNode)) return false;
+        GraphNode o = (GraphNode) _o;
+
         if (NodeEqualityMode.getEqualityType() == NodeEqualityMode.Type.OBJECT) {
             return o == this;
         } else if (NodeEqualityMode.getEqualityType() == NodeEqualityMode.Type.NAME) {
-            return o instanceof GraphNode && getName().equals(((Node) o).getName());
+            return getName().equals(o.getName());
         }
 
         throw new IllegalStateException();

@@ -43,7 +43,7 @@ public class HsimRun {
             Graph estGraph = fges.search();
             System.out.println(estGraph);
 
-            Graph estPattern = new EdgeListGraphSingleConnections(estGraph);
+            Graph estPattern = new EdgeListGraph(estGraph);
             PatternToDag patternToDag = new PatternToDag(estPattern);
             Graph estGraphDAG = patternToDag.patternToDagMeek();
             Dag estDAG = new Dag(estGraphDAG);

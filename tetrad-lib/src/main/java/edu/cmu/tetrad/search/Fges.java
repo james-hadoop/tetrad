@@ -778,7 +778,8 @@ public final class Fges implements GraphSearch, GraphScorer {
 
                         adj = new ArrayList<>(g);
                     } else if (mode == Mode.allowUnfaithfulness) {
-                        adj = new ArrayList<>(variables);
+//                        adj = new ArrayList<>(variables);
+                        adj = new ArrayList<>(GraphUtils.getDconnectedVars(y, new ArrayList<>(), graph));
                     } else {
                         throw new IllegalStateException();
                     }

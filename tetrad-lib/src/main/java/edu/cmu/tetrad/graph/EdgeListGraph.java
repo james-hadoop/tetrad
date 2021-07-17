@@ -114,10 +114,10 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * Constructs a new (empty) EdgeListGraph.
      */
     public EdgeListGraph() {
-        this.edgeLists = new ConcurrentHashMap<>();
+        this.edgeLists = new HashMap<>();
         this.nodes = new ArrayList<>();
-        this.edgesSet = new ConcurrentSkipListSet<>();
-        this.namesHash = new ConcurrentHashMap<>();
+        this.edgesSet = new HashSet<>();
+        this.namesHash = new HashMap<>();
     }
 
     /**
@@ -1157,35 +1157,36 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * @return true if the edge was added, false if not.
      */
     @Override
-    public synchronized boolean addEdge(Edge edge) {
-        if (edge == null) {
-            throw new NullPointerException();
-        }
-
+    public boolean addEdge(Edge edge) {
         synchronized (edgeLists) {
+            if (edge == null) {
+                throw new NullPointerException();
+            }
+
             Set<Edge> edgeList1 = edgeLists.get(edge.getNode1());
             Set<Edge> edgeList2 = edgeLists.get(edge.getNode2());
 
-            if (edgeList1.contains(edge)) {
-                return true;
-            }
+//            if (edgeList1.contains(edge)) {
+//                return true;
+//            }
 
             edgeList1.add(edge);
             edgeList2.add(edge);
             edgesSet.add(edge);
-        }
 
-        if (Edges.isDirectedEdge(edge)) {
-            Node node = Edges.getDirectedEdgeTail(edge);
+            if (Edges.isDirectedEdge(edge)) {
+                Node node = Edges.getDirectedEdgeTail(edge);
 
-            if (node.getNodeType() == NodeType.ERROR) {
-                getPcs().firePropertyChange("nodeAdded", null, node);
+                if (node.getNodeType() == NodeType.ERROR) {
+                    getPcs().firePropertyChange("nodeAdded", null, node);
+                }
             }
+
+            ancestors = null;
+            getPcs().firePropertyChange("edgeAdded", null, edge);
+            return true;
         }
 
-        ancestors = null;
-        getPcs().firePropertyChange("edgeAdded", null, edge);
-        return true;
     }
 
     /**
@@ -1440,12 +1441,12 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * @return true if the edge was removed, false if not.
      */
     @Override
-    public synchronized boolean removeEdge(Edge edge) {
-        if (!edgesSet.contains(edge)) {
-            return false;
-        }
-
+    public boolean removeEdge(Edge edge) {
         synchronized (edgeLists) {
+            if (!edgesSet.contains(edge)) {
+                return false;
+            }
+
             Set<Edge> edgeList1 = edgeLists.get(edge.getNode1());
             Set<Edge> edgeList2 = edgeLists.get(edge.getNode2());
 
@@ -1458,14 +1459,14 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
             edgeLists.put(edge.getNode1(), edgeList1);
             edgeLists.put(edge.getNode2(), edgeList2);
+
+            highlightedEdges.remove(edge);
+            stuffRemovedSinceLastTripleAccess = true;
+
+            ancestors = null;
+            getPcs().firePropertyChange("edgeRemoved", edge, null);
+            return true;
         }
-
-        highlightedEdges.remove(edge);
-        stuffRemovedSinceLastTripleAccess = true;
-
-        ancestors = null;
-        getPcs().firePropertyChange("edgeRemoved", edge, null);
-        return true;
     }
 
     /**
