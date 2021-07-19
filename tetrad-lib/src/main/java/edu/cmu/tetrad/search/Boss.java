@@ -248,13 +248,16 @@ public class Boss {
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
         boolean reduced;
+        List<Node> ret = scorer.getOrder();
+        double overall = scorer.score();
 
         for (int i = 0; i < 1; i++) {
             do {
                 reduced = false;
 
+                double bestScore = scorer.score();
+
                 for (Node v : scorer.getOrder()) {
-                    double bestScore = scorer.score();
                     scorer.bookmark();
 
                     while (scorer.promote(v)) {
@@ -262,6 +265,10 @@ public class Boss {
                             bestScore = scorer.score();
                             scorer.bookmark();
                             reduced = true;
+
+                            if (scorer.score() < overall) {
+                                ret = scorer.getOrder();
+                            }
                         }
                     }
 
@@ -271,34 +278,41 @@ public class Boss {
                 if (verbose) {
                     System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Promotion)");
                 }
+
+
             } while (reduced);
         }
 
         do {
             reduced = false;
+            double bestScore = scorer.score();
+            scorer.bookmark();
 
             for (Node v : scorer.getOrder()) {
-                double bestScore = scorer.score();
-                scorer.bookmark();
-                scorer.moveLast(v);
+                scorer.goToBookmark();
+                scorer.moveFirst(v);
 
-                while (scorer.promote(v)) {
+                while (scorer.demote(v)) {
                     if (scorer.score() < bestScore) {
                         bestScore = scorer.score();
                         scorer.bookmark();
                         reduced = true;
+
+                        if (scorer.score() < overall) {
+                            ret = scorer.getOrder();
+                        }
                     }
                 }
-
-                scorer.goToBookmark();
             }
+
+            scorer.goToBookmark();
 
             if (verbose) {
                 System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (All indices)");
             }
         } while (reduced);
 
-        return scorer.getOrder();
+        return ret;
     }
 
     public List<Node> esp(TeyssierScorer scorer) {
