@@ -8,7 +8,6 @@ import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -62,7 +61,7 @@ public class Boss {
             List<Node> perm;
 
             if (method == Method.BOSS_PROMOTION) {
-                perm = bossSearchPromotion2(scorer);
+                perm = bossSearchPromotion(scorer);
             } else if (method == Method.BOSS_ALL_INDICES) {
                 perm = bossSearchAllIndices(scorer);
             } else if (method == Method.SP) {
@@ -88,7 +87,7 @@ public class Boss {
     }
 
     // Using Teyssier and Kohler's neighbor swaps.
-    public List<Node> bossSearchPromotion(TeyssierScorer scorer) {
+    public List<Node> bossSearchPromotion3(TeyssierScorer scorer) {
 
         // Take each variable in turn and try moving it to each position to the left (i.e.,
         // try promoting it in the causal order). Score each causal order by building
@@ -106,21 +105,21 @@ public class Boss {
 
                 if (scorer.score() <= bestScore) {
                     bestScore = scorer.score();
-                    scorer.bookmark(1);
+                    scorer.bookmark();
                 }
 
                 while (scorer.promote(v)) {
                     if (scorer.score() <= bestScore) {
                         bestScore = scorer.score();
-                        scorer.bookmark(1);
+                        scorer.bookmark();
                     }
                 }
 
-                scorer.flipToBookmark(1);
+                scorer.goToBookmark();
             }
 
             if (scorer.score() < best) {
-                scorer.bookmark(2);
+                scorer.bookmark();
                 best = scorer.score();
 
                 if (verbose) {
@@ -131,7 +130,7 @@ public class Boss {
             }
         }
 
-        scorer.flipToBookmark(2);
+        scorer.goToBookmark();
         return scorer.getOrder();
     }
 
@@ -148,53 +147,27 @@ public class Boss {
 
         while (true) {
             boolean reduced = false;
-            Set<Integer> equalPositions = new HashSet<>();
 
             for (Node v : scorer.getOrder()) {
-                double bestScore = Double.POSITIVE_INFINITY;
-
-                if (scorer.score() <= bestScore) {
-                    bestScore = scorer.score();
-                    scorer.bookmark(1);
-                }
+                double bestScore = scorer.score();
+                scorer.bookmark();
 
                 while (scorer.promote(v)) {
-                    if (scorer.score() <= bestScore) {
+                    if (scorer.score() < bestScore) {
                         bestScore = scorer.score();
-                        scorer.bookmark(1);
-                        equalPositions.clear();
+                        scorer.bookmark();
                         reduced = true;
-                    } else {
-                        equalPositions.add(scorer.indexOf(v));
                     }
                 }
 
-                scorer.flipToBookmark(1);
+                scorer.goToBookmark();
             }
 
-            List<Node> order = scorer.getOrder();
+            System.out.println("reduced = " + reduced);
 
-            if (!reduced) {
-
-                FOUND:
-                for (int i : equalPositions) {
-                    for (int _w = i + 1; _w < scorer.size(); _w++) {
-                        Node w = order.get(_w);
-
-                        while (scorer.promote(w)) {
-                            if (scorer.score() < best) {
-                                scorer.bookmark(1);
-                                break FOUND;
-                            }
-                        }
-                    }
-                }
-            }
-
-            scorer.flipToBookmark(1);
 
             if (scorer.score() < best) {
-                scorer.bookmark(2);
+                scorer.bookmark();
                 best = scorer.score();
 
                 if (verbose) {
@@ -205,7 +178,7 @@ public class Boss {
             }
         }
 
-        scorer.flipToBookmark(2);
+        scorer.goToBookmark();
         return scorer.getOrder();
     }
 
@@ -217,7 +190,7 @@ public class Boss {
 
             if (scorer.score() < bestScore) {
                 bestScore = scorer.score();
-                scorer.bookmark(1);
+                scorer.bookmark();
                 break;
             } else {
                 equalPositions.add(scorer.indexOf(v));
@@ -226,7 +199,7 @@ public class Boss {
         return bestScore;
     }
 
-    public List<Node> bossSearchPromotionPairs(TeyssierScorer scorer) {
+    public List<Node> bossSearchPromotion(TeyssierScorer scorer) {
 
         // Take each variable in turn and try moving it to each position to the left (i.e.,
         // try promoting it in the causal order). Score each causal order by building
@@ -235,52 +208,33 @@ public class Boss {
         // place the node in whichever position yielded the highest score. Do this
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
-        double best = Double.POSITIVE_INFINITY;
+        boolean reduced;
 
-        while (true) {
-            for (Node v : scorer.getOrder()) {
-                double bestScore = scorer.score();
-                scorer.bookmark(1);
+        for (int i = 0; i < 5; i++) {
+            do {
+                reduced = false;
 
-                while (scorer.promote(v)) {
-                    if (scorer.score() <= bestScore) {
-                        bestScore = scorer.score();
-                        scorer.bookmark(1);
-                    }
-                }
+                for (Node v : scorer.getOrder()) {
+                    double bestScore = scorer.score();
+                    scorer.bookmark();
 
-                scorer.flipToBookmark(1);
-
-                if (scorer.score() > bestScore) {
-                    for (Node w : scorer.getOrder()) {
-                        if (v == w) continue;
-                        scorer.moveTo(w, 0);
-
-                        while (scorer.demote(w)) {
-                            if (scorer.score() < bestScore) {
-                                bestScore = scorer.score();
-                                scorer.bookmark(1);
-                            }
+                    while (scorer.promote(v)) {
+                        if (scorer.score() < bestScore) {
+                            bestScore = scorer.score();
+                            scorer.bookmark();
+                            reduced = true;
                         }
                     }
+
+                    scorer.goToBookmark();
                 }
-
-                scorer.flipToBookmark(1);
-            }
-
-            if (scorer.score() < best) {
-                scorer.bookmark(2);
-                best = scorer.score();
 
                 if (verbose) {
-                    System.out.println("Updated order = " + scorer.getOrder());
+                    System.out.println("Updated order promotion = " + scorer.getOrder());
                 }
-            } else {
-                break;
-            }
+            } while (reduced);
         }
 
-        scorer.flipToBookmark(2);
         return scorer.getOrder();
     }
 
@@ -293,43 +247,57 @@ public class Boss {
         // place the node in whichever position yielded the highest score. Do this
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
-        double best = Double.POSITIVE_INFINITY;
+        boolean reduced;
 
-        while (true) {
-            for (Node v : scorer.getOrder()) {
-                double bestScore = scorer.score();
-                scorer.bookmark(1);
+        for (int i = 0; i < 1; i++) {
+            do {
+                reduced = false;
 
-                scorer.moveTo(v, 0);//scorer.size() - 1);
+                for (Node v : scorer.getOrder()) {
+                    double bestScore = scorer.score();
+                    scorer.bookmark();
 
-                if (scorer.score() <= bestScore) {
-                    bestScore = scorer.score();
-                    scorer.bookmark(1);
+                    while (scorer.promote(v)) {
+                        if (scorer.score() < bestScore) {
+                            bestScore = scorer.score();
+                            scorer.bookmark();
+                            reduced = true;
+                        }
+                    }
+
+                    scorer.goToBookmark();
                 }
 
-                while (scorer.demote(v)) {
-                    if (scorer.score() <= bestScore) {
+                if (verbose) {
+                    System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Promotion)");
+                }
+            } while (reduced);
+        }
+
+        do {
+            reduced = false;
+
+            for (Node v : scorer.getOrder()) {
+                double bestScore = scorer.score();
+                scorer.bookmark();
+                scorer.moveLast(v);
+
+                while (scorer.promote(v)) {
+                    if (scorer.score() < bestScore) {
                         bestScore = scorer.score();
-                        scorer.bookmark(1);
+                        scorer.bookmark();
+                        reduced = true;
                     }
                 }
 
-                scorer.flipToBookmark(1);
+                scorer.goToBookmark();
             }
 
-            if (scorer.score() < best) {
-                scorer.bookmark(2);
-                best = scorer.score();
-
-                if (verbose) {
-                    System.out.println("Updated order = " + scorer.getOrder());
-                }
-            } else {
-                break;
+            if (verbose) {
+                System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (All indices)");
             }
-        }
+        } while (reduced);
 
-        scorer.flipToBookmark(2);
         return scorer.getOrder();
     }
 

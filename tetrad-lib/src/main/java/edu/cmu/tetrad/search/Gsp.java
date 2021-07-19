@@ -135,10 +135,10 @@ public class Gsp {
 //        path.add(vv);
         path.add(ww);
         Graph graph0 = getGraph(scorer);
-        scorer.bookmark(depth);
+        scorer.bookmark();
 
         for (Edge edge : graph0.getEdges()) {
-            scorer.flipToBookmark(depth);
+            scorer.goToBookmark();
 
             Node v = Edges.getDirectedEdgeTail(edge);
             Node w = Edges.getDirectedEdgeHead(edge);

@@ -373,32 +373,32 @@ public final class TestBoss {
 
             List<Node> order = facts.facts.getVariables();
 
-            int numRuns = 500;
+            int numRuns = 100;
 
             for (int t = 0; t < numRuns; t++) {
                 shuffle(order);
                 IndTestDSep test = new IndTestDSep(facts.getFacts());
-
-                {
-                    Gsp boss = new Gsp(test);
-                    boss.setCachingScores(true);
-                    boss.setNumStarts(1);
-                    boss.setGspDepth(5);
-                    Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
-
-                    if (graphs.get("GSP") == null) {
-                        graphs.put("GSP", new HashSet<>());
-                        labels.put("GSP", new HashSet<>());
-                    }
-
-                    graphs.get("GSP").add(pattern);
-                    labels.get("GSP").add(facts.getLabel());
-
-                    if (printPattern) {
-                        System.out.println(pattern);
-                    }
-                }
-
+//
+////                {
+////                    Gsp boss = new Gsp(test);
+////                    boss.setCachingScores(true);
+////                    boss.setNumStarts(1);
+////                    boss.setGspDepth(5);
+////                    Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
+////
+////                    if (graphs.get("GSP") == null) {
+////                        graphs.put("GSP", new HashSet<>());
+////                        labels.put("GSP", new HashSet<>());
+////                    }
+////
+////                    graphs.get("GSP").add(pattern);
+////                    labels.get("GSP").add(facts.getLabel());
+////
+////                    if (printPattern) {
+////                        System.out.println(pattern);
+////                    }
+////                }
+//
                 {
                     Boss.Method method = Boss.Method.BOSS_PROMOTION;
 
@@ -408,7 +408,7 @@ public final class TestBoss {
                     boss.setNumStarts(1);
 
                     List<Node> perm = boss.bestOrder(test.getVariables());
-                    Graph pattern = boss.getGraph(perm, true);
+                    Graph pattern = boss.getGraph(perm, false);
 
                     if (graphs.get(method.toString()) == null) {
                         graphs.put(method.toString(), new HashSet<>());
@@ -422,60 +422,60 @@ public final class TestBoss {
                         System.out.println(pattern);
                     }
                 }
+//
+//                {
+//                    Boss.Method method = Boss.Method.BOSS_ALL_INDICES;
+//
+//                    Boss boss = new Boss(test);
+//                    boss.setCacheScores(true);
+//                    boss.setMethod(method);
+//                    boss.setNumStarts(1);
+//                    List<Node> perm = boss.bestOrder(test.getVariables());
+//                    Graph pattern = boss.getGraph(perm, true);
+//
+//                    if (graphs.get(method.toString()) == null) {
+//                        graphs.put(method.toString(), new HashSet<>());
+//                        labels.put(method.toString(), new HashSet<>());
+//                    }
+//
+//                    graphs.get(method.toString()).add(pattern);
+//                    labels.get(method.toString()).add(facts.getLabel());
+//
+//                    if (printPattern) {
+//                        System.out.println(pattern);
+//                    }
+//                }
+//            }
 
-                {
-                    Boss.Method method = Boss.Method.BOSS_ALL_INDICES;
-
-                    Boss boss = new Boss(test);
-                    boss.setCacheScores(true);
-                    boss.setMethod(method);
-                    boss.setNumStarts(1);
-                    List<Node> perm = boss.bestOrder(test.getVariables());
-                    Graph pattern = boss.getGraph(perm, true);
-
-                    if (graphs.get(method.toString()) == null) {
-                        graphs.put(method.toString(), new HashSet<>());
-                        labels.put(method.toString(), new HashSet<>());
-                    }
-
-                    graphs.get(method.toString()).add(pattern);
-                    labels.get(method.toString()).add(facts.getLabel());
-
-                    if (printPattern) {
-                        System.out.println(pattern);
-                    }
-                }
+//            {
+//                IndTestDSep test = new IndTestDSep(facts.getFacts());
+//
+//                Boss.Method method = Boss.Method.SP;
+//
+//                Boss boss = new Boss(test);
+//                boss.setCacheScores(true);
+//                boss.setMethod(method);
+//                boss.setNumStarts(1);
+//                List<Node> perm = boss.bestOrder(test.getVariables());
+//                Graph pattern = boss.getGraph(perm, true);
+//
+//                if (graphs.get(method.toString()) == null) {
+//                    graphs.put(method.toString(), new HashSet<>());
+//                    labels.put(method.toString(), new HashSet<>());
+//                }
+//
+//                graphs.get(method.toString()).add(pattern);
+//                labels.get(method.toString()).add(facts.getLabel());
+//
+//                if (printPattern) {
+//                    System.out.println(pattern);
+//                }
             }
 
-            {
-                IndTestDSep test = new IndTestDSep(facts.getFacts());
-
-                Boss.Method method = Boss.Method.SP;
-
-                Boss boss = new Boss(test);
-                boss.setCacheScores(true);
-                boss.setMethod(method);
-                boss.setNumStarts(1);
-                List<Node> perm = boss.bestOrder(test.getVariables());
-                Graph pattern = boss.getGraph(perm, true);
-
-                if (graphs.get(method.toString()) == null) {
-                    graphs.put(method.toString(), new HashSet<>());
-                    labels.put(method.toString(), new HashSet<>());
-                }
-
-                graphs.get(method.toString()).add(pattern);
-                labels.get(method.toString()).add(facts.getLabel());
-
-                if (printPattern) {
-                    System.out.println(pattern);
-                }
-            }
-
-            printGraphs("GSP", graphs);
+//            printGraphs("GSP", graphs);
             printGraphs("BOSS_PROMOTION", graphs);
-            printGraphs("BOSS_ALL_INDICES", graphs);
-            printGraphs("SP", graphs);
+//            printGraphs("BOSS_ALL_INDICES", graphs);
+//            printGraphs("SP", graphs);
         }
     }
 
@@ -554,30 +554,49 @@ public final class TestBoss {
 
     @Test
     public void testFromDsep1() {
+
+        // Solus et al. Figure 11, using all independence facts.
         List<Node> nodes = new ArrayList<>();
 
         Node x1 = new GraphNode("X1");
         Node x2 = new GraphNode("X2");
         Node x3 = new GraphNode("X3");
         Node x4 = new GraphNode("X4");
+        Node x5 = new GraphNode("X5");
+        Node x6 = new GraphNode("X6");
 
         nodes.add(x1);
         nodes.add(x2);
         nodes.add(x3);
         nodes.add(x4);
+        nodes.add(x5);
+        nodes.add(x6);
 
         Graph g = new EdgeListGraph(nodes);
 
+        g.addDirectedEdge(x1, x2);
         g.addDirectedEdge(x1, x4);
+        g.addDirectedEdge(x1, x6);
+        g.addDirectedEdge(x2, x4);
+        g.addDirectedEdge(x2, x5);
+        g.addDirectedEdge(x2, x6);
+        g.addDirectedEdge(x3, x2);
         g.addDirectedEdge(x3, x4);
-        g.addDirectedEdge(x2, x3);
+        g.addDirectedEdge(x3, x5);
+        g.addDirectedEdge(x3, x6);
+        g.addDirectedEdge(x4, x5);
+        g.addDirectedEdge(x5, x6);
 
         List<Node> order = new ArrayList<>();
 
         order.add(x1);
-        order.add(x4);
-        order.add(x3);
         order.add(x2);
+        order.add(x3);
+        order.add(x4);
+        order.add(x5);
+        order.add(x6);
+
+        shuffle(order);
 
         IndependenceTest test = new IndTestDSep(g);
 
