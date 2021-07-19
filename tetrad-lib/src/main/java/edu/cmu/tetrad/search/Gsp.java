@@ -52,7 +52,7 @@ public class Gsp {
         scorer.score(order);
 
         for (int r = 0; r < numStarts; r++) {
-            if (r > 0) scorer.shuffleVariables();
+//            if (r > 0) scorer.shuffleVariables();
 
             gsp(scorer);
 

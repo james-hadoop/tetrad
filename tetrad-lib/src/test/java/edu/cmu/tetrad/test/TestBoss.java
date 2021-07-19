@@ -64,7 +64,9 @@ public final class TestBoss {
 
 
     private static void runTestLoop(Graph g, List<Node> order, Score score, IndependenceTest test, boolean useTest) {
-//        g = new EdgeListGraph(g);
+        System.out.println("order = " + order);
+
+        //        g = new EdgeListGraph(g);
 //        order = new ArrayList<>(order);
 
 //        {
@@ -110,8 +112,8 @@ public final class TestBoss {
             Graph dag = boss.getGraph(perm, false);
 
             printFailed(g, dag, "BOSS All Indices " + order + " " + perm
-                    + " " + g
-                    + " " + dag);
+                    + " \n" + g
+                    + " \n" + dag);
         }
 
 //        {
@@ -378,27 +380,27 @@ public final class TestBoss {
             for (int t = 0; t < numRuns; t++) {
                 shuffle(order);
                 IndTestDSep test = new IndTestDSep(facts.getFacts());
-//
-////                {
-////                    Gsp boss = new Gsp(test);
-////                    boss.setCachingScores(true);
-////                    boss.setNumStarts(1);
-////                    boss.setGspDepth(5);
-////                    Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
-////
-////                    if (graphs.get("GSP") == null) {
-////                        graphs.put("GSP", new HashSet<>());
-////                        labels.put("GSP", new HashSet<>());
-////                    }
-////
-////                    graphs.get("GSP").add(pattern);
-////                    labels.get("GSP").add(facts.getLabel());
-////
-////                    if (printPattern) {
-////                        System.out.println(pattern);
-////                    }
-////                }
-//
+
+                {
+                    Gsp boss = new Gsp(test);
+                    boss.setCachingScores(true);
+                    boss.setNumStarts(1);
+                    boss.setGspDepth(5);
+                    Graph pattern = SearchGraphUtils.patternForDag(boss.search(order));
+
+                    if (graphs.get("GSP") == null) {
+                        graphs.put("GSP", new HashSet<>());
+                        labels.put("GSP", new HashSet<>());
+                    }
+
+                    graphs.get("GSP").add(pattern);
+                    labels.get("GSP").add(facts.getLabel());
+
+                    if (printPattern) {
+                        System.out.println(pattern);
+                    }
+                }
+
                 {
                     Boss.Method method = Boss.Method.BOSS_PROMOTION;
 
@@ -422,60 +424,58 @@ public final class TestBoss {
                         System.out.println(pattern);
                     }
                 }
-//
-//                {
-//                    Boss.Method method = Boss.Method.BOSS_ALL_INDICES;
-//
-//                    Boss boss = new Boss(test);
-//                    boss.setCacheScores(true);
-//                    boss.setMethod(method);
-//                    boss.setNumStarts(1);
-//                    List<Node> perm = boss.bestOrder(test.getVariables());
-//                    Graph pattern = boss.getGraph(perm, true);
-//
-//                    if (graphs.get(method.toString()) == null) {
-//                        graphs.put(method.toString(), new HashSet<>());
-//                        labels.put(method.toString(), new HashSet<>());
-//                    }
-//
-//                    graphs.get(method.toString()).add(pattern);
-//                    labels.get(method.toString()).add(facts.getLabel());
-//
-//                    if (printPattern) {
-//                        System.out.println(pattern);
-//                    }
-//                }
-//            }
 
-//            {
-//                IndTestDSep test = new IndTestDSep(facts.getFacts());
-//
-//                Boss.Method method = Boss.Method.SP;
-//
-//                Boss boss = new Boss(test);
-//                boss.setCacheScores(true);
-//                boss.setMethod(method);
-//                boss.setNumStarts(1);
-//                List<Node> perm = boss.bestOrder(test.getVariables());
-//                Graph pattern = boss.getGraph(perm, true);
-//
-//                if (graphs.get(method.toString()) == null) {
-//                    graphs.put(method.toString(), new HashSet<>());
-//                    labels.put(method.toString(), new HashSet<>());
-//                }
-//
-//                graphs.get(method.toString()).add(pattern);
-//                labels.get(method.toString()).add(facts.getLabel());
-//
-//                if (printPattern) {
-//                    System.out.println(pattern);
-//                }
+                {
+                    Boss.Method method = Boss.Method.BOSS_ALL_INDICES;
+
+                    Boss boss = new Boss(test);
+                    boss.setCacheScores(true);
+                    boss.setMethod(method);
+                    boss.setNumStarts(1);
+                    List<Node> perm = boss.bestOrder(test.getVariables());
+                    Graph pattern = boss.getGraph(perm, true);
+
+                    if (graphs.get(method.toString()) == null) {
+                        graphs.put(method.toString(), new HashSet<>());
+                        labels.put(method.toString(), new HashSet<>());
+                    }
+
+                    graphs.get(method.toString()).add(pattern);
+                    labels.get(method.toString()).add(facts.getLabel());
+
+                    if (printPattern) {
+                        System.out.println(pattern);
+                    }
+                }
+
+                {
+                    Boss.Method method = Boss.Method.SP;
+
+                    Boss boss = new Boss(test);
+                    boss.setCacheScores(true);
+                    boss.setMethod(method);
+                    boss.setNumStarts(1);
+                    List<Node> perm = boss.bestOrder(test.getVariables());
+                    Graph pattern = boss.getGraph(perm, true);
+
+                    if (graphs.get(method.toString()) == null) {
+                        graphs.put(method.toString(), new HashSet<>());
+                        labels.put(method.toString(), new HashSet<>());
+                    }
+
+                    graphs.get(method.toString()).add(pattern);
+                    labels.get(method.toString()).add(facts.getLabel());
+
+                    if (printPattern) {
+                        System.out.println(pattern);
+                    }
+                }
             }
 
-//            printGraphs("GSP", graphs);
+            printGraphs("GSP", graphs);
             printGraphs("BOSS_PROMOTION", graphs);
-//            printGraphs("BOSS_ALL_INDICES", graphs);
-//            printGraphs("SP", graphs);
+            printGraphs("BOSS_ALL_INDICES", graphs);
+            printGraphs("SP", graphs);
         }
     }
 
@@ -617,9 +617,10 @@ public final class TestBoss {
         nodes.add(x3);
         nodes.add(x4);
 
-         List<Edge> edges = new ArrayList<>();
+        List<Edge> edges = new ArrayList<>();
+        edges.add(Edges.directedEdge(x1, x2));
         edges.add(Edges.directedEdge(x1, x3));
-        edges.add(Edges.directedEdge(x2, x3));
+        edges.add(Edges.directedEdge(x2, x4));
         edges.add(Edges.directedEdge(x3, x4));
 
         for (int i = 0; i < 100; i++) {
@@ -654,6 +655,8 @@ public final class TestBoss {
     }
 
     private void printGraphs(String label, Map<String, Set<Graph>> graphs) {
+        if (!graphs.containsKey(label)) return;
+
         List<Graph> _graphs = new ArrayList<>(graphs.get(label));
 
         System.out.println("===== " + label + "\n");

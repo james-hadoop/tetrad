@@ -19,24 +19,27 @@ import static java.util.Collections.shuffle;
  */
 public class TeyssierScorer {
     private final Map<ScoreKey, Pair> cache = new HashMap<>();
-    private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
-    private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
+    private Node[] bookmarkedOrder = null;
+    private Pair[] bookmarkedScores = null;
     private Score score;
     private IndependenceTest test;
-    private List<Node> variables;
-    private LinkedList<Node> order;
-    private LinkedList<Pair> scores;
+    private final List<Node> variables;
+    private Node[] order;
+    private Pair[] scores;
     private boolean cachingScores = true;
     private IKnowledge knowledge = new Knowledge2();
     private LinkedList<Set<Node>> prefixes;
 
     public TeyssierScorer(Score score) {
+        this.variables = score.getVariables();
         this.score = score;
-        this.order = new LinkedList<>(score.getVariables());
+        score(variables);
     }
 
     public TeyssierScorer(IndependenceTest test) {
+        this.variables = score.getVariables();
         this.test = test;
+        score(variables);
     }
 
     public void setKnowledge(IKnowledge knowledge) {
@@ -44,27 +47,34 @@ public class TeyssierScorer {
     }
 
     public double score(List<Node> order) {
-        this.order = new LinkedList<>(order);
-        this.variables = score != null ? score.getVariables() : test.getVariables();
+        this.order = new Node[order.size()];
+        for (int i = 0; i < order.size(); i++) this.order[i] = order.get(i);
         initializeScores();
         return score();
     }
 
-    private void initializeArrays(List<Node> order) {
-        this.scores = new LinkedList<>();
-        for (int i = 0; i < order.size(); i++) this.scores.add(null);
+    private void initializeScores() {
+        initializeArrays();
+
+        for (int i = 0; i < order.length; i++) {
+            recalculate(i);
+        }
+    }
+
+    private void initializeArrays() {
+        this.scores = new Pair[order.length];
 
         this.prefixes = new LinkedList<>();
-        for (int i = 0; i < order.size(); i++) this.prefixes.add(null);
+        for (int i = 0; i < order.length; i++) this.prefixes.add(null);
 
-        this.bookmarkedOrder = new LinkedList<>();
-        for (int i = 0; i < order.size(); i++) this.bookmarkedOrder.add(null);
+        this.bookmarkedOrder = new Node[order.length];
+        setNodes(this.bookmarkedOrder, this.order);
 
-        this.bookmarkedScores = new LinkedList<>();
-        for (int i = 0; i < order.size(); i++) this.bookmarkedScores.add(null);
+        this.bookmarkedScores = new Pair[order.length];
+        setPairs(this.bookmarkedScores, this.scores);
 
         this.prefixes = new LinkedList<>();
-        for (int i = 0; i < order.size(); i++) this.prefixes.add(null);
+        for (int i = 0; i < order.length; i++) this.prefixes.add(null);
     }
 
     public double score() {
@@ -72,14 +82,15 @@ public class TeyssierScorer {
     }
 
     public boolean promote(Node v) {
-        int index = order.indexOf(v);
-        if (!(index >= 1 && index <= order.size() - 1)) return false;
+        int index = index(order, v);
 
-        Node v1 = order.get(index - 1);
-        Node v2 = order.get(index);
+        if (!(index >= 1 && index <= order.length - 1)) return false;
 
-        order.set(index - 1, v2);
-        order.set(index, v1);
+        Node v1 = order[index - 1];
+        Node v2 = order[index];
+
+        order[index - 1] = v2;
+        order[index] = v1;
 
         recalculate(index - 1);
         recalculate(index);
@@ -88,14 +99,15 @@ public class TeyssierScorer {
     }
 
     public boolean demote(Node v) {
-        int index = order.indexOf(v);
-        if (!(index >= 0 && index <= order.size() - 2)) return false;
+        int index = index(order, v);
 
-        Node v1 = order.get(index);
-        Node v2 = order.get(index + 1);
+        if (!(index >= 1 && index <= order.length - 1)) return false;
 
-        order.set(index, v2);
-        order.set(index + 1, v1);
+        Node v1 = order[index];
+        Node v2 = order[index + 1];
+
+        order[index] = v2;
+        order[index + 1] = v1;
 
         recalculate(index);
         recalculate(index + 1);
@@ -104,14 +116,7 @@ public class TeyssierScorer {
     }
 
     public void moveTo(Node v, int toIndex) {
-//        order.remove(v);
-//        order.add(toIndex, v);
-//
-//        for (int i = 0; i < order.size(); i++) {
-//            recalculate(i);
-//        }
-
-        int fromIndex = order.indexOf(v);
+        int fromIndex = index(order, v);
 
         while (toIndex < fromIndex) {
             if (!promote(v)) break;
@@ -124,46 +129,42 @@ public class TeyssierScorer {
         }
     }
 
-    public void moveFirst(Node v) {
+    private int index(Node[] order, Node v) {
+        return Arrays.binarySearch(order, v);
+    }
+
+    public void moveToFirst(Node v) {
         moveTo(v, 0);
     }
 
-    public void moveLast(Node v) {
+    public void moveToLast(Node v) {
         moveTo(v, size() - 1);
     }
 
     public void swap(Node m, Node n) {
-        int i = order.indexOf(m);
-        int j = order.indexOf(n);
+        int i = index(order, m);
+        int j = index(order, n);
 
         moveTo(m, j);
         moveTo(n, i);
     }
 
     public List<Node> getOrder() {
-        return new ArrayList<>(order);
+        return Arrays.asList(this.order);
     }
 
     public int indexOf(Node v) {
-        return order.indexOf(v);
+        return index(order, v);
     }
 
     private double sum() {
         double score = 0;
 
-        for (int i = 0; i < order.size(); i++) {
-            score += scores.get(i).getScore();
+        for (int i = 0; i < order.length; i++) {
+            score += scores[i].getScore();
         }
 
         return score;
-    }
-
-    private void initializeScores() {
-        initializeArrays(order);
-
-        for (int i = 0; i < order.size(); i++) {
-            recalculate(i);
-        }
     }
 
     private double score(Node n, Set<Node> pi) {
@@ -193,21 +194,17 @@ public class TeyssierScorer {
     }
 
     private List<Node> getPrefix(int i) {
-        List<Node> prefix = new ArrayList<>();
-        for (int j = 0; j < i; j++) {
-            prefix.add(order.get(j));
-        }
-        return prefix;
+        return new ArrayList<>(Arrays.asList(order).subList(0, i));
     }
 
     private void recalculate(int p) {
         if (!new HashSet<>(getPrefix(p)).equals(prefixes.get(p))) {
-            scores.set(p, getGrowShrink(p));
+            scores[p] = getGrowShrink(p);
         }
     }
 
     public Set<Node> getMb(int p) {
-        return scores.get(p).getMb();
+        return scores[p].getMb();
     }
 
     private Pair getGrowShrink(int p) {
@@ -222,7 +219,7 @@ public class TeyssierScorer {
                 return getGrowShrinkIndep(p);
             } else {
 
-                Node n = order.get(p);
+                Node n = order[p];
 
                 Set<Node> mb = new HashSet<>();
                 boolean changed = true;
@@ -290,7 +287,7 @@ public class TeyssierScorer {
     }
 
     private Pair getGrowShrinkIndep(int p) {
-        Node n = order.get(p);
+        Node n = order[p];
 
         List<Node> mb = new ArrayList<>();
         boolean changed = true;
@@ -331,7 +328,7 @@ public class TeyssierScorer {
     }
 
     private Pair getPearlScore(int p) {
-        Node n = order.get(p);
+        Node n = order[p];
 
         List<Node> prefix = getPrefix(p);
         prefix.remove(n);
@@ -356,7 +353,7 @@ public class TeyssierScorer {
     }
 
     private Pair getPearlIndep(int p) {
-        Node n = order.get(p);
+        Node n = order[p];
 
         List<Node> prefix = getPrefix(p);
         prefix.remove(n);
@@ -384,16 +381,12 @@ public class TeyssierScorer {
         setPairs(scores, bookmarkedScores);
     }
 
-    private void setNodes(LinkedList<Node> order1, LinkedList<Node> order2) {
-        for (int i = 0; i < order.size(); i++) {
-            order1.set(i, order2.get(i));
-        }
+    private void setNodes(Node[] order1, Node[] order2) {
+        System.arraycopy(order2, 0, order1, 0, order1.length);
     }
 
-    private void setPairs(LinkedList<Pair> order1, LinkedList<Pair> order2) {
-        for (int i = 0; i < order.size(); i++) {
-            order1.set(i, order2.get(i));
-        }
+    private void setPairs(Pair[] order1, Pair[] order2) {
+        System.arraycopy(order2, 0, order1, 0, order1.length);
     }
 
     public void setCachingScores(boolean cachingScores) {
@@ -401,23 +394,17 @@ public class TeyssierScorer {
     }
 
     public int size() {
-        return order.size();
+        return order.length;
     }
 
     public int getNumEdges() {
         int numEdges = 0;
 
-        for (int p = 0; p < order.size(); p++) {
+        for (int p = 0; p < order.length; p++) {
             numEdges += getMb(p).size();
         }
 
         return numEdges;
-    }
-
-    public void shuffleVariables() {
-        order = new LinkedList<>(order);
-        shuffle(order);
-        score(order);
     }
 
     private static class Pair {
