@@ -107,12 +107,13 @@ public final class TestBoss {
 
             boss.setCacheScores(true);
             boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
-            boss.setNumStarts(1);
+            boss.setNumStarts(3);
+            boss.setVerbose(true);
             List<Node> perm = boss.bestOrder(order);
             Graph dag = boss.getGraph(perm, false);
 
-            printFailed(g, dag, "BOSS All Indices " + order + " " + perm
-                    + " \n" + g
+            printFailed(g, dag, "BOSS All Indices " + order// + " " + perm
+//                    + " \n" + g
                     + " \n" + dag);
         }
 
@@ -147,6 +148,23 @@ public final class TestBoss {
 //            printFailed(SearchGraphUtils.patternForDag(g), pattern, "SP");
 //        }
 
+    }
+
+    private static void runTestLoop2(Graph g, List<Node> order, Score score, IndependenceTest test, boolean useTest) {
+
+        {
+            Boss boss = getBoss(score, test);
+
+            boss.setCacheScores(true);
+            boss.setMethod(Boss.Method.SP);
+            boss.setNumStarts(1);
+            List<Node> perm = boss.bestOrder(order);
+            Graph dag = boss.getGraph(perm, false);
+
+//            if (dag.getNumEdges() != g.getNumEdges()) {
+//                System.out.println("order = " + order + " # edges = " + dag.getNumEdges());
+//            }
+        }
     }
 
     @NotNull
@@ -555,48 +573,33 @@ public final class TestBoss {
     @Test
     public void testFromDsep1() {
 
-        // Solus et al. Figure 11, using all independence facts.
         List<Node> nodes = new ArrayList<>();
 
         Node x1 = new GraphNode("X1");
         Node x2 = new GraphNode("X2");
         Node x3 = new GraphNode("X3");
         Node x4 = new GraphNode("X4");
-        Node x5 = new GraphNode("X5");
-        Node x6 = new GraphNode("X6");
 
         nodes.add(x1);
         nodes.add(x2);
         nodes.add(x3);
         nodes.add(x4);
-        nodes.add(x5);
-        nodes.add(x6);
+
+        List<Edge> edges = new ArrayList<>();
+        edges.add(Edges.directedEdge(x1, x2));
+        edges.add(Edges.directedEdge(x1, x3));
+        edges.add(Edges.directedEdge(x2, x4));
+        edges.add(Edges.directedEdge(x3, x4));
 
         Graph g = new EdgeListGraph(nodes);
-
-        g.addDirectedEdge(x1, x2);
-        g.addDirectedEdge(x1, x4);
-        g.addDirectedEdge(x1, x6);
-        g.addDirectedEdge(x2, x4);
-        g.addDirectedEdge(x2, x5);
-        g.addDirectedEdge(x2, x6);
-        g.addDirectedEdge(x3, x2);
-        g.addDirectedEdge(x3, x4);
-        g.addDirectedEdge(x3, x5);
-        g.addDirectedEdge(x3, x6);
-        g.addDirectedEdge(x4, x5);
-        g.addDirectedEdge(x5, x6);
+        for (Edge e : edges) g.addEdge(e);
 
         List<Node> order = new ArrayList<>();
 
-        order.add(x1);
+        order.add(x4);
         order.add(x2);
         order.add(x3);
-        order.add(x4);
-        order.add(x5);
-        order.add(x6);
-
-        shuffle(order);
+        order.add(x1);
 
         IndependenceTest test = new IndTestDSep(g);
 
@@ -636,13 +639,14 @@ public final class TestBoss {
 
             List<Node> order = new ArrayList<>();
 
-            order.add(x3);
-            order.add(x4);
             order.add(x1);
             order.add(x2);
+            order.add(x3);
+            order.add(x4);
 
-            shuffle(order);
+            Collections.shuffle(order);
             runTestLoop(g, order, null, test, true);
+//            runTestLoop2(g, order, null, test, true);
         }
     }
 

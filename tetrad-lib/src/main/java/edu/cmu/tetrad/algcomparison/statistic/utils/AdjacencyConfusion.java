@@ -27,8 +27,6 @@ public class AdjacencyConfusion {
         adjFp = 0;
         adjFn = 0;
 
-//        Set<Edge> allUnoriented = new HashSet<>();
-
         for (Edge edge : truth.getEdges()) {
             if (!est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
                 adjFn++;
@@ -46,31 +44,6 @@ public class AdjacencyConfusion {
                 adjFp++;
             }
         }
-
-//        for (Edge edge : this.truth.getEdges()) {
-//            allUnoriented.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
-//        }
-//
-//        for (Edge edge : this.est.getEdges()) {
-//            allUnoriented.add(Edges.undirectedEdge(edge.getNode1(), edge.getNode2()));
-//        }
-
-//        for (Edge edge : allUnoriented) {
-////            if (this.est.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
-////                    !this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
-////                adjFp++;
-////            }
-//
-////            if (this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
-////                    !this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
-////                adjFn++;
-////            }
-//
-////            if (this.truth.isAdjacentTo(edge.getNode1(), edge.getNode2()) &&
-////                    this.est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
-////                adjTp++;
-////            }
-//        }
 
         int allEdges = this.truth.getNumNodes() * (this.truth.getNumNodes() - 1) / 2;
 
