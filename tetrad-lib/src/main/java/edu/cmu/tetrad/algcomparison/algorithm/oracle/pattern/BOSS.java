@@ -57,6 +57,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
             Boss boss = new Boss(score);
+            boss.setDoFinalOrientation(parameters.getBoolean(Params.FINAL_ORIENTATION));
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
@@ -125,6 +126,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     @Override
     public List<String> getParameters() {
         ArrayList<String> params = new ArrayList<>();
+        params.add(Params.FINAL_ORIENTATION);
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);

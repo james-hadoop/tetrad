@@ -1,6 +1,9 @@
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.OrderedPair;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +28,7 @@ public class Boss {
     private int numStarts = 1;
     private Method method = Method.BOSS_PROMOTION;
     private boolean verbose = false;
+    private boolean doFinalOrientation = false;
 
     public Boss(Score score) {
         this.score = score;
@@ -86,6 +90,10 @@ public class Boss {
 
     public List<Node> bossSearchPromotion(TeyssierScorer scorer) {
 
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Initial)");
+        }
+
         // Take each variable in turn and try moving it to each position to the left (i.e.,
         // try promoting it in the causal order). Score each causal order by building
         // a DAG using something like the K2 method. (We actually use Grow-Shrink, a
@@ -93,32 +101,19 @@ public class Boss {
         // place the node in whichever position yielded the highest score. Do this
         // for each variable in turn. Once you're done, do it all again, until no more
         // variables can be relocated.
-        boolean reduced;
-
-        do {
-            reduced = false;
-
-            for (Node v : scorer.getOrder()) {
-                double bestScore = scorer.score();
-                scorer.bookmark();
-
-                while (scorer.promote(v)) {
-                    if (scorer.score() < bestScore) {
-                        bestScore = scorer.score();
-                        scorer.bookmark();
-                        reduced = true;
-                    }
-                }
-
-                scorer.goToBookmark();
+        if (doFinalOrientation) {
+            while (true) {
+                Set<EqualsEntry> equals = promoteLoop(scorer);
+                double score = scorer.score();
+                finalOrientation(scorer, equals);
+                if (scorer.score() == score) break;
             }
 
-            if (verbose) {
-                System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Promotion)");
-            }
-        } while (reduced);
-
-        return scorer.getOrder();
+            return scorer.getOrder();
+        } else {
+            promoteLoop(scorer);
+            return scorer.getOrder();
+        }
     }
 
     public List<Node> bossSearchAllIndices(TeyssierScorer scorer) {
@@ -135,16 +130,51 @@ public class Boss {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Initial)");
         }
 
-        promoteLoop(scorer);
+        if (doFinalOrientation) {
+            while (true) {
+                Set<EqualsEntry> equals = allIndicesLoop(scorer);
+                double score = scorer.score();
+                finalOrientation(scorer, equals);
+                if (scorer.score() == score) break;
+            }
 
-        while (true) {
-            Set<EqualsEntry> equals = allIndicesLoop(scorer);
-            double score = scorer.score();
-            twoStep(scorer, equals);
-            if (scorer.score() == score) break;
+            return scorer.getOrder();
+        } else {
+            allIndicesLoop(scorer);
+            return scorer.getOrder();
         }
+    }
 
-        return scorer.getOrder();
+    private Set<EqualsEntry> promoteLoop(TeyssierScorer scorer) {
+        boolean reduced;
+        Set<EqualsEntry> equals = new HashSet<>();
+
+        do {
+            reduced = false;
+
+            for (Node v : scorer.getOrder()) {
+                double bestScore = scorer.score();
+                scorer.bookmark();
+
+                while (scorer.promote(v)) {
+                    if (scorer.score() < bestScore) {
+                        reduced = true;
+                        scorer.bookmark();
+                        equals.clear();
+                    } else {
+                        equals.add(new EqualsEntry(v, scorer.indexOf(v), scorer.score()));
+                    }
+                }
+
+                scorer.goToBookmark();
+            }
+
+            if (verbose) {
+                System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Promotion)");
+            }
+        } while (reduced);
+
+        return equals;
     }
 
     private Set<EqualsEntry> allIndicesLoop(TeyssierScorer scorer) {
@@ -153,19 +183,28 @@ public class Boss {
 
         do {
             reduced = false;
-            scorer.bookmark();
             List<Node> order = scorer.getOrder();
+            scorer.bookmark();
 
             for (Node v : order) {
                 double bestScore = scorer.score();
                 scorer.moveToFirst(v);
 
+                if (scorer.score() < bestScore) {
+                    bestScore = scorer.score();
+                    reduced = true;
+                    equals2.clear();
+                    scorer.bookmark();
+                } else {
+                    equals2.add(new EqualsEntry(v, scorer.indexOf(v), scorer.score()));
+                }
+
                 while (scorer.demote(v)) {
                     if (scorer.score() < bestScore) {
                         bestScore = scorer.score();
-                        scorer.bookmark();
                         reduced = true;
                         equals2.clear();
+                        scorer.bookmark();
                     } else {
                         equals2.add(new EqualsEntry(v, scorer.indexOf(v), scorer.score()));
                     }
@@ -173,8 +212,6 @@ public class Boss {
 
                 scorer.goToBookmark();
             }
-
-            scorer.goToBookmark();
 
             if (verbose) {
                 System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (All indices)");
@@ -184,39 +221,10 @@ public class Boss {
         return equals2;
     }
 
-    private void promoteLoop(TeyssierScorer scorer) {
-        boolean reduced;
-        do {
-            reduced = false;
-            scorer.bookmark();
-            List<Node> order = scorer.getOrder();
-
-            for (Node v : order) {
-                double bestScore = scorer.score();
-
-                while (scorer.promote(v)) {
-                    if (scorer.score() < bestScore) {
-                        bestScore = scorer.score();
-                        scorer.bookmark();
-                        reduced = true;
-                    }
-                }
-
-                scorer.goToBookmark();
-            }
-
-            scorer.goToBookmark();
-
-            if (verbose) {
-                System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Promotion)");
-            }
-        } while (reduced);
-    }
-
-    private void twoStep(TeyssierScorer scorer, Set<EqualsEntry> equals) {
+    private void finalOrientation(TeyssierScorer scorer, Set<EqualsEntry> equals) {
         scorer.bookmark();
 
-        Graph graph = getGraph(scorer.getOrder(), false);
+        Graph graph = scorer.getGraph(false);
         double bestScore = scorer.score();
 
         Set<OrderedPair<Node>> pairs = new HashSet<>();
@@ -225,36 +233,40 @@ public class Boss {
             Node v = e.getV();
 
             for (Node r : graph.getAdjacentNodes(v)) {
-                pairs.add(new OrderedPair<>(v, r));
-            }
-        }
-
-        for (OrderedPair<Node> pair : pairs) {
-            int i1 = scorer.indexOf(pair.getFirst());
-            int i2 = scorer.indexOf(pair.getSecond());
-
-            if (i1 > i2) {
-                scorer.moveTo(pair.getFirst(), i2);
-            } else if (i2 > i1) {
-                scorer.moveTo(pair.getSecond(), i1);
-            } else {
-                continue;
-            }
-
-            if (scorer.score() < bestScore) {
-                scorer.bookmark();
-                bestScore = scorer.score();
-
-                if (verbose) {
-                    System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Two Step)");
+                for (Node r2 : graph.getAdjacentNodes(v)) {
+                    if (graph.isDefCollider(r, v, r2)) {
+                        pairs.add(new OrderedPair<>(v, r));
+                        pairs.add(new OrderedPair<>(v, r2));
+                    } else if (graph.isDirectedFromTo(v, r) && graph.isDirectedFromTo(v, r2)) {
+                        pairs.add(new OrderedPair<>(v, r));
+                        pairs.add(new OrderedPair<>(v, r2));
+                    }
                 }
             }
         }
 
-        scorer.goToBookmark();
+        for (OrderedPair<Node> pair : pairs) {
+            Node r = pair.getSecond();
+            scorer.bookmark();
+            scorer.moveTo(r, 0);
+
+            while (scorer.demote(r)) {
+                if (scorer.score() < bestScore) {
+                    scorer.bookmark();
+                    bestScore = scorer.score();
+                    scorer.bookmark();
+
+                    if (verbose) {
+                        System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Final Orientation)");
+                    }
+                }
+            }
+
+            scorer.goToBookmark();
+        }
 
         if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Two Step)");
+            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Final Orientation)");
         }
     }
 
@@ -330,19 +342,7 @@ public class Boss {
         }
 
         scorer.score(order);
-        Graph G1 = new EdgeListGraph(order);
-
-        for (int p = 0; p < order.size(); p++) {
-            for (Node z : scorer.getMb(p)) {
-                G1.addDirectedEdge(z, order.get(p));
-            }
-        }
-
-        if (pattern) {
-            return SearchGraphUtils.patternForDag(G1);
-        } else {
-            return G1;
-        }
+        return scorer.getGraph(pattern);
     }
 
     public void setCacheScores(boolean cachingScores) {
@@ -363,6 +363,10 @@ public class Boss {
 
     public List<Node> getVariables() {
         return this.variables;
+    }
+
+    public void setDoFinalOrientation(boolean doFinalOrientation) {
+        this.doFinalOrientation = doFinalOrientation;
     }
 
     public enum Method {BOSS_PROMOTION, BOSS_ALL_INDICES, SP}

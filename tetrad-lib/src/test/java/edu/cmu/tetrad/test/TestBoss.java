@@ -66,41 +66,40 @@ public final class TestBoss {
     private static void runTestLoop(Graph g, List<Node> order, Score score, IndependenceTest test, boolean useTest) {
         System.out.println("order = " + order);
 
-        //        g = new EdgeListGraph(g);
-//        order = new ArrayList<>(order);
+        g = new EdgeListGraph(g);
+        order = new ArrayList<>(order);
 
-//        {
-//            Gsp gsp;
-//
-//            if (true) {
-//                gsp = new Gsp(test);
-//            } else {
-//                gsp = new Gsp(score);
-//            }
-//
-//            gsp.setCachingScores(true);
-//            gsp.setNumStarts(1);
-//            gsp.setGspDepth(5);
-//            gsp.setReturnCpdag(true);
-//            Graph pattern = gsp.search(order);
-//            pattern = GraphUtils.replaceNodes(pattern, variables);
-//
-//            printFailed(SearchGraphUtils.patternForDag(g), pattern, "GSP");
-//        }
+        {
+            Gsp gsp;
 
-//        {
-//            Boss boss = getBoss(score, test);
-//
-//            boss.setCacheScores(true);
-//            boss.setMethod(Boss.Method.BOSS_PROMOTION);
-//            boss.setNumStarts(1);
-//            List<Node> perm = boss.bestOrder(order);
-//            Graph dag = boss.getGraph(perm, false);
-//
-//            printFailed(g, dag, "BOSS Promotion " + order + " " + perm
-//                    + " " + g
-//                    + " " + dag);
-//        }
+            if (true) {
+                gsp = new Gsp(test);
+            } else {
+                gsp = new Gsp(score);
+            }
+
+            gsp.setCachingScores(true);
+            gsp.setNumStarts(1);
+            gsp.setGspDepth(5);
+            gsp.setReturnCpdag(true);
+            Graph pattern = gsp.search(order);
+
+            printFailed(SearchGraphUtils.patternForDag(g), pattern, "GSP");
+        }
+
+        {
+            Boss boss = getBoss(score, test);
+
+            boss.setCacheScores(true);
+            boss.setMethod(Boss.Method.BOSS_PROMOTION);
+            boss.setNumStarts(1);
+            List<Node> perm = boss.bestOrder(order);
+            Graph dag = boss.getGraph(perm, false);
+
+            printFailed(g, dag, "BOSS Promotion " + order + " " + perm
+                    + " " + g
+                    + " " + dag);
+        }
 
         {
             Boss boss = getBoss(score, test);
@@ -117,36 +116,36 @@ public final class TestBoss {
                     + " \n" + dag);
         }
 
-//        {
-//            Boss boss = getBoss(score, test);
-//
-//            boss.setCacheScores(true);
-//            boss.setMethod(Boss.Method.SP);
-//            boss.setNumStarts(1);
-//            List<Node> perm = boss.bestOrder(order);
-//            Graph dag = boss.getGraph(perm, false);
-//
-//            printFailed(g, dag, "SP " + order + " " + perm
-//                    + " " + g
-//                    + " " + dag);
-//        }
+        {
+            Boss boss = getBoss(score, test);
 
-//        {
-//            Boss boss;
-//
-//            if (true) {
-//                boss = new Boss(test);
-//            } else {
-//                boss = new Boss(score);
-//            }
-//
-//            boss.setCacheScores(true);
-//            boss.setMethod(Boss.Method.SP);
-//            boss.setNumStarts(1);
-//            List<Node> perm = boss.bestOrder(order);
-//            Graph pattern = boss.getGraph(perm, true);
-//            printFailed(SearchGraphUtils.patternForDag(g), pattern, "SP");
-//        }
+            boss.setCacheScores(true);
+            boss.setMethod(Boss.Method.SP);
+            boss.setNumStarts(1);
+            List<Node> perm = boss.bestOrder(order);
+            Graph dag = boss.getGraph(perm, false);
+
+            printFailed(g, dag, "SP " + order + " " + perm
+                    + " " + g
+                    + " " + dag);
+        }
+
+        {
+            Boss boss;
+
+            if (true) {
+                boss = new Boss(test);
+            } else {
+                boss = new Boss(score);
+            }
+
+            boss.setCacheScores(true);
+            boss.setMethod(Boss.Method.SP);
+            boss.setNumStarts(1);
+            List<Node> perm = boss.bestOrder(order);
+            Graph pattern = boss.getGraph(perm, true);
+            printFailed(SearchGraphUtils.patternForDag(g), pattern, "SP");
+        }
 
     }
 

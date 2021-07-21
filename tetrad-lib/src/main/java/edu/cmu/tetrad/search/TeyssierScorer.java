@@ -2,6 +2,8 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 
 import java.util.*;
@@ -47,6 +49,8 @@ public class TeyssierScorer {
         this.order = new LinkedList<>(order);
         this.variables = score != null ? score.getVariables() : test.getVariables();
         initializeScores();
+        setNodes(bookmarkedOrder, this.order);
+        setPairs(bookmarkedScores, this.scores);
         return score();
     }
 
@@ -199,6 +203,23 @@ public class TeyssierScorer {
         return scores.get(p).getMb();
     }
 
+    public Graph getGraph(boolean pattern) {
+        List<Node> order = getOrder();
+        Graph G1 = new EdgeListGraph(order);
+
+        for (int p = 0; p < order.size(); p++) {
+            for (Node z : getMb(p)) {
+                G1.addDirectedEdge(z, order.get(p));
+            }
+        }
+
+        if (pattern) {
+            return SearchGraphUtils.patternForDag(G1);
+        } else {
+            return G1;
+        }
+    }
+
     private Pair getGrowShrink(int p) {
         if (test != null) {
             return getGrowShrinkIndep(p);
@@ -266,7 +287,7 @@ public class TeyssierScorer {
             }
 
             return new Pair(mb, -sMax);
-//                return new Pair(mb, mb.size());
+//            return new Pair(mb, mb.size());
         }
     }
 
