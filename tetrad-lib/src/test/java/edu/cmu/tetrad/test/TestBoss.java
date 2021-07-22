@@ -81,10 +81,10 @@ public final class TestBoss {
             gsp.setCachingScores(true);
             gsp.setNumStarts(1);
             gsp.setGspDepth(5);
-            gsp.setReturnCpdag(true);
-            Graph pattern = gsp.search(order);
+            gsp.setReturnCpdag(false);
+            Graph dag = gsp.search(order);
 
-            printFailed(SearchGraphUtils.patternForDag(g), pattern, "GSP");
+            printFailed(g, dag, "BOSS All Indices " + order + " \n" + dag);
         }
 
         {
@@ -96,9 +96,7 @@ public final class TestBoss {
             List<Node> perm = boss.bestOrder(order);
             Graph dag = boss.getGraph(perm, false);
 
-            printFailed(g, dag, "BOSS Promotion " + order + " " + perm
-                    + " " + g
-                    + " " + dag);
+            printFailed(g, dag, "BOSS All Indices " + order + " \n" + dag);
         }
 
         {
@@ -111,9 +109,7 @@ public final class TestBoss {
             List<Node> perm = boss.bestOrder(order);
             Graph dag = boss.getGraph(perm, false);
 
-            printFailed(g, dag, "BOSS All Indices " + order// + " " + perm
-//                    + " \n" + g
-                    + " \n" + dag);
+            printFailed(g, dag, "BOSS All Indices " + order + " \n" + dag);
         }
 
         {
@@ -125,9 +121,7 @@ public final class TestBoss {
             List<Node> perm = boss.bestOrder(order);
             Graph dag = boss.getGraph(perm, false);
 
-            printFailed(g, dag, "SP " + order + " " + perm
-                    + " " + g
-                    + " " + dag);
+            printFailed(g, dag, "SP " + order + " " + perm  + " " + dag);
         }
 
         {
@@ -143,8 +137,9 @@ public final class TestBoss {
             boss.setMethod(Boss.Method.SP);
             boss.setNumStarts(1);
             List<Node> perm = boss.bestOrder(order);
-            Graph pattern = boss.getGraph(perm, true);
-            printFailed(SearchGraphUtils.patternForDag(g), pattern, "SP");
+            Graph dag = boss.getGraph(perm, false);
+
+            printFailed(g, dag, "SP " + order + " " + perm  + " " + dag);
         }
 
     }

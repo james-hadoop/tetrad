@@ -94,26 +94,23 @@ public class Boss {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Initial)");
         }
 
-        // Take each variable in turn and try moving it to each position to the left (i.e.,
-        // try promoting it in the causal order). Score each causal order by building
-        // a DAG using something like the K2 method. (We actually use Grow-Shrink, a
-        // Markov blanket algorithm, to find putative parents for each node.) Finally,
-        // place the node in whichever position yielded the highest score. Do this
-        // for each variable in turn. Once you're done, do it all again, until no more
-        // variables can be relocated.
+        /*
+         Take each variable in turn and try moving it to each position to the left (i.e.,
+         try promoting it in the causal order). Score each causal order by building
+         a DAG using something like the K2 method. (We actually use Grow-Shrink, a
+         Markov blanket algorithm, to find putative parents for each node.) Finally,
+         place the node in whichever position yielded the highest score. Do this
+         for each variable in turn. Once you're done, do it all again, until no more
+         variables can be relocated.
+        */
         if (doFinalOrientation) {
-            while (true) {
-                Set<EqualsEntry> equals = promoteLoop(scorer);
-                double score = scorer.score();
-                finalOrientation(scorer, equals);
-                if (scorer.score() == score) break;
-            }
-
-            return scorer.getOrder();
+            Set<EqualsEntry> equals = promoteLoop(scorer);
+            finalOrientation(scorer, equals);
         } else {
             promoteLoop(scorer);
-            return scorer.getOrder();
         }
+
+        return scorer.getOrder();
     }
 
     public List<Node> bossSearchAllIndices(TeyssierScorer scorer) {
@@ -131,18 +128,13 @@ public class Boss {
         }
 
         if (doFinalOrientation) {
-            while (true) {
-                Set<EqualsEntry> equals = allIndicesLoop(scorer);
-                double score = scorer.score();
-                finalOrientation(scorer, equals);
-                if (scorer.score() == score) break;
-            }
-
-            return scorer.getOrder();
+            Set<EqualsEntry> equals = allIndicesLoop(scorer);
+            finalOrientation(scorer, equals);
         } else {
             allIndicesLoop(scorer);
-            return scorer.getOrder();
         }
+
+        return scorer.getOrder();
     }
 
     private Set<EqualsEntry> promoteLoop(TeyssierScorer scorer) {
@@ -183,10 +175,9 @@ public class Boss {
 
         do {
             reduced = false;
-            List<Node> order = scorer.getOrder();
             scorer.bookmark();
 
-            for (Node v : order) {
+            for (Node v : scorer.getOrder()) {
                 double bestScore = scorer.score();
                 scorer.moveToFirst(v);
 
@@ -233,13 +224,11 @@ public class Boss {
             Node v = e.getV();
 
             for (Node r : graph.getAdjacentNodes(v)) {
-                for (Node r2 : graph.getAdjacentNodes(v)) {
-                    if (graph.isDefCollider(r, v, r2)) {
+                for (Node y : graph.getAdjacentNodes(v)) {
+                    if (graph.isDefCollider(y, v, r)) {
                         pairs.add(new OrderedPair<>(v, r));
-                        pairs.add(new OrderedPair<>(v, r2));
-                    } else if (graph.isDirectedFromTo(v, r) && graph.isDirectedFromTo(v, r2)) {
+                    } else if (graph.isDirectedFromTo(v, y) && graph.isDirectedFromTo(v, r)) {
                         pairs.add(new OrderedPair<>(v, r));
-                        pairs.add(new OrderedPair<>(v, r2));
                     }
                 }
             }
@@ -247,8 +236,17 @@ public class Boss {
 
         for (OrderedPair<Node> pair : pairs) {
             Node r = pair.getSecond();
-            scorer.bookmark();
-            scorer.moveTo(r, 0);
+            scorer.moveToFirst(r);
+
+            if (scorer.score() < bestScore) {
+                scorer.bookmark();
+                bestScore = scorer.score();
+                scorer.bookmark();
+
+                if (verbose) {
+                    System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Final Orientation)");
+                }
+            }
 
             while (scorer.demote(r)) {
                 if (scorer.score() < bestScore) {
@@ -268,37 +266,6 @@ public class Boss {
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Final Orientation)");
         }
-    }
-
-    public List<Node> esp(TeyssierScorer scorer) {
-        EspVisit visit = new EspVisit(scorer.getOrder(), scorer.score());
-        EspVisit visit0;
-
-        do {
-            visit0 = visit;
-            visit = espVisit(scorer, visit);
-        } while (visit.getScore() != visit0.getScore());
-
-        return visit.getOrder();
-    }
-
-    public EspVisit espVisit(TeyssierScorer scorer, EspVisit G) {
-        EspVisit Gtau = G;
-
-        for (int i = 0; i < G.getOrder().size() - 1; i++) {
-            Node v = G.getOrder().get(i);
-            Node w = G.getOrder().get(i + 1);
-
-            scorer.score(G.getOrder());
-
-            scorer.swap(v, w);
-
-            if (scorer.score() < Gtau.getScore()) {
-                Gtau = espVisit(scorer, new EspVisit(scorer.getOrder(), scorer.score()));
-            }
-        }
-
-        return Gtau;
     }
 
     public boolean isVerbose() {
@@ -408,24 +375,6 @@ public class Boss {
             EqualsEntry e = (EqualsEntry) o;
 
             return v == e.v && index == e.index && score == e.score;
-        }
-    }
-
-    private static class EspVisit {
-        private final List<Node> order;
-        private final double score;
-
-        public EspVisit(List<Node> order, double score) {
-            this.order = order;
-            this.score = score;
-        }
-
-        public List<Node> getOrder() {
-            return order;
-        }
-
-        public double getScore() {
-            return score;
         }
     }
 }
