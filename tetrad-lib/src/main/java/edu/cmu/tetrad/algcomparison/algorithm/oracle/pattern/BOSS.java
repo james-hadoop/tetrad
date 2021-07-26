@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * BOSS (Greedy Sparest Permutation, Simplified).
+ * BOSS (Best Order Score Search).
  *
  * @author jdramsey
  */
@@ -57,10 +57,11 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
             Boss boss = new Boss(score);
-            boss.setDoFinalOrientation(parameters.getBoolean(Params.FINAL_ORIENTATION));
+            boss.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
+//            boss.setGspDepth(parameters.getInt(Params.DEPTH));
 
             boss.setMethod(Boss.Method.BOSS_PROMOTION);
 
@@ -126,11 +127,12 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     @Override
     public List<String> getParameters() {
         ArrayList<String> params = new ArrayList<>();
-        params.add(Params.FINAL_ORIENTATION);
+        params.add(Params.BREAK_TIES);
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);
         params.add(Params.VERBOSE);
+//        params.add(Params.DEPTH);
         return params;
     }
 

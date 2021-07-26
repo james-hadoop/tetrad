@@ -11,7 +11,7 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.Gsp;
+import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * BOSS (Greedy Sparest Permutation, Simplified).
+ * Greedy Sparsest Permutation.
  *
  * @author jdramsey
  */
@@ -58,12 +58,14 @@ public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapp
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             IndependenceTest test = this.test.getTest(dataSet, parameters);
-            Gsp gsp = new Gsp(test);
-            gsp.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
-            gsp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            gsp.setGspDepth(parameters.getInt(Params.DEPTH));
-            gsp.setReturnCpdag(true);
-            return gsp.search(test.getVariables());
+            Boss boss = new Boss(test);
+//            boss.setBreakTies(parameters.getBoolean(Params.FINAL_ORIENTATION));
+            boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
+            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            boss.setGspDepth(parameters.getInt(Params.DEPTH));
+            List<Node> order = boss.bestOrder(test.getVariables());
+            return boss.getGraph(order, true);
         } else {
             GSPIndep fges = new GSPIndep();
 

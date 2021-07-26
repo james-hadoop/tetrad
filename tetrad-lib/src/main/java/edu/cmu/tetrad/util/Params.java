@@ -205,7 +205,7 @@ public final class Params {
     public static final String RECURSIVE = "recursive";
     public static final String CACHE_SCORES = "cacheScores";
     public static final String BOSS_METHOD = "bossMethod";
-    public static final String FINAL_ORIENTATION = "finalOrientation";
+    public static final String BREAK_TIES = "breakTies";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(

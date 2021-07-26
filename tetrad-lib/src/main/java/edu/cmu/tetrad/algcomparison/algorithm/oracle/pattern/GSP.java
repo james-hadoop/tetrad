@@ -11,9 +11,8 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.Gsp;
+import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -54,15 +53,16 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
-            Gsp gsp = new Gsp(score);
-            gsp.setCachingScores(parameters.getBoolean(Params.CACHE_SCORES));
-            gsp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            gsp.setGspDepth(parameters.getInt(Params.DEPTH));
-            gsp.setReturnCpdag(true);
+            Boss boss = new Boss(score);
+//            boss.setBreakTies(parameters.getBoolean(Params.FINAL_ORIENTATION));
+            boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
+            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            boss.setGspDepth(parameters.getInt(Params.DEPTH));
+            boss.setMethod(Boss.Method.GSP);
 
-            Graph graph = gsp.search(score.getVariables());
-
-            return SearchGraphUtils.patternForDag(graph);
+            List<Node> order = boss.bestOrder(score.getVariables());
+            return boss.getGraph(order, true);
         } else {
             GSP fges = new GSP();
 
