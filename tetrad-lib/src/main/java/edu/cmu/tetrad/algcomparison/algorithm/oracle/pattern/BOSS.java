@@ -13,6 +13,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -75,6 +76,14 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
             }
 
+            if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 1) {
+                boss.setScoreType(TeyssierScorer.ScoreType.Edge);
+            } else if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 2) {
+                boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
+            } else {
+                throw new IllegalArgumentException("Unexpected score type: " + parameters.getInt(Params.BOSS_SCORE_TYPE));
+            }
+
             List<Node> perm = boss.bestOrder(score.getVariables());
             return boss.getGraph(perm, true);
         } else {
@@ -131,6 +140,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);
+        params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.VERBOSE);
 //        params.add(Params.DEPTH);
         return params;

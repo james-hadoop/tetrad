@@ -1,6 +1,8 @@
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +29,7 @@ public class Boss {
     private boolean verbose = false;
     private boolean breakTies = false;
     private int gspDepth = -1;
+    private TeyssierScorer.ScoreType scoreType = TeyssierScorer.ScoreType.Edge;
 
     public Boss(Score score) {
         this.score = score;
@@ -50,6 +53,8 @@ public class Boss {
             scorer = new TeyssierScorer(test);
         }
 
+        scorer.setScoreType(scoreType);
+
         scorer.setCachingScores(cachingScores);
 
         double best = Double.POSITIVE_INFINITY;
@@ -57,6 +62,11 @@ public class Boss {
 
         for (int r = 0; r < numStarts; r++) {
             if (r > 0) scorer.shuffleVariables();
+
+//            Fges fges = new Fges(score);
+//            Graph g = fges.search();
+//            order = g.getCausalOrdering();
+
             scorer.score(order);
             List<Node> perm;
 
@@ -132,12 +142,13 @@ public class Boss {
         }
 
         if (breakTies) {
-//            while (true) {
-            allIndicesLoop(scorer);
-//                double score = scorer.score();
-            breakTie(scorer);
-////                if (scorer.score() == score) break;
-//            }
+            while (true) {
+                allIndicesLoop(scorer);
+                double score = scorer.score();
+                breakTie(scorer);
+
+                if (scorer.score() == score) break;
+            }
         } else {
             allIndicesLoop(scorer);
         }
@@ -145,19 +156,25 @@ public class Boss {
         return scorer.getOrder();
     }
 
+    // For ties choose the most senior.
     private void promoteLoop(TeyssierScorer scorer) {
         boolean reduced;
 
         do {
             reduced = false;
 
+            // Pick a v and promote it as far as you can while getting an equal or lower score.
             for (Node v : scorer.getOrder()) {
-                double bestScore = scorer.score();
+                double score = scorer.score();
                 scorer.bookmark();
 
                 while (scorer.promote(v)) {
-                    if (scorer.score() < bestScore) {
-                        reduced = true;
+                    if (scorer.score() <= score) {
+                        if (scorer.score() < score) {
+                            reduced = true;
+                            score = scorer.score();
+                        }
+
                         scorer.bookmark();
                     }
                 }
@@ -172,6 +189,7 @@ public class Boss {
 
     }
 
+    // For ties choose the most senior.
     private void allIndicesLoop(TeyssierScorer scorer) {
         boolean reduced;
 
@@ -180,20 +198,20 @@ public class Boss {
             scorer.bookmark();
 
             for (Node v : scorer.getOrder()) {
-                double bestScore = scorer.score();
+                double score = scorer.score();
                 scorer.moveToFirst(v);
 
-                if (scorer.score() < bestScore) {
-                    bestScore = scorer.score();
+                if (scorer.score() < score) {
                     reduced = true;
                     scorer.bookmark();
+                    score = scorer.score();
                 }
 
                 while (scorer.demote(v)) {
-                    if (scorer.score() < bestScore) {
-                        bestScore = scorer.score();
+                    if (scorer.score() < score) {
                         reduced = true;
                         scorer.bookmark();
+                        score = scorer.score();
                     }
                 }
 
@@ -210,20 +228,14 @@ public class Boss {
     private void breakTie(TeyssierScorer scorer) {
         String label = "Break Tie";
 
-//        System.out.println("Permutation: " + scorer.getOrder());
-
         List<Node> order = scorer.getOrder();
         double score = scorer.score();
 
-        // Pick a v.
-
-        I:
         for (int i = 0; i < order.size(); i++) {
             Node v = order.get(i);
 
-            // ...and promote it to another position that yields the same score.
-            for (int j = 0; j < order.indexOf(v); j++) {
-                if (i == j) continue;
+            // ...and move it to another position that yields the same score.
+            for (int j = 0; j < order.size(); j++) {
                 scorer.moveTo(v, j);
 
                 if (scorer.score() > score) {
@@ -234,20 +246,16 @@ public class Boss {
                     return;
                 }
 
-//                System.out.println("Moving " + v + " from " + i + " to " + j
-//                        + " same score = " + scorer.score() + " " + scorer.getOrder());
-
                 scorer.bookmark();
 
-                // Then pick an r != v
-                for (int k = 0; k < scorer.getOrder().size(); k++) {
+                for (int k = 0; k < scorer.size(); k++) {
                     Node r = scorer.getOrder().get(k);
                     if (r == v) continue;
 
-                    Set<Node> vMb = scorer.getMb(scorer.indexOf(v));
-                    Set<Node> rMb = scorer.getMb(scorer.indexOf(r));
+                    Set<Node> vMb = scorer.getParents(scorer.indexOf(v));
+                    Set<Node> rMb = scorer.getParents(scorer.indexOf(r));
 
-                    if (!vMb.contains(r) && !rMb.contains(v)) {
+                    if (!(vMb.contains(r) || rMb.contains(v))) {
                         continue;
                     }
 
@@ -257,7 +265,7 @@ public class Boss {
                         return;
                     }
 
-                    scorer.goToBookmark();
+                    scorer.swap(v, r);
                 }
             }
         }
@@ -272,15 +280,11 @@ public class Boss {
     private List<Node> gsp(TeyssierScorer scorer) {
         int maxDepth = this.gspDepth == -1 ? Integer.MAX_VALUE : this.gspDepth;
 
-        List<Node> order;
-        List<Node> best = scorer.getOrder();
-        double s = scorer.score(best);
-
-
+        double s = scorer.score();
 
         while (true) {
-            order = gspVisit(scorer, maxDepth,10, new HashSet<>(), null);
-            double score = scorer.score(order);
+            gspVisit(scorer, maxDepth, 0, new HashSet<>(), null);
+            double score = scorer.score();
 
             breakTie(scorer);
 
@@ -291,58 +295,43 @@ public class Boss {
             }
         }
 
-        scorer.score(best);
-        return best;
+        return scorer.getOrder();
     }
 
-    private List<Node> gspVisit(TeyssierScorer scorer, int maxDepth, int depth, Set<Node> path,
-                                Node ww) {
-        maxDepth = maxDepth == -1 ? 10000 : maxDepth;
-        if (depth > maxDepth) return scorer.getOrder();
+    private boolean gspVisit(TeyssierScorer scorer, int maxDepth, int depth, Set<Node> path,
+                             Node ww) {
+        path.add(ww);
 
-        List<Node> order = scorer.getOrder();
+        maxDepth = maxDepth == -1 ? 10000 : maxDepth;
+        if (depth > maxDepth) return false;
+
         double s = scorer.score();
 
-        path.add(ww);
-        Graph graph0 = getGraph(scorer.getOrder(), false);
-        scorer.bookmark();
+        for (int i = 0; i < scorer.size(); i++) {
+            Node w = scorer.getOrder().get(i);
 
-        for (Edge edge : graph0.getEdges()) {
-            if (Edges.isUndirectedEdge(edge)) continue;
+            for (Node v : new HashSet<>(scorer.getParents(i))) {
+                Set<Node> mbv = scorer.getParents(scorer.indexOf(v));
+                Set<Node> mbw = scorer.getParents(scorer.indexOf(w));
 
-            Node v = Edges.getDirectedEdgeTail(edge);
-            Node w = Edges.getDirectedEdgeHead(edge);
+                if (path.contains(w)) continue;
 
-            if (path.contains(w)) continue;
+                mbw.remove(v);
 
-            Set<Node> mbv = scorer.getMb(scorer.indexOf(v));
-            Set<Node> mbw = scorer.getMb(scorer.indexOf(w));
-            mbw.remove(v);
+                if (mbv.equals(mbw)) {
+                    scorer.swap(v, w);
 
-            if (mbv.equals(mbw)) {
-                System.out.println("Swapping " + v + " and " + w + " " + graph0.getEdge(v, w));
-
-                scorer.swap(v, w);
-
-                if (scorer.score() < s) {
-                    return gspVisit(scorer, maxDepth, depth + 1, path, w);
+                    if (scorer.score() <= s) {
+                        return gspVisit(scorer, maxDepth, depth + 1, path, w);
+                    } else {
+                        scorer.swap(v, w);
+                    }
                 }
             }
-
-            scorer.goToBookmark();
         }
 
         path.remove(ww);
-        return order;
-    }
-
-
-    public boolean isVerbose() {
-        return verbose;
-    }
-
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
+        return false;
     }
 
     public List<Node> sp(TeyssierScorer scorer) {
@@ -377,6 +366,8 @@ public class Boss {
             scorer = new TeyssierScorer(test);
         }
 
+        scorer.setScoreType(scoreType);
+
         scorer.score(order);
         return scorer.getGraph(pattern);
     }
@@ -408,6 +399,21 @@ public class Boss {
     public void setGspDepth(int gspDepth) {
         this.gspDepth = gspDepth;
     }
+
+    public void setScoreType(TeyssierScorer.ScoreType scoreType) {
+        this.scoreType = scoreType;
+    }
+
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+
+
 
     public enum Method {BOSS_PROMOTION, BOSS_ALL_INDICES, SP, GSP}
 }

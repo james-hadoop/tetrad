@@ -1,0 +1,76 @@
+Sun Aug 01 12:22:17 EDT 2021
+
+Statistics:
+
+penaltyDiscount = Extra column for penaltyDiscount
+AP = Adjacency Precision
+AR = Adjacency Recall
+AHP = Arrowhead precision
+AHR = Arrowhead recall
+ATPR = Adjacency True Positive Rate
+AFPR = Adjacency False Positive Rate
+SHD = Structural Hamming Distance
+E = Elapsed Time in Seconds
+
+Simulations:
+
+Simulation 1: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 6.0
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1.0
+High end of variance range (min = 0.0) = 3.0
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 1
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 150
+Save latent variables. = No
+Yes if the data should be standardized = No
+
+Algorithms:
+
+1. BOSS
+
+Graphs are being compared to the Pattern of the true DAG.
+
+AVERAGE STATISTICS
+
+All edges
+
+  Alg  penaltyDiscount    AP    AR   AHP   AHR  ATPR     AFPR     SHD      E
+    1             3.00  0.96  0.70  0.93  0.66  0.70  1.64E-3  205.00  77.91
+
+STANDARD DEVIATIONS
+
+All edges
+
+  Alg  penaltyDiscount  AP  AR  AHP  AHR  ATPR  AFPR  SHD  E
+    1             3.00   *   *    *    *     *     *    *  *
+
+WORST CASE
+
+All edges
+
+  Alg  penaltyDiscount    AP    AR   AHP   AHR  ATPR     AFPR     SHD      E
+    1             3.00  0.96  0.70  0.93  0.66  0.70  1.64E-3  205.00  77.91
+
+MEDIAN CASE
+
+All edges
+
+  Alg  penaltyDiscount    AP    AR   AHP   AHR  ATPR     AFPR     SHD      E
+    1             3.00  0.96  0.70  0.93  0.66  0.70  1.64E-3  205.00  77.91
+

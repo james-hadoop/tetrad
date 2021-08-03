@@ -57,6 +57,7 @@ public class StatsListEditor extends JPanel {
         statistics.add(new AdjacencyTN());
         statistics.add(new AdjacencyTP());
         statistics.add(new AdjacencyTPR());
+        statistics.add(new AdjacencyFPR());
         statistics.add(new AdjacencyFN());
         statistics.add(new AdjacencyFP());
         statistics.add(new AdjacencyFN());

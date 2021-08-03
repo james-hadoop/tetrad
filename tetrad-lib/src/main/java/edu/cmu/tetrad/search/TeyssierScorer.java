@@ -5,6 +5,7 @@ import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -21,24 +22,34 @@ import static java.util.Collections.shuffle;
  */
 public class TeyssierScorer {
     private final Map<ScoreKey, Pair> cache = new HashMap<>();
+    private final List<Node> variables;
+    private final ParentCalculation parentCalculation = ParentCalculation.IteratedGrowShrink;
+    private final Map<Node, Integer> variablesHash;
     private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
     private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
+    private HashMap<Node, Integer> bookmarkedNodesHash = new HashMap<>();
     private Score score;
     private IndependenceTest test;
-    private List<Node> variables;
     private LinkedList<Node> order;
     private LinkedList<Pair> scores;
     private boolean cachingScores = true;
     private IKnowledge knowledge = new Knowledge2();
     private LinkedList<Set<Node>> prefixes;
+    private ScoreType scoreType = ScoreType.Edge;
+    private Map<Node, Integer> orderHash = new HashMap<>();
 
     public TeyssierScorer(Score score) {
         this.score = score;
         this.order = new LinkedList<>(score.getVariables());
+        this.orderHash = nodesHash(order);
+        this.variables = score.getVariables();
+        this.variablesHash = nodesHash(variables);
     }
 
     public TeyssierScorer(IndependenceTest test) {
         this.test = test;
+        this.variables = test.getVariables();
+        this.variablesHash = nodesHash(variables);
     }
 
     public void setKnowledge(IKnowledge knowledge) {
@@ -47,28 +58,21 @@ public class TeyssierScorer {
 
     public double score(List<Node> order) {
         this.order = new LinkedList<>(order);
-        this.variables = score != null ? score.getVariables() : test.getVariables();
         initializeScores();
-        setNodes(bookmarkedOrder, this.order);
-        setPairs(bookmarkedScores, this.scores);
+        this.bookmarkedOrder = new LinkedList<>(this.order);
+        this.bookmarkedScores = new LinkedList<>(this.scores);
+        this.orderHash = nodesHash(this.order);
         return score();
     }
 
-    private void initializeArrays(List<Node> order) {
-        this.scores = new LinkedList<>();
-        for (int i = 0; i < order.size(); i++) this.scores.add(null);
+    private Map<Node, Integer> nodesHash(List<Node> order) {
+        HashMap<Node, Integer> nodesHash = new HashMap<>();
 
-        this.prefixes = new LinkedList<>();
-        for (int i = 0; i < order.size(); i++) this.prefixes.add(null);
+        for (int i = 0; i < order.size(); i++) {
+            nodesHash.put(order.get(i), i);
+        }
 
-        this.bookmarkedOrder = new LinkedList<>();
-        for (int i = 0; i < order.size(); i++) this.bookmarkedOrder.add(null);
-
-        this.bookmarkedScores = new LinkedList<>();
-        for (int i = 0; i < order.size(); i++) this.bookmarkedScores.add(null);
-
-        this.prefixes = new LinkedList<>();
-        for (int i = 0; i < order.size(); i++) this.prefixes.add(null);
+        return nodesHash;
     }
 
     public double score() {
@@ -76,7 +80,7 @@ public class TeyssierScorer {
     }
 
     public boolean promote(Node v) {
-        int index = order.indexOf(v);
+        int index = orderHash.get(v);
         if (index == 0) return false;
 
         Node v1 = order.get(index - 1);
@@ -88,12 +92,16 @@ public class TeyssierScorer {
         recalculate(index - 1);
         recalculate(index);
 
+        orderHash.put(v1, index);
+        orderHash.put(v2, index - 1);
+
         return true;
     }
 
     public boolean demote(Node v) {
-        int index = order.indexOf(v);
-        if (index == order.size() - 1) return false;
+        int index = orderHash.get(v);
+        if (index == size() - 1) return false;
+        if (index == -1) return false;
 
         Node v1 = order.get(index);
         Node v2 = order.get(index + 1);
@@ -104,30 +112,41 @@ public class TeyssierScorer {
         recalculate(index);
         recalculate(index + 1);
 
+        orderHash.put(v1, index + 1);
+        orderHash.put(v2, index);
+
         return true;
     }
 
     public void moveTo(Node v, int toIndex) {
-        int fromIndex = order.indexOf(v);
+        int fromIndex = orderHash.get(v);
 
-        while (toIndex < fromIndex) {
-            if (!promote(v)) break;
+        while (toIndex < fromIndex && fromIndex > 0) {
+            promote(v);
             fromIndex--;
         }
 
-        while (toIndex > fromIndex) {
-            if (!demote(v)) break;
+        while (toIndex > fromIndex && fromIndex < size() - 1) {
+            demote(v);
             fromIndex++;
         }
     }
 
     public void moveToFirst(Node v) {
-        moveTo(v, 0);
+        int j = indexOf(v);
+        order.remove(v);
+        order.addFirst(v);
+        for (int i = 0; i <= j; i++) {
+            recalculate(i);
+        }
+        orderHash = nodesHash(order);
+
+//        moveTo(v, 0);
     }
 
     public void swap(Node m, Node n) {
-        int i = order.indexOf(m);
-        int j = order.indexOf(n);
+        int i = orderHash.get(m);
+        int j = orderHash.get(n);
 
         moveTo(m, j);
         moveTo(n, i);
@@ -138,7 +157,7 @@ public class TeyssierScorer {
     }
 
     public int indexOf(Node v) {
-        return order.indexOf(v);
+        return orderHash.get(v);
     }
 
     private double sum() {
@@ -152,7 +171,11 @@ public class TeyssierScorer {
     }
 
     private void initializeScores() {
-        initializeArrays(order);
+        this.scores = new LinkedList<>();
+        for (int i1 = 0; i1 < order.size(); i1++) this.scores.add(null);
+
+        this.prefixes = new LinkedList<>();
+        for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
 
         for (int i = 0; i < order.size(); i++) {
             recalculate(i);
@@ -162,8 +185,10 @@ public class TeyssierScorer {
     private double score(Node n, Set<Node> pi) {
         if (cachingScores) {
             ScoreKey key = new ScoreKey(n, pi);
-            if (cache.containsKey(key)) {
-                return cache.get(key).getScore();
+            Pair pair = cache.get(key);
+
+            if (pair != null) {
+                return pair.getScore();
             }
         }
 
@@ -172,10 +197,10 @@ public class TeyssierScorer {
         int k = 0;
 
         for (Node p : pi) {
-            parentIndices[k++] = variables.indexOf(p);
+            parentIndices[k++] = variablesHash.get(p);
         }
 
-        double v = this.score.localScore(variables.indexOf(n), parentIndices);
+        double v = this.score.localScore(variablesHash.get(n), parentIndices);
 
         if (cachingScores) {
             ScoreKey key = new ScoreKey(n, pi);
@@ -187,20 +212,25 @@ public class TeyssierScorer {
 
     private List<Node> getPrefix(int i) {
         List<Node> prefix = new ArrayList<>();
-        for (int j = 0; j < i; j++) {
-            prefix.add(order.get(j));
+
+        // Keep variables in original order to avoid differences due to ordering variations.
+        for (Node v : variables) {
+            if (order.contains(v) && order.indexOf(v) < i) {
+                prefix.add(v);
+            }
         }
+
         return prefix;
     }
 
     private void recalculate(int p) {
         if (!new HashSet<>(getPrefix(p)).equals(prefixes.get(p))) {
-            scores.set(p, getGrowShrink(p));
+            scores.set(p, getParentsInternal(p));
         }
     }
 
-    public Set<Node> getMb(int p) {
-        return scores.get(p).getMb();
+    public Set<Node> getParents(int p) {
+        return scores.get(p).getParents();
     }
 
     public Graph getGraph(boolean pattern) {
@@ -208,7 +238,7 @@ public class TeyssierScorer {
         Graph G1 = new EdgeListGraph(order);
 
         for (int p = 0; p < order.size(); p++) {
-            for (Node z : getMb(p)) {
+            for (Node z : getParents(p)) {
                 G1.addDirectedEdge(z, order.get(p));
             }
         }
@@ -220,81 +250,45 @@ public class TeyssierScorer {
         }
     }
 
-    private Pair getGrowShrink(int p) {
-        if (test != null) {
-            return getGrowShrinkIndep(p);
-        } else {
-
-            Node n = order.get(p);
-
-            Set<Node> mb = new HashSet<>();
-            boolean changed = true;
-
-            double sMax = score(n, new HashSet<>());
-            List<Node> prefix = getPrefix(p);
-
-            // Grow-shrink
-            while (changed) {
-                changed = false;
-
-                // Let z be the node that maximizes the score...
-                Node z = null;
-
-                for (Node z0 : prefix) {
-                    if (mb.contains(z0)) continue;
-
-                    if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
-                    mb.add(z0);
-                    double s2 = score(n, mb);
-
-                    if (s2 > sMax) {
-                        sMax = s2;
-                        z = z0;
-                    }
-
-                    mb.remove(z0);
-                }
-
-                if (z != null) {
-                    mb.add(z);
-                    changed = true;
-                    boolean changed2 = true;
-
-                    while (changed2) {
-                        changed2 = false;
-
-                        Node w = null;
-
-                        for (Node z0 : new HashSet<>(mb)) {
-                            mb.remove(z0);
-
-                            double s2 = score(n, mb);
-
-                            if (s2 > sMax) {
-                                sMax = s2;
-                                w = z0;
-                            }
-
-                            mb.add(z0);
-                        }
-
-                        if (w != null) {
-                            mb.remove(w);
-                            changed2 = true;
-                        }
-                    }
-                }
+    private Pair getParentsInternal(int p) {
+        if (parentCalculation == ParentCalculation.IteratedGrowShrink) {
+            if (test != null) {
+                return getGrowShrinkIndep(p);
+            } else {
+                return getGrowShrinkScore(p);
             }
-
-            return new Pair(mb, -sMax);
-//            return new Pair(mb, mb.size());
+        } else if (parentCalculation == ParentCalculation.VermaPearl) {
+            if (test != null) {
+                return vermaPearl(p);
+            } else {
+                throw new IllegalStateException("For Verma-Pearl, need a test.");
+            }
+        } else {
+            throw new IllegalStateException("Unrecognized parent calculation: " + parentCalculation);
         }
+    }
+
+    private Pair vermaPearl(int p) {
+        Node x = order.get(p);
+        Set<Node> parents = new HashSet<>();
+        List<Node> prefix = getPrefix(p);
+
+        for (Node y : prefix) {
+            List<Node> minus = new ArrayList<>(prefix);
+            minus.remove(y);
+
+            if (test.isDependent(x, y, minus)) {
+                parents.add(y);
+            }
+        }
+
+        return new Pair(parents, parents.size());
     }
 
     private Pair getGrowShrinkIndep(int p) {
         Node n = order.get(p);
 
-        List<Node> mb = new ArrayList<>();
+        List<Node> parents = new ArrayList<>();
         boolean changed = true;
 
         List<Node> prefix = getPrefix(p);
@@ -304,10 +298,10 @@ public class TeyssierScorer {
             changed = false;
 
             for (Node z0 : prefix) {
-                if (mb.contains(z0)) continue;
+                if (parents.contains(z0)) continue;
 
-                if (test.isDependent(n, z0, mb)) {
-                    mb.add(z0);
+                if (test.isDependent(n, z0, parents)) {
+                    parents.add(z0);
                     changed = true;
                 }
 
@@ -316,42 +310,198 @@ public class TeyssierScorer {
                 while (changed2) {
                     changed2 = false;
 
-                    for (Node z1 : new ArrayList<>(mb)) {
-                        mb.remove(z1);
+                    for (Node z1 : new ArrayList<>(parents)) {
+                        parents.remove(z1);
 
-                        if (test.isIndependent(n, z1, mb)) {
+                        if (test.isIndependent(n, z1, parents)) {
                             changed2 = true;
                         } else {
-                            mb.add(z1);
+                            parents.add(z1);
                         }
                     }
                 }
             }
         }
 
-        return new Pair(new HashSet<>(mb), mb.size());
+        return new Pair(new HashSet<>(parents), parents.size());
     }
 
-    public synchronized void bookmark() {
-        setNodes(bookmarkedOrder, order);
-        setPairs(bookmarkedScores, scores);
-    }
+    @NotNull
+    private Pair getGrowShrinkScore(int p) {
+        Node n = order.get(p);
 
-    public synchronized void goToBookmark() {
-        setNodes(order, bookmarkedOrder);
-        setPairs(scores, bookmarkedScores);
-    }
+        Set<Node> parents = new HashSet<>();
+        boolean changed = true;
 
-    private void setNodes(LinkedList<Node> order1, LinkedList<Node> order2) {
-        for (int i = 0; i < order.size(); i++) {
-            order1.set(i, order2.get(i));
+        double sMax = score(n, new HashSet<>());
+        List<Node> prefix = getPrefix(p);
+
+        // Grow-shrink
+        while (changed) {
+            changed = false;
+
+            // Let z be the node that maximizes the score...
+            Node z = null;
+
+            for (Node z0 : prefix) {
+                if (parents.contains(z0)) continue;
+
+                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+                parents.add(z0);
+
+                double s2 = score(n, parents);
+
+                if (s2 > sMax) {
+                    sMax = s2;
+                    z = z0;
+                }
+
+                parents.remove(z0);
+            }
+
+            if (z != null) {
+                parents.add(z);
+                changed = true;
+            }
+
+            boolean changed2 = true;
+
+            while (changed2) {
+                changed2 = false;
+
+                Node w = null;
+
+                for (Node z0 : new HashSet<>(parents)) {
+                    parents.remove(z0);
+
+                    double s2 = score(n, parents);
+
+                    if (s2 > sMax) {
+                        sMax = s2;
+                        w = z0;
+                    }
+
+                    parents.add(z0);
+                }
+
+                if (w != null) {
+                    parents.remove(w);
+                    changed2 = true;
+                }
+            }
+        }
+
+        if (scoreType == ScoreType.Edge) {
+            return new Pair(parents, parents.size());
+        } else if (scoreType == ScoreType.SCORE) {
+            return new Pair(parents, -sMax);
+        } else {
+            throw new IllegalStateException("Unexpected score type: " + scoreType);
         }
     }
 
-    private void setPairs(LinkedList<Pair> order1, LinkedList<Pair> order2) {
-        for (int i = 0; i < order.size(); i++) {
-            order1.set(i, order2.get(i));
+    @NotNull
+    private Pair getGrowShrinkScore2(int p) {
+        Node n = order.get(p);
+
+        Set<Node> parents = new HashSet<>();
+        boolean changed = true;
+
+        double sMax = score(n, new HashSet<>());
+        List<Node> prefix = getPrefix(p);
+
+        // Grow-shrink
+        while (changed) {
+            changed = false;
+
+            // Let z be the node that maximizes the score...
+            Node z = null;
+
+            for (Node z0 : prefix) {
+                if (parents.contains(z0)) continue;
+
+                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+                parents.add(z0);
+
+                double s2 = score(n, parents);
+
+                if (s2 > sMax) {
+                    sMax = s2;
+                    z = z0;
+                }
+
+                parents.remove(z0);
+            }
+
+            if (z != null) {
+                Set<Node> Z = new HashSet<>();
+                Z.add(z);
+
+                for (Node z0 : getPrefix(indexOf(z))) {
+                    if (parents.contains(z0)) continue;
+
+//                    if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+                    parents.add(z0);
+
+                    double s2 = score(n, parents);
+
+                    if (s2 > sMax) {
+                        sMax = s2;
+                        Z.add(z);
+                    }
+
+                    parents.remove(z0);
+                }
+
+                parents.addAll(Z);
+                changed = true;
+                boolean changed2 = true;
+
+                while (changed2) {
+                    changed2 = false;
+
+                    Node w = null;
+
+                    for (Node z0 : new HashSet<>(parents)) {
+                        parents.remove(z0);
+
+                        double s2 = score(n, parents);
+
+                        if (s2 > sMax) {
+                            sMax = s2;
+                            w = z0;
+                        }
+
+                        parents.add(z0);
+                    }
+
+                    if (w != null) {
+                        parents.remove(w);
+                        changed2 = true;
+                    }
+                }
+            }
         }
+
+        if (scoreType == ScoreType.Edge) {
+            return new Pair(parents, parents.size());
+        } else if (scoreType == ScoreType.SCORE) {
+            return new Pair(parents, -sMax);
+        } else {
+            throw new IllegalStateException("Unexpected score type: " + scoreType);
+        }
+    }
+
+    public void bookmark() {
+        this.bookmarkedOrder = new LinkedList<>(order);
+        this.bookmarkedScores = new LinkedList<>(scores);
+        this.bookmarkedNodesHash = new HashMap<>(orderHash);
+    }
+
+    public void goToBookmark() {
+        this.order = new LinkedList<>(bookmarkedOrder);
+        this.scores = new LinkedList<>(bookmarkedScores);
+        this.orderHash = new HashMap<>(bookmarkedNodesHash);
     }
 
     public void setCachingScores(boolean cachingScores) {
@@ -366,7 +516,7 @@ public class TeyssierScorer {
         int numEdges = 0;
 
         for (int p = 0; p < order.size(); p++) {
-            numEdges += getMb(p).size();
+            numEdges += getParents(p).size();
         }
 
         return numEdges;
@@ -378,17 +528,29 @@ public class TeyssierScorer {
         score(order);
     }
 
+    public void setScoreType(ScoreType scoreType) {
+        this.scoreType = scoreType;
+    }
+
+    public Node getNode(int j) {
+        return order.get(j);
+    }
+
+    public enum ScoreType {Edge, SCORE}
+
+    public enum ParentCalculation {IteratedGrowShrink, VermaPearl}
+
     private static class Pair {
-        private final Set<Node> mb;
+        private final Set<Node> parents;
         private final double score;
 
-        private Pair(Set<Node> mb, double score) {
-            this.mb = mb;
+        private Pair(Set<Node> parents, double score) {
+            this.parents = parents;
             this.score = score;
         }
 
-        public Set<Node> getMb() {
-            return mb;
+        public Set<Node> getParents() {
+            return parents;
         }
 
         public double getScore() {
@@ -406,7 +568,7 @@ public class TeyssierScorer {
         }
 
         public int hashCode() {
-            return y.hashCode() + 11 * pi.hashCode();
+            return 3 * y.hashCode() + 7 * pi.hashCode();
         }
 
         public boolean equals(Object o) {
@@ -415,7 +577,7 @@ public class TeyssierScorer {
             }
 
             ScoreKey spec = (ScoreKey) o;
-            return spec.y.equals(this.y) && spec.pi.equals(this.pi);
+            return y.equals(spec.y) && this.pi.equals(spec.pi);
         }
 
         public Node getY() {

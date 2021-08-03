@@ -62,7 +62,7 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
             boss.setMethod(Boss.Method.GSP);
 
             List<Node> order = boss.bestOrder(score.getVariables());
-            return boss.getGraph(order, true);
+            return boss.getGraph(order, false);
         } else {
             GSP fges = new GSP();
 
