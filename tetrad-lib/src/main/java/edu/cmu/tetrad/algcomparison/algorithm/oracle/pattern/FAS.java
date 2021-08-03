@@ -45,9 +45,9 @@ public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            Fas search = new Fas(test.getTest(dataSet, parameters));
+            Fas search = new Fas(test.getTest(dataSet, parameters, trueGraph));
             search.setStable(parameters.getBoolean(Params.STABLE_FAS));
             search.setHeuristic(parameters.getInt(Params.FAS_HEURISTIC));
             search.setDepth(parameters.getInt(Params.DEPTH));

@@ -1589,8 +1589,13 @@ public final class Fges implements GraphSearch, GraphScorer {
         return _score;
     }
 
+//    private Map<IndependenceFact, Double> cache = new HashMap<>();
+
     private double scoreGraphChange(Node x, Node y, Set<Node> parents,
                                     Map<Node, Integer> hashIndices, boolean blathering) {
+//        Double cachedV = cache.get(new IndependenceFact(x, y, parents));
+//        if (cachedV != null) return cachedV;
+
         int xIndex = hashIndices.get(x);
         int yIndex = hashIndices.get(y);
 
@@ -1610,6 +1615,8 @@ public final class Fges implements GraphSearch, GraphScorer {
         }
 
         double v = score.localScoreDiff(xIndex, yIndex, parentIndices);
+
+//        cache.put(new IndependenceFact(x, y, parents), v);
 
         blathering = false;
 

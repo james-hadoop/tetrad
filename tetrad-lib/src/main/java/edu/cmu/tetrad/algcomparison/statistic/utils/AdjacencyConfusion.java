@@ -1,11 +1,8 @@
 package edu.cmu.tetrad.algcomparison.statistic.utils;
 
 import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.Edges;
 import edu.cmu.tetrad.graph.Graph;
-
-import java.util.HashSet;
-import java.util.Set;
+import edu.cmu.tetrad.graph.GraphUtils;
 
 /**
  * A confusion matrix for adjacencies--i.e. TP, FP, TN, FN for counts of adjacencies.
@@ -13,19 +10,18 @@ import java.util.Set;
  * @author jdramsey
  */
 public class AdjacencyConfusion {
-    private Graph truth;
-    private Graph est;
-    private int adjTp;
-    private int adjFp;
-    private int adjFn;
-    private int adjTn;
+    private final int adjTp;
+    private final int adjFp;
+    private final int adjFn;
+    private final int adjTn;
 
     public AdjacencyConfusion(Graph truth, Graph est) {
-        this.truth = truth;
-        this.est = est;
-        adjTp = 0;
-        adjFp = 0;
-        adjFn = 0;
+        est = GraphUtils.replaceNodes(est, truth.getNodes());
+        assert est != null;
+
+        int adjTp = 0;
+        int adjFp = 0;
+        int adjFn = 0;
 
         for (Edge edge : truth.getEdges()) {
             if (!est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
@@ -45,9 +41,12 @@ public class AdjacencyConfusion {
             }
         }
 
-        int allEdges = this.truth.getNumNodes() * (this.truth.getNumNodes() - 1) / 2;
+        int allEdges = truth.getNumNodes() * (truth.getNumNodes() - 1) / 2;
 
-        adjTn = allEdges - adjFn;
+        this.adjTp = adjTp;
+        this.adjFp = adjFp;
+        this.adjFn = adjFn;
+        this.adjTn = allEdges - adjFn;
     }
 
     public int getAdjTp() {

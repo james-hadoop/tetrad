@@ -13,6 +13,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -49,9 +50,9 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (algorithm != null) {
-            this.initialGraph = algorithm.search(dataSet, parameters);
+            this.initialGraph = algorithm.search(dataSet, parameters, trueGraph);
         }
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
@@ -63,16 +64,22 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
 //            boss.setGspDepth(parameters.getInt(Params.DEPTH));
 
-            boss.setMethod(Boss.Method.BOSS_PROMOTION);
+            boss.setMethod(Boss.Method.BOSS);
 
             if (parameters.getInt(Params.BOSS_METHOD) == 1) {
-                boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 2) {
-                boss.setMethod(Boss.Method.BOSS_PROMOTION);
+                boss.setMethod(Boss.Method.BOSS);
             } else if (parameters.getInt(Params.BOSS_METHOD) == 3) {
                 boss.setMethod(Boss.Method.SP);
             } else {
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
+            }
+
+            if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 1) {
+                boss.setScoreType(TeyssierScorer.ScoreType.Edge);
+            } else if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 2) {
+                boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
+            } else {
+                throw new IllegalArgumentException("Unexpected score type: " + parameters.getInt(Params.BOSS_SCORE_TYPE));
             }
 
             List<Node> perm = boss.bestOrder(score.getVariables());
@@ -127,10 +134,11 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     @Override
     public List<String> getParameters() {
         ArrayList<String> params = new ArrayList<>();
-        params.add(Params.BREAK_TIES);
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);
+        params.add(Params.BOSS_SCORE_TYPE);
+        params.add(Params.BREAK_TIES);
         params.add(Params.VERBOSE);
 //        params.add(Params.DEPTH);
         return params;

@@ -4032,13 +4032,14 @@ public final class GraphUtils {
 
     // Breadth first.
     public static boolean isDConnectedTo(Node x, Node y, List<Node> z, Graph graph) {
-
-        if (x == y) return true;
+        if (x == y) throw new IllegalArgumentException("Attempting to calculate d-connection with x = y.");
+        if (z.contains(x) || z.contains(y)) throw new IllegalArgumentException("Attempting to calculate d-connection by z contains x or y.");
 
         Queue<EdgeNode> Q = new ArrayDeque<>();
         Set<EdgeNode> V = new HashSet<>();
 
         for (Edge edge : graph.getEdges(x)) {
+            if (!Edges.isDirectedEdge(edge)) continue;
             EdgeNode edgeNode = new EdgeNode(edge, x);
 
             if (edgeNode.edge.getNode2() == y) {
@@ -4052,10 +4053,12 @@ public final class GraphUtils {
         while (!Q.isEmpty()) {
             EdgeNode t = Q.poll();
             Edge edge1 = t.getEdge();
-            Node a = t.getNode();
+            if (!Edges.isDirectedEdge(edge1)) continue;
+            Node a = edge1.getNode1();
             Node b = edge1.getNode2();
 
             for (Edge edge2 : graph.getEdges(b)) {
+                if (!Edges.isDirectedEdge(edge2)) continue;
                 EdgeNode t2 = new EdgeNode(edge2, b);
 
                 Node c = reachable(t, t2, a, z, graph);
@@ -4081,6 +4084,8 @@ public final class GraphUtils {
     private static Node reachable(EdgeNode e1, EdgeNode e2, Node a, List<Node> z, Graph graph) {
         Node b = e1.getEdge().getNode2();
         Node c = e2.getEdge().getNode2();
+
+        if (e2.getEdge().getNode1() != b) return null;
 
         if (a == c) return null;
 
@@ -4136,6 +4141,7 @@ public final class GraphUtils {
                 }
 
                 OrderedPair<Node> u = new OrderedPair<>(b, c);
+
                 if (V.contains(u)) {
                     continue;
                 }

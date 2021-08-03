@@ -32,7 +32,7 @@ public class Glasso implements Algorithm {
 
     static final long serialVersionUID = 23L;
 
-    public Graph search(DataModel ds, Parameters parameters) {
+    public Graph search(DataModel ds, Parameters parameters, Graph trueGraph) {
         DataSet _data = (DataSet) ds;
 
         for (int j = 0; j < _data.getNumColumns(); j++) {

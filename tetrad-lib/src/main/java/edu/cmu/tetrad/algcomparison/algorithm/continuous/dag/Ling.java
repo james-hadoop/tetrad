@@ -35,7 +35,7 @@ public class Ling implements Algorithm {
 
     static final long serialVersionUID = 23L;
 
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             DataSet _dataSet = DataUtils.getContinuousDataSet(dataSet);
             edu.cmu.tetrad.search.Ling lingam = new edu.cmu.tetrad.search.Ling(_dataSet);

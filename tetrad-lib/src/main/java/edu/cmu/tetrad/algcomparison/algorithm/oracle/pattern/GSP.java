@@ -50,7 +50,7 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
             Boss boss = new Boss(score);
@@ -62,7 +62,7 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
             boss.setMethod(Boss.Method.GSP);
 
             List<Node> order = boss.bestOrder(score.getVariables());
-            return boss.getGraph(order, true);
+            return boss.getGraph(order, false);
         } else {
             GSP fges = new GSP();
 

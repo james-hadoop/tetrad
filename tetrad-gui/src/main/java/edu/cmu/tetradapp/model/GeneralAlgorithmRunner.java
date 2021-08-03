@@ -25,6 +25,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.cluster.ClusterAlgorithm;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.independence.TakesGraph;
 import edu.cmu.tetrad.algcomparison.score.DSeparationScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
@@ -43,11 +44,7 @@ import edu.cmu.tetrad.util.Unmarshallable;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -60,7 +57,7 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
         KnowledgeBoxInput {
 
     static final long serialVersionUID = 23L;
-
+    private final Map<String, Object> userAlgoSelections = new HashMap<>();
     private DataWrapper dataWrapper;
     private String name;
     private Algorithm algorithm;
@@ -69,7 +66,6 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
     private Graph initialGraph;
     private List<Graph> graphList = new ArrayList<>();
     private IKnowledge knowledge = new Knowledge2();
-    private final Map<String, Object> userAlgoSelections = new HashMap<>();
     private transient List<IndependenceTest> independenceTests;
 
     //===========================CONSTRUCTORS===========================//
@@ -246,7 +242,7 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                 }
             }
 
-            graphList.add(algo.search(null, parameters));
+            graphList.add(algo.search(getDataModel(), parameters, sourceGraph));
         } else {
             if (getAlgorithm() instanceof MultiDataSetAlgorithm) {
                 for (int k = 0; k < parameters.getInt("numRuns"); k++) {
@@ -273,7 +269,7 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                     getDataModelList().forEach(dataModel -> {
                         if (dataModel instanceof ICovarianceMatrix) {
                             ICovarianceMatrix dataSet = (ICovarianceMatrix) dataModel;
-                            graphList.add(algorithm.search(dataSet, parameters));
+                            graphList.add(algorithm.search(dataSet, parameters, sourceGraph));
                         } else if (dataModel instanceof DataSet) {
                             DataSet dataSet = (DataSet) dataModel;
 
@@ -281,7 +277,7 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                                 throw new IllegalArgumentException("Sorry, you need a continuous dataset for a cluster algorithm.");
                             }
 
-                            graphList.add(algorithm.search(dataSet, parameters));
+                            graphList.add(algorithm.search(dataSet, parameters, sourceGraph));
                         }
                     });
                 }
@@ -300,11 +296,11 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                         DataType algDataType = algo.getDataType();
 
                         if (data.isContinuous() && (algDataType == DataType.Continuous || algDataType == DataType.Mixed)) {
-                            graphList.add(algo.search(data, parameters));
+                            graphList.add(algo.search(data, parameters, sourceGraph));
                         } else if (data.isDiscrete() && (algDataType == DataType.Discrete || algDataType == DataType.Mixed)) {
-                            graphList.add(algo.search(data, parameters));
+                            graphList.add(algo.search(data, parameters, sourceGraph));
                         } else if (data.isMixed() && algDataType == DataType.Mixed) {
-                            graphList.add(algo.search(data, parameters));
+                            graphList.add(algo.search(data, parameters, sourceGraph));
                         } else {
                             throw new IllegalArgumentException("The algorithm was not expecting that type of data.");
                         }
@@ -346,13 +342,13 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
     }
 
     @Override
-    public void setInitialGraph(Graph graph) {
-        this.initialGraph = graph;
+    public Graph getInitialGraph() {
+        return this.initialGraph;
     }
 
     @Override
-    public Graph getInitialGraph() {
-        return this.initialGraph;
+    public void setInitialGraph(Graph graph) {
+        this.initialGraph = graph;
     }
 
     @Override
@@ -442,11 +438,12 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
             independenceTests = new ArrayList<>();
         }
 
-        if (independenceTests.size() == 1) {
-            return independenceTests.get(0);
-        }
 
         Algorithm algo = getAlgorithm();
+
+        if (algo instanceof TakesGraph) {
+            ((TakesGraph) algo).setGraph(sourceGraph);
+        }
 
         if (getDataModelList().size() == 0 && getSourceGraph() != null) {
             // We inject the graph to the test to satisfy the tests like DSeparationTest - Zhou
@@ -455,7 +452,9 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
 //                ((DSeparationTest) indTestWrapper).setGraph(getSourceGraph());
 //            }
 //
-            IndependenceWrapper test = new DSeparationTest(getSourceGraph());
+            IndependenceWrapper test = new DSeparationTest();
+
+            ((TakesGraph) test).setGraph(sourceGraph);
 
             if (this.independenceTests == null) {
                 this.independenceTests = new ArrayList<>();
@@ -463,7 +462,7 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
 
             // Grabbing this independence test for the independence tests interface. JR 2020.8.24
 //            IndependenceTest test = indTestWrapper.getTest(null, parameters);
-            this.independenceTests.add(test.getTest(null, parameters));
+            this.independenceTests.add(test.getTest(null, parameters, sourceGraph));
         } else if (algo instanceof TakesIndependenceWrapper) {
             if (getDataModelList().size() == 1) {
                 IndependenceWrapper indTestWrapper = ((TakesIndependenceWrapper) getAlgorithm()).getIndependenceWrapper();
@@ -473,7 +472,7 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                 }
 
                 // Grabbing this independence test for the independence tests interface. JR 2020.8.24
-                IndependenceTest test = indTestWrapper.getTest(getDataModelList().get(0), parameters);
+                IndependenceTest test = indTestWrapper.getTest(getDataModelList().get(0), parameters, sourceGraph);
                 this.independenceTests.add(test);
             }
 //            else if (getDataModelList().size() == 0 && getSourceGraph() != null) {
@@ -565,13 +564,13 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
     }
 
     @Override
-    public void setAllParamSettings(Map<String, String> paramSettings) {
-
+    public Map<String, String> getAllParamSettings() {
+        return Collections.EMPTY_MAP;
     }
 
     @Override
-    public Map<String, String> getAllParamSettings() {
-        return Collections.EMPTY_MAP;
+    public void setAllParamSettings(Map<String, String> paramSettings) {
+
     }
 
     @Override

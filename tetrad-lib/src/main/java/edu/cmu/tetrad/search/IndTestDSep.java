@@ -96,20 +96,20 @@ public class IndTestDSep implements IndependenceTest {
             throw new IllegalArgumentException("Subset may not be empty.");
         }
 
-        List<Node> _vars = new ArrayList<>();
+//        List<Node> _vars = new ArrayList<>();
+//
+//        for (Node var : vars) {
+//            Node _var = getVariable(var.getName());
+//
+//            if (_var == null) {
+//                throw new IllegalArgumentException(
+//                        "All vars must be original vars");
+//            }
+//
+//            _vars.add(_var);
+//        }
 
-        for (Node var : vars) {
-            Node _var = getVariable(var.getName());
-
-            if (_var == null) {
-                throw new IllegalArgumentException(
-                        "All vars must be original vars");
-            }
-
-            _vars.add(_var);
-        }
-
-        this._observedVars = _vars;
+        this._observedVars = vars;
         this.observedVars = new ArrayList<>(_observedVars);
 
         facts = new ArrayList<>();

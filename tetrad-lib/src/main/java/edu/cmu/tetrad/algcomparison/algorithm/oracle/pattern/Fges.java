@@ -54,7 +54,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 
             int parallelism = parameters.getInt(Params.PARALLELISM);
@@ -93,7 +93,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
 
-            ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+            ResamplingEdgeEnsemble edgeEnsemble;
 
             switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
                 case 0:
@@ -104,6 +104,9 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
                     break;
                 case 2:
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
+                    break;
+                default:
+                    throw new IllegalStateException();
             }
 
             search.setEdgeEnsemble(edgeEnsemble);

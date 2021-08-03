@@ -92,7 +92,7 @@ public class FgsApiExample {
         parameters.set(Params.DISCRETIZE, false);
 
         // perform the search
-        Graph graph = fges.search(dataModel, parameters);
+        Graph graph = fges.search(dataModel, parameters, null);
 
         // output the graph
         System.out.println();

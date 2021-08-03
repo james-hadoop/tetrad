@@ -2,18 +2,18 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.independence.TakesGraph;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.IndependenceTest;
+import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -33,7 +33,7 @@ import java.util.List;
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapper, TakesInitialGraph {
+public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapper, TakesGraph {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test = null;
@@ -51,27 +51,39 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
-        if (algorithm != null) {
-            this.initialGraph = algorithm.search(dataSet, parameters);
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
+        if (initialGraph != null) {
+            if (algorithm != null) {
+                this.initialGraph = algorithm.search(dataSet, parameters, trueGraph);
+            }
         }
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            IndependenceTest test = this.test.getTest(dataSet, parameters);
+            IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
             Boss boss = new Boss(test);
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
+            boss.setMethod(Boss.Method.BOSS);
+
             if (parameters.getInt(Params.BOSS_METHOD) == 1) {
-                boss.setMethod(Boss.Method.BOSS_ALL_INDICES);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 2) {
-                boss.setMethod(Boss.Method.BOSS_PROMOTION);
+                boss.setMethod(Boss.Method.BOSS);
             } else if (parameters.getInt(Params.BOSS_METHOD) == 3) {
                 boss.setMethod(Boss.Method.SP);
             } else {
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
             }
+
+            if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 1) {
+                boss.setScoreType(TeyssierScorer.ScoreType.Edge);
+            } else if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 2) {
+                boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
+            } else {
+                throw new IllegalArgumentException("Unexpected score type: " + parameters.getInt(Params.BOSS_SCORE_TYPE));
+            }
+
+            boss.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));
 
             List<Node> perm = boss.bestOrder(test.getVariables());
             return boss.getGraph(perm, true);
@@ -128,6 +140,8 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);
+        params.add(Params.BOSS_SCORE_TYPE);
+        params.add(Params.BREAK_TIES);
         params.add(Params.VERBOSE);
         return params;
     }
@@ -142,18 +156,11 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
         this.knowledge = knowledge;
     }
 
-    @Override
-    public Graph getInitialGraph() {
-        return initialGraph;
-    }
-
-    @Override
-    public void setInitialGraph(Graph initialGraph) {
+    public void setGraph(Graph initialGraph) {
         this.initialGraph = initialGraph;
     }
 
-    @Override
-    public void setInitialGraph(Algorithm algorithm) {
+    public void setGraph(Algorithm algorithm) {
         this.algorithm = algorithm;
     }
 

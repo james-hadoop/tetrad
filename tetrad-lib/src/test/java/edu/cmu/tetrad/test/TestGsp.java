@@ -23,10 +23,7 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSS;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.GSP;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
@@ -62,7 +59,7 @@ public final class TestGsp {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new SemBicScore()));
-        algorithms.add(new GSP(new SemBicScore()));
+        algorithms.add(new GSPIndep(new FisherZ()));
 //        algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();

@@ -51,20 +51,22 @@ public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapp
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (algorithm != null) {
-            this.initialGraph = algorithm.search(dataSet, parameters);
+            this.initialGraph = algorithm.search(dataSet, parameters, trueGraph);
         }
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            IndependenceTest test = this.test.getTest(dataSet, parameters);
+            IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
             Boss boss = new Boss(test);
-//            boss.setBreakTies(parameters.getBoolean(Params.FINAL_ORIENTATION));
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
             boss.setGspDepth(parameters.getInt(Params.DEPTH));
+            boss.setMethod(Boss.Method.GSP);
+
             List<Node> order = boss.bestOrder(test.getVariables());
+
             return boss.getGraph(order, true);
         } else {
             GSPIndep fges = new GSPIndep();

@@ -26,6 +26,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.ExternalAlgorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.independence.TakesGraph;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.simulation.Simulation;
@@ -37,7 +38,6 @@ import edu.cmu.tetrad.algcomparison.statistic.Statistics;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.HasParameterValues;
 import edu.cmu.tetrad.algcomparison.utils.HasParameters;
-import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
@@ -751,9 +751,6 @@ public class Comparison {
                         if (HasParameters.class.isAssignableFrom(clazz)) {
                             printParameters(algorithm.getParameters(), allParams, out);
                         }
-                        if (TakesInitialGraph.class.isAssignableFrom(clazz)) {
-                            out.println("\t" + clazz.getSimpleName() + " can take an initial graph from some other algorithm as input");
-                        }
                     }
                 }
             }
@@ -1359,7 +1356,12 @@ public class Comparison {
             } else {
                 DataModel dataModel = copyData ? data.copy() : data;
                 Parameters _params = algorithmWrapper.getAlgorithmSpecificParameters();
-                graphOut = algorithm.search(dataModel, _params);
+
+                if (algorithm instanceof TakesGraph) {
+                    ((TakesGraph) algorithm).setGraph(trueGraph);
+                }
+
+                graphOut = algorithm.search(dataModel, _params, trueGraph);
             }
         } catch (Exception e) {
             stdout.println("Could not run " + algorithmWrapper.getDescription());
@@ -1854,8 +1856,8 @@ public class Comparison {
         }
 
         @Override
-        public Graph search(DataModel DataModel, Parameters parameters) {
-            return algorithm.search(DataModel, this.parameters);
+        public Graph search(DataModel DataModel, Parameters parameters, Graph trueGraph) {
+            return algorithm.search(DataModel, this.parameters, trueGraph);
         }
 
         @Override
@@ -1920,8 +1922,8 @@ public class Comparison {
         }
 
         @Override
-        public Graph search(DataModel DataModel, Parameters parameters) {
-            return algorithmWrapper.getAlgorithm().search(DataModel, parameters);
+        public Graph search(DataModel DataModel, Parameters parameters, Graph trueGraph) {
+            return algorithmWrapper.getAlgorithm().search(DataModel, parameters, trueGraph);
         }
 
         @Override

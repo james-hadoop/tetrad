@@ -38,7 +38,7 @@ public class Mgm implements Algorithm {
     }
 
     @Override
-    public Graph search(DataModel ds, Parameters parameters) {
+    public Graph search(DataModel ds, Parameters parameters, Graph trueGraph) {
         DataSet _data = (DataSet) ds;
 
         for (int j = 0; j < _data.getNumColumns(); j++) {

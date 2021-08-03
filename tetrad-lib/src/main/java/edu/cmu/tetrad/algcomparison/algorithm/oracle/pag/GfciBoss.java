@@ -49,9 +49,9 @@ public class GfciBoss implements Algorithm, HasKnowledge, UsesScoreWrapper, Take
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            GFciGsps search = new GFciGsps(test.getTest(dataSet, parameters), score.getScore(dataSet, parameters));
+            GFciGsps search = new GFciGsps(test.getTest(dataSet, parameters, trueGraph), score.getScore(dataSet, parameters));
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));

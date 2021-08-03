@@ -56,7 +56,7 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         DataSet _data = (DataSet) dataSet;
 
         for (int j = 0; j < _data.getNumColumns(); j++) {
@@ -70,7 +70,7 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             edu.cmu.tetrad.search.Fask search;
 
-            search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, test.getTest(dataSet, parameters));
+            search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, test.getTest(dataSet, parameters, trueGraph));
 
             search.setDepth(parameters.getInt(DEPTH));
             search.setSkewEdgeThreshold(parameters.getDouble(SKEW_EDGE_THRESHOLD));
@@ -82,7 +82,7 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
             if (initialGraph != null) {
                 search.setExternalGraph(initialGraph);
             } else if (algorithm != null) {
-                search.setExternalGraph(algorithm.search(dataSet, parameters));
+                search.setExternalGraph(algorithm.search(dataSet, parameters, trueGraph));
             }
 
             int lrRule = parameters.getInt(FASK_LEFT_RIGHT_RULE);
