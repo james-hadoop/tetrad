@@ -112,7 +112,7 @@ public class Boss {
         if (breakTies) {
             do {
                 while (relocateLoop(scorer)) ;
-            } while (simultaneousLoop(scorer));
+            } while (twoStepLoop(scorer));
         } else {
             while (relocateLoop(scorer)) ;
         }
@@ -153,9 +153,8 @@ public class Boss {
         return scorer.score() < score;
     }
 
-    private boolean simultaneousLoop(TeyssierScorer scorer) {
+    private boolean twoStepLoop(TeyssierScorer scorer) {
         List<Node> order = scorer.getOrder();
-//        scorer.score(order);
 
         for (Node v : order) {
             for (int _r1 = scorer.indexOf(v); _r1 < scorer.size(); _r1++) {
@@ -163,42 +162,21 @@ public class Boss {
                     Node r1 = scorer.get(_r1);
                     Node r2 = scorer.get(_r2);
 
-                    if (!adjacent(v, r1, scorer)) continue;
-                    if (!adjacent(v, r2, scorer)) continue;
-                    if (!adjacent(r1, r2, scorer)) continue;
+                    if (triangle(v, r1, r2, scorer)) {
+                        double score = scorer.score();
+                        scorer.bookmark();
 
-                    double score = scorer.score();
-                    scorer.bookmark();
+                        scorer.swap(v, r1);
+                        scorer.swap(v, r2);
 
-                    scorer.swap(v, r1);
-                    scorer.swap(v, r2);
+                        if (scorer.score() < score) {
+                            return true;
+                        }
 
-                    if (scorer.score() < score) {
-                        return true;
+                        scorer.goToBookmark();
                     }
-
-                    scorer.goToBookmark();
                 }
             }
-
-//            for (int _r1 = 0; _r1 < scorer.indexOf(v); _r1++) {
-//                for (int _r2 = _r1 + 1; _r2 < scorer.indexOf(v); _r2++) {
-//                    Node r1 = scorer.get(_r1);
-//                    Node r2 = scorer.get(_r2);
-//
-//                    double score = scorer.score();
-//                    scorer.bookmark();
-//
-//                    scorer.swap(v, r1);
-//                    scorer.swap(v, r2);
-//
-//                    if (scorer.score() < score) {
-//                        return true;
-//                    }
-//
-//                    scorer.goToBookmark();
-//                }
-//            }
         }
 
         if (verbose) {
@@ -206,49 +184,14 @@ public class Boss {
         }
 
         return false;
+    }
+
+    private boolean triangle(Node v, Node r1, Node r2, TeyssierScorer scorer) {
+        return adjacent(v, r1, scorer) && adjacent(v, r2, scorer) && adjacent(r1, r2, scorer);
     }
 
     private boolean adjacent(Node v, Node r1, TeyssierScorer scorer) {
         return scorer.getParents(v).contains(r1) || scorer.getParents(r1).contains(v);
-    }
-
-    private boolean simultaneousLoop2(TeyssierScorer scorer) {
-        List<Node> order = scorer.getOrder();
-        double score = scorer.score();
-
-        scorer.bookmark();
-
-        for (Node v : order) {
-            int _v = scorer.indexOf(v);
-
-            for (int _r1 = _v + 1; _r1 < scorer.size(); _r1++) {
-                Node r1 = scorer.get(_r1);
-
-                while (scorer.promote(r1)) {
-                    for (int _r2 = _r1 + 1; _r2 < scorer.size(); _r2++) {
-                        Node r2 = scorer.get(_r2);
-
-                        while (scorer.promote(r2)) {
-                            if (scorer.score() < score) {
-                                return true;
-                            }
-                        }
-
-                        scorer.moveTo(r2, _r2);
-                    }
-                }
-
-                scorer.moveTo(r1, _r1);
-            }
-        }
-
-        scorer.goToBookmark();
-
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (" + "Simultaneous Moves" + ")");
-        }
-
-        return false;
     }
 
     private List<Node> gsp(TeyssierScorer scorer) {
