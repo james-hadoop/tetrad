@@ -658,10 +658,10 @@ public final class TestBoss {
 
         Algorithms algorithms = new Algorithms();
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new DSeparationTest()));
-//        algorithms.add(new BOSSIndep(new DSeparationTest()));
+        algorithms.add(new BOSSIndep(new DSeparationTest()));
 //        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.FmlBicScore()));
 //        algorithms.add(new BOSSIndep(new FisherZ()));
-        algorithms.add(new GSPIndep(new DSeparationTest()));
+//        algorithms.add(new GSPIndep(new DSeparationTest()));
 //        algorithms.add(new GSPIndep(new FisherZ()));
 
         Comparison comparison = new Comparison();
