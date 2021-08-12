@@ -99,7 +99,7 @@ public class TeyssierScorer {
 
     public boolean demote(Node v) {
         int index = orderHash.get(v);
-        if (index == size() - 1) return false;
+        if (index >= size() - 1) return false;
         if (index == -1) return false;
 
         Node v1 = order.get(index);
@@ -121,22 +121,21 @@ public class TeyssierScorer {
         order.remove(v);
         order.add(toIndex, v);
 
-        for (int i = 0; i < order.size(); i++) {
-            recalculate(i);
-        }
-
-        orderHash = nodesHash(order);
+        updateScores();
     }
 
     public void moveToFirst(Node v) {
         order.remove(v);
         order.addFirst(v);
 
-        for (int i = 0; i < order.size(); i++) {
-            recalculate(i);
-        }
+        updateScores();
+    }
 
-        orderHash = nodesHash(order);
+    public void moveToLast(Node v) {
+        order.remove(v);
+        order.addLast(v);
+
+        updateScores();
     }
 
     public void swap(Node m, Node n) {
@@ -146,11 +145,7 @@ public class TeyssierScorer {
         order.set(i, n);
         order.set(j, m);
 
-        for (int k = 0; k < order.size(); k++) {
-            recalculate(k);
-        }
-
-        orderHash = nodesHash(order);
+        updateScores();
     }
 
     public List<Node> getOrder() {
@@ -178,6 +173,10 @@ public class TeyssierScorer {
         this.prefixes = new LinkedList<>();
         for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
 
+        updateScores();
+    }
+
+    private void updateScores() {
         for (int i = 0; i < order.size(); i++) {
             recalculate(i);
         }
@@ -465,7 +464,7 @@ public class TeyssierScorer {
         this.scoreType = scoreType;
     }
 
-    public Node getNode(int j) {
+    public Node get(int j) {
         return order.get(j);
     }
 

@@ -636,7 +636,7 @@ public final class TestBoss {
         parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         parameters.set(Params.NUM_RUNS, 10);
         parameters.set(Params.BOSS_METHOD, 1);
-        parameters.set(Params.BOSS_SCORE_TYPE, 2);
+        parameters.set(Params.BOSS_SCORE_TYPE, 1  );
         parameters.set(Params.BREAK_TIES, true);
         parameters.set(Params.SAMPLE_SIZE, 10000);
         parameters.set(Params.ALPHA, 0.001);
@@ -651,16 +651,17 @@ public final class TestBoss {
         statistics.add(new ArrowheadPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new SHD_CPDAG());
+        statistics.add(new ElapsedTime());
 
         Simulations simulations = new Simulations();
         simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new DSeparationTest()));
-        algorithms.add(new BOSSIndep(new DSeparationTest()));
+//        algorithms.add(new BOSSIndep(new DSeparationTest()));
 //        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.FmlBicScore()));
 //        algorithms.add(new BOSSIndep(new FisherZ()));
-//        algorithms.add(new GSPIndep(new DSeparationTest()));
+        algorithms.add(new GSPIndep(new DSeparationTest()));
 //        algorithms.add(new GSPIndep(new FisherZ()));
 
         Comparison comparison = new Comparison();

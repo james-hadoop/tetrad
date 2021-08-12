@@ -26,11 +26,7 @@ public class AdjacencyConfusion {
         for (Edge edge : truth.getEdges()) {
             if (!est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
                 adjFn++;
-            }
-        }
-
-        for (Edge edge : truth.getEdges()) {
-            if (est.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+            } else {
                 adjTp++;
             }
         }

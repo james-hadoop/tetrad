@@ -25,8 +25,6 @@ import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 import static edu.cmu.tetrad.graph.Edges.directedEdge;
 
@@ -101,6 +99,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * The set of highlighted edges.
      */
     Set<Edge> highlightedEdges = new HashSet<>();
+
     /**
      * A hash from node names to nodes;
      */
@@ -649,7 +648,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         }
 
         for (Edge edge : edgeLists.get(node1)) {
-            if (Edges.traverse(node1, edge) == node2) {
+            if (Edges.traverse(node1, edge) == node2 && Edges.traverse(node2, edge) == node1) {
                 return true;
             }
         }
@@ -1166,10 +1165,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             Set<Edge> edgeList1 = edgeLists.get(edge.getNode1());
             Set<Edge> edgeList2 = edgeLists.get(edge.getNode2());
 
-//            if (edgeList1.contains(edge)) {
-//                return true;
-//            }
-
             edgeList1.add(edge);
             edgeList2.add(edge);
             edgesSet.add(edge);
@@ -1226,7 +1221,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             return false;
         }
 
-        edgeLists.put(node, new ConcurrentSkipListSet<>());
+        edgeLists.put(node, new HashSet<>());
         nodes.add(node);
         namesHash.put(node.getName(), node);
 
@@ -1330,7 +1325,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         edgeLists.clear();
 
         for (Node node : nodes) {
-            edgeLists.put(node, new ConcurrentSkipListSet<>());
+            edgeLists.put(node, new HashSet<>());
         }
 
         for (int i = 0; i < nodes.size(); i++) {
@@ -1450,8 +1445,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             Set<Edge> edgeList1 = edgeLists.get(edge.getNode1());
             Set<Edge> edgeList2 = edgeLists.get(edge.getNode2());
 
-            edgeList1 = new ConcurrentSkipListSet<>(edgeList1);
-            edgeList2 = new ConcurrentSkipListSet<>(edgeList2);
+            edgeList1 = new HashSet<>(edgeList1);
+            edgeList2 = new HashSet<>(edgeList2);
 
             edgesSet.remove(edge);
             edgeList1.remove(edge);

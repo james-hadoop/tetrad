@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.lang.Double.POSITIVE_INFINITY;
+
 
 /**
  * Searches for a DAG by adding or removing directed edges starting
@@ -57,7 +59,7 @@ public class Boss {
 
         scorer.setCachingScores(cachingScores);
 
-        double best = Double.POSITIVE_INFINITY;
+        double best = POSITIVE_INFINITY;
         List<Node> bestPerm = null;
         scorer.score(order);
 
@@ -65,7 +67,6 @@ public class Boss {
             if (r > 0)
                 scorer.shuffleVariables();
 
-//            scorer.score(scorer.getOrder());
             List<Node> perm;
 
             if (method == Method.BOSS) {
@@ -110,35 +111,35 @@ public class Boss {
 
         if (breakTies) {
             do {
-                while (singleMoveLoop(scorer)) ;
-            } while (twoMoveLoop(scorer));
+                while (relocateLoop(scorer)) ;
+            } while (simultaneousLoop(scorer));
         } else {
-            while (singleMoveLoop(scorer)) ;
+            while (relocateLoop(scorer)) ;
         }
 
         return scorer.getOrder();
     }
 
     // For ties choose the most senior.
-    private boolean singleMoveLoop(TeyssierScorer scorer) {
+    private boolean relocateLoop(TeyssierScorer scorer) {
         scorer.bookmark();
-        boolean improved = false;
+
+        double score = scorer.score();
 
         for (Node v : scorer.getOrder()) {
-            double score = scorer.score();
-            scorer.moveToFirst(v);
+            scorer.moveToLast(v);
 
-            if (scorer.score() < score) {
+            double score2 = POSITIVE_INFINITY;
+
+            if (scorer.score() < score2) {
                 scorer.bookmark();
-                score = scorer.score();
-                improved = true;
+                score2 = scorer.score();
             }
 
-            while (scorer.demote(v)) {
-                if (scorer.score() < score) {
+            while (scorer.promote(v)) {
+                if (scorer.score() < score2) {
                     scorer.bookmark();
-                    score = scorer.score();
-                    improved = true;
+                    score2 = scorer.score();
                 }
             }
 
@@ -149,17 +150,22 @@ public class Boss {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Single Moves)");
         }
 
-        return improved;
+        return scorer.score() < score;
     }
 
-    private boolean twoMoveLoop(TeyssierScorer scorer) {
+    private boolean simultaneousLoop(TeyssierScorer scorer) {
         List<Node> order = scorer.getOrder();
+//        scorer.score(order);
 
         for (Node v : order) {
-            for (int _r1 = scorer.indexOf(v) + 1; _r1 < scorer.size(); _r1++) {
+            for (int _r1 = scorer.indexOf(v); _r1 < scorer.size(); _r1++) {
                 for (int _r2 = _r1 + 1; _r2 < scorer.size(); _r2++) {
-                    Node r1 = scorer.getNode(_r1);
-                    Node r2 = scorer.getNode(_r2);
+                    Node r1 = scorer.get(_r1);
+                    Node r2 = scorer.get(_r2);
+
+                    if (!adjacent(v, r1, scorer)) continue;
+                    if (!adjacent(v, r2, scorer)) continue;
+                    if (!adjacent(r1, r2, scorer)) continue;
 
                     double score = scorer.score();
                     scorer.bookmark();
@@ -168,16 +174,78 @@ public class Boss {
                     scorer.swap(v, r2);
 
                     if (scorer.score() < score) {
-                        continue;
+                        return true;
                     }
 
                     scorer.goToBookmark();
                 }
             }
+
+//            for (int _r1 = 0; _r1 < scorer.indexOf(v); _r1++) {
+//                for (int _r2 = _r1 + 1; _r2 < scorer.indexOf(v); _r2++) {
+//                    Node r1 = scorer.get(_r1);
+//                    Node r2 = scorer.get(_r2);
+//
+//                    double score = scorer.score();
+//                    scorer.bookmark();
+//
+//                    scorer.swap(v, r1);
+//                    scorer.swap(v, r2);
+//
+//                    if (scorer.score() < score) {
+//                        return true;
+//                    }
+//
+//                    scorer.goToBookmark();
+//                }
+//            }
         }
 
         if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (" + "Two Moves" + ")");
+            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (" + "Simultaneous Moves" + ")");
+        }
+
+        return false;
+    }
+
+    private boolean adjacent(Node v, Node r1, TeyssierScorer scorer) {
+        return scorer.getParents(v).contains(r1) || scorer.getParents(r1).contains(v);
+    }
+
+    private boolean simultaneousLoop2(TeyssierScorer scorer) {
+        List<Node> order = scorer.getOrder();
+        double score = scorer.score();
+
+        scorer.bookmark();
+
+        for (Node v : order) {
+            int _v = scorer.indexOf(v);
+
+            for (int _r1 = _v + 1; _r1 < scorer.size(); _r1++) {
+                Node r1 = scorer.get(_r1);
+
+                while (scorer.promote(r1)) {
+                    for (int _r2 = _r1 + 1; _r2 < scorer.size(); _r2++) {
+                        Node r2 = scorer.get(_r2);
+
+                        while (scorer.promote(r2)) {
+                            if (scorer.score() < score) {
+                                return true;
+                            }
+                        }
+
+                        scorer.moveTo(r2, _r2);
+                    }
+                }
+
+                scorer.moveTo(r1, _r1);
+            }
+        }
+
+        scorer.goToBookmark();
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (" + "Simultaneous Moves" + ")");
         }
 
         return false;
@@ -234,7 +302,7 @@ public class Boss {
     }
 
     public List<Node> sp(TeyssierScorer scorer) {
-        double minScore = Double.POSITIVE_INFINITY;
+        double minScore = POSITIVE_INFINITY;
         List<Node> minP = null;
 
         List<Node> variables = scorer.getOrder();
