@@ -407,7 +407,7 @@ public final class GraphUtils {
 //        References
 //                ----------
         //        .. [1] B. Bollob{\'a}s, C. Borgs, J. Chayes, and O. Riordan,
-        //            Directed scale-free graphs,
+            //            Directed scale-free graphs,
         //                    Proceedings of the fourteenth annual ACM-SIAM symposium on
         //            Discrete algorithm, 132--139, 2003.
         //            """
@@ -494,10 +494,10 @@ public final class GraphUtils {
         }
 
         if (delta_in <= 0) {
-            throw new IllegalArgumentException("delta_in must be >= 0.");
+            throw new IllegalArgumentException("delta_in must be > 0.");
         }
         if (delta_out <= 0) {
-            throw new IllegalArgumentException("delta_out must be >= 0.");
+            throw new IllegalArgumentException("delta_out must be > 0.");
         }
 
         Map<Node, Set<Node>> parents = new HashMap<>();

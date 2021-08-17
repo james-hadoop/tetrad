@@ -188,7 +188,7 @@ public class Condition1 {
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
         comparison.setSaveGraphs(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
         comparison.generateReportFromExternalAlgorithms("/Users/user/comparison-data/condition_1",
                 "/Users/user/causal-comparisons/condition_1",

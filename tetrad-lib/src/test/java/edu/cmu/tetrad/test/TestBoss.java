@@ -25,11 +25,8 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSSIndep;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.GSP;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.GSPIndep;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
-import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.EbicScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
@@ -160,7 +157,7 @@ public final class TestBoss {
 
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
         comparison.setSaveData(false);
 
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
@@ -206,7 +203,7 @@ public final class TestBoss {
 
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
         comparison.setSaveData(false);
 
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
@@ -253,7 +250,7 @@ public final class TestBoss {
 
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
         comparison.setSaveData(false);
 
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
@@ -305,7 +302,7 @@ public final class TestBoss {
 
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
         comparison.setSaveData(false);
 
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
@@ -369,7 +366,7 @@ public final class TestBoss {
 
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
         comparison.setSaveData(false);
 
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations,
@@ -423,7 +420,7 @@ public final class TestBoss {
 
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
         comparison.setSaveData(false);
 
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations,
@@ -476,7 +473,7 @@ public final class TestBoss {
 
         Comparison comparison = new Comparison();
 //        comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
         comparison.setSaveData(false);
 
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations,
@@ -636,7 +633,7 @@ public final class TestBoss {
         parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         parameters.set(Params.NUM_RUNS, 10);
         parameters.set(Params.BOSS_METHOD, 1);
-        parameters.set(Params.BOSS_SCORE_TYPE, 1  );
+        parameters.set(Params.BOSS_SCORE_TYPE, 1);
         parameters.set(Params.BREAK_TIES, true);
         parameters.set(Params.SAMPLE_SIZE, 10000);
         parameters.set(Params.ALPHA, 0.001);

@@ -96,7 +96,7 @@ import org.reflections.Reflections;
 public class Comparison {
 
     public enum ComparisonGraph {
-        true_DAG, Pattern_of_the_true_DAG, PAG_of_the_true_DAG
+        true_DAG, True_CPDAG, True_PAG
     }
 
     private boolean[] graphTypeUsed;
@@ -1398,9 +1398,9 @@ public class Comparison {
 
             if (this.comparisonGraph == ComparisonGraph.true_DAG) {
                 comparisonGraph = new EdgeListGraph(trueGraph);
-            } else if (this.comparisonGraph == ComparisonGraph.Pattern_of_the_true_DAG) {
+            } else if (this.comparisonGraph == ComparisonGraph.True_CPDAG) {
                 comparisonGraph = SearchGraphUtils.patternForDag(new EdgeListGraph(trueGraph));
-            } else if (this.comparisonGraph == ComparisonGraph.PAG_of_the_true_DAG) {
+            } else if (this.comparisonGraph == ComparisonGraph.True_PAG) {
                 comparisonGraph = new DagToPag2(new EdgeListGraph(trueGraph)).convert();
             } else {
                 throw new IllegalArgumentException("Unrecognized graph type.");
