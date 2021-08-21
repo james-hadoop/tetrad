@@ -480,6 +480,62 @@ public final class TestBoss {
                 "Lu.figure.3.txt", algorithms, statistics, params);
     }
 
+    @Test
+    public void testBoss8() {
+//        RandomUtil.getInstance().setSeed(386829384L);
+
+        Parameters params = new Parameters();
+        params.set(Params.SAMPLE_SIZE, 10000);
+        params.set(Params.NUM_MEASURES, 5);
+        params.set(Params.AVG_DEGREE, 1, 2, 3, 4);
+        params.set(Params.RANDOMIZE_COLUMNS, true);
+        params.set(Params.COEF_LOW, 0.1);
+        params.set(Params.COEF_HIGH, 1.5);
+        params.set(Params.VERBOSE, true);
+
+        params.set(Params.NUM_RUNS, 100);
+
+        params.set(Params.BOSS_METHOD, 1);
+        params.set(Params.BOSS_SCORE_TYPE, 1);
+        params.set(Params.BREAK_TIES, false);
+        params.set(Params.CACHE_SCORES, false);
+        params.set(Params.NUM_STARTS, 1);
+
+        params.set(Params.PENALTY_DISCOUNT, 1);//.5, 1, 2, 3, 4, 5);
+        params.set(Params.ALPHA, 0.001);
+//
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new BOSS(new SemBicScore()));
+//        algorithms.add(new PcAll(new FisherZ()));
+//        algorithms.add(new Fges(new SemBicScore()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new SemSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
+        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+//        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
+//        statistics.add(new ParameterColumn(Params.BOSS_SCORE_TYPE));
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
+        statistics.add(new CorrectCPDAG());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new SHD_CPDAG());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+        comparison.setSaveData(false);
+
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations,
+                "testtest", algorithms, statistics, params);
+    }
+
     public List<Node> getPrefix(List<Node> order, int i) {
         List<Node> prefix = new ArrayList<>();
         for (int j = 0; j < i; j++) {

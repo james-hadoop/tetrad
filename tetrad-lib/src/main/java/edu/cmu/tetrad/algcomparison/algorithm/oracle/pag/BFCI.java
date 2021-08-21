@@ -10,8 +10,7 @@ import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.DagToPag2;
-import edu.cmu.tetrad.search.GFciGsps;
+import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -23,27 +22,27 @@ import java.util.List;
 
 
 /**
- * GFCI.
+ * BFCI.
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GFCI-BOSS",
-        command = "gfciboss",
+        name = "BFCI",
+        command = "bfci",
         algoType = AlgType.allow_latent_common_causes
 )
 @Bootstrapping
-public class GfciBoss implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper {
+public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
     private ScoreWrapper score;
     private IKnowledge knowledge = new Knowledge2();
 
-    public GfciBoss() {
+    public BFCI() {
     }
 
-    public GfciBoss(IndependenceWrapper test, ScoreWrapper score) {
+    public BFCI(IndependenceWrapper test, ScoreWrapper score) {
         this.test = test;
         this.score = score;
     }
@@ -51,14 +50,35 @@ public class GfciBoss implements Algorithm, HasKnowledge, UsesScoreWrapper, Take
     @Override
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            GFciGsps search = new GFciGsps(test.getTest(dataSet, parameters, trueGraph), score.getScore(dataSet, parameters));
+            Bfci search = new Bfci(test.getTest(dataSet, parameters, trueGraph), score.getScore(dataSet, parameters));
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
             search.setKnowledge(knowledge);
-            search.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
             search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
             search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
 
+            search.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));
+            search.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
+            search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            search.setVerbose(parameters.getBoolean(Params.VERBOSE));
+//            boss.setGspDepth(parameters.getInt(Params.DEPTH));
+
+            search.setMethod(Boss.Method.BOSS);
+
+            if (parameters.getInt(Params.BOSS_METHOD) == 1) {
+                search.setMethod(Boss.Method.BOSS);
+            } else if (parameters.getInt(Params.BOSS_METHOD) == 3) {
+                search.setMethod(Boss.Method.SP);
+            } else {
+                throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
+            }
+
+            if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 1) {
+                search.setScoreType(TeyssierScorer.ScoreType.Edge);
+            } else if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 2) {
+                search.setScoreType(TeyssierScorer.ScoreType.SCORE);
+            } else {
+                throw new IllegalArgumentException("Unexpected score type: " + parameters.getInt(Params.BOSS_SCORE_TYPE));
+            }
 
             Object obj = parameters.get(Params.PRINT_STREAM);
 
@@ -68,7 +88,7 @@ public class GfciBoss implements Algorithm, HasKnowledge, UsesScoreWrapper, Take
 
             return search.search();
         } else {
-            GfciBoss algorithm = new GfciBoss(test, score);
+            BFCI algorithm = new BFCI(test, score);
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(knowledge);
@@ -77,6 +97,7 @@ public class GfciBoss implements Algorithm, HasKnowledge, UsesScoreWrapper, Take
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+
             switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
                 case 0:
                     edgeEnsemble = ResamplingEdgeEnsemble.Preserved;
@@ -114,16 +135,22 @@ public class GfciBoss implements Algorithm, HasKnowledge, UsesScoreWrapper, Take
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = new ArrayList<>();
+        List<String> params = new ArrayList<>();
 
-        parameters.add(Params.FAITHFULNESS_ASSUMED);
-        parameters.add(Params.MAX_DEGREE);
-//        parameters.add("printStream");
-        parameters.add(Params.MAX_PATH_LENGTH);
-        parameters.add(Params.COMPLETE_RULE_SET_USED);
+//        params.add(Params.FAITHFULNESS_ASSUMED);
+        params.add(Params.MAX_DEGREE);
+        params.add(Params.MAX_PATH_LENGTH);
+        params.add(Params.COMPLETE_RULE_SET_USED);
 
-        parameters.add(Params.VERBOSE);
-        return parameters;
+        params.add(Params.CACHE_SCORES);
+        params.add(Params.NUM_STARTS);
+        params.add(Params.BOSS_METHOD);
+        params.add(Params.BOSS_SCORE_TYPE);
+        params.add(Params.BREAK_TIES);
+        params.add(Params.VERBOSE);
+
+        params.add(Params.VERBOSE);
+        return params;
     }
 
     @Override

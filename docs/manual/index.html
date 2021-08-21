@@ -4698,7 +4698,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             </li>
             <li>Long Description: <span id="breakTies_long_desc">
                 In some cases, two moves are required simultaneously to get an orientation right in the final step.
-                This is not generally needed when optimizing using BIC or for large <models></models>.</span>
+                This is not generally needed when optimizing using BIC or for large models.</span>
             </li>
             <li>Default Value: <span id="breakTies_default_value">false</span></li>
             <li>Lower Bound: <span id="breakTies_lower_bound"></span></li>
@@ -5429,6 +5429,32 @@ The “Max P” method for orienting an unshielded triple X—Y—Z records p-va
             <li>Value Type: <span id="meekVerbose_value_type">Boolean</span></li>
         </ul>
 
+        <h3 id="useScore" class="parameter_description">useScore</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span
+                    id="useScore_short_desc">Yes (for BOSS) is the score should be used; no if the test should be used</span>
+            </li>
+            <li>Long Description: <span id="useScore_long_desc">BOSS can run either from a score or a test; this lets you choose which.</span>
+            </li>
+            <li>Default Value: <span id="useScore_default_value">true</span></li>
+            <li>Lower Bound: <span id="useScore_lower_bound"></span></li>
+            <li>Upper Bound: <span id="useScore_upper_bound"></span></li>
+            <li>Value Type: <span id="useScore_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="outputCpdag" class="parameter_description">outputCpdag</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span
+                    id="outputCpdag_short_desc">Yes CPDAG should be ouput, no if a DAG.</span>
+            </li>
+            <li>Long Description: <span id="outputCpdag_long_desc">BOSS can output a DAG or the CPDAG of the DAG.</span>
+            </li>
+            <li>Default Value: <span id="outputCpdag_default_value">true</span></li>
+            <li>Lower Bound: <span id="outputCpdag_lower_bound"></span></li>
+            <li>Upper Bound: <span id="outputCpdag_upper_bound"></span></li>
+            <li>Value Type: <span id="outputCpdag_value_type">Boolean</span></li>
+        </ul>
+
         <h3 id="cacheScores" class="parameter_description">cacheScores</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="cacheScores_short_desc">Yes score results should be cached, no if not</span>
@@ -5552,28 +5578,28 @@ The “Max P” method for orienting an unshielded triple X—Y—Z records p-va
     </p>
 
 
-    <thead>
-    <tr>
-        <th>Parameter</th>
-        <th>Description</th>
-    </tr>
-    </thead>
+<!--    <thead>-->
+<!--    <tr>-->
+<!--        <th>Parameter</th>-->
+<!--        <th>Description</th>-->
+<!--    </tr>-->
+<!--    </thead>-->
 
-    <tbody>
-    <tr>
-        <td>Cutoff for p-values (alpha)</td>
-        <td>Conditional independence tests with p-values greater than this will be judged to be independent (H0).
-            Default 0.01.
-        </td>
-    </tr>
+<!--    <tbody>-->
+<!--    <tr>-->
+<!--        <td>Cutoff for p-values (alpha)</td>-->
+<!--        <td>Conditional independence tests with p-values greater than this will be judged to be independent (H0).-->
+<!--            Default 0.01.-->
+<!--        </td>-->
+<!--    </tr>-->
 
-    <tr>
-        <td>Maximum size of conditioning set (depth)</td>
-        <td>PC in the adjacency phase will consider conditioning sets for conditional independences of increasing size,
-            up to this value. For instance, for depth 3, the maximum size of a conditioning set considered will be 3.
-        </td>
-    </tr>
-    </tbody>
+<!--    <tr>-->
+<!--        <td>Maximum size of conditioning set (depth)</td>-->
+<!--        <td>PC in the adjacency phase will consider conditioning sets for conditional independences of increasing size,-->
+<!--            up to this value. For instance, for depth 3, the maximum size of a conditioning set considered will be 3.-->
+<!--        </td>-->
+<!--    </tr>-->
+<!--    </tbody>-->
 
     <p>Table A1: Types of edges in a PAG.</p>
 

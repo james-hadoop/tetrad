@@ -1,8 +1,10 @@
 package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
@@ -12,6 +14,7 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Boss;
+import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
@@ -33,13 +36,14 @@ import java.util.List;
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
+public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
     private ScoreWrapper score = null;
     private IKnowledge knowledge = new Knowledge2();
     private Graph initialGraph;
     private Algorithm algorithm;
+    private IndependenceWrapper test;
 
     public BOSS() {
 
@@ -57,12 +61,22 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
-            Boss boss = new Boss(score);
+            IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
+
+            Boss boss;
+
+            if (parameters.getBoolean(Params.USE_SCORE)) {
+                boss = new Boss(score);
+            } else {
+                boss = new Boss(test);
+            }
+
             boss.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
 //            boss.setGspDepth(parameters.getInt(Params.DEPTH));
+//            boss.setKnowledge(knowledge);
 
             boss.setMethod(Boss.Method.BOSS);
 
@@ -83,7 +97,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
             }
 
             List<Node> perm = boss.bestOrder(score.getVariables());
-            return boss.getGraph(perm, true);
+            return boss.getGraph(perm, parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
             BOSS fges = new BOSS();
 
@@ -139,6 +153,8 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
         params.add(Params.BOSS_METHOD);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.BREAK_TIES);
+        params.add(Params.USE_SCORE);
+        params.add(Params.OUTPUT_CPDAG);
         params.add(Params.VERBOSE);
 //        params.add(Params.DEPTH);
         return params;
@@ -177,5 +193,15 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIni
     @Override
     public void setInitialGraph(Algorithm algorithm) {
         this.algorithm = algorithm;
+    }
+
+    @Override
+    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
+        this.test = independenceWrapper;
+    }
+
+    @Override
+    public IndependenceWrapper getIndependenceWrapper() {
+        return test;
     }
 }

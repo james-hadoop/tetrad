@@ -128,7 +128,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
 
     public CovarianceMatrix(List<Node> variables, double[][] matrix,
                             int sampleSize) {
-        if (variables.size() != matrix.length && variables.size() != matrix[0].length) {
+        if (variables.size() > matrix.length && variables.size() != matrix[0].length) {
             throw new IllegalArgumentException("# variables not equal to matrix dimension.");
         }
 

@@ -1,5 +1,7 @@
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 import static java.lang.Double.POSITIVE_INFINITY;
+import static java.util.Collections.addAll;
 
 
 /**
@@ -32,6 +35,7 @@ public class Boss {
     private boolean breakTies = false;
     private int gspDepth = -1;
     private TeyssierScorer.ScoreType scoreType = TeyssierScorer.ScoreType.Edge;
+    private IKnowledge knowledge = new Knowledge2();
 
     public Boss(Score score) {
         this.score = score;
@@ -47,6 +51,10 @@ public class Boss {
         long start = System.currentTimeMillis();
         order = new ArrayList<>(order);
 
+        if (!validKnowledgeOrder(order)) {
+            order = makeValidKnowledgeOrder();
+        }
+
         TeyssierScorer scorer;
 
         if (score != null) {
@@ -55,6 +63,7 @@ public class Boss {
             scorer = new TeyssierScorer(test);
         }
 
+        scorer.setKnowledge(knowledge);
         scorer.setScoreType(scoreType);
 
         scorer.setCachingScores(cachingScores);
@@ -93,6 +102,37 @@ public class Boss {
         }
 
         return bestPerm;
+    }
+
+    private List<Node> makeValidKnowledgeOrder() {
+
+        Graph graph = getGraph(variables, true);
+
+        List<Node> order = new ArrayList<>();
+
+        for (String name : knowledge.getVariablesNotInTiers()) {
+            order.add(graph.getNode(name));
+        }
+
+        for (int i = 0; i < knowledge.getNumTiers(); i++) {
+            for (String name : knowledge.getTier(i)) {
+                order.add(graph.getNode(name));
+            }
+        }
+
+        return order;
+    }
+
+    private boolean validKnowledgeOrder(List<Node> order) {
+        for (int i = 0; i < order.size(); i++) {
+            for (int j = i + 1; j < order.size(); j++) {
+                if (knowledge.isForbidden(order.get(j).getName(), order.get(i).getName())) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public List<Node> boss(TeyssierScorer scorer) {
@@ -323,6 +363,9 @@ public class Boss {
         this.verbose = verbose;
     }
 
+    public void setKnowledge(IKnowledge knowledge) {
+        this.knowledge = knowledge;
+    }
 
     public enum Method {BOSS, SP, GSP}
 }

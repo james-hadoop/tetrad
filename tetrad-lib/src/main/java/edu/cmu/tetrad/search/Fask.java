@@ -219,11 +219,18 @@ public final class Fask implements GraphSearch {
             fas.setKnowledge(knowledge);
             G = fas.search();
         } else if (adjacencyMethod == AdjacencyMethod.FAS_STABLE_CONCURRENT) {
-            FasConcurrent fas = new FasConcurrent(test);
-            fas.setStable(true);
-            fas.setVerbose(false);
-            fas.setKnowledge(knowledge);
-            G = fas.search();
+            Boss boss = new Boss(new SemBicScore(dataSet));
+            boss.setScoreType(TeyssierScorer.ScoreType.Edge);
+            boss.setMethod(Boss.Method.BOSS);
+            boss.setKnowledge(knowledge);
+            List<Node> order = boss.bestOrder(variables);
+            G = boss.getGraph(order, false);
+
+//            FasConcurrent fas = new FasConcurrent(test);
+//            fas.setStable(true);
+//            fas.setVerbose(false);
+//            fas.setKnowledge(knowledge);
+//            G = fas.search();
         } else if (adjacencyMethod == AdjacencyMethod.FGES) {
             Fges fas = new Fges(new ScoredIndTest(test));
             fas.setVerbose(false);

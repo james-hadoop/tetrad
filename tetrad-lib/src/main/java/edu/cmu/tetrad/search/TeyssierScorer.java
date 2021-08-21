@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static java.util.Collections.copy;
 import static java.util.Collections.shuffle;
 
 /**
@@ -84,6 +85,11 @@ public class TeyssierScorer {
 
         Node v1 = order.get(index - 1);
         Node v2 = order.get(index);
+//
+//        if (knowledge.isForbidden(v2.getName(), v1.getName())) {
+//            demote(v);
+//            return true;
+//        }
 
         order.set(index - 1, v2);
         order.set(index, v1);
@@ -105,6 +111,11 @@ public class TeyssierScorer {
         Node v1 = order.get(index);
         Node v2 = order.get(index + 1);
 
+//        if (knowledge.isForbidden(v2.getName(), v1.getName())) {
+//            promote(v);
+//            return true;
+//        }
+
         order.set(index, v2);
         order.set(index + 1, v1);
 
@@ -118,34 +129,74 @@ public class TeyssierScorer {
     }
 
     public void moveTo(Node v, int toIndex) {
+        int vindex = indexOf(v);
+
         order.remove(v);
         order.add(toIndex, v);
+
+//        if (!validKnowledgeOrder(order)) {
+//            order.remove(v);
+//            order.add(vindex, v);
+//        }
 
         updateScores();
     }
 
+    private boolean validKnowledgeOrder(List<Node> order) {
+        for (int i = 0; i < order.size(); i++) {
+            for (int j = i + 1; j < order.size(); j++) {
+                if (knowledge.isForbidden(order.get(i).getName(), order.get(j).getName())) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     public void moveToFirst(Node v) {
+        int vindex = indexOf(v);
+
         order.remove(v);
         order.addFirst(v);
+
+//        if (!validKnowledgeOrder(order)) {
+//            order.remove(v);
+//            order.add(vindex, v);
+//        }
 
         updateScores();
     }
 
     public void moveToLast(Node v) {
+        int vindex = indexOf(v);
+
         order.remove(v);
         order.addLast(v);
+
+//        if (!validKnowledgeOrder(order)) {
+//            order.remove(v);
+//            order.add(vindex, v);
+//        }
 
         updateScores();
     }
 
-    public void swap(Node m, Node n) {
+    public boolean swap(Node m, Node n) {
         int i = orderHash.get(m);
         int j = orderHash.get(n);
 
         order.set(i, n);
         order.set(j, m);
 
+        if (!validKnowledgeOrder(order)) {
+            order.set(i, m);
+            order.set(j, n);
+            return false;
+        }
+
         updateScores();
+        return true;
     }
 
     public List<Node> getOrder() {
@@ -323,8 +374,10 @@ public class TeyssierScorer {
 
             for (Node z0 : prefix) {
                 if (parents.contains(z0)) continue;
+                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
 
                 if (test.isDependent(n, z0, parents)) {
+
                     parents.add(z0);
                     changed = true;
                 }
@@ -466,6 +519,16 @@ public class TeyssierScorer {
 
     public Node get(int j) {
         return order.get(j);
+    }
+
+    public boolean adjacent(Node a, Node c) {
+        return getParents(indexOf(a)).contains(c) || getParents(indexOf(c)).contains(a);
+    }
+
+    public boolean defCollider(Node a, Node b, Node c) {
+        if (!adjacent(a, b)) return false;
+        if (!adjacent(b, c)) return false;
+        return getParents(b).contains(a) && getParents(b).contains(c);
     }
 
     public enum ScoreType {Edge, SCORE}

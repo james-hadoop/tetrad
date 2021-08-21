@@ -207,6 +207,8 @@ public final class Params {
     public static final String BOSS_METHOD = "bossMethod";
     public static final String BOSS_SCORE_TYPE = "bossScoreType";
     public static final String BREAK_TIES = "breakTies";
+    public static final String USE_SCORE = "useScore";
+    public static final String OUTPUT_CPDAG = "outputCpdag";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(
