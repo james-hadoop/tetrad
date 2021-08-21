@@ -1,7 +1,5 @@
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
@@ -9,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static java.util.Collections.copy;
 import static java.util.Collections.shuffle;
 
 /**
@@ -34,7 +31,7 @@ public class TeyssierScorer {
     private LinkedList<Node> order;
     private LinkedList<Pair> scores;
     private boolean cachingScores = true;
-    private IKnowledge knowledge = new Knowledge2();
+//    private IKnowledge knowledge = new Knowledge2();
     private LinkedList<Set<Node>> prefixes;
     private ScoreType scoreType = ScoreType.Edge;
     private Map<Node, Integer> orderHash = new HashMap<>();
@@ -53,9 +50,9 @@ public class TeyssierScorer {
         this.variablesHash = nodesHash(variables);
     }
 
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
-    }
+//    public void setKnowledge(IKnowledge knowledge) {
+//        this.knowledge = knowledge;
+//    }
 
     public double score(List<Node> order) {
         this.order = new LinkedList<>(order);
@@ -142,17 +139,17 @@ public class TeyssierScorer {
         updateScores();
     }
 
-    private boolean validKnowledgeOrder(List<Node> order) {
-        for (int i = 0; i < order.size(); i++) {
-            for (int j = i + 1; j < order.size(); j++) {
-                if (knowledge.isForbidden(order.get(i).getName(), order.get(j).getName())) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
+//    private boolean validKnowledgeOrder(List<Node> order) {
+//        for (int i = 0; i < order.size(); i++) {
+//            for (int j = i + 1; j < order.size(); j++) {
+//                if (knowledge.isForbidden(order.get(i).getName(), order.get(j).getName())) {
+//                    return false;
+//                }
+//            }
+//        }
+//
+//        return true;
+//    }
 
     public void moveToFirst(Node v) {
         int vindex = indexOf(v);
@@ -189,11 +186,11 @@ public class TeyssierScorer {
         order.set(i, n);
         order.set(j, m);
 
-        if (!validKnowledgeOrder(order)) {
-            order.set(i, m);
-            order.set(j, n);
-            return false;
-        }
+//        if (!validKnowledgeOrder(order)) {
+//            order.set(i, m);
+//            order.set(j, n);
+//            return false;
+//        }
 
         updateScores();
         return true;
@@ -374,7 +371,7 @@ public class TeyssierScorer {
 
             for (Node z0 : prefix) {
                 if (parents.contains(z0)) continue;
-                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+//                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
 
                 if (test.isDependent(n, z0, parents)) {
 
@@ -423,7 +420,7 @@ public class TeyssierScorer {
             for (Node z0 : prefix) {
                 if (parents.contains(z0)) continue;
 
-                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+//                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
                 parents.add(z0);
 
                 double s2 = score(n, parents);

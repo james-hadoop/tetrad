@@ -97,7 +97,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             }
 
             List<Node> perm = boss.bestOrder(score.getVariables());
-            return boss.getGraph(perm, parameters.getBoolean(Params.OUTPUT_CPDAG));
+            return boss.getGraph(perm, true);
         } else {
             BOSS fges = new BOSS();
 
@@ -149,12 +149,12 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     public List<String> getParameters() {
         ArrayList<String> params = new ArrayList<>();
         params.add(Params.CACHE_SCORES);
-        params.add(Params.NUM_STARTS);
+//        params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.BREAK_TIES);
         params.add(Params.USE_SCORE);
-        params.add(Params.OUTPUT_CPDAG);
+//        params.add(Params.OUTPUT_CPDAG);
         params.add(Params.VERBOSE);
 //        params.add(Params.DEPTH);
         return params;

@@ -313,7 +313,7 @@ public class ParameterTab extends JPanel {
                 try {
                     RandomGraph randomGraph = newRandomGraph();
                     newSimulation(randomGraph);
-                    simulation.getSimulation().createData(simulation.getParams(), false);
+                    simulation.getSimulation().createData(simulation.getParams(), true);
 
                     firePropertyChange("modelChanged", null, null);
                 } catch (Exception exception) {
