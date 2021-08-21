@@ -79,6 +79,8 @@ public final class Params {
     public static final String FAST_ICA_A = "fastIcaA";
     public static final String FAST_ICA_MAX_ITER = "fastIcaMaxIter";
     public static final String FAST_ICA_TOLERANCE = "fastIcaTolerance";
+    public static final String ICA_ALGORITHM = "icaAlgorithm";
+    public static final String ICA_FUNCTION = "icaFunction";
     public static final String FDR_Q = "fdrQ";
     public static final String ORIENTATION_ALPHA = "orientationAlpha";
     public static final String FISHER_EPSILON = "fisherEpsilon";
@@ -197,6 +199,16 @@ public final class Params {
     public static final String SEM_BIC_RULE = "semBicRule";
     public static final String SEM_BIC_STRUCTURE_PRIOR = "semBicStructurePrior";
     public static final String CORRELATION_THRESHOLD = "correlationThreshold";
+    public static final String BEAM_WIDTH = "beamWidth";
+    public static final String ZERO_EDGE_P = "zeroEdgeP";
+    public static final String NUM_STARTS = "numStarts";
+    public static final String RECURSIVE = "recursive";
+    public static final String CACHE_SCORES = "cacheScores";
+    public static final String BOSS_METHOD = "bossMethod";
+    public static final String BOSS_SCORE_TYPE = "bossScoreType";
+    public static final String BREAK_TIES = "breakTies";
+    public static final String USE_SCORE = "useScore";
+    public static final String OUTPUT_CPDAG = "outputCpdag";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(

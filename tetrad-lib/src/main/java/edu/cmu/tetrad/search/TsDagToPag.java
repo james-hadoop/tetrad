@@ -164,7 +164,7 @@ public final class TsDagToPag {
             }
         }
 
-        Graph graph = new EdgeListGraphSingleConnections(measured);
+        Graph graph = new EdgeListGraph(measured);
 
         for (int i = 0; i < measured.size(); i++) {
             for (int j = i + 1; j < measured.size(); j++) {

@@ -54,14 +54,14 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
+    public Graph search(DataModel dataSet, Parameters parameters) {
         if (algorithm != null) {
-            this.initialGraph = algorithm.search(dataSet, parameters, trueGraph);
+            this.initialGraph = algorithm.search(dataSet, parameters);
         }
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
-            IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
+            IndependenceTest test = this.test.getTest(dataSet, parameters);
 
             Boss boss;
 

@@ -4596,6 +4596,80 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="numberResampling_value_type">Integer</span></li>
         </ul>
 
+        <h3 id="numStarts" class="parameter_description">numStarts</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="numStarts_short_desc">The number of random restarts (default 1)</span>
+            </li>
+            <li>Long Description: <span id="numStarts_long_desc">The number of times the algorithm should srarted from different initializations.
+                By default, the algorithm will be run through at least once using the initialized parameters
+                (zero random restarts).</span>
+            </li>
+            <li>Default Value: <span id="numStarts_default_value">1</span></li>
+            <li>Lower Bound: <span id="numStarts_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="numStarts_upper_bound">2147483647</span></li>
+            <li>Value Type: <span id="numStarts_value_type">Integer</span></li>
+        </ul>
+
+        <h3 id="bossMethod" class="parameter_description">bossMethod</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="bossMethod_short_desc">
+                1 = BOSS, 2 = SP</span>
+            </li>
+            <li>Long Description: <span id="bossMethod_long_desc">
+                 "All indices" places each variable in all positions in the list and picks the best
+                position. "SP" is the sparsest permutation algorithm, for comparison, for very small
+                models. (See Raskulti and Uhler, "Learning directed acyclic graph models based on
+                sparsest permutations.)
+            </span>
+            </li>
+            <li>Default Value: <span id="bossMethod_default_value">1</span></li>
+            <li>Lower Bound: <span id="bossMethod_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="bossMethod_upper_bound">2</span></li>
+            <li>Value Type: <span id="bossMethod_value_type">Integer</span></li>
+        </ul>
+
+        <h3 id="bossScoreType" class="parameter_description">bossScoreType</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="bossScoreType_short_desc">
+                1 = EDGE, 2 = SCORE</span>
+            </li>
+            <li>Long Description: <span id="bossScoreType_long_desc">
+                If EDGE, the number of edges in the model will be minimized. If SCORE, the supplied score
+                of the model (preferably a BIC score) will be optimized.
+            </span>
+            </li>
+            <li>Default Value: <span id="bossScoreType_default_value">2</span></li>
+            <li>Lower Bound: <span id="bossScoreType_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="bossScoreType_upper_bound">2</span></li>
+            <li>Value Type: <span id="bossScoreType_value_type">Integer</span></li>
+        </ul>
+
+        <h3 id="breakTies" class="parameter_description">breakTies</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="breakTies_short_desc">Yes if the algorithm should do the final orienation step (can be slow)</span>
+            </li>
+            <li>Long Description: <span id="breakTies_long_desc">
+                In some cases, two moves are required simultaneously to get an orientation right in the final step.
+                This is not generally needed when optimizing using BIC or for large models.</span>
+            </li>
+            <li>Default Value: <span id="breakTies_default_value">false</span></li>
+            <li>Lower Bound: <span id="breakTies_lower_bound"></span></li>
+            <li>Upper Bound: <span id="breakTies_upper_bound"></span></li>
+            <li>Value Type: <span id="breakTies_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="recursive" class="parameter_description">recursive</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="recursive_short_desc">Yes if the algorithm should proceed recursively, no if not</span>
+            </li>
+            <li>Long Description: <span id="recursive_long_desc">Where recursive or nonrecursive variants of an algorithm are available, this selects which one to use.</span>
+            </li>
+            <li>Default Value: <span id="recursive_default_value">false</span></li>
+            <li>Lower Bound: <span id="recursive_lower_bound"></span></li>
+            <li>Upper Bound: <span id="recursive_upper_bound"></span></li>
+            <li>Value Type: <span id="recursive_value_type">Boolean</span></li>
+        </ul>
+
         <h3 id="orientTowardDConnections" class="parameter_description">orientTowardDConnections</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="orientTowardDConnections_short_desc">Yes if Richardson's step C (orient toward d-connection) should be used</span>
@@ -5305,6 +5379,44 @@ The “Max P” method for orienting an unshielded triple X—Y—Z records p-va
             <li>Lower Bound: <span id="meekVerbose_lower_bound"></span></li>
             <li>Upper Bound: <span id="meekVerbose_upper_bound"></span></li>
             <li>Value Type: <span id="meekVerbose_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="useScore" class="parameter_description">useScore</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span
+                    id="useScore_short_desc">Yes (for BOSS) is the score should be used; no if the test should be used</span>
+            </li>
+            <li>Long Description: <span id="useScore_long_desc">BOSS can run either from a score or a test; this lets you choose which.</span>
+            </li>
+            <li>Default Value: <span id="useScore_default_value">true</span></li>
+            <li>Lower Bound: <span id="useScore_lower_bound"></span></li>
+            <li>Upper Bound: <span id="useScore_upper_bound"></span></li>
+            <li>Value Type: <span id="useScore_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="outputCpdag" class="parameter_description">outputCpdag</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span
+                    id="outputCpdag_short_desc">Yes CPDAG should be ouput, no if a DAG.</span>
+            </li>
+            <li>Long Description: <span id="outputCpdag_long_desc">BOSS can output a DAG or the CPDAG of the DAG.</span>
+            </li>
+            <li>Default Value: <span id="outputCpdag_default_value">true</span></li>
+            <li>Lower Bound: <span id="outputCpdag_lower_bound"></span></li>
+            <li>Upper Bound: <span id="outputCpdag_upper_bound"></span></li>
+            <li>Value Type: <span id="outputCpdag_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="cacheScores" class="parameter_description">cacheScores</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="cacheScores_short_desc">Yes score results should be cached, no if not</span>
+            </li>
+            <li>Long Description: <span id="cacheScores_long_desc">Caching scores can use a lot of memory.</span>
+            </li>
+            <li>Default Value: <span id="cacheScores_default_value">true</span></li>
+            <li>Lower Bound: <span id="cacheScores_lower_bound"></span></li>
+            <li>Upper Bound: <span id="cacheScores_upper_bound"></span></li>
+            <li>Value Type: <span id="cacheScores_value_type">Boolean</span></li>
         </ul>
 
         <h3 id="include_structure_model" class="parameter_description">verbose</h3>

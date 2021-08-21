@@ -270,7 +270,7 @@ public class GraphSelectionWrapper implements SessionModel, GraphSource, Knowled
                 edges.addAll(ys);
             }
 
-            Graph subGraph = new EdgeListGraphSingleConnections();
+            Graph subGraph = new EdgeListGraph();
 
             for (Edge edge : edges) {
                 if (!subGraph.containsNode(edge.getNode1())) {
@@ -294,7 +294,7 @@ public class GraphSelectionWrapper implements SessionModel, GraphSource, Knowled
                 edges.addAll(ys);
             }
 
-            Graph subGraph = new EdgeListGraphSingleConnections();
+            Graph subGraph = new EdgeListGraph();
 
             for (Edge edge : edges) {
                 if (!subGraph.containsNode(edge.getNode1())) {

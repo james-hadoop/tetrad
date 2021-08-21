@@ -99,7 +99,7 @@ public final class GFci implements GraphSearch {
         logger.log("info", "Starting FCI algorithm.");
         logger.log("info", "Independence test = " + getIndependenceTest() + ".");
 
-        this.graph = new EdgeListGraphSingleConnections(nodes);
+        this.graph = new EdgeListGraph(nodes);
 
         Fges fges = new Fges(score);
         fges.setKnowledge(getKnowledge());
@@ -108,7 +108,7 @@ public final class GFci implements GraphSearch {
         fges.setMaxDegree(maxDegree);
         fges.setOut(out);
         graph = fges.search();
-        Graph fgesGraph = new EdgeListGraphSingleConnections(graph);
+        Graph fgesGraph = new EdgeListGraph(graph);
 
         sepsets = new SepsetsGreedy(fgesGraph, independenceTest, null, maxDegree);
 

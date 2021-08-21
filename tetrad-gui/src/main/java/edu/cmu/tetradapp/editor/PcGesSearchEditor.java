@@ -382,7 +382,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
                 }
             }
 
-            Graph pattern = new EdgeListGraphSingleConnections(resultGraph);
+            Graph pattern = new EdgeListGraph(resultGraph);
             PatternToDag ptd = new PatternToDag(pattern);
             Graph dag = ptd.patternToDagMeek();
 

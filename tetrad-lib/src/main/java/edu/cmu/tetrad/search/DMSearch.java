@@ -870,7 +870,7 @@ public class DMSearch {
 
         public Graph latentStructToEdgeListGraph(LatentStructure structure) {
 
-            Graph structureGraph = new EdgeListGraphSingleConnections();
+            Graph structureGraph = new EdgeListGraph();
 
 
             for (Node latent : latents) {
