@@ -64,6 +64,19 @@ public class StandardizedSemIm implements Simulator, TetradSerializable {
         return sampleSize;
     }
 
+    public void setEdgeCoefficientUnchecked(Node a, Node b, double coef) {
+        Edge edge = Edges.directedEdge(a, b);
+        edgeParameters.put(edge, coef);
+    }
+
+    public Matrix getEdgeCoef() {
+        return edgeCoef;
+    }
+
+    public Matrix getErrorCovar() {
+        return errorCovar;
+    }
+
     public enum Initialization {
         CALCULATE_FROM_SEM, INITIALIZE_FROM_DATA
     }

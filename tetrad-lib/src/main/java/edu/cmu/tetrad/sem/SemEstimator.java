@@ -233,7 +233,7 @@ public final class SemEstimator implements TetradSerializable {
         TetradLogger.getInstance().log("stats", "Model P Value = " + nf.format(semIm.getPValue()));
         TetradLogger.getInstance().log("stats", "Model BIC = " + nf.format(semIm.getBicScore()));
 
-        System.out.println(estimatedSem);
+//        System.out.println(estimatedSem);
 
         return this.estimatedSem;
     }

@@ -4,33 +4,29 @@ import edu.cmu.tetrad.algcomparison.statistic.utils.AdjacencyConfusion;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 
 /**
- * The adjacency precision. The true positives are the number of adjacencies in both
- * the true and estimated graphs.
+ * Outputs 1 if the skeleton is correct, 0 if not..
  *
  * @author jdramsey
  */
-public class AdjacencyPrecision implements Statistic {
+public class CorrectSkeleton implements Statistic {
     static final long serialVersionUID = 23L;
 
     @Override
     public String getAbbreviation() {
-        return "AP";
+        return "CorrSk";
     }
 
     @Override
     public String getDescription() {
-        return "Adjacency Precision";
+        return "Correct Skeleton";
     }
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        AdjacencyConfusion adjConfusion = new AdjacencyConfusion(trueGraph, estGraph);
-        int adjTp = adjConfusion.getAdjTp();
-        int adjFp = adjConfusion.getAdjFp();
-        return adjTp / (double) (adjTp + adjFp);
+        return GraphUtils.undirectedGraph(trueGraph).equals(GraphUtils.undirectedGraph(estGraph)) ?
+                1 : 0;
     }
 
     @Override

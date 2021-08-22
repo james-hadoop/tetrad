@@ -22,10 +22,10 @@
 package edu.cmu.tetrad.sem;
 
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.ICovarianceMatrix;
+import edu.cmu.tetrad.data.DataType;
+import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.Matrix;
 
 import java.util.List;
 
@@ -35,45 +35,22 @@ import java.util.List;
 public interface Scorer {
     double score(Graph dag);
 
-    ICovarianceMatrix getCovMatrix();
+    // Use this method when only the give edge has changed. Faster.
+    double score(Edge edge);
 
     String toString();
 
-    double getFml();
-
-    double getLogLikelihood();
-
-    double getTruncLL();
-
-    double getBicScore();
-
-    double getAicScore();
-
-    double getKicScore();
-
-    double getChiSquare();
-
-    double getPValue();
-
     DataSet getDataSet();
-
-    int getNumFreeParams();
-
-    int getDof();
 
     int getSampleSize();
 
     List<Node> getMeasuredNodes();
 
-    Matrix getSampleCovar();
-
-    Matrix getEdgeCoef();
-
-    Matrix getErrorCovar();
-
     List<Node> getVariables();
 
-    SemIm getEstSem();
+    DataType getDataType();
+
+    void resetParameters(Edge edge);
 }
 
 

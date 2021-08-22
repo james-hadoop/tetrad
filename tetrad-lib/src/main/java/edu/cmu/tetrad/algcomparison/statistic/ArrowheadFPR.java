@@ -1,36 +1,37 @@
 package edu.cmu.tetrad.algcomparison.statistic;
 
 import edu.cmu.tetrad.algcomparison.statistic.utils.AdjacencyConfusion;
+import edu.cmu.tetrad.algcomparison.statistic.utils.ArrowConfusion;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 
 /**
- * The adjacency precision. The true positives are the number of adjacencies in both
+ * The adjacency true positive rate. The true positives are the number of adjacencies in both
  * the true and estimated graphs.
  *
  * @author jdramsey
  */
-public class AdjacencyPrecision implements Statistic {
+public class ArrowheadFPR implements Statistic {
     static final long serialVersionUID = 23L;
 
     @Override
     public String getAbbreviation() {
-        return "AP";
+        return "AHFPR";
     }
 
     @Override
     public String getDescription() {
-        return "Adjacency Precision";
+        return "Arrowhead False Positive Rate";
     }
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        AdjacencyConfusion adjConfusion = new AdjacencyConfusion(trueGraph, estGraph);
-        int adjTp = adjConfusion.getAdjTp();
-        int adjFp = adjConfusion.getAdjFp();
-        return adjTp / (double) (adjTp + adjFp);
+        ArrowConfusion adjConfusion = new ArrowConfusion(trueGraph, estGraph);
+        int adjTp = adjConfusion.getArrowsTp();
+        int adjFp = adjConfusion.getArrowsFp();
+        int adjFn = adjConfusion.getArrowsFn();
+        int adjTn = adjConfusion.getArrowsTn();
+        return adjFp / (double) (adjFp + adjTn);
     }
 
     @Override

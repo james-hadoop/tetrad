@@ -20,41 +20,18 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.CovarianceMatrix;
-import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DataModelList;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.ICovarianceMatrix;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.data.KnowledgeEdge;
-import edu.cmu.tetrad.graph.Dag;
-import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.EdgeListGraph;
-import edu.cmu.tetrad.graph.Edges;
-import edu.cmu.tetrad.graph.Endpoint;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.Triple;
+import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.CombinationGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
+import org.apache.commons.collections4.map.MultiKeyMap;
 
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.collections4.map.MultiKeyMap;
+import java.util.*;
 
 /**
  * Graph utilities for search algorithm. Lots of orientation method, for
@@ -1461,6 +1438,10 @@ public final class SearchGraphUtils {
     }
 
     public static Graph dagFromPattern(Graph graph) {
+        return dagFromPattern(graph, null);
+    }
+
+    public static Graph dagFromPattern(Graph graph, IKnowledge knowledge) {
         Graph dag = new EdgeListGraph(graph);
 
         for (Edge edge : dag.getEdges()) {
@@ -1474,6 +1455,11 @@ public final class SearchGraphUtils {
         }
 
         MeekRules rules = new MeekRules();
+
+        if (knowledge != null) {
+            rules.setKnowledge(knowledge);
+        }
+
         rules.setRevertToUnshieldedColliders(false);
 
         NEXT:
@@ -2346,20 +2332,20 @@ public final class SearchGraphUtils {
     }
 
     public static Graph chooseDagInPattern(Graph graph) {
-        return new DagInPatternIterator(graph).next();
+//        return new DagInPatternIterator(graph).next();
 
-//        Graph newGraph = new EdgeListGraph(graph);
-//
-//        for(Edge edge : newGraph.getEdges()){
-//            if(Edges.isBidirectedEdge(edge)){
-//                newGraph.removeEdge(edge);
-//            }
-//        }
-//
-//        PatternToDag search = new PatternToDag(new EdgeListGraph(newGraph));
-//        Graph dag = search.patternToDagMeek();
-//        GraphUtils.arrangeBySourceGraph(dag, graph);
-//        return dag;
+        Graph newGraph = new EdgeListGraph(graph);
+
+        for(Edge edge : newGraph.getEdges()){
+            if(Edges.isBidirectedEdge(edge)){
+                newGraph.removeEdge(edge);
+            }
+        }
+
+        PatternToDag search = new PatternToDag(new EdgeListGraph(newGraph));
+        Graph dag = search.patternToDagMeek();
+        GraphUtils.arrangeBySourceGraph(dag, graph);
+        return dag;
     }
 
     public static Graph chooseMagInPag(Graph graph) {
@@ -2512,54 +2498,54 @@ public final class SearchGraphUtils {
 //
 //        return dags;
 //    }
-    public static Graph dagFromPattern(Graph graph, IKnowledge knowledge) {
-        boolean allowArbitraryOrientations = true;
-        boolean allowNewColliders = true;
-        DagInPatternIterator iterator = new DagInPatternIterator(graph, knowledge, allowArbitraryOrientations,
-                allowNewColliders);
-        Graph dag = iterator.next();
-        return dag;
-    }
+//    public static Graph dagFromPattern(Graph graph, IKnowledge knowledge) {
+//        boolean allowArbitraryOrientations = true;
+//        boolean allowNewColliders = true;
+//        DagInPatternIterator iterator = new DagInPatternIterator(graph, knowledge, allowArbitraryOrientations,
+//                allowNewColliders);
+//        Graph dag = iterator.next();
+//        return dag;
+//    }
 
-    public static int structuralHammingDistance(Graph trueGraph, Graph estGraph) {
-        int error = 0;
-
-        estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
-
-        Set<Node> _allNodes = new HashSet<>();
-
-        List<Node> trueLatents = trueGraph.getNodes();
-        List<Node> estLatents = estGraph.getNodes();
-
-//        List<Node> trueLatents = GraphUtils.getLatents(trueGraph);
-//        List<Node> estLatents = GraphUtils.getLatents(graph);
-        Graph u = trueGraph.subgraph(trueLatents);
-        Graph t = estGraph.subgraph(estLatents);
-
-        Graph G = u; //patternForDag(u);
-        Graph H = t; //patternForDag(t);
-
-//        System.out.println("Pattern of true graph over latents = " + G);
-        _allNodes.addAll(trueLatents);
-        _allNodes.addAll(estLatents);
-
-        List<Node> allNodes = new ArrayList<>(_allNodes);
-
-        for (int i1 = 0; i1 < allNodes.size(); i1++) {
-            for (int i2 = i1 + 1; i2 < allNodes.size(); i2++) {
-                Node l1 = allNodes.get(i1);
-                Node l2 = allNodes.get(i2);
-
-                Edge e1 = G.getEdge(l1, l2);
-                Edge e2 = H.getEdge(l1, l2);
-
-                int shd = structuralHammingDistanceOneEdge(e1, e2);
-
-                error += shd;
-            }
-        }
-        return error;
-    }
+//    public static int structuralHammingDistance(Graph trueGraph, Graph estGraph) {
+//        int error = 0;
+//
+//        estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
+//
+//        Set<Node> _allNodes = new HashSet<>();
+//
+//        List<Node> trueLatents = trueGraph.getNodes();
+//        List<Node> estLatents = estGraph.getNodes();
+//
+////        List<Node> trueLatents = GraphUtils.getLatents(trueGraph);
+////        List<Node> estLatents = GraphUtils.getLatents(graph);
+//        Graph u = trueGraph.subgraph(trueLatents);
+//        Graph t = estGraph.subgraph(estLatents);
+//
+//        Graph G = u; //patternForDag(u);
+//        Graph H = t; //patternForDag(t);
+//
+////        System.out.println("Pattern of true graph over latents = " + G);
+//        _allNodes.addAll(trueLatents);
+//        _allNodes.addAll(estLatents);
+//
+//        List<Node> allNodes = new ArrayList<>(_allNodes);
+//
+//        for (int i1 = 0; i1 < allNodes.size(); i1++) {
+//            for (int i2 = i1 + 1; i2 < allNodes.size(); i2++) {
+//                Node l1 = allNodes.get(i1);
+//                Node l2 = allNodes.get(i2);
+//
+//                Edge e1 = G.getEdge(l1, l2);
+//                Edge e2 = H.getEdge(l1, l2);
+//
+//                int shd = structuralHammingDistanceOneEdge(e1, e2);
+//
+//                error += shd;
+//            }
+//        }
+//        return error;
+//    }
 
     private static int structuralHammingDistanceOneEdge(Edge e1, Edge e2) {
         if (noEdge(e1) && undirected(e2)) {
@@ -2601,7 +2587,7 @@ public final class SearchGraphUtils {
         return e1 == null;
     }
 
-    public static int structuralHammingDistance3a(Graph trueGraph, Graph estGraph) {
+    public static int structuralHammingDistance(Graph trueGraph, Graph estGraph) {
         int error = 0;
 
         estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
@@ -2972,7 +2958,7 @@ public final class SearchGraphUtils {
             }
         }
 
-        int shd = structuralHammingDistance3a(trueGraph, graph);
+        int shd = structuralHammingDistance(trueGraph, graph);
 
         for (Edge edge : trueGraph.getEdges()) {
             if (graph.containsEdge(edge)) {
@@ -3180,43 +3166,6 @@ public final class SearchGraphUtils {
         return error;
     }
 
-    private static class AhdCounts {
-
-        private int ahdFp = 0;
-        private int ahdFn = 0;
-        private int ahdCorrect = 0;
-
-        public void incrementFp() {
-            ahdFp++;
-        }
-
-        public void incrementFn() {
-            ahdFn++;
-        }
-
-        public void incrementCorrect() {
-            ahdCorrect++;
-        }
-
-        public void addAll(AhdCounts ahdCounts2) {
-            ahdFp += ahdCounts2.getAhdFp();
-            ahdFn += ahdCounts2.getAhdFn();
-            ahdCorrect += ahdCounts2.getAhdCorrect();
-        }
-
-        public int getAhdFp() {
-            return ahdFp;
-        }
-
-        public int getAhdFn() {
-            return ahdFn;
-        }
-
-        public int getAhdCorrect() {
-            return ahdCorrect;
-        }
-    }
-
     private static int structuralHammingDistanceOneEdge3(Edge e1, Edge e2) {
         if (noEdge3(e1) && nondirected3(e2)) {
             return 1;
@@ -3394,51 +3343,6 @@ public final class SearchGraphUtils {
         return counts;
     }
 
-    /**
-     * Simple class to store edges for the reachability search.
-     *
-     * @author Joseph Ramsey
-     */
-    private static class ReachabilityEdge {
-
-        private Node from;
-        private Node to;
-
-        public ReachabilityEdge(Node from, Node to) {
-            this.from = from;
-            this.to = to;
-        }
-
-        public int hashCode() {
-            int hash = 17;
-            hash += 63 * getFrom().hashCode();
-            hash += 71 * getTo().hashCode();
-            return hash;
-        }
-
-        public boolean equals(Object obj) {
-            ReachabilityEdge edge = (ReachabilityEdge) obj;
-
-            if (!(edge.getFrom().equals(this.getFrom()))) {
-                return false;
-            }
-
-            return edge.getTo().equals(this.getTo());
-        }
-
-        public Node getFrom() {
-            return from;
-        }
-
-        public Node getTo() {
-            return to;
-        }
-    }
-
-    public enum CpcTripleType {
-        COLLIDER, NONCOLLIDER, AMBIGUOUS
-    }
-
     public static Graph reorient(Graph graph, DataModel dataModel, IKnowledge knowledge) {
         if (dataModel instanceof DataModelList) {
             DataModelList list = (DataModelList) dataModel;
@@ -3484,5 +3388,87 @@ public final class SearchGraphUtils {
         }
 
         throw new IllegalStateException("Can do that that reorientation.");
+    }
+
+    public enum CpcTripleType {
+        COLLIDER, NONCOLLIDER, AMBIGUOUS
+    }
+
+    private static class AhdCounts {
+
+        private int ahdFp = 0;
+        private int ahdFn = 0;
+        private int ahdCorrect = 0;
+
+        public void incrementFp() {
+            ahdFp++;
+        }
+
+        public void incrementFn() {
+            ahdFn++;
+        }
+
+        public void incrementCorrect() {
+            ahdCorrect++;
+        }
+
+        public void addAll(AhdCounts ahdCounts2) {
+            ahdFp += ahdCounts2.getAhdFp();
+            ahdFn += ahdCounts2.getAhdFn();
+            ahdCorrect += ahdCounts2.getAhdCorrect();
+        }
+
+        public int getAhdFp() {
+            return ahdFp;
+        }
+
+        public int getAhdFn() {
+            return ahdFn;
+        }
+
+        public int getAhdCorrect() {
+            return ahdCorrect;
+        }
+    }
+
+    /**
+     * Simple class to store edges for the reachability search.
+     *
+     * @author Joseph Ramsey
+     */
+    private static class ReachabilityEdge {
+
+        private Node from;
+        private Node to;
+
+        public ReachabilityEdge(Node from, Node to) {
+            this.from = from;
+            this.to = to;
+        }
+
+        public int hashCode() {
+            int hash = 17;
+            hash += 63 * getFrom().hashCode();
+            hash += 71 * getTo().hashCode();
+            return hash;
+        }
+
+        public boolean equals(Object obj) {
+            ReachabilityEdge edge = (ReachabilityEdge) obj;
+
+            if (!(edge.getFrom().equals(this.getFrom()))) {
+                return false;
+            }
+
+            return edge.getTo().equals(this.getTo());
+        }
+
+        public Node getFrom() {
+            return from;
+        }
+
+        public Node getTo() {
+            return to;
+        }
     }
 }

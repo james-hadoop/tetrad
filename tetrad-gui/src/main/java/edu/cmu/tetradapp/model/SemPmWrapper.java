@@ -187,12 +187,6 @@ public class SemPmWrapper implements SessionModel {
         this(new EdgeListGraph(wrapper.getGraph()));
     }
 
-    public SemPmWrapper(PValueImproverWrapper wrapper) {
-        SemPm oldSemPm = wrapper.getNewSemIm().getSemPm();
-        log(0, oldSemPm);
-
-    }
-
     /**
      * Generates a simple exemplar of this class to test serialization.
      *
