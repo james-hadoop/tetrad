@@ -23,9 +23,8 @@ package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetradapp.util.IntTextField;
 
 import javax.swing.*;
@@ -43,12 +42,12 @@ class RandomGraphEditor extends JPanel {
     private final Parameters parameters;
     private final IntTextField numNodesField;
     private final IntTextField numLatentsField;
-    private final IntTextField maxEdgesField;
+    private final IntTextField avgDegreeField;
     private final IntTextField maxIndegreeField;
     private final IntTextField maxOutdegreeField;
     private final IntTextField maxDegreeField;
-    private final JRadioButton chooseUniform;
-    private final JRadioButton chooseFixed;
+    //    private final JRadioButton chooseUniform;
+//    private final JRadioButton chooseFixed;
     private final JComboBox connectedBox;
     private final IntTextField numTwoCyclesField;
     private final IntTextField minCycleLengthField;
@@ -75,49 +74,27 @@ class RandomGraphEditor extends JPanel {
 
         this.parameters = parameters;
 
-        int oldNumMeasured = 0;
-        int oldNumLatents = 0;
-
-        for (Node node : oldGraph.getNodes()) {
-            if (node.getNodeType() == NodeType.LATENT) {
-                oldNumMeasured++;
-            }
-
-            if (node.getNodeType() == NodeType.LATENT) {
-                oldNumLatents++;
-            }
-        }
-
-        int oldNumNodes = oldNumMeasured + oldNumLatents;
-
-        if (oldNumNodes > 1 && oldNumMeasured == getNumMeasuredNodes() &&
-                oldNumLatents == getNumLatents()) {
-            setNumMeasuredNodes(oldNumMeasured);
-            setNumLatents(oldNumLatents);
-            setMaxEdges(Math.min(getMaxEdges(), oldNumNodes * (oldNumNodes - 1) / 2));
-        }
-
         numNodesField = new IntTextField(getNumMeasuredNodes(), 4);
         numLatentsField = new IntTextField(getNumLatents(), 4);
-        maxEdgesField = new IntTextField(getMaxEdges(), 4);
+        avgDegreeField = new IntTextField(getAvgDegree(), 4);
         maxIndegreeField = new IntTextField(getMaxIndegree(), 4);
         maxOutdegreeField = new IntTextField(getMaxOutdegree(), 4);
         maxDegreeField = new IntTextField(getMaxDegree(), 4);
-        JRadioButton randomForward = new JRadioButton("Add random forward edges");
-        chooseUniform = new JRadioButton("Draw uniformly from all such DAGs");
-        chooseFixed = new JRadioButton("Guarantee maximum number of edges");
+//        JRadioButton randomForward = new JRadioButton("Add random forward edges");
+//        chooseUniform = new JRadioButton("Draw uniformly from all such DAGs");
+//        chooseFixed = new JRadioButton("Guarantee maximum number of edges");
         connectedBox = new JComboBox<>(new String[]{"No", "Yes"});
         JComboBox addCyclesBox = new JComboBox<>(new String[]{"No", "Yes"});
         numTwoCyclesField = new IntTextField(getMinNumCycles(), 4);
         minCycleLengthField = new IntTextField(getMinCycleLength(), 4);
 
         ButtonGroup group = new ButtonGroup();
-        group.add(randomForward);
-        group.add(chooseUniform);
-        group.add(chooseFixed);
-        randomForward.setSelected(isRandomForward());
-        chooseUniform.setSelected(isUniformlySelected());
-        chooseFixed.setSelected(isChooseFixed());
+//        group.add(randomForward);
+//        group.add(chooseUniform);
+//        group.add(chooseFixed);
+//        randomForward.setSelected(isRandomForward());
+//        chooseUniform.setSelected(isUniformlySelected());
+//        chooseFixed.setSelected(isChooseFixed());
 
         // set up text and ties them to the parameters object being edited.
         numNodesField.setFilter(new IntTextField.Filter() {
@@ -128,12 +105,11 @@ class RandomGraphEditor extends JPanel {
 
                 try {
                     setNumMeasuredNodes(value);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     // Ignore.
                 }
 
-                maxEdgesField.setValue(getMaxEdges());
+                avgDegreeField.setValue(getAvgDegree());
                 return value;
             }
         });
@@ -146,26 +122,24 @@ class RandomGraphEditor extends JPanel {
 
                 try {
                     setNumLatents(value);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     // Ignore.
                 }
 
-                maxEdgesField.setValue(getMaxEdges());
+                avgDegreeField.setValue(getAvgDegree());
                 return value;
             }
         });
 
-        maxEdgesField.setFilter(new IntTextField.Filter() {
+        avgDegreeField.setFilter(new IntTextField.Filter() {
             public int filter(int value, int oldValue) {
-                if (value == maxEdgesField.getValue()) {
+                if (value == avgDegreeField.getValue()) {
                     return oldValue;
                 }
 
                 try {
-                    setMaxEdges(value);
-                }
-                catch (Exception e) {
+                    setAvgDegree(value);
+                } catch (Exception e) {
                     // Ignore.
                 }
 
@@ -181,8 +155,7 @@ class RandomGraphEditor extends JPanel {
 
                 try {
                     setMaxIndegree(value);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     // Ignore.
                 }
 
@@ -199,8 +172,7 @@ class RandomGraphEditor extends JPanel {
 
                 try {
                     setMaxOutdegree(value);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     // Ignore.
                 }
 
@@ -218,8 +190,7 @@ class RandomGraphEditor extends JPanel {
 
                 try {
                     setMaxDegree(value);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     // Ignore.
                 }
 
@@ -235,17 +206,17 @@ class RandomGraphEditor extends JPanel {
             connectedBox.setSelectedItem("No");
         }
 
-        if (isUniformlySelected() || isChooseFixed()) {
-            maxIndegreeField.setEnabled(true);
-            maxOutdegreeField.setEnabled(true);
-            maxDegreeField.setEnabled(true);
-            connectedBox.setEnabled(true);
-        } else {
-            maxIndegreeField.setEnabled(false);
-            maxOutdegreeField.setEnabled(false);
-            maxDegreeField.setEnabled(false);
-            connectedBox.setEnabled(false);
-        }
+//        if (isUniformlySelected() || isChooseFixed()) {
+//            maxIndegreeField.setEnabled(true);
+//            maxOutdegreeField.setEnabled(true);
+//            maxDegreeField.setEnabled(true);
+//            connectedBox.setEnabled(true);
+//        } else {
+        maxIndegreeField.setEnabled(false);
+        maxOutdegreeField.setEnabled(false);
+        maxDegreeField.setEnabled(false);
+        connectedBox.setEnabled(false);
+//        }
 
         if (isAddCycles()) {
 //            numTwoCyclesField.setEnabled(true);
@@ -270,54 +241,54 @@ class RandomGraphEditor extends JPanel {
                 maxIndegreeField.setValue(getMaxIndegree());
                 maxOutdegreeField.setValue(getMaxOutdegree());
                 maxDegreeField.setValue(getMaxDegree());
-                maxEdgesField.setValue(getMaxEdges());
+                avgDegreeField.setValue(getAvgDegree());
             }
         });
 
-        randomForward.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                JRadioButton button = (JRadioButton) e.getSource();
-                button.setSelected(true);
-                setRandomForward(true);
-                setUniformlySelected(false);
-                setChooseFixed(false);
+//        randomForward.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                JRadioButton button = (JRadioButton) e.getSource();
+//                button.setSelected(true);
+//                setRandomForward(true);
+////                setUniformlySelected(false);
+//                setChooseFixed(false);
+//
+//                maxIndegreeField.setEnabled(true);
+//                maxOutdegreeField.setEnabled(true);
+//                maxDegreeField.setEnabled(true);
+//                connectedBox.setEnabled(true);
+//            }
+//        });
 
-                maxIndegreeField.setEnabled(true);
-                maxOutdegreeField.setEnabled(true);
-                maxDegreeField.setEnabled(true);
-                connectedBox.setEnabled(true);
-            }
-        });
+//        chooseUniform.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                JRadioButton button = (JRadioButton) e.getSource();
+//                button.setSelected(true);
+//                setRandomForward(false);
+//                setUniformlySelected(true);
+//                setChooseFixed(false);
+//
+//                maxIndegreeField.setEnabled(true);
+//                maxOutdegreeField.setEnabled(true);
+//                maxDegreeField.setEnabled(true);
+//                connectedBox.setEnabled(true);
+//            }
+//        });
 
-        chooseUniform.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                JRadioButton button = (JRadioButton) e.getSource();
-                button.setSelected(true);
-                setRandomForward(false);
-                setUniformlySelected(true);
-                setChooseFixed(false);
-
-                maxIndegreeField.setEnabled(true);
-                maxOutdegreeField.setEnabled(true);
-                maxDegreeField.setEnabled(true);
-                connectedBox.setEnabled(true);
-            }
-        });
-
-        chooseFixed.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                JRadioButton button = (JRadioButton) e.getSource();
-                button.setSelected(true);
-                setRandomForward(false);
-                setUniformlySelected(false);
-                setChooseFixed(true);
-
-                maxIndegreeField.setEnabled(false);
-                maxOutdegreeField.setEnabled(false);
-                maxDegreeField.setEnabled(false);
-                connectedBox.setEnabled(false);
-            }
-        });
+//        chooseFixed.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                JRadioButton button = (JRadioButton) e.getSource();
+//                button.setSelected(true);
+//                setRandomForward(false);
+////                setUniformlySelected(false);
+//                setChooseFixed(true);
+//
+//                maxIndegreeField.setEnabled(false);
+//                maxOutdegreeField.setEnabled(false);
+//                maxDegreeField.setEnabled(false);
+//                connectedBox.setEnabled(false);
+//            }
+//        });
 
         if (isAddCycles()) {
             addCyclesBox.setSelectedItem("Yes");
@@ -367,8 +338,7 @@ class RandomGraphEditor extends JPanel {
 
                 try {
                     setMinCycleLength(value);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     // Ignore.
                 }
 
@@ -403,9 +373,9 @@ class RandomGraphEditor extends JPanel {
         b1.add(Box.createVerticalStrut(5));
 
         Box b12 = Box.createHorizontalBox();
-        b12.add(new JLabel("Maximum number of edges:"));
+        b12.add(new JLabel("Average Degree:"));
         b12.add(Box.createHorizontalGlue());
-        b12.add(maxEdgesField);
+        b12.add(avgDegreeField);
         b1.add(b12);
         b1.add(Box.createVerticalStrut(5));
 
@@ -435,20 +405,20 @@ class RandomGraphEditor extends JPanel {
         b1.add(b16);
         b1.add(Box.createVerticalStrut(5));
 
-        Box b17a = Box.createHorizontalBox();
-        b17a.add(randomForward);
-        b17a.add(Box.createHorizontalGlue());
-        b1.add(b17a);
+//        Box b17a = Box.createHorizontalBox();
+//        b17a.add(randomForward);
+//        b17a.add(Box.createHorizontalGlue());
+//        b1.add(b17a);
 
-        Box b17 = Box.createHorizontalBox();
-        b17.add(chooseUniform);
-        b17.add(Box.createHorizontalGlue());
-        b1.add(b17);
+//        Box b17 = Box.createHorizontalBox();
+//        b17.add(chooseUniform);
+//        b17.add(Box.createHorizontalGlue());
+//        b1.add(b17);
 
-        Box b18 = Box.createHorizontalBox();
-        b18.add(chooseFixed);
-        b18.add(Box.createHorizontalGlue());
-        b1.add(b18);
+//        Box b18 = Box.createHorizontalBox();
+//        b18.add(chooseFixed);
+//        b18.add(Box.createHorizontalGlue());
+//        b1.add(b18);
 
         Box d = Box.createVerticalBox();
         b1.setBorder(new TitledBorder(""));
@@ -486,23 +456,23 @@ class RandomGraphEditor extends JPanel {
         if (isChooseFixed() && enabled) {
             numNodesField.setEnabled(enabled);
             numLatentsField.setEnabled(enabled);
-            maxEdgesField.setEnabled(enabled);
+            avgDegreeField.setEnabled(enabled);
             maxIndegreeField.setEnabled(false);
             maxOutdegreeField.setEnabled(false);
             maxDegreeField.setEnabled(false);
             connectedBox.setEnabled(false);
-            chooseUniform.setEnabled(enabled);
-            chooseFixed.setEnabled(enabled);
+//            chooseUniform.setEnabled(enabled);
+//            chooseFixed.setEnabled(enabled);
         } else {
             numNodesField.setEnabled(enabled);
             numLatentsField.setEnabled(enabled);
-            maxEdgesField.setEnabled(enabled);
+            avgDegreeField.setEnabled(enabled);
             maxIndegreeField.setEnabled(enabled);
             maxOutdegreeField.setEnabled(enabled);
             maxDegreeField.setEnabled(enabled);
             connectedBox.setEnabled(enabled);
-            chooseUniform.setEnabled(enabled);
-            chooseFixed.setEnabled(enabled);
+//            chooseUniform.setEnabled(enabled);
+//            chooseFixed.setEnabled(enabled);
         }
     }
 
@@ -510,21 +480,21 @@ class RandomGraphEditor extends JPanel {
         return parameters.getBoolean("graphRandomFoward", true);
     }
 
-    public boolean isUniformlySelected() {
-        return parameters.getBoolean("graphUniformlySelected", true);
+//    public boolean isUniformlySelected() {
+//        return parameters.getBoolean("graphUniformlySelected", true);
+//    }
+
+    private void setRandomForward(boolean randomFoward) {
+        parameters.set("graphRandomFoward", randomFoward);
     }
 
     public boolean isChooseFixed() {
         return parameters.getBoolean("graphChooseFixed", true);
     }
 
-    private void setRandomForward(boolean randomFoward) {
-        parameters.set("graphRandomFoward", randomFoward);
-    }
-
-    private void setUniformlySelected(boolean uniformlySelected) {
-        parameters.set("graphUniformlySelected", uniformlySelected);
-    }
+//    private void setUniformlySelected(boolean uniformlySelected) {
+//        parameters.set("graphUniformlySelected", uniformlySelected);
+//    }
 
     private void setChooseFixed(boolean chooseFixed) {
         parameters.set("graphChooseFixed", chooseFixed);
@@ -546,7 +516,7 @@ class RandomGraphEditor extends JPanel {
         parameters.set("newGraphNumMeasuredNodes", numMeasuredNodes);
 
         if (isConnected()) {
-            setMaxEdges(Math.max(getMaxEdges(), numMeasuredNodes + getNumLatents()));
+            setAvgDegree(Math.max(getAvgDegree(), numMeasuredNodes + getNumLatents()));
         }
     }
 
@@ -564,87 +534,70 @@ class RandomGraphEditor extends JPanel {
         parameters.set("newGraphNumLatents", numLatentNodes);
     }
 
-    public int getMaxEdges() {
-        return parameters.getInt("newGraphNumEdges", 10);
+    public int getAvgDegree() {
+        return parameters.getInt(Params.AVG_DEGREE);
     }
 
 
-    private void setMaxEdges(int numEdges) {
-        if (isConnected() && numEdges < getNumNodes()) {
-            throw new IllegalArgumentException("When assuming connectedness, " +
-                    "the number of edges must be at least the number of nodes.");
-        }
-
-        if (!isConnected() && numEdges < 0) {
-            throw new IllegalArgumentException(
-                    "Number of edges Must be greater than or equal to 0: " + numEdges);
-        }
-
-        int maxNumEdges = getNumNodes() * (getNumNodes() - 1) / 2;
-
-        if (numEdges > maxNumEdges) {
-            numEdges = maxNumEdges;
-        }
-
-        parameters.set("newGraphNumEdges", numEdges);
+    private void setAvgDegree(int avgDegree) {
+        parameters.set(Params.AVG_DEGREE, avgDegree);
     }
 
     public int getMaxDegree() {
-        return parameters.getInt("randomGraphMaxDegree", 6);
+        return parameters.getInt("maxDegree", 100);
     }
 
     private void setMaxDegree(int maxDegree) {
         if (!isConnected() && maxDegree < 1) {
-            parameters.set("randomGraphMaxDegree", 1);
+            parameters.set("maxDegree");
             return;
         }
 
         if (isConnected() && maxDegree < 3) {
-            parameters.set("randomGraphMaxDegree", 3);
+            parameters.set("maxDegree", 3);
             return;
         }
 
-        parameters.set("randomGraphMaxDegree", maxDegree);
+        parameters.set("maxDegree", maxDegree);
     }
 
     public int getMaxIndegree() {
-        return parameters.getInt("randomGraphMaxIndegree", 3);
+        return parameters.getInt("maxIndegree", 100);
     }
 
     private void setMaxIndegree(int maxIndegree) {
-        if (!isConnected() && maxIndegree < 1) {
-            parameters.set("randomGraphMaxIndegree", 1);
-            return;
-        }
-
         if (isConnected() && maxIndegree < 2) {
-            parameters.set("randomGraphMaxIndegree", 2);
+            parameters.set("maxIndegree");
             return;
         }
 
-        parameters.set("randomGraphMaxIndegree", maxIndegree);
+        parameters.set("maxIndegree", maxIndegree);
     }
 
     public int getMaxOutdegree() {
-        return parameters.getInt("randomGraphMaxOutdegree", 3);
+        return parameters.getInt("maxOutdegree", 100);
     }
 
     private void setMaxOutdegree(int maxOutDegree) {
         if (!isConnected() && maxOutDegree < 1) {
-            parameters.set("randomGraphMaxOutdegree", 1);
+            parameters.set("maxOutdegree", 1);
             return;
         }
 
         if (isConnected() && maxOutDegree < 2) {
-            parameters.set("randomGraphMaxOutdegree", 2);
+            parameters.set("maxOutdegree", 2);
             return;
         }
 
-        parameters.set("randomGraphMaxOutdegree", maxOutDegree);
+        parameters.set("maxOutdegree", maxOutDegree);
+    }
+
+    public boolean isConnected() {
+        return parameters.getBoolean(Params.CONNECTED, false);
     }
 
     private void setConnected(boolean connected) {
-        parameters.set("randomGraphConnected", connected);
+        parameters.set("connected", connected);
 
         if (connected) {
             if (getMaxIndegree() < 2) {
@@ -659,22 +612,18 @@ class RandomGraphEditor extends JPanel {
                 setMaxDegree(3);
             }
 
-            if (getMaxEdges() < getNumNodes()) {
-                setMaxEdges(getNumNodes());
+            if (getAvgDegree() < getNumNodes()) {
+                setAvgDegree(getNumNodes());
             }
         }
     }
 
-    public boolean isConnected() {
-        return parameters.getBoolean("randomGraphConnected", false);
+    public boolean isAddCycles() {
+        return parameters.getBoolean("randomGraphAddCycles", false);
     }
 
     private void setAddCycles(boolean addCycles) {
         parameters.set("randomGraphAddCycles", addCycles);
-    }
-
-    public boolean isAddCycles() {
-        return parameters.getBoolean("randomGraphAddCycles", false);
     }
 
     public int getMinNumCycles() {

@@ -49,6 +49,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
     }
 
+    // Don't delete.
     public BOSS(ScoreWrapper score) {
         this.score = score;
     }
@@ -73,7 +74,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
             boss.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
-            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            boss.setNumStarts(1);//parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
 //            boss.setGspDepth(parameters.getInt(Params.DEPTH));
 //            boss.setKnowledge(knowledge);
@@ -149,14 +150,11 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     public List<String> getParameters() {
         ArrayList<String> params = new ArrayList<>();
         params.add(Params.CACHE_SCORES);
-//        params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_METHOD);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.BREAK_TIES);
         params.add(Params.USE_SCORE);
-//        params.add(Params.OUTPUT_CPDAG);
         params.add(Params.VERBOSE);
-//        params.add(Params.DEPTH);
         return params;
     }
 

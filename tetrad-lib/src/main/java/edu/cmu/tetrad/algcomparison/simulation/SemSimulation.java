@@ -126,6 +126,12 @@ public class SemSimulation implements Simulation {
             parameters.addAll(SemIm.getParameterNames());
         }
 
+//        parameters.add(Params.COEF_LOW);
+//        parameters.add(Params.COEF_HIGH);
+//        parameters.add(Params.COV_HIGH);
+//        parameters.add(Params.COV_LOW);
+//        parameters.add(Params.VAR_HIGH);
+//        parameters.add(Params.VAR_LOW);
         parameters.add(Params.MEASUREMENT_VARIANCE);
         parameters.add(Params.NUM_RUNS);
         parameters.add(Params.DIFFERENT_GRAPHS);
