@@ -21,21 +21,10 @@
 package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.graph.Dag;
-import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.EdgeListGraph;
-import edu.cmu.tetrad.graph.Edges;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphNode;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.NodeVariableType;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.IndTestDSep;
 import edu.cmu.tetrad.search.IndependenceTest;
-import edu.cmu.tetrad.util.JOptionUtils;
-import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.RandomUtil;
-import edu.cmu.tetrad.util.TetradSerializable;
+import edu.cmu.tetrad.util.*;
 import edu.cmu.tetradapp.model.GraphWrapper;
 import edu.cmu.tetradapp.model.IndTestProducer;
 import edu.cmu.tetradapp.ui.PaddingPanel;
@@ -46,45 +35,23 @@ import edu.cmu.tetradapp.workbench.DisplayEdge;
 import edu.cmu.tetradapp.workbench.DisplayNode;
 import edu.cmu.tetradapp.workbench.GraphWorkbench;
 import edu.cmu.tetradapp.workbench.LayoutMenu;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
+
+import javax.help.CSH;
+import javax.help.HelpBroker;
+import javax.help.HelpSet;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.InternalFrameAdapter;
+import javax.swing.event.InternalFrameEvent;
 import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.help.CSH;
-import javax.help.HelpBroker;
-import javax.help.HelpSet;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.KeyStroke;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.InternalFrameAdapter;
-import javax.swing.event.InternalFrameEvent;
+import java.util.*;
 
 /**
  * Displays a workbench editing workbench area together with a toolbench for
@@ -104,14 +71,10 @@ public final class GraphEditor extends JPanel implements GraphEditable, LayoutEd
             "edgeRemoved",
             "nodeRemoved"
     ));
-
-    private GraphWorkbench workbench;
     private final Parameters parameters;
-
     private final JScrollPane graphEditorScroll = new JScrollPane();
-
     private final EdgeTypeTable edgeTypeTable;
-
+    private GraphWorkbench workbench;
     /**
      * Flag to indicate if interventional variables are in the graph - Zhou
      */
@@ -135,6 +98,7 @@ public final class GraphEditor extends JPanel implements GraphEditable, LayoutEd
     }
 
     //===========================PUBLIC METHODS======================//
+
     /**
      * Sets the name of this editor.
      */
@@ -201,6 +165,11 @@ public final class GraphEditor extends JPanel implements GraphEditable, LayoutEd
     }
 
     @Override
+    public void setGraph(Graph graph) {
+        getWorkbench().setGraph(graph);
+    }
+
+    @Override
     public Map getModelEdgesToDisplay() {
         return getWorkbench().getModelEdgesToDisplay();
     }
@@ -208,11 +177,6 @@ public final class GraphEditor extends JPanel implements GraphEditable, LayoutEd
     @Override
     public Map getModelNodesToDisplay() {
         return getWorkbench().getModelNodesToDisplay();
-    }
-
-    @Override
-    public void setGraph(Graph graph) {
-        getWorkbench().setGraph(graph);
     }
 
     @Override
@@ -512,7 +476,16 @@ public final class GraphEditor extends JPanel implements GraphEditable, LayoutEd
                     }
 
                     RandomUtil.getInstance().setSeed(new Date().getTime());
-                    Graph graph1 = edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters);
+                    Graph graph1 = GraphUtils.randomGraph(
+                            parameters.getInt(Params.NUM_MEASURES),
+                            parameters.getInt(Params.NUM_LATENTS),
+                            (int)(parameters.getDouble(Params.AVG_DEGREE) * parameters.getInt(Params.NUM_MEASURES) / 2.),
+                            parameters.getInt(Params.MAX_DEGREE),
+                            parameters.getInt(Params.MAX_INDEGREE),
+                            parameters.getInt(Params.MAX_OUTDEGREE),
+                            parameters.getBoolean(Params.CONNECTED)
+                    );
+//                    Graph graph1 = edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters);
 
                     boolean addCycles = parameters.getBoolean("randomAddCycles", false);
 

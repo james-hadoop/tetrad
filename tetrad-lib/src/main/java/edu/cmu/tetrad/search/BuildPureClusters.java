@@ -236,7 +236,7 @@ public final class BuildPureClusters {
 //        print("\n**************Starting BPC search!!!*************\n");
         TetradLogger.getInstance().log("info", "BPC alpha = " + alpha + " test = " + sigTestType);
 
-        List<int[]> clustering = (List<int[]>) findMeasurementPattern();
+        List<int[]> clustering = (List<int[]>) findMeasurementCpdag();
 
         // Remove clusters of size < 3.
         for (int[] cluster : new ArrayList<>(clustering)) {
@@ -937,7 +937,7 @@ public final class BuildPureClusters {
 
     /**
      * Find components of a graph. Note: naive implementation, but it works. After all, it will still run much faster
-     * than Stage 2 of the FindMeasurementPattern algorithm.
+     * than Stage 2 of the FindMeasurementCpdag algorithm.
      */
 
     private List<int[]> findComponents(int graph[][], int size, int color) {
@@ -1796,7 +1796,7 @@ public final class BuildPureClusters {
      * *******************************************************
      */
 
-    private List initialMeasurementPattern(int ng[][], int cv[][]) {
+    private List initialMeasurementCpdag(int ng[][], int cv[][]) {
 
         boolean notYellow[][] = new boolean[numVariables()][numVariables()];
 
@@ -2418,7 +2418,7 @@ public final class BuildPureClusters {
      * ****************************************************** MAIN ALGORITHM: CORE *******************************************************
      */
 
-    private List findMeasurementPattern() {
+    private List findMeasurementCpdag() {
         int ng[][] = new int[numVariables()][numVariables()];
         int cv[][] = new int[numVariables()][numVariables()];
         boolean selected[] = new boolean[numVariables()];
@@ -2427,7 +2427,7 @@ public final class BuildPureClusters {
             selected[i] = false;
         }
 
-        List initialClustering = initialMeasurementPattern(ng, cv);
+        List initialClustering = initialMeasurementCpdag(ng, cv);
 //        print("Initial mimClustering:");
         printClustering(initialClustering);
         List<Set<String>> forbiddenList = new ArrayList<>();

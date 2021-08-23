@@ -79,7 +79,7 @@ public class ExtractStructureModelWrapper extends GraphWrapper implements DoNotA
     //======================== Private Method ======================//
 
 
-    private static Graph getPattern(Dag dag) {
+    private static Graph getCpdag(Dag dag) {
         return SearchGraphUtils.patternFromDag(dag);
     }
 

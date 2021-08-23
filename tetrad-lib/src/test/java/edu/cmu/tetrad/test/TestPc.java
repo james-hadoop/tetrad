@@ -216,7 +216,7 @@ public class TestPc {
     }
 
     @Test
-    public void checkPattern() {
+    public void checkCpdag() {
         for (int i = 0; i < 2; i++) {
             Graph graph = GraphUtils.randomGraph(100, 0, 100, 100,
                     100, 100, false);

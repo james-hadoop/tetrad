@@ -497,12 +497,12 @@ public class LagGraph implements Graph {
     }
 
     @Override
-    public boolean isPattern() {
+    public boolean isCpdag() {
         return pattern;
     }
 
     @Override
-    public void setPattern(boolean pattern) {
+    public void setCpdag(boolean pattern) {
         this.pattern = pattern;
     }
 

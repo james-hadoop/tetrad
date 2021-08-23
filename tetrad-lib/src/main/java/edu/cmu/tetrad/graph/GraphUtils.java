@@ -1194,31 +1194,31 @@ public final class GraphUtils {
         return true;
     }
 
-    public static Graph removeBidirectedOrientations(Graph estPattern) {
-        estPattern = new EdgeListGraph(estPattern);
+    public static Graph removeBidirectedOrientations(Graph estCpdag) {
+        estCpdag = new EdgeListGraph(estCpdag);
 
         // Make bidirected edges undirected.
-        for (Edge edge : estPattern.getEdges()) {
+        for (Edge edge : estCpdag.getEdges()) {
             if (Edges.isBidirectedEdge(edge)) {
-                estPattern.removeEdge(edge);
-                estPattern.addUndirectedEdge(edge.getNode1(), edge.getNode2());
+                estCpdag.removeEdge(edge);
+                estCpdag.addUndirectedEdge(edge.getNode1(), edge.getNode2());
             }
         }
 
-        return estPattern;
+        return estCpdag;
     }
 
-    public static Graph removeBidirectedEdges(Graph estPattern) {
-        estPattern = new EdgeListGraph(estPattern);
+    public static Graph removeBidirectedEdges(Graph estCpdag) {
+        estCpdag = new EdgeListGraph(estCpdag);
 
         // Remove bidirected edges altogether.
-        for (Edge edge : new ArrayList<>(estPattern.getEdges())) {
+        for (Edge edge : new ArrayList<>(estCpdag.getEdges())) {
             if (Edges.isBidirectedEdge(edge)) {
-                estPattern.removeEdge(edge);
+                estCpdag.removeEdge(edge);
             }
         }
 
-        return estPattern;
+        return estCpdag;
     }
 
     public static Graph undirectedGraph(Graph graph) {

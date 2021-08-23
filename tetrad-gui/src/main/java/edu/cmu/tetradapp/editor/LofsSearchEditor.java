@@ -319,7 +319,7 @@ public class LofsSearchEditor extends AbstractSearchEditor
         JMenu graph = new JMenu("Graph");
         JMenuItem showDags = new JMenuItem("Show DAGs in forbid_latent_common_causes");
 //        JMenuItem meekOrient = new JMenuItem("Meek Orientation");
-        JMenuItem dagInPattern = new JMenuItem("Choose DAG in forbid_latent_common_causes");
+        JMenuItem dagInCpdag = new JMenuItem("Choose DAG in forbid_latent_common_causes");
         JMenuItem gesOrient = new JMenuItem("Global Score-based Reorientation");
         JMenuItem nextGraph = new JMenuItem("Next Graph");
         JMenuItem previousGraph = new JMenuItem("Previous Graph");
@@ -335,7 +335,7 @@ public class LofsSearchEditor extends AbstractSearchEditor
         graph.addSeparator();
 
 //        graph.add(meekOrient);
-        graph.add(dagInPattern);
+        graph.add(dagInCpdag);
         graph.add(gesOrient);
         graph.addSeparator();
 
@@ -386,7 +386,7 @@ public class LofsSearchEditor extends AbstractSearchEditor
 //                            editorWindow.setVisible(true);
 //                        }
 //                        else {
-                            PatternDisplay display = new PatternDisplay(graph);
+                            CpdagDisplay display = new CpdagDisplay(graph);
                             GraphWorkbench workbench = getWorkbench();
 
                             EditorWindow editorWindow =
@@ -411,7 +411,7 @@ public class LofsSearchEditor extends AbstractSearchEditor
 //            }
 //        });
 
-        dagInPattern.addActionListener(new ActionListener() {
+        dagInCpdag.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Graph graph = new EdgeListGraph(getGraph());
 
@@ -422,7 +422,7 @@ public class LofsSearchEditor extends AbstractSearchEditor
                     }
                 }
 
-                PatternToDag search = new PatternToDag(new EdgeListGraph(graph));
+                CpdagToDag search = new CpdagToDag(new EdgeListGraph(graph));
                 Graph dag = search.patternToDagMeek();
 
                 getGraphHistory().add(dag);
@@ -553,7 +553,7 @@ public class LofsSearchEditor extends AbstractSearchEditor
         }
 
         if (params instanceof Parameters) {
-            if (getAlgorithmRunner() instanceof LingamPatternRunner) {
+            if (getAlgorithmRunner() instanceof LingamCpdagRunner) {
                 return new PcLingamIndTestParamsEditor(params);
             }
 

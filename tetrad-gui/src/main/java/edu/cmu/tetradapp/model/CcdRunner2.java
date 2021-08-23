@@ -262,7 +262,7 @@ public class CcdRunner2 extends AbstractAlgorithmRunner
 
 //        gfci.setInitialGraph(initialGraph);
 //        gfci.setKnowledge(getParameters().getKnowledge());
-//        gfci.setNumPatternsToStore(params.getNumPatternsToSave());
+//        gfci.setNumCpdagsToStore(params.getNumCpdagsToSave());
 //        gfci.setHeuristicSpeedup(true);
 //        gfci.setMaxIndegree(3);
 //        ccd.setHeuristicSpeedup(params.isFaithfulnessAssumed());

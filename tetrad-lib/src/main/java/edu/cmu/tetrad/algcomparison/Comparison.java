@@ -111,7 +111,7 @@ public class Comparison {
     private String dataPath = null;
     private String resultsPath = null;
     private boolean parallelized = false;
-    private boolean savePatterns = false;
+    private boolean saveCpdags = false;
     private boolean saveData = true;
     private boolean savePags = false;
     //    private boolean saveTrueDags = false;
@@ -562,7 +562,7 @@ public class Comparison {
 
                 File dir3 = null;
 
-                if (isSavePatterns()) {
+                if (isSaveCpdags()) {
                     dir3 = new File(subdir, "patterns");
                     dir3.mkdirs();
                 }
@@ -594,7 +594,7 @@ public class Comparison {
                         out.close();
                     }
 
-                    if (isSavePatterns()) {
+                    if (isSaveCpdags()) {
                         File file3 = new File(dir3, "pattern." + (j + 1) + ".txt");
                         GraphUtils.saveGraph(SearchGraphUtils.patternForDag(graph), file3, false);
                     }
@@ -664,7 +664,7 @@ public class Comparison {
 
             File dir3 = null;
 
-            if (isSavePatterns()) {
+            if (isSaveCpdags()) {
                 dir3 = new File(subdir, "patterns");
                 dir3.mkdirs();
             }
@@ -688,7 +688,7 @@ public class Comparison {
                 DataWriter.writeRectangularData((DataSet) dataModel, out, '\t');
                 out.close();
 
-                if (isSavePatterns()) {
+                if (isSaveCpdags()) {
                     File file3 = new File(dir3, "pattern." + (j + 1) + ".txt");
                     GraphUtils.saveGraph(SearchGraphUtils.patternForDag(graph), file3, false);
                 }
@@ -1109,15 +1109,15 @@ public class Comparison {
     /**
      * @return True if patterns should be saved out.
      */
-    public boolean isSavePatterns() {
-        return savePatterns;
+    public boolean isSaveCpdags() {
+        return saveCpdags;
     }
 
     /**
-     * @param savePatterns True if patterns should be saved out.
+     * @param saveCpdags True if patterns should be saved out.
      */
-    public void setSavePatterns(boolean savePatterns) {
-        this.savePatterns = savePatterns;
+    public void setSaveCpdags(boolean saveCpdags) {
+        this.saveCpdags = saveCpdags;
     }
 
     /**

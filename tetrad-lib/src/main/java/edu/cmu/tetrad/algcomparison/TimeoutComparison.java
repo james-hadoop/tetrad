@@ -64,7 +64,7 @@ public class TimeoutComparison {
     private static final DateFormat DF = new SimpleDateFormat("EEE, MMMM dd, yyyy hh:mm:ss a");
 
     public enum ComparisonGraph {
-        true_DAG, Pattern_of_the_true_DAG, PAG_of_the_true_DAG
+        true_DAG, Cpdag_of_the_true_DAG, PAG_of_the_true_DAG
     }
 
     private boolean[] graphTypeUsed;
@@ -79,7 +79,7 @@ public class TimeoutComparison {
     private String dataPath = null;
     private String resultsPath = null;
     private boolean parallelized = true;
-    private boolean savePatterns = false;
+    private boolean saveCpdags = false;
     private boolean savePags = false;
     private ArrayList<String> dirs = null;
     private ComparisonGraph comparisonGraph = ComparisonGraph.true_DAG;
@@ -502,7 +502,7 @@ public class TimeoutComparison {
 
                 File dir3 = null;
 
-                if (isSavePatterns()) {
+                if (isSaveCpdags()) {
                     dir3 = new File(subdir, "patterns");
                     dir3.mkdirs();
                 }
@@ -526,7 +526,7 @@ public class TimeoutComparison {
                     DataWriter.writeRectangularData((DataSet) dataModel, out, '\t');
                     out.close();
 
-                    if (isSavePatterns()) {
+                    if (isSaveCpdags()) {
                         File file3 = new File(dir3, "pattern." + (j + 1) + ".txt");
                         GraphUtils.saveGraph(SearchGraphUtils.patternForDag(graph), file3, false);
                     }
@@ -954,15 +954,15 @@ public class TimeoutComparison {
     /**
      * @return True if patterns should be saved out.
      */
-    public boolean isSavePatterns() {
-        return savePatterns;
+    public boolean isSaveCpdags() {
+        return saveCpdags;
     }
 
     /**
-     * @param savePatterns True if patterns should be saved out.
+     * @param saveCpdags True if patterns should be saved out.
      */
-    public void setSavePatterns(boolean savePatterns) {
-        this.savePatterns = savePatterns;
+    public void setSaveCpdags(boolean saveCpdags) {
+        this.saveCpdags = saveCpdags;
     }
 
     /**
@@ -1205,7 +1205,7 @@ public class TimeoutComparison {
 
         if (this.comparisonGraph == ComparisonGraph.true_DAG) {
             comparisonGraph = new EdgeListGraph(trueGraph);
-        } else if (this.comparisonGraph == ComparisonGraph.Pattern_of_the_true_DAG) {
+        } else if (this.comparisonGraph == ComparisonGraph.Cpdag_of_the_true_DAG) {
             comparisonGraph = SearchGraphUtils.patternForDag(new EdgeListGraph(trueGraph));
         } else if (this.comparisonGraph == ComparisonGraph.PAG_of_the_true_DAG) {
             comparisonGraph = new DagToPag2(new EdgeListGraph(trueGraph)).convert();
@@ -1764,7 +1764,7 @@ public class TimeoutComparison {
 
         @Override
         public void createData(Parameters parameters, boolean newModel) {
-            simulation.createData(parameters, false);
+            simulation.createData(parameters, true);
             this.graphs = new ArrayList<>();
             this.dataModels = new ArrayList<>();
             for (int i = 0; i < simulation.getNumDataModels(); i++) {

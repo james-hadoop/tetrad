@@ -22,6 +22,7 @@
 package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetradapp.util.DoubleTextField;
 
 import javax.swing.*;
@@ -75,14 +76,13 @@ public class SemImParamsEditor extends JPanel implements ParameterEditor {
 //        randomEveryTime.setSelected(!params.getBoolean("retainPreviousValues", false));
         DecimalFormat decimalFormat = new DecimalFormat("0.0######");
 
-        final DoubleTextField coefLowField = new DoubleTextField(params.getDouble("coefLow", 0.5),
+        final DoubleTextField coefLowField = new DoubleTextField(params.getDouble(Params.COEF_LOW),
                 6, decimalFormat);
 
         coefLowField.setFilter(new DoubleTextField.Filter() {
             public double filter(double value, double oldValue) {
                 try {
-                    getParams().set("coefLow", value);
-                    getParams().set("coefHigh", params.getDouble("coefHigh", 1.5));
+                    getParams().set(Params.COEF_LOW, value);
                     return value;
                 }
                 catch (IllegalArgumentException e) {
@@ -92,14 +92,13 @@ public class SemImParamsEditor extends JPanel implements ParameterEditor {
         });
 
 
-        final DoubleTextField coefHighField = new DoubleTextField(params.getDouble("coefHigh", 1.5),
+        final DoubleTextField coefHighField = new DoubleTextField(params.getDouble(Params.COEF_HIGH),
                 6, decimalFormat);
 
         coefHighField.setFilter(new DoubleTextField.Filter() {
             public double filter(double value, double oldValue) {
                 try {
-                    getParams().set("coefLow", params.getDouble("coefLow", 0.5));
-                    getParams().set("coefHigh", value);
+                    getParams().set(Params.COV_HIGH, value);
                     return value;
                 }
                 catch (IllegalArgumentException e) {
@@ -108,14 +107,13 @@ public class SemImParamsEditor extends JPanel implements ParameterEditor {
             }
         });
 
-        final DoubleTextField covLowField = new DoubleTextField(params.getDouble("covLow", 0.0),
+        final DoubleTextField covLowField = new DoubleTextField(params.getDouble(Params.COV_LOW),
                 6, decimalFormat);
 
         covLowField.setFilter(new DoubleTextField.Filter() {
             public double filter(double value, double oldValue) {
                 try {
-                    params.set("covLow", value);
-                    params.set("covHigh", params.getDouble("covHigh", 0.2));
+                    params.set(Params.COV_LOW, value);
                     return value;
                 }
                 catch (IllegalArgumentException e) {
@@ -124,14 +122,13 @@ public class SemImParamsEditor extends JPanel implements ParameterEditor {
             }
         });
 
-        final DoubleTextField covHighField = new DoubleTextField(params.getDouble("covHigh", 0.0),
+        final DoubleTextField covHighField = new DoubleTextField(params.getDouble(Params.COV_HIGH, 0.0),
                 6, decimalFormat);
 
         covHighField.setFilter(new DoubleTextField.Filter() {
             public double filter(double value, double oldValue) {
                 try {
-                    params.set("covLow", params.getDouble("covLow", 0.1));
-                    params.set("covHigh", value);
+                    params.set(Params.COV_HIGH, value);
                     return value;
                 }
                 catch (IllegalArgumentException e) {
@@ -140,14 +137,13 @@ public class SemImParamsEditor extends JPanel implements ParameterEditor {
             }
         });
 
-        final DoubleTextField varLowField = new DoubleTextField(params.getDouble("varLow", 1),
+        final DoubleTextField varLowField = new DoubleTextField(params.getDouble(Params.VAR_LOW, 1),
                 6, decimalFormat);
 
         varLowField.setFilter(new DoubleTextField.Filter() {
             public double filter(double value, double oldValue) {
                 try {
-                    params.set("varLow", value);
-                    params.set("varHigh", params.getDouble("varHigh", 3));
+                    params.set(Params.VAR_LOW, value);
                     return value;
                 }
                 catch (IllegalArgumentException e) {
@@ -156,14 +152,13 @@ public class SemImParamsEditor extends JPanel implements ParameterEditor {
             }
         });
 
-        final DoubleTextField varHighField = new DoubleTextField(params.getDouble("varHigh", 3),
+        final DoubleTextField varHighField = new DoubleTextField(params.getDouble(Params.VAR_HIGH, 3),
                 6, decimalFormat);
 
         varHighField.setFilter(new DoubleTextField.Filter() {
             public double filter(double value, double oldValue) {
                 try {
-                    params.set("varLow", params.getDouble("varLow", 1));
-                    params.set("varHigh", value);
+                    params.set(Params.VAR_HIGH, value);
                     return value;
                 }
                 catch (IllegalArgumentException e) {
@@ -175,15 +170,14 @@ public class SemImParamsEditor extends JPanel implements ParameterEditor {
         final JCheckBox coefSymmetric = new JCheckBox("Symmetric about zero.");
         final JCheckBox covSymmetric = new JCheckBox("Symmetric about zero.");
 
-        coefSymmetric.setSelected(params.getBoolean("coefSymmetric", true));
-        covSymmetric.setSelected(params.getBoolean("covSymmetric", true));
+        coefSymmetric.setSelected(params.getBoolean(Params.COEF_SYMMETRIC, true));
+        covSymmetric.setSelected(params.getBoolean(Params.COV_SYMMETRIC, true));
 
         coefSymmetric.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JCheckBox checkBox = (JCheckBox) e.getSource();
-                params.set("coefSymmetric", checkBox.isSelected());
+                params.set(Params.COEF_SYMMETRIC, checkBox.isSelected());
             }
-
         });
 
         covSymmetric.addActionListener(new ActionListener() {
@@ -258,7 +252,7 @@ public class SemImParamsEditor extends JPanel implements ParameterEditor {
 
         b1.add(Box.createHorizontalGlue());
         add(b1, BorderLayout.CENTER);
-        setBorder(new EmptyBorder(5, 5, 5, 5));        
+        setBorder(new EmptyBorder(5, 5, 5, 5));
     }
 
     public boolean mustBeShown() {

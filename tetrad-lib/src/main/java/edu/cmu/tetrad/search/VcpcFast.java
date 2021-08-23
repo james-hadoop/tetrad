@@ -89,7 +89,7 @@ public final class VcpcFast implements GraphSearch {
 
     private Set<Edge> definitelyNonadjacencies;
 
-    private Set<Node> markovInAllPatterns;
+    private Set<Node> markovInAllCpdags;
 
     private static Set<List<Node>> powerSet;
 
@@ -281,7 +281,7 @@ public final class VcpcFast implements GraphSearch {
         this.noncolliderTriples = new HashSet<>();
         Vcfas fas = new Vcfas(getIndependenceTest());
         definitelyNonadjacencies = new HashSet<>();
-        markovInAllPatterns = new HashSet<>();
+        markovInAllCpdags = new HashSet<>();
 
 //        this.logger.log("info", "Variables " + independenceTest.getVariable());
 
@@ -337,7 +337,7 @@ public final class VcpcFast implements GraphSearch {
             dims[i] = 2;
         }
 
-//        Pattern Search:
+//        Cpdag Search:
 
         List<Graph> patterns = new ArrayList<>();
         Map<Graph, List<Triple>> newColliders = new IdentityHashMap<>();
@@ -581,7 +581,7 @@ public final class VcpcFast implements GraphSearch {
 //        for (Edge edge : definitelyNonadjacencies) {
 //            System.out.println(edge);
 //        }
-//        System.out.println("markov in all patterns:" + markovInAllPatterns);
+//        System.out.println("markov in all patterns:" + markovInAllCpdags);
 ////        System.out.println("patterns:" + patterns);
 //        System.out.println("Apparently Nonadjacencies:");
 //        for (Edge edge : apparentlyNonadjacencies.keySet()) {
@@ -594,7 +594,7 @@ public final class VcpcFast implements GraphSearch {
 
         TetradLogger.getInstance().log("apparentlyNonadjacencies", "\n Apparent Non-adjacencies" + apparentlyNonadjacencies);
         TetradLogger.getInstance().log("definitelyNonadjacencies", "\n Definite Non-adjacencies" + definitelyNonadjacencies);
-//        TetradLogger.getInstance().log("patterns", "Disambiguated Patterns: " + patterns);
+//        TetradLogger.getInstance().log("patterns", "Disambiguated Cpdags: " + patterns);
         TetradLogger.getInstance().log("graph", "\nReturning this graph: " + graph);
         TetradLogger.getInstance().log("info", "Elapsed time = " + (elapsedTime) / 1000. + " s");
         TetradLogger.getInstance().log("info", "Finishing CPC algorithm.");
@@ -631,10 +631,10 @@ public final class VcpcFast implements GraphSearch {
 
 //    Takes patterns and, with respect to a node and its boundary, finds all possible combinations of orientations
 //    of its boundary such that no new colliders are created. For each combination, a new pattern is added to the
-//    list dagPatterns.
+//    list dagCpdags.
 
-    private List<Graph> dagPatterns(Node x, Graph graph) {
-        List<Graph> dagPatterns = new ArrayList<>();
+    private List<Graph> dagCpdags(Node x, Graph graph) {
+        List<Graph> dagCpdags = new ArrayList<>();
         List<Node> boundaryX = new ArrayList<>(boundary(x, graph));
 
         BOUNDARY1:
@@ -668,7 +668,7 @@ public final class VcpcFast implements GraphSearch {
                     dag.setEndpoint(x, b, Endpoint.ARROW);
                 }
             }
-            dagPatterns.add(dag);
+            dagCpdags.add(dag);
         }
 
         Graph _dag = new EdgeListGraph(graph);
@@ -698,14 +698,14 @@ public final class VcpcFast implements GraphSearch {
             }
         }
         if (newCollider.size() == 0) {
-            dagPatterns.add(_dag);
+            dagCpdags.add(_dag);
         }
-        return dagPatterns;
+        return dagCpdags;
     }
 
 
-    private List<Graph> ePatterns(Node x, Graph graph) {
-        List<Graph> ePatterns = new ArrayList<>();
+    private List<Graph> eCpdags(Node x, Graph graph) {
+        List<Graph> eCpdags = new ArrayList<>();
         List<Node> boundaryX = new ArrayList<>(boundary(x, graph));
 
         BOUNDARY1:
@@ -738,7 +738,7 @@ public final class VcpcFast implements GraphSearch {
                     pattern.setEndpoint(x, b, Endpoint.ARROW);
                 }
             }
-            ePatterns.add(pattern);
+            eCpdags.add(pattern);
         }
 
         Graph _dag = new EdgeListGraph(graph);
@@ -768,9 +768,9 @@ public final class VcpcFast implements GraphSearch {
             }
         }
         if (newCollider.size() == 0) {
-            ePatterns.add(_dag);
+            eCpdags.add(_dag);
         }
-        return ePatterns;
+        return eCpdags;
     }
 
 
@@ -790,7 +790,7 @@ public final class VcpcFast implements GraphSearch {
 //    conditional on its boundary.
 
     private boolean isMarkov(Node node, Graph graph) {
-//        Graph dag = SearchGraphUtils.dagFromPattern(graph);
+//        Graph dag = SearchGraphUtils.dagFromCpdag(graph);
         System.out.println(graph);
         IndependenceTest test = independenceTest;
 
@@ -1304,7 +1304,7 @@ public final class VcpcFast implements GraphSearch {
 //                    continue NODES;
 //                }
 //            }
-//            markovInAllPatterns.add(node);
+//            markovInAllCpdags.add(node);
 //            continue NODES;
 //        }
 //
@@ -1319,8 +1319,8 @@ public final class VcpcFast implements GraphSearch {
 //            Node x = edge.getNode1();
 //            Node y = edge.getNode2();
 //
-//            if (markovInAllPatterns.contains(x) &&
-//                    markovInAllPatterns.contains(y)) {
+//            if (markovInAllCpdags.contains(x) &&
+//                    markovInAllCpdags.contains(y)) {
 //                definitelyNonadjacencies.add(edge);
 //            }
 //        }
@@ -1335,7 +1335,7 @@ public final class VcpcFast implements GraphSearch {
 //                if (!isMarkov(node, _graph)) {
 //                    continue PATTERNS;
 //                }
-//                markovInAllPatterns.add(node);
+//                markovInAllCpdags.add(node);
 //            }
 //            break;
 //        }
@@ -1351,8 +1351,8 @@ public final class VcpcFast implements GraphSearch {
 //            Node x = edge.getNode1();
 //            Node y = edge.getNode2();
 //
-//            if (markovInAllPatterns.contains(x) &&
-//                    markovInAllPatterns.contains(y)) {
+//            if (markovInAllCpdags.contains(x) &&
+//                    markovInAllCpdags.contains(y)) {
 //                definitelyNonadjacencies.add(edge);
 //                apparentlyNonadjacencies.remove(edge);
 //            }
@@ -1508,9 +1508,9 @@ public final class VcpcFast implements GraphSearch {
 //
 //            for (Graph _graph : new ArrayList<Graph>(patterns)) {
 //
-//                List<Graph> dagPatternsX = dagPatterns(x, _graph);
+//                List<Graph> dagCpdagsX = dagCpdags(x, _graph);
 //
-//                for (Graph pattX : new ArrayList<Graph>(dagPatternsX)) {
+//                for (Graph pattX : new ArrayList<Graph>(dagCpdagsX)) {
 //                    List<Node> boundaryX = new ArrayList<Node>(boundary(x, pattX));
 //
 //                    List<Node> futureX = new ArrayList<Node>(future(x, pattX));
@@ -1531,9 +1531,9 @@ public final class VcpcFast implements GraphSearch {
 //                    }
 //                }
 //
-//                List<Graph> dagPatternsY = dagPatterns(y, _graph);
+//                List<Graph> dagCpdagsY = dagCpdags(y, _graph);
 //
-//                for (Graph pattY : new ArrayList<Graph>(dagPatternsY)) {
+//                for (Graph pattY : new ArrayList<Graph>(dagCpdagsY)) {
 //
 //                    List<Node> boundaryY = new ArrayList<Node>(boundary(y, pattY));
 //
@@ -1573,9 +1573,9 @@ public final class VcpcFast implements GraphSearch {
 //            Node x = edge.getNode1();
 //            Node y = edge.getNode2();
 //            IndependenceTest test = independenceTest;
-//            List<Graph> ePatternsX = ePatterns(x, graph);
+//            List<Graph> eCpdagsX = eCpdags(x, graph);
 //
-//            for (Graph pattX : new ArrayList<Graph>(ePatternsX)) {
+//            for (Graph pattX : new ArrayList<Graph>(eCpdagsX)) {
 //                List<Node> boundaryX = new ArrayList<Node>(boundary(x, pattX));
 //                List<Node> futureX = new ArrayList<Node>(future(x, pattX));
 //
@@ -1591,9 +1591,9 @@ public final class VcpcFast implements GraphSearch {
 //                }
 //            }
 //
-//            List<Graph> dagPatternsY = ePatterns(y, graph);
+//            List<Graph> dagCpdagsY = eCpdags(y, graph);
 //
-//            for (Graph pattY : new ArrayList<Graph>(dagPatternsY)) {
+//            for (Graph pattY : new ArrayList<Graph>(dagCpdagsY)) {
 //
 //                List<Node> boundaryY = new ArrayList<Node>(boundary(y, pattY));
 //                List<Node> futureY = new ArrayList<Node>(future(y, pattY));

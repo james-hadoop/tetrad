@@ -88,9 +88,9 @@ public final class VcpcAlt implements GraphSearch {
 
     private Set<Edge> definitelyNonadjacencies;
 
-    private Set<Node> markovInAllPatterns;
+    private Set<Node> markovInAllCpdags;
 
-    private Set<Graph> markovPattern;
+    private Set<Graph> markovCpdag;
 
     private Set<Node> markovNodes;
 
@@ -260,7 +260,7 @@ public final class VcpcAlt implements GraphSearch {
         this.noncolliderTriples = new HashSet<>();
         Vcfas fas = new Vcfas(getIndependenceTest());
         definitelyNonadjacencies = new HashSet<>();
-        markovInAllPatterns = new HashSet<>();
+        markovInAllCpdags = new HashSet<>();
 
 //        this.logger.log("info", "Variables " + independenceTest.getVariable());
 
@@ -436,7 +436,7 @@ public final class VcpcAlt implements GraphSearch {
 //                if (!isMarkov(node, _graph)) {
 //                    continue PATTERNS;
 //                }
-//                markovInAllPatterns.add(node);
+//                markovInAllCpdags.add(node);
 //            }
 //            break;
 //        }
@@ -452,8 +452,8 @@ public final class VcpcAlt implements GraphSearch {
 //            Node x = edge.getNode1();
 //            Node y = edge.getNode2();
 //
-//            if (markovInAllPatterns.contains(x) &&
-//                    markovInAllPatterns.contains(y)) {
+//            if (markovInAllCpdags.contains(x) &&
+//                    markovInAllCpdags.contains(y)) {
 //                definitelyNonadjacencies.add(edge);
 //                apparentlyNonadjacencies.remove(edge);
 //            }
@@ -565,7 +565,7 @@ public final class VcpcAlt implements GraphSearch {
 //                    continue NODES;
 //                }
 //            }
-//            markovInAllPatterns.add(node);
+//            markovInAllCpdags.add(node);
 //            continue NODES;
 //        }
 //
@@ -580,8 +580,8 @@ public final class VcpcAlt implements GraphSearch {
 //            Node x = edge.getNode1();
 //            Node y = edge.getNode2();
 //
-//            if (markovInAllPatterns.contains(x) &&
-//                    markovInAllPatterns.contains(y)) {
+//            if (markovInAllCpdags.contains(x) &&
+//                    markovInAllCpdags.contains(y)) {
 //                definitelyNonadjacencies.add(edge);
 //            }
 //        }
@@ -593,7 +593,7 @@ public final class VcpcAlt implements GraphSearch {
             System.out.println(edge);
         }
 
-        System.out.println("markov in all patterns:" + markovInAllPatterns);
+        System.out.println("markov in all patterns:" + markovInAllCpdags);
         System.out.println("patterns:" + patterns);
         System.out.println("Apparently Nonadjacencies:");
 
@@ -612,7 +612,7 @@ public final class VcpcAlt implements GraphSearch {
 
         TetradLogger.getInstance().log("definitelyNonadjacencies", "\n Definite Non-adjacencies" + definitelyNonadjacencies);
 
-        TetradLogger.getInstance().log("patterns", "Disambiguated Patterns: " + patterns);
+        TetradLogger.getInstance().log("patterns", "Disambiguated Cpdags: " + patterns);
 
 
         TetradLogger.getInstance().log("graph", "\nReturning this graph: " + graph);
@@ -667,7 +667,7 @@ public final class VcpcAlt implements GraphSearch {
 //    conditional on its boundary.
 
     private boolean isMarkov(Node node, Graph graph) {
-//        Graph dag = SearchGraphUtils.dagFromPattern(graph);
+//        Graph dag = SearchGraphUtils.dagFromCpdag(graph);
         System.out.println(graph);
         IndependenceTest test = new IndTestDSep(graph);
 

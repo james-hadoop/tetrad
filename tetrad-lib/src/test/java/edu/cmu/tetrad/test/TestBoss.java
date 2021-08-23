@@ -27,6 +27,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSSIndep;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
+import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.EbicScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
@@ -133,11 +134,12 @@ public final class TestBoss {
         params.set(Params.COEF_HIGH, 1);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
-        params.set(Params.BOSS_METHOD, 2);
+        params.set(Params.BOSS_METHOD, 1);
         params.set(Params.BREAK_TIES, true);
 
+
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new EbicScore()));
+        algorithms.add(new BOSS(new EbicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new SemSimulation(new RandomForward()));
@@ -172,16 +174,18 @@ public final class TestBoss {
         params.set(Params.AVG_DEGREE, 4);
         params.set(Params.SAMPLE_SIZE, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000,
                 50000, 100000, 200000);
-        params.set(Params.NUM_RUNS, 30);
+        params.set(Params.NUM_RUNS, 5);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.PENALTY_DISCOUNT, 2);
         params.set(Params.COEF_LOW, 0.1);
         params.set(Params.COEF_HIGH, 0.9);
         params.set(Params.VERBOSE, false);
         params.set(Params.BREAK_TIES, true);
+        params.set(Params.USE_SCORE, true);
+
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore()));
+        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
 //        algorithms.add(new GSP(new SemBicScore()));
 //        algorithms.add(new Fges(new SemBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
@@ -229,7 +233,7 @@ public final class TestBoss {
         params.set(Params.CACHE_SCORES, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new EbicScore()));
+        algorithms.add(new BOSS(new EbicScore(), new FisherZ()));
 //        algorithms.add(new Fges(new SemBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
 
@@ -282,7 +286,7 @@ public final class TestBoss {
         params.set(Params.EBIC_GAMMA, 0.5);// 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore()));
+        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
 //        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.FmlBicScore()));
 //        algorithms.add(new BOSS(new EbicScore()));
 
@@ -348,7 +352,7 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore()));
+        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new SemSimulation(new RandomForward()));
@@ -399,7 +403,7 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 //
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore()));
+        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new Fges(new SemBicScore()));
 
@@ -452,7 +456,7 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 //
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore()));
+        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new Fges(new SemBicScore()));
 
@@ -505,7 +509,7 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 //
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore()));
+        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new Fges(new SemBicScore()));
 
@@ -556,7 +560,7 @@ public final class TestBoss {
 
         int count = 0;
 
-        boolean printPattern = false;
+        boolean printCpdag = false;
 
 
         Boss.Method[] methods = {GSP, Boss.Method.BOSS, Boss.Method.SP};
@@ -596,7 +600,7 @@ public final class TestBoss {
                     graphs.get(method.toString()).add(pattern);
                     labels.get(method.toString()).add(facts.getLabel());
 
-                    if (printPattern) {
+                    if (printCpdag) {
                         System.out.println(pattern);
                     }
                 }
@@ -687,7 +691,7 @@ public final class TestBoss {
 
         parameters.set(Params.NUM_MEASURES, 10);
         parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-        parameters.set(Params.NUM_RUNS, 10);
+        parameters.set(Params.NUM_RUNS, 1);
         parameters.set(Params.BOSS_METHOD, 1);
         parameters.set(Params.BOSS_SCORE_TYPE, 1);
         parameters.set(Params.BREAK_TIES, true);
@@ -695,6 +699,7 @@ public final class TestBoss {
         parameters.set(Params.ALPHA, 0.001);
 //        parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.DEPTH, -1);
+        parameters.set(Params.USE_SCORE, false);
 //        parameters.set(Params.NUM_STARTS, 5);
 
         Statistics statistics = new Statistics();
@@ -711,7 +716,7 @@ public final class TestBoss {
 
         Algorithms algorithms = new Algorithms();
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new DSeparationTest()));
-        algorithms.add(new BOSSIndep(new DSeparationTest()));
+        algorithms.add(new BOSS(new SemBicScore(), new DSeparationTest()));
 //        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.FmlBicScore()));
 //        algorithms.add(new BOSSIndep(new FisherZ()));
 //        algorithms.add(new GSPIndep(new DSeparationTest()));
@@ -804,7 +809,7 @@ public final class TestBoss {
         }
     }
 
-    private boolean isPatternForDag(Graph pattern, Graph dag) {
+    private boolean isCpdagForDag(Graph pattern, Graph dag) {
         if (!GraphUtils.undirectedGraph(pattern).equals(GraphUtils.undirectedGraph(dag))) {
             return false;
         }

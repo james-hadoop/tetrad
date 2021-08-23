@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static java.util.Collections.copy;
 import static java.util.Collections.shuffle;
 
 /**
@@ -42,15 +41,20 @@ public class TeyssierScorer {
     public TeyssierScorer(Score score) {
         this.score = score;
         this.order = new LinkedList<>(score.getVariables());
-        this.orderHash = nodesHash(order);
+
+        this.orderHash = new HashMap<>();
+        nodesHash(orderHash, order);
+
         this.variables = score.getVariables();
-        this.variablesHash = nodesHash(variables);
+        this.variablesHash = new HashMap<>();
+        nodesHash(variablesHash, variables);
     }
 
     public TeyssierScorer(IndependenceTest test) {
         this.test = test;
         this.variables = test.getVariables();
-        this.variablesHash = nodesHash(variables);
+        this.variablesHash = new HashMap<>();
+        nodesHash(variablesHash, variables);
     }
 
     public void setKnowledge(IKnowledge knowledge) {
@@ -65,14 +69,10 @@ public class TeyssierScorer {
         return score();
     }
 
-    private Map<Node, Integer> nodesHash(List<Node> order) {
-        HashMap<Node, Integer> nodesHash = new HashMap<>();
-
-        for (int i = 0; i < order.size(); i++) {
-            nodesHash.put(order.get(i), i);
+    private void nodesHash(Map<Node, Integer> nodesHash, List<Node> variables) {
+        for (int i = 0; i < variables.size(); i++) {
+            nodesHash.put(variables.get(i), i);
         }
-
-        return nodesHash;
     }
 
     public double score() {
@@ -85,20 +85,11 @@ public class TeyssierScorer {
 
         Node v1 = order.get(index - 1);
         Node v2 = order.get(index);
-//
-//        if (knowledge.isForbidden(v2.getName(), v1.getName())) {
-//            demote(v);
-//            return true;
-//        }
 
         order.set(index - 1, v2);
         order.set(index, v1);
 
-        recalculate(index - 1);
-        recalculate(index);
-
-        orderHash.put(v1, index);
-        orderHash.put(v2, index - 1);
+        updateScores(index - 1, index);
 
         return true;
     }
@@ -111,19 +102,10 @@ public class TeyssierScorer {
         Node v1 = order.get(index);
         Node v2 = order.get(index + 1);
 
-//        if (knowledge.isForbidden(v2.getName(), v1.getName())) {
-//            promote(v);
-//            return true;
-//        }
-
         order.set(index, v2);
         order.set(index + 1, v1);
 
-        recalculate(index);
-        recalculate(index + 1);
-
-        orderHash.put(v1, index + 1);
-        orderHash.put(v2, index);
+        updateScores(index, index + 1);
 
         return true;
     }
@@ -134,12 +116,11 @@ public class TeyssierScorer {
         order.remove(v);
         order.add(toIndex, v);
 
-//        if (!validKnowledgeOrder(order)) {
-//            order.remove(v);
-//            order.add(vindex, v);
-//        }
-
-        updateScores();
+        if (vindex < toIndex) {
+            updateScores(vindex, toIndex);
+        } else {
+            updateScores(toIndex, vindex);
+        }
     }
 
     private boolean validKnowledgeOrder(List<Node> order) {
@@ -160,12 +141,7 @@ public class TeyssierScorer {
         order.remove(v);
         order.addFirst(v);
 
-//        if (!validKnowledgeOrder(order)) {
-//            order.remove(v);
-//            order.add(vindex, v);
-//        }
-
-        updateScores();
+        updateScores(0, vindex);
     }
 
     public void moveToLast(Node v) {
@@ -174,12 +150,7 @@ public class TeyssierScorer {
         order.remove(v);
         order.addLast(v);
 
-//        if (!validKnowledgeOrder(order)) {
-//            order.remove(v);
-//            order.add(vindex, v);
-//        }
-
-        updateScores();
+        updateScores(vindex, order.size() - 1);
     }
 
     public boolean swap(Node m, Node n) {
@@ -195,7 +166,12 @@ public class TeyssierScorer {
             return false;
         }
 
-        updateScores();
+        if (i < j) {
+            updateScores(i, j);
+        } else {
+            updateScores(j, i);
+        }
+
         return true;
     }
 
@@ -224,15 +200,14 @@ public class TeyssierScorer {
         this.prefixes = new LinkedList<>();
         for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
 
-        updateScores();
+        updateScores(0, order.size() - 1);
     }
 
-    private void updateScores() {
-        for (int i = 0; i < order.size(); i++) {
+    private void updateScores(int i1, int i2) {
+        for (int i = i1; i <= i2; i++) {
             recalculate(i);
+            orderHash.put(order.get(i), i);
         }
-
-        orderHash = nodesHash(order);
     }
 
     private double score(Node n, Set<Node> pi) {

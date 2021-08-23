@@ -49,7 +49,7 @@ public class LofsRunner extends AbstractAlgorithmRunner implements
 
 // ============================CONSTRUCTORS============================//
 
-    // public LingamPatternRunner(DataWrapper dataWrapper, Parameters
+    // public LingamCpdagRunner(DataWrapper dataWrapper, Parameters
     // params) {
     // super(dataWrapper, params);
     // }
@@ -215,7 +215,7 @@ public class LofsRunner extends AbstractAlgorithmRunner implements
 
 
         if (source instanceof DataModelList) {
-//            graph = lingamPatternEdgeVote((DataModelList) source, pattern);
+//            graph = lingamCpdagEdgeVote((DataModelList) source, pattern);
             graph = applyLofs((DataModelList) source, pattern);
         } else {
             DataModelList list = new DataModelList();
@@ -246,19 +246,19 @@ public class LofsRunner extends AbstractAlgorithmRunner implements
         // }
     }
 
-    private Graph lingamPatternEdgeVote(DataModelList dataSets, Graph pattern) {
-        List<Graph> lingamPatternGraphs = new ArrayList<>();
+    private Graph lingamCpdagEdgeVote(DataModelList dataSets, Graph pattern) {
+        List<Graph> lingamCpdagGraphs = new ArrayList<>();
 
         // Images plus lingam orientation on multiple subjects.
         for (DataModel dataModel : dataSets) {
             DataSet dataSet = (DataSet) dataModel;
-            LingamPattern lingamPattern = new LingamPattern(pattern, dataSet);
-            lingamPattern.setAlpha(getParams().getDouble("alpha", 0.001));
-            Graph _graph = lingamPattern.search();
+            LingamCpdag lingamCpdag = new LingamCpdag(pattern, dataSet);
+            lingamCpdag.setAlpha(getParams().getDouble("alpha", 0.001));
+            Graph _graph = lingamCpdag.search();
 
             System.out.println(_graph);
 
-            lingamPatternGraphs.add(_graph);
+            lingamCpdagGraphs.add(_graph);
         }
 
         Graph lingamizedGraph = new EdgeListGraph(pattern.getNodes());
@@ -266,7 +266,7 @@ public class LofsRunner extends AbstractAlgorithmRunner implements
         for (Edge edge : pattern.getEdges()) {
             int numRight = 0, numLeft = 0;
 
-            for (Graph graph : lingamPatternGraphs) {
+            for (Graph graph : lingamCpdagGraphs) {
                 if (graph.containsEdge(Edges.directedEdge(edge.getNode1(), edge.getNode2()))) {
                     numRight++;
                 } else if (graph.containsEdge(Edges.directedEdge(edge.getNode2(), edge.getNode1()))) {

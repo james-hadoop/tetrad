@@ -45,7 +45,7 @@ class FgesIndTestParamsEditor extends JComponent {
     private DoubleTextField cellPriorField, structurePriorField;
     private JButton uniformStructurePrior;
     private DoubleTextField penaltyDiscount;
-    private final IntTextField numPatternsToSave;
+    private final IntTextField numCpdagsToSave;
     private final IntTextField depth;
 
     /**
@@ -126,12 +126,12 @@ class FgesIndTestParamsEditor extends JComponent {
             });
         }
 
-        this.numPatternsToSave = new IntTextField(
-                getFgesIndTestParams().getInt("numPatternsToSave", 1), 5);
-        this.numPatternsToSave.setFilter(new IntTextField.Filter() {
+        this.numCpdagsToSave = new IntTextField(
+                getFgesIndTestParams().getInt("numCpdagsToSave", 1), 5);
+        this.numCpdagsToSave.setFilter(new IntTextField.Filter() {
             public int filter(int value, int oldValue) {
                 try {
-                    getFgesIndTestParams().set("numPatternsToSave", value);
+                    getFgesIndTestParams().set("numCpdagsToSave", value);
                     return value;
                 }
                 catch (IllegalArgumentException e) {
@@ -197,9 +197,9 @@ class FgesIndTestParamsEditor extends JComponent {
             add(Box.createVerticalStrut(10));
 
             Box b8 = Box.createHorizontalBox();
-            b8.add(new JLabel("Num Patterns to Save"));
+            b8.add(new JLabel("Num Cpdags to Save"));
             b8.add(Box.createHorizontalGlue());
-            b8.add(this.numPatternsToSave);
+            b8.add(this.numCpdagsToSave);
             add(b8);
 
             Box b4a = Box.createHorizontalBox();
@@ -227,9 +227,9 @@ class FgesIndTestParamsEditor extends JComponent {
             add(b4a);
 
             Box b8 = Box.createHorizontalBox();
-            b8.add(new JLabel("Num Patterns to Save"));
+            b8.add(new JLabel("Num Cpdags to Save"));
             b8.add(Box.createHorizontalGlue());
-            b8.add(this.numPatternsToSave);
+            b8.add(this.numCpdagsToSave);
             add(b8);
 
             Box b4b = Box.createHorizontalBox();
@@ -239,9 +239,9 @@ class FgesIndTestParamsEditor extends JComponent {
             add(b4b);
         } else if (type == FgesRunner.Type.GRAPH) {
             Box b8 = Box.createHorizontalBox();
-            b8.add(new JLabel("Num Patterns to Save"));
+            b8.add(new JLabel("Num Cpdags to Save"));
             b8.add(Box.createHorizontalGlue());
-            b8.add(this.numPatternsToSave);
+            b8.add(this.numCpdagsToSave);
             add(b8);
 
             Box b4a = Box.createHorizontalBox();

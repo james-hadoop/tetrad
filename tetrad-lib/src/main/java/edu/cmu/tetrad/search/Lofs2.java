@@ -90,7 +90,7 @@ public class Lofs2 {
         }
 
         if (pattern == null) {
-            throw new IllegalArgumentException("Pattern must be specified.");
+            throw new IllegalArgumentException("Cpdag must be specified.");
         }
 
         for (DataSet dataSet : dataSets) {
@@ -147,7 +147,7 @@ public class Lofs2 {
 
     public Graph orient() {
 
-        Graph skeleton = GraphUtils.undirectedGraph(getPattern());
+        Graph skeleton = GraphUtils.undirectedGraph(getCpdag());
         Graph graph = new EdgeListGraph(skeleton.getNodes());
 
         List<Node> nodes = skeleton.getNodes();
@@ -2404,7 +2404,7 @@ public class Lofs2 {
         return p;
     }
 
-    private Graph getPattern() {
+    private Graph getCpdag() {
         return pattern;
     }
 

@@ -114,61 +114,61 @@ public class Simulation extends DataWrapper implements SessionModel,
     public Simulation(BayesImWrapperObs wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getBayesIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(BayesPmWrapper wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getBayesPm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(BayesEstimatorWrapper wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getEstimatedBayesIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(DirichletBayesImWrapper wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getDirichletBayesIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(DirichletEstimatorWrapper wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getEstimatedBayesIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(CptInvariantUpdaterWrapper wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getBayesUpdater().getManipulatedBayesIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(SemPmWrapper wrapper, Parameters parameters) {
         simulation = new SemSimulation(wrapper.getSemPm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(SemImWrapper wrapper, Parameters parameters) {
         simulation = new SemSimulation(wrapper.getSemIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(StandardizedSemImWrapper wrapper, Parameters parameters) {
         simulation = new StandardizedSemSimulation(wrapper.getStandardizedSemIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(SemEstimatorWrapper wrapper, Parameters parameters) {
         simulation = new SemSimulation(wrapper.getEstimatedSemIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(SemUpdaterWrapper wrapper, Parameters parameters) {
@@ -282,14 +282,14 @@ public class Simulation extends DataWrapper implements SessionModel,
         // Every time the users click the Simulate button, new data needs to be created
         // regardless of already created data - Zhou
         //if (simulation.getNumDataModels() == 0) {
-        simulation.createData(parameters, false);
+        simulation.createData(parameters, true);
         //}
     }
 
-    @Override
     /**
      * Returns all of the graphs in the simulation, in order.
      */
+    @Override
     public List<Graph> getGraphs() {
         List<Graph> graphs = new ArrayList<>();
 

@@ -123,7 +123,7 @@ public final class Knowledge2 implements TetradSerializable, IKnowledge {
     private String checkSpec(String spec) {
         Matcher matcher = SPEC_PATTERN.matcher(spec);
         if (!matcher.matches()) {
-            throw new IllegalArgumentException(spec + ": Pattern names can consist of alphabetic "
+            throw new IllegalArgumentException(spec + ": Cpdag names can consist of alphabetic "
                     + "characters plus :, _, -, and .. A wildcard '*' may be included to match a "
                     + "string of such characters.");
         }

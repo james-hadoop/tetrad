@@ -94,7 +94,7 @@ public final class SampleVcpcFast implements GraphSearch {
 
     private Set<Edge> definitelyNonadjacencies;
 
-    private Set<Node> markovInAllPatterns;
+    private Set<Node> markovInAllCpdags;
 
     private static Set<List<Node>> powerSet;
 
@@ -330,7 +330,7 @@ public final class SampleVcpcFast implements GraphSearch {
         this.noncolliderTriples = new HashSet<>();
         Vcfas fas = new Vcfas(getIndependenceTest());
         definitelyNonadjacencies = new HashSet<>();
-        markovInAllPatterns = new HashSet<>();
+        markovInAllCpdags = new HashSet<>();
 
 //        this.logger.log("info", "Variables " + independenceTest.getVariable());
 
@@ -522,7 +522,7 @@ public final class SampleVcpcFast implements GraphSearch {
 //                    continue NODES;
 //                }
 //            }
-//            markovInAllPatterns.add(node);
+//            markovInAllCpdags.add(node);
 //            continue NODES;
 //        }
 //
@@ -537,8 +537,8 @@ public final class SampleVcpcFast implements GraphSearch {
 //            Node x = edge.getNode1();
 //            Node y = edge.getNode2();
 //
-//            if (markovInAllPatterns.contains(x) &&
-//                    markovInAllPatterns.contains(y)) {
+//            if (markovInAllCpdags.contains(x) &&
+//                    markovInAllCpdags.contains(y)) {
 //                definitelyNonadjacencies.add(edge);
 //            }
 //        }
@@ -553,7 +553,7 @@ public final class SampleVcpcFast implements GraphSearch {
 //                if (!isMarkov(node, _graph)) {
 //                    continue PATTERNS;
 //                }
-//                markovInAllPatterns.add(node);
+//                markovInAllCpdags.add(node);
 //            }
 //            break;
 //        }
@@ -569,8 +569,8 @@ public final class SampleVcpcFast implements GraphSearch {
 //            Node x = edge.getNode1();
 //            Node y = edge.getNode2();
 //
-//            if (markovInAllPatterns.contains(x) &&
-//                    markovInAllPatterns.contains(y)) {
+//            if (markovInAllCpdags.contains(x) &&
+//                    markovInAllCpdags.contains(y)) {
 //                definitelyNonadjacencies.add(edge);
 //                apparentlyNonadjacencies.remove(edge);
 //            }
@@ -724,9 +724,9 @@ public final class SampleVcpcFast implements GraphSearch {
 //
 //            for (Graph _graph : new ArrayList<Graph>(patterns)) {
 //
-//                List<Graph> dagPatternsX = dagPatterns(x, _graph);
+//                List<Graph> dagCpdagsX = dagCpdags(x, _graph);
 //
-//                for (Graph pattX : new ArrayList<Graph>(dagPatternsX)) {
+//                for (Graph pattX : new ArrayList<Graph>(dagCpdagsX)) {
 //                    List<Node> boundaryX = new ArrayList<Node>(boundary(x, pattX));
 //
 //                    List<Node> futureX = new ArrayList<Node>(future(x, pattX));
@@ -747,9 +747,9 @@ public final class SampleVcpcFast implements GraphSearch {
 //                    }
 //                }
 //
-//                List<Graph> dagPatternsY = dagPatterns(y, _graph);
+//                List<Graph> dagCpdagsY = dagCpdags(y, _graph);
 //
-//                for (Graph pattY : new ArrayList<Graph>(dagPatternsY)) {
+//                for (Graph pattY : new ArrayList<Graph>(dagCpdagsY)) {
 //
 //                    List<Node> boundaryY = new ArrayList<Node>(boundary(y, pattY));
 //
@@ -1053,7 +1053,7 @@ public final class SampleVcpcFast implements GraphSearch {
 //            System.out.println(edge);
 //        }
 //
-//        System.out.println("markov in all patterns:" + markovInAllPatterns);
+//        System.out.println("markov in all patterns:" + markovInAllCpdags);
 //        System.out.println("patterns:" + patterns);
 //        System.out.println("Apparently Nonadjacencies:");
 
@@ -1072,7 +1072,7 @@ public final class SampleVcpcFast implements GraphSearch {
 
         TetradLogger.getInstance().log("definitelyNonadjacencies", "\n Definite Non-adjacencies" + definitelyNonadjacencies);
 
-        TetradLogger.getInstance().log("patterns", "Disambiguated Patterns: " + patterns);
+        TetradLogger.getInstance().log("patterns", "Disambiguated Cpdags: " + patterns);
 
         TetradLogger.getInstance().log("graph", "\nReturning this graph: " + graph);
 
@@ -1148,7 +1148,7 @@ public final class SampleVcpcFast implements GraphSearch {
 
 //    Takes patterns and, with respect to a node and its boundary, finds all possible combinations of orientations
 //    of its boundary such that no new colliders are created. For each combination, a new pattern is added to the
-//    list dagPatterns.
+//    list dagCpdags.
 
 
     private Set<Edge> getAdj(Node node, Graph graph) {
@@ -1166,8 +1166,8 @@ public final class SampleVcpcFast implements GraphSearch {
         return adj;
     }
 
-    private List<Graph> dagPatterns(Node x, Graph graph) {
-        List<Graph> dagPatterns = new ArrayList<>();
+    private List<Graph> dagCpdags(Node x, Graph graph) {
+        List<Graph> dagCpdags = new ArrayList<>();
         List<Node> boundaryX = new ArrayList<>(boundary(x, graph));
 
         BOUNDARY1:
@@ -1201,7 +1201,7 @@ public final class SampleVcpcFast implements GraphSearch {
                     dag.setEndpoint(x, b, Endpoint.ARROW);
                 }
             }
-            dagPatterns.add(dag);
+            dagCpdags.add(dag);
         }
 
         Graph _dag = new EdgeListGraph(graph);
@@ -1231,9 +1231,9 @@ public final class SampleVcpcFast implements GraphSearch {
             }
         }
         if (newCollider.size() == 0) {
-            dagPatterns.add(_dag);
+            dagCpdags.add(_dag);
         }
-        return dagPatterns;
+        return dagCpdags;
     }
 
 
@@ -1253,7 +1253,7 @@ public final class SampleVcpcFast implements GraphSearch {
 //    conditional on its boundary.
 
     private boolean isMarkov(Node node, Graph graph) {
-//        Graph dag = SearchGraphUtils.dagFromPattern(graph);
+//        Graph dag = SearchGraphUtils.dagFromCpdag(graph);
         System.out.println(graph);
         IndependenceTest test = new IndTestDSep(graph);
 

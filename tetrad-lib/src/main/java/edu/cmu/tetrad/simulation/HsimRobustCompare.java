@@ -10,7 +10,7 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.BDeuScore;
 import edu.cmu.tetrad.search.Fges;
-import edu.cmu.tetrad.search.PatternToDag;
+import edu.cmu.tetrad.search.CpdagToDag;
 import edu.cmu.tetrad.util.RandomUtil;
 
 import java.util.ArrayList;
@@ -70,7 +70,7 @@ public class HsimRobustCompare {
             //create various simulated data sets
 
             ////let's do the full simulated data set first: a dag in the FGES pattern fit to the data set.
-            PatternToDag pickdag = new PatternToDag(oGraphOut);
+            CpdagToDag pickdag = new CpdagToDag(oGraphOut);
             Graph fgesDag = pickdag.patternToDagMeek();
 
             Dag fgesdag2 = new Dag(fgesDag);

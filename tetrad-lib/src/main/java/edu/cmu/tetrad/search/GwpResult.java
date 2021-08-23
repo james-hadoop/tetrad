@@ -103,7 +103,7 @@ public class GwpResult {
     public CoefficientEvaluationResult coeffAll;
     public CoefficientEvaluationResult coeffSome;
 
-    public PatternEvaluationResult pat;
+    public CpdagEvaluationResult pat;
 
     public String name = null;
 
@@ -112,12 +112,12 @@ public class GwpResult {
      * undirected when it should be directed: 0.5 * directed when it should be undirected: 0.5 * directed the wrong way:
      * 1.0 (in other words, 0.5 for each arrow-head difference, for orientation errors)
      */
-    public static class PatternEvaluationResult {
+    public static class CpdagEvaluationResult {
 
         public AdjacencyEvaluationResult adj;
         public OrientationEvaluationResult ori;
 
-        public PatternEvaluationResult(AdjacencyEvaluationResult adj, OrientationEvaluationResult ori) {
+        public CpdagEvaluationResult(AdjacencyEvaluationResult adj, OrientationEvaluationResult ori) {
             this.adj = adj;
             this.ori = ori;
         }
@@ -158,7 +158,7 @@ public class GwpResult {
      * <p>
      * * @param methodName
      */
-    public GwpResult(String methodName, PatternEvaluationResult pat) {
+    public GwpResult(String methodName, CpdagEvaluationResult pat) {
         super();
         this.name = methodName;
         this.pat = pat;

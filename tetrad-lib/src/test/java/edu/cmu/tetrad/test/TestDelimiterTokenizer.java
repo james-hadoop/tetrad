@@ -40,7 +40,7 @@ public final class TestDelimiterTokenizer {
         String[] tokens = {"a", "b", "c", "d"};
         DelimiterType delimiterType = DelimiterType.COMMA;
         RegexTokenizer tokenizer =
-                new RegexTokenizer(line2, delimiterType.getPattern(), '"');
+                new RegexTokenizer(line2, delimiterType.getCpdag(), '"');
 
         int index = 0;
         while (tokenizer.hasMoreTokens()) {

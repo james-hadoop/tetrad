@@ -761,12 +761,12 @@ public class SessionWrapper extends EdgeListGraph implements SessionWrapperIndir
     }
 
     @Override
-    public boolean isPattern() {
+    public boolean isCpdag() {
         return pattern;
     }
 
     @Override
-    public void setPattern(boolean pattern) {
+    public void setCpdag(boolean pattern) {
         this.pattern = pattern;
     }
 

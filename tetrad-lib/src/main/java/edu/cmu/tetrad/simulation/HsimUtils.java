@@ -64,8 +64,8 @@ public class HsimUtils {
     }
 
     //this method returns an array of doubles, which are standard error metrics for graph learning
-    public static double[] errorEval(Graph estPattern, Graph truePattern) {
-        GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison2(estPattern, truePattern);
+    public static double[] errorEval(Graph estCpdag, Graph trueCpdag) {
+        GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison2(estCpdag, trueCpdag);
 
         int adjTp = comparison.getAdjCor();
         int adjFp = comparison.getAdjFp();
@@ -75,9 +75,9 @@ public class HsimUtils {
         int arrowptFp = comparison.getAhdFp();
         int arrowptFn = comparison.getAhdFn();
 
-        estPattern = GraphUtils.replaceNodes(estPattern, truePattern.getNodes());
+        estCpdag = GraphUtils.replaceNodes(estCpdag, trueCpdag.getNodes());
 
-        int[][] counts = GraphUtils.edgeMisclassificationCounts(truePattern, estPattern, false);
+        int[][] counts = GraphUtils.edgeMisclassificationCounts(trueCpdag, estCpdag, false);
 
         double edgeRatio = HsimUtils.correctnessRatio(counts);
 

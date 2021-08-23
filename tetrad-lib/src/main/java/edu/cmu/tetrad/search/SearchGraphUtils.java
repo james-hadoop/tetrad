@@ -277,7 +277,7 @@ public final class SearchGraphUtils {
      * x *-* y *-* z as x *-> y <-* z just in case y is in Sepset({x, z}).
      */
     public static List<Triple> orientCollidersUsingSepsets(SepsetMap set, IKnowledge knowledge, Graph graph, boolean verbose,
-                                                           boolean enforcePattern) {
+                                                           boolean enforceCpdag) {
         TetradLogger.getInstance().log("details", "Starting Collider Orientation:");
         List<Triple> colliders = new ArrayList<>();
 
@@ -312,7 +312,7 @@ public final class SearchGraphUtils {
                         System.out.println("Collider orientation <" + a + ", " + b + ", " + c + "> sepset = " + sepset);
                     }
 
-                    if (enforcePattern) {
+                    if (enforceCpdag) {
                         if (graph.getEndpoint(b, a) == Endpoint.ARROW || graph.getEndpoint(b, c) == Endpoint.ARROW) {
                             continue;
                         }
@@ -1191,7 +1191,7 @@ public final class SearchGraphUtils {
     /**
      * Get a graph and direct only the unshielded colliders.
      */
-    public static void basicPattern(Graph graph) {
+    public static void basicCpdag(Graph graph) {
         Set<Edge> undirectedEdges = new HashSet<>();
 
         NEXT_EDGE:
@@ -1223,7 +1223,7 @@ public final class SearchGraphUtils {
         }
     }
 
-    public static void basicPatternRestricted(Graph graph, Set<Edge> edges) {
+    public static void basicCpdagRestricted(Graph graph, Set<Edge> edges) {
         Set<Edge> undirectedEdges = new HashSet<>();
 
         NEXT_EDGE:
@@ -1255,7 +1255,7 @@ public final class SearchGraphUtils {
         }
     }
 
-    public static void basicPatternRestricted2(Graph graph, Node node) {
+    public static void basicCpdagRestricted2(Graph graph, Node node) {
         Set<Edge> undirectedEdges = new HashSet<>();
 
         NEXT_EDGE:
@@ -1431,17 +1431,17 @@ public final class SearchGraphUtils {
 //        return new PC(test).search();
 //
         Graph graph = new EdgeListGraph(dag);
-        SearchGraphUtils.basicPattern(graph);
+        SearchGraphUtils.basicCpdag(graph);
         MeekRules rules = new MeekRules();
         rules.orientImplied(graph);
         return graph;
     }
 
-    public static Graph dagFromPattern(Graph graph) {
-        return dagFromPattern(graph, null);
+    public static Graph dagFromCpdag(Graph graph) {
+        return dagFromCpdag(graph, null);
     }
 
-    public static Graph dagFromPattern(Graph graph, IKnowledge knowledge) {
+    public static Graph dagFromCpdag(Graph graph, IKnowledge knowledge) {
         Graph dag = new EdgeListGraph(graph);
 
         for (Edge edge : dag.getEdges()) {
@@ -1481,14 +1481,14 @@ public final class SearchGraphUtils {
         return dag;
     }
 
-    public static Graph patternFromEPattern(Graph ePattern) {
-        ePattern = new EdgeListGraph(ePattern);
+    public static Graph patternFromECpdag(Graph eCpdag) {
+        eCpdag = new EdgeListGraph(eCpdag);
 
         MeekRules rules = new MeekRules();
-        rules.orientImplied(ePattern);
+        rules.orientImplied(eCpdag);
 
-        List<Triple> ambiguousTriples = new ArrayList<>(ePattern.getAmbiguousTriples());
-        removeExtraAmbiguousTriples(ePattern, new ArrayList<>(ambiguousTriples));
+        List<Triple> ambiguousTriples = new ArrayList<>(eCpdag.getAmbiguousTriples());
+        removeExtraAmbiguousTriples(eCpdag, new ArrayList<>(ambiguousTriples));
 
         while (!ambiguousTriples.isEmpty()) {
             Triple triple = ambiguousTriples.get(0);
@@ -1497,21 +1497,21 @@ public final class SearchGraphUtils {
             Node y = triple.getY();
             Node z = triple.getZ();
 
-            ePattern.removeAmbiguousTriple(x, y, z);
+            eCpdag.removeAmbiguousTriple(x, y, z);
             ambiguousTriples.remove(triple);
 
-//            if (!ePattern.isDefCollider(x, y, z)) {
-//                ePattern.removeEdge(x, y);
-//                ePattern.removeEdge(z, y);
-//                ePattern.addDirectedEdge(x, y);
-//                ePattern.addDirectedEdge(z, y);
+//            if (!eCpdag.isDefCollider(x, y, z)) {
+//                eCpdag.removeEdge(x, y);
+//                eCpdag.removeEdge(z, y);
+//                eCpdag.addDirectedEdge(x, y);
+//                eCpdag.addDirectedEdge(z, y);
 //            }
 
-            rules.orientImplied(ePattern);
-            removeExtraAmbiguousTriples(ePattern, ambiguousTriples);
+            rules.orientImplied(eCpdag);
+            removeExtraAmbiguousTriples(eCpdag, ambiguousTriples);
         }
 
-        return ePattern;
+        return eCpdag;
     }
 
     private static void removeExtraAmbiguousTriples(Graph graph, List<Triple> ambiguousTriples) {
@@ -1539,18 +1539,18 @@ public final class SearchGraphUtils {
         }
     }
 
-    public static Graph bestPatternFromEPattern(Graph ePattern, DataSet dataSet, int maxCount) {
-        ePattern = new EdgeListGraph(ePattern);
+    public static Graph bestCpdagFromECpdag(Graph eCpdag, DataSet dataSet, int maxCount) {
+        eCpdag = new EdgeListGraph(eCpdag);
         Graph out = new EdgeListGraph();
 
         MeekRules rules = new MeekRules();
-        rules.orientImplied(ePattern);
+        rules.orientImplied(eCpdag);
         double bestBIC = Double.NEGATIVE_INFINITY;
 
-        List<Triple> _ambiguousTriples = new ArrayList<>(ePattern.getAmbiguousTriples());
+        List<Triple> _ambiguousTriples = new ArrayList<>(eCpdag.getAmbiguousTriples());
 
         for (int c = 0; c < maxCount; c++) {
-            Graph _ePattern = new EdgeListGraph(ePattern);
+            Graph _eCpdag = new EdgeListGraph(eCpdag);
 
             List<Triple> ambiguousTriples = new ArrayList<>(_ambiguousTriples);
             Collections.shuffle(ambiguousTriples);
@@ -1562,23 +1562,23 @@ public final class SearchGraphUtils {
                 Node y = triple.getY();
                 Node z = triple.getZ();
 
-                if (!_ePattern.isDefCollider(x, y, z)) {
-                    _ePattern.removeEdge(x, y);
-                    _ePattern.removeEdge(z, y);
-                    _ePattern.addDirectedEdge(x, y);
-                    _ePattern.addDirectedEdge(z, y);
+                if (!_eCpdag.isDefCollider(x, y, z)) {
+                    _eCpdag.removeEdge(x, y);
+                    _eCpdag.removeEdge(z, y);
+                    _eCpdag.addDirectedEdge(x, y);
+                    _eCpdag.addDirectedEdge(z, y);
                 }
 
-                rules.orientImplied(_ePattern);
-                removeExtraAmbiguousTriples(_ePattern, ambiguousTriples);
+                rules.orientImplied(_eCpdag);
+                removeExtraAmbiguousTriples(_eCpdag, ambiguousTriples);
             }
 
-            Graph dag = chooseDagInPattern(_ePattern);
+            Graph dag = chooseDagInCpdag(_eCpdag);
             double bic = SemBicScorer.scoreDag(dag, dataSet);
 
             if (bic > bestBIC) {
                 bestBIC = bic;
-                out = _ePattern;
+                out = _eCpdag;
             }
         }
 
@@ -1845,16 +1845,16 @@ public final class SearchGraphUtils {
     /**
      * Generates the list of DAGs in the given pattern.
      */
-    public static List<Graph> generatePatternDags(Graph pattern, boolean orientBidirectedEdges) {
+    public static List<Graph> generateCpdagDags(Graph pattern, boolean orientBidirectedEdges) {
         if (orientBidirectedEdges) {
             pattern = GraphUtils.removeBidirectedOrientations(pattern);
         }
 
-        return getDagsInPatternMeek(pattern, new Knowledge2());
+        return getDagsInCpdagMeek(pattern, new Knowledge2());
     }
 
-    public static List<Graph> getDagsInPatternMeek(Graph pattern, IKnowledge knowledge) {
-        DagInPatternIterator iterator = new DagInPatternIterator(pattern, knowledge);
+    public static List<Graph> getDagsInCpdagMeek(Graph pattern, IKnowledge knowledge) {
+        DagInCpdagIterator iterator = new DagInCpdagIterator(pattern, knowledge);
         List<Graph> dags = new ArrayList<>();
 
         while (iterator.hasNext()) {
@@ -2331,8 +2331,8 @@ public final class SearchGraphUtils {
 //        return CpcTripleType.COLLIDER;
     }
 
-    public static Graph chooseDagInPattern(Graph graph) {
-//        return new DagInPatternIterator(graph).next();
+    public static Graph chooseDagInCpdag(Graph graph) {
+//        return new DagInCpdagIterator(graph).next();
 
         Graph newGraph = new EdgeListGraph(graph);
 
@@ -2342,7 +2342,7 @@ public final class SearchGraphUtils {
             }
         }
 
-        PatternToDag search = new PatternToDag(new EdgeListGraph(newGraph));
+        CpdagToDag search = new CpdagToDag(new EdgeListGraph(newGraph));
         Graph dag = search.patternToDagMeek();
         GraphUtils.arrangeBySourceGraph(dag, graph);
         return dag;
@@ -2452,9 +2452,9 @@ public final class SearchGraphUtils {
 
     //    /**
 //     * The recursive method used to list the MB DAGS consistent with an
-//     * Pattern (i.e. with the independence information available to the search.
+//     * Cpdag (i.e. with the independence information available to the search.
 //     */
-//    public static Set<Graph> listPatternDags(Graph pattern,
+//    public static Set<Graph> listCpdagDags(Graph pattern,
 //                                             boolean orientBidirectedEdges) {
 //        Set<Graph> dags = new HashSet<Graph>();
 //        Graph graph = new EdgeListGraph(pattern);
@@ -2489,19 +2489,19 @@ public final class SearchGraphUtils {
 //        graph.setEndpoint(edge.getNode2(), edge.getNode1(), Endpoint.TAIL);
 //        graph.setEndpoint(edge.getNode1(), edge.getNode2(), Endpoint.ARROW);
 //        graph.setHighlighted(graph.getEdge(edge.getNode1(), edge.getNode2()), true);
-//        dags.addAll(listPatternDags(graph, orientBidirectedEdges));
+//        dags.addAll(listCpdagDags(graph, orientBidirectedEdges));
 //
 //        graph.setEndpoint(edge.getNode1(), edge.getNode2(), Endpoint.TAIL);
 //        graph.setEndpoint(edge.getNode2(), edge.getNode1(), Endpoint.ARROW);
 //        graph.setHighlighted(graph.getEdge(edge.getNode1(), edge.getNode2()), true);
-//        dags.addAll(listPatternDags(graph, orientBidirectedEdges));
+//        dags.addAll(listCpdagDags(graph, orientBidirectedEdges));
 //
 //        return dags;
 //    }
-//    public static Graph dagFromPattern(Graph graph, IKnowledge knowledge) {
+//    public static Graph dagFromCpdag(Graph graph, IKnowledge knowledge) {
 //        boolean allowArbitraryOrientations = true;
 //        boolean allowNewColliders = true;
-//        DagInPatternIterator iterator = new DagInPatternIterator(graph, knowledge, allowArbitraryOrientations,
+//        DagInCpdagIterator iterator = new DagInCpdagIterator(graph, knowledge, allowArbitraryOrientations,
 //                allowNewColliders);
 //        Graph dag = iterator.next();
 //        return dag;
@@ -2525,7 +2525,7 @@ public final class SearchGraphUtils {
 //        Graph G = u; //patternForDag(u);
 //        Graph H = t; //patternForDag(t);
 //
-////        System.out.println("Pattern of true graph over latents = " + G);
+////        System.out.println("Cpdag of true graph over latents = " + G);
 //        _allNodes.addAll(trueLatents);
 //        _allNodes.addAll(estLatents);
 //
@@ -3294,8 +3294,8 @@ public final class SearchGraphUtils {
         return builder.toString();
     }
 
-    public static int[][] graphComparison(Graph estPattern, Graph truePattern, PrintStream out) {
-        GraphUtils.GraphComparison comparison = getGraphComparison2(estPattern, truePattern);
+    public static int[][] graphComparison(Graph estCpdag, Graph trueCpdag, PrintStream out) {
+        GraphUtils.GraphComparison comparison = getGraphComparison2(estCpdag, trueCpdag);
 
         if (out != null) {
             out.println("Adjacencies:");
@@ -3315,9 +3315,9 @@ public final class SearchGraphUtils {
             out.println("TP " + arrowptTp + " FP = " + arrowptFp + " FN = " + arrowptFn);
         }
 
-        estPattern = GraphUtils.replaceNodes(estPattern, truePattern.getNodes());
+        estCpdag = GraphUtils.replaceNodes(estCpdag, trueCpdag.getNodes());
 
-        int[][] counts = GraphUtils.edgeMisclassificationCounts(truePattern, estPattern, false);
+        int[][] counts = GraphUtils.edgeMisclassificationCounts(trueCpdag, estCpdag, false);
 
         if (out != null) {
             out.println(GraphUtils.edgeMisclassifications(counts));

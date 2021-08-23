@@ -72,6 +72,7 @@ public final class Bfci implements GraphSearch {
     private int numStarts;
     private Boss.Method method;
     private TeyssierScorer.ScoreType scoreType;
+    private boolean useScore = true;
 
     //============================CONSTRUCTORS============================//
     public Bfci(IndependenceTest test, Score score) {
@@ -92,7 +93,7 @@ public final class Bfci implements GraphSearch {
         Boss boss;
         List<Node> variables;
 
-        if (!(score instanceof GraphScore)) {
+        if (useScore && !(score instanceof GraphScore)) {
             boss = new Boss(score);
             variables = score.getVariables();
         } else {
@@ -112,6 +113,8 @@ public final class Bfci implements GraphSearch {
         List<Node> perm = boss.bestOrder(variables);
         graph = boss.getGraph(perm, true);
         Graph bossGraph = new EdgeListGraph(graph);
+
+//        if (true) return bossGraph;
 
 
         graph.reorientAllWith(Endpoint.CIRCLE);
@@ -395,5 +398,9 @@ public final class Bfci implements GraphSearch {
 
     public void setScoreType(TeyssierScorer.ScoreType scoreType) {
         this.scoreType = scoreType;
+    }
+
+    public void setUseScore(boolean useScore) {
+        this.useScore = useScore;
     }
 }

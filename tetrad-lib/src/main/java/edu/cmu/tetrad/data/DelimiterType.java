@@ -75,7 +75,7 @@ public final class DelimiterType implements TetradSerializable {
      * @return the pattern representing this delimiter type. This pattern can be
      * used to parse, using a matcher.
      */
-    public final Pattern getPattern() {
+    public final Pattern getCpdag() {
         return this.pattern;
     }
 

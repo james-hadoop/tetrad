@@ -58,7 +58,7 @@ public final class TestGsp {
         params.set(Params.COEF_HIGH, 1.0);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore()));
+        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
         algorithms.add(new GSPIndep(new FisherZ()));
 //        algorithms.add(new Fges(new SemBicScore()));
 
@@ -103,7 +103,7 @@ public final class TestGsp {
         params.set(Params.VERBOSE, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore()));
+        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
 //        algorithms.add(new GSP(new SemBicScore()));
         algorithms.add(new Fges(new SemBicScore()));
         algorithms.add(new PcAll(new FisherZ()));

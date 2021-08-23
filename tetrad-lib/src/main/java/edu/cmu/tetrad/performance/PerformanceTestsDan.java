@@ -185,7 +185,7 @@ public class PerformanceTestsDan {
             out6.println(pag);
             printDanMatrix(_vars, pag, out7);
 
-            out8.println("Pattern_of_the_true_DAG OVER MEASURED VARIABLES");
+            out8.println("Cpdag_of_the_true_DAG OVER MEASURED VARIABLES");
 
             final IndTestFisherZ independencePc = new IndTestFisherZ(cov, alphaPc);
 

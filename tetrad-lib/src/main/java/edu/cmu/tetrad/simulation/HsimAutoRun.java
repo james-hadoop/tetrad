@@ -4,7 +4,7 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.BDeuScore;
 import edu.cmu.tetrad.search.Fges;
-import edu.cmu.tetrad.search.PatternToDag;
+import edu.cmu.tetrad.search.CpdagToDag;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.DelimiterUtils;
 import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDatasetFileReader;
@@ -82,8 +82,8 @@ public class HsimAutoRun {
             Graph estGraph = fges.search();
             //if (verbose) System.out.println(estGraph);
 
-            Graph estPattern = new EdgeListGraph(estGraph);
-            PatternToDag patternToDag = new PatternToDag(estPattern);
+            Graph estCpdag = new EdgeListGraph(estGraph);
+            CpdagToDag patternToDag = new CpdagToDag(estCpdag);
             Graph estGraphDAG = patternToDag.patternToDagMeek();
             Dag estDAG = new Dag(estGraphDAG);
 

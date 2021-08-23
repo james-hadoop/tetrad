@@ -284,9 +284,9 @@ public class RfciBsc implements GraphSearch {
 		fges.setVerbose(false);
 		fges.setFaithfulnessAssumed(true);
 
-		Graph depPattern = fges.search();
-		depPattern = GraphUtils.replaceNodes(depPattern, depData.getVariables());
-		Graph estDepBN = SearchGraphUtils.dagFromPattern(depPattern);
+		Graph depCpdag = fges.search();
+		depCpdag = GraphUtils.replaceNodes(depCpdag, depData.getVariables());
+		Graph estDepBN = SearchGraphUtils.dagFromCpdag(depCpdag);
 		
 		if(verbose) {
 			out.println("estDepBN:");

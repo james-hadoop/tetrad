@@ -49,8 +49,13 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
     }
 
-    public BOSS(ScoreWrapper score) {
+//    public BOSS(ScoreWrapper score) {
+//        this.score = score;
+//    }
+
+    public BOSS(ScoreWrapper score, IndependenceWrapper test) {
         this.score = score;
+        this.test = test;
     }
 
     @Override
@@ -82,7 +87,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
             if (parameters.getInt(Params.BOSS_METHOD) == 1) {
                 boss.setMethod(Boss.Method.BOSS);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 3) {
+            } else if (parameters.getInt(Params.BOSS_METHOD) == 2) {
                 boss.setMethod(Boss.Method.SP);
             } else {
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));

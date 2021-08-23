@@ -28,7 +28,7 @@ import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.ImpliedOrientation;
 import edu.cmu.tetrad.search.IndTestType;
-import edu.cmu.tetrad.search.PatternToDag;
+import edu.cmu.tetrad.search.CpdagToDag;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetrad.util.Parameters;
@@ -401,7 +401,7 @@ public class IonSearchEditor extends AbstractSearchEditor
         JMenu graph = new JMenu("Graph");
         JMenuItem showDags = new JMenuItem("Show DAGs in forbid_latent_common_causes");
 //        JMenuItem meekOrient = new JMenuItem("Meek Orientation");
-        JMenuItem dagInPattern = new JMenuItem("Choose DAG in forbid_latent_common_causes");
+        JMenuItem dagInCpdag = new JMenuItem("Choose DAG in forbid_latent_common_causes");
         JMenuItem gesOrient = new JMenuItem("Global Score-based Reorientation");
         JMenuItem nextGraph = new JMenuItem("Next Graph");
         JMenuItem previousGraph = new JMenuItem("Previous Graph");
@@ -417,7 +417,7 @@ public class IonSearchEditor extends AbstractSearchEditor
         graph.addSeparator();
 
 //        graph.add(meekOrient);
-        graph.add(dagInPattern);
+        graph.add(dagInCpdag);
         graph.add(gesOrient);
         graph.addSeparator();
 
@@ -468,7 +468,7 @@ public class IonSearchEditor extends AbstractSearchEditor
 //                            editorWindow.setVisible(true);
 //                        }
 //                        else {
-                            PatternDisplay display = new PatternDisplay(graph);
+                            CpdagDisplay display = new CpdagDisplay(graph);
                             GraphWorkbench workbench = getWorkbench();
 
                             EditorWindow editorWindow =
@@ -493,7 +493,7 @@ public class IonSearchEditor extends AbstractSearchEditor
 //            }
 //        });
 
-        dagInPattern.addActionListener(new ActionListener() {
+        dagInCpdag.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Graph graph = new EdgeListGraph(getGraph());
 
@@ -504,7 +504,7 @@ public class IonSearchEditor extends AbstractSearchEditor
                     }
                 }
 
-                PatternToDag search = new PatternToDag(new EdgeListGraph(graph));
+                CpdagToDag search = new CpdagToDag(new EdgeListGraph(graph));
                 Graph dag = search.patternToDagMeek();
 
                 getGraphHistory().add(dag);

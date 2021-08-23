@@ -177,7 +177,7 @@ public final class Mbfs implements MbSearch, GraphSearch {
     }
 
     /**
-     * Searches for the MB Pattern for the given target.
+     * Searches for the MB Cpdag for the given target.
      *
      * @param targetName The name of the target variable.
      */
@@ -191,7 +191,7 @@ public final class Mbfs implements MbSearch, GraphSearch {
     }
 
     /**
-     * Searches for the MB Pattern for the given target.
+     * Searches for the MB Cpdag for the given target.
      *
      * @param target The target variable.
      */

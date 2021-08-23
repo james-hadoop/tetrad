@@ -429,7 +429,7 @@ public class Pc implements GraphSearch {
         this.fdr = fdr;
     }
 
-    public void setEnforcePattern(boolean enforcePattern) {
+    public void setEnforceCpdag(boolean enforceCpdag) {
     }
 }
 

@@ -179,7 +179,7 @@ public class SemPmWrapper implements SessionModel {
         this(new EdgeListGraph(wrapper.getGraph()));
     }
 
-    public SemPmWrapper(DagInPatternWrapper wrapper) {
+    public SemPmWrapper(DagInCpdagWrapper wrapper) {
         this(new EdgeListGraph(wrapper.getGraph()));
     }
 

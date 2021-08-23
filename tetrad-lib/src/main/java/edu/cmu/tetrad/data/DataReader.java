@@ -312,7 +312,7 @@ public final class DataReader implements IDataReader {
         }
 
         // The delimiter comes from the delimiter type.
-        Pattern delimiter = delimiterType.getPattern();
+        Pattern delimiter = delimiterType.getCpdag();
 
         // Read in variable definitions.
         String line = lineizer.nextLine();
@@ -344,7 +344,7 @@ public final class DataReader implements IDataReader {
                 }
 
                 RegexTokenizer tokenizer = new RegexTokenizer(line,
-                        DelimiterType.COLON.getPattern(), quoteChar);
+                        DelimiterType.COLON.getCpdag(), quoteChar);
                 String name = tokenizer.nextToken().trim();
 
                 if ("".equals(name)) {
@@ -370,7 +370,7 @@ public final class DataReader implements IDataReader {
                 } else {
                     List<String> categories = new LinkedList<>();
                     tokenizer = new RegexTokenizer(values,
-                            delimiterType.getPattern(), quoteChar);
+                            delimiterType.getCpdag(), quoteChar);
 
                     while (tokenizer.hasMoreTokens()) {
                         String token = tokenizer.nextToken().trim();
@@ -563,7 +563,7 @@ public final class DataReader implements IDataReader {
             dataSet.removeColumn(idVar);
         }
 
-        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getPattern());
+        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getCpdag());
 
         if (knowledge != null) {
             dataSet.setKnowledge(knowledge);
@@ -655,7 +655,7 @@ public final class DataReader implements IDataReader {
         }
 
         // Read br sample size.
-        RegexTokenizer st = new RegexTokenizer(line, delimiterType.getPattern(), quoteChar);
+        RegexTokenizer st = new RegexTokenizer(line, delimiterType.getCpdag(), quoteChar);
         String token = st.nextToken();
 
         int n;
@@ -680,7 +680,7 @@ public final class DataReader implements IDataReader {
             line = line.substring(0, line.length() - 1);
         }
 
-        st = new RegexTokenizer(line, delimiterType.getPattern(), quoteChar);
+        st = new RegexTokenizer(line, delimiterType.getCpdag(), quoteChar);
 
         List<String> vars = new ArrayList<>();
 
@@ -707,7 +707,7 @@ public final class DataReader implements IDataReader {
         Matrix c = new Matrix(vars.size(), vars.size());
 
         for (int i = 0; i < vars.size(); i++) {
-            st = new RegexTokenizer(lineizer.nextLine(), delimiterType.getPattern(), quoteChar);
+            st = new RegexTokenizer(lineizer.nextLine(), delimiterType.getCpdag(), quoteChar);
 
             for (int j = 0; j <= i; j++) {
                 if (!st.hasMoreTokens()) {
@@ -737,7 +737,7 @@ public final class DataReader implements IDataReader {
             }
         }
 
-        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getPattern());
+        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getCpdag());
 
         ICovarianceMatrix covarianceMatrix
                 = new CovarianceMatrix(DataUtils.createContinuousVariables(varNames), c, n);
@@ -759,7 +759,7 @@ public final class DataReader implements IDataReader {
     public IKnowledge parseKnowledge(File file) throws IOException {
         FileReader reader = new FileReader(file);
         Lineizer lineizer = new Lineizer(reader, commentMarker);
-        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getPattern());
+        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getCpdag());
         this.logger.reset();
         return knowledge;
     }
@@ -772,7 +772,7 @@ public final class DataReader implements IDataReader {
     public IKnowledge parseKnowledge(char[] chars) {
         CharArrayReader reader = new CharArrayReader(chars);
         Lineizer lineizer = new Lineizer(reader, commentMarker);
-        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getPattern());
+        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getCpdag());
         this.logger.reset();
         return knowledge;
     }

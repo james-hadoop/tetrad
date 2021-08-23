@@ -37,13 +37,16 @@ import java.util.regex.Pattern;
  */
 public class AdjustCopyrights {
 
+    public static void main(String[] args) {
+        new AdjustCopyrights().adjustCopyrights();
+    }
+
     private void adjustCopyrights() {
         String copyrightNotice = null;
 
         try {
             copyrightNotice = loadCopyrightNotice();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -73,9 +76,8 @@ public class AdjustCopyrights {
 
                 int from = matcher.start();
                 outStream.println(
-                        inContents.substring(from, inContents.length()));
-            }
-            catch (IOException e) {
+                        inContents.substring(from));
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -84,7 +86,6 @@ public class AdjustCopyrights {
     private String loadCopyrightNotice() throws IOException {
         return FileLoadingUtils.fromFile(new File("project_tetrad/license_message"));
     }
-
 
     /**
      * @return all of the files in the given directory whose names end with
@@ -101,8 +102,7 @@ public class AdjustCopyrights {
         for (File file : files) {
             if (file.isDirectory()) {
                 javaFiles.addAll(getJavaFiles(file));
-            }
-            else {
+            } else {
                 if (file.getName().endsWith(".java")) {
                     javaFiles.add(file);
                 }
@@ -110,10 +110,6 @@ public class AdjustCopyrights {
         }
 
         return javaFiles;
-    }
-
-    public static void main(String[] args) {
-        new AdjustCopyrights().adjustCopyrights();
     }
 }
 

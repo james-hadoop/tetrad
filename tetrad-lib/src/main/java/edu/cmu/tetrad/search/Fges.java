@@ -125,7 +125,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     private final TetradLogger logger = TetradLogger.getInstance();
 
     /**
-     * The top n graphs found by the algorithm, where n is numPatternsToStore.
+     * The top n graphs found by the algorithm, where n is numCpdagsToStore.
      */
     private final LinkedList<ScoredGraph> topGraphs = new LinkedList<>();
 
@@ -220,7 +220,7 @@ public final class Fges implements GraphSearch, GraphScorer {
      * model is significant. Then start deleting edges till a minimum is
      * achieved.
      *
-     * @return the resulting Pattern.
+     * @return the resulting Cpdag.
      */
     public Graph search() {
         long start = System.currentTimeMillis();
@@ -262,7 +262,7 @@ public final class Fges implements GraphSearch, GraphScorer {
             this.logger.forceLogMessage("Elapsed time = " + (elapsedTime) / 1000. + " s");
         }
 
-        this.modelScore = scoreDag(SearchGraphUtils.dagFromPattern(graph), true);
+        this.modelScore = scoreDag(SearchGraphUtils.dagFromCpdag(graph), true);
 
 
 //        if (true) {
@@ -643,7 +643,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
             insert(x, y, arrow.getHOrT(), arrow.getBump());
 
-            Set<Node> process = revertToPattern();
+            Set<Node> process = revertToCpdag();
 
 //            System.out.println("Graph after insert " + graph);
 
@@ -698,7 +698,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
             delete(x, y, arrow.getHOrT(), _bump, arrow.getNaYX());
 
-            Set<Node> process = revertToPattern();
+            Set<Node> process = revertToCpdag();
             process.add(x);
             process.add(y);
             process.addAll(graph.getAdjacentNodes(x));
@@ -1530,7 +1530,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     // Runs Meek rules on just the changed adj.
-    private Set<Node> revertToPattern() {
+    private Set<Node> revertToCpdag() {
         MeekRules rules = new MeekRules();
         rules.setKnowledge(getKnowledge());
         rules.setVerbose(meekVerbose);

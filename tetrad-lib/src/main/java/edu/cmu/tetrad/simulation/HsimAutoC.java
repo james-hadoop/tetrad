@@ -63,8 +63,8 @@ public class HsimAutoC {
         Graph estGraph = fges.search();
         //if (verbose) System.out.println(estGraph);
 
-        //Pattern estPattern = new Pattern(estGraph);
-        PatternToDag patternToDag = new PatternToDag(estGraph);
+        //Cpdag estCpdag = new Cpdag(estGraph);
+        CpdagToDag patternToDag = new CpdagToDag(estGraph);
         Graph estGraphDAG = patternToDag.patternToDagMeek();
         Dag estDAG = new Dag(estGraphDAG);
         //Dag estDAG = new Dag(estGraph);

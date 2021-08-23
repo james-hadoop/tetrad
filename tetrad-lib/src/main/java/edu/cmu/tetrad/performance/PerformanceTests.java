@@ -233,9 +233,9 @@ public class PerformanceTests {
 //        pcStable.setDepth(depth);
 //        pcStable.setOut(out);
 
-        Graph estPattern = pcStable.search();
+        Graph estCpdag = pcStable.search();
 
-//        out.println(estPattern);
+//        out.println(estCpdag);
 
         long time4 = System.currentTimeMillis();
 
@@ -251,12 +251,12 @@ public class PerformanceTests {
 
         out.println("Total elapsed (cov + PC-Stable) " + (time4 - time2) + " ms");
 
-        final Graph truePattern = SearchGraphUtils.patternForDag(dag);
+        final Graph trueCpdag = SearchGraphUtils.patternForDag(dag);
 
-        System.out.println("# edges in true pattern = " + truePattern.getNumEdges());
-        System.out.println("# edges in est pattern = " + estPattern.getNumEdges());
+        System.out.println("# edges in true pattern = " + trueCpdag.getNumEdges());
+        System.out.println("# edges in est pattern = " + estCpdag.getNumEdges());
 
-        SearchGraphUtils.graphComparison(estPattern, truePattern, out);
+        SearchGraphUtils.graphComparison(estCpdag, trueCpdag, out);
 
         out.println("seed = " + RandomUtil.getInstance().getSeed() + "L");
 
@@ -313,9 +313,9 @@ public class PerformanceTests {
 //        pcStable.setDepth(depth);
 //        pcStable.setOut(out);
 
-        Graph estPattern = pcStable.search();
+        Graph estCpdag = pcStable.search();
 
-//        out.println(estPattern);
+//        out.println(estCpdag);
 
         long time4 = System.currentTimeMillis();
 
@@ -331,12 +331,12 @@ public class PerformanceTests {
 
         out.println("Total elapsed (cov + PC-Max) " + (time4 - time2) + " ms");
 
-        final Graph truePattern = SearchGraphUtils.patternForDag(dag);
+        final Graph trueCpdag = SearchGraphUtils.patternForDag(dag);
 
-        System.out.println("# edges in true pattern = " + truePattern.getNumEdges());
-        System.out.println("# edges in est pattern = " + estPattern.getNumEdges());
+        System.out.println("# edges in true pattern = " + trueCpdag.getNumEdges());
+        System.out.println("# edges in est pattern = " + estCpdag.getNumEdges());
 
-        SearchGraphUtils.graphComparison(estPattern, truePattern, out);
+        SearchGraphUtils.graphComparison(estCpdag, trueCpdag, out);
 
         out.println("seed = " + RandomUtil.getInstance().getSeed() + "L");
 
@@ -381,9 +381,9 @@ public class PerformanceTests {
 
         Fges pcStable = new Fges(semBicScore);
 
-        Graph estPattern = pcStable.search();
+        Graph estCpdag = pcStable.search();
 
-//        out.println(estPattern);
+//        out.println(estCpdag);
 
         long time4 = System.currentTimeMillis();
 
@@ -398,12 +398,12 @@ public class PerformanceTests {
 
         out.println("Total elapsed (cov + FGES) " + (time4 - time2) + " ms");
 
-        final Graph truePattern = SearchGraphUtils.patternForDag(dag);
+        final Graph trueCpdag = SearchGraphUtils.patternForDag(dag);
 
-        System.out.println("# edges in true pattern = " + truePattern.getNumEdges());
-        System.out.println("# edges in est pattern = " + estPattern.getNumEdges());
+        System.out.println("# edges in true pattern = " + trueCpdag.getNumEdges());
+        System.out.println("# edges in est pattern = " + estCpdag.getNumEdges());
 
-        SearchGraphUtils.graphComparison(estPattern, truePattern, out);
+        SearchGraphUtils.graphComparison(estCpdag, trueCpdag, out);
 
         out.println("seed = " + RandomUtil.getInstance().getSeed() + "L");
 
@@ -576,9 +576,9 @@ public class PerformanceTests {
 
         out.println("Total elapsed (cov + CPC-Stable) " + (time4 - time2) + " ms");
 
-        final Graph truePattern = SearchGraphUtils.patternForDag(graph);
+        final Graph trueCpdag = SearchGraphUtils.patternForDag(graph);
 
-        SearchGraphUtils.graphComparison(outGraph, truePattern, out);
+        SearchGraphUtils.graphComparison(outGraph, trueCpdag, out);
 
         out.println("# ambiguous triples = " + outGraph.getAmbiguousTriples().size());
 
@@ -843,7 +843,7 @@ public class PerformanceTests {
             System.out.println(new Date());
 
             System.out.println("Starting simulation");
-            Graph estPattern;
+            Graph estCpdag;
             long elapsed;
 
             if (continuous) {
@@ -887,7 +887,7 @@ public class PerformanceTests {
 
                 long timeb = System.currentTimeMillis();
 
-                estPattern = fges.search();
+                estCpdag = fges.search();
 
                 long timec = System.currentTimeMillis();
 
@@ -928,7 +928,7 @@ public class PerformanceTests {
 
                 long timeb = System.currentTimeMillis();
 
-                estPattern = fges.search();
+                estCpdag = fges.search();
 
                 long timec = System.currentTimeMillis();
 
@@ -946,19 +946,19 @@ public class PerformanceTests {
 
 //            System.out.println("Replacing nodes");d
 //
-//            estPattern = GraphUtils.replaceNodes(estPattern, dag.getNodes());
+//            estCpdag = GraphUtils.replaceNodes(estCpdag, dag.getNodes());
 
 //            System.out.println("Calculating degree");
 //
-//            double degree = GraphUtils.degree(estPattern);
+//            double degree = GraphUtils.degree(estCpdag);
 //            degrees.add(degree);
 //
 //            out.println("Degree out output graph = " + degree);
 
             double[] comparison = new double[4];
 
-//            int adjFn = GraphUtils.countAdjErrors(pattern, estPattern);
-//            int adjFp = GraphUtils.countAdjErrors(estPattern, pattern);
+//            int adjFn = GraphUtils.countAdjErrors(pattern, estCpdag);
+//            int adjFp = GraphUtils.countAdjErrors(estCpdag, pattern);
 //            int trueAdj = pattern.getNumEdges();
 //
 //            comparison[0] = trueAdj / (double) (trueAdj + adjFp);
@@ -966,9 +966,9 @@ public class PerformanceTests {
 
             System.out.println("Counting misclassifications.");
 
-            estPattern = GraphUtils.replaceNodes(estPattern, pattern.getNodes());
+            estCpdag = GraphUtils.replaceNodes(estCpdag, pattern.getNodes());
 
-            int[][] counts = GraphUtils.edgeMisclassificationCounts(pattern, estPattern, false);
+            int[][] counts = GraphUtils.edgeMisclassificationCounts(pattern, estCpdag, false);
             allCounts.add(counts);
 
             System.out.println(new Date());
@@ -1066,7 +1066,7 @@ public class PerformanceTests {
         System.out.println(new Date());
 
         System.out.println("Starting simulation");
-        Graph estPattern;
+        Graph estCpdag;
         long elapsed;
 
         FgesMb fges;
@@ -1119,7 +1119,7 @@ public class PerformanceTests {
 
             fges = new FgesMb(score);
             fges.setVerbose(false);
-            fges.setNumPatternsToStore(0);
+            fges.setNumCpdagsToStore(0);
             fges.setOut(System.out);
 //            fges.setHeuristicSpeedup(faithfulness);
             fges.setMaxDegree(maxIndegree);
@@ -1164,7 +1164,7 @@ public class PerformanceTests {
 
             fges = new FgesMb(score);
             fges.setVerbose(false);
-            fges.setNumPatternsToStore(0);
+            fges.setNumCpdagsToStore(0);
             fges.setOut(System.out);
 //            fges.setHeuristicSpeedup(faithfulness);
             fges.setMaxDegree(maxIndegree);
@@ -1186,7 +1186,7 @@ public class PerformanceTests {
             System.out.println("Target = " + target);
             long timea = System.currentTimeMillis();
 
-            estPattern = fges.search(target);
+            estCpdag = fges.search(target);
 
             long timed = System.currentTimeMillis();
 
@@ -1216,7 +1216,7 @@ public class PerformanceTests {
 
             System.out.println("Counting misclassifications.");
 
-            int[][] counts = GraphUtils.edgeMisclassificationCounts(trueMbGraph, estPattern, false);
+            int[][] counts = GraphUtils.edgeMisclassificationCounts(trueMbGraph, estCpdag, false);
             allCounts.add(counts);
 
             System.out.println(new Date());
@@ -1442,7 +1442,7 @@ public class PerformanceTests {
     }
 
     // Compares two different ways of calculating a PAG_of_the_true_DAG from a DAG, to see if they match up
-    public void testCompareDagToPattern(int numVars, double edgeFactor, int numLatents) {
+    public void testCompareDagToCpdag(int numVars, double edgeFactor, int numLatents) {
         System.out.println("Making list of vars");
 
         numVars = 20;
@@ -1482,7 +1482,7 @@ public class PerformanceTests {
 
         Graph top = SearchGraphUtils.patternForDag(dag);
 
-        System.out.println("DAG to Pattern graph = " + top);
+        System.out.println("DAG to Cpdag graph = " + top);
 
         top = GraphUtils.replaceNodes(top, left.getNodes());
 
@@ -1928,7 +1928,7 @@ public class PerformanceTests {
             double avgDegree = sumDegrees / degrees.size();
 
             out.println();
-            out.println("Avg Max Degree of Output Pattern = " + nf2.format(avgDegree));
+            out.println("Avg Max Degree of Output Cpdag = " + nf2.format(avgDegree));
         }
 
         double sumElapsed = 0;

@@ -71,7 +71,7 @@ public class ScoredGraphsDisplay extends JPanel implements GraphEditable {
     }
 
     public ScoredGraphsDisplay(Graph graph, GraphScorer scorer) {
-        final List<Graph> _dags = SearchGraphUtils.generatePatternDags(graph, true);
+        final List<Graph> _dags = SearchGraphUtils.generateCpdagDags(graph, true);
 
         for (Graph _graph : _dags) {
             double score = Double.NaN;

@@ -58,7 +58,7 @@ public final class HbsmsGes implements Hbsms {
         fges.setInitialGraph(graph);
         fges.setKnowledge(knowledge);
 
-        Graph best = SearchGraphUtils.dagFromPattern(fges.search(), knowledge);
+        Graph best = SearchGraphUtils.dagFromCpdag(fges.search(), knowledge);
 
         SemPm pm = new SemPm(best);
         SemEstimator est = new SemEstimator(data, pm);
@@ -97,7 +97,7 @@ public final class HbsmsGes implements Hbsms {
     }
 
     public Score scoreGraph(Graph graph, Scorer scorer) {
-        Graph dag = SearchGraphUtils.dagFromPattern(graph, knowledge);
+        Graph dag = SearchGraphUtils.dagFromCpdag(graph, knowledge);
 
         scorer.score(dag);
         return new Score(this.scorer);

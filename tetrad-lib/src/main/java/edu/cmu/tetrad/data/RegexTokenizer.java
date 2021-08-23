@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 
 /**
  * Tokenizes the given input character sequence using the type of delimiter
- * specified bythe given Pattern. Meant to function just like StringTokenizer,
+ * specified bythe given Cpdag. Meant to function just like StringTokenizer,
  * with more control over what counts as a tokenization delimiter.
  *
  * @author Joseph Ramsey
@@ -76,14 +76,14 @@ public final class RegexTokenizer {
     private boolean quoteSensitive = true;
 
     /**
-     * Constructs a tokenizer for the given input line, using the given Pattern
+     * Constructs a tokenizer for the given input line, using the given Cpdag
      * as delimiter.
      */
-    public RegexTokenizer(CharSequence line, Pattern delimiterPattern,
+    public RegexTokenizer(CharSequence line, Pattern delimiterCpdag,
                           char quoteChar) {
         chars = line;
         this.quoteChar = quoteChar;
-        delimiterMatcher = delimiterPattern.matcher(line);
+        delimiterMatcher = delimiterCpdag.matcher(line);
         quoteCharMatcher = Pattern.compile(Character.toString(quoteChar)).matcher(line);
 
         for (int i = 0; i < line.length(); i++) {

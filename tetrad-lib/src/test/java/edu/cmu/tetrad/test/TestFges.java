@@ -102,13 +102,13 @@ public class TestFges {
         fges.setOut(out);
         fges.setFaithfulnessAssumed(true);
 
-        Graph estPattern = fges.search();
+        Graph estCpdag = fges.search();
 
-//        printDegreeDistribution(estPattern, out);
+//        printDegreeDistribution(estCpdag, out);
 
-        final Graph truePattern = SearchGraphUtils.patternForDag(dag);
+        final Graph trueCpdag = SearchGraphUtils.patternForDag(dag);
 
-        int[][] counts = SearchGraphUtils.graphComparison(estPattern, truePattern, null);
+        int[][] counts = SearchGraphUtils.graphComparison(estCpdag, trueCpdag, null);
 
         int[][] expectedCounts = {
                 {2, 0, 0, 0, 0, 0},
@@ -165,11 +165,11 @@ public class TestFges {
         ges.setVerbose(false);
         ges.setFaithfulnessAssumed(false);
 
-        Graph estPattern = ges.search();
+        Graph estCpdag = ges.search();
 
-        final Graph truePattern = SearchGraphUtils.patternForDag(dag);
+        final Graph trueCpdag = SearchGraphUtils.patternForDag(dag);
 
-        int[][] counts = SearchGraphUtils.graphComparison(estPattern, truePattern, null);
+        int[][] counts = SearchGraphUtils.graphComparison(estCpdag, trueCpdag, null);
 
         int[][] expectedCounts = {
                 {2, 0, 0, 0, 0, 1},
@@ -994,9 +994,9 @@ public class TestFges {
                 long elapsed = stop - start;
                 long elapsedSeconds = elapsed / 1000;
 
-                Graph truePattern = SearchGraphUtils.patternForDag(dag);
+                Graph trueCpdag = SearchGraphUtils.patternForDag(dag);
 
-                GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison3(pattern, truePattern, System.out);
+                GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison3(pattern, trueCpdag, System.out);
                 NumberFormat nf = new DecimalFormat("0.00");
 
                 System.out.println(i +
@@ -1571,13 +1571,13 @@ public class TestFges {
             Fges fges = new Fges(new SemBicScore(new CovarianceMatrix(dataSet)));
             Graph pattern = fges.search();
 
-            Graph dag = dagFromPattern(pattern);
+            Graph dag = dagFromCpdag(pattern);
 
             assertFalse(dag.existsDirectedCycle());
         }
     }
 
-    private Graph dagFromPattern(Graph pattern) {
+    private Graph dagFromCpdag(Graph pattern) {
         Graph dag = new EdgeListGraph(pattern);
 
         MeekRules rules = new MeekRules();

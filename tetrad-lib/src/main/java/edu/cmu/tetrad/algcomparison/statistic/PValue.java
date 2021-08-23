@@ -30,7 +30,7 @@ public class PValue implements Statistic {
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
         FmlBicScorer scorer = new FmlBicScorer((DataSet) dataModel, 1);
-        scorer.score(SearchGraphUtils.dagFromPattern(estGraph));
+        scorer.score(SearchGraphUtils.dagFromCpdag(estGraph));
         return scorer.getPValue();
     }
 

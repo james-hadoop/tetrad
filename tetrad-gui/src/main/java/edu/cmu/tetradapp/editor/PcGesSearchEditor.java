@@ -27,7 +27,7 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.ImpliedOrientation;
 import edu.cmu.tetrad.search.IndTestType;
-import edu.cmu.tetrad.search.PatternToDag;
+import edu.cmu.tetrad.search.CpdagToDag;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.sem.SemEstimator;
 import edu.cmu.tetrad.sem.SemIm;
@@ -82,7 +82,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
         super(runner, "Result forbid_latent_common_causes");
     }
 
-    public PcGesSearchEditor(PcPatternRunner runner) {
+    public PcGesSearchEditor(PcCpdagRunner runner) {
         super(runner, "Result forbid_latent_common_causes");
     }
 
@@ -110,7 +110,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
         super(runner, "Result forbid_latent_common_causes");
     }
 
-    public PcGesSearchEditor(MbfsPatternRunner runner) {
+    public PcGesSearchEditor(MbfsCpdagRunner runner) {
         super(runner, "Result forbid_latent_common_causes");
     }
 
@@ -129,7 +129,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
         super(runner, "Result forbid_latent_common_causes");
     }
 
-    public PcGesSearchEditor(LingamPatternRunner runner) {
+    public PcGesSearchEditor(LingamCpdagRunner runner) {
         super(runner, "Result Graph");
     }
 
@@ -328,7 +328,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
                 }
             }
 
-            Graph dag = SearchGraphUtils.dagFromPattern(resultGraph);
+            Graph dag = SearchGraphUtils.dagFromCpdag(resultGraph);
 
             DataSet dataSet = (DataSet) getAlgorithmRunner().getDataModel();
             String report;
@@ -369,7 +369,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
             }
 
             Graph pattern = new EdgeListGraph(resultGraph);
-            PatternToDag ptd = new PatternToDag(pattern);
+            CpdagToDag ptd = new CpdagToDag(pattern);
             Graph dag = ptd.patternToDagMeek();
 
             ICovarianceMatrix dataSet = (ICovarianceMatrix) getAlgorithmRunner().getDataModel();
@@ -535,7 +535,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
         JMenu graph = new JMenu("Graph");
         JMenuItem showDags = new JMenuItem("Show DAGs in forbid_latent_common_causes");
 //        JMenuItem meekOrient = new JMenuItem("Meek Orientation");
-        JMenuItem dagInPattern = new JMenuItem("Choose DAG in forbid_latent_common_causes");
+        JMenuItem dagInCpdag = new JMenuItem("Choose DAG in forbid_latent_common_causes");
         JMenuItem gesOrient = new JMenuItem("Global Score-based Reorientation");
         JMenuItem nextGraph = new JMenuItem("Next Graph");
         JMenuItem previousGraph = new JMenuItem("Previous Graph");
@@ -551,7 +551,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
         graph.addSeparator();
 
 //        graph.add(meekOrient);
-        graph.add(dagInPattern);
+        graph.add(dagInCpdag);
         graph.add(gesOrient);
         graph.addSeparator();
 
@@ -602,7 +602,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
 //                            editorWindow.setVisible(true);
 //                        }
 //                        else {
-                        PatternDisplay display = new PatternDisplay(graph);
+                        CpdagDisplay display = new CpdagDisplay(graph);
                         GraphWorkbench workbench = getWorkbench();
 
                         EditorWindow editorWindow =
@@ -627,7 +627,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
 //            }
 //        });
 
-        dagInPattern.addActionListener(new ActionListener() {
+        dagInCpdag.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Graph graph = new EdgeListGraph(getGraph());
 
@@ -638,9 +638,9 @@ public class PcGesSearchEditor extends AbstractSearchEditor
 //                    }
 //                }
 
-                Graph dag = SearchGraphUtils.dagFromPattern(graph);
+                Graph dag = SearchGraphUtils.dagFromCpdag(graph);
 
-//                PatternToDag search = new PatternToDag(new forbid_latent_common_causes(graph));
+//                CpdagToDag search = new CpdagToDag(new forbid_latent_common_causes(graph));
 //                Graph dag = search.patternToDagMeek();
 
                 getGraphHistory().add(dag);
@@ -781,7 +781,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
         }
 
         if (params instanceof Parameters) {
-            if (getAlgorithmRunner() instanceof LingamPatternRunner) {
+            if (getAlgorithmRunner() instanceof LingamCpdagRunner) {
                 return new PcLingamIndTestParamsEditor(params);
             }
 

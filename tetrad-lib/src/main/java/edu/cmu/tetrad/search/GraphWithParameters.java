@@ -62,11 +62,11 @@ public class GraphWithParameters {
       */
     //it would have been more efficient to only regression on the nodes that matter
 
-    public GraphWithParameters(SemIm semIm, Graph truePattern) {
-//		Graph g = (truePattern==null) ? semIm.getEstIm().getGraph() : truePattern;
+    public GraphWithParameters(SemIm semIm, Graph trueCpdag) {
+//		Graph g = (trueCpdag==null) ? semIm.getEstIm().getGraph() : trueCpdag;
 //		this.graph = g;
 //		weightHash = new HashMap<Edge,Double>();
-        this(truePattern);
+        this(trueCpdag);
 
         //make the SemIm
 
@@ -89,7 +89,7 @@ public class GraphWithParameters {
         weightHash = new HashMap<>();
     }
 
-//	public PatternWithParameters(ColtDataSet B) {
+//	public CpdagWithParameters(ColtDataSet B) {
 //		Shimizu2006Search.makeDagWithParms(B);
 //	}
 
@@ -444,7 +444,7 @@ public class GraphWithParameters {
     }
 
     /**
-     * creates a PatternWithParameters by running a regression, given a graph and data
+     * creates a CpdagWithParameters by running a regression, given a graph and data
      */
     public static GraphWithParameters regress(DataSet dataSet, Graph graph) {
         SemPm semPmEstDag = new SemPm(graph);

@@ -130,17 +130,17 @@ public class ComparisonParameters {
         ResultType resultType = null;
 
         if (algorithm == Algorithm.PC) {
-            resultType = ResultType.Pattern;
+            resultType = ResultType.Cpdag;
         } else if (algorithm == Algorithm.CPC) {
-            resultType = ResultType.Pattern;
+            resultType = ResultType.Cpdag;
         } else if (algorithm == Algorithm.FGES) {
-            resultType = ResultType.Pattern;
+            resultType = ResultType.Cpdag;
         } else if (algorithm == Algorithm.FGES2) {
-            resultType = ResultType.Pattern;
+            resultType = ResultType.Cpdag;
         } else if (algorithm == Algorithm.PCLocal) {
-            resultType = ResultType.Pattern;
+            resultType = ResultType.Cpdag;
         } else if (algorithm == Algorithm.PCStableMax) {
-            resultType = ResultType.Pattern;
+            resultType = ResultType.Cpdag;
         } else if (algorithm == Algorithm.FCI) {
             resultType = ResultType.PAG;
         } else if (algorithm == Algorithm.GFCI) {
@@ -322,7 +322,7 @@ public class ComparisonParameters {
     }
 
     public enum DataType {Continuous, Discrete}
-    public enum ResultType {Pattern, PAG}
+    public enum ResultType {Cpdag, PAG}
     public enum IndependenceTestType {FisherZ, ChiSquare}
     public enum Algorithm {PC, CPC, FGES, FGES2, PCLocal, PCStableMax, FCI, GFCI, TsFCI}
 }

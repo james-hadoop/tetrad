@@ -168,23 +168,23 @@ public class MbClassify implements DiscreteClassifier {
 
         Pc patternSearch = new Pc(new IndTestChiSquare(subset, 0.05));
 //        patternSearch.setMaxIndegree(depth);
-        Graph mbPattern = patternSearch.search();
+        Graph mbCpdag = patternSearch.search();
 
 //        MbFanSearch search = new MbFanSearch(indTest, depth);
-//        Graph mbPattern = search.search(target);
+//        Graph mbCpdag = search.search(target);
 
-        TetradLogger.getInstance().log("details", "Pattern = " + mbPattern);
-        MbUtils.trimToMbNodes(mbPattern, train.getVariable(target), true);
-        TetradLogger.getInstance().log("details", "Trimmed pattern = " + mbPattern);
+        TetradLogger.getInstance().log("details", "Cpdag = " + mbCpdag);
+        MbUtils.trimToMbNodes(mbCpdag, train.getVariable(target), true);
+        TetradLogger.getInstance().log("details", "Trimmed pattern = " + mbCpdag);
 
         // Removing bidirected edges from the pattern before selecting a DAG.                                   4
-        for (Edge edge : mbPattern.getEdges()) {
+        for (Edge edge : mbCpdag.getEdges()) {
             if (Edges.isBidirectedEdge(edge)) {
-                mbPattern.removeEdge(edge);
+                mbCpdag.removeEdge(edge);
             }
         }
 
-        Graph selectedDag = MbUtils.getOneMbDag(mbPattern);
+        Graph selectedDag = MbUtils.getOneMbDag(mbCpdag);
 
         TetradLogger.getInstance().log("details", "Selected DAG = " + selectedDag);
         TetradLogger.getInstance().log("details", "Vars = " + selectedDag.getNodes());
