@@ -256,77 +256,52 @@ public final class GraphUtils {
 
         final Graph dag = new EdgeListGraph(nodes);
 
-        if (connected) {
-            for (int i = 0; i < nodes.size() - 1; i++) {
-                dag.addDirectedEdge(nodes.get(i), nodes.get(i + 1));
+        LinkedList<List<Integer>> allEdges = new LinkedList<>();
+
+        for (int i = 0; i < nodes.size(); i++) {
+            for (int j = i + 1; j < nodes.size(); j++) {
+                List<Integer> pair = new ArrayList<>(2);
+                pair.add(i);
+                pair.add(j);
+                allEdges.add(pair);
             }
         }
 
-        final List<Node> nodes2 = dag.getNodes();
+        Collections.shuffle(allEdges);
 
-        int trials = 0;
-        boolean added = false;
+        while (!allEdges.isEmpty() && dag.getNumEdges() < numEdges) {
+            List<Integer> e = allEdges.get(RandomUtil.getInstance().nextInt(allEdges.size()));
 
-        for (int i = dag.getNumEdges() - 1; i < numEdges - 1; i++) {
-            int c1 = RandomUtil.getInstance().nextInt(nodes2.size());
-            int c2 = RandomUtil.getInstance().nextInt(nodes2.size());
+            Node n1 = nodes.get(e.get(0));
+            Node n2 = nodes.get(e.get(1));
 
-            if (++trials > 2 * numEdges) {
-                break;
-            }
-
-            if (c1 == c2) {
-                i--;
+            if (dag.getIndegree(n1) >= maxIndegree) {
+                allEdges.remove(e);
                 continue;
             }
 
-            if (c1 > c2) {
-                int temp = c1;
-                c1 = c2;
-                c2 = temp;
-            }
-
-            Node n1 = nodes2.get(c1);
-            Node n2 = nodes2.get(c2);
-
-            if (dag.isAdjacentTo(n1, n2)) {
-                i--;
-                continue;
-            }
-
-            final int indegree = dag.getIndegree(n2);
-            final int outdegree = dag.getOutdegree(n1);
-
-            if (indegree >= maxIndegree) {
-                i--;
-                continue;
-            }
-
-            if (outdegree >= maxOutdegree) {
-                i--;
+            if (dag.getOutdegree(n1) >= maxOutdegree) {
+                allEdges.remove(e);
                 continue;
             }
 
             if (dag.getIndegree(n1) + dag.getOutdegree(n1) + 1 > maxDegree) {
-                i--;
+                allEdges.remove(e);
                 continue;
             }
 
             if (dag.getIndegree(n2) + dag.getOutdegree(n2) + 1 > maxDegree) {
-                i--;
+                allEdges.remove(e);
                 continue;
             }
 
-            if (added && connected && indegree == 0 && outdegree == 0) {
-                i--;
+            if (connected && dag.getIndegree(n1) == 0 && dag.getOutdegree(n1) == 0) {
+                allEdges.remove(e);
                 continue;
             }
 
-            if (!dag.isAdjacentTo(n1, n2)) {
-                dag.addDirectedEdge(n1, n2);
-            }
-
-            added = true;
+            dag.addDirectedEdge(n1, n2);
+            allEdges.remove(e);
         }
 
         fixLatents4(numLatentConfounders, dag);
@@ -407,7 +382,7 @@ public final class GraphUtils {
 //        References
 //                ----------
         //        .. [1] B. Bollob{\'a}s, C. Borgs, J. Chayes, and O. Riordan,
-            //            Directed scale-free graphs,
+        //            Directed scale-free graphs,
         //                    Proceedings of the fourteenth annual ACM-SIAM symposium on
         //            Discrete algorithm, 132--139, 2003.
         //            """
@@ -2222,11 +2197,11 @@ public final class GraphUtils {
             String regex = "([A-Za-z0-9_-]*:?[A-Za-z0-9_-]*) ?(.)-(.) ?([A-Za-z0-9_-]*:?[A-Za-z0-9_-]*)";
 //            String regex = "([A-Za-z0-9_-]*) ?([<o])-([o>]) ?([A-Za-z0-9_-]*)";
 
-            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(value);
+            java.util.regex.Pattern cpdag = java.util.regex.Pattern.compile(regex);
+            Matcher matcher = cpdag.matcher(value);
 
             if (!matcher.matches()) {
-                throw new ParsingException("Edge doesn't match pattern.");
+                throw new ParsingException("Edge doesn't match cpdag.");
             }
 
             String var1 = matcher.group(1);
@@ -2995,17 +2970,17 @@ public final class GraphUtils {
         return set;
     }
 
-    public static int numDirectionalErrors(Graph result, Graph pattern) {
+    public static int numDirectionalErrors(Graph result, Graph cpdag) {
         int count = 0;
 
         for (Edge edge : result.getEdges()) {
             Node node1 = edge.getNode1();
             Node node2 = edge.getNode2();
 
-            Node _node1 = pattern.getNode(node1.getName());
-            Node _node2 = pattern.getNode(node2.getName());
+            Node _node1 = cpdag.getNode(node1.getName());
+            Node _node2 = cpdag.getNode(node2.getName());
 
-            Edge _edge = pattern.getEdge(_node1, _node2);
+            Edge _edge = cpdag.getEdge(_node1, _node2);
 
             if (_edge == null) {
                 continue;
@@ -3987,53 +3962,10 @@ public final class GraphUtils {
         );
     }
 
-    private static class EdgeNode {
-
-        private final Edge edge;
-        private final Node node;
-
-        public EdgeNode(Edge edge, Node node) {
-            if (edge.getNode1() == node) {
-                this.edge = edge;
-            } else if (edge.getNode2() == node) {
-                this.edge = edge.reverse();
-            } else {
-                throw new IllegalArgumentException("Edge does not contain node.");
-            }
-
-            this.node = node;
-        }
-
-        public int hashCode() {
-            return edge.hashCode() + 7 * node.hashCode();
-        }
-
-        public boolean equals(Object o) {
-            if (o == null) {
-                return false;
-            }
-
-            if (!(o instanceof EdgeNode)) {
-                return false;
-            }
-
-            EdgeNode _o = (EdgeNode) o;
-            return _o.edge.equals(edge) && _o.node.equals(node);
-        }
-
-        public Edge getEdge() {
-            return edge;
-        }
-
-        public Node getNode() {
-            return node;
-        }
-    }
-
     // Breadth first.
     public static boolean isDConnectedTo(Node x, Node y, List<Node> z, Graph graph) {
-        if (x == y) throw new IllegalArgumentException("Attempting to calculate d-connection with x = y.");
-        if (z.contains(x) || z.contains(y)) throw new IllegalArgumentException("Attempting to calculate d-connection by z contains x or y.");
+//        if (x == y) throw new IllegalArgumentException("Attempting to calculate d-connection with x = y.");
+//        if (z.contains(x) || z.contains(y)) throw new IllegalArgumentException("Attempting to calculate d-connection by z contains x or y.");
 
         Queue<EdgeNode> Q = new ArrayDeque<>();
         Set<EdgeNode> V = new HashSet<>();
@@ -4320,8 +4252,6 @@ public final class GraphUtils {
         boolean ancestor = isAncestor(b, z, graph);
         return collider && ancestor;
     }
-
-
 
     private static boolean isAncestor(Node b, List<Node> z, Graph graph) {
 //        for (Node n : z) {
@@ -4861,6 +4791,7 @@ public final class GraphUtils {
     /**
      * Check to see if a set of variables Z satisfies the back-door criterion
      * relative to node x and node y.
+     *
      * @author Kevin V. Bui (March 2020)
      */
     public boolean isSatisfyBackDoorCriterion(Graph graph, Node x, Node y, List<Node> z) {
@@ -4883,6 +4814,49 @@ public final class GraphUtils {
         });
 
         return dag.isDSeparatedFrom(x, y, z);
+    }
+
+    private static class EdgeNode {
+
+        private final Edge edge;
+        private final Node node;
+
+        public EdgeNode(Edge edge, Node node) {
+            if (edge.getNode1() == node) {
+                this.edge = edge;
+            } else if (edge.getNode2() == node) {
+                this.edge = edge.reverse();
+            } else {
+                throw new IllegalArgumentException("Edge does not contain node.");
+            }
+
+            this.node = node;
+        }
+
+        public int hashCode() {
+            return edge.hashCode() + 7 * node.hashCode();
+        }
+
+        public boolean equals(Object o) {
+            if (o == null) {
+                return false;
+            }
+
+            if (!(o instanceof EdgeNode)) {
+                return false;
+            }
+
+            EdgeNode _o = (EdgeNode) o;
+            return _o.edge.equals(edge) && _o.node.equals(node);
+        }
+
+        public Edge getEdge() {
+            return edge;
+        }
+
+        public Node getNode() {
+            return node;
+        }
     }
 
     private static class Counts {

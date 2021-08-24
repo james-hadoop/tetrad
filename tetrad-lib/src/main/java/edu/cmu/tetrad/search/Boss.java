@@ -57,10 +57,12 @@ public class Boss {
 
         TeyssierScorer scorer;
 
-        if (score != null) {
+        if (score != null && !(score instanceof GraphScore)) {
             scorer = new TeyssierScorer(score);
-        } else {
+        } else if (test != null) {
             scorer = new TeyssierScorer(test);
+        } else {
+            throw new IllegalArgumentException("Need a score (not GraphScore) or a test.");
         }
 
         scorer.setKnowledge(knowledge);
@@ -164,27 +166,31 @@ public class Boss {
     private boolean relocateLoop(TeyssierScorer scorer) {
         scorer.bookmark();
 
-        double score = scorer.score();
+        double score;
 
-        for (Node v : scorer.getOrder()) {
-            scorer.moveToLast(v);
+        do {
+            score = scorer.score();
 
-            double score2 = POSITIVE_INFINITY;
+            for (Node v : scorer.getOrder()) {
+                scorer.moveToLast(v);
 
-            if (scorer.score() < score2) {
-                scorer.bookmark();
-                score2 = scorer.score();
-            }
+                double score2 = POSITIVE_INFINITY;
 
-            while (scorer.promote(v)) {
                 if (scorer.score() < score2) {
                     scorer.bookmark();
                     score2 = scorer.score();
                 }
-            }
 
-            scorer.goToBookmark();
-        }
+                while (scorer.promote(v)) {
+                    if (scorer.score() < score2) {
+                        scorer.bookmark();
+                        score2 = scorer.score();
+                    }
+                }
+
+                scorer.goToBookmark();
+            }
+        } while (scorer.score() < score);
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Single Moves)");
@@ -307,7 +313,7 @@ public class Boss {
     }
 
     @NotNull
-    public Graph getGraph(List<Node> order, boolean pattern) {
+    public Graph getGraph(List<Node> order, boolean cpdag) {
         TeyssierScorer scorer;
 
         if (score != null) {
@@ -319,7 +325,7 @@ public class Boss {
         scorer.setScoreType(scoreType);
 
         scorer.score(order);
-        return scorer.getGraph(pattern);
+        return scorer.getGraph(cpdag);
     }
 
     public void setCacheScores(boolean cachingScores) {

@@ -51,7 +51,7 @@ import java.util.*;
 import java.util.List;
 
 /**
- * Edits some algorithm to search for Markov blanket patterns.
+ * Edits some algorithm to search for Markov blanket cpdags.
  *
  * @author Joseph Ramsey
  */
@@ -417,7 +417,7 @@ public class FgesSearchEditor extends AbstractSearchEditor
                 new WatchedProcess(owner) {
                     public void watch() {
 
-                        // Needs to be a pattern search; this isn't checked
+                        // Needs to be a cpdag search; this isn't checked
                         // before running the algorithm because of allowable
                         // "slop"--e.g. bidirected edges.
                         AlgorithmRunner runner = getAlgorithmRunner();
@@ -473,7 +473,7 @@ public class FgesSearchEditor extends AbstractSearchEditor
             public void actionPerformed(ActionEvent e) {
                 Graph graph = new EdgeListGraph(getGraph());
 
-                // Removing bidirected edges from the pattern before selecting a DAG.                                   4
+                // Removing bidirected edges from the cpdag before selecting a DAG.                                   4
                 for (Edge edge : graph.getEdges()) {
                     if (Edges.isBidirectedEdge(edge)) {
                         graph.removeEdge(edge);
@@ -481,7 +481,7 @@ public class FgesSearchEditor extends AbstractSearchEditor
                 }
 
                 CpdagToDag search = new CpdagToDag(new EdgeListGraph(graph));
-                Graph dag = search.patternToDagMeek();
+                Graph dag = search.cpdagToDagMeek();
 
                 getGraphHistory().add(dag);
                 getWorkbench().setGraph(dag);
@@ -601,8 +601,8 @@ public class FgesSearchEditor extends AbstractSearchEditor
         FgesRunner runner = (FgesRunner) getAlgorithmRunner();
 
         if (runner.getTopGraphs().isEmpty()) {
-            throw new IllegalArgumentException("No patterns were recorded. Please adjust the number of " +
-                    "patterns to store.");
+            throw new IllegalArgumentException("No cpdags were recorded. Please adjust the number of " +
+                    "cpdags to store.");
         }
 
         Graph resultGraph = runner.getTopGraphs().get(runner.getIndex()).getGraph();
@@ -712,7 +712,7 @@ public class FgesSearchEditor extends AbstractSearchEditor
 //            bootstrapPanel.add(b, BorderLayout.NORTH);
 
             removeStatsTabs();
-            tabbedPane.addTab("DAG in pattern", dagWorkbenchScroll);
+            tabbedPane.addTab("DAG in cpdag", dagWorkbenchScroll);
 //            tabbedPane.addTab("DAG Model Statistics", new JScrollPane(modelStatsText));
             tabbedPane.addTab("Log Bayes Factors", new JScrollPane(logBayesFactorsScroll));
 //            tabbedPane.addTab("Edge Bootstraps", new JScrollPane(bootstrapPanel));
@@ -777,7 +777,7 @@ public class FgesSearchEditor extends AbstractSearchEditor
 
             if (name.equals("DAG Model Statistics")) {
                 tabbedPane.removeTabAt(i);
-            } else if (name.equals("DAG in pattern")) {
+            } else if (name.equals("DAG in cpdag")) {
                 tabbedPane.removeTabAt(i);
             } else if (name.equals("Log Bayes Factors")) {
                 tabbedPane.removeTabAt(i);

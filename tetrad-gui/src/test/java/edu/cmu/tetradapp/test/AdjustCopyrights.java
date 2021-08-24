@@ -61,8 +61,8 @@ public class AdjustCopyrights {
                     continue;
                 }
 
-                Pattern pattern = Pattern.compile("package");
-                Matcher matcher = pattern.matcher(inContents);
+                Pattern cpdag = Pattern.compile("package");
+                Matcher matcher = cpdag.matcher(inContents);
                 if (!matcher.find()) {
                     System.out.println("No package statement: " + file);
                 }

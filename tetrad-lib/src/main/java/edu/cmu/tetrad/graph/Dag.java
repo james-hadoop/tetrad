@@ -63,7 +63,7 @@ public final class Dag implements Graph {
     private Map<Node, Integer> nodesHash = new HashMap<>();
 
     private boolean pag;
-    private boolean pattern;
+    private boolean cpdag;
 
     private Map<String, Object> attributes = new HashMap<>();
 
@@ -728,12 +728,12 @@ public final class Dag implements Graph {
 
     @Override
     public boolean isCpdag() {
-        return pattern;
+        return cpdag;
     }
 
     @Override
-    public void setCpdag(boolean pattern) {
-        this.pattern = pattern;
+    public void setCpdag(boolean cpdag) {
+        this.cpdag = cpdag;
     }
 
     @Override

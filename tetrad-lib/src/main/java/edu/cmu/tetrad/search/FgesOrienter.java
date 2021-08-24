@@ -125,7 +125,7 @@ public final class FgesOrienter implements GraphSearch, GraphScorer, Reorienter 
     private SortedSet<ScoredGraph> topGraphs = new TreeSet<>();
 
     /**
-     * The number of top patterns to store.
+     * The number of top cpdags to store.
      */
     private int numCpdagsToStore = 0;
 
@@ -393,14 +393,14 @@ public final class FgesOrienter implements GraphSearch, GraphScorer, Reorienter 
     }
 
     /**
-     * @return the number of patterns to store.
+     * @return the number of cpdags to store.
      */
     public int getNumCpdagsToStore() {
         return numCpdagsToStore;
     }
 
     /**
-     * Sets the number of patterns to store. This should be set to zero for fast search.
+     * Sets the number of cpdags to store. This should be set to zero for fast search.
      */
     public void setNumCpdagsToStore(int numCpdagsToStore) {
         if (numCpdagsToStore < 0) {
@@ -1444,7 +1444,7 @@ public final class FgesOrienter implements GraphSearch, GraphScorer, Reorienter 
         visited.addAll(reorientNode(graph, y));
 
         if (TetradLogger.getInstance().isEventActive("rebuiltCpdags")) {
-            TetradLogger.getInstance().log("rebuiltCpdags", "Rebuilt pattern = " + graph);
+            TetradLogger.getInstance().log("rebuiltCpdags", "Rebuilt cpdag = " + graph);
         }
 
         return visited;

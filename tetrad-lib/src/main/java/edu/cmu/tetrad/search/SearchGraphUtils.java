@@ -1122,7 +1122,7 @@ public final class SearchGraphUtils {
     }
 
     /**
-     * Transforms a maximally directed pattern (PDAG) represented in graph
+     * Transforms a maximally directed cpdag (PDAG) represented in graph
      * <code>g</code> into an arbitrary DAG by modifying <code>g</code> itself.
      * Based on the algorithm described in </p> Chickering (2002) "Optimal
      * structure identification with greedy search" Journal of Machine Learning
@@ -1289,7 +1289,7 @@ public final class SearchGraphUtils {
 
     /**
      * Transforms a DAG represented in graph <code>graph</code> into a maximally
-     * directed pattern (PDAG) by modifying <code>g</code> itself. Based on the
+     * directed cpdag (PDAG) by modifying <code>g</code> itself. Based on the
      * algorithm described in </p> Chickering (2002) "Optimal structure
      * identification with greedy search" Journal of Machine Learning Research.
      * It works for both BayesNets and SEMs.
@@ -1424,9 +1424,9 @@ public final class SearchGraphUtils {
     }
 
     /**
-     * @return the pattern to which the given DAG belongs.
+     * @return the cpdag to which the given DAG belongs.
      */
-    public static Graph patternFromDag(Graph dag) {
+    public static Graph cpdagFromDag(Graph dag) {
 //        IndTestDSep test = new IndTestDSep(dag);
 //        return new PC(test).search();
 //
@@ -1446,12 +1446,12 @@ public final class SearchGraphUtils {
 
         for (Edge edge : dag.getEdges()) {
             if (Edges.isBidirectedEdge(edge)) {
-                throw new IllegalArgumentException("That 'pattern' contains a bidirected edge.");
+                throw new IllegalArgumentException("That 'cpdag' contains a bidirected edge.");
             }
         }
 
         if (graph.existsDirectedCycle()) {
-            throw new IllegalArgumentException("That 'pattern' contains a directed cycle.");
+            throw new IllegalArgumentException("That 'cpdag' contains a directed cycle.");
         }
 
         MeekRules rules = new MeekRules();
@@ -1481,7 +1481,7 @@ public final class SearchGraphUtils {
         return dag;
     }
 
-    public static Graph patternFromECpdag(Graph eCpdag) {
+    public static Graph cpdagFromECpdag(Graph eCpdag) {
         eCpdag = new EdgeListGraph(eCpdag);
 
         MeekRules rules = new MeekRules();
@@ -1687,22 +1687,22 @@ public final class SearchGraphUtils {
     }
 
     /**
-     * Double checks a sepset map against a pattern to make sure that X is
-     * adjacent to Y in the pattern iff {X, Y} is not in the domain of the
+     * Double checks a sepset map against a cpdag to make sure that X is
+     * adjacent to Y in the cpdag iff {X, Y} is not in the domain of the
      * sepset map.
      *
      * @param sepset  a sepset map, over variables v.
-     * @param pattern a pattern over variables W, v subset of W.
-     * @return true if the sepset map is consistent with the pattern.
+     * @param cpdag a cpdag over variables W, v subset of W.
+     * @return true if the sepset map is consistent with the cpdag.
      */
-    public static boolean verifySepsetIntegrity(SepsetMap sepset, Graph pattern) {
-        for (Node x : pattern.getNodes()) {
-            for (Node y : pattern.getNodes()) {
+    public static boolean verifySepsetIntegrity(SepsetMap sepset, Graph cpdag) {
+        for (Node x : cpdag.getNodes()) {
+            for (Node y : cpdag.getNodes()) {
                 if (x == y) {
                     continue;
                 }
 
-                if ((pattern.isAdjacentTo(y, x)) != (sepset.get(x, y) == null)) {
+                if ((cpdag.isAdjacentTo(y, x)) != (sepset.get(x, y) == null)) {
                     System.out.println("Sepset not consistent with graph for {" + x + ", " + y + "}");
                     return false;
                 }
@@ -1843,18 +1843,18 @@ public final class SearchGraphUtils {
     }
 
     /**
-     * Generates the list of DAGs in the given pattern.
+     * Generates the list of DAGs in the given cpdag.
      */
-    public static List<Graph> generateCpdagDags(Graph pattern, boolean orientBidirectedEdges) {
+    public static List<Graph> generateCpdagDags(Graph cpdag, boolean orientBidirectedEdges) {
         if (orientBidirectedEdges) {
-            pattern = GraphUtils.removeBidirectedOrientations(pattern);
+            cpdag = GraphUtils.removeBidirectedOrientations(cpdag);
         }
 
-        return getDagsInCpdagMeek(pattern, new Knowledge2());
+        return getDagsInCpdagMeek(cpdag, new Knowledge2());
     }
 
-    public static List<Graph> getDagsInCpdagMeek(Graph pattern, IKnowledge knowledge) {
-        DagInCpdagIterator iterator = new DagInCpdagIterator(pattern, knowledge);
+    public static List<Graph> getDagsInCpdagMeek(Graph cpdag, IKnowledge knowledge) {
+        DagInCpdagIterator iterator = new DagInCpdagIterator(cpdag, knowledge);
         List<Graph> dags = new ArrayList<>();
 
         while (iterator.hasNext()) {
@@ -2343,7 +2343,7 @@ public final class SearchGraphUtils {
         }
 
         CpdagToDag search = new CpdagToDag(new EdgeListGraph(newGraph));
-        Graph dag = search.patternToDagMeek();
+        Graph dag = search.cpdagToDagMeek();
         GraphUtils.arrangeBySourceGraph(dag, graph);
         return dag;
     }
@@ -2384,17 +2384,17 @@ public final class SearchGraphUtils {
         return false;
     }
 
-    public static Graph patternForDag(final Graph dag) {
-        return patternForDag(dag, new Knowledge2());
+    public static Graph cpdagForDag(final Graph dag) {
+        return cpdagForDag(dag, new Knowledge2());
     }
 
-    public static Graph patternForDag(final Graph dag, IKnowledge knowledge) {
-        Graph pattern = new EdgeListGraph(dag);
+    public static Graph cpdagForDag(final Graph dag, IKnowledge knowledge) {
+        Graph cpdag = new EdgeListGraph(dag);
         MeekRules rules = new MeekRules();
         rules.setKnowledge(knowledge);
         rules.setRevertToUnshieldedColliders(true);
-        rules.orientImplied(pattern);
-        return pattern;
+        rules.orientImplied(cpdag);
+        return cpdag;
     }
 
     public static void orientRequired(IKnowledge bk, Graph graph, List<Node> nodes) {
@@ -2454,10 +2454,10 @@ public final class SearchGraphUtils {
 //     * The recursive method used to list the MB DAGS consistent with an
 //     * Cpdag (i.e. with the independence information available to the search.
 //     */
-//    public static Set<Graph> listCpdagDags(Graph pattern,
+//    public static Set<Graph> listCpdagDags(Graph cpdag,
 //                                             boolean orientBidirectedEdges) {
 //        Set<Graph> dags = new HashSet<Graph>();
-//        Graph graph = new EdgeListGraph(pattern);
+//        Graph graph = new EdgeListGraph(cpdag);
 //
 //        MeekRules rules = new MeekRules();
 //        rules.orientImplied(graph);
@@ -2522,8 +2522,8 @@ public final class SearchGraphUtils {
 //        Graph u = trueGraph.subgraph(trueLatents);
 //        Graph t = estGraph.subgraph(estLatents);
 //
-//        Graph G = u; //patternForDag(u);
-//        Graph H = t; //patternForDag(t);
+//        Graph G = u; //cpdagForDag(u);
+//        Graph H = t; //cpdagForDag(t);
 //
 ////        System.out.println("Cpdag of true graph over latents = " + G);
 //        _allNodes.addAll(trueLatents);

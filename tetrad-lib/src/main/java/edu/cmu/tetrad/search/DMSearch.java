@@ -156,13 +156,13 @@ public class DMSearch {
             }
         }
 
-        Graph pattern = new EdgeListGraph();
+        Graph cpdag = new EdgeListGraph();
 
         if (useFges) {
             Score score = new SemBicScore(cov);
             Fges fges = new Fges(score);
 
-            pattern = recursiveFges(pattern, knowledge, this.gesDiscount, getMinDepth(), data, inputString);
+            cpdag = recursiveFges(cpdag, knowledge, this.gesDiscount, getMinDepth(), data, inputString);
         } else {
             this.cov = new CovarianceMatrix(data);
 //            PC pc = new PC(new IndTestFisherZ(cov, this.alphaPC));
@@ -173,29 +173,29 @@ public class DMSearch {
                     System.out.println("Running PC Search");
                 }
             }
-//            pattern = pc.search();
+//            cpdag = pc.search();
             double penalty = 2;
 
 
-//           2DO: Alternative to using built in PC. Needs a fix so that all nodes added to pattern are looked at in applyDmSearch
+//           2DO: Alternative to using built in PC. Needs a fix so that all nodes added to cpdag are looked at in applyDmSearch
 //            ExecutorService executorService = Executors.newFixedThreadPool(4); // number of threads
 
             IndTestFisherZ ind = new IndTestFisherZ(cov, this.alphaPC);
             for (int i = 0; i < getInputs().length; i++) {
-                if (!pattern.containsNode(data.getVariable(i))) {
-                    pattern.addNode(data.getVariable(i));
+                if (!cpdag.containsNode(data.getVariable(i))) {
+                    cpdag.addNode(data.getVariable(i));
                 }
 
                 if (actualInputs.contains(i)) {
                     for (int j = getInputs().length; j < data.getNumColumns(); j++) {
-                        if (!pattern.containsNode(data.getVariable(j))) {
-                            pattern.addNode(data.getVariable(j));
+                        if (!cpdag.containsNode(data.getVariable(j))) {
+                            cpdag.addNode(data.getVariable(j));
                         }
 
 //                    System.out.println(i);
 //                    System.out.println(j);
                         if (ind.isDependent(data.getVariable(i), data.getVariable(j))) {
-                            pattern.addDirectedEdge(data.getVariable(i), data.getVariable(j));
+                            cpdag.addDirectedEdge(data.getVariable(i), data.getVariable(j));
                         }
                     }
                 }
@@ -204,20 +204,20 @@ public class DMSearch {
             if (verbose) {
                 System.out.println("Running DM search");
             }
-            applyDmSearch(pattern, inputString, penalty);
+            applyDmSearch(cpdag, inputString, penalty);
         }
 
         return (getDmStructure().latentStructToEdgeListGraph(getDmStructure()));
 
     }
 
-    public LatentStructure applyDmSearch(Graph pattern, Set<String> inputString, double penalty) {
+    public LatentStructure applyDmSearch(Graph cpdag, Set<String> inputString, double penalty) {
 
         List<Set<Node>> outputParentsList = new ArrayList<>();
-        final List<Node> patternNodes = pattern.getNodes();
+        final List<Node> cpdagNodes = cpdag.getNodes();
 
 //        2DO: add testcase to see how sort compares 10, 11, 1, etc.
-        java.util.Collections.sort(patternNodes, new Comparator<Node>() {
+        java.util.Collections.sort(cpdagNodes, new Comparator<Node>() {
             public int compare(Node node1, Node node2) {
 //2DO: string length error here. Fix.
 
@@ -234,18 +234,18 @@ public class DMSearch {
         });
 
         if (verbose) {
-            System.out.println("Sorted patternNodes");
+            System.out.println("Sorted cpdagNodes");
         }
         //constructing treeSet of output nodes.
         SortedSet<Node> outputNodes = new TreeSet<>();
         for (int i : getOutputs()) {
 
-//            System.out.println("patternNodes");
-//            System.out.println(patternNodes);
+//            System.out.println("cpdagNodes");
+//            System.out.println(cpdagNodes);
 
 //            System.out.println("i");
 //            System.out.println(i);
-            outputNodes.add(patternNodes.get(i));
+            outputNodes.add(cpdagNodes.get(i));
         }
 
         if (verbose) {
@@ -256,7 +256,7 @@ public class DMSearch {
 
         //Constructing list of output node parents.
         for (Node node : outputNodes) {
-            outputParentsList.add(new TreeSet<>(getInputParents(node, inputString, pattern)));
+            outputParentsList.add(new TreeSet<>(getInputParents(node, inputString, cpdag)));
         }
 
         if (verbose) {
@@ -320,7 +320,7 @@ public class DMSearch {
                 //Adding Outputs to their Map.
                 for (Node node : outputNodes) {
 
-                    if (new TreeSet<>(getInputParents(node, inputString, pattern)).equals(sameSetParents)) {
+                    if (new TreeSet<>(getInputParents(node, inputString, cpdag)).equals(sameSetParents)) {
 
                         //If haven't created latent, then do so.
                         if (structure.outputs.get(tempLatent) == null) {
@@ -530,7 +530,7 @@ public class DMSearch {
                 for (Node latentEffect : structure.getLatentEffects(latent)) {
                     applySobersStep(structure.getInputs(latent), structure.getInputs(latentEffect),
                             structure.getOutputs(latent), structure.getOutputs(latentEffect),
-                            pattern, structure, latent, latentEffect);
+                            cpdag, structure, latent, latentEffect);
                 }
             }
         }
@@ -639,14 +639,14 @@ public class DMSearch {
 //        fges.setMaxIndegree(this.gesDepth);
 //        fges.setIgnoreLinearDependent(true);
 
-        Graph pattern = fges.search();
+        Graph cpdag = fges.search();
 
         //Saves GES output in case is needed.
         File file = new File("src/edu/cmu/tetradproj/amurrayw/ges_output_" + penalty + "_.txt");
         try {
             FileOutputStream out = new FileOutputStream(file);
             PrintStream outStream = new PrintStream(out);
-            outStream.println(pattern);
+            outStream.println(cpdag);
         } catch (java.io.FileNotFoundException e) {
             if (verbose) {
                 System.out.println("Can't write to file.");
@@ -655,11 +655,11 @@ public class DMSearch {
         }
 
         if (penalty > minPenalty) {
-            applyDmSearch(pattern, inputString, penalty);
-            return (recursiveFges(pattern, knowledge, penalty - 1, minPenalty, data, inputString));
+            applyDmSearch(cpdag, inputString, penalty);
+            return (recursiveFges(cpdag, knowledge, penalty - 1, minPenalty, data, inputString));
         } else {
-            applyDmSearch(pattern, inputString, penalty);
-            return (pattern);
+            applyDmSearch(cpdag, inputString, penalty);
+            return (cpdag);
         }
 
     }
@@ -669,7 +669,7 @@ public class DMSearch {
     //Finally removes latent effect from list of latent effects.
     private void applySobersStep(SortedSet<Node> inputsLatent, SortedSet<Node> inputsLatentEffect,
                                  SortedSet<Node> outputsLatent, SortedSet<Node> outputsLatentEffect,
-                                 Graph pattern, LatentStructure structure, Node latent, Node latentEffect) {
+                                 Graph cpdag, LatentStructure structure, Node latent, Node latentEffect) {
 
         List<Node> latentList = new ArrayList<>();
 
@@ -790,9 +790,9 @@ public class DMSearch {
 
 
     //Making sure found nodes are actually inputs before adding as knowledge is now disabled.
-    private Set<Node> getInputParents(Node node, Set inputString, Graph pattern) {
+    private Set<Node> getInputParents(Node node, Set inputString, Graph cpdag) {
         Set<Node> actualInputs = new HashSet<>();
-        for (Node posInput : pattern.getAdjacentNodes(node)) {
+        for (Node posInput : cpdag.getAdjacentNodes(node)) {
             if (inputString.contains(posInput.getName())) {
                 actualInputs.add(posInput);
             }

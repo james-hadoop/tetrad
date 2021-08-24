@@ -107,7 +107,7 @@
                    help="graph" category="Graph Manipulations">
                 <logger>
                     <event id="info" description="Information" default="on"/>
-                    <event id="pattern" description="Cpdag" default="on"/>
+                    <event id="cpdag" description="Cpdag" default="on"/>
                 </logger>
                 <model-class>edu.cmu.tetradapp.model.CpdagFromDagGraphWrapper
                 </model-class>
@@ -1080,7 +1080,7 @@
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
             <!--</editor-class>-->
             <!--</model>-->
-            <!--<model name="PCCpdag" acronym="PCCpdag" help="pcpattern"-->
+            <!--<model name="PCCpdag" acronym="PCCpdag" help="pccpdag"-->
             <!--category="forbid_latent_common_causes Searches">-->
             <!--<logger>-->
             <!--<event id="info" description="Information" default="on"/>-->
@@ -1157,7 +1157,7 @@
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--<event id="apparentlyNonadjacencies" description="Apparently Nonadjacencies" default="on"/>-->
             <!--<event id="definitelyNonadjacencies" description="Definitely Nonadjacencies" default="on"/>-->
-            <!--<event id="patterns" description="Disambiguated Cpdags" default="on"/>-->
+            <!--<event id="cpdags" description="Disambiguated Cpdags" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.VcpcRunner</model-class>-->
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
@@ -1176,7 +1176,7 @@
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--<event id="apparentlyNonadjacencies" description="Apparently Nonadjacencies" default="on"/>-->
             <!--<event id="definitelyNonadjacencies" description="Definitely Nonadjacencies" default="on"/>-->
-            <!--<event id="patterns" description="Disambiguated Cpdags" default="on"/>-->
+            <!--<event id="cpdags" description="Disambiguated Cpdags" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.SampleVcpcRunner</model-class>-->
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
@@ -1195,7 +1195,7 @@
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--<event id="apparentlyNonadjacencies" description="Apparently Nonadjacencies" default="on"/>-->
             <!--<event id="definitelyNonadjacencies" description="Definitely Nonadjacencies" default="on"/>-->
-            <!--<event id="patterns" description="Disambiguated Cpdags" default="on"/>-->
+            <!--<event id="cpdags" description="Disambiguated Cpdags" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.VcpcFastRunner</model-class>-->
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
@@ -1214,7 +1214,7 @@
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--<event id="apparentlyNonadjacencies" description="Apparently Nonadjacencies" default="on"/>-->
             <!--<event id="definitelyNonadjacencies" description="Definitely Nonadjacencies" default="on"/>-->
-            <!--<event id="patterns" description="Disambiguated Cpdags" default="on"/>-->
+            <!--<event id="cpdags" description="Disambiguated Cpdags" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.SampleVcpcFastRunner</model-class>-->
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
@@ -1233,7 +1233,7 @@
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--<event id="apparentlyNonadjacencies" description="Apparently Nonadjacencies" default="on"/>-->
             <!--<event id="definitelyNonadjacencies" description="Definitely Nonadjacencies" default="on"/>-->
-            <!--<event id="patterns" description="Disambiguated Cpdags" default="on"/>-->
+            <!--<event id="cpdags" description="Disambiguated Cpdags" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.VcpcAltRunner</model-class>-->
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->

@@ -26,8 +26,8 @@ public class SHD_CPDAG implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        return SearchGraphUtils.structuralHammingDistance(SearchGraphUtils.patternFromDag(trueGraph),
-                SearchGraphUtils.patternFromDag(estGraph));
+        return SearchGraphUtils.structuralHammingDistance(SearchGraphUtils.cpdagFromDag(trueGraph),
+                SearchGraphUtils.cpdagFromDag(estGraph));
     }
 
     @Override

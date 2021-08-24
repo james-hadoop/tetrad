@@ -23,7 +23,7 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
@@ -43,7 +43,7 @@ import org.junit.Test;
 public final class TestGsp {
 
 
-    @Test
+    //@Test
     public void testGsps() {
         RandomUtil.getInstance().setSeed(386829384L);
 
@@ -86,7 +86,7 @@ public final class TestGsp {
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
     }
 
-    @Test
+    //@Test
     public void testGsps2() {
         RandomUtil.getInstance().setSeed(386829384L);
 

@@ -117,7 +117,7 @@ public final class TsFges2 implements GraphSearch, GraphScorer {
     private LinkedList<ScoredGraph> topGraphs = new LinkedList<>();
 
     /**
-     * The number of top patterns to store.
+     * The number of top cpdags to store.
      */
     private int numCpdagsToStore = 0;
 
@@ -318,14 +318,14 @@ public final class TsFges2 implements GraphSearch, GraphScorer {
     }
 
     /**
-     * @return the number of patterns to store.
+     * @return the number of cpdags to store.
      */
     public int getNumCpdagsToStore() {
         return numCpdagsToStore;
     }
 
     /**
-     * Sets the number of patterns to store. This should be set to zero for fast search.
+     * Sets the number of cpdags to store. This should be set to zero for fast search.
      */
     public void setNumCpdagsToStore(int numCpdagsToStore) {
         if (numCpdagsToStore < 0) {
@@ -476,7 +476,7 @@ public final class TsFges2 implements GraphSearch, GraphScorer {
     }
 
     /**
-     * The maximum of parents any nodes can have in output pattern.
+     * The maximum of parents any nodes can have in output cpdag.
      * @return -1 for unlimited.
      */
     public int getMaxIndegree() {
@@ -484,7 +484,7 @@ public final class TsFges2 implements GraphSearch, GraphScorer {
     }
 
     /**
-     * The maximum of parents any nodes can have in output pattern.
+     * The maximum of parents any nodes can have in output cpdag.
      * @param maxIndegree -1 for unlimited.
      */
     public void setMaxIndegree(int maxIndegree) {
@@ -1941,7 +1941,7 @@ public final class TsFges2 implements GraphSearch, GraphScorer {
 
         builder.append("Edge Posterior Log Bayes Factors:\n\n");
 
-        builder.append("For a DAG in the IMaGES pattern with model totalScore m, for each edge e in the " +
+        builder.append("For a DAG in the IMaGES cpdag with model totalScore m, for each edge e in the " +
                 "DAG, the model totalScore that would result from removing each edge, calculating " +
                 "the resulting model totalScore m(e), and then reporting m - m(e). The totalScore used is " +
                 "the IMScore, L - SUM_i{kc ln n(i)}, L is the maximum likelihood of the model, " +

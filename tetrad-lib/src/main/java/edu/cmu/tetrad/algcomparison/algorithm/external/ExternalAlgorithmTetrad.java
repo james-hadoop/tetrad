@@ -72,7 +72,7 @@ public class ExternalAlgorithmTetrad extends ExternalAlgorithm  {
     }
 
     /**
-     * Returns the pattern of the supplied DAG.
+     * Returns the cpdag of the supplied DAG.
      */
     public Graph getComparisonGraph(Graph graph) {
         return new EdgeListGraph(graph);

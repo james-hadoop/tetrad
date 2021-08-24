@@ -55,7 +55,7 @@ import java.util.*;
 import java.util.List;
 
 /**
- * Edits some algorithm to search for Markov blanket patterns.
+ * Edits some algorithm to search for Markov blanket cpdags.
  *
  * @author Joseph Ramsey
  */
@@ -202,7 +202,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
 
         /*if (getAlgorithmRunner().getSelectedDataModel() instanceof DataSet) {
             tabbedPane.add("Model Statistics", modelStatsText);
-            tabbedPane.add("DAG in pattern", dagWorkbench);
+            tabbedPane.add("DAG in cpdag", dagWorkbench);
         }*/
 
         add(tabbedPane, BorderLayout.CENTER);
@@ -347,7 +347,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
             modelStatsText.setText(report);
 
             removeStatsTabs();
-            tabbedPane.addTab("DAG in pattern", dagWorkbenchScroll);
+            tabbedPane.addTab("DAG in cpdag", dagWorkbenchScroll);
             tabbedPane.addTab("DAG Model Statistics", modelStatsText);
         } else if (getAlgorithmRunner().getDataModel() instanceof ICovarianceMatrix) {
             //resultGraph may be the output of a PC search.
@@ -368,9 +368,9 @@ public class PcGesSearchEditor extends AbstractSearchEditor
                 }
             }
 
-            Graph pattern = new EdgeListGraph(resultGraph);
-            CpdagToDag ptd = new CpdagToDag(pattern);
-            Graph dag = ptd.patternToDagMeek();
+            Graph cpdag = new EdgeListGraph(resultGraph);
+            CpdagToDag ptd = new CpdagToDag(cpdag);
+            Graph dag = ptd.cpdagToDagMeek();
 
             ICovarianceMatrix dataSet = (ICovarianceMatrix) getAlgorithmRunner().getDataModel();
             String report = reportIfCovMatrix(dag, dataSet);
@@ -381,7 +381,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
             modelStatsText.setText(report);
 
             removeStatsTabs();
-            tabbedPane.addTab("DAG in pattern", dagWorkbenchScroll);
+            tabbedPane.addTab("DAG in cpdag", dagWorkbenchScroll);
             tabbedPane.addTab("DAG Model Statistics", modelStatsText);
 
         }
@@ -507,7 +507,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
 
             if (name.equals("Model Statistics")) {
                 tabbedPane.removeTabAt(i);
-            } else if (name.equals("DAG in pattern")) {
+            } else if (name.equals("DAG in cpdag")) {
                 tabbedPane.removeTabAt(i);
             }
         }
@@ -574,7 +574,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
                 new WatchedProcess(owner) {
                     public void watch() {
 
-                        // Needs to be a pattern search; this isn't checked
+                        // Needs to be a cpdag search; this isn't checked
                         // before running the algorithm because of allowable
                         // "slop"--e.g. bidirected edges.
                         AlgorithmRunner runner = getAlgorithmRunner();
@@ -631,7 +631,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
             public void actionPerformed(ActionEvent e) {
                 Graph graph = new EdgeListGraph(getGraph());
 
-//                // Removing bidirected edges from the pattern before selecting a DAG.                                   4
+//                // Removing bidirected edges from the cpdag before selecting a DAG.                                   4
 //                for (Edge edge : graph.getEdges()) {
 //                    if (Edges.isBidirectedEdge(edge)) {
 //                        graph.removeEdge(edge);
@@ -641,7 +641,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
                 Graph dag = SearchGraphUtils.dagFromCpdag(graph);
 
 //                CpdagToDag search = new CpdagToDag(new forbid_latent_common_causes(graph));
-//                Graph dag = search.patternToDagMeek();
+//                Graph dag = search.cpdagToDagMeek();
 
                 getGraphHistory().add(dag);
                 getWorkbench().setGraph(dag);

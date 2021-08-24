@@ -68,18 +68,16 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
             if (parameters.getInt(Params.BOSS_METHOD) == 1) {
                 search.setMethod(Boss.Method.BOSS);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 3) {
+            } else if (parameters.getInt(Params.BOSS_METHOD) == 2) {
                 search.setMethod(Boss.Method.SP);
             } else {
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
             }
 
-            if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 1) {
+            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE) ) {
                 search.setScoreType(TeyssierScorer.ScoreType.Edge);
-            } else if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 2) {
-                search.setScoreType(TeyssierScorer.ScoreType.SCORE);
             } else {
-                throw new IllegalArgumentException("Unexpected score type: " + parameters.getInt(Params.BOSS_SCORE_TYPE));
+                search.setScoreType(TeyssierScorer.ScoreType.SCORE);
             }
 
             Object obj = parameters.get(Params.PRINT_STREAM);

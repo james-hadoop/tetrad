@@ -135,7 +135,7 @@ public class PcStableMaxConcatenated implements MultiDataSetAlgorithm, HasKnowle
         if (compareToTrue) {
             return new EdgeListGraph(graph);
         } else {
-            return SearchGraphUtils.patternForDag(new EdgeListGraph(graph));
+            return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
         }
     }
 

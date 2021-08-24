@@ -51,11 +51,11 @@ public class CpdagFromDagGraphWrapper extends GraphWrapper implements DoNotAddOl
 //            throw new IllegalArgumentException("The source graph is not a DAG.");
 //        }
 
-        Graph pattern = getCpdag(new EdgeListGraph(graph));
-        setGraph(pattern);
+        Graph cpdag = getCpdag(new EdgeListGraph(graph));
+        setGraph(cpdag);
 
-        TetradLogger.getInstance().log("info", "\nGenerating pattern from DAG.");
-        TetradLogger.getInstance().log("pattern", pattern + "");
+        TetradLogger.getInstance().log("info", "\nGenerating cpdag from DAG.");
+        TetradLogger.getInstance().log("cpdag", cpdag + "");
     }
 
     public static CpdagFromDagGraphWrapper serializableInstance() {
@@ -66,7 +66,7 @@ public class CpdagFromDagGraphWrapper extends GraphWrapper implements DoNotAddOl
 
 
     private static Graph getCpdag(Graph graph) {
-        return SearchGraphUtils.patternFromDag(graph);
+        return SearchGraphUtils.cpdagFromDag(graph);
     }
 
     @Override

@@ -582,10 +582,10 @@ public class TetradLogger {
      */
     private String normalize(String prefix) {
         StringBuilder buf = new StringBuilder();
-        Pattern pattern = Pattern.compile("[a-zA-Z_]");
+        Pattern cpdag = Pattern.compile("[a-zA-Z_]");
         for (int i = 0; i < prefix.length(); i++) {
             String s = prefix.substring(i, i + 1);
-            Matcher matcher = pattern.matcher(s);
+            Matcher matcher = cpdag.matcher(s);
             if (matcher.matches()) {
                 buf.append(s);
             }

@@ -23,8 +23,7 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSS;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.BOSSIndep;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
@@ -118,7 +117,7 @@ public final class TestBoss {
         }
     }
 
-    @Test
+    //@Test
     public void testBoss() {
         RandomUtil.getInstance().setSeed(386829384L);
 
@@ -165,7 +164,7 @@ public final class TestBoss {
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
     }
 
-    @Test
+    //@Test
     public void testBoss2() {
         RandomUtil.getInstance().setSeed(386829384L);
 
@@ -213,7 +212,7 @@ public final class TestBoss {
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
     }
 
-    @Test
+    //@Test
     public void testBoss3() {
 //        RandomUtil.getInstance().setSeed(386829384L);
 
@@ -260,7 +259,7 @@ public final class TestBoss {
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
     }
 
-    @Test
+    //@Test
     public void testBoss4() {
 //        RandomUtil.getInstance().setSeed(386829384L);
 
@@ -276,7 +275,7 @@ public final class TestBoss {
         params.set(Params.NUM_RUNS, 1);
 
         params.set(Params.BOSS_METHOD, 1);
-        params.set(Params.BOSS_SCORE_TYPE, 2);
+        params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.BREAK_TIES, false);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
@@ -312,7 +311,7 @@ public final class TestBoss {
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
     }
 
-    @Test
+    //@Test
     public void testBoss5() {
 //        int m = 100;
 //        int e = 100;
@@ -342,7 +341,7 @@ public final class TestBoss {
         params.set(Params.NUM_RUNS, 1);
 
         params.set(Params.BOSS_METHOD, 1);
-        params.set(Params.BOSS_SCORE_TYPE, 2);
+        params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.BREAK_TIES, false);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
@@ -378,7 +377,7 @@ public final class TestBoss {
                 algorithms, statistics, params);
     }
 
-    @Test
+    //@Test
     public void testBoss6() {
 //        RandomUtil.getInstance().setSeed(386829384L);
 
@@ -393,8 +392,8 @@ public final class TestBoss {
 
         params.set(Params.NUM_RUNS, 5);
 
-        params.set(Params.BOSS_METHOD, 1);//, 2);
-        params.set(Params.BOSS_SCORE_TYPE, /*1, */2);
+        params.set(Params.BOSS_METHOD, 1);
+        params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.BREAK_TIES, false);
         params.set(Params.CACHE_SCORES, false);
         params.set(Params.NUM_STARTS, 1);
@@ -431,7 +430,7 @@ public final class TestBoss {
                 "Lu.figure.6.largen.txt", algorithms, statistics, params);
     }
 
-    @Test
+    //@Test
     public void testBoss7() {
 //        RandomUtil.getInstance().setSeed(386829384L);
 
@@ -446,8 +445,8 @@ public final class TestBoss {
 
         params.set(Params.NUM_RUNS, 5);
 
-        params.set(Params.BOSS_METHOD, 1);//, 2);
-        params.set(Params.BOSS_SCORE_TYPE, /*1, */2);
+        params.set(Params.BOSS_METHOD, 1);
+        params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.BREAK_TIES, true);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
@@ -484,7 +483,7 @@ public final class TestBoss {
                 "Lu.figure.3.txt", algorithms, statistics, params);
     }
 
-    @Test
+    //@Test
     public void testBoss8() {
 //        RandomUtil.getInstance().setSeed(386829384L);
 
@@ -500,7 +499,7 @@ public final class TestBoss {
         params.set(Params.NUM_RUNS, 100);
 
         params.set(Params.BOSS_METHOD, 1);
-        params.set(Params.BOSS_SCORE_TYPE, 1);
+        params.set(Params.BOSS_SCORE_TYPE, true);
         params.set(Params.BREAK_TIES, false);
         params.set(Params.CACHE_SCORES, false);
         params.set(Params.NUM_STARTS, 1);
@@ -548,7 +547,7 @@ public final class TestBoss {
         return prefix;
     }
 
-    @Test
+    //@Test
     public void testAllFacts() {
         List<Ret> allFacts = new ArrayList<>();
         allFacts.add(getFactsSimpleCanceling());
@@ -590,18 +589,18 @@ public final class TestBoss {
                     boss.setNumStarts(1);
 
                     List<Node> perm = boss.bestOrder(test.getVariables());
-                    Graph pattern = boss.getGraph(perm, true);
+                    Graph cpdag = boss.getGraph(perm, true);
 
                     if (graphs.get(method.toString()) == null) {
                         graphs.put(method.toString(), new HashSet<>());
                         labels.put(method.toString(), new HashSet<>());
                     }
 
-                    graphs.get(method.toString()).add(pattern);
+                    graphs.get(method.toString()).add(cpdag);
                     labels.get(method.toString()).add(facts.getLabel());
 
                     if (printCpdag) {
-                        System.out.println(pattern);
+                        System.out.println(cpdag);
                     }
                 }
             }
@@ -612,7 +611,7 @@ public final class TestBoss {
         }
     }
 
-    @Test
+    //@Test
     public void testRaskutti() {
         Ret facts = getFactsRaskutti();
 
@@ -631,13 +630,13 @@ public final class TestBoss {
             List<Node> p = GraphUtils.asList(perm, variables);
 
             List<Node> p2 = boss.bestOrder(test.getVariables());
-            Graph pattern = boss.getGraph(p2, true);
+            Graph cpdag = boss.getGraph(p2, true);
 
-            System.out.println(p + " " + pattern.getNumEdges());
+            System.out.println(p + " " + cpdag.getNumEdges());
         }
     }
 
-    @Test
+    //@Test
     public void testFromData() {
         for (int i = 0; i < 10; i++) {
             System.out.println("\nRun " + (i + 1));
@@ -662,7 +661,7 @@ public final class TestBoss {
         }
     }
 
-    @Test
+    //@Test
     public void testFromDsep() {
         for (int i = 0; i < 10; i++) {
             System.out.println("\nRun " + (i + 1));
@@ -690,17 +689,15 @@ public final class TestBoss {
         Parameters parameters = new Parameters();
 
         parameters.set(Params.NUM_MEASURES, 10);
-        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-        parameters.set(Params.NUM_RUNS, 1);
+        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+        parameters.set(Params.NUM_RUNS, 5);
         parameters.set(Params.BOSS_METHOD, 1);
-        parameters.set(Params.BOSS_SCORE_TYPE, 1);
+        parameters.set(Params.BOSS_SCORE_TYPE, true);
         parameters.set(Params.BREAK_TIES, true);
         parameters.set(Params.SAMPLE_SIZE, 10000);
         parameters.set(Params.ALPHA, 0.001);
-//        parameters.set(Params.PENALTY_DISCOUNT, 1);
         parameters.set(Params.DEPTH, -1);
         parameters.set(Params.USE_SCORE, false);
-//        parameters.set(Params.NUM_STARTS, 5);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
@@ -715,7 +712,7 @@ public final class TestBoss {
         simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll(new DSeparationTest()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcAll(new DSeparationTest()));
         algorithms.add(new BOSS(new SemBicScore(), new DSeparationTest()));
 //        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.FmlBicScore()));
 //        algorithms.add(new BOSSIndep(new FisherZ()));
@@ -729,7 +726,7 @@ public final class TestBoss {
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/soluscomparison", simulations, algorithms, statistics, parameters);
     }
 
-    @Test
+    //@Test
     public void testFromDsep1() {
 
         List<Node> nodes = new ArrayList<>();
@@ -765,7 +762,7 @@ public final class TestBoss {
         runTestLoop(g, order, null, test, true);
     }
 
-    @Test
+    //@Test
     public void testFromDsep2() {
         List<Node> nodes = new ArrayList<>();
 
@@ -809,8 +806,8 @@ public final class TestBoss {
         }
     }
 
-    private boolean isCpdagForDag(Graph pattern, Graph dag) {
-        if (!GraphUtils.undirectedGraph(pattern).equals(GraphUtils.undirectedGraph(dag))) {
+    private boolean isCpdagForDag(Graph cpdag, Graph dag) {
+        if (!GraphUtils.undirectedGraph(cpdag).equals(GraphUtils.undirectedGraph(dag))) {
             return false;
         }
 
@@ -829,7 +826,7 @@ public final class TestBoss {
         }
     }
 
-    @Test
+    //@Test
     public void test12345() {
         IndependenceFacts facts = getFigure6().facts;
         List<Node> nodes = facts.getVariables();
@@ -952,7 +949,7 @@ public final class TestBoss {
         return new Ret("Raskutti Theorem 2.4 SMR !==> Restricted Faithfulness", facts);
     }
 
-    @Test
+    //@Test
     public void testFromIndependgetenceFactsa() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
@@ -978,7 +975,7 @@ public final class TestBoss {
         System.out.println(boss.bestOrder(nodes));
     }
 
-    @Test
+    //@Test
     public void testFromIndependenceFacts3() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
@@ -1032,7 +1029,7 @@ public final class TestBoss {
         System.out.println("BOSS " + boss.bestOrder(data.getVariables()));
     }
 
-    @Test
+    //@Test
     public void testFromIndependenceFacts4() {
         Graph graph = GraphUtils.randomGraph(10, 0, 20, 100, 100, 100, false);
         List<Node> nodes = graph.getNodes();
@@ -1151,7 +1148,7 @@ public final class TestBoss {
         return list;
     }
 
-    @Test
+    //@Test
     public void testTeyssierIndices() {
         Graph graph = GraphUtils.randomGraph(10, 0, 10, 100, 100, 100, false);
         SemPm pm = new SemPm(graph);

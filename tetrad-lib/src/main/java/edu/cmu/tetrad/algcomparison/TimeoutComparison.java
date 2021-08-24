@@ -503,7 +503,7 @@ public class TimeoutComparison {
                 File dir3 = null;
 
                 if (isSaveCpdags()) {
-                    dir3 = new File(subdir, "patterns");
+                    dir3 = new File(subdir, "cpdags");
                     dir3.mkdirs();
                 }
 
@@ -527,8 +527,8 @@ public class TimeoutComparison {
                     out.close();
 
                     if (isSaveCpdags()) {
-                        File file3 = new File(dir3, "pattern." + (j + 1) + ".txt");
-                        GraphUtils.saveGraph(SearchGraphUtils.patternForDag(graph), file3, false);
+                        File file3 = new File(dir3, "cpdag." + (j + 1) + ".txt");
+                        GraphUtils.saveGraph(SearchGraphUtils.cpdagForDag(graph), file3, false);
                     }
 
                     if (isSavePags()) {
@@ -952,28 +952,28 @@ public class TimeoutComparison {
     }
 
     /**
-     * @return True if patterns should be saved out.
+     * @return True if cpdags should be saved out.
      */
     public boolean isSaveCpdags() {
         return saveCpdags;
     }
 
     /**
-     * @param saveCpdags True if patterns should be saved out.
+     * @param saveCpdags True if cpdags should be saved out.
      */
     public void setSaveCpdags(boolean saveCpdags) {
         this.saveCpdags = saveCpdags;
     }
 
     /**
-     * @return True if patterns should be saved out.
+     * @return True if cpdags should be saved out.
      */
     public boolean isSavePags() {
         return savePags;
     }
 
     /**
-     * @param savePags True if patterns should be saved out.
+     * @param savePags True if cpdags should be saved out.
      */
     public void setSavePags(boolean savePags) {
         this.savePags = savePags;
@@ -1206,7 +1206,7 @@ public class TimeoutComparison {
         if (this.comparisonGraph == ComparisonGraph.true_DAG) {
             comparisonGraph = new EdgeListGraph(trueGraph);
         } else if (this.comparisonGraph == ComparisonGraph.Cpdag_of_the_true_DAG) {
-            comparisonGraph = SearchGraphUtils.patternForDag(new EdgeListGraph(trueGraph));
+            comparisonGraph = SearchGraphUtils.cpdagForDag(new EdgeListGraph(trueGraph));
         } else if (this.comparisonGraph == ComparisonGraph.PAG_of_the_true_DAG) {
             comparisonGraph = new DagToPag2(new EdgeListGraph(trueGraph)).convert();
         } else {

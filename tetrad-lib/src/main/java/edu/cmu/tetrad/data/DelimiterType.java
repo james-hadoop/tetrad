@@ -53,7 +53,7 @@ public final class DelimiterType implements TetradSerializable {
     /**
      * The regular expression representing the delimiter.
      */
-    private transient final Pattern pattern;
+    private transient final Pattern cpdag;
 
     /**
      * Protected constructor for the types; this allows for extension in case
@@ -61,7 +61,7 @@ public final class DelimiterType implements TetradSerializable {
      */
     private DelimiterType(String name, String regex) {
         this.name = name;
-        this.pattern = Pattern.compile(regex);
+        this.cpdag = Pattern.compile(regex);
     }
 
     /**
@@ -72,11 +72,11 @@ public final class DelimiterType implements TetradSerializable {
     }
 
     /**
-     * @return the pattern representing this delimiter type. This pattern can be
+     * @return the cpdag representing this delimiter type. This cpdag can be
      * used to parse, using a matcher.
      */
     public final Pattern getCpdag() {
-        return this.pattern;
+        return this.cpdag;
     }
 
     /**

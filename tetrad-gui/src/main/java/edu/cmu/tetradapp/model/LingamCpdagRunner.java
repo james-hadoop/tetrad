@@ -42,7 +42,7 @@ public class LingamCpdagRunner extends AbstractAlgorithmRunner implements
         GraphSource, PropertyChangeListener {
     static final long serialVersionUID = 23L;
     private transient List<PropertyChangeListener> listeners;
-    private Graph pattern;
+    private Graph cpdag;
 
     // ============================CONSTRUCTORS============================//
 
@@ -54,14 +54,14 @@ public class LingamCpdagRunner extends AbstractAlgorithmRunner implements
     public LingamCpdagRunner(GraphWrapper graphWrapper,
                                DataWrapper dataWrapper, Parameters params) {
         super(dataWrapper, params, null);
-        this.pattern = graphWrapper.getGraph();
+        this.cpdag = graphWrapper.getGraph();
     }
 
     public LingamCpdagRunner(GraphWrapper graphWrapper,
                                DataWrapper dataWrapper, Parameters params,
                                KnowledgeBoxModel knowledgeBoxModel) {
         super(dataWrapper, params, knowledgeBoxModel);
-        this.pattern = graphWrapper.getGraph();
+        this.cpdag = graphWrapper.getGraph();
     }
 
     /**
@@ -82,49 +82,49 @@ public class LingamCpdagRunner extends AbstractAlgorithmRunner implements
     public LingamCpdagRunner(PcRunner wrapper, DataWrapper dataWrapper,
                                Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
         super(dataWrapper, params, knowledgeBoxModel);
-        this.pattern = wrapper.getGraph();
+        this.cpdag = wrapper.getGraph();
     }
 
     public LingamCpdagRunner(PcRunner wrapper, DataWrapper dataWrapper,
                                Parameters params) {
         super(dataWrapper, params, null);
-        this.pattern = wrapper.getGraph();
+        this.cpdag = wrapper.getGraph();
     }
 
     public LingamCpdagRunner(CpcRunner wrapper, DataWrapper dataWrapper,
                                Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
         super(dataWrapper, params, knowledgeBoxModel);
-        this.pattern = wrapper.getGraph();
+        this.cpdag = wrapper.getGraph();
     }
 
     public LingamCpdagRunner(CpcRunner wrapper, DataWrapper dataWrapper,
                                Parameters params) {
         super(dataWrapper, params, null);
-        this.pattern = wrapper.getGraph();
+        this.cpdag = wrapper.getGraph();
     }
 
     public LingamCpdagRunner(PcLocalRunner wrapper, DataWrapper dataWrapper,
                                Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
         super(dataWrapper, params, knowledgeBoxModel);
-        this.pattern = wrapper.getGraph();
+        this.cpdag = wrapper.getGraph();
     }
 
     public LingamCpdagRunner(PcLocalRunner wrapper, DataWrapper dataWrapper,
                                Parameters params) {
         super(dataWrapper, params, null);
-        this.pattern = wrapper.getGraph();
+        this.cpdag = wrapper.getGraph();
     }
 
     public LingamCpdagRunner(IGesRunner wrapper, DataWrapper dataWrapper,
                                Parameters params, KnowledgeBoxModel knowledgeBoxModel) {
         super(dataWrapper, params, knowledgeBoxModel);
-        this.pattern = wrapper.getGraph();
+        this.cpdag = wrapper.getGraph();
     }
 
     public LingamCpdagRunner(IGesRunner wrapper, DataWrapper dataWrapper,
                                Parameters params) {
         super(dataWrapper, params, null);
-        this.pattern = wrapper.getGraph();
+        this.cpdag = wrapper.getGraph();
     }
 
     /**
@@ -146,14 +146,14 @@ public class LingamCpdagRunner extends AbstractAlgorithmRunner implements
         Graph graph = null;
 
         if (source instanceof DataModelList) {
-//            graph = lingamCpdagEdgeVote((DataModelList) source, pattern);
-            graph = multiLingamCpdag((DataModelList) source, pattern);
+//            graph = lingamCpdagEdgeVote((DataModelList) source, cpdag);
+            graph = multiLingamCpdag((DataModelList) source, cpdag);
         } else {
 
             DataModelList list = new DataModelList();
             list.add(source);
 
-            graph = multiLingamCpdag(list, pattern);
+            graph = multiLingamCpdag(list, cpdag);
  
         }
 
@@ -176,13 +176,13 @@ public class LingamCpdagRunner extends AbstractAlgorithmRunner implements
         // }
     }
 
-    private Graph lingamCpdagEdgeVote(DataModelList dataSets, Graph pattern) {
+    private Graph lingamCpdagEdgeVote(DataModelList dataSets, Graph cpdag) {
         List<Graph> lingamCpdagGraphs = new ArrayList<>();
 
         // Images plus lingam orientation on multiple subjects.
         for (DataModel dataModel : dataSets) {
             DataSet dataSet = (DataSet) dataModel;
-            LingamCpdag lingamCpdag = new LingamCpdag(pattern, dataSet);
+            LingamCpdag lingamCpdag = new LingamCpdag(cpdag, dataSet);
             lingamCpdag.setAlpha(getParams().getDouble("alpha", 0.001));
             Graph _graph = lingamCpdag.search();
 
@@ -191,9 +191,9 @@ public class LingamCpdagRunner extends AbstractAlgorithmRunner implements
             lingamCpdagGraphs.add(_graph);
         }
 
-        Graph lingamizedGraph = new EdgeListGraph(pattern.getNodes());
+        Graph lingamizedGraph = new EdgeListGraph(cpdag.getNodes());
 
-        for (Edge edge : pattern.getEdges()) {
+        for (Edge edge : cpdag.getEdges()) {
             int numRight = 0, numLeft = 0;
 
             for (Graph graph : lingamCpdagGraphs) {
@@ -220,15 +220,15 @@ public class LingamCpdagRunner extends AbstractAlgorithmRunner implements
         return lingamizedGraph;
     }
 
-    private Graph multiLingamCpdag(DataModelList dataSets, Graph pattern) {
+    private Graph multiLingamCpdag(DataModelList dataSets, Graph cpdag) {
         List<DataSet> _dataSets = new ArrayList<>();
 
         for (DataModel dataModel : dataSets) {
             _dataSets.add((DataSet) dataModel);
         }
 
-//        LingOrientationFixedStructure pcLingam2 = new LingOrientationFixedStructure(pattern, _dataSets);
-        LingamCpdag2 pcLingam2 = new LingamCpdag2(pattern, _dataSets);
+//        LingOrientationFixedStructure pcLingam2 = new LingOrientationFixedStructure(cpdag, _dataSets);
+        LingamCpdag2 pcLingam2 = new LingamCpdag2(cpdag, _dataSets);
         pcLingam2.setAlpha(getParams().getDouble("alpha", 0.001));
 
         Graph graph = pcLingam2.search();

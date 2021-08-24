@@ -154,7 +154,7 @@ public class GwpResult {
 
     /**
      * constructor for evaluations where the method evaluated purports to give us the Markov-equivalence class, represented
-     * by a pattern.
+     * by a cpdag.
      * <p>
      * * @param methodName
      */

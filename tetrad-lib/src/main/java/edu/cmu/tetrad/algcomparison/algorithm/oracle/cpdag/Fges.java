@@ -1,77 +1,90 @@
-package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
+package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
-import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
-import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
+import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.Boss;
-import edu.cmu.tetrad.search.IndependenceTest;
+import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Greedy Sparsest Permutation.
+ * FGES (the heuristic version).
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GSPIndep",
-        command = "gsp-indep",
+        name = "FGES",
+        command = "fges",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-@Experimental
-public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapper, TakesInitialGraph {
+public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesScoreWrapper {
 
     static final long serialVersionUID = 23L;
-    private IndependenceWrapper test = null;
-    //    private ScoreWrapper score = null;
+
+    private ScoreWrapper score;
+    private Algorithm algorithm = null;
+    private Graph initialGraph = null;
     private IKnowledge knowledge = new Knowledge2();
-    private Graph initialGraph;
-    private Algorithm algorithm;
 
-
-    public GSPIndep() {
+    public Fges() {
 
     }
 
-    public GSPIndep(IndependenceWrapper test) {
-        this.test = test;
+    public Fges(ScoreWrapper score) {
+        this.score = score;
+    }
+
+    public Fges(ScoreWrapper score, Algorithm algorithm) {
+        this.score = score;
+        this.algorithm = algorithm;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
-        if (algorithm != null) {
-            this.initialGraph = algorithm.search(dataSet, parameters, trueGraph);
-        }
-
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
-            Boss boss = new Boss(test);
-            boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
-            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            boss.setGspDepth(parameters.getInt(Params.DEPTH));
-            boss.setMethod(Boss.Method.GSP);
 
-            List<Node> order = boss.bestOrder(test.getVariables());
+            int parallelism = parameters.getInt(Params.PARALLELISM);
 
-            return boss.getGraph(order, true);
+            Score score = this.score.getScore(dataSet, parameters);
+            Graph graph;
+
+            edu.cmu.tetrad.search.Fges search
+                    = new edu.cmu.tetrad.search.Fges(score, parallelism);
+            search.setKnowledge(knowledge);
+            search.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            search.setMeekVerbose(parameters.getBoolean(Params.MEEK_VERBOSE));
+            search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
+            search.setSymmetricFirstStep(parameters.getBoolean(Params.SYMMETRIC_FIRST_STEP));
+            search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
+
+            Object obj = parameters.get(Params.PRINT_STREAM);
+            if (obj instanceof PrintStream) {
+                search.setOut((PrintStream) obj);
+            }
+
+            if (initialGraph != null) {
+                search.setInitialGraph(initialGraph);
+            }
+
+            graph = search.search();
+
+            return graph;
         } else {
-            GSPIndep fges = new GSPIndep();
+            Fges fges = new Fges(score, algorithm);
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -80,7 +93,7 @@ public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapp
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
 
-            ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+            ResamplingEdgeEnsemble edgeEnsemble;
 
             switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
                 case 0:
@@ -91,6 +104,9 @@ public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapp
                     break;
                 case 2:
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
+                    break;
+                default:
+                    throw new IllegalStateException();
             }
 
             search.setEdgeEnsemble(edgeEnsemble);
@@ -100,6 +116,7 @@ public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapp
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             return search.search();
         }
+
     }
 
     @Override
@@ -109,21 +126,26 @@ public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapp
 
     @Override
     public String getDescription() {
-        return "GSP from test";
+        return "FGES using " + score.getDescription();
     }
 
     @Override
     public DataType getDataType() {
-        return test.getDataType();
+        return score.getDataType();
     }
 
     @Override
     public List<String> getParameters() {
-        ArrayList<String> params = new ArrayList<>();
-        params.add(Params.CACHE_SCORES);
-        params.add(Params.NUM_STARTS);
-        params.add(Params.DEPTH);
-        return params;
+        List<String> parameters = new ArrayList<>();
+        parameters.add(Params.SYMMETRIC_FIRST_STEP);
+        parameters.add(Params.MAX_DEGREE);
+        parameters.add(Params.PARALLELISM);
+        parameters.add(Params.FAITHFULNESS_ASSUMED);
+
+        parameters.add(Params.VERBOSE);
+        parameters.add(Params.MEEK_VERBOSE);
+
+        return parameters;
     }
 
     @Override
@@ -152,12 +174,13 @@ public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapp
     }
 
     @Override
-    public IndependenceWrapper getIndependenceWrapper() {
-        return test;
+    public void setScoreWrapper(ScoreWrapper score) {
+        this.score = score;
     }
 
     @Override
-    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
-        this.test = independenceWrapper;
+    public ScoreWrapper getScoreWrapper() {
+        return score;
     }
+
 }

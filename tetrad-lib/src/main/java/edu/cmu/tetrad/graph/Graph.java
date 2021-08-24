@@ -374,7 +374,7 @@ public interface Graph extends TetradSerializable, TripleClassifier {
 
     boolean isCpdag();
 
-    void setCpdag(boolean pattern);
+    void setCpdag(boolean cpdag);
 
     boolean isPag();
 

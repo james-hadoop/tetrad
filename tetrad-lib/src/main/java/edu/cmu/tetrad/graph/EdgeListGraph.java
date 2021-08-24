@@ -104,7 +104,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * A hash from node names to nodes;
      */
     Map<String, Node> namesHash;
-    private boolean pattern = false;
+    private boolean cpdag = false;
 
     //==============================CONSTUCTORS===========================//
     private boolean pag = false;
@@ -155,7 +155,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         }
 
         this.pag = graph.isPag();
-        this.pattern = graph.isCpdag();
+        this.cpdag = graph.isCpdag();
 //        }
     }
 
@@ -772,17 +772,17 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     }
 
     /**
-     * True if this graph has been stamped as a pattern. The search algorithm
+     * True if this graph has been stamped as a cpdag. The search algorithm
      * should do this.
      */
     @Override
     public boolean isCpdag() {
-        return pattern;
+        return cpdag;
     }
 
     @Override
-    public void setCpdag(boolean pattern) {
-        this.pattern = pattern;
+    public void setCpdag(boolean cpdag) {
+        this.cpdag = cpdag;
     }
 
     /**

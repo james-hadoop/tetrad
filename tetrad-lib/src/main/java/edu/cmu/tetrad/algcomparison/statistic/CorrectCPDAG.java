@@ -25,7 +25,7 @@ public class CorrectCPDAG implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        return SearchGraphUtils.patternForDag(trueGraph).equals(SearchGraphUtils.patternForDag(estGraph)) ?
+        return SearchGraphUtils.cpdagForDag(trueGraph).equals(SearchGraphUtils.cpdagForDag(estGraph)) ?
                 1 : 0;
     }
 

@@ -267,7 +267,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
 //        if (true) {
 //            K3 k3 = new K3(score);
-//            return SearchGraphUtils.patternForDag(k3.search(graph.getCausalOrdering()));
+//            return SearchGraphUtils.cpdagForDag(k3.search(graph.getCausalOrdering()));
 //        }
 
         return graph;
@@ -437,7 +437,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     /**
-     * The maximum of parents any nodes can have in output pattern.
+     * The maximum of parents any nodes can have in output cpdag.
      *
      * @return -1 for unlimited.
      */
@@ -446,7 +446,7 @@ public final class Fges implements GraphSearch, GraphScorer {
     }
 
     /**
-     * The maximum of parents any nodes can have in output pattern.
+     * The maximum of parents any nodes can have in output cpdag.
      *
      * @param maxDegree -1 for unlimited.
      */
@@ -1664,7 +1664,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         builder.append("Edge Posterior Log Bayes Factors:\n\n");
 
-        builder.append("For a DAG in the IMaGES pattern with model totalScore m, for each edge e in the "
+        builder.append("For a DAG in the IMaGES cpdag with model totalScore m, for each edge e in the "
                 + "DAG, the model totalScore that would result from removing each edge, calculating "
                 + "the resulting model totalScore m(e), and then reporting m - m(e). The totalScore used is "
                 + "the IMScore, L - SUM_i{kc ln n(i)}, L is the maximum likelihood of the model, "

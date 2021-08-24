@@ -56,7 +56,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Edits some algorithm to search for Markov blanket patterns.
+ * Edits some algorithm to search for Markov blanket cpdags.
  *
  * @author Joseph Ramsey
  */
@@ -118,7 +118,7 @@ public class IonSearchEditor extends AbstractSearchEditor
 
         /*if (getAlgorithmRunner().getSelectedDataModel() instanceof DataSet) {
             tabbedPane.add("Model Statistics", modelStatsText);
-            tabbedPane.add("DAG in pattern", dagWorkbench);
+            tabbedPane.add("DAG in cpdag", dagWorkbench);
         }*/
 
         add(ionDisplay, BorderLayout.CENTER);
@@ -440,7 +440,7 @@ public class IonSearchEditor extends AbstractSearchEditor
                 new WatchedProcess(owner) {
                     public void watch() {
 
-                        // Needs to be a pattern search; this isn't checked
+                        // Needs to be a cpdag search; this isn't checked
                         // before running the algorithm because of allowable
                         // "slop"--e.g. bidirected edges.
                         AlgorithmRunner runner = getAlgorithmRunner();
@@ -497,7 +497,7 @@ public class IonSearchEditor extends AbstractSearchEditor
             public void actionPerformed(ActionEvent e) {
                 Graph graph = new EdgeListGraph(getGraph());
 
-                // Removing bidirected edges from the pattern before selecting a DAG.                                   4
+                // Removing bidirected edges from the cpdag before selecting a DAG.                                   4
                 for (Edge edge : graph.getEdges()) {
                     if (Edges.isBidirectedEdge(edge)) {
                         graph.removeEdge(edge);
@@ -505,7 +505,7 @@ public class IonSearchEditor extends AbstractSearchEditor
                 }
 
                 CpdagToDag search = new CpdagToDag(new EdgeListGraph(graph));
-                Graph dag = search.patternToDagMeek();
+                Graph dag = search.cpdagToDagMeek();
 
                 getGraphHistory().add(dag);
                 getWorkbench().setGraph(dag);

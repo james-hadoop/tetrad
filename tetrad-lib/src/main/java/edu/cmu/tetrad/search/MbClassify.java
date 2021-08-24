@@ -137,7 +137,7 @@ public class MbClassify implements DiscreteClassifier {
 
     /**
      * Classifies the test data by Bayesian updating. The procedure is as follows. First, MBFS is run on the training
-     * data to estimate an MB pattern. Bidirected edges are removed; an MB DAG G is selected from the pattern that
+     * data to estimate an MB cpdag. Bidirected edges are removed; an MB DAG G is selected from the cpdag that
      * remains. Second, a Bayes model B is estimated using this G and the training data. Third, for each case in the
      * test data, the marginal for the target variable in B is calculated conditioning on values of the other varialbes
      * in B in the test data; these are reported as classifications. Estimation of B is done using a Dirichlet
@@ -166,18 +166,18 @@ public class MbClassify implements DiscreteClassifier {
 
         System.out.println("subset vars = " + subset.getVariables());
 
-        Pc patternSearch = new Pc(new IndTestChiSquare(subset, 0.05));
-//        patternSearch.setMaxIndegree(depth);
-        Graph mbCpdag = patternSearch.search();
+        Pc cpdagSearch = new Pc(new IndTestChiSquare(subset, 0.05));
+//        cpdagSearch.setMaxIndegree(depth);
+        Graph mbCpdag = cpdagSearch.search();
 
 //        MbFanSearch search = new MbFanSearch(indTest, depth);
 //        Graph mbCpdag = search.search(target);
 
         TetradLogger.getInstance().log("details", "Cpdag = " + mbCpdag);
         MbUtils.trimToMbNodes(mbCpdag, train.getVariable(target), true);
-        TetradLogger.getInstance().log("details", "Trimmed pattern = " + mbCpdag);
+        TetradLogger.getInstance().log("details", "Trimmed cpdag = " + mbCpdag);
 
-        // Removing bidirected edges from the pattern before selecting a DAG.                                   4
+        // Removing bidirected edges from the cpdag before selecting a DAG.                                   4
         for (Edge edge : mbCpdag.getEdges()) {
             if (Edges.isBidirectedEdge(edge)) {
                 mbCpdag.removeEdge(edge);

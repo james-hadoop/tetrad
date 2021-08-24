@@ -28,7 +28,7 @@ import edu.cmu.tetrad.graph.*;
 import java.util.*;
 
 /**
- * Given a pattern, lists all of the DAGs in that pattern. In the form of an iterator--call hasNext() to see if there's
+ * Given a CPDAG, lists all of the DAGs in that CPDAG. In the form of an iterator--call hasNext() to see if there's
  * another one and next() to get it. next() will return null if there are no more.
  *
  * @author Joseph Ramsey
@@ -46,28 +46,28 @@ public class DagInCpdagIterator {
     private LinkedList<Triple> colliders;
     private boolean allowNewColliders = true;
 
-    public DagInCpdagIterator(Graph pattern) {
-        this(pattern, new Knowledge2(), false, true);
+    public DagInCpdagIterator(Graph cpdag) {
+        this(cpdag, new Knowledge2(), false, true);
     }
 
-    public DagInCpdagIterator(Graph pattern, IKnowledge knowledge) {
-        this(pattern, knowledge, false, true);
+    public DagInCpdagIterator(Graph cpdag, IKnowledge knowledge) {
+        this(cpdag, knowledge, false, true);
     }
 
-    public DagInCpdagIterator(Graph pattern, boolean allowArbitraryOrientations) {
-        this(pattern, new Knowledge2(), allowArbitraryOrientations, true);
+    public DagInCpdagIterator(Graph cpdag, boolean allowArbitraryOrientations) {
+        this(cpdag, new Knowledge2(), allowArbitraryOrientations, true);
     }
 
     /**
-     * The given pattern must be a pattern. If it does not consist entirely of directed and undirected edges and if it
+     * The given CPDAG must be a CPDAG. If it does not consist entirely of directed and undirected edges and if it
      * is not acyclic, it is rejected.
      *
-     * @param pattern                    The pattern for which DAGS are wanted.
+     * @param cpdag                    The CPDAG for which DAGS are wanted.
      * @param allowArbitraryOrientations True if arbitrary orientations are allowable when reasonable ones cannot be
      *                                   made. May result in cyclic outputs.
-     * @throws IllegalArgumentException if the pattern is not a pattern.
+     * @throws IllegalArgumentException if the cpdag is not a cpdag.
      */
-    public DagInCpdagIterator(Graph pattern, IKnowledge knowledge, boolean allowArbitraryOrientations,
+    public DagInCpdagIterator(Graph cpdag, IKnowledge knowledge, boolean allowArbitraryOrientations,
                                 boolean allowNewColliders) {
         if (knowledge == null) {
             this.knowledge = new Knowledge2();
@@ -79,11 +79,11 @@ public class DagInCpdagIterator {
 
         assert knowledge != null;
 
-        if (knowledge.isViolatedBy(pattern)) {
-            throw new IllegalArgumentException("The pattern already violates that knowledge.");
+        if (knowledge.isViolatedBy(cpdag)) {
+            throw new IllegalArgumentException("The cpdag already violates that knowledge.");
         }
 
-//        for (Edge edge : pattern.getEdges()) {
+//        for (Edge edge : cpdag.getEdges()) {
 //            if (Edges.isDirectedEdge(edge) || Edges.isUndirectedEdge(edge)) {
 //                continue;
 //            }
@@ -94,21 +94,21 @@ public class DagInCpdagIterator {
 //        }
 
         HashMap<Graph, Set<Edge>> changedEdges = new HashMap<>();
-        changedEdges.put(pattern, new HashSet<Edge>());
+        changedEdges.put(cpdag, new HashSet<Edge>());
 
-        decoratedGraphs.add(new DecoratedGraph(pattern, getKnowledge(), changedEdges,
+        decoratedGraphs.add(new DecoratedGraph(cpdag, getKnowledge(), changedEdges,
                 allowArbitraryOrientations));
-        this.colliders = GraphUtils.listColliderTriples(pattern);
+        this.colliders = GraphUtils.listColliderTriples(cpdag);
     }
 
     /**
-     * Successive calls to this method return successive DAGs in the pattern, in a more or less natural enumeration of
+     * Successive calls to this method return successive DAGs in the cpdag, in a more or less natural enumeration of
      * them in which an arbitrary undirected edge is picked, oriented one way, Meek rules applied, then a remaining
      * unoriented edge is picked, oriented one way, and so on, until a DAG is obtained, and then by backtracking the
      * other orientation of each chosen edge is tried. Nonrecursive, obviously.
      * <p>
      *
-     * @return a Graph instead of a DAG because sometimes, due to faulty patterns, a cyclic graph is produced, and the
+     * @return a Graph instead of a DAG because sometimes, due to faulty cpdags, a cyclic graph is produced, and the
      * end-user may need to decide what to do with it. The simplest thing is to construct a DAG (Dag(graph)) and catch
      * an exception.
      */
@@ -152,7 +152,7 @@ public class DagInCpdagIterator {
     }
 
     /**
-     * @return true just in case there is still a DAG remaining in the enumeration of DAGs for this pattern.
+     * @return true just in case there is still a DAG remaining in the enumeration of DAGs for this cpdag.
      */
     public boolean hasNext() {
         if (storedGraph == null) {

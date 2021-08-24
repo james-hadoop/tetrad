@@ -28,12 +28,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Given a pattern this class implements two algortithms for finding an associated directed acyclic graph (DAG).
+ * Given a cpdag this class implements two algortithms for finding an associated directed acyclic graph (DAG).
  * <p>
- * The first algorithm (in patternToDagMeek) was described in Zhang and Spirtes (2005), "A Characterization of Markov
+ * The first algorithm (in cpdagToDagMeek) was described in Zhang and Spirtes (2005), "A Characterization of Markov
  * Equivalence Classes for Ancestral Graphical Models" on pp. 53-54.
  * <p>
- * The second algorithm (in patternToDagDorTarsi) was described by Chickering (2002) in "Optimal Structure
+ * The second algorithm (in cpdagToDagDorTarsi) was described by Chickering (2002) in "Optimal Structure
  * Identification with Greedy Search" in the Journal of Machine Learning Research.  The algorithm was proposed by Dor
  * and Tarsi (1992).
  *
@@ -42,27 +42,27 @@ import java.util.Set;
 public class CpdagToDag {
 
     /**
-     * The input pattern
+     * The input cpdag
      */
-    private Graph pattern;
+    private Graph cpdag;
 
     //=============================CONSTRUCTORS==========================//
 
-    public CpdagToDag(Graph pattern) {
-        if (pattern == null) {
+    public CpdagToDag(Graph cpdag) {
+        if (cpdag == null) {
             throw new IllegalArgumentException(
-                    "Input pattern must not be null");
+                    "Input cpdag must not be null");
         }
 
-        this.pattern = pattern;
+        this.cpdag = cpdag;
     }
 
     /**
      * This algorithm is due to Meek (1995) and was described by Zhang and Spirtes (2005), "A Characterization of Markov
      * Equivalence Classes for Ancestral Graphical Models" on pp. 53-54.
      */
-    public Graph patternToDagMeek() {
-        return SearchGraphUtils.dagFromCpdag(pattern);
+    public Graph cpdagToDagMeek() {
+        return SearchGraphUtils.dagFromCpdag(cpdag);
     }
 }
 

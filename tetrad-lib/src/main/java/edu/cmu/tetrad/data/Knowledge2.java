@@ -138,9 +138,9 @@ public final class Knowledge2 implements TetradSerializable, IKnowledge {
             split(spec).stream()
                     .map(e -> e.replace("*", ".*"))
                     .forEach(e -> {
-                        final Pattern pattern = Pattern.compile(e);
+                        final Pattern cpdag = Pattern.compile(e);
                         variables.stream()
-                                .filter(var -> pattern.matcher(var).matches())
+                                .filter(var -> cpdag.matcher(var).matches())
                                 .collect(Collectors.toCollection(() -> vars));
                     });
         } else {
@@ -208,7 +208,7 @@ public final class Knowledge2 implements TetradSerializable, IKnowledge {
     }
 
     /**
-     * Adds the given variable or wildcard pattern to the given tier. The tier
+     * Adds the given variable or wildcard cpdag to the given tier. The tier
      * is a non-negative integer.
      *
      * @param tier
@@ -263,7 +263,7 @@ public final class Knowledge2 implements TetradSerializable, IKnowledge {
 
     /**
      * Adds a knowledge group. Legacy method, replaced by setForbidden,
-     * setRequired with patterns. Needed for the interface.
+     * setRequired with cpdags. Needed for the interface.
      *
      * @param group
      */

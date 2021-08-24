@@ -89,7 +89,7 @@ public class HsimEvalFromData {
                     ArrayList<PRAOerrors> errorsList = new ArrayList<PRAOerrors>();
                     for (int r = 0; r < fsimRepeat.get(whichFrepeat); r++) {
                         CpdagToDag pickdag = new CpdagToDag(oFGSGraph);
-                        Graph fgsDag = pickdag.patternToDagMeek();
+                        Graph fgsDag = pickdag.cpdagToDagMeek();
                         Dag fgsdag2 = new Dag(fgsDag);
                         //then fit an IM to this dag and the data. GeneralizedSemEstimator seems to bug out
                         //GeneralizedSemPm simSemPm = new GeneralizedSemPm(fgsdag2);

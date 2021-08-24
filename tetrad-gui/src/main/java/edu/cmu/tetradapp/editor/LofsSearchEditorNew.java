@@ -47,7 +47,7 @@ import java.util.Map;
 
 
 /**
- * Edits some algorithm to search for Markov blanket patterns.
+ * Edits some algorithm to search for Markov blanket CPDAGs.
  *
  * @author Joseph Ramsey
  */
@@ -489,7 +489,7 @@ public class LofsSearchEditorNew extends AbstractSearchEditor
                 new WatchedProcess(owner) {
                     public void watch() {
 
-                        // Needs to be a pattern search; this isn't checked
+                        // Needs to be a CPDAG search; this isn't checked
                         // before running the algorithm because of allowable
                         // "slop"--e.g. bidirected edges.
                         AlgorithmRunner runner = getAlgorithmRunner();
@@ -531,7 +531,7 @@ public class LofsSearchEditorNew extends AbstractSearchEditor
             public void actionPerformed(ActionEvent e) {
                 Graph graph = new EdgeListGraph(getGraph());
 
-                // Removing bidirected edges from the pattern before selecting a DAG.                                   4
+                // Removing bidirected edges from the CPDAG before selecting a DAG.                                   4
                 for (Edge edge : graph.getEdges()) {
                     if (Edges.isBidirectedEdge(edge)) {
                         graph.removeEdge(edge);
@@ -539,7 +539,7 @@ public class LofsSearchEditorNew extends AbstractSearchEditor
                 }
 
                 CpdagToDag search = new CpdagToDag(new EdgeListGraph(graph));
-                Graph dag = search.patternToDagMeek();
+                Graph dag = search.cpdagToDagMeek();
 
                 getGraphHistory().add(dag);
                 getWorkbench().setGraph(dag);

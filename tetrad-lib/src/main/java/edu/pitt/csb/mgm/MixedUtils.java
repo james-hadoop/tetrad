@@ -717,9 +717,9 @@ public class MixedUtils {
                 stats[i][j] = 0;
             }
         }
-        //enforce patterns?
-        //Graph pT = SearchGraphUtils.patternFromDag(tg);
-        //Graph pE = SearchGraphUtils.patternFromDag(eg);
+        //enforce cpdags?
+        //Graph pT = SearchGraphUtils.cpdagFromDag(tg);
+        //Graph pE = SearchGraphUtils.cpdagFromDag(eg);
 
         //check that variable names are the same...
 

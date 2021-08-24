@@ -40,7 +40,7 @@ import java.util.*;
  * @author Joseph Ramsey
  */
 public class Lofs {
-    private Graph pattern;
+    private Graph cpdag;
     private List<DataSet> dataSets;
     private double alpha = 0.05;
     private ArrayList<Regression> regressions;
@@ -61,10 +61,10 @@ public class Lofs {
 
     //===============================CONSTRUCTOR============================//
 
-    public Lofs(Graph pattern, List<DataSet> dataSets)
+    public Lofs(Graph cpdag, List<DataSet> dataSets)
             throws IllegalArgumentException {
 
-        if (pattern == null) {
+        if (cpdag == null) {
             throw new IllegalArgumentException("Cpdag must be specified.");
         }
 
@@ -72,7 +72,7 @@ public class Lofs {
             throw new IllegalArgumentException("Data set must be specified.");
         }
 
-        this.pattern = pattern;
+        this.cpdag = cpdag;
         this.dataSets = dataSets;
 
         regressions = new ArrayList<>();
@@ -778,7 +778,7 @@ public class Lofs {
     }
 
     private Graph getCpdag() {
-        return pattern;
+        return cpdag;
     }
 
     private Node getVariable(List<Node> variables, String name) {

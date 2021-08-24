@@ -345,13 +345,13 @@ public final class Vcpc implements GraphSearch {
 
 //        Cpdag Search:
 
-        List<Graph> patterns = new ArrayList<>();
+        List<Graph> cpdags = new ArrayList<>();
         Map<Graph, List<Triple>> newColliders = new IdentityHashMap<>();
         Map<Graph, List<Triple>> newNonColliders = new IdentityHashMap<>();
 
 //      Using combination generator to generate a list of combinations of ambiguous triples dismabiguated into colliders
-//      and non-colliders. The combinations are added as graphs to the list patterns. The graphs are then subject to
-//      basic rules to ensure consistent patterns.
+//      and non-colliders. The combinations are added as graphs to the list cpdags. The graphs are then subject to
+//      basic rules to ensure consistent cpdags.
 
 
         CombinationGenerator generator = new CombinationGenerator(dims);
@@ -385,16 +385,16 @@ public final class Vcpc implements GraphSearch {
                     newNonColliders.get(_graph).add(triple);
                 }
             }
-            patterns.add(_graph);
+            cpdags.add(_graph);
         }
 
-        List<Graph> _patterns = new ArrayList<>(patterns);
+        List<Graph> _cpdags = new ArrayList<>(cpdags);
 
-        ///    Takes patterns and runs them through basic constraints to ensure consistent patterns (e.g. no cycles, no bidirected edges).
+        ///    Takes cpdags and runs them through basic constraints to ensure consistent cpdags (e.g. no cycles, no bidirected edges).
 
         GRAPH:
 
-        for (Graph graph : new ArrayList<>(patterns)) {
+        for (Graph graph : new ArrayList<>(cpdags)) {
 //            _graph = new EdgeListGraph(graph);
 
 //            System.out.println("graph = " + graph + " in keyset? " + newColliders.containsKey(graph));
@@ -409,7 +409,7 @@ public final class Vcpc implements GraphSearch {
                 Node z = triple.getZ();
 
                 if (graph.getEdge(x, y).pointsTowards(x) || (graph.getEdge(y, z).pointsTowards(z))) {
-                    patterns.remove(graph);
+                    cpdags.remove(graph);
                     continue GRAPH;
                 }
             }
@@ -449,7 +449,7 @@ public final class Vcpc implements GraphSearch {
 
 //            for (Edge edge : graph.getEdges()) {
 //                if (Edges.isBidirectedEdge(edge)) {
-//                    patterns.remove(graph);
+//                    cpdags.remove(graph);
 //                    continue Graph;
 //                }
 //            }
@@ -457,7 +457,7 @@ public final class Vcpc implements GraphSearch {
             MeekRules rules = new MeekRules();
             rules.orientImplied(graph);
             if (graph.existsDirectedCycle()) {
-                patterns.remove(graph);
+                cpdags.remove(graph);
                 continue GRAPH;
             }
 
@@ -472,7 +472,7 @@ public final class Vcpc implements GraphSearch {
             Node x = edge.getNode1();
             Node y = edge.getNode2();
 
-            for (Graph _graph : new ArrayList<>(patterns)) {
+            for (Graph _graph : new ArrayList<>(cpdags)) {
 
                 List<Node> boundaryX = new ArrayList<>(boundary(x, _graph));
                 List<Node> boundaryY = new ArrayList<>(boundary(y, _graph));
@@ -572,7 +572,7 @@ public final class Vcpc implements GraphSearch {
 
         System.out.println("VCPC:");
 
-//        System.out.println("# of patterns: " + patterns.size());
+//        System.out.println("# of cpdags: " + cpdags.size());
         long endTime = System.currentTimeMillis();
         this.elapsedTime = endTime - startTime;
 
@@ -587,8 +587,8 @@ public final class Vcpc implements GraphSearch {
 //        for (Edge edge : definitelyNonadjacencies) {
 //            System.out.println(edge);
 //        }
-//        System.out.println("markov in all patterns:" + markovInAllCpdags);
-////        System.out.println("patterns:" + patterns);
+//        System.out.println("markov in all cpdags:" + markovInAllCpdags);
+////        System.out.println("cpdags:" + cpdags);
 //        System.out.println("Apparently Nonadjacencies:");
 //        for (Edge edge : apparentlyNonadjacencies.keySet()) {
 //            System.out.println(edge);
@@ -600,7 +600,7 @@ public final class Vcpc implements GraphSearch {
 
         TetradLogger.getInstance().log("apparentlyNonadjacencies", "\n Apparent Non-adjacencies" + apparentlyNonadjacencies);
         TetradLogger.getInstance().log("definitelyNonadjacencies", "\n Definite Non-adjacencies" + definitelyNonadjacencies);
-//        TetradLogger.getInstance().log("patterns", "Disambiguated Cpdags: " + patterns);
+//        TetradLogger.getInstance().log("cpdags", "Disambiguated Cpdags: " + cpdags);
         TetradLogger.getInstance().log("graph", "\nReturning this graph: " + graph);
         TetradLogger.getInstance().log("info", "Elapsed time = " + (elapsedTime) / 1000. + " s");
         TetradLogger.getInstance().log("info", "Finishing CPC algorithm.");
@@ -635,8 +635,8 @@ public final class Vcpc implements GraphSearch {
 
     //==========================PRIVATE METHODS===========================//
 
-//    Takes patterns and, with respect to a node and its boundary, finds all possible combinations of orientations
-//    of its boundary such that no new colliders are created. For each combination, a new pattern is added to the
+//    Takes cpdags and, with respect to a node and its boundary, finds all possible combinations of orientations
+//    of its boundary such that no new colliders are created. For each combination, a new cpdag is added to the
 //    list dagCpdags.
 
     private List<Graph> dagCpdags(Node x, Graph graph) {
@@ -717,34 +717,34 @@ public final class Vcpc implements GraphSearch {
         BOUNDARY1:
 
         for (Node a : boundaryX) {
-            Graph pattern = new EdgeListGraph(graph);
+            Graph cpdag = new EdgeListGraph(graph);
 
-            if (pattern.getEdge(x, a).pointsTowards(a)) {
+            if (cpdag.getEdge(x, a).pointsTowards(a)) {
                 continue;
             }
 
-            if (Edges.isUndirectedEdge(pattern.getEdge(x, a))) {
-                pattern.setEndpoint(a, x, Endpoint.ARROW);
+            if (Edges.isUndirectedEdge(cpdag.getEdge(x, a))) {
+                cpdag.setEndpoint(a, x, Endpoint.ARROW);
             }
 
             List<Node> otherNodesX = new ArrayList<>(boundaryX);
             otherNodesX.remove(a);
             for (Node b : otherNodesX) {
-                if (pattern.getEdge(x, b).pointsTowards(x)) {
+                if (cpdag.getEdge(x, b).pointsTowards(x)) {
                     continue BOUNDARY1;
                 }
-                if (Edges.isUndirectedEdge(pattern.getEdge(x, b))) {
-                    List<Node> boundaryB = new ArrayList<>(boundary(b, pattern));
+                if (Edges.isUndirectedEdge(cpdag.getEdge(x, b))) {
+                    List<Node> boundaryB = new ArrayList<>(boundary(b, cpdag));
                     boundaryB.remove(x);
                     for (Node c : boundaryB) {
-                        if (pattern.isParentOf(c, b)) {
+                        if (cpdag.isParentOf(c, b)) {
                             continue BOUNDARY1;
                         }
                     }
-                    pattern.setEndpoint(x, b, Endpoint.ARROW);
+                    cpdag.setEndpoint(x, b, Endpoint.ARROW);
                 }
             }
-            eCpdags.add(pattern);
+            eCpdags.add(cpdag);
         }
 
         Graph _dag = new EdgeListGraph(graph);
@@ -1290,15 +1290,15 @@ public final class Vcpc implements GraphSearch {
     }
 
 //        Step V5. For each consistent disambiguation of the ambiguous triples
-//                we test whether the resulting pattern satisfies Markov. If
-//                every pattern does, then mark all the apparently non-adjacent
+//                we test whether the resulting cpdag satisfies Markov. If
+//                every cpdag does, then mark all the apparently non-adjacent
 //                pairs as definitely non-adjacent.
 
 
 //        NODES:
 //
 //        for (Node node : graph.getNodes()) {
-//            for (Graph _graph : new ArrayList<Graph>(patterns)) {
+//            for (Graph _graph : new ArrayList<Graph>(cpdags)) {
 //                System.out.println("boundary of" + node + boundary(node, _graph));
 //                System.out.println("future of" + node + future(node, _graph));
 //                if (!isMarkov(node, _graph)) {
@@ -1327,11 +1327,11 @@ public final class Vcpc implements GraphSearch {
 //        }
 
 
-//        Step V5* Instead of checking if Markov in every pattern, just find some pattern that is Markov.
+//        Step V5* Instead of checking if Markov in every cpdag, just find some cpdag that is Markov.
 
 //        PATTERNS:
 //
-//        for (Graph _graph : new ArrayList<Graph>(patterns)) {
+//        for (Graph _graph : new ArrayList<Graph>(cpdags)) {
 //            for (Node node : graph.getNodes()) {
 //                if (!isMarkov(node, _graph)) {
 //                    continue PATTERNS;
@@ -1360,7 +1360,7 @@ public final class Vcpc implements GraphSearch {
 //        }
 
 
-//        //  Local Relative Markox condition. Tests if X is markov with respect to Y in all patterns.
+//        //  Local Relative Markox condition. Tests if X is markov with respect to Y in all cpdags.
 //
 //        MARKOV:
 //
@@ -1369,7 +1369,7 @@ public final class Vcpc implements GraphSearch {
 //
 //            Node y = edge.getNode2();
 //
-//            for (Graph _graph : new ArrayList<Graph>(patterns)) {
+//            for (Graph _graph : new ArrayList<Graph>(cpdags)) {
 //
 //                List<Node> boundaryX = new ArrayList<Node>(boundary(x, _graph));
 //                List<Node> boundaryY = new ArrayList<Node>(boundary(y, _graph));
@@ -1427,9 +1427,9 @@ public final class Vcpc implements GraphSearch {
 
 //
 ////        11/4/14 - Local "relative" Markov test: For each apparent non-adjacency X-Y, and
-////        smallest subset of boundaries for X and Y, Sx and Sy such that for SOME pattern:
+////        smallest subset of boundaries for X and Y, Sx and Sy such that for SOME cpdag:
 ////                X _||_ Y | Sx and X_||_Y | Sy.
-////                If such smallest subsets of the boundaries for X and Y are found for SOME pattern,
+////                If such smallest subsets of the boundaries for X and Y are found for SOME cpdag,
 ////                then mark the edge as definitely non-adjacent.
 //
 //        MARKOV:
@@ -1440,7 +1440,7 @@ public final class Vcpc implements GraphSearch {
 //
 //            PATT:
 //
-//            for (Graph _graph : new ArrayList<Graph>(patterns)) {
+//            for (Graph _graph : new ArrayList<Graph>(cpdags)) {
 //                Set<Node> ssX = new HashSet<Node>(boundary(x, _graph));
 //                List<Node> listX = new ArrayList<Node>(ssX);
 //                Set<Node> ssY = new HashSet<Node>(boundary(y, _graph));
@@ -1497,7 +1497,7 @@ public final class Vcpc implements GraphSearch {
 ////        result. E.g., for x-y-z, the possible orientations are x->y->z, x<-y<-z, and x<-y->z.
 ////        For each orientation, calculate bdry(y) and ftre(y). Perform Markov tests for each possible
 ////        orientation - e.g. X_||_Y | bdry(Y). If the answer is yes for each orientation then X and Y
-////        are definitely non-adjacent for that pattern. If they pass such a test for every pattern, then
+////        are definitely non-adjacent for that cpdag. If they pass such a test for every cpdag, then
 ////        they are definitely non-adjacent.
 //
 //        MARKOV:
@@ -1507,7 +1507,7 @@ public final class Vcpc implements GraphSearch {
 //            Node y = edge.getNode2();
 //            IndependenceTest test = independenceTest;
 //
-//            for (Graph _graph : new ArrayList<Graph>(patterns)) {
+//            for (Graph _graph : new ArrayList<Graph>(cpdags)) {
 //
 //                List<Graph> dagCpdagsX = dagCpdags(x, _graph);
 //
@@ -1565,7 +1565,7 @@ public final class Vcpc implements GraphSearch {
 //            }
 //        }
 
-//        List<Graph> patternss = new ArrayList<Graph>();
+//        List<Graph> cpdagss = new ArrayList<Graph>();
 
 
 //        MARKOV:

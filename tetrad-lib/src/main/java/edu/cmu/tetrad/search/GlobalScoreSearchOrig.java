@@ -10,7 +10,7 @@ import edu.cmu.tetrad.util.TetradLogger;
 import java.util.*;
 
 /**
- * Searches for a DAG in a pattern by adding or removing directed edges starting
+ * Searches for a DAG in a cpdag by adding or removing directed edges starting
  * with an empty graph.
  *
  * @author josephramsey

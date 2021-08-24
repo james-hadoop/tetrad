@@ -1,76 +1,82 @@
-package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
+package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
-import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
-import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
+import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
+import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.Fas;
-import edu.cmu.tetrad.search.SearchGraphUtils;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.search.Boss;
+import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * FAS.
+ * BOSS (Best Order Scoring Search).
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "FAS",
-        command = "fas",
-        algoType = AlgType.produce_undirected_graphs
+        name = "GSP",
+        command = "gsp",
+        algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
+@Experimental
+public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
-    private IndependenceWrapper test;
-    private IKnowledge knowledge = new Knowledge2();
 
-    public FAS() {
+    private IKnowledge knowledge = new Knowledge2();
+    private ScoreWrapper score;
+    private Graph initialGraph;
+    private Algorithm algorithm;
+
+    public GSP() {
+
     }
 
-    public FAS(IndependenceWrapper test) {
-        this.test = test;
+    public GSP(ScoreWrapper score) {
+        this.score = score;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            Fas search = new Fas(test.getTest(dataSet, parameters, trueGraph));
-            search.setStable(parameters.getBoolean(Params.STABLE_FAS));
-            search.setHeuristic(parameters.getInt(Params.FAS_HEURISTIC));
-            search.setDepth(parameters.getInt(Params.DEPTH));
-            search.setKnowledge(knowledge);
-            search.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            Score score = this.score.getScore(dataSet, parameters);
+            Boss boss = new Boss(score);
+//            boss.setBreakTies(parameters.getBoolean(Params.FINAL_ORIENTATION));
+            boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
+            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            boss.setGspDepth(parameters.getInt(Params.DEPTH));
+            boss.setMethod(Boss.Method.GSP);
 
-            Object obj = parameters.get(Params.PRINT_STREAM);
-            if (obj instanceof PrintStream) {
-                search.setOut((PrintStream) obj);
-            }
-
-            return search.search();
+            List<Node> order = boss.bestOrder(score.getVariables());
+            return boss.getGraph(order, false);
         } else {
-            FAS algorithm = new FAS(test);
+            GSP fges = new GSP();
 
             DataSet data = (DataSet) dataSet;
-            GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
+            GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(knowledge);
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+
             switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
                 case 0:
                     edgeEnsemble = ResamplingEdgeEnsemble.Preserved;
@@ -81,6 +87,7 @@ public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
                 case 2:
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
             }
+
             search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
 
@@ -92,27 +99,26 @@ public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
 
     @Override
     public Graph getComparisonGraph(Graph graph) {
-        return SearchGraphUtils.patternForDag(new EdgeListGraph(graph));
+        return new EdgeListGraph(graph);
     }
 
     @Override
     public String getDescription() {
-        return "Fast adjacency search (FAS) using " + test.getDescription();
+        return "GSP";
     }
 
     @Override
     public DataType getDataType() {
-        return test.getDataType();
+        return score.getDataType();
     }
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = new ArrayList<>();
-        parameters.add(Params.DEPTH);
-        parameters.add(Params.FAS_HEURISTIC);
-        parameters.add(Params.STABLE_FAS);
-        parameters.add(Params.VERBOSE);
-        return parameters;
+        ArrayList<String> params = new ArrayList<>();
+        params.add(Params.CACHE_SCORES);
+        params.add(Params.NUM_STARTS);
+        params.add(Params.DEPTH);
+        return params;
     }
 
     @Override
@@ -126,12 +132,27 @@ public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     }
 
     @Override
-    public IndependenceWrapper getIndependenceWrapper() {
-        return test;
+    public ScoreWrapper getScoreWrapper() {
+        return score;
     }
 
     @Override
-    public void setIndependenceWrapper(IndependenceWrapper test) {
-        this.test = test;
+    public void setScoreWrapper(ScoreWrapper score) {
+        this.score = score;
+    }
+
+    @Override
+    public Graph getInitialGraph() {
+        return initialGraph;
+    }
+
+    @Override
+    public void setInitialGraph(Graph initialGraph) {
+        this.initialGraph = initialGraph;
+    }
+
+    @Override
+    public void setInitialGraph(Algorithm algorithm) {
+        this.algorithm = algorithm;
     }
 }

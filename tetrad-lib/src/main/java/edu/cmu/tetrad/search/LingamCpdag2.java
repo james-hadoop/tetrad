@@ -46,13 +46,13 @@ import java.util.List;
  * in the nortest package of R. The default alpha level is 0.05--that is, p values from AD below 0.05 are taken to
  * indicate nongaussianity.
  * <p>
- * It is assumed that the pattern is the result of a pattern search such as PC or GES. In any case, it is important that
+ * It is assumed that the cpdag is the result of a cpdag search such as PC or GES. In any case, it is important that
  * the residuals be independent for ICA to work.
  *
  * @author Joseph Ramsey
  */
 public class LingamCpdag2 {
-    private Graph pattern;
+    private Graph cpdag;
     private List<DataSet> dataSets;
     private IKnowledge knowledge = new Knowledge2();
     private Graph bestDag;
@@ -72,18 +72,18 @@ public class LingamCpdag2 {
 
     //===============================CONSTRUCTOR============================//
 
-    public LingamCpdag2(Graph pattern, List<DataSet> dataSets)
+    public LingamCpdag2(Graph cpdag, List<DataSet> dataSets)
             throws IllegalArgumentException {
 
         if (dataSets == null) {
             throw new IllegalArgumentException("Data set must be specified.");
         }
 
-        if (pattern == null) {
+        if (cpdag == null) {
             throw new IllegalArgumentException("Cpdag must be specified.");
         }
 
-        this.pattern = pattern;
+        this.cpdag = cpdag;
         this.dataSets = dataSets;
 
         this.variables = dataSets.get(0).getVariables();
@@ -113,14 +113,14 @@ public class LingamCpdag2 {
     public Graph search() {
         long initialTime = System.currentTimeMillis();
 
-        Graph _pattern = GraphUtils.bidirectedToUndirected(getCpdag());
+        Graph _cpdag = GraphUtils.bidirectedToUndirected(getCpdag());
 
-        TetradLogger.getInstance().log("info", "Making list of all dags in pattern...");
+        TetradLogger.getInstance().log("info", "Making list of all dags in cpdag...");
 
-//        List<Graph> dags = SearchGraphUtils.getDagsInCpdagMeek(_pattern, getKnowledge());
-//        List<Graph> dags = SearchGraphUtils.generateCpdagDags(_pattern, false);
-//        List<Dag> dags = SearchGraphUtils.getAllDagsByDirectingUndirectedEdges(_pattern);
-        List<Graph> dags = SearchGraphUtils.getAllGraphsByDirectingUndirectedEdges(_pattern);
+//        List<Graph> dags = SearchGraphUtils.getDagsInCpdagMeek(_cpdag, getKnowledge());
+//        List<Graph> dags = SearchGraphUtils.generateCpdagDags(_cpdag, false);
+//        List<Dag> dags = SearchGraphUtils.getAllDagsByDirectingUndirectedEdges(_cpdag);
+        List<Graph> dags = SearchGraphUtils.getAllGraphsByDirectingUndirectedEdges(_cpdag);
 
         TetradLogger.getInstance().log("normalityTests", "Anderson Darling P value for Variables\n");
         NumberFormat nf = new DecimalFormat("0.0000");
@@ -179,7 +179,7 @@ public class LingamCpdag2 {
 
 //        System.out.println();
 
-        Graph ngDagCpdag = SearchGraphUtils.patternFromDag(dag);
+        Graph ngDagCpdag = SearchGraphUtils.cpdagFromDag(dag);
 
         List<Node> nodes = ngDagCpdag.getNodes();
 
@@ -545,7 +545,7 @@ public class LingamCpdag2 {
     }
 
     private Graph getCpdag() {
-        return pattern;
+        return cpdag;
     }
 
     private List<DataSet> getDataSets() {

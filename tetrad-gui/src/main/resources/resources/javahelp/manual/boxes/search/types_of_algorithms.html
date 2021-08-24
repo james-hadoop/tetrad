@@ -30,7 +30,7 @@
     class can be obtained in this way by different choices of orientation, and they
     are all statistically equivalence if the data are from a linear, Gaussian model
     or the algorithm uses only conditional independence information as data.
-    For pattern algorithms, it is assumed that there are no latent common causes
+    For cpdag algorithms, it is assumed that there are no latent common causes
     in the model--that is, there can be latents, but there cannot be structures of
     the following form: X<-L->Y, where X and Y are measured and L is not.</li>
     <li>PAG (Partial Ancestral Graph) algorithm. This is the class of equivalence
@@ -47,7 +47,7 @@
     that the endpoint in question may be either an arrow or a tail.</li>
     <li>DAG algorithm. In the last many years at this point, algorithms have been
     developed appealing to non-Gaussianity or nonlinearity, that are able to
-    distinguish between DAGs in a pattern or PAG and in many cases pick which
+    distinguish between DAGs in a cpdag or PAG and in many cases pick which
     one corresponds to the truth. Our representation of such algorithms in Tetrad
     is still fairly meager, but we hope to improve.</li>
     <li>Markov blanket. One question that's often been raised is to find the Markov
@@ -60,15 +60,15 @@
     algorihtms that address this issue; many more exist in the literature.</li>
     <li>Undirected Graph. In some cases, what one wants is an undirected graph over
     the variables. We give one such algorithms, FAS, which yields the skeleton
-    of a pattern over measured variables. For FAS, parents X and Z for X->Y<-X
+    of a cpdag over measured variables. For FAS, parents X and Z for X->Y<-X
     where X and Z are not adjacent are not married--that is, there is not adjacency
     X--Z in the output. For other algorithms, there is such adjacency; these output
     what's known as a Markov random field--that is, the undirected skeleton of a
     DAG model in which all parents are married.</li>
     <li>Pairwise. One thing one can do with an undirected graph, if the data are
-    non-Gaussian or nonlinear, is to orient the edges pairwise. Not that pattern
+    non-Gaussian or nonlinear, is to orient the edges pairwise. Not that cpdag
     algorithms and PAG algorithms cannot do this. For instance, if the true model
-    is X->Y->Z, the pattern for this will be X--Y--Z, indicating that the true model
+    is X->Y->Z, the cpdag for this will be X--Y--Z, indicating that the true model
     is X->Y->Z or X<-Y<-Z or X<-Y->Z, but not indicating which one it is. This is
     the best that one can do if the data are linear and Gaussian. If, however, the
     assumptions of linearity and Gaussianit prove false, it may be possible to

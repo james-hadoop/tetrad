@@ -85,7 +85,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Edits some algorithm to search for Markov blanket patterns.
+ * Edits some algorithm to search for Markov blanket cpdags.
  *
  * @author Joseph Ramsey
  * @author Chirayu Kong Wongchokprasitti, PhD (chw20@pitt.edu)

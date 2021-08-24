@@ -1,4 +1,4 @@
-package edu.cmu.tetrad.algcomparison.algorithm.mixed.pattern;
+package edu.cmu.tetrad.algcomparison.algorithm.mixed.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
@@ -78,7 +78,7 @@ public class MixedFgesDiscretingContinuousVariables implements Algorithm {
 
     @Override
     public Graph getComparisonGraph(Graph graph) {
-        return SearchGraphUtils.patternForDag(new EdgeListGraph(graph));
+        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
     }
 
     @Override

@@ -262,7 +262,7 @@ public class TeyssierScorer {
         return new HashSet<>(scores.get(indexOf(v)).getParents());
     }
 
-    public Graph getGraph(boolean pattern) {
+    public Graph getGraph(boolean cpdag) {
         List<Node> order = getOrder();
         Graph G1 = new EdgeListGraph(order);
 
@@ -272,8 +272,8 @@ public class TeyssierScorer {
             }
         }
 
-        if (pattern) {
-            return SearchGraphUtils.patternForDag(G1);
+        if (cpdag) {
+            return SearchGraphUtils.cpdagForDag(G1);
         } else {
             return G1;
         }

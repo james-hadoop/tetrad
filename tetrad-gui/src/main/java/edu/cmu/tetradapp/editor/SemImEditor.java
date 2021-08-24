@@ -84,13 +84,11 @@ public final class SemImEditor extends JPanel implements LayoutEditable, DoNotSc
     private static final long serialVersionUID = -1856607070184945405L;
 
     private OneEditor oneEditorPanel;
-    private JPanel targetPanel;
+    private final JPanel targetPanel;
     private int matrixSelection;
 
     /**
      * Constructs a new SemImEditor from the given OldSemEstimateAdapter.
-     *
-     * @param semImWrapper
      */
     public SemImEditor(SemImWrapper semImWrapper) {
         this(semImWrapper, "Graphical Editor", "Tabular Editor", TabbedPaneDefault.GRAPHICAL);
@@ -98,8 +96,6 @@ public final class SemImEditor extends JPanel implements LayoutEditable, DoNotSc
 
     /**
      * Constructs a new SemImEditor from the given OldSemEstimateAdapter.
-     *
-     * @param semEstWrapper
      */
     public SemImEditor(SemEstimatorWrapper semEstWrapper) {
         this(new SemImWrapper(semEstWrapper.getSemEstimator().getEstimatedSem()));
@@ -107,11 +103,6 @@ public final class SemImEditor extends JPanel implements LayoutEditable, DoNotSc
 
     /**
      * Constructs an editor for the given SemIm.
-     *
-     * @param wrapper
-     * @param graphicalEditorTitle
-     * @param tabularEditorTitle
-     * @param tabbedPaneDefault
      */
     public SemImEditor(final SemImWrapper wrapper, final String graphicalEditorTitle,
             final String tabularEditorTitle, final TabbedPaneDefault tabbedPaneDefault) {
@@ -1953,6 +1944,8 @@ public final class SemImEditor extends JPanel implements LayoutEditable, DoNotSc
         }
 
         private void switchView(boolean a, boolean b) {
+
+
             impliedJTable().setModel(new ImpliedCovTable(wrapper, a, b));
             //     impliedJTable().getTableHeader().setReorderingAllowed(false);
             impliedJTable().setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -1967,6 +1960,7 @@ public final class SemImEditor extends JPanel implements LayoutEditable, DoNotSc
             list.add("Implied covariance matrix (measured variables only)");
             list.add("Implied correlation matrix (all variables)");
             list.add("Implied correlation matrix (measured variables only)");
+            list.add("Error Covariance Matrix)");
             return list;
         }
 

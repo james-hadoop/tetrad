@@ -1,4 +1,4 @@
-package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
+package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
@@ -79,12 +79,10 @@ public class BOSSIndep implements Algorithm, HasKnowledge, TakesIndependenceWrap
                 throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
             }
 
-            if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 1) {
+            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE) ) {
                 boss.setScoreType(TeyssierScorer.ScoreType.Edge);
-            } else if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 2) {
-                boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
             } else {
-                throw new IllegalArgumentException("Unexpected score type: " + parameters.getInt(Params.BOSS_SCORE_TYPE));
+                boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
             }
 
             boss.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));

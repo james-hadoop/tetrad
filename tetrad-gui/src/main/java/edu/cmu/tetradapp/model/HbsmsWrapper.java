@@ -174,7 +174,7 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
             GraphUtils.circleLayout(graph, 200, 200, 150);
         }
 
-        setResultGraph(SearchGraphUtils.patternForDag(graph, knowledge));
+        setResultGraph(SearchGraphUtils.cpdagForDag(graph, knowledge));
     }
 
     public boolean supportsKnowledge() {

@@ -23,7 +23,7 @@ public class BicEst implements Statistic {
 
     @Override
     public String getDescription() {
-        return "BIC of the estimated pattern";
+        return "BIC of the estimated cpdag";
     }
 
     @Override

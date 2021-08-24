@@ -45,7 +45,7 @@ import java.util.*;
 import java.util.List;
 
 /**
- * Assumes that the search method of the pattern search has been run and shows the
+ * Assumes that the search method of the cpdag search has been run and shows the
  * various options for DAG's consistent with correlation information over the variables.
  *
  * @author Joseph Ramsey

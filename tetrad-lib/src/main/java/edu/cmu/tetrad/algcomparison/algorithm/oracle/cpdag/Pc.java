@@ -1,99 +1,83 @@
-package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
+package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
-import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
+import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
-import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
-import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
+import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.PcAll;
+import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
-import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * FGES (the heuristic version).
+ * PC.
  *
  * @author jdramsey
  */
-@edu.cmu.tetrad.annotation.Algorithm(
-        name = "FGES-MB",
-        command = "fges-mb",
-        algoType = AlgType.search_for_Markov_blankets
-)
 @Bootstrapping
-public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesScoreWrapper {
+public class Pc implements Algorithm, TakesInitialGraph, HasKnowledge, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
-    private ScoreWrapper score;
+    private IndependenceWrapper test;
     private Algorithm algorithm = null;
     private Graph initialGraph = null;
     private IKnowledge knowledge = new Knowledge2();
-    private String targetName;
 
-    public FgesMb() {
+    public Pc(IndependenceWrapper test) {
+        this.test = test;
     }
 
-    public FgesMb(ScoreWrapper score) {
-        this.score = score;
-    }
-
-    public FgesMb(ScoreWrapper score, Algorithm algorithm) {
-        this.score = score;
+    public Pc(IndependenceWrapper test, Algorithm algorithm) {
+        this.test = test;
         this.algorithm = algorithm;
+    }
+
+    public Pc() {
+    }
+
+    @Override
+    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
+        this.test = independenceWrapper;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             if (algorithm != null) {
-//                initialGraph = algorithm.search(dataSet, parameters);
+//            	initialGraph = algorithm.search(dataSet, parameters);
             }
-
-            Score score = this.score.getScore(dataSet, parameters);
-            edu.cmu.tetrad.search.FgesMb search = new edu.cmu.tetrad.search.FgesMb(score);
-            search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
+            edu.cmu.tetrad.search.PcAll search = new edu.cmu.tetrad.search.PcAll(test.getTest(dataSet, parameters, trueGraph), initialGraph);
+            search.setDepth(parameters.getInt(Params.DEPTH));
             search.setKnowledge(knowledge);
+            search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.REGULAR);
+            search.setConcurrent(edu.cmu.tetrad.search.PcAll.Concurrent.NO);
+            search.setColliderDiscovery(PcAll.ColliderDiscovery.FAS_SEPSETS);
+            search.setConflictRule(PcAll.ConflictRule.PRIORITY);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
-
-            Object obj = parameters.get(Params.PRINT_STREAM);
-            if (obj instanceof PrintStream) {
-                search.setOut((PrintStream) obj);
-            }
-
-            if (initialGraph != null) {
-                search.setInitialGraph(initialGraph);
-            }
-
-            this.targetName = parameters.getString(Params.TARGET_NAME);
-            Node target = this.score.getVariable(targetName);
-
-            return search.search(Collections.singletonList(target));
+            return search.search();
         } else {
-            FgesMb fgesMb = new FgesMb(score, algorithm);
+            Pc algorithm = new Pc(test);
 
-            if (initialGraph != null) {
-                fgesMb.setInitialGraph(initialGraph);
-            }
             DataSet data = (DataSet) dataSet;
-            GeneralResamplingTest search = new GeneralResamplingTest(data, fgesMb, parameters.getInt(Params.NUMBER_RESAMPLING));
+            GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(knowledge);
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
-
+            
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
                 case 0:
@@ -106,6 +90,8 @@ public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesS
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
             }
             search.setEdgeEnsemble(edgeEnsemble);
+            search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
+            
             search.setParameters(parameters);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             return search.search();
@@ -114,26 +100,26 @@ public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesS
 
     @Override
     public Graph getComparisonGraph(Graph graph) {
-        Node target = graph.getNode(targetName);
-        return GraphUtils.markovBlanketDag(target, new EdgeListGraph(graph));
+        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
     }
 
     @Override
     public String getDescription() {
-        return "FGES (Fast Greedy Search) using " + score.getDescription();
+        return "PC (\"Peter and Clark\"), Priority Rule, using " + test.getDescription()
+                + (algorithm != null ? " with initial graph from " +
+                algorithm.getDescription() : "");
     }
 
     @Override
     public DataType getDataType() {
-        return score.getDataType();
+        return test.getDataType();
     }
 
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.add(Params.TARGET_NAME);
-        parameters.add(Params.FAITHFULNESS_ASSUMED);
-        parameters.add(Params.MAX_DEGREE);
+        parameters.add(Params.DEPTH);
+
         parameters.add(Params.VERBOSE);
 
         return parameters;
@@ -165,13 +151,7 @@ public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesS
     }
 
     @Override
-    public void setScoreWrapper(ScoreWrapper score) {
-        this.score = score;
+    public IndependenceWrapper getIndependenceWrapper() {
+        return test;
     }
-    
-    @Override
-    public ScoreWrapper getScoreWrapper() {
-        return score;
-    }
-
 }

@@ -1,19 +1,19 @@
-package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
+package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.Boss;
-import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -23,53 +23,72 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * BOSS (Best Order Scoring Search).
+ * BOSS (Best Order Score Search).
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GSP",
-        command = "gsp",
+        name = "BOSS",
+        command = "boss",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-@Experimental
-public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInitialGraph {
+public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
-
+    private ScoreWrapper score = null;
     private IKnowledge knowledge = new Knowledge2();
-    private ScoreWrapper score;
     private Graph initialGraph;
     private Algorithm algorithm;
+    private IndependenceWrapper test;
 
-    public GSP() {
+    public BOSS() {
 
     }
 
-    public GSP(ScoreWrapper score) {
+    public BOSS(ScoreWrapper score, IndependenceWrapper test) {
         this.score = score;
+        this.test = test;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
+        if (algorithm != null) {
+            this.initialGraph = algorithm.search(dataSet, parameters, trueGraph);
+        }
+
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
-            Boss boss = new Boss(score);
-//            boss.setBreakTies(parameters.getBoolean(Params.FINAL_ORIENTATION));
+            IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
+
+            Boss boss;
+
+            if (parameters.getBoolean(Params.USE_SCORE) && !(score instanceof GraphScore)) {
+                boss = new Boss(score);
+            } else {
+                boss = new Boss(test);
+            }
+
+            boss.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            boss.setGspDepth(parameters.getInt(Params.DEPTH));
-            boss.setMethod(Boss.Method.GSP);
 
-            List<Node> order = boss.bestOrder(score.getVariables());
-            return boss.getGraph(order, false);
+            boss.setMethod(Boss.Method.BOSS);
+
+            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE) ) {
+                boss.setScoreType(TeyssierScorer.ScoreType.Edge);
+            } else {
+                boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
+            }
+
+            List<Node> perm = boss.bestOrder(score.getVariables());
+            return boss.getGraph(perm, parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
-            GSP fges = new GSP();
+            BOSS boss = new BOSS();
 
             DataSet data = (DataSet) dataSet;
-            GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
+            GeneralResamplingTest search = new GeneralResamplingTest(data, boss, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(knowledge);
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
@@ -82,7 +101,7 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
                     edgeEnsemble = ResamplingEdgeEnsemble.Preserved;
                     break;
                 case 1:
-                    edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+//                    edgeEnsemble = ResamplingEdgeEnsemble.Highest;
                     break;
                 case 2:
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
@@ -104,7 +123,7 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
 
     @Override
     public String getDescription() {
-        return "GSP";
+        return "BOSS";
     }
 
     @Override
@@ -117,7 +136,13 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
         ArrayList<String> params = new ArrayList<>();
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
-        params.add(Params.DEPTH);
+//        params.add(Params.BOSS_METHOD);
+        params.add(Params.BOSS_SCORE_TYPE);
+        params.add(Params.BREAK_TIES);
+        params.add(Params.USE_SCORE);
+        params.add(Params.OUTPUT_CPDAG);
+        params.add(Params.VERBOSE);
+//        params.add(Params.DEPTH);
         return params;
     }
 
@@ -154,5 +179,15 @@ public class GSP implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInit
     @Override
     public void setInitialGraph(Algorithm algorithm) {
         this.algorithm = algorithm;
+    }
+
+    @Override
+    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
+        this.test = independenceWrapper;
+    }
+
+    @Override
+    public IndependenceWrapper getIndependenceWrapper() {
+        return test;
     }
 }

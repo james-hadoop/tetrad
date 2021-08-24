@@ -69,7 +69,7 @@ public class ExtractStructureModelWrapper extends GraphWrapper implements DoNotA
         GraphUtils.fruchtermanReingoldLayout(graph3);
         setGraph(graph3);
 
-        TetradLogger.getInstance().log("info", "\nGenerating pattern from DAG.");
+        TetradLogger.getInstance().log("info", "\nGenerating cpdag from DAG.");
     }
 
     public static ExtractStructureModelWrapper serializableInstance() {
@@ -80,7 +80,7 @@ public class ExtractStructureModelWrapper extends GraphWrapper implements DoNotA
 
 
     private static Graph getCpdag(Dag dag) {
-        return SearchGraphUtils.patternFromDag(dag);
+        return SearchGraphUtils.cpdagFromDag(dag);
     }
 
     @Override

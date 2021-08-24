@@ -1,22 +1,19 @@
-package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
+package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
-import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
+import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.IndependenceTest;
-import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -26,35 +23,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * BOSS (Best Order Score Search).
+ * Greedy Sparsest Permutation.
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "BOSS",
-        command = "boss",
+        name = "GSPIndep",
+        command = "gsp-indep",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper, TakesInitialGraph {
+@Experimental
+public class GSPIndep implements Algorithm, HasKnowledge, TakesIndependenceWrapper, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
-    private ScoreWrapper score = null;
+    private IndependenceWrapper test = null;
+    //    private ScoreWrapper score = null;
     private IKnowledge knowledge = new Knowledge2();
     private Graph initialGraph;
     private Algorithm algorithm;
-    private IndependenceWrapper test;
 
-    public BOSS() {
+
+    public GSPIndep() {
 
     }
 
-//    public BOSS(ScoreWrapper score) {
-//        this.score = score;
-//    }
-
-    public BOSS(ScoreWrapper score, IndependenceWrapper test) {
-        this.score = score;
+    public GSPIndep(IndependenceWrapper test) {
         this.test = test;
     }
 
@@ -65,46 +59,19 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
         }
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            Score score = this.score.getScore(dataSet, parameters);
             IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
-
-            Boss boss;
-
-            if (parameters.getBoolean(Params.USE_SCORE)) {
-                boss = new Boss(score);
-            } else {
-                boss = new Boss(test);
-            }
-
-            boss.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));
+            Boss boss = new Boss(test);
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
-//            boss.setGspDepth(parameters.getInt(Params.DEPTH));
-//            boss.setKnowledge(knowledge);
+            boss.setGspDepth(parameters.getInt(Params.DEPTH));
+            boss.setMethod(Boss.Method.GSP);
 
-            boss.setMethod(Boss.Method.BOSS);
+            List<Node> order = boss.bestOrder(test.getVariables());
 
-            if (parameters.getInt(Params.BOSS_METHOD) == 1) {
-                boss.setMethod(Boss.Method.BOSS);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 2) {
-                boss.setMethod(Boss.Method.SP);
-            } else {
-                throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
-            }
-
-            if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 1) {
-                boss.setScoreType(TeyssierScorer.ScoreType.Edge);
-            } else if (parameters.getInt(Params.BOSS_SCORE_TYPE) == 2) {
-                boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
-            } else {
-                throw new IllegalArgumentException("Unexpected score type: " + parameters.getInt(Params.BOSS_SCORE_TYPE));
-            }
-
-            List<Node> perm = boss.bestOrder(score.getVariables());
-            return boss.getGraph(perm, parameters.getBoolean(Params.OUTPUT_CPDAG));
+            return boss.getGraph(order, true);
         } else {
-            BOSS fges = new BOSS();
+            GSPIndep fges = new GSPIndep();
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -142,12 +109,12 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
     @Override
     public String getDescription() {
-        return "BOSS";
+        return "GSP from test";
     }
 
     @Override
     public DataType getDataType() {
-        return score.getDataType();
+        return test.getDataType();
     }
 
     @Override
@@ -155,13 +122,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
         ArrayList<String> params = new ArrayList<>();
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
-        params.add(Params.BOSS_METHOD);
-        params.add(Params.BOSS_SCORE_TYPE);
-        params.add(Params.BREAK_TIES);
-        params.add(Params.USE_SCORE);
-        params.add(Params.OUTPUT_CPDAG);
-        params.add(Params.VERBOSE);
-//        params.add(Params.DEPTH);
+        params.add(Params.DEPTH);
         return params;
     }
 
@@ -173,16 +134,6 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     @Override
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
-    }
-
-    @Override
-    public ScoreWrapper getScoreWrapper() {
-        return score;
-    }
-
-    @Override
-    public void setScoreWrapper(ScoreWrapper score) {
-        this.score = score;
     }
 
     @Override
@@ -201,12 +152,12 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     }
 
     @Override
-    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
-        this.test = independenceWrapper;
+    public IndependenceWrapper getIndependenceWrapper() {
+        return test;
     }
 
     @Override
-    public IndependenceWrapper getIndependenceWrapper() {
-        return test;
+    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
+        this.test = independenceWrapper;
     }
 }

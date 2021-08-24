@@ -44,14 +44,14 @@ public class DagIterator {
     private Graph storedDag;
 
     /**
-     * The given pattern must be a pattern. If it does not consist entirely of directed and undirected edges and if it
+     * The given cpdag must be a cpdag. If it does not consist entirely of directed and undirected edges and if it
      * is not acyclic, it is rejected.
      *
-     * @throws IllegalArgumentException if the pattern is not a pattern.
+     * @throws IllegalArgumentException if the cpdag is not a cpdag.
      */
-    public DagIterator(Graph pattern) {
+    public DagIterator(Graph cpdag) {
 
-        for (Edge edge : pattern.getEdges()) {
+        for (Edge edge : cpdag.getEdges()) {
             if (Edges.isDirectedEdge(edge) || Edges.isUndirectedEdge(edge)) {
                 continue;
             }
@@ -60,22 +60,22 @@ public class DagIterator {
                     "directed and undirected edges: " + edge);
         }
 
-//        if (pattern.existsDirectedCycle()) {
+//        if (cpdag.existsDirectedCycle()) {
 //            throw new IllegalArgumentException("The graph must be acyclic: " +
-//                    DataGraphUtils.directedCycle(pattern));
+//                    DataGraphUtils.directedCycle(cpdag));
 //        }
 
-        decoratedGraphs.add(new DecoratedGraph(pattern));
+        decoratedGraphs.add(new DecoratedGraph(cpdag));
     }
 
     /**
-     * Successive calls to this method return successive DAGs in the pattern, in a more or less natural enumeration of
+     * Successive calls to this method return successive DAGs in the cpdag, in a more or less natural enumeration of
      * them in which an arbitrary undirected edge is picked, oriented one way, Meek rules applied, then a remaining
      * unoriented edge is picked, oriented one way, and so on, until a DAG is obtained, and then by backtracking the
      * other orientation of each chosen edge is tried. Nonrecursive, obviously.
      * <p>
      *
-     * @return a Graph instead of a DAG because sometimes, due to faulty patterns, a cyclic graph is produced, and the
+     * @return a Graph instead of a DAG because sometimes, due to faulty cpdags, a cyclic graph is produced, and the
      * end-user may need to decide what to do with it. The simplest thing is to construct a DAG (Dag(graph)) and catch
      * an exception.
      */
@@ -140,7 +140,7 @@ public class DagIterator {
     }
 
     /**
-     * @return true just in case there is still a DAG remaining in the enumeration of DAGs for this pattern.
+     * @return true just in case there is still a DAG remaining in the enumeration of DAGs for this cpdag.
      */
     public boolean hasNext() {
         if (storedDag == null) {

@@ -32,7 +32,7 @@ import java.util.*;
  * BuildPureClusters is a implementation of the automated clustering and purification methods described on the report
  * "Learning Measurement Models" CMU-CALD-03-100.
  * <p>
- * The output is only the purified model. Future versions may include options to visualize the measurement pattern in
+ * The output is only the purified model. Future versions may include options to visualize the measurement cpdag in
  * the GUI (it shows up in the console window, though.)
  * <p>
  * No background knowledge is allowed yet. Future versions of this algorithm will include it.

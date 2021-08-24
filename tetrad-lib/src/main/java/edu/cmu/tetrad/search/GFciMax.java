@@ -168,7 +168,7 @@ public final class GFciMax implements GraphSearch {
     }
 
     /**
-     * The maximum of parents any nodes can have in output pattern.
+     * The maximum of parents any nodes can have in output cpdag.
      *
      * @param maxDegree -1 for unlimited.
      */
@@ -182,7 +182,7 @@ public final class GFciMax implements GraphSearch {
     }
 
     /**
-     * The maximum of parents any nodes can have in output pattern.
+     * The maximum of parents any nodes can have in output cpdag.
      *
      * @return -1 for unlimited.
      */

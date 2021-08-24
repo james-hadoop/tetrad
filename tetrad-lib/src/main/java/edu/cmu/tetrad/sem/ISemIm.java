@@ -117,6 +117,8 @@ public interface ISemIm extends Simulator, TetradSerializable {
     boolean isSimulatedPositiveDataOnly();
 
     void setSimulatedPositiveDataOnly(boolean simulatedPositiveDataOnly);
+
+    Matrix getErrCovar();
 }
 
 

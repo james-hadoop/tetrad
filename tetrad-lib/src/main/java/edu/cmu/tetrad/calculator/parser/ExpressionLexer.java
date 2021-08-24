@@ -87,11 +87,11 @@ public class ExpressionLexer {
      * Creates a map from tokens to regex Matchers for the given CharSequence,
      * given a map from tokens to regex Cpdags (and the CharSequence).
      */
-    private static Map<Token, Matcher> createMatchers(Map<Token, Pattern> patterns, CharSequence charSequence) {
+    private static Map<Token, Matcher> createMatchers(Map<Token, Pattern> cpdags, CharSequence charSequence) {
         Map<Token, Matcher> matchers = new HashMap<>();
-        for (Token token : patterns.keySet()) {
-            Pattern pattern = patterns.get(token);
-            Matcher matcher = pattern.matcher(charSequence);
+        for (Token token : cpdags.keySet()) {
+            Pattern cpdag = cpdags.get(token);
+            Matcher matcher = cpdag.matcher(charSequence);
             matchers.put(token, matcher);
         }
         return matchers;

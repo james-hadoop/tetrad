@@ -44,8 +44,8 @@ public class HsimRun {
             System.out.println(estGraph);
 
             Graph estCpdag = new EdgeListGraph(estGraph);
-            CpdagToDag patternToDag = new CpdagToDag(estCpdag);
-            Graph estGraphDAG = patternToDag.patternToDagMeek();
+            CpdagToDag cpdagToDag = new CpdagToDag(estCpdag);
+            Graph estGraphDAG = cpdagToDag.cpdagToDagMeek();
             Dag estDAG = new Dag(estGraphDAG);
 
             //===========Identify the nodes to be resimulated===========

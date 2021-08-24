@@ -58,12 +58,12 @@ public class TestDagInCpdagIterator {
 
 
 
-        Graph pattern = SearchGraphUtils.patternFromDag(graph);
+        Graph cpdag = SearchGraphUtils.cpdagFromDag(graph);
 
-        System.out.println(pattern);
+        System.out.println(cpdag);
 
 
-        DagInCpdagIterator iterator = new DagInCpdagIterator(pattern);
+        DagInCpdagIterator iterator = new DagInCpdagIterator(cpdag);
         int count = 0;
 
         while (iterator.hasNext()) {
@@ -76,14 +76,14 @@ public class TestDagInCpdagIterator {
 
 //    @Test
     public void test2() {
-        Graph pattern = new EdgeListGraph();
+        Graph cpdag = new EdgeListGraph();
         Node x = new GraphNode("X");
         Node y = new GraphNode("Y");
-        pattern.addNode(x);
-        pattern.addNode(y);
-        pattern.addDirectedEdge(x, y);
+        cpdag.addNode(x);
+        cpdag.addNode(y);
+        cpdag.addDirectedEdge(x, y);
 
-        DagInCpdagIterator iterator = new DagInCpdagIterator(pattern);
+        DagInCpdagIterator iterator = new DagInCpdagIterator(cpdag);
         int count = 0;
 
         while (iterator.hasNext()) {
@@ -96,7 +96,7 @@ public class TestDagInCpdagIterator {
 
 //    @Test
     public void test3() {
-        Graph pattern = new EdgeListGraph();
+        Graph cpdag = new EdgeListGraph();
 
         Node x1 = new GraphNode("X1");
         Node x2 = new GraphNode("X2");
@@ -105,21 +105,21 @@ public class TestDagInCpdagIterator {
         Node x5 = new GraphNode("X5");
         Node x6 = new GraphNode("X6");
 
-        pattern.addNode(x1);
-        pattern.addNode(x2);
-        pattern.addNode(x3);
-        pattern.addNode(x4);
-        pattern.addNode(x5);
-        pattern.addNode(x6);
+        cpdag.addNode(x1);
+        cpdag.addNode(x2);
+        cpdag.addNode(x3);
+        cpdag.addNode(x4);
+        cpdag.addNode(x5);
+        cpdag.addNode(x6);
 
-        pattern.addDirectedEdge(x5, x1);
-        pattern.addDirectedEdge(x3, x1);
-        pattern.addDirectedEdge(x3, x4);
-        pattern.addDirectedEdge(x6, x5);
-        pattern.addUndirectedEdge(x1, x6);
-        pattern.addUndirectedEdge(x4, x6);
+        cpdag.addDirectedEdge(x5, x1);
+        cpdag.addDirectedEdge(x3, x1);
+        cpdag.addDirectedEdge(x3, x4);
+        cpdag.addDirectedEdge(x6, x5);
+        cpdag.addUndirectedEdge(x1, x6);
+        cpdag.addUndirectedEdge(x4, x6);
 
-        DagInCpdagIterator iterator = new DagInCpdagIterator(pattern);
+        DagInCpdagIterator iterator = new DagInCpdagIterator(cpdag);
         int count = 0;
 
         while (iterator.hasNext()) {
@@ -132,7 +132,7 @@ public class TestDagInCpdagIterator {
 
 //    @Test
     public void test4() {
-        Graph pattern = new EdgeListGraph();
+        Graph cpdag = new EdgeListGraph();
 
         Node x1 = new GraphNode("X1");
         Node x2 = new GraphNode("X2");
@@ -141,21 +141,21 @@ public class TestDagInCpdagIterator {
         Node x5 = new GraphNode("X5");
         Node x6 = new GraphNode("X6");
 
-        pattern.addNode(x1);
-        pattern.addNode(x2);
-        pattern.addNode(x3);
-        pattern.addNode(x4);
-        pattern.addNode(x5);
-        pattern.addNode(x6);
+        cpdag.addNode(x1);
+        cpdag.addNode(x2);
+        cpdag.addNode(x3);
+        cpdag.addNode(x4);
+        cpdag.addNode(x5);
+        cpdag.addNode(x6);
 
-        pattern.addDirectedEdge(x5, x1);
-        pattern.addDirectedEdge(x3, x1);
-        pattern.addDirectedEdge(x3, x4);
-        pattern.addDirectedEdge(x6, x5);
-        pattern.addUndirectedEdge(x1, x6);
-        pattern.addUndirectedEdge(x4, x6);
+        cpdag.addDirectedEdge(x5, x1);
+        cpdag.addDirectedEdge(x3, x1);
+        cpdag.addDirectedEdge(x3, x4);
+        cpdag.addDirectedEdge(x6, x5);
+        cpdag.addUndirectedEdge(x1, x6);
+        cpdag.addUndirectedEdge(x4, x6);
 
-        DagInCpdagIterator iterator = new DagInCpdagIterator(pattern);
+        DagInCpdagIterator iterator = new DagInCpdagIterator(cpdag);
         int count = 0;
 
         while (iterator.hasNext()) {
@@ -179,8 +179,8 @@ public class TestDagInCpdagIterator {
         Dag dag1 = new Dag(GraphUtils.randomGraph(nodes1, 0, 3,
                 30, 15, 15, false));
 
-        Graph pattern = SearchGraphUtils.patternForDag(dag1);
-        List<Node> nodes = pattern.getNodes();
+        Graph cpdag = SearchGraphUtils.cpdagForDag(dag1);
+        List<Node> nodes = cpdag.getNodes();
 
         // Make random knowedge.
         int numTiers = 6;
@@ -192,8 +192,8 @@ public class TestDagInCpdagIterator {
             knowledge.addToTier(tier, node.getName());
         }
 
-        if (!knowledge.isViolatedBy(pattern)) {
-            DagInCpdagIterator iterator1 = new DagInCpdagIterator(pattern);
+        if (!knowledge.isViolatedBy(cpdag)) {
+            DagInCpdagIterator iterator1 = new DagInCpdagIterator(cpdag);
             Graph dag0 = null;
 
             while (iterator1.hasNext()) {
@@ -209,8 +209,8 @@ public class TestDagInCpdagIterator {
             }
         }
 
-        if (!knowledge.isViolatedBy(pattern)) {
-            DagInCpdagIterator iterator2 = new DagInCpdagIterator(pattern, knowledge);
+        if (!knowledge.isViolatedBy(cpdag)) {
+            DagInCpdagIterator iterator2 = new DagInCpdagIterator(cpdag, knowledge);
 
             while (iterator2.hasNext()) {
                 Graph dag = iterator2.next();
@@ -221,7 +221,7 @@ public class TestDagInCpdagIterator {
             }
         }
 
-        DagInCpdagIterator iterator3 = new DagInCpdagIterator(pattern);
+        DagInCpdagIterator iterator3 = new DagInCpdagIterator(cpdag);
         int count = 0;
 
         while (iterator3.hasNext()) {
