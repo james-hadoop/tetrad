@@ -27,13 +27,12 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.RandomUtil;
-import org.junit.Test;
 
 /**
  * Tests to make sure the DelimiterType enumeration hasn't been tampered with.
@@ -63,7 +62,7 @@ public final class TestGsp {
 //        algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.DEPTH));
@@ -109,7 +108,7 @@ public final class TestGsp {
         algorithms.add(new PcAll(new FisherZ()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));

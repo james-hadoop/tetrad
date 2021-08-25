@@ -27,8 +27,8 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.DelimiterUtils;
 import edu.cmu.tetrad.util.RandomUtil;
@@ -202,8 +202,8 @@ public class TestGFci {
 
         Graph g = GraphUtils.randomGraphRandomForwardEdges(variables, numLatents, numEdges, 10, 10, 10, false, false);
 
-        SemPm pm = new SemPm(g);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(g);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(1000, false);
 

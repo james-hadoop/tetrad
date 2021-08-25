@@ -29,8 +29,8 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.DeltaTetradTest;
 import edu.cmu.tetrad.search.Tetrad;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.Matrix;
 import org.junit.Test;
@@ -54,7 +54,7 @@ public class TestDeltaTetradTest {
 
         int numTrials = 10;
         double alpha = 0.2;
-        SemIm sem = getFigure4aSem();
+        LinearSemIm sem = getFigure4aSem();
 
         int[] sampleSizes = new int[]{100, 500, 1000, 5000};
 
@@ -233,8 +233,8 @@ public class TestDeltaTetradTest {
 
     @Test
     public void test3() {
-        SemPm pm = makePm();
-        DataSet data = new SemIm(pm).simulateData(1000, false);
+        LinearSemPm pm = makePm();
+        DataSet data = new LinearSemIm(pm).simulateData(1000, false);
 
         CovarianceMatrix cov = new CovarianceMatrix(data);
 
@@ -260,7 +260,7 @@ public class TestDeltaTetradTest {
         double chiSq2 = test2.calcChiSquare(t1234, t1342);
     }
 
-    private SemPm makePm() {
+    private LinearSemPm makePm() {
         List<Node> variableNodes = new ArrayList<>();
         ContinuousVariable x1 = new ContinuousVariable("X1");
         ContinuousVariable x2 = new ContinuousVariable("X2");
@@ -281,10 +281,10 @@ public class TestDeltaTetradTest {
         graph.addDirectedEdge(x5, x3);
         graph.addDirectedEdge(x5, x4);
 
-        return new SemPm(graph);
+        return new LinearSemPm(graph);
     }
 
-    private SemIm getFigure4aSem() {
+    private LinearSemIm getFigure4aSem() {
         Graph graph = new EdgeListGraph();
 
         Node xi1 = new GraphNode("xi1");
@@ -304,15 +304,15 @@ public class TestDeltaTetradTest {
         graph.addDirectedEdge(xi1, x3);
         graph.addDirectedEdge(xi1, x4);
 
-        SemPm pm = new SemPm(graph);
+        LinearSemPm pm = new LinearSemPm(graph);
 
         Parameters params = new Parameters();
 //        params.setCoefRange(0.3, 0.8);
 
-        return new SemIm(pm, params);
+        return new LinearSemIm(pm, params);
     }
 
-    private SemIm getFigure4bSem() {
+    private LinearSemIm getFigure4bSem() {
         Graph graph = new EdgeListGraph();
 
         Node xi1 = new GraphNode("xi1");
@@ -335,8 +335,8 @@ public class TestDeltaTetradTest {
         graph.addDirectedEdge(xi2, x4);
         graph.addDirectedEdge(xi1, xi2);
 
-        SemPm pm = new SemPm(graph);
-        return new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        return new LinearSemIm(pm);
     }
 
     private CovarianceMatrix getBollenExample1Data() {

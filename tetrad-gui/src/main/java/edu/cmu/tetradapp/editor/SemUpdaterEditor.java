@@ -22,10 +22,10 @@ package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.sem.SemEvidence;
-import edu.cmu.tetrad.sem.SemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.sem.SemUpdater;
 import edu.cmu.tetrad.util.NumberFormatUtil;
-import edu.cmu.tetradapp.model.SemImWrapper;
+import edu.cmu.tetradapp.model.LinearSemImWrapper;
 import edu.cmu.tetradapp.model.SemUpdaterWrapper;
 import edu.cmu.tetradapp.util.DoubleTextField;
 import java.awt.BorderLayout;
@@ -61,7 +61,7 @@ public class SemUpdaterEditor extends JPanel {
     private final Map<JCheckBox, Integer> checkBoxesToVariables = new HashMap<>();
     private final Map<Integer, JCheckBox> variablesToCheckboxes = new HashMap<>();
     private final Map<Integer, DoubleTextField> variablesToTextFields = new HashMap<>();
-    private SemImEditor semImEditor;
+    private LinearSemImEditor semImEditor;
     private final LinkedList<DoubleTextField> focusTraversalOrder = new LinkedList<>();
     private final Map<DoubleTextField, Integer> labels = new HashMap<>();
 
@@ -82,7 +82,7 @@ public class SemUpdaterEditor extends JPanel {
 
         Box b1 = Box.createHorizontalBox();
 
-        semImEditor = new SemImEditor(new SemImWrapper(semUpdater.getSemIm()));
+        semImEditor = new LinearSemImEditor(new LinearSemImWrapper(semUpdater.getSemIm()));
         semImEditor.add(getUpdatePanel(), BorderLayout.WEST);
         semImEditor.setEditable(false);
         b1.add(semImEditor);
@@ -112,7 +112,7 @@ public class SemUpdaterEditor extends JPanel {
 
         for (int i = 0; i < evidence.getNumNodes(); i++) {
             Box c = Box.createHorizontalBox();
-            SemIm semIm = evidence.getSemIm();
+            LinearSemIm semIm = evidence.getSemIm();
             Node node = semIm.getVariableNodes().get(i);
             String name = node.getName();
             JLabel label = new JLabel(name + " =  ") {
@@ -139,7 +139,7 @@ public class SemUpdaterEditor extends JPanel {
 
                     evidence.getProposition().setValue(nodeIndex, value);
 //                    semIm.setMean(node, value);
-                    SemIm updatedSem = semUpdater.getUpdatedSemIm();
+                    LinearSemIm updatedSem = semUpdater.getUpdatedSemIm();
                     semImEditor.displaySemIm(updatedSem,
                             semImEditor.getTabSelectionIndex(),
                             semImEditor.getMatrixSelection());
@@ -180,14 +180,14 @@ public class SemUpdaterEditor extends JPanel {
 //
                 if (Double.isNaN(value)) {
                     DoubleTextField dblTxtField = variablesToTextFields.get(o);
-                    SemIm semIM = semUpdater.getSemIm();
+                    LinearSemIm semIM = semUpdater.getSemIm();
                     Node varNode = semIM.getVariableNodes().get(o);
                     double semIMMean = semIM.getMean(varNode);
                     dblTxtField.setValue(semIMMean);
                 }
 
                 semUpdater.getEvidence().setManipulated(o, selected);
-                SemIm updatedSem = semUpdater.getUpdatedSemIm();
+                LinearSemIm updatedSem = semUpdater.getUpdatedSemIm();
                 semImEditor.displaySemIm(updatedSem,
                         semImEditor.getTabSelectionIndex(),
                         semImEditor.getMatrixSelection());
@@ -206,7 +206,7 @@ public class SemUpdaterEditor extends JPanel {
         JButton button = new JButton("Do Update Now");
 
         button.addActionListener((e) -> {
-            SemIm updatedSem = semUpdater.getUpdatedSemIm();
+            LinearSemIm updatedSem = semUpdater.getUpdatedSemIm();
             semImEditor.displaySemIm(updatedSem,
                     semImEditor.getTabSelectionIndex(),
                     semImEditor.getMatrixSelection());

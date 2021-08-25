@@ -681,8 +681,8 @@ public class TestFges {
         }
 
         Graph graph = GraphUtils.randomGraph(nodes, 0, 10, 30, 15, 15, false);
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(200, false);
 
         TetradLogger.getInstance().setForceLog(false);
@@ -749,8 +749,8 @@ public class TestFges {
                         for (int i = 0; i < numIterations; i++) {
                             Graph dag = GraphUtils.randomDag(numNodes, 0,
                                     (avgDegree * numNodes) / 2, 100, 100, 100, false);
-                            SemPm pm = new SemPm(dag);
-                            SemIm im = new SemIm(pm, params);
+                            LinearSemPm pm = new LinearSemPm(dag);
+                            LinearSemIm im = new LinearSemIm(pm, params);
                             DataSet data = im.simulateData(sampleSize, false);
                             SemBicScore score = new SemBicScore(data);
                             score.setPenaltyDiscount(.5);
@@ -1564,8 +1564,8 @@ public class TestFges {
 
             Graph graph = GraphUtils.randomGraph(10, 0,
                     10, 10, 10, 10, false);
-            SemPm semPm = new SemPm(graph);
-            SemIm semIm = new SemIm(semPm);
+            LinearSemPm linearSemPm = new LinearSemPm(graph);
+            LinearSemIm semIm = new LinearSemIm(linearSemPm);
             DataSet dataSet = semIm.simulateData(1000, false);
 
             Fges fges = new Fges(new SemBicScore(new CovarianceMatrix(dataSet)));
@@ -1722,8 +1722,8 @@ public class TestFges {
                 100, 100, false);
         final List<Node> nodes = graph.getNodes();
         buildIndexing(nodes);
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet dataSet = im.simulateData(N, false);
         SemBicScore score = new SemBicScore(dataSet);
 

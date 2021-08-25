@@ -35,8 +35,8 @@ public final class SimulationUtils {
         switch (simulationType) {
             case SimulationTypes.BAYS_NET:
                 return new BayesNetSimulation(randomGraph);
-            case SimulationTypes.STRUCTURAL_EQUATION_MODEL:
-                return new SemSimulation(randomGraph);
+            case SimulationTypes.LINEAR_STRUCTURAL_EQUATION_MODEL:
+                return new LinearSemSimulation(randomGraph);
             case SimulationTypes.LINEAR_FISHER_MODEL:
                 return new LinearFisherModel(randomGraph);
             case SimulationTypes.GENERAL_STRUCTURAL_EQUATION_MODEL:

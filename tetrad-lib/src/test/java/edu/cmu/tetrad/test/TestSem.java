@@ -47,17 +47,17 @@ public class TestSem {
     @Test
     public void testSet1() {
         Graph graph = constructGraph1();
-        SemPm semPm = new SemPm(graph);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
         ICovarianceMatrix covMatrix = constructCovMatrix1();
-        new SemIm(semPm, covMatrix);
+        new LinearSemIm(linearSemPm, covMatrix);
     }
 
     @Test
     public void testSet2() {
         Graph graph = constructGraph2();
-        SemPm semPm = new SemPm(graph);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
         ICovarianceMatrix covMatrix = constructCovMatrix2();
-        SemIm sem = new SemIm(semPm, covMatrix);
+        LinearSemIm sem = new LinearSemIm(linearSemPm, covMatrix);
     }
 
     /**
@@ -66,17 +66,17 @@ public class TestSem {
     @Test
     public void testSet3() {
         Graph graph = constructGraph2();
-        SemPm semPm = new SemPm(graph);
-        List parameters = semPm.getParameters();
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
+        List parameters = linearSemPm.getParameters();
 
         Parameter a = (Parameter) parameters.get(0);
         Parameter b = (Parameter) parameters.get(1);
-        assertEquals(ParamComparison.NC, semPm.getParamComparison(a, b));
+        assertEquals(ParamComparison.NC, linearSemPm.getParamComparison(a, b));
 
-        semPm.setParamComparison(a, b, ParamComparison.EQ);
+        linearSemPm.setParamComparison(a, b, ParamComparison.EQ);
 
-        assertEquals(ParamComparison.EQ, semPm.getParamComparison(a, b));
-        assertEquals(ParamComparison.EQ, semPm.getParamComparison(b, a));
+        assertEquals(ParamComparison.EQ, linearSemPm.getParamComparison(a, b));
+        assertEquals(ParamComparison.EQ, linearSemPm.getParamComparison(b, a));
 
     }
 
@@ -87,12 +87,12 @@ public class TestSem {
     @Test
     public void testEstimation() {
         Graph graph = constructGraph1();
-        SemPm semPm = new SemPm(graph);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
         ICovarianceMatrix covMatrix = constructCovMatrix1();
 
-        SemEstimator estimator = new SemEstimator(covMatrix, semPm);
+        SemEstimator estimator = new SemEstimator(covMatrix, linearSemPm);
         estimator.estimate();
-        SemIm semIm2 = estimator.getEstimatedSem();
+        LinearSemIm semIm2 = estimator.getEstimatedSem();
 
         double[][] edgeCoef = semIm2.getEdgeCoef().toArray();
 

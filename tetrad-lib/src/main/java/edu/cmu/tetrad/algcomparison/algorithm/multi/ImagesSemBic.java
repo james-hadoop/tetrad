@@ -14,7 +14,7 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.SemBicScoreImages;
+import edu.cmu.tetrad.search.LinearSemBicScoreImages;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -51,7 +51,7 @@ public class ImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
     @Override
     public Graph search(List<DataModel> dataSets, Parameters parameters) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            final SemBicScoreImages score = new SemBicScoreImages(dataSets);
+            final LinearSemBicScoreImages score = new LinearSemBicScoreImages(dataSets);
             score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
             edu.cmu.tetrad.search.Fges search = new edu.cmu.tetrad.search.Fges(score);
             search.setKnowledge(knowledge);

@@ -38,7 +38,7 @@ public class SemXmlParser {
      * @param semImElement the xml of the IM
      * @return the SemIM
      */
-    public static SemIm getSemIm(Element semImElement) {
+    public static LinearSemIm getSemIm(Element semImElement) {
         if (!SemXmlConstants.SEM.equals(semImElement.getQualifiedName())) {
             throw new IllegalArgumentException("Expecting '" + SemXmlConstants.SEM + "' element"); //$NON-NLS-1$ //$NON-NLS-2$
         }
@@ -50,7 +50,7 @@ public class SemXmlParser {
 
 
         Dag graph = makeVariables(variablesElement);
-        SemIm im = makeEdges(edgesElement, graph);
+        LinearSemIm im = makeEdges(edgesElement, graph);
         setNodeMeans(variablesElement, im);
         addMarginalErrorDistribution(marginalDistributionElement, im);
         addJointErrorDistribution(jointDistributionElement, im);
@@ -86,7 +86,7 @@ public class SemXmlParser {
         return semGraph;
     }
 
-    private static SemIm makeEdges(Element edgesElement, Dag semGraph) {
+    private static LinearSemIm makeEdges(Element edgesElement, Dag semGraph) {
         if (!SemXmlConstants.EDGES.equals(edgesElement.getQualifiedName())) {
             throw new IllegalArgumentException("Expecting '" + SemXmlConstants.EDGES + "' element"); //$NON-NLS-1$ //$NON-NLS-2$
         }
@@ -103,7 +103,7 @@ public class SemXmlParser {
         }
 
         //SemIm semIm = SemIm.newInstance(new SemPm(semGraph));
-        SemIm semIm = new SemIm(new SemPm(semGraph));
+        LinearSemIm semIm = new LinearSemIm(new LinearSemPm(semGraph));
         for (int i = 0; i < edges.size(); i++) {
             edge = edges.get(i);
             causeNode = semGraph.getNode(edge.getAttributeValue(SemXmlConstants.CAUSE_NODE));
@@ -122,7 +122,7 @@ public class SemXmlParser {
         return semIm;
     }
 
-    private static void setNodeMeans(Element variablesElement, SemIm im) {
+    private static void setNodeMeans(Element variablesElement, LinearSemIm im) {
         Elements vars = variablesElement.getChildElements(SemXmlConstants.CONTINUOUS_VARIABLE);
 
         for (int i = 0; i < vars.size(); i++) {
@@ -137,7 +137,7 @@ public class SemXmlParser {
         }
     }
 
-    private static void addMarginalErrorDistribution(Element marginalDistributionElement, SemIm semIm) {
+    private static void addMarginalErrorDistribution(Element marginalDistributionElement, LinearSemIm semIm) {
         if (!SemXmlConstants.MARGINAL_ERROR_DISTRIBUTION.equals(marginalDistributionElement.getQualifiedName())) {
             throw new IllegalArgumentException("Expecting '" + SemXmlConstants.MARGINAL_ERROR_DISTRIBUTION + "' element"); //$NON-NLS-1$ //$NON-NLS-2$
         }
@@ -157,7 +157,7 @@ public class SemXmlParser {
         }
     }
 
-    private static void addJointErrorDistribution(Element jointDistributionElement, SemIm semIm) {
+    private static void addJointErrorDistribution(Element jointDistributionElement, LinearSemIm semIm) {
         if (!SemXmlConstants.JOINT_ERROR_DISTRIBUTION.equals(jointDistributionElement.getQualifiedName())) {
             throw new IllegalArgumentException("Expecting '" + SemXmlConstants.JOINT_ERROR_DISTRIBUTION + "' element"); //$NON-NLS-1$ //$NON-NLS-2$
         }

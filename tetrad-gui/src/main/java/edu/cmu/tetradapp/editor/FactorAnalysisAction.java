@@ -28,8 +28,8 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.FactorAnalysis;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.TextTable;
@@ -228,8 +228,8 @@ public class FactorAnalysisAction extends AbstractAction {
 
         Graph graph = new Dag(GraphUtils.randomGraph(nodes, 0, 9,
                 30, 15, 15, false));
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(500, false);
         ICovarianceMatrix cov = new CovarianceMatrix(data);
 

@@ -131,7 +131,7 @@ public class EdgeTypeTable extends JPanel {
                 tableModel.addRow(rowData);
             });
         } else {
-            title.setText("Edges");
+//            title.setText("Edges");
 
             table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 

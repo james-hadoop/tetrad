@@ -44,7 +44,7 @@ public class Mapping implements TetradSerializable {
      *
      * @serial Can't be null.
      */
-    private ISemIm semIm;
+    private ILinearSemIm semIm;
 
     /**
      * The parameter this mapping maps.
@@ -83,7 +83,7 @@ public class Mapping implements TetradSerializable {
      * @param i         Left coordinates of matrix[i][j].
      * @param j         Right coordinate of matrix[i][j].
      */
-    public Mapping(ISemIm semIm, Parameter parameter, Matrix matrix,
+    public Mapping(ILinearSemIm semIm, Parameter parameter, Matrix matrix,
                    int i, int j) {
         if (semIm == null) {
             throw new NullPointerException("SemIm must not be null.");
@@ -112,7 +112,7 @@ public class Mapping implements TetradSerializable {
      * Generates a simple exemplar of this class to test serialization.
      */
     public static Mapping serializableInstance() {
-        return new Mapping(SemIm.serializableInstance(),
+        return new Mapping(LinearSemIm.serializableInstance(),
                 Parameter.serializableInstance(), new Matrix(0, 0),
                 1, 1);
     }

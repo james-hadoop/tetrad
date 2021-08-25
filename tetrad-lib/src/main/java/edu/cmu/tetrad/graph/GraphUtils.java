@@ -270,38 +270,32 @@ public final class GraphUtils {
         Collections.shuffle(allEdges);
 
         while (!allEdges.isEmpty() && dag.getNumEdges() < numEdges) {
-            List<Integer> e = allEdges.get(RandomUtil.getInstance().nextInt(allEdges.size()));
+            List<Integer> e = allEdges.removeFirst();
 
             Node n1 = nodes.get(e.get(0));
             Node n2 = nodes.get(e.get(1));
 
-            if (dag.getIndegree(n1) >= maxIndegree) {
-                allEdges.remove(e);
+            if (dag.getIndegree(n2) >= maxIndegree) {
                 continue;
             }
 
             if (dag.getOutdegree(n1) >= maxOutdegree) {
-                allEdges.remove(e);
                 continue;
             }
 
-            if (dag.getIndegree(n1) + dag.getOutdegree(n1) + 1 > maxDegree) {
-                allEdges.remove(e);
+            if (dag.getIndegree(n1) + dag.getOutdegree(n1) >= maxDegree) {
                 continue;
             }
 
-            if (dag.getIndegree(n2) + dag.getOutdegree(n2) + 1 > maxDegree) {
-                allEdges.remove(e);
+            if (dag.getIndegree(n2) + dag.getOutdegree(n2) >= maxDegree) {
                 continue;
             }
 
             if (connected && dag.getIndegree(n1) == 0 && dag.getOutdegree(n1) == 0) {
-                allEdges.remove(e);
                 continue;
             }
 
             dag.addDirectedEdge(n1, n2);
-            allEdges.remove(e);
         }
 
         fixLatents4(numLatentConfounders, dag);

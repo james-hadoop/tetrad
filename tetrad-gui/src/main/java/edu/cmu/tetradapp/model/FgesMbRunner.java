@@ -210,12 +210,12 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
                 double penalty = getParams().getDouble("penaltyDiscount", 4);
 
                 if (params.getBoolean("firstNontriangular", false)) {
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     fgesScore.setPenaltyDiscount(penalty);
                     target = fgesScore.getVariable(targetName);
                     fges = new FgesMb(fgesScore);
                 } else {
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     fgesScore.setPenaltyDiscount(penalty);
                     target = fgesScore.getVariable(targetName);
                     fges = new FgesMb(fgesScore);

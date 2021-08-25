@@ -22,7 +22,7 @@
 package edu.cmu.tetradapp.model;
 
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.sem.SemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.session.SessionModel;
 import edu.cmu.tetrad.session.SimulationParamsSource;
 import edu.cmu.tetrad.util.Parameters;
@@ -52,8 +52,8 @@ public class SemDataWrapper extends DataWrapper implements SessionModel,
 
     //==============================CONSTRUCTORS=============================//
 
-    private SemDataWrapper(SemImWrapper wrapper, Parameters params) {
-        SemIm semIm = null;
+    private SemDataWrapper(LinearSemImWrapper wrapper, Parameters params) {
+        LinearSemIm semIm = null;
 
         try {
             semIm = new MarshalledObject<>(wrapper.getSemIm()).get();
@@ -80,7 +80,7 @@ public class SemDataWrapper extends DataWrapper implements SessionModel,
     }
 
     public SemDataWrapper(SemEstimatorWrapper wrapper, Parameters params) {
-        SemIm semIm = null;
+        LinearSemIm semIm = null;
         try {
             semIm = new MarshalledObject<>(wrapper.getEstimatedSemIm()).get();
         } catch (Exception e) {
@@ -107,7 +107,7 @@ public class SemDataWrapper extends DataWrapper implements SessionModel,
     }
 
     public SemDataWrapper(SemUpdaterWrapper wrapper, Parameters params) {
-        SemIm semIm = null;
+        LinearSemIm semIm = null;
         try {
             semIm = new MarshalledObject<>(wrapper.getSemUpdater().getManipulatedSemIm()).get();
         } catch (Exception e) {

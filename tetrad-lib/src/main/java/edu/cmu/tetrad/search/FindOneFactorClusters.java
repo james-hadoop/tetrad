@@ -982,11 +982,11 @@ public class FindOneFactorClusters {
     }
 
     private double getClusterChiSquare(List<Integer> cluster) {
-        SemIm im = estimateClusterModel(cluster);
+        LinearSemIm im = estimateClusterModel(cluster);
         return im.getChiSquare();
     }
 
-    private SemIm estimateClusterModel(List<Integer> quartet) {
+    private LinearSemIm estimateClusterModel(List<Integer> quartet) {
         Graph g = new EdgeListGraph();
         Node l1 = new GraphNode("L1");
         l1.setNodeType(NodeType.LATENT);
@@ -1002,7 +1002,7 @@ public class FindOneFactorClusters {
             g.addDirectedEdge(l2, n);
         }
 
-        SemPm pm = new SemPm(g);
+        LinearSemPm pm = new LinearSemPm(g);
 
         SemEstimator est;
 
@@ -1016,11 +1016,11 @@ public class FindOneFactorClusters {
     }
 
     private double getModelPValue(List<List<Integer>> clusters) {
-        SemIm im = estimateModel(clusters);
+        LinearSemIm im = estimateModel(clusters);
         return im.getPValue();
     }
 
-    private SemIm estimateModel(List<List<Integer>> clusters) {
+    private LinearSemIm estimateModel(List<List<Integer>> clusters) {
         Graph g = new EdgeListGraph();
 
         List<Node> upperLatents = new ArrayList<>();
@@ -1066,7 +1066,7 @@ public class FindOneFactorClusters {
             }
         }
 
-        SemPm pm = new SemPm(g);
+        LinearSemPm pm = new LinearSemPm(g);
 
         for (Node node : upperLatents) {
             Parameter p = pm.getParameter(node, node);

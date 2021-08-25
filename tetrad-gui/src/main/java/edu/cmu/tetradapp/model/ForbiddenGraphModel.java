@@ -67,11 +67,11 @@ public class ForbiddenGraphModel extends KnowledgeBoxModel {
         this((KnowledgeBoxInput) wrapper, params);
     }
 
-    public ForbiddenGraphModel(SemImWrapper wrapper, Parameters params) {
+    public ForbiddenGraphModel(LinearSemImWrapper wrapper, Parameters params) {
         this((KnowledgeBoxInput) wrapper, params);
     }
 
-    public ForbiddenGraphModel(SemPmWrapper wrapper, Parameters params) {
+    public ForbiddenGraphModel(LinearSemPmWrapper wrapper, Parameters params) {
         this((KnowledgeBoxInput) wrapper, params);
     }
 

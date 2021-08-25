@@ -102,15 +102,15 @@ public class GeneralizedSemIm implements IM, Simulator, TetradSerializable {
         }
     }
 
-    public GeneralizedSemIm(GeneralizedSemPm pm, SemIm semIm) {
+    public GeneralizedSemIm(GeneralizedSemPm pm, LinearSemIm semIm) {
         this(pm);
-        SemPm semPm = semIm.getSemPm();
+        LinearSemPm linearSemPm = semIm.getSemPm();
 
         Set<String> parameters = pm.getParameters();
 
         // If there are any missing freeParameters, just ignore the sem IM.
         for (String parameter : parameters) {
-            Parameter paramObject = semPm.getParameter(parameter);
+            Parameter paramObject = linearSemPm.getParameter(parameter);
 
             if (paramObject == null) {
                 return;
@@ -118,7 +118,7 @@ public class GeneralizedSemIm implements IM, Simulator, TetradSerializable {
         }
 
         for (String parameter : parameters) {
-            Parameter paramObject = semPm.getParameter(parameter);
+            Parameter paramObject = linearSemPm.getParameter(parameter);
 
             if (paramObject == null) {
                 throw new IllegalArgumentException("Parameter missing from Gaussian SEM IM: " + parameter);

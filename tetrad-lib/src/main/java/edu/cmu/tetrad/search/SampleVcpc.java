@@ -26,8 +26,8 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.Regression;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.regression.RegressionResult;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.CombinationGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
@@ -136,8 +136,8 @@ public final class SampleVcpc implements GraphSearch {
     private DataSet dataSet;
     private ICovarianceMatrix covMatrix;
 
-    private SemPm semPm = null;
-    private SemIm semIm = null;
+    private LinearSemPm linearSemPm = null;
+    private LinearSemIm semIm = null;
 
     private Map<Node, Node> nodesToVariables;
 
@@ -181,7 +181,7 @@ public final class SampleVcpc implements GraphSearch {
     //==============================PUBLIC METHODS========================//
 
 
-    public SemIm getSemIm() {
+    public LinearSemIm getSemIm() {
         return semIm;
     }
 
@@ -1714,17 +1714,17 @@ public final class SampleVcpc implements GraphSearch {
         this.facts = facts;
     }
 
-    public void setSemPm(SemPm semPm) {
-        this.semPm = semPm;
+    public void setSemPm(LinearSemPm linearSemPm) {
+        this.linearSemPm = linearSemPm;
     }
 
-    public void setSemIm(SemIm semIm) {
+    public void setSemIm(LinearSemIm semIm) {
         this.semIm = semIm;
     }
 
 
-    public SemPm getSemPm() {
-        return semPm;
+    public LinearSemPm getSemPm() {
+        return linearSemPm;
     }
 
 }

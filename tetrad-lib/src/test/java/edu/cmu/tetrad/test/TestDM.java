@@ -27,8 +27,8 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeEqualityMode;
 import edu.cmu.tetrad.search.DMSearch;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.pitt.dbmi.data.reader.Delimiter;
@@ -67,8 +67,8 @@ public class TestDM {
         graph.addDirectedEdge(new ContinuousVariable("X1"), new ContinuousVariable("X2"));
         graph.addDirectedEdge(new ContinuousVariable("X1"), new ContinuousVariable("X3"));
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(100000, false);
 
@@ -124,8 +124,8 @@ public class TestDM {
         graph.addDirectedEdge(new ContinuousVariable("X5"), new ContinuousVariable("X6"));
         graph.addDirectedEdge(new ContinuousVariable("X5"), new ContinuousVariable("X7"));
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(100000, false);
 
@@ -211,8 +211,8 @@ public class TestDM {
         graph.addDirectedEdge(new ContinuousVariable("X9"), new ContinuousVariable("X10"));
         graph.addDirectedEdge(new ContinuousVariable("X9"), new ContinuousVariable("X11"));
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(100000, false);
 
@@ -288,8 +288,8 @@ public class TestDM {
         graph.addDirectedEdge(new ContinuousVariable("X1"), new ContinuousVariable("X5"));
         graph.addDirectedEdge(new ContinuousVariable("X2"), new ContinuousVariable("X5"));
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(100000, false);
 
@@ -348,8 +348,8 @@ public class TestDM {
         graph.addDirectedEdge(new ContinuousVariable("X2"), new ContinuousVariable("X4"));
         graph.addDirectedEdge(new ContinuousVariable("X2"), new ContinuousVariable("X5"));
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(100000, false);
 
@@ -413,8 +413,8 @@ public class TestDM {
 
         graph.addDirectedEdge(new ContinuousVariable("X3"), new ContinuousVariable("X7"));
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(1000, false);
 
@@ -622,8 +622,8 @@ public class TestDM {
         graph.addDirectedEdge(new ContinuousVariable("X1"), new ContinuousVariable("X3"));
         graph.addDirectedEdge(new ContinuousVariable("X1"), new ContinuousVariable("X4"));
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(100000, false);
 
@@ -764,8 +764,8 @@ public class TestDM {
 
         RandomUtil.getInstance().setSeed(29483818483L);
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(100000, false);
 
@@ -847,8 +847,8 @@ public class TestDM {
 //        graph.addDirectedEdge(X5, X8);
         RandomUtil.getInstance().setSeed(29483818483L);
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(100000, false);
 

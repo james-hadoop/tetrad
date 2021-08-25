@@ -42,25 +42,25 @@ public class TestSemEstimator {
     @Test
     public void testSet1() {
         Graph graph = constructGraph1();
-        SemPm semPm = new SemPm(graph);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
         ICovarianceMatrix covMatrix = constructCovMatrix1();
-        SemEstimator estimator = new SemEstimator(covMatrix, semPm);
+        SemEstimator estimator = new SemEstimator(covMatrix, linearSemPm);
         estimator.estimate();
     }
 
     @Test
     public void testSet2() {
         Graph graph = constructGraph2();
-        SemPm semPm = new SemPm(graph);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
         ICovarianceMatrix covMatrix = constructCovMatrix2();
-        new SemEstimator(covMatrix, semPm);
+        new SemEstimator(covMatrix, linearSemPm);
     }
 
     public void testSet3() {
         Graph graph = constructGraph2();
-        SemPm semPm = new SemPm(graph);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
         ICovarianceMatrix covMatrix = constructCovMatrix2();
-        SemEstimator estimator = new SemEstimator(covMatrix, semPm);
+        SemEstimator estimator = new SemEstimator(covMatrix, linearSemPm);
         estimator.estimate();
     }
 
@@ -68,8 +68,8 @@ public class TestSemEstimator {
     public void testSet8() {
         Graph graph = GraphConverter.convert("X1-->X2,X2-->X3,X3-->X4,X4-->X1");
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(1000, false);
 
@@ -149,12 +149,12 @@ public class TestSemEstimator {
 
         Graph graph = new Dag(GraphUtils.randomGraph(nodes, 0, 5,
                 30, 15, 15, false));
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(1000, false);
 
-        SemIm im2 = new SemIm(pm);
+        LinearSemIm im2 = new LinearSemIm(pm);
         im2.setDataSet(data);
 
         SemOptimizer opt = new SemOptimizerPowell();
@@ -172,12 +172,12 @@ public class TestSemEstimator {
 
         Graph graph = new Dag(GraphUtils.randomGraph(nodes, 0, 5,
                 30, 15, 15, false));
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet data = im.simulateData(1000, false);
 
-        SemIm im2 = new SemIm(pm);
+        LinearSemIm im2 = new LinearSemIm(pm);
         im2.setDataSet(data);
 
         SemOptimizer opt = new SemOptimizerPowell();

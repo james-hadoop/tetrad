@@ -28,8 +28,8 @@ import edu.cmu.tetrad.graph.GraphNode;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.sem.Parameter;
 import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.junit.Test;
 
@@ -51,15 +51,15 @@ public class TestSemVarMeans {
     @Test
     public void testMeansRecursive() {
         Graph graph = constructGraph1();
-        SemPm semPm1 = new SemPm(graph);
+        LinearSemPm linearSemPm1 = new LinearSemPm(graph);
 
-        List<Parameter> parameters = semPm1.getParameters();
+        List<Parameter> parameters = linearSemPm1.getParameters();
 
         for (Parameter p : parameters) {
             p.setInitializedRandomly(false);
         }
 
-        SemIm semIm1 = new SemIm(semPm1);
+        LinearSemIm semIm1 = new LinearSemIm(linearSemPm1);
 
         double[] means = {5.0, 4.0, 3.0, 2.0, 1.0};
 
@@ -72,10 +72,10 @@ public class TestSemVarMeans {
 
         DataSet dataSet = semIm1.simulateDataRecursive(1000, false);
 
-        SemEstimator semEst = new SemEstimator(dataSet, semPm1);
+        SemEstimator semEst = new SemEstimator(dataSet, linearSemPm1);
         semEst.estimate();
-        SemIm estSemIm = semEst.getEstimatedSem();
-        List<Node> nodes = semPm1.getVariableNodes();
+        LinearSemIm estSemIm = semEst.getEstimatedSem();
+        List<Node> nodes = linearSemPm1.getVariableNodes();
 
         for (Node node : nodes) {
             double mean = semIm1.getMean(node);
@@ -86,15 +86,15 @@ public class TestSemVarMeans {
     @Test
     public void testMeansReducedForm() {
         Graph graph = constructGraph1();
-        SemPm semPm1 = new SemPm(graph);
+        LinearSemPm linearSemPm1 = new LinearSemPm(graph);
 
-        List<Parameter> parameters = semPm1.getParameters();
+        List<Parameter> parameters = linearSemPm1.getParameters();
 
         for (Parameter p : parameters) {
             p.setInitializedRandomly(false);
         }
 
-        SemIm semIm1 = new SemIm(semPm1);
+        LinearSemIm semIm1 = new LinearSemIm(linearSemPm1);
 
         double[] means = {5.0, 4.0, 3.0, 2.0, 1.0};
 
@@ -107,10 +107,10 @@ public class TestSemVarMeans {
 
         DataSet dataSet = semIm1.simulateDataReducedForm(1000, false);
 
-        SemEstimator semEst = new SemEstimator(dataSet, semPm1);
+        SemEstimator semEst = new SemEstimator(dataSet, linearSemPm1);
         semEst.estimate();
-        SemIm estSemIm = semEst.getEstimatedSem();
-        List<Node> nodes = semPm1.getVariableNodes();
+        LinearSemIm estSemIm = semEst.getEstimatedSem();
+        List<Node> nodes = linearSemPm1.getVariableNodes();
 
         for (Node node : nodes) {
             double mean = semIm1.getMean(node);
@@ -121,15 +121,15 @@ public class TestSemVarMeans {
     @Test
     public void testMeansCholesky() {
         Graph graph = constructGraph1();
-        SemPm semPm1 = new SemPm(graph);
+        LinearSemPm linearSemPm1 = new LinearSemPm(graph);
 
-        List<Parameter> parameters = semPm1.getParameters();
+        List<Parameter> parameters = linearSemPm1.getParameters();
 
         for (Parameter p : parameters) {
             p.setInitializedRandomly(false);
         }
 
-        SemIm semIm1 = new SemIm(semPm1);
+        LinearSemIm semIm1 = new LinearSemIm(linearSemPm1);
 
         double[] means = {5.0, 4.0, 3.0, 2.0, 1.0};
 
@@ -142,10 +142,10 @@ public class TestSemVarMeans {
 
         DataSet dataSet = semIm1.simulateDataCholesky(1000, false);
 
-        SemEstimator semEst = new SemEstimator(dataSet, semPm1);
+        SemEstimator semEst = new SemEstimator(dataSet, linearSemPm1);
         semEst.estimate();
-        SemIm estSemIm = semEst.getEstimatedSem();
-        List<Node> nodes = semPm1.getVariableNodes();
+        LinearSemIm estSemIm = semEst.getEstimatedSem();
+        List<Node> nodes = linearSemPm1.getVariableNodes();
 
         for (Node node : nodes) {
             double mean = semIm1.getMean(node);

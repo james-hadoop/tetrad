@@ -27,7 +27,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.graph.*;
@@ -82,7 +82,7 @@ public class BryanSensitivityStudy {
             Parameters parameters = getParameters();
             Graph graph = getGraph1();
             Simulations simulations = new Simulations();
-            simulations.add(new SemSimulation(new SingleGraph(graph)));
+            simulations.add(new LinearSemSimulation(new SingleGraph(graph)));
             comparison.compareFromSimulations("bryan.simulation", simulations, "graph1.txt", algorithms, statistics, parameters);
         }
 
@@ -90,7 +90,7 @@ public class BryanSensitivityStudy {
             Parameters parameters = getParameters();
             Graph graph = getGraph2();
             Simulations simulations = new Simulations();
-            simulations.add(new SemSimulation(new SingleGraph(graph)));
+            simulations.add(new LinearSemSimulation(new SingleGraph(graph)));
             comparison.compareFromSimulations("bryan.simulation", simulations, "graph2.txt", algorithms, statistics, parameters);
         }
 
@@ -98,7 +98,7 @@ public class BryanSensitivityStudy {
             Parameters parameters = getParameters();
             Graph graph = getGraph3();
             Simulations simulations = new Simulations();
-            simulations.add(new SemSimulation(new SingleGraph(graph)));
+            simulations.add(new LinearSemSimulation(new SingleGraph(graph)));
             comparison.compareFromSimulations("bryan.simulation", simulations, "graph3.txt", algorithms, statistics, parameters);
         }
 
@@ -106,7 +106,7 @@ public class BryanSensitivityStudy {
             Parameters parameters = getParameters();
             Graph graph = getGraph4();
             Simulations simulations = new Simulations();
-            simulations.add(new SemSimulation(new SingleGraph(graph)));
+            simulations.add(new LinearSemSimulation(new SingleGraph(graph)));
             comparison.compareFromSimulations("bryan.simulation", simulations, "graph4.txt", algorithms, statistics, parameters);
         }
     }

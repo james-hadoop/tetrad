@@ -72,11 +72,11 @@ public class RequiredGraphModel extends KnowledgeBoxModel {
         this((KnowledgeBoxInput) wrapper, params);
     }
 
-    public RequiredGraphModel(SemImWrapper wrapper, Parameters params) {
+    public RequiredGraphModel(LinearSemImWrapper wrapper, Parameters params) {
         this((KnowledgeBoxInput) wrapper, params);
     }
 
-    public RequiredGraphModel(SemPmWrapper wrapper, Parameters params) {
+    public RequiredGraphModel(LinearSemPmWrapper wrapper, Parameters params) {
         this((KnowledgeBoxInput) wrapper, params);
     }
 

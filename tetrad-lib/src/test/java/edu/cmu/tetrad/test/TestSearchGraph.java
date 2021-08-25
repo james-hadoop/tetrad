@@ -25,8 +25,8 @@ import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.junit.Test;
@@ -193,8 +193,8 @@ public final class TestSearchGraph {
         System.out.println("Elapsed " + (stop - start));
         System.out.println("Per " + fas.getNumIndependenceTests() / (double) (stop - start));
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(1000, false);
         IndependenceTest test2 = new IndTestFisherZ(data, 0.001);
 

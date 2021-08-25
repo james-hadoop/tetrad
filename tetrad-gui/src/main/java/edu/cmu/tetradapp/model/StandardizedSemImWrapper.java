@@ -23,8 +23,8 @@ package edu.cmu.tetradapp.model;
 import edu.cmu.tetrad.data.KnowledgeBoxInput;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.StandardizedSemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
 import edu.cmu.tetrad.session.SessionModel;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradLogger;
@@ -50,7 +50,7 @@ public class StandardizedSemImWrapper implements SessionModel, KnowledgeBoxInput
     /**
      * @serial Cannot be null.
      */
-    private final StandardizedSemIm standardizedSemIm;
+    private final StandardizedLinearSemIm standardizedSemIm;
 
     /**
      * True just in case errors should be shown in the interface.
@@ -58,22 +58,22 @@ public class StandardizedSemImWrapper implements SessionModel, KnowledgeBoxInput
     private boolean showErrors;
 
     //============================CONSTRUCTORS==========================//
-    public StandardizedSemImWrapper(SemImWrapper semImWrapper, Parameters parameters) {
+    public StandardizedSemImWrapper(LinearSemImWrapper semImWrapper, Parameters parameters) {
         if (semImWrapper == null) {
             throw new NullPointerException();
         }
 
-        this.standardizedSemIm = new StandardizedSemIm(semImWrapper.getSemIm(), parameters);
+        this.standardizedSemIm = new StandardizedLinearSemIm(semImWrapper.getSemIm(), parameters);
         log(standardizedSemIm);
     }
 
-    public StandardizedSemImWrapper(SemPmWrapper semPmWrapper, Parameters parameters) {
+    public StandardizedSemImWrapper(LinearSemPmWrapper semPmWrapper, Parameters parameters) {
         if (semPmWrapper == null) {
             throw new NullPointerException();
         }
 
-        SemIm semIm = new SemIm(semPmWrapper.getSemPm());
-        this.standardizedSemIm = new StandardizedSemIm(semIm, parameters);
+        LinearSemIm semIm = new LinearSemIm(semPmWrapper.getSemPm());
+        this.standardizedSemIm = new StandardizedLinearSemIm(semIm, parameters);
         log(standardizedSemIm);
     }
 
@@ -88,7 +88,7 @@ public class StandardizedSemImWrapper implements SessionModel, KnowledgeBoxInput
     }
 
     //===========================PUBLIC METHODS=========================//
-    public StandardizedSemIm getStandardizedSemIm() {
+    public StandardizedLinearSemIm getStandardizedSemIm() {
         return this.standardizedSemIm;
     }
 
@@ -151,7 +151,7 @@ public class StandardizedSemImWrapper implements SessionModel, KnowledgeBoxInput
         return getGraph().getNodes();
     }
 
-    private void log(StandardizedSemIm pm) {
+    private void log(StandardizedLinearSemIm pm) {
         TetradLogger.getInstance().log("info", "Standardized SEM IM");
         TetradLogger.getInstance().log("im", pm.toString());
     }

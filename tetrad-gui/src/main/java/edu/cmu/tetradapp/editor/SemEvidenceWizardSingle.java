@@ -23,7 +23,7 @@ package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.SemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.sem.SemUpdater;
 import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetradapp.workbench.DisplayNode;
@@ -125,7 +125,7 @@ class SemEvidenceWizardSingle extends JPanel {
         });
     }
 
-    public SemIm getSemIm() {
+    public LinearSemIm getSemIm() {
         return getSemUpdater().getUpdatedSemIm();
     }
 

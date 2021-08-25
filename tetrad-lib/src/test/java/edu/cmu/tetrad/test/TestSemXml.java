@@ -26,8 +26,8 @@ import edu.cmu.tetrad.graph.Dag;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.SemXmlParser;
 import edu.cmu.tetrad.sem.SemXmlRenderer;
 import junit.framework.Test;
@@ -56,30 +56,30 @@ public final class TestSemXml extends TestCase {
     }
 
     public static void testRosemIm2undtrip() {
-        SemIm semIm = sampleSemIm1();
+        LinearSemIm semIm = sampleSemIm1();
         Element element = SemXmlRenderer.getElement(semIm);
 
         SemXmlParser parser = new SemXmlParser();
-        SemIm semIm2 = parser.getSemIm(element);
+        LinearSemIm semIm2 = parser.getSemIm(element);
     }
 
     public void testRoundtrip2() {
-        SemIm semIm = sampleSemIm1();
+        LinearSemIm semIm = sampleSemIm1();
         Element element = SemXmlRenderer.getElement(semIm);
 
         SemXmlParser parser = new SemXmlParser();
-        SemIm semIm2 = parser.getSemIm(element);
+        LinearSemIm semIm2 = parser.getSemIm(element);
     }
 
     public void testRoundtrip3() {
-        SemIm semIm = sampleSemIm1();
+        LinearSemIm semIm = sampleSemIm1();
         Element element = SemXmlRenderer.getElement(semIm);
 
         SemXmlParser parser = new SemXmlParser();
-        SemIm semIm2 = parser.getSemIm(element);
+        LinearSemIm semIm2 = parser.getSemIm(element);
     }
 
-    private static SemIm sampleSemIm1() {
+    private static LinearSemIm sampleSemIm1() {
         List<Node> nodes = new ArrayList<>();
 
         for (int i = 0; i < 5; i++) {
@@ -88,8 +88,8 @@ public final class TestSemXml extends TestCase {
 
         Graph graph = new Dag(GraphUtils.randomGraph(nodes, 0, 5,
                 30, 15, 15, true));
-        SemPm pm = new SemPm(graph);
-        return new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        return new LinearSemIm(pm);
     }
 
     /**

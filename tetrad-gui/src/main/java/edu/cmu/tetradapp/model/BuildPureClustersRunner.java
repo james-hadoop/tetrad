@@ -28,7 +28,7 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.ReidentifyVariables;
-import edu.cmu.tetrad.sem.SemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
 import edu.cmu.tetrad.util.Unmarshallable;
@@ -51,7 +51,7 @@ public class BuildPureClustersRunner extends AbstractMimRunner
     /**
      * To reidentify variables.
      */
-    private SemIm semIm;
+    private LinearSemIm semIm;
     private Graph trueGraph;
 
     //============================CONSTRUCTORS============================//
@@ -66,7 +66,7 @@ public class BuildPureClustersRunner extends AbstractMimRunner
 
     }
 
-    public BuildPureClustersRunner(DataWrapper dataWrapper, SemImWrapper semImWrapper,
+    public BuildPureClustersRunner(DataWrapper dataWrapper, LinearSemImWrapper semImWrapper,
                                    Parameters pureClustersParams) {
         super(dataWrapper, (Clusters) pureClustersParams.get("clusters", null), pureClustersParams);
         this.semIm = semImWrapper.getSemIm();

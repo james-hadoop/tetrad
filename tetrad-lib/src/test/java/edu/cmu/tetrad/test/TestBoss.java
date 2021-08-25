@@ -29,7 +29,7 @@ import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.EbicScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulationTrueModel;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -38,9 +38,9 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IndependenceFacts;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
-import edu.cmu.tetrad.sem.StandardizedSemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
+import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
 import edu.cmu.tetrad.util.*;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
@@ -141,7 +141,7 @@ public final class TestBoss {
         algorithms.add(new BOSS(new EbicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.DEPTH));
@@ -164,7 +164,7 @@ public final class TestBoss {
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
     }
 
-    //@Test
+    @Test
     public void testBoss2() {
         RandomUtil.getInstance().setSeed(386829384L);
 
@@ -176,8 +176,8 @@ public final class TestBoss {
         params.set(Params.NUM_RUNS, 5);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.PENALTY_DISCOUNT, 2);
-        params.set(Params.COEF_LOW, 0.1);
-        params.set(Params.COEF_HIGH, 0.9);
+        params.set(Params.COEF_LOW, 0.2);
+        params.set(Params.COEF_HIGH, 0.8);
         params.set(Params.VERBOSE, false);
         params.set(Params.BREAK_TIES, true);
         params.set(Params.USE_SCORE, true);
@@ -190,7 +190,7 @@ public final class TestBoss {
 //        algorithms.add(new PcAll(new FisherZ()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
@@ -212,7 +212,7 @@ public final class TestBoss {
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
     }
 
-    //@Test
+    @Test
     public void testBoss3() {
 //        RandomUtil.getInstance().setSeed(386829384L);
 
@@ -237,7 +237,7 @@ public final class TestBoss {
 //        algorithms.add(new PcAll(new FisherZ()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
@@ -259,7 +259,7 @@ public final class TestBoss {
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
     }
 
-    //@Test
+    @Test
     public void testBoss4() {
 //        RandomUtil.getInstance().setSeed(386829384L);
 
@@ -290,7 +290,7 @@ public final class TestBoss {
 //        algorithms.add(new BOSS(new EbicScore()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
@@ -311,7 +311,7 @@ public final class TestBoss {
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations, algorithms, statistics, params);
     }
 
-    //@Test
+    @Test
     public void testBoss5() {
 //        int m = 100;
 //        int e = 100;
@@ -354,7 +354,7 @@ public final class TestBoss {
         algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
@@ -377,17 +377,17 @@ public final class TestBoss {
                 algorithms, statistics, params);
     }
 
-    //@Test
+    @Test
     public void testBoss6() {
 //        RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
         params.set(Params.SAMPLE_SIZE, 10000);
-        params.set(Params.NUM_MEASURES, 60);
-        params.set(Params.AVG_DEGREE, 14);// 2, 4, 6, 8, 10, 12);//, 14);//, 1 6, 18, 20);
+        params.set(Params.NUM_MEASURES, 10);
+        params.set(Params.AVG_DEGREE, 2, 4, 6, 8);//, 10, 12);//, 14);//, 1 6, 18, 20);
         params.set(Params.RANDOMIZE_COLUMNS, true);
-        params.set(Params.COEF_LOW, 0.1);
-        params.set(Params.COEF_HIGH, 1.5);
+        params.set(Params.COEF_LOW, 0.2);
+        params.set(Params.COEF_HIGH, 0.8);
         params.set(Params.VERBOSE, true);
 
         params.set(Params.NUM_RUNS, 5);
@@ -407,7 +407,7 @@ public final class TestBoss {
 //        algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
@@ -460,7 +460,7 @@ public final class TestBoss {
 //        algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
 //        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
@@ -513,7 +513,7 @@ public final class TestBoss {
 //        algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
@@ -643,11 +643,11 @@ public final class TestBoss {
 
             Graph g = GraphUtils.randomGraph(15, 0, 30, 100,
                     100, 100, false);
-            SemPm pm = new SemPm(g);
+            LinearSemPm pm = new LinearSemPm(g);
             Parameters params = new Parameters();
             params.set(Params.COEF_LOW, 0.1);
             params.set(Params.COEF_HIGH, 1);
-            SemIm im = new SemIm(pm, params);
+            LinearSemIm im = new LinearSemIm(pm, params);
             DataSet data = im.simulateData(100000, false);
 
             data = DataUtils.shuffleColumns(data);
@@ -994,9 +994,9 @@ public final class TestBoss {
         graph.addDirectedEdge(x3, x4);
         graph.addDirectedEdge(x1, x4);
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
-        StandardizedSemIm imsd = new StandardizedSemIm(im, new Parameters());
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
+        StandardizedLinearSemIm imsd = new StandardizedLinearSemIm(im, new Parameters());
 
         List<List<Node>> existingPaths = new ArrayList<>();
 
@@ -1034,9 +1034,9 @@ public final class TestBoss {
         Graph graph = GraphUtils.randomGraph(10, 0, 20, 100, 100, 100, false);
         List<Node> nodes = graph.getNodes();
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
-        StandardizedSemIm imsd = new StandardizedSemIm(im, new Parameters());
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
+        StandardizedLinearSemIm imsd = new StandardizedLinearSemIm(im, new Parameters());
 
         List<List<Node>> existingPaths = new ArrayList<>();
 
@@ -1068,7 +1068,7 @@ public final class TestBoss {
         System.out.println("BOSS " + boss.bestOrder(data.getVariables()));
     }
 
-    private boolean setPathsCanceling(Node x1, Node x4, StandardizedSemIm imsd, List<List<Node>> existingPaths) {
+    private boolean setPathsCanceling(Node x1, Node x4, StandardizedLinearSemIm imsd, List<List<Node>> existingPaths) {
         SemGraph graph = imsd.getSemPm().getGraph();
         graph.setShowErrorTerms(false);
 
@@ -1151,8 +1151,8 @@ public final class TestBoss {
     //@Test
     public void testTeyssierIndices() {
         Graph graph = GraphUtils.randomGraph(10, 0, 10, 100, 100, 100, false);
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet dataSet = im.simulateData(1000, false);
         edu.cmu.tetrad.search.SemBicScore score = new edu.cmu.tetrad.search.SemBicScore(dataSet);
         TeyssierScorer scorer = new TeyssierScorer(score);

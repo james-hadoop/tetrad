@@ -5,8 +5,8 @@ import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.SemGraph;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -21,24 +21,24 @@ public class SemSimulationTrueModel implements Simulation {
 
     static final long serialVersionUID = 23L;
     private RandomGraph randomGraph;
-    private SemPm pm;
-    private SemIm im;
+    private LinearSemPm pm;
+    private LinearSemIm im;
     private List<DataModel> dataSets = new ArrayList<>();
     private List<Graph> graphs = new ArrayList<>();
-    private List<SemIm> ims = new ArrayList<>();
+    private List<LinearSemIm> ims = new ArrayList<>();
 
     public SemSimulationTrueModel(RandomGraph graph) {
         this.randomGraph = graph;
     }
 
-    public SemSimulationTrueModel(SemPm pm) {
+    public SemSimulationTrueModel(LinearSemPm pm) {
         SemGraph graph = pm.getGraph();
         graph.setShowErrorTerms(false);
         this.randomGraph = new SingleGraph(graph);
         this.pm = pm;
     }
 
-    public SemSimulationTrueModel(SemIm im) {
+    public SemSimulationTrueModel(LinearSemIm im) {
         SemGraph graph = im.getSemPm().getGraph();
         graph.setShowErrorTerms(false);
         this.randomGraph = new SingleGraph(graph);
@@ -106,7 +106,7 @@ public class SemSimulationTrueModel implements Simulation {
         }
 
         if (im == null) {
-            parameters.addAll(SemIm.getParameterNames());
+            parameters.addAll(LinearSemIm.getParameterNames());
         }
 
         parameters.add(Params.MEASUREMENT_VARIANCE);
@@ -133,17 +133,17 @@ public class SemSimulationTrueModel implements Simulation {
     private void makeModels(Graph graph, Parameters parameters) {
         boolean saveLatentVars = parameters.getBoolean(Params.SAVE_LATENT_VARS);
 
-        SemIm im = this.im;
+        LinearSemIm im = this.im;
 
         if (im == null) {
-            SemPm pm = this.pm;
+            LinearSemPm pm = this.pm;
 
             if (pm == null) {
-                pm = new SemPm(graph);
-                im = new SemIm(pm, parameters);
+                pm = new LinearSemPm(graph);
+                im = new LinearSemIm(pm, parameters);
                 ims.add(im);
             } else {
-                im = new SemIm(pm, parameters);
+                im = new LinearSemIm(pm, parameters);
                 ims.add(im);
             }
         } else {
@@ -151,7 +151,7 @@ public class SemSimulationTrueModel implements Simulation {
         }
     }
 
-    public List<SemIm> getSemIms() {
+    public List<LinearSemIm> getSemIms() {
         return ims;
     }
 }

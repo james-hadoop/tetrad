@@ -223,13 +223,13 @@
                     edu.cmu.tetradapp.editor.BayesPmParamsEditor
                 </params-editor-class>
             </model>
-            <model name="SEM Parametric Model" acronym="SEM PM" help="sem_im">
+            <model name="Linear SEM Parametric Model" acronym="SEM PM" help="sem_im">
                 <logger>
                     <event id="info" description="Information" default="on"/>
                     <event id="pm" description="Parametric Model" default="on"/>
                 </logger>
-                <model-class>edu.cmu.tetradapp.model.SemPmWrapper</model-class>
-                <editor-class>edu.cmu.tetradapp.editor.SemPmEditor
+                <model-class>edu.cmu.tetradapp.model.LinearSemPmWrapper</model-class>
+                <editor-class>edu.cmu.tetradapp.editor.LinearSemPmEditor
                 </editor-class>
             </model>
             <model name="Generalized SEM Parametric Model" acronym="Gen. SEM PM" help="sem_im">
@@ -300,16 +300,16 @@
                     edu.cmu.tetradapp.editor.DirichletBayesImParamsEditor
                 </params-editor-class>
             </model>
-            <model name="SEM Instantiated Model" acronym="SEM IM" help="sem_im">
+            <model name="Linear SEM Instantiated Model" acronym="SEM IM" help="sem_im">
                 <logger>
                     <event id="info" description="Information" default="on"/>
                     <event id="im" description="Instantiated Model" default="on"/>
                 </logger>
-                <model-class>edu.cmu.tetradapp.model.SemImWrapper</model-class>
-                <editor-class>edu.cmu.tetradapp.editor.SemImEditor
+                <model-class>edu.cmu.tetradapp.model.LinearSemImWrapper</model-class>
+                <editor-class>edu.cmu.tetradapp.editor.LinearSemImEditor
                 </editor-class>
                 <params-editor-class>
-                    edu.cmu.tetradapp.editor.SemImParamsEditor
+                    edu.cmu.tetradapp.editor.LinearSemImParamsEditor
                 </params-editor-class>
             </model>
             <model name="Standardized SEM Instantiated Model" acronym="St SEM IM" help="sem_im">
@@ -318,7 +318,7 @@
                     <event id="im" description="Instantiated Model" default="on"/>
                 </logger>
                 <model-class>edu.cmu.tetradapp.model.StandardizedSemImWrapper</model-class>
-                <editor-class>edu.cmu.tetradapp.editor.StandardizedSemImEditor</editor-class>
+                <editor-class>edu.cmu.tetradapp.editor.StandardizedLinearSemImEditor</editor-class>
             </model>
             <model name="Generalized SEM Instantiated Model" acronym="Gen. SEM IM" help="gen_sem_im">
                 <logger>

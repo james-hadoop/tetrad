@@ -206,7 +206,7 @@ public class ConditionalGaussianSimulation implements Simulation {
         BayesPm bayesPm = new BayesPm(AG);
         BayesIm bayesIm = new MlBayesIm(bayesPm, MlBayesIm.RANDOM);
 
-        SemPm semPm = new SemPm(XG);
+        LinearSemPm linearSemPm = new LinearSemPm(XG);
 
         Map<Combination, Double> paramValues = new HashMap<>();
 
@@ -292,8 +292,8 @@ public class ConditionalGaussianSimulation implements Simulation {
                         }
                     }
 
-                    Parameter varParam = semPm.getParameter(y, y);
-                    Parameter muParam = semPm.getMeanParameter(y);
+                    Parameter varParam = linearSemPm.getParameter(y, y);
+                    Parameter muParam = linearSemPm.getMeanParameter(y);
 
                     Combination varComb = new Combination(varParam);
                     Combination muComb = new Combination(muParam);
@@ -306,7 +306,7 @@ public class ConditionalGaussianSimulation implements Simulation {
                     double value = RandomUtil.getInstance().nextNormal(0, getParamValue(varComb, paramValues));
 
                     for (Node x : continuousParents) {
-                        Parameter coefParam = semPm.getParameter(x, y);
+                        Parameter coefParam = linearSemPm.getParameter(x, y);
                         Combination coefComb = new Combination(coefParam);
 
                         for (DiscreteVariable v : discreteParents) {

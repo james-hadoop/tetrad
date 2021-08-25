@@ -43,8 +43,8 @@ public class TestFgesFa {
 
         System.out.println(graph);
 
-        SemPm semPm = new SemPm(graph);
-        SemIm semIm = new SemIm(semPm);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
+        LinearSemIm semIm = new LinearSemIm(linearSemPm);
         DataSet dataSet = semIm.simulateData(1000, false);
 
         Parameters parameters = new Parameters();

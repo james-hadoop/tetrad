@@ -56,7 +56,7 @@ public class SemUpdaterWrapper implements SessionModel {
 
     }
 
-    public SemUpdaterWrapper(SemImWrapper wrapper) {
+    public SemUpdaterWrapper(LinearSemImWrapper wrapper) {
         if (wrapper == null) {
             throw new NullPointerException();
         }

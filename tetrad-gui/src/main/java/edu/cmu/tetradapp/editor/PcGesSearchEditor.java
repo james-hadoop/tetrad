@@ -25,13 +25,12 @@ import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.bayes.BayesProperties;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.ImpliedOrientation;
 import edu.cmu.tetrad.search.IndTestType;
 import edu.cmu.tetrad.search.CpdagToDag;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetradapp.model.*;
@@ -48,8 +47,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
@@ -388,17 +385,17 @@ public class PcGesSearchEditor extends AbstractSearchEditor
     }
 
     private String reportIfContinuous(Graph dag, DataSet dataSet) {
-        SemPm semPm = new SemPm(dag);
+        LinearSemPm linearSemPm = new LinearSemPm(dag);
 
-        SemEstimator estimator = new SemEstimator(dataSet, semPm);
+        SemEstimator estimator = new SemEstimator(dataSet, linearSemPm);
         estimator.estimate();
-        SemIm semIm = estimator.getEstimatedSem();
+        LinearSemIm semIm = estimator.getEstimatedSem();
 
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMaximumFractionDigits(4);
 
         StringBuilder buf = new StringBuilder();
-        buf.append("\nDegrees of Freedom = ").append(semPm.getDof())
+        buf.append("\nDegrees of Freedom = ").append(linearSemPm.getDof())
                 .append(" Chi-Square = ").append(nf.format(semIm.getChiSquare()))
                 .append("\nP Value = ").append(nf.format(semIm.getPValue()))
                 .append("\nBIC Score = ").append(nf.format(semIm.getBicScore()));
@@ -420,17 +417,17 @@ public class PcGesSearchEditor extends AbstractSearchEditor
     }
 
     private String reportIfCovMatrix(Graph dag, ICovarianceMatrix dataSet) {
-        SemPm semPm = new SemPm(dag);
+        LinearSemPm linearSemPm = new LinearSemPm(dag);
 
-        SemEstimator estimator = new SemEstimator(dataSet, semPm);
+        SemEstimator estimator = new SemEstimator(dataSet, linearSemPm);
         estimator.estimate();
-        SemIm semIm = estimator.getEstimatedSem();
+        LinearSemIm semIm = estimator.getEstimatedSem();
 
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMaximumFractionDigits(4);
 
         StringBuilder buf = new StringBuilder();
-        buf.append("\nDegrees of Freedom = ").append(semPm.getDof())
+        buf.append("\nDegrees of Freedom = ").append(linearSemPm.getDof())
                 .append(" Chi-Square = ").append(nf.format(semIm.getChiSquare()))
                 .append("\nP Value = ").append(nf.format(semIm.getPValue()))
                 .append("\nBIC Score = ").append(nf.format(semIm.getBicScore()));

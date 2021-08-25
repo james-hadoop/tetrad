@@ -184,7 +184,7 @@ final class IndTestChooser {
         if (IndTestType.SEM_BIC == testType) {
             List<DataModel> dataModels = new ArrayList<>();
             for (DataSet dataSet : dataSets) dataModels.add(dataSet);
-            return new IndTestScore(new SemBicScoreImages(dataModels));
+            return new IndTestScore(new LinearSemBicScoreImages(dataModels));
         }
 
         {

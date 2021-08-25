@@ -24,7 +24,7 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.sem.StandardizedSemIm;
+import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.Matrix;
@@ -41,7 +41,7 @@ import static java.lang.Math.abs;
  */
 public class IndTestDSepDiminishingPathStrengths implements IndependenceTest {
 
-    private final StandardizedSemIm semIm;
+    private final StandardizedLinearSemIm semIm;
     /**
      * The graph for which this is a variable map.
      */
@@ -57,14 +57,14 @@ public class IndTestDSepDiminishingPathStrengths implements IndependenceTest {
     private double pvalue = 0;
     private double alpha = 0.001;
 
-    public IndTestDSepDiminishingPathStrengths(StandardizedSemIm semIm, double alpha) {
+    public IndTestDSepDiminishingPathStrengths(StandardizedLinearSemIm semIm, double alpha) {
         this(semIm, false, alpha);
     }
 
     /**
      * Constructs a new independence test that returns d-separation facts for the given semIm as independence results.
      */
-    public IndTestDSepDiminishingPathStrengths(StandardizedSemIm semIm, boolean keepLatents, double alpha) {
+    public IndTestDSepDiminishingPathStrengths(StandardizedLinearSemIm semIm, boolean keepLatents, double alpha) {
         if (semIm == null) {
             throw new NullPointerException();
         }

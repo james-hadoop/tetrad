@@ -25,8 +25,8 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.IndTestFisherZGeneralizedInverse;
 import edu.cmu.tetrad.search.IndependenceTest;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.junit.Test;
 
@@ -64,11 +64,11 @@ public class TestIndTestFisherGeneralizedInverse {
         graph2.addEdge(Edges.directedEdge(x, y));
         graph2.addEdge(Edges.directedEdge(z, y));
 
-        SemPm pm1 = new SemPm(graph1);
-        SemPm pm2 = new SemPm(graph2);
+        LinearSemPm pm1 = new LinearSemPm(graph1);
+        LinearSemPm pm2 = new LinearSemPm(graph2);
 
-        SemIm im1 = new SemIm(pm1);
-        SemIm im2 = new SemIm(pm2);
+        LinearSemIm im1 = new LinearSemIm(pm1);
+        LinearSemIm im2 = new LinearSemIm(pm2);
 
         im2.setEdgeCoef(x, y, im1.getEdgeCoef(x, y));
         im2.setEdgeCoef(z, y, im1.getEdgeCoef(y, z));

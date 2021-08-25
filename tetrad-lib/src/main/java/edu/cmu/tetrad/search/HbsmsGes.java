@@ -40,8 +40,8 @@ public final class HbsmsGes implements Hbsms {
     private final Graph graph;
     private double alpha = 0.05;
     private final Set<GraphWithPValue> significantModels = new HashSet<>();
-    private SemIm originalSemIm;
-    private SemIm newSemIm;
+    private LinearSemIm originalSemIm;
+    private LinearSemIm newSemIm;
     private final Scorer scorer;
 
     public HbsmsGes(Graph graph, DataSet data) {
@@ -60,7 +60,7 @@ public final class HbsmsGes implements Hbsms {
 
         Graph best = SearchGraphUtils.dagFromCpdag(fges.search(), knowledge);
 
-        SemPm pm = new SemPm(best);
+        LinearSemPm pm = new LinearSemPm(best);
         SemEstimator est = new SemEstimator(data, pm);
         this.newSemIm = est.estimate();
 
@@ -107,11 +107,11 @@ public final class HbsmsGes implements Hbsms {
         return graph;
     }
 
-    public SemIm getOriginalSemIm() {
+    public LinearSemIm getOriginalSemIm() {
         return originalSemIm;
     }
 
-    public SemIm getNewSemIm() {
+    public LinearSemIm getNewSemIm() {
         return newSemIm;
     }
 

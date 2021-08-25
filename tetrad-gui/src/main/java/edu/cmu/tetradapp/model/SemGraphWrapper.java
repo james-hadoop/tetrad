@@ -194,11 +194,11 @@ public class SemGraphWrapper implements SessionModel, GraphSource,
         this(new SemGraph(wrapper.getBayesUpdater().getManipulatedGraph()));
     }
 
-    public SemGraphWrapper(SemPmWrapper wrapper) {
+    public SemGraphWrapper(LinearSemPmWrapper wrapper) {
         this(new SemGraph(wrapper.getSemPm().getGraph()));
     }
 
-    public SemGraphWrapper(SemImWrapper wrapper) {
+    public SemGraphWrapper(LinearSemImWrapper wrapper) {
         this(new SemGraph(wrapper.getSemIm().getSemPm().getGraph()));
     }
 

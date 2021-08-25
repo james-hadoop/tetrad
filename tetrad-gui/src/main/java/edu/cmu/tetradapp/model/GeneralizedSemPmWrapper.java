@@ -25,7 +25,7 @@ import edu.cmu.tetrad.data.KnowledgeBoxInput;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.sem.GeneralizedSemIm;
 import edu.cmu.tetrad.sem.GeneralizedSemPm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.TemplateExpander;
 import edu.cmu.tetrad.session.SessionModel;
 import edu.cmu.tetrad.util.TetradLogger;
@@ -208,7 +208,7 @@ public class GeneralizedSemPmWrapper implements SessionModel, KnowledgeBoxInput 
         }
     }
 
-    public GeneralizedSemPmWrapper(SemPmWrapper pmWrapper) {
+    public GeneralizedSemPmWrapper(LinearSemPmWrapper pmWrapper) {
         if (pmWrapper == null) {
             throw new NullPointerException();
         }
@@ -266,24 +266,24 @@ public class GeneralizedSemPmWrapper implements SessionModel, KnowledgeBoxInput 
 
     public GeneralizedSemPmWrapper(SemEstimatorWrapper wrapper) {
         try {
-            SemPm oldSemPm = wrapper.getSemEstimator().getEstimatedSem()
+            LinearSemPm oldLinearSemPm = wrapper.getSemEstimator().getEstimatedSem()
                     .getSemPm();
-            this.semPm = new GeneralizedSemPm(oldSemPm);
+            this.semPm = new GeneralizedSemPm(oldLinearSemPm);
         } catch (Exception e) {
             throw new RuntimeException("SemPm could not be deep cloned.", e);
         }
         log(semPm);
     }
 
-    public GeneralizedSemPmWrapper(SemImWrapper wrapper) {
-        SemPm oldSemPm = wrapper.getSemIm().getSemPm();
-        this.semPm = new GeneralizedSemPm(oldSemPm);
+    public GeneralizedSemPmWrapper(LinearSemImWrapper wrapper) {
+        LinearSemPm oldLinearSemPm = wrapper.getSemIm().getSemPm();
+        this.semPm = new GeneralizedSemPm(oldLinearSemPm);
         log(semPm);
     }
 
     public GeneralizedSemPmWrapper(MimBuildRunner wrapper) {
-        SemPm oldSemPm = wrapper.getSemPm();
-        this.semPm = new GeneralizedSemPm(oldSemPm);
+        LinearSemPm oldLinearSemPm = wrapper.getSemPm();
+        this.semPm = new GeneralizedSemPm(oldLinearSemPm);
         log(semPm);
     }
 
@@ -292,8 +292,8 @@ public class GeneralizedSemPmWrapper implements SessionModel, KnowledgeBoxInput 
         if (graph == null) {
             throw new IllegalArgumentException("No graph to display.");
         }
-        SemPm oldSemPm = new SemPm(graph);
-        this.semPm = new GeneralizedSemPm(oldSemPm);
+        LinearSemPm oldLinearSemPm = new LinearSemPm(graph);
+        this.semPm = new GeneralizedSemPm(oldLinearSemPm);
         log(semPm);
     }
 

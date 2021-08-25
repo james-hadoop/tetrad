@@ -49,9 +49,9 @@ public class SemUpdater implements TetradSerializable {
 
     static final long serialVersionUID = 23L;
     private SemEvidence evidence;
-    private SemIm semIm;
+    private LinearSemIm semIm;
 
-    public SemUpdater(SemIm semIm) {
+    public SemUpdater(LinearSemIm semIm) {
         if (semIm == null) {
             throw new NullPointerException();
         }
@@ -65,7 +65,7 @@ public class SemUpdater implements TetradSerializable {
      * Generates a simple exemplar of this class to test serialization.
      */
     public static SemUpdater serializableInstance() {
-        return new SemUpdater(SemIm.serializableInstance());
+        return new SemUpdater(LinearSemIm.serializableInstance());
     }
 
     public SemEvidence getEvidence() {
@@ -88,17 +88,17 @@ public class SemUpdater implements TetradSerializable {
     /**
      * @return the Bayes instantiated model that is being updated.
      */
-    public SemIm getSemIm() {
+    public LinearSemIm getSemIm() {
         return this.semIm;
     }
 
     /**
      * See http://en.wikipedia.org/wiki/Multivariate_normal_distribution.
      */
-    public SemIm getUpdatedSemIm() {
+    public LinearSemIm getUpdatedSemIm() {
 
         // First manipulate the old semIm.
-        SemIm manipulatedSemIm = getManipulatedSemIm();
+        LinearSemIm manipulatedSemIm = getManipulatedSemIm();
 
         // Get out the means and implied covariances.
         Vector means = new Vector(manipulatedSemIm.getVariableNodes().size());
@@ -191,10 +191,10 @@ public class SemUpdater implements TetradSerializable {
         return createManipulatedGraph(getSemIm().getSemPm().getGraph());
     }
 
-    public SemIm getManipulatedSemIm() {
+    public LinearSemIm getManipulatedSemIm() {
         SemGraph graph = getSemIm().getSemPm().getGraph();
         SemGraph manipulatedGraph = createManipulatedGraph(graph);
-        return SemIm.retainValues(getSemIm(), manipulatedGraph);
+        return LinearSemIm.retainValues(getSemIm(), manipulatedGraph);
     }
 
     /**

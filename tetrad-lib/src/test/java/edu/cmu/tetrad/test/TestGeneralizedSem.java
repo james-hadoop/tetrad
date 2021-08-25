@@ -168,9 +168,9 @@ public class TestGeneralizedSem {
     }
 
 
-    private void print(SemPm semPm) {
+    private void print(LinearSemPm linearSemPm) {
         if (printStuff) {
-            System.out.println(semPm);
+            System.out.println(linearSemPm);
         }
     }
 
@@ -202,13 +202,13 @@ public class TestGeneralizedSem {
         graph.addDirectedEdge(x4, x5);
         graph.addDirectedEdge(x2, x5);
 
-        SemPm semPm = new SemPm(graph);
-        SemIm semIm = new SemIm(semPm);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
+        LinearSemIm semIm = new LinearSemIm(linearSemPm);
         DataSet dataSet = semIm.simulateData(sampleSize, false);
 
-        print(semPm);
+        print(linearSemPm);
 
-        GeneralizedSemPm _semPm = new GeneralizedSemPm(semPm);
+        GeneralizedSemPm _semPm = new GeneralizedSemPm(linearSemPm);
         GeneralizedSemIm _semIm = new GeneralizedSemIm(_semPm, semIm);
         DataSet _dataSet = _semIm.simulateDataMinimizeSurface(sampleSize, false);
 
@@ -405,12 +405,12 @@ public class TestGeneralizedSem {
 
         Graph graph = new Dag(GraphUtils.randomGraph(nodes, 0, 5,
                 30, 15, 15, false));
-        SemPm semPm = new SemPm(graph);
-        SemIm semIm = new SemIm(semPm);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
+        LinearSemIm semIm = new LinearSemIm(linearSemPm);
 
         semIm.simulateDataReducedForm(1000, false);
 
-        GeneralizedSemPm pm = new GeneralizedSemPm(semPm);
+        GeneralizedSemPm pm = new GeneralizedSemPm(linearSemPm);
         GeneralizedSemIm im = new GeneralizedSemIm(pm, semIm);
 
         Vector e = new Vector(5);
@@ -442,7 +442,7 @@ public class TestGeneralizedSem {
 
         Graph graph = GraphUtils.randomGraphRandomForwardEdges(nodes, 0, numVars, 30, 15, 15, false, true);
 
-        SemPm spm = new SemPm(graph);
+        LinearSemPm spm = new LinearSemPm(graph);
 
         Parameters params = new Parameters();
         params.set("coefLow", 0.5);
@@ -450,7 +450,7 @@ public class TestGeneralizedSem {
         params.set("varLow", 1);
         params.set("varHigh", 3);
 
-        SemIm sim = new SemIm(spm, params);
+        LinearSemIm sim = new LinearSemIm(spm, params);
 
         GeneralizedSemPm pm = new GeneralizedSemPm(spm);
         GeneralizedSemIm im = new GeneralizedSemIm(pm, sim);
@@ -514,8 +514,8 @@ public class TestGeneralizedSem {
 
         graph.addDirectedEdge(x, y);
 
-        SemPm spm = new SemPm(graph);
-        SemIm sim = new SemIm(spm);
+        LinearSemPm spm = new LinearSemPm(graph);
+        LinearSemIm sim = new LinearSemIm(spm);
 
         sim.setEdgeCoef(x, y, 20);
         sim.setErrVar(x, 1);

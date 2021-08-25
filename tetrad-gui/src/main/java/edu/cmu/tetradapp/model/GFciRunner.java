@@ -258,7 +258,7 @@ public class GFciRunner extends AbstractAlgorithmRunner
                 if (allContinuous(list)) {
                     double penalty = params.getDouble("penaltyDiscount", 4);
 
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     IndTestScore test = new IndTestScore(fgesScore);
                     fgesScore.setPenaltyDiscount(penalty);
                     gfci = new GFci(test, fgesScore);

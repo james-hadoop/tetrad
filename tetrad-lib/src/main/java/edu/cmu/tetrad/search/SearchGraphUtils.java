@@ -3353,7 +3353,7 @@ public final class SearchGraphUtils {
                 dataSets.add(_dataModel);
             }
 
-            Fges images = new Fges(new SemBicScoreImages(dataSets));
+            Fges images = new Fges(new LinearSemBicScoreImages(dataSets));
 
             images.setBoundGraph(graph);
             images.setKnowledge(knowledge);

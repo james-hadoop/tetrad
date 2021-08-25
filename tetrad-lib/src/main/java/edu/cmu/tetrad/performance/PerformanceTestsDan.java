@@ -27,8 +27,8 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -123,8 +123,8 @@ public class PerformanceTestsDan {
 
             printDanMatrix(vars, dag, out4);
 
-            SemPm pm = new SemPm(dag);
-            SemIm im = new SemIm(pm);
+            LinearSemPm pm = new LinearSemPm(dag);
+            LinearSemIm im = new LinearSemIm(pm);
             NumberFormat nf = new DecimalFormat("0.0000");
 
             for (int i = 0; i < vars.size(); i++) {

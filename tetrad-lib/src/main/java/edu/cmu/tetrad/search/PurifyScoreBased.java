@@ -26,8 +26,8 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.sem.ParamType;
 import edu.cmu.tetrad.sem.Parameter;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.MatrixUtils;
 
 import java.util.*;
@@ -65,7 +65,7 @@ public class PurifyScoreBased implements IPurify {
     ICovarianceMatrix covarianceMatrix;
     boolean correlatedErrors[][], latentParent[][], observedParent[][];
     List latentNodes, measuredNodes;
-    SemIm currentSemIm;
+    LinearSemIm currentSemIm;
     boolean modifiedGraph;
 
 
@@ -467,10 +467,10 @@ public class PurifyScoreBased implements IPurify {
         printlnMessage();
     }
 
-    private double gaussianEM(SemGraph semdag, SemIm initialSemIm) {
+    private double gaussianEM(SemGraph semdag, LinearSemIm initialSemIm) {
         double score, newScore = -Double.MAX_VALUE, bestScore =
                 -Double.MAX_VALUE;
-        SemPm semPm = new SemPm(semdag);
+        LinearSemPm linearSemPm = new LinearSemPm(semdag);
         semdag.setShowErrorTerms(true);
         for (int p = 0; p < numObserved; p++) {
             for (int q = 0; q < numObserved; q++) {
@@ -495,11 +495,11 @@ public class PurifyScoreBased implements IPurify {
 
         for (int i = 0; i < 3; i++) {
             System.out.println("--Trial " + i);
-            SemIm semIm;
+            LinearSemIm semIm;
             if (i == 0 && initialSemIm != null) {
                 semIm = initialSemIm;
             } else {
-                semIm = new SemIm(semPm);
+                semIm = new LinearSemIm(linearSemPm);
                 semIm.setCovMatrix(this.covarianceMatrix);
             }
             do {
@@ -665,7 +665,7 @@ public class PurifyScoreBased implements IPurify {
      * Analysis", by Rubin and Thayer (Psychometrika, 1982)
      */
 
-    private void gaussianExpectation(SemIm semIm) {
+    private void gaussianExpectation(LinearSemIm semIm) {
         //Get the parameters
         double beta[][] =
                 new double[numLatent][numLatent];        //latent-to-latent coefficients
@@ -911,7 +911,7 @@ public class PurifyScoreBased implements IPurify {
         return realIm;
     }*/
 
-    private double gaussianMaximization(SemIm semIm) {
+    private double gaussianMaximization(LinearSemIm semIm) {
         semIm.getSemPm().getGraph().setShowErrorTerms(true);
         //SemIm realIm = getDummyExample();
         //semIm = SemIm.newInstance(realIm.getEstIm());
@@ -1925,8 +1925,8 @@ public class PurifyScoreBased implements IPurify {
     private double scoreCandidate() {
         SemGraph graph = updatedGraph();
         initializeGaussianEM(graph);
-        SemPm semPm = new SemPm(graph);
-        SemIm semIm = new SemIm(semPm, covarianceMatrix);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
+        LinearSemIm semIm = new LinearSemIm(linearSemPm, covarianceMatrix);
         gaussianMaximization(semIm);
 
         try {

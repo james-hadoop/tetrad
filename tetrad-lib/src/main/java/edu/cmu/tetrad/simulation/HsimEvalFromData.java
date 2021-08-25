@@ -10,8 +10,8 @@ import edu.cmu.tetrad.search.Fges;
 import edu.cmu.tetrad.search.CpdagToDag;
 import edu.cmu.tetrad.search.SemBicScore;
 import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
@@ -96,10 +96,10 @@ public class HsimEvalFromData {
                         //GeneralizedSemEstimator gsemEstimator = new GeneralizedSemEstimator();
                         //GeneralizedSemIm fittedIM = gsemEstimator.estimate(simSemPm, oData);
 
-                        SemPm simSemPm = new SemPm(fgsdag2);
+                        LinearSemPm simLinearSemPm = new LinearSemPm(fgsdag2);
                         //BayesPm simBayesPm = new BayesPm(fgsdag2, bayesPm);
-                        SemEstimator simSemEstimator = new SemEstimator(data1, simSemPm);
-                        SemIm fittedIM = simSemEstimator.estimate();
+                        SemEstimator simSemEstimator = new SemEstimator(data1, simLinearSemPm);
+                        LinearSemIm fittedIM = simSemEstimator.estimate();
 
                         DataSet simData = fittedIM.simulateData(data1.getNumRows(), false);
                         //after making the full resim data (simData), run FGS on that

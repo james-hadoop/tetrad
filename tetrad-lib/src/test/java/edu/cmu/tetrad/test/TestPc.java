@@ -25,8 +25,8 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TextTable;
@@ -238,8 +238,8 @@ public class TestPc {
         }
 
         Graph graph = GraphUtils.randomGraph(nodes, 0, 10, 30, 15, 15, false);
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(200, false);
 
         TetradLogger.getInstance().setForceLog(false);
@@ -358,8 +358,8 @@ public class TestPc {
 
             Graph dag = GraphUtils.randomGraphRandomForwardEdges(nodes, numLatents, numEdges,
                     10, 10, 10, false);
-            SemPm pm = new SemPm(dag);
-            SemIm im = new SemIm(pm);
+            LinearSemPm pm = new LinearSemPm(dag);
+            LinearSemIm im = new LinearSemIm(pm);
             DataSet data = im.simulateData(1000, false);
 
             IndTestFisherZ test = new IndTestFisherZ(data, alpha);
@@ -725,8 +725,8 @@ public class TestPc {
 
             Graph dag = GraphUtils.randomGraphRandomForwardEdges(nodes, numLatents, numEdges,
                     10, 10, 10, false);
-            SemPm pm = new SemPm(dag);
-            SemIm im = new SemIm(pm);
+            LinearSemPm pm = new LinearSemPm(dag);
+            LinearSemIm im = new LinearSemIm(pm);
             DataSet data = im.simulateData(sampleSize, false);
 
 //            Graph comparison = dag;

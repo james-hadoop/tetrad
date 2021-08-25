@@ -58,14 +58,14 @@ public class TestDagScorer {
         Graph dag = new Dag(GraphUtils.randomGraph(nodes, 0, 10,
                 30, 15, 15, false));
 
-        SemPm pm = new SemPm(dag);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(dag);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(1000, false);
 
         GraphUtils.replaceNodes(dag, data.getVariables());
 
         SemEstimator est = new SemEstimator(data, pm);
-        SemIm estSem = est.estimate();
+        LinearSemIm estSem = est.estimate();
         double fml = estSem.getScore();
 
         assertEquals(0.0369, fml, 0.001);

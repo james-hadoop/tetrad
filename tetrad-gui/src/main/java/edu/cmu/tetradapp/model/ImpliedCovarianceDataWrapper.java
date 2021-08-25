@@ -25,7 +25,7 @@ import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.LogDataUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.session.SessionModel;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Matrix;
@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class ImpliedCovarianceDataWrapper extends DataWrapper implements SessionModel {
     static final long serialVersionUID = 23L;
-    private SemIm semIm = null;
+    private LinearSemIm semIm = null;
 
     //==============================CONSTRUCTORS=============================//
 
@@ -50,7 +50,7 @@ public class ImpliedCovarianceDataWrapper extends DataWrapper implements Session
 //        int sampleSize = params.getSampleSize();
 //        boolean latentDataSaved = params.isIncludeLatents();
         SemEstimator semEstimator = wrapper.getSemEstimator();
-        SemIm semIm1 = semEstimator.getEstimatedSem();
+        LinearSemIm semIm1 = semEstimator.getEstimatedSem();
 
         if (semIm1 != null) {
 
@@ -66,7 +66,7 @@ public class ImpliedCovarianceDataWrapper extends DataWrapper implements Session
         LogDataUtils.logDataModelList("Data simulated from a linear structural equation model.", getDataModelList());
     }
 
-    public SemIm getSemIm() {
+    public LinearSemIm getSemIm() {
         return this.semIm;
     }
 

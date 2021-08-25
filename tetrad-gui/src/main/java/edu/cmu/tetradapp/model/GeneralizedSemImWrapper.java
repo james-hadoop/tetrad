@@ -105,7 +105,7 @@ public class GeneralizedSemImWrapper implements SessionModel, KnowledgeBoxInput 
         this(wrapper.getSemPm());
     }
 
-    public GeneralizedSemImWrapper(GeneralizedSemPmWrapper genSemPm, SemImWrapper imWrapper) {
+    public GeneralizedSemImWrapper(GeneralizedSemPmWrapper genSemPm, LinearSemImWrapper imWrapper) {
         semIms.add(new GeneralizedSemIm(genSemPm.getSemPm(), imWrapper.getSemIm()));
     }
 

@@ -43,7 +43,7 @@ public final class SemEvidence implements TetradSerializable {
      *
      * @serial
      */
-    private SemIm semIm;
+    private LinearSemIm semIm;
 
     /**
      * A proposition stating what we know for each variable.
@@ -65,7 +65,7 @@ public final class SemEvidence implements TetradSerializable {
     /**
      * Constructs a container for evidence for the given Bayes IM.
      */
-    public SemEvidence(SemIm semIm) {
+    public SemEvidence(LinearSemIm semIm) {
         if (semIm == null) {
             throw new NullPointerException();
         }
@@ -125,7 +125,7 @@ public final class SemEvidence implements TetradSerializable {
      * Generates a simple exemplar of this class to test serialization.
      */
     public static SemEvidence serializableInstance() {
-        return new SemEvidence(SemIm.serializableInstance());
+        return new SemEvidence(LinearSemIm.serializableInstance());
     }
 
     //===========================PUBLIC METHODS=========================//
@@ -133,7 +133,7 @@ public final class SemEvidence implements TetradSerializable {
     /**
      * @return the Bayes IM that this is evidence for.
      */
-    public SemIm getSemIm() {
+    public LinearSemIm getSemIm() {
         return this.semIm;
     }
 

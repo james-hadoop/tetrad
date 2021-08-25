@@ -11,7 +11,7 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.IndTestScore;
 import edu.cmu.tetrad.search.SearchGraphUtils;
-import edu.cmu.tetrad.search.SemBicScoreImages;
+import edu.cmu.tetrad.search.LinearSemBicScoreImages;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -51,7 +51,7 @@ public class TsImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
             }
 
             edu.cmu.tetrad.search.TsGFci search = new edu.cmu.tetrad.search.TsGFci(new IndTestScore(
-                    new SemBicScoreImages(dataModels)), new SemBicScoreImages(dataModels));
+                    new LinearSemBicScoreImages(dataModels)), new LinearSemBicScoreImages(dataModels));
             search.setFaithfulnessAssumed(true);
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));

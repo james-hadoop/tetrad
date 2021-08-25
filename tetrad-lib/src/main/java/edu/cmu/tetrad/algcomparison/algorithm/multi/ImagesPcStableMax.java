@@ -9,7 +9,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.IndTestScore;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.search.PcStableMax;
-import edu.cmu.tetrad.search.SemBicScoreImages3;
+import edu.cmu.tetrad.search.LinearSemBicScoreImages3;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -43,7 +43,7 @@ public class ImagesPcStableMax implements MultiDataSetAlgorithm, HasKnowledge {
                 dataSets.add((DataSet) dataModel);
             }
 
-            SemBicScoreImages3 score = new SemBicScoreImages3(dataSets);
+            LinearSemBicScoreImages3 score = new LinearSemBicScoreImages3(dataSets);
             score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
             IndependenceTest test = new IndTestScore(score);
             PcStableMax search = new PcStableMax(test);

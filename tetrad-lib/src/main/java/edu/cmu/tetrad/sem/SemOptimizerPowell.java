@@ -61,13 +61,13 @@ public class SemOptimizerPowell implements SemOptimizer {
 
     //=========================PUBLIC METHODS==========================//
 
-    public void optimize(SemIm semIm) {
+    public void optimize(LinearSemIm semIm) {
         double min = Double.POSITIVE_INFINITY;
         double[] point = null;
 
         for (int count = 0; count < numRestarts + 1; count++) {
 //            System.out.println("Trial " + (count + 1));
-            SemIm _sem2 = new SemIm(semIm);
+            LinearSemIm _sem2 = new LinearSemIm(semIm);
 
             List<Parameter> freeParameters = _sem2.getFreeParameters();
 
@@ -111,7 +111,7 @@ public class SemOptimizerPowell implements SemOptimizer {
         return "Sem Optimizer PAL Powell";
     }
 
-    private FittingFunction fittingFunction(SemIm sem) {
+    private FittingFunction fittingFunction(LinearSemIm sem) {
         return new FittingFunction(sem);
     }
 
@@ -137,14 +137,14 @@ public class SemOptimizerPowell implements SemOptimizer {
         /**
          * The wrapped Sem.
          */
-        private final SemIm sem;
+        private final LinearSemIm sem;
 
         private List<Parameter> freeParameters;
 
         /**
          * Constructs a new CoefFittingFunction for the given Sem.
          */
-        public FittingFunction(SemIm sem) {
+        public FittingFunction(LinearSemIm sem) {
             this.sem = sem;
             this.freeParameters = sem.getFreeParameters();
         }

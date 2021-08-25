@@ -55,7 +55,7 @@ public final class SemEstimatorGibbs {
      *
      * @serial Cannot be null.
      */
-    private SemPm semPm;
+    private LinearSemPm linearSemPm;
 
     /**
      * The freeParameters of the SEM (i.e. edge coeffs, error cov, etc.
@@ -67,7 +67,7 @@ public final class SemEstimatorGibbs {
     /**
      * The initial semIm, obtained via params.
      */
-    private SemIm startIm;
+    private LinearSemIm startIm;
 
     private Matrix priorCov;
 
@@ -77,7 +77,7 @@ public final class SemEstimatorGibbs {
      *
      * @serial Can be null.
      */
-    private SemIm estimatedSem;
+    private LinearSemIm estimatedSem;
 
     private boolean flatPrior;
 
@@ -86,7 +86,7 @@ public final class SemEstimatorGibbs {
     //=============================CONSTRUCTORS============================//
 
     /**
-     * @param semPm         a SemPm specifying the graph and parameterization for the
+     * @param linearSemPm         a SemPm specifying the graph and parameterization for the
      *                      model.
      * @param startIm       SemIm
      * @param sampleCovars  sample covariance matrix
@@ -101,12 +101,12 @@ public final class SemEstimatorGibbs {
     //	this.semPm = semPm;
     //	this.params = params;
     //}
-    public SemEstimatorGibbs(SemPm semPm, SemIm startIm, double[][] sampleCovars, boolean flatPrior, double stretch, int numIterations) {
+    public SemEstimatorGibbs(LinearSemPm linearSemPm, LinearSemIm startIm, double[][] sampleCovars, boolean flatPrior, double stretch, int numIterations) {
         /*
       For now, we are moving SemEstimatorGibbsParams variables into this
       class for easier testing
      */
-        this.semPm = semPm;
+        this.linearSemPm = linearSemPm;
         this.startIm = startIm;
         this.flatPrior = flatPrior;
         this.stretch1 = stretch;
@@ -131,7 +131,7 @@ public final class SemEstimatorGibbs {
         //as brent, neglogpost, etc.
 
         // Initialize method variables
-        List<Parameter> parameters = this.semPm.getParameters();
+        List<Parameter> parameters = this.linearSemPm.getParameters();
 
         int numParameters = parameters.size();
         double[][] parameterCovariances = new double[numParameters][numParameters];
@@ -173,7 +173,7 @@ public final class SemEstimatorGibbs {
         //END PRIORINIT
 
         //GIBBSINIT
-        SemIm posteriorIm = new SemIm(this.startIm);
+        LinearSemIm posteriorIm = new LinearSemIm(this.startIm);
 
         List postFreeParams = posteriorIm.getFreeParameters();
 
@@ -407,7 +407,7 @@ public final class SemEstimatorGibbs {
     private double negloglike(int param, double x) {
         // Mark - I'm not entirely sure about this method
 
-        Parameter p = this.semPm.getParameters().get(param);
+        Parameter p = this.linearSemPm.getParameters().get(param);
 
         double tparm = this.startIm.getParamValue(p);
 
@@ -469,7 +469,7 @@ public final class SemEstimatorGibbs {
     /**
      * @return SemIm
      */
-    public SemIm getEstimatedSem() {
+    public LinearSemIm getEstimatedSem() {
         return this.estimatedSem;
     }
 
@@ -485,7 +485,7 @@ public final class SemEstimatorGibbs {
         if (this.getEstimatedSem() == null) {
             buf.append("\n\t...SemIm has not been estimated yet.");
         } else {
-            SemIm sem = this.getEstimatedSem();
+            LinearSemIm sem = this.getEstimatedSem();
             buf.append("\n\n\tfml = ");
 
             buf.append("\n\n\tnegtruncll = ");
@@ -552,8 +552,8 @@ public final class SemEstimatorGibbs {
 //        }
 //    }
 
-    public SemPm getSemPm() {
-        return semPm;
+    public LinearSemPm getSemPm() {
+        return linearSemPm;
     }
 
     public Matrix getDataSet() {

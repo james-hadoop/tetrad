@@ -23,7 +23,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.AdjacencyPrecision;
 import edu.cmu.tetrad.algcomparison.statistic.AdjacencyRecall;
@@ -107,7 +107,7 @@ public class TimeoutComparisonTest {
 
     private static Simulations getSimulations() {
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         return simulations;
     }

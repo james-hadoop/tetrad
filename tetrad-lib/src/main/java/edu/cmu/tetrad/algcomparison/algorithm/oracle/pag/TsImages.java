@@ -20,7 +20,7 @@ import edu.cmu.tetrad.search.BdeuScoreImages;
 import edu.cmu.tetrad.search.IndTestScore;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.SemBicScoreImages;
+import edu.cmu.tetrad.search.LinearSemBicScoreImages;
 import edu.cmu.tetrad.search.TsDagToPag;
 import edu.cmu.tetrad.search.TsGFci;
 import edu.cmu.tetrad.util.Parameters;
@@ -153,7 +153,7 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
         TsGFci search;
 
         if (score instanceof SemBicScore) {
-            SemBicScoreImages gesScore = new SemBicScoreImages(dataModels);
+            LinearSemBicScoreImages gesScore = new LinearSemBicScoreImages(dataModels);
             gesScore.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
             IndependenceTest test = new IndTestScore(gesScore);
             search = new TsGFci(test, gesScore);

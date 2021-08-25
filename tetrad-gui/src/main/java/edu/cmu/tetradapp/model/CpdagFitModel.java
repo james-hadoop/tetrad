@@ -24,7 +24,6 @@ package edu.cmu.tetradapp.model;
 import edu.cmu.tetrad.bayes.BayesIm;
 import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.bayes.MlBayesEstimator;
-import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataModelList;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
@@ -59,8 +58,8 @@ public final class CpdagFitModel implements SessionModel {
     private List<BayesPm> bayesPms;
     private List<Graph> referenceGraphs;
     private DataModelList dataModelList;
-    private List<SemPm> semPms;
-    private List<SemIm> semIms;
+    private List<LinearSemPm> linearSemPms;
+    private List<LinearSemIm> semIms;
 
     //=============================CONSTRUCTORS==========================//
 
@@ -97,7 +96,7 @@ public final class CpdagFitModel implements SessionModel {
                 bayesIms.add(estimate(dataSet, pm));
             }
         } else if (((DataSet) dataModels.get(0)).isContinuous()) {
-            semPms = new ArrayList<>();
+            linearSemPms = new ArrayList<>();
             semIms = new ArrayList<>();
 
             for (int i = 0; i < dataModels.size(); i++) {
@@ -105,8 +104,8 @@ public final class CpdagFitModel implements SessionModel {
                 Graph dag = SearchGraphUtils.dagFromCpdag(graphs.get(0));
 
                 try {
-                    SemPm pm = new SemPm(dag);
-                    semPms.add(pm);
+                    LinearSemPm pm = new LinearSemPm(dag);
+                    linearSemPms.add(pm);
                     semIms.add(estimate(dataSet, pm));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -116,8 +115,8 @@ public final class CpdagFitModel implements SessionModel {
 
                     SemGraph graph = new SemGraph(mag);
                     graph.setShowErrorTerms(false);
-                    SemPm pm = new SemPm(graph);
-                    semPms.add(pm);
+                    LinearSemPm pm = new LinearSemPm(graph);
+                    linearSemPms.add(pm);
                     semIms.add(estimatePag(dataSet, pm));
                 }
             }
@@ -149,8 +148,8 @@ public final class CpdagFitModel implements SessionModel {
         }
     }
 
-    private SemIm estimate(DataSet dataSet, SemPm semPm) {
-        Graph graph = semPm.getGraph();
+    private LinearSemIm estimate(DataSet dataSet, LinearSemPm linearSemPm) {
+        Graph graph = linearSemPm.getGraph();
 
         for (Object o : graph.getNodes()) {
             Node node = (Node) o;
@@ -165,7 +164,7 @@ public final class CpdagFitModel implements SessionModel {
         }
 
         try {
-            SemEstimator estimator = new SemEstimator(dataSet, semPm);
+            SemEstimator estimator = new SemEstimator(dataSet, linearSemPm);
             return estimator.estimate();
         } catch (ArrayIndexOutOfBoundsException e) {
             e.printStackTrace();
@@ -174,7 +173,7 @@ public final class CpdagFitModel implements SessionModel {
         }
     }
 
-    private SemIm estimatePag(DataSet dataSet, SemPm pm) {
+    private LinearSemIm estimatePag(DataSet dataSet, LinearSemPm pm) {
         SemGraph graph = pm.getGraph();
 
         for (Object o : graph.getNodes()) {
@@ -248,8 +247,8 @@ public final class CpdagFitModel implements SessionModel {
         return bayesPms;
     }
 
-    public List<SemPm> getSemPms() {
-        return semPms;
+    public List<LinearSemPm> getSemPms() {
+        return linearSemPms;
     }
 
     public Parameters getParams() {

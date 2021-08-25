@@ -6,9 +6,9 @@ import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
-import edu.cmu.tetrad.sem.StandardizedSemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
+import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.RandomUtil;
@@ -48,8 +48,8 @@ public class TestFisherZCalibration {
 
         Graph graph = GraphUtils.randomDag(20, 0, 40, 100,
                 100, 100, false);
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(sampleSize, false);
 
 
@@ -342,19 +342,19 @@ public class TestFisherZCalibration {
         return 3 * (RandomUtil.getInstance().nextDouble() - 0.5) * delta;
     }
 
-    private double tryThis(StandardizedSemIm sem3, int sampleSize, Node x1, Node x2, Node x3, Node x4,
+    private double tryThis(StandardizedLinearSemIm sem3, int sampleSize, Node x1, Node x2, Node x3, Node x4,
                            double d1, double d2, double d3, double d4, DataSet[] _dataSet, Graph gStar,
                            Parameters parameters) {
         try {
-            SemPm semPm = new SemPm(gStar);
-            SemIm semIm = new SemIm(semPm);
+            LinearSemPm linearSemPm = new LinearSemPm(gStar);
+            LinearSemIm semIm = new LinearSemIm(linearSemPm);
 
             semIm.setEdgeCoef(x1, x2, d1);
             semIm.setEdgeCoef(x2, x3, d2);
             semIm.setEdgeCoef(x3, x4, d3);
             semIm.setEdgeCoef(x1, x4, d4);
 
-            StandardizedSemIm sem = new StandardizedSemIm(semIm, parameters);
+            StandardizedLinearSemIm sem = new StandardizedLinearSemIm(semIm, parameters);
 
 
 

@@ -7,8 +7,8 @@ import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.Discretizer;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import java.util.ArrayList;
@@ -113,8 +113,8 @@ public class SemThenDiscretize implements Simulation {
     }
 
     private DataSet simulate(Graph graph, Parameters parameters) {
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet continuousData = im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), false);
 
         if (this.shuffledOrder == null) {

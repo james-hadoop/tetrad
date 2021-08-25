@@ -24,8 +24,8 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.dist.Distribution;
 import edu.cmu.tetrad.util.dist.Normal;
@@ -67,8 +67,8 @@ public class TestLingamCpdag {
         variableDistributions.add(new Normal(0, 1));
         variableDistributions.add(new Normal(0, 1));
 
-        SemPm semPm = new SemPm(graph);
-        SemIm semIm = new SemIm(semPm);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
+        LinearSemIm semIm = new LinearSemIm(linearSemPm);
 
         DataSet dataSet = simulateDataNonNormal(semIm, sampleSize, variableDistributions);
         Score score = new SemBicScore(new CovarianceMatrix(dataSet));
@@ -93,7 +93,7 @@ public class TestLingamCpdag {
      * @param sampleSize    > 0.
      * @return the simulated data set.
      */
-    private DataSet simulateDataNonNormal(SemIm semIm, int sampleSize,
+    private DataSet simulateDataNonNormal(LinearSemIm semIm, int sampleSize,
                                           List<Distribution> distributions) {
         List<Node> variables = new LinkedList<>();
         List<Node> variableNodes = semIm.getSemPm().getVariableNodes();

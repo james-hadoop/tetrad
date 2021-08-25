@@ -38,7 +38,7 @@ public interface SemOptimizer extends TetradSerializable {
      *
      * @param sem The unoptimized Sem (will be optimized).
      */
-    void optimize(SemIm sem);
+    void optimize(LinearSemIm sem);
 
     void setNumRestarts(int numRestarts);
 

@@ -25,7 +25,7 @@ import edu.cmu.tetrad.graph.Edges;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
-import edu.cmu.tetrad.sem.StandardizedSemIm;
+import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetradapp.util.DoubleTextField;
 import edu.cmu.tetradapp.workbench.GraphWorkbench;
@@ -76,7 +76,7 @@ final class StandardizedSemImGraphicalEditor extends JPanel {
     /**
      * The SemIM being edited.
      */
-    private final StandardizedSemIm semIm;
+    private final StandardizedLinearSemIm semIm;
 
     /**
      * Workbench for the graphical editor.
@@ -145,13 +145,13 @@ final class StandardizedSemImGraphicalEditor extends JPanel {
     /**
      * Constructs a SemIm graphical editor for the given SemIm.
      */
-    public StandardizedSemImGraphicalEditor(final StandardizedSemIm semIm, StandardizedSemImEditor editor) {
+    public StandardizedSemImGraphicalEditor(final StandardizedLinearSemIm semIm, StandardizedLinearSemImEditor editor) {
         this.semIm = semIm;
         /*
       The editor that sits inside the SemImEditor that allows the user to edit
       the SemIm graphically.
          */
-        StandardizedSemImEditor editor1 = editor;
+        StandardizedLinearSemImEditor editor1 = editor;
 
         setLayout(new BorderLayout());
         JScrollPane scroll = new JScrollPane(workbench());
@@ -324,7 +324,7 @@ final class StandardizedSemImGraphicalEditor extends JPanel {
 
         double d = semIm().getParameterValue(edge);
 
-        StandardizedSemIm.ParameterRange range = semIm().getParameterRange(edge);
+        StandardizedLinearSemIm.ParameterRange range = semIm().getParameterRange(edge);
         NumberFormat nf = NumberFormatUtil.getInstance().getNumberFormat();
 
         editingEdge = edge;
@@ -347,7 +347,7 @@ final class StandardizedSemImGraphicalEditor extends JPanel {
         }
     }
 
-    private StandardizedSemIm semIm() {
+    private StandardizedLinearSemIm semIm() {
         return this.semIm;
     }
 

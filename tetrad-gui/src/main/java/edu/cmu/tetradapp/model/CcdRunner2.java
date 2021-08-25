@@ -234,7 +234,7 @@ public class CcdRunner2 extends AbstractAlgorithmRunner
                 if (allContinuous(list)) {
                     double penalty = 4;//params.getPenaltyDiscount();
 
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     fgesScore.setPenaltyDiscount(penalty);
                     IndependenceTest test = new IndTestScore(fgesScore);
                     ccd = new CcdMax(test);

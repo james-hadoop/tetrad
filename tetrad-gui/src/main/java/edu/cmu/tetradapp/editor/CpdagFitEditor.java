@@ -24,7 +24,7 @@ package edu.cmu.tetradapp.editor;
 import edu.cmu.tetrad.bayes.BayesIm;
 import edu.cmu.tetrad.data.DataModelList;
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetradapp.model.CpdagFitModel;
 
 import javax.swing.*;
@@ -60,9 +60,9 @@ public class CpdagFitEditor extends JPanel {
 
         DataModelList data = comparison.getDataModelList();
         List<BayesIm> bayesIms = comparison.getBayesIms();
-        List<SemPm> semPms = comparison.getSemPms();
+        List<LinearSemPm> linearSemPms = comparison.getSemPms();
 
-        if (bayesIms != null && semPms != null) {
+        if (bayesIms != null && linearSemPms != null) {
             throw new IllegalArgumentException("That's weird; both Bayes and SEM estimations were done. Please complain.");
         }
 
@@ -92,9 +92,9 @@ public class CpdagFitEditor extends JPanel {
             }
         }
 
-        if (semPms != null) {
-            for (int i = 0; i < semPms.size(); i++) {
-                SemEstimatorEditor editor = new SemEstimatorEditor(semPms.get(i), (DataSet) data.get(i));
+        if (linearSemPms != null) {
+            for (int i = 0; i < linearSemPms.size(); i++) {
+                SemEstimatorEditor editor = new SemEstimatorEditor(linearSemPms.get(i), (DataSet) data.get(i));
                 pane.add("" + (i + 1), editor);
             }
         }

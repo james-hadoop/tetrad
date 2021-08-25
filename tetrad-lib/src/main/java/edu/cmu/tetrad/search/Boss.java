@@ -208,7 +208,9 @@ public class Boss {
                     Node r1 = scorer.get(_r1);
                     Node r2 = scorer.get(_r2);
 
-                    if (triangle(v, r1, r2, scorer)) {
+                    if ((scorer.getParents(v).contains(r1) && scorer.getParents(v).contains(r2))
+                        || (scorer.getParents(r1).contains(v) && scorer.getParents(r2).contains(v))
+                        || triangle(v, r1, r2, scorer)) {
                         double score = scorer.score();
                         scorer.bookmark();
 

@@ -28,8 +28,8 @@ import edu.cmu.tetrad.graph.Dag;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.junit.Test;
 
@@ -70,8 +70,8 @@ public class TestDataLoadersRoundtrip {
 
             Graph randomGraph = new Dag(GraphUtils.randomGraph(nodes, 0, 5,
                     30, 15, 15, false));
-            SemPm semPm1 = new SemPm(randomGraph);
-            SemIm semIm1 = new SemIm(semPm1);
+            LinearSemPm linearSemPm1 = new LinearSemPm(randomGraph);
+            LinearSemIm semIm1 = new LinearSemIm(linearSemPm1);
             DataSet dataSet = semIm1.simulateData(10, false);
 
             FileWriter fileWriter = new FileWriter("target/test_data/roundtrip.dat");

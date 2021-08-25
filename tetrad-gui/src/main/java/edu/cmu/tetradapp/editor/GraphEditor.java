@@ -294,13 +294,18 @@ public final class GraphEditor extends JPanel implements GraphEditable, LayoutEd
 
         edgeTypeTable.setPreferredSize(new Dimension(820, 150));
 
-        // Use JSplitPane to allow resize the bottom box - Zhou
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new PaddingPanel(topBox), new PaddingPanel(edgeTypeTable));
-        splitPane.setDividerLocation((int) (splitPane.getPreferredSize().getHeight() - 150));
+//        //Use JSplitPane to allow resize the bottom box - Zhou
+//        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new PaddingPanel(topBox), new PaddingPanel(edgeTypeTable));
+//        splitPane.setDividerLocation((int) (splitPane.getPreferredSize().getHeight() - 150));
+
+        // Switching to tabbed pane because of resizing problems with the split pane... jdramsey 2021.08.25
+        JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
+        tabbedPane.addTab("Graph", new PaddingPanel(topBox));
+        tabbedPane.addTab("Edges", edgeTypeTable);
 
         // Add to parent container
         add(menuBar, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
+        add(tabbedPane, BorderLayout.CENTER);
 
         edgeTypeTable.update(graph);
 

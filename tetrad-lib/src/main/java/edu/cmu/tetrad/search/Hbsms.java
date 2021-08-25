@@ -23,7 +23,7 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.sem.SemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
 
 /**
  * Interface for Bff (Best Fit Finder) algorithm. See implementations.
@@ -37,9 +37,9 @@ public interface Hbsms {
 
     Graph search();
 
-    SemIm getOriginalSemIm();
+    LinearSemIm getOriginalSemIm();
 
-    SemIm getNewSemIm();
+    LinearSemIm getNewSemIm();
 }
 
 

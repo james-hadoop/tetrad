@@ -26,7 +26,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
@@ -81,7 +81,7 @@ public final class TestCopy {
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Comparison comparison = new Comparison();
 

@@ -64,7 +64,7 @@ public class SemOptimizerRegression implements SemOptimizer {
     /**
      * Fit the freeParameters by doing local regressions.
      */
-    public void optimize(SemIm semIm) {
+    public void optimize(LinearSemIm semIm) {
         if (numRestarts != 1) {
             throw new IllegalArgumentException("Number of restarts must be 1 for this method.");
         }

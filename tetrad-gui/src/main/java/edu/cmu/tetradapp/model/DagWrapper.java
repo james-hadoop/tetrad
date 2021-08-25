@@ -174,11 +174,11 @@ public class DagWrapper implements SessionModel, GraphSource, KnowledgeBoxInput,
         this(new Dag(wrapper.getBayesUpdater().getManipulatedGraph()));
     }
 
-    public DagWrapper(SemPmWrapper wrapper) {
+    public DagWrapper(LinearSemPmWrapper wrapper) {
         this(new Dag(wrapper.getSemPm().getGraph()));
     }
 
-    public DagWrapper(SemImWrapper wrapper) {
+    public DagWrapper(LinearSemImWrapper wrapper) {
         this(new Dag(wrapper.getSemIm().getSemPm().getGraph()));
     }
 

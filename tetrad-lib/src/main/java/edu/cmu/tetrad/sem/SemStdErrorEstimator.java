@@ -64,7 +64,7 @@ public class SemStdErrorEstimator {
      *
      * @param estSem the estimated SEM.
      */
-    public void computeStdErrors(ISemIm estSem) {
+    public void computeStdErrors(ILinearSemIm estSem) {
 //        if (!unmeasuredLatents(estSem.getSemPm()).isEmpty()) {
 //            int n = estSem.getFreeParameters().size();
 //            stdErrs = new double[n];
@@ -409,12 +409,12 @@ public class SemStdErrorEstimator {
         /**
          * The wrapped Sem.
          */
-        private final ISemIm sem;
+        private final ILinearSemIm sem;
 
         /**
          * Constructs a new CoefFittingFunction for the given Sem.
          */
-        public SemFittingFunction(ISemIm sem) {
+        public SemFittingFunction(ILinearSemIm sem) {
             this.sem = sem;
         }
 

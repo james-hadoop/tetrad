@@ -31,8 +31,8 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.graph.Dag;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.StatUtils;
 import org.junit.Test;
@@ -64,8 +64,8 @@ public final class TestHistogram{
         int sampleSize = 1000;
 
         // Continuous
-        SemPm semPm = new SemPm(trueGraph);
-        SemIm semIm = new SemIm(semPm);
+        LinearSemPm linearSemPm = new LinearSemPm(trueGraph);
+        LinearSemIm semIm = new LinearSemIm(linearSemPm);
         DataSet data = semIm.simulateData(sampleSize, false);
 
         Histogram histogram = new Histogram(data);

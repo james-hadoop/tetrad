@@ -1,0 +1,165 @@
+Wed Aug 25 17:51:10 EDT 2021
+
+Statistics:
+
+avgDegree = Extra column for avgDegree
+sampleSize = Extra column for sampleSize
+AP = Adjacency Precision
+AR = Adjacency Recall
+AHP = Arrowhead precision
+AHR = Arrowhead recall
+SHD = Structural Hamming Distance comparing CPDAGs
+E = Elapsed Time in Seconds
+
+Simulations:
+
+Simulation 1: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 10
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 2
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.2
+High end of coefficient range (min = 0.0) = 0.8
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1.0
+High end of variance range (min = 0.0) = 3.0
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 5
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 10000
+Save latent variables. = No
+Yes if the data should be standardized = No
+
+Simulation 2: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 10
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 4
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.2
+High end of coefficient range (min = 0.0) = 0.8
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1.0
+High end of variance range (min = 0.0) = 3.0
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 5
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 10000
+Save latent variables. = No
+Yes if the data should be standardized = No
+
+Simulation 3: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 10
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 6
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.2
+High end of coefficient range (min = 0.0) = 0.8
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1.0
+High end of variance range (min = 0.0) = 3.0
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 5
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 10000
+Save latent variables. = No
+Yes if the data should be standardized = No
+
+Simulation 4: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 10
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 8
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0.2
+High end of coefficient range (min = 0.0) = 0.8
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1.0
+High end of variance range (min = 0.0) = 3.0
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 5
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 10000
+Save latent variables. = No
+Yes if the data should be standardized = No
+
+Algorithms:
+
+1. BOSS
+
+Graphs are being compared to the True CPDAG.
+
+AVERAGE STATISTICS
+
+All edges
+
+  Alg  avgDegree  sampleSize    AP    AR   AHP   AHR    SHD     E
+    1       2.00    10000.00  0.95  1.00  1.00  0.93   1.20  0.12
+    1       4.00    10000.00  0.89  0.95  0.70  0.68  12.00  0.12
+    1       6.00    10000.00  0.93  0.91  0.57  0.56  21.60  0.12
+    1       8.00    10000.00  0.92  0.81  0.34  0.42  38.60  0.09
+
+STANDARD DEVIATIONS
+
+All edges
+
+  Alg  avgDegree  sampleSize    AP    AR   AHP   AHR   SHD     E
+    1       2.00    10000.00  0.10     -     -  0.17  2.68  0.10
+    1       4.00    10000.00  0.11  0.05  0.27  0.23  9.30  0.06
+    1       6.00    10000.00  0.05  0.04  0.25  0.22  9.13  0.03
+    1       8.00    10000.00  0.03  0.03  0.13  0.16  7.23  0.02
+
+WORST CASE
+
+All edges
+
+  Alg  avgDegree  sampleSize    AP    AR   AHP   AHR    SHD     E
+    1       2.00    10000.00  0.77  1.00  1.00  0.62      -  0.05
+    1       4.00    10000.00  0.71  0.90  0.28  0.37      -  0.07
+    1       6.00    10000.00  0.88  0.87  0.30  0.31  11.00  0.09
+    1       8.00    10000.00  0.89  0.78  0.18  0.23  28.00  0.07
+
+MEDIAN CASE
+
+All edges
+
+  Alg  avgDegree  sampleSize    AP    AR   AHP   AHR    SHD     E
+    1       2.00    10000.00  1.00  1.00  1.00  1.00      -  0.10
+    1       4.00    10000.00  0.90  0.95  0.72  0.68  11.00  0.10
+    1       6.00    10000.00  0.90  0.93  0.52  0.58  22.00  0.11
+    1       8.00    10000.00  0.91  0.82  0.35  0.46  40.00  0.09
+

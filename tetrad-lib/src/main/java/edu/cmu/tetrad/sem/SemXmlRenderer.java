@@ -41,7 +41,7 @@ public class SemXmlRenderer {
      * @param semIm the instantiated structural equation model to convert
      * @return xml representation
      */
-    public static Element getElement(SemIm semIm) {
+    public static Element getElement(LinearSemIm semIm) {
         Element semElement = new Element(SemXmlConstants.SEM);
         semElement.appendChild(makeVariables(semIm));
         semElement.appendChild(makeEdges(semIm));
@@ -51,7 +51,7 @@ public class SemXmlRenderer {
     }
 
 
-    private static Element makeVariables(SemIm semIm) {
+    private static Element makeVariables(LinearSemIm semIm) {
         Element variablesElement = new Element(SemXmlConstants.SEM_VARIABLES);
         Element variable;
         Node measuredNode, latentNode;
@@ -78,7 +78,7 @@ public class SemXmlRenderer {
         return variablesElement;
     }
 
-    private static Element makeEdges(SemIm semIm) {
+    private static Element makeEdges(LinearSemIm semIm) {
         Element edgesElement = new Element(SemXmlConstants.EDGES);
         Parameter param;
         Element edge;
@@ -98,7 +98,7 @@ public class SemXmlRenderer {
     }
 
 
-    private static Element makeMarginalErrorDistribution(SemIm semIm) {
+    private static Element makeMarginalErrorDistribution(LinearSemIm semIm) {
         Element marginalErrorElement = new Element(SemXmlConstants.MARGINAL_ERROR_DISTRIBUTION);
         Element normal;
 
@@ -127,7 +127,7 @@ public class SemXmlRenderer {
     }
 
 
-    private static Element makeJointErrorDistribution(SemIm semIm) {
+    private static Element makeJointErrorDistribution(LinearSemIm semIm) {
         Element jointErrorElement = new Element(SemXmlConstants.JOINT_ERROR_DISTRIBUTION);
         Element normal;
         Parameter param;

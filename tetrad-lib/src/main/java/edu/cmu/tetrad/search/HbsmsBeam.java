@@ -41,7 +41,7 @@ public final class HbsmsBeam implements Hbsms {
     private final CovarianceMatrix cov;
     private K2 gis;
     private final IKnowledge knowledge = new Knowledge2();
-    private SemIm newSemIm;
+    private LinearSemIm newSemIm;
 
     public HbsmsBeam(Graph graph, DataSet data, IKnowledge knowledge) {
         graph = GraphUtils.replaceNodes(graph, data.getVariables());
@@ -58,19 +58,19 @@ public final class HbsmsBeam implements Hbsms {
 
 
         Graph best = gis.search(scorer.getVariables());
-        SemPm pm = new SemPm(best);
+        LinearSemPm pm = new LinearSemPm(best);
         SemEstimator est = new SemEstimator(cov, pm);
         this.newSemIm = est.estimate();
         return best;
     }
 
     @Override
-    public SemIm getOriginalSemIm() {
+    public LinearSemIm getOriginalSemIm() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public SemIm getNewSemIm() {
+    public LinearSemIm getNewSemIm() {
         return newSemIm;
     }
 

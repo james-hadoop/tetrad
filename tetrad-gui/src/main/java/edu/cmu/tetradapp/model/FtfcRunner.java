@@ -31,7 +31,7 @@ import edu.cmu.tetrad.search.FindTwoFactorClusters;
 import edu.cmu.tetrad.search.MimUtils;
 import edu.cmu.tetrad.search.TestType;
 import edu.cmu.tetrad.sem.ReidentifyVariables;
-import edu.cmu.tetrad.sem.SemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Unmarshallable;
 
@@ -53,7 +53,7 @@ public class FtfcRunner extends AbstractMimRunner
     /**
      * To reidentify variables.
      */
-    private SemIm semIm;
+    private LinearSemIm semIm;
     private Graph trueGraph;
 
     //============================CONSTRUCTORS============================//
@@ -64,7 +64,7 @@ public class FtfcRunner extends AbstractMimRunner
 
     }
 
-    public FtfcRunner(DataWrapper dataWrapper, SemImWrapper semImWrapper,
+    public FtfcRunner(DataWrapper dataWrapper, LinearSemImWrapper semImWrapper,
                       Parameters pureClustersParams) {
         super(dataWrapper, (Clusters) pureClustersParams.get("clusters", null), pureClustersParams);
         this.semIm = semImWrapper.getSemIm();

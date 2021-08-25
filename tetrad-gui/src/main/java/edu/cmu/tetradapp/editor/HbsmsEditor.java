@@ -24,7 +24,6 @@ package edu.cmu.tetradapp.editor;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.Dag;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
@@ -32,8 +31,7 @@ import edu.cmu.tetrad.sem.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetradapp.model.HbsmsWrapper;
-import edu.cmu.tetradapp.model.SemImWrapper;
-import edu.cmu.tetradapp.util.DoubleTextField;
+import edu.cmu.tetradapp.model.LinearSemImWrapper;
 import edu.cmu.tetradapp.util.IntTextField;
 import edu.cmu.tetradapp.util.LayoutEditable;
 import edu.cmu.tetradapp.util.WatchedProcess;
@@ -46,7 +44,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.DecimalFormat;
 import java.util.Map;
 
 /**
@@ -61,8 +58,8 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
     private final IntTextField beamWidthField;
 
     private JPanel panel = new JPanel();
-    private SemIm originalSemIm;
-    private SemIm newSemIm;
+    private LinearSemIm originalSemIm;
+    private LinearSemIm newSemIm;
 
     public HbsmsEditor(final HbsmsWrapper wrapper) {
         this.setWrapper(wrapper);
@@ -78,9 +75,9 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
             setNewSemIm(wrapper.getNewSemIm());
         } else {
             EdgeListGraph graph = new EdgeListGraph();
-            SemPm pm = new SemPm(graph);
-            SemIm im = new SemIm(pm);
-            SemIm im2 = new SemIm(pm);
+            LinearSemPm pm = new LinearSemPm(graph);
+            LinearSemIm im = new LinearSemIm(pm);
+            LinearSemIm im2 = new LinearSemIm(pm);
             GraphUtils.circleLayout(graph, 200, 200,150);
             setGraphWorkbench(new GraphWorkbench(graph));
             setOriginalSemIm(im);
@@ -268,11 +265,11 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
     }
 
 
-    private void setNewSemIm(SemIm newSemIm) {
+    private void setNewSemIm(LinearSemIm newSemIm) {
         this.newSemIm = newSemIm;
     }
 
-    private void setOriginalSemIm(SemIm originalSemIm) {
+    private void setOriginalSemIm(LinearSemIm originalSemIm) {
         if (this.originalSemIm == null) {
             this.originalSemIm = originalSemIm;
         }
@@ -326,7 +323,7 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
         this.newSemIm = getWrapper().getNewSemIm();
 
         if (getNewSemIm() != null) {
-            SemImEditor newEditor = new SemImEditor(new SemImWrapper(getNewSemIm()));
+            LinearSemImEditor newEditor = new LinearSemImEditor(new LinearSemImWrapper(getNewSemIm()));
             final GraphWorkbench workbench = newEditor.getWorkbench();
 
             workbench.addPropertyChangeListener(new PropertyChangeListener() {
@@ -335,7 +332,7 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
                         System.out.println(propertyChangeEvent);
                         Graph graph = workbench.getGraph();
 
-                        SemPm pm = new SemPm(graph);
+                        LinearSemPm pm = new LinearSemPm(graph);
                         SemEstimator est = new SemEstimator((DataSet) getWrapper().getDataModel(), pm);
                         getWrapper().setNewSemIm(est.estimate());
                         setGraphWorkbench(graphWorkbench);
@@ -347,7 +344,7 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
         }
 
         if (getOriginalSemIm() != null) {
-            SemImEditor originalEditor = new SemImEditor(new SemImWrapper(getOriginalSemIm()));
+            LinearSemImEditor originalEditor = new LinearSemImEditor(new LinearSemImWrapper(getOriginalSemIm()));
             tabbedPane.addTab("Original Model", originalEditor);
         }
 
@@ -367,11 +364,11 @@ public class HbsmsEditor extends JPanel implements LayoutEditable {
         return params;
     }
 
-    private SemIm getOriginalSemIm() {
+    private LinearSemIm getOriginalSemIm() {
         return originalSemIm;
     }
 
-    private SemIm getNewSemIm() {
+    private LinearSemIm getNewSemIm() {
         return newSemIm;
     }
 }

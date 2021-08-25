@@ -29,8 +29,8 @@ import edu.cmu.tetrad.search.GwpResult.AdjacencyEvaluationResult;
 import edu.cmu.tetrad.search.GwpResult.CoefficientEvaluationResult;
 import edu.cmu.tetrad.search.GwpResult.OrientationEvaluationResult;
 import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.Matrix;
 
 import java.util.HashMap;
@@ -62,7 +62,7 @@ public class GraphWithParameters {
       */
     //it would have been more efficient to only regression on the nodes that matter
 
-    public GraphWithParameters(SemIm semIm, Graph trueCpdag) {
+    public GraphWithParameters(LinearSemIm semIm, Graph trueCpdag) {
 //		Graph g = (trueCpdag==null) ? semIm.getEstIm().getGraph() : trueCpdag;
 //		this.graph = g;
 //		weightHash = new HashMap<Edge,Double>();
@@ -447,10 +447,10 @@ public class GraphWithParameters {
      * creates a CpdagWithParameters by running a regression, given a graph and data
      */
     public static GraphWithParameters regress(DataSet dataSet, Graph graph) {
-        SemPm semPmEstDag = new SemPm(graph);
-        SemEstimator estimatorEstDag = new SemEstimator(dataSet, semPmEstDag);
+        LinearSemPm linearSemPmEstDag = new LinearSemPm(graph);
+        SemEstimator estimatorEstDag = new SemEstimator(dataSet, linearSemPmEstDag);
         estimatorEstDag.estimate();
-        SemIm semImEstDag = estimatorEstDag.getEstimatedSem();
+        LinearSemIm semImEstDag = estimatorEstDag.getEstimatedSem();
         GraphWithParameters estimatedGraph = new GraphWithParameters(semImEstDag, graph);
         return estimatedGraph;
     }

@@ -166,7 +166,7 @@ public class TsImagesRunner extends AbstractAlgorithmRunner implements IFgesRunn
             if (allContinuous(list)) {
                 double penalty = penaltyDiscount;
 
-                SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                 fgesScore.setPenaltyDiscount(penalty);
                 IndependenceTest test = new IndTestScore(fgesScore);
                 fges = new TsGFci(test, fgesScore);

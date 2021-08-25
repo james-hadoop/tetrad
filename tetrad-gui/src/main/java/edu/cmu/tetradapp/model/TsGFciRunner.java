@@ -237,7 +237,7 @@ public class TsGFciRunner extends AbstractAlgorithmRunner
                 if (allContinuous(list)) {
                     double penalty = params.getDouble("penaltyDiscount", 4);
 
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     fgesScore.setPenaltyDiscount(penalty);
                     IndependenceTest test = new IndTestDSep((Graph) model);
                     gfci = new TsGFci(test, fgesScore);

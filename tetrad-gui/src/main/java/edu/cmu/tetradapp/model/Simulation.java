@@ -25,7 +25,7 @@ import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.algcomparison.simulation.BayesNetSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.SimulationUtils;
 import edu.cmu.tetrad.algcomparison.simulation.StandardizedSemSimulation;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
@@ -147,14 +147,14 @@ public class Simulation extends DataWrapper implements SessionModel,
         createSimulation();
     }
 
-    public Simulation(SemPmWrapper wrapper, Parameters parameters) {
-        simulation = new SemSimulation(wrapper.getSemPm());
+    public Simulation(LinearSemPmWrapper wrapper, Parameters parameters) {
+        simulation = new LinearSemSimulation(wrapper.getSemPm());
         this.parameters = parameters;
         createSimulation();
     }
 
-    public Simulation(SemImWrapper wrapper, Parameters parameters) {
-        simulation = new SemSimulation(wrapper.getSemIm());
+    public Simulation(LinearSemImWrapper wrapper, Parameters parameters) {
+        simulation = new LinearSemSimulation(wrapper.getSemIm());
         this.parameters = parameters;
         createSimulation();
     }
@@ -166,13 +166,13 @@ public class Simulation extends DataWrapper implements SessionModel,
     }
 
     public Simulation(SemEstimatorWrapper wrapper, Parameters parameters) {
-        simulation = new SemSimulation(wrapper.getEstimatedSemIm());
+        simulation = new LinearSemSimulation(wrapper.getEstimatedSemIm());
         this.parameters = parameters;
         createSimulation();
     }
 
     public Simulation(SemUpdaterWrapper wrapper, Parameters parameters) {
-        simulation = new SemSimulation(wrapper.getSemUpdater().getManipulatedSemIm());
+        simulation = new LinearSemSimulation(wrapper.getSemUpdater().getManipulatedSemIm());
         this.parameters = parameters;
 //        createSimulation();
     }

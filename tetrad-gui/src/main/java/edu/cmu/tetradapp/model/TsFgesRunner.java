@@ -179,11 +179,11 @@ public class TsFgesRunner extends AbstractAlgorithmRunner implements IFgesRunner
                     double penalty = getParams().getDouble("penaltyDiscount", 4);
 
                     if (params.getBoolean("firstNontriangular", false)) {
-                        SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                        LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                         fgesScore.setPenaltyDiscount(penalty);
                         fges = new TsFges2(fgesScore);
                     } else {
-                        SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                        LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                         fgesScore.setPenaltyDiscount(penalty);
                         fges = new TsFges2(fgesScore);
                     }

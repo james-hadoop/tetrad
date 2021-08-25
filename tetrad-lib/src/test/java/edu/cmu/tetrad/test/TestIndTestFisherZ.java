@@ -25,8 +25,8 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.IndTestFisherZ;
 import edu.cmu.tetrad.search.IndependenceTest;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.StatUtils;
@@ -69,11 +69,11 @@ public class TestIndTestFisherZ {
         graph2.addEdge(Edges.directedEdge(x, y));
         graph2.addEdge(Edges.directedEdge(z, y));
 
-        SemPm pm1 = new SemPm(graph1);
-        SemPm pm2 = new SemPm(graph2);
+        LinearSemPm pm1 = new LinearSemPm(graph1);
+        LinearSemPm pm2 = new LinearSemPm(graph2);
 
-        SemIm im1 = new SemIm(pm1);
-        SemIm im2 = new SemIm(pm2);
+        LinearSemIm im1 = new LinearSemIm(pm1);
+        LinearSemIm im2 = new LinearSemIm(pm2);
 
         im2.setEdgeCoef(x, y, im1.getEdgeCoef(x, y));
         im2.setEdgeCoef(z, y, im1.getEdgeCoef(y, z));
@@ -151,7 +151,7 @@ public class TestIndTestFisherZ {
 //            graph.addDirectedEdge(r, y);
             graph.addDirectedEdge(y, r);
 //
-            SemPm pm = new SemPm(graph);
+            LinearSemPm pm = new LinearSemPm(graph);
 
             Parameters parameters = new Parameters();
 
@@ -159,7 +159,7 @@ public class TestIndTestFisherZ {
             parameters.set("coefHigh", .8);
             parameters.set("coefSymmetric", false);
 
-            SemIm im = new SemIm(pm, parameters);
+            LinearSemIm im = new LinearSemIm(pm, parameters);
 
             final int N = 1000;
             DataSet data = im.simulateData(N, false);
