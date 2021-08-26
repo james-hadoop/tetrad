@@ -79,15 +79,13 @@ public class LinearSemImParamsEditor extends JPanel implements ParameterEditor {
         final DoubleTextField coefLowField = new DoubleTextField(params.getDouble(Params.COEF_LOW),
                 6, decimalFormat);
 
-        coefLowField.setFilter(new DoubleTextField.Filter() {
-            public double filter(double value, double oldValue) {
-                try {
-                    getParams().set(Params.COEF_LOW, value);
-                    return value;
-                }
-                catch (IllegalArgumentException e) {
-                    return oldValue;
-                }
+        coefLowField.setFilter((value, oldValue) -> {
+            try {
+                getParams().set(Params.COEF_LOW, value);
+                return value;
+            }
+            catch (IllegalArgumentException e) {
+                return oldValue;
             }
         });
 
@@ -95,75 +93,65 @@ public class LinearSemImParamsEditor extends JPanel implements ParameterEditor {
         final DoubleTextField coefHighField = new DoubleTextField(params.getDouble(Params.COEF_HIGH),
                 6, decimalFormat);
 
-        coefHighField.setFilter(new DoubleTextField.Filter() {
-            public double filter(double value, double oldValue) {
-                try {
-                    getParams().set(Params.COV_HIGH, value);
-                    return value;
-                }
-                catch (IllegalArgumentException e) {
-                    return oldValue;
-                }
+        coefHighField.setFilter((value, oldValue) -> {
+            try {
+                getParams().set(Params.COEF_HIGH, value);
+                return value;
+            }
+            catch (IllegalArgumentException e) {
+                return oldValue;
             }
         });
 
         final DoubleTextField covLowField = new DoubleTextField(params.getDouble(Params.COV_LOW),
                 6, decimalFormat);
 
-        covLowField.setFilter(new DoubleTextField.Filter() {
-            public double filter(double value, double oldValue) {
-                try {
-                    params.set(Params.COV_LOW, value);
-                    return value;
-                }
-                catch (IllegalArgumentException e) {
-                    return oldValue;
-                }
+        covLowField.setFilter((value, oldValue) -> {
+            try {
+                params.set(Params.COV_LOW, value);
+                return value;
+            }
+            catch (IllegalArgumentException e) {
+                return oldValue;
             }
         });
 
         final DoubleTextField covHighField = new DoubleTextField(params.getDouble(Params.COV_HIGH, 0.0),
                 6, decimalFormat);
 
-        covHighField.setFilter(new DoubleTextField.Filter() {
-            public double filter(double value, double oldValue) {
-                try {
-                    params.set(Params.COV_HIGH, value);
-                    return value;
-                }
-                catch (IllegalArgumentException e) {
-                    return oldValue;
-                }
+        covHighField.setFilter((value, oldValue) -> {
+            try {
+                params.set(Params.COV_HIGH, value);
+                return value;
+            }
+            catch (IllegalArgumentException e) {
+                return oldValue;
             }
         });
 
         final DoubleTextField varLowField = new DoubleTextField(params.getDouble(Params.VAR_LOW, 1),
                 6, decimalFormat);
 
-        varLowField.setFilter(new DoubleTextField.Filter() {
-            public double filter(double value, double oldValue) {
-                try {
-                    params.set(Params.VAR_LOW, value);
-                    return value;
-                }
-                catch (IllegalArgumentException e) {
-                    return oldValue;
-                }
+        varLowField.setFilter((value, oldValue) -> {
+            try {
+                params.set(Params.VAR_LOW, value);
+                return value;
+            }
+            catch (IllegalArgumentException e) {
+                return oldValue;
             }
         });
 
         final DoubleTextField varHighField = new DoubleTextField(params.getDouble(Params.VAR_HIGH, 3),
                 6, decimalFormat);
 
-        varHighField.setFilter(new DoubleTextField.Filter() {
-            public double filter(double value, double oldValue) {
-                try {
-                    params.set(Params.VAR_HIGH, value);
-                    return value;
-                }
-                catch (IllegalArgumentException e) {
-                    return oldValue;
-                }
+        varHighField.setFilter((value, oldValue) -> {
+            try {
+                params.set(Params.VAR_HIGH, value);
+                return value;
+            }
+            catch (IllegalArgumentException e) {
+                return oldValue;
             }
         });
 
@@ -173,11 +161,9 @@ public class LinearSemImParamsEditor extends JPanel implements ParameterEditor {
         coefSymmetric.setSelected(params.getBoolean(Params.COEF_SYMMETRIC, true));
         covSymmetric.setSelected(params.getBoolean(Params.COV_SYMMETRIC, true));
 
-        coefSymmetric.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                JCheckBox checkBox = (JCheckBox) e.getSource();
-                params.set(Params.COEF_SYMMETRIC, checkBox.isSelected());
-            }
+        coefSymmetric.addActionListener(e -> {
+            JCheckBox checkBox = (JCheckBox) e.getSource();
+            params.set(Params.COEF_SYMMETRIC, checkBox.isSelected());
         });
 
         covSymmetric.addActionListener(new ActionListener() {
@@ -186,17 +172,6 @@ public class LinearSemImParamsEditor extends JPanel implements ParameterEditor {
                 params.set("covSymmetric", checkBox.isSelected());
             }
         });
-
-//        randomEveryTime.setText("Pick new random values each time this SEM IM is reinitialized.");
-//        randomEveryTime.setVerticalTextPosition(SwingConstants.TOP);
-//
-//        randomEveryTime.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                JCheckBox checkBox = (JCheckBox) e.getSource();
-//                boolean retainPreviousValues = !checkBox.isSelected();
-//                getParams().set("retainPreviousValues", retainPreviousValues);
-//            }
-//        });
 
         // continue workbench construction.
         Box b1 = Box.createVerticalBox();
@@ -209,7 +184,6 @@ public class LinearSemImParamsEditor extends JPanel implements ParameterEditor {
         b1.add(Box.createVerticalStrut(5));
 
         Box b4a = Box.createHorizontalBox();
-//        b4a.add(Box.createHorizontalStrut(10));
         b4a.add(new JLabel("Coefficient values are drawn from "));
         b4a.add(new BigLabel("("));
         b4a.add(coefLowField);
@@ -221,7 +195,6 @@ public class LinearSemImParamsEditor extends JPanel implements ParameterEditor {
         b1.add(b4a);
 
         Box b4b = Box.createHorizontalBox();
-//        b4b.add(Box.createHorizontalStrut(10));
         b4b.add(new JLabel("Error covariance values are drawn from "));
         b4b.add(new BigLabel("("));
         b4b.add(covLowField);
@@ -233,7 +206,6 @@ public class LinearSemImParamsEditor extends JPanel implements ParameterEditor {
         b1.add(b4b);
 
         Box b4c = Box.createHorizontalBox();
-//        b4c.add(Box.createHorizontalStrut(10));
         b4c.add(new JLabel("Error standard deviation values are drawn from "));
         b4c.add(new BigLabel("("));
         b4c.add(varLowField);
@@ -243,12 +215,6 @@ public class LinearSemImParamsEditor extends JPanel implements ParameterEditor {
         b4c.add(new JLabel("."));
         b4c.add(Box.createHorizontalGlue());
         b1.add(b4c);
-
-//        Box b5 = Box.createHorizontalBox();
-//        b5.add(Box.createHorizontalStrut(10));
-//        b5.add(randomEveryTime);
-//        b5.add(Box.createHorizontalGlue());
-//        b1.add(b5);
 
         b1.add(Box.createHorizontalGlue());
         add(b1, BorderLayout.CENTER);

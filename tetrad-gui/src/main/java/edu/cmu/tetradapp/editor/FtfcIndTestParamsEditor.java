@@ -23,6 +23,7 @@ package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.search.FindTwoFactorClusters;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetradapp.util.DoubleTextField;
 
 import javax.swing.*;
@@ -44,7 +45,7 @@ class FtfcIndTestParamsEditor extends JComponent {
         this.FtfcParams = paramsPureClusters;
 
         NumberFormat smallNumberFormat = new DecimalFormat("0E00");
-        final DoubleTextField alphaField = new DoubleTextField(getParams().getDouble("alpha", 0.001), 8,
+        final DoubleTextField alphaField = new DoubleTextField(getParams().getDouble(Params.ALPHA), 8,
                 new DecimalFormat("0.0########"), smallNumberFormat, 1e-4);
 
         alphaField.setFilter(new DoubleTextField.Filter() {

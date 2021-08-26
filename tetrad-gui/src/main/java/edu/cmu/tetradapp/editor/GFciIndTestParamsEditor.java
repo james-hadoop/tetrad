@@ -22,6 +22,7 @@
 package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetradapp.util.DoubleTextField;
 import edu.cmu.tetradapp.util.IntTextField;
 
@@ -116,7 +117,7 @@ class GFciIndTestParamsEditor extends JComponent {
         });
 
 
-        penaltyDiscount = new DoubleTextField(params().getDouble("penaltyDiscount", 4), 8,
+        penaltyDiscount = new DoubleTextField(params().getDouble(Params.PENALTY_DISCOUNT), 8,
                 new DecimalFormat("0.0########"), smallNumberFormat, 1e-4);
         penaltyDiscount.setFilter(new DoubleTextField.Filter() {
             public double filter(double value, double oldValue) {

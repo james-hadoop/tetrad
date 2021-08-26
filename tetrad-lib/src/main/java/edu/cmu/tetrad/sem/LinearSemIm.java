@@ -1933,25 +1933,25 @@ public final class LinearSemIm implements IM, ILinearSemIm, TetradSerializable {
 
         if (parameter.isInitializedRandomly()) {
             if (parameter.getType() == ParamType.COEF) {
-                final double coefLow = getParams().getDouble("coefLow", .5);
-                final double coefHigh = getParams().getDouble("coefHigh", 1.5);
+                final double coefLow = getParams().getDouble(Params.COEF_LOW);
+                final double coefHigh = getParams().getDouble(Params.COEF_HIGH);
                 double value = new Split(coefLow, coefHigh).nextRandom();
-                if (getParams().getBoolean("coefSymmetric", true)) {
+                if (getParams().getBoolean(Params.COEF_SYMMETRIC)) {
                     return value;
                 } else {
                     return Math.abs(value);
                 }
             } else if (parameter.getType() == ParamType.COVAR) {
-                final double covLow = getParams().getDouble("covLow", 0.1);
-                final double covHigh = getParams().getDouble("covHigh", 0.2);
+                final double covLow = getParams().getDouble(Params.COV_LOW);
+                final double covHigh = getParams().getDouble(Params.COV_HIGH);
                 double value = new Split(covLow, covHigh).nextRandom();
-                if (getParams().getBoolean("covSymmetric", true)) {
+                if (getParams().getBoolean(Params.COV_SYMMETRIC)) {
                     return value;
                 } else {
                     return Math.abs(value);
                 }
             } else { //if (parameter.getType() == ParamType.VAR) {
-                return RandomUtil.getInstance().nextUniform(getParams().getDouble("varLow", 1), getParams().getDouble("varHigh", 3));
+                return RandomUtil.getInstance().nextUniform(getParams().getDouble(Params.VAR_LOW), getParams().getDouble(Params.VAR_HIGH));
             }
         } else {
             return parameter.getStartingValue();

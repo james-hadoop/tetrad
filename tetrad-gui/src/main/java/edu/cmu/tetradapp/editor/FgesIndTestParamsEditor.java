@@ -22,6 +22,7 @@
 package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetradapp.model.FgesRunner;
 import edu.cmu.tetradapp.util.DoubleTextField;
 import edu.cmu.tetradapp.util.IntTextField;
@@ -38,7 +39,6 @@ import java.text.NumberFormat;
  *
  * @author Ricardo Silva
  */
-
 class FgesIndTestParamsEditor extends JComponent {
     private final FgesRunner.Type type;
     private final Parameters params;
@@ -112,7 +112,7 @@ class FgesIndTestParamsEditor extends JComponent {
             });
         } else {
             this.penaltyDiscount = new DoubleTextField(
-                    getFgesIndTestParams().getDouble("penaltyDiscount", 4), 5, nf);
+                    getFgesIndTestParams().getDouble(Params.PENALTY_DISCOUNT), 5, nf);
             this.penaltyDiscount.setFilter(new DoubleTextField.Filter() {
                 public double filter(double value, double oldValue) {
                     try {

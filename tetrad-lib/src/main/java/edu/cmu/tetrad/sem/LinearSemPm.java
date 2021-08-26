@@ -515,21 +515,19 @@ public final class LinearSemPm implements PM, TetradSerializable {
         List<Parameter> parameters = new ArrayList<>();
         Set<Edge> edges = graph.getEdges();
 
-        Collections.sort(new ArrayList<>(edges), new Comparator<Edge>() {
-            public int compare(Edge o1, Edge o2) {
-                int compareFirst = o1.getNode1().getName().compareTo(o2.getNode1().toString());
-                int compareSecond = o1.getNode2().getName().compareTo(o2.getNode2().toString());
+        Collections.sort(new ArrayList<>(edges), (o1, o2) -> {
+            int compareFirst = o1.getNode1().getName().compareTo(o2.getNode1().toString());
+            int compareSecond = o1.getNode2().getName().compareTo(o2.getNode2().toString());
 
-                if (compareFirst != 0) {
-                    return compareFirst;
-                }
-
-                if (compareSecond != 0) {
-                    return compareSecond;
-                }
-
-                return 0;
+            if (compareFirst != 0) {
+                return compareFirst;
             }
+
+            if (compareSecond != 0) {
+                return compareSecond;
+            }
+
+            return 0;
         });
 
         // Add linear coefficient freeParameters for all directed edges that

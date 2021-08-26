@@ -27,6 +27,7 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetradapp.model.DagWrapper;
 import edu.cmu.tetradapp.model.DataWrapper;
 import edu.cmu.tetradapp.model.GraphWrapper;
@@ -160,7 +161,7 @@ public final class FciSearchParamEditor extends JPanel implements ParameterEdito
             }
         });
 
-        double alpha = params.getDouble("alpha", 0.001);
+        double alpha = params.getDouble(Params.ALPHA);
 
         if (!Double.isNaN(alpha)) {
             alphaField =

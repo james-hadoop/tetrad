@@ -25,6 +25,7 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
+import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.EbicScore;
@@ -33,6 +34,7 @@ import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulationTrueModel;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
+import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IndependenceFacts;
@@ -382,8 +384,8 @@ public final class TestBoss {
 //        RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
-        params.set(Params.SAMPLE_SIZE, 10000);
-        params.set(Params.NUM_MEASURES, 10);
+        params.set(Params.SAMPLE_SIZE, 500);
+        params.set(Params.NUM_MEASURES, 20);
         params.set(Params.AVG_DEGREE, 2, 4, 6, 8);//, 10, 12);//, 14);//, 1 6, 18, 20);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.COEF_LOW, 0.2);
@@ -394,7 +396,7 @@ public final class TestBoss {
 
         params.set(Params.BOSS_METHOD, 1);
         params.set(Params.BOSS_SCORE_TYPE, false);
-        params.set(Params.BREAK_TIES, false);
+        params.set(Params.BREAK_TIES, true);
         params.set(Params.CACHE_SCORES, false);
         params.set(Params.NUM_STARTS, 1);
 
@@ -404,7 +406,8 @@ public final class TestBoss {
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
 //        algorithms.add(new PcAll(new FisherZ()));
-//        algorithms.add(new Fges(new SemBicScore()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison
+                .algorithm.oracle.cpdag.Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -430,6 +433,95 @@ public final class TestBoss {
                 "Lu.figure.6.largen.txt", algorithms, statistics, params);
     }
 
+    @Test
+    public void testClarkExammple() {
+        Parameters params = new Parameters();
+        params.set(Params.SAMPLE_SIZE, 500);
+//        params.set(Params.NUM_MEASURES, 20);
+//        params.set(Params.AVG_DEGREE, 2, 4, 6, 8);//, 10, 12);//, 14);//, 1 6, 18, 20);
+        params.set(Params.RANDOMIZE_COLUMNS, true);
+        params.set(Params.COEF_LOW, 0.2);
+        params.set(Params.COEF_HIGH, 0.8);
+        params.set(Params.VERBOSE, true);
+
+        params.set(Params.NUM_RUNS, 100);
+
+        params.set(Params.BOSS_METHOD, 1);
+        params.set(Params.BOSS_SCORE_TYPE, false);
+        params.set(Params.BREAK_TIES, true);
+        params.set(Params.CACHE_SCORES, false);
+        params.set(Params.NUM_STARTS, 1);
+
+        params.set(Params.COLLIDER_DISCOVERY_RULE, 3);
+
+        params.set(Params.PENALTY_DISCOUNT, 2.0);
+        params.set(Params.ALPHA, 0.001);
+//
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison
+                .algorithm.oracle.cpdag.PcAll(new FisherZ()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison
+                .algorithm.oracle.cpdag.Fges(new SemBicScore()));
+
+        Node x1 = new ContinuousVariable("X1");
+        Node x2 = new ContinuousVariable("X2");
+        Node x3 = new ContinuousVariable("X3");
+        Node x4 = new ContinuousVariable("X4");
+        Node x5 = new ContinuousVariable("X5");
+        Node x6 = new ContinuousVariable("X6");
+        Node x7 = new ContinuousVariable("X7");
+
+        List<Node> nodes = new ArrayList<>();
+
+        nodes.add(x1);
+        nodes.add(x2);
+        nodes.add(x3);
+        nodes.add(x4);
+        nodes.add(x5);
+        nodes.add(x6);
+        nodes.add(x7);
+
+        Graph graph = new EdgeListGraph(nodes);
+
+        graph.addDirectedEdge(x1, x2);
+        graph.addDirectedEdge(x1, x3);
+        graph.addDirectedEdge(x1, x4);
+        graph.addDirectedEdge(x1, x5);
+        graph.addDirectedEdge(x1, x6);
+
+        graph.addDirectedEdge(x2, x7);
+        graph.addDirectedEdge(x3, x7);
+        graph.addDirectedEdge(x4, x7);
+        graph.addDirectedEdge(x5, x7);
+        graph.addDirectedEdge(x6, x7);
+
+        System.out.println(graph);
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LinearSemSimulation(new SingleGraph(graph)));
+
+        Statistics statistics = new Statistics();
+//        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+//        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
+//        statistics.add(new ParameterColumn(Params.BOSS_SCORE_TYPE));
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new SHD_CPDAG());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+        comparison.setSaveData(false);
+
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations,
+                "clark.txt", algorithms, statistics, params);
+    }
+
     //@Test
     public void testBoss7() {
 //        RandomUtil.getInstance().setSeed(386829384L);
@@ -446,7 +538,7 @@ public final class TestBoss {
         params.set(Params.NUM_RUNS, 5);
 
         params.set(Params.BOSS_METHOD, 1);
-        params.set(Params.BOSS_SCORE_TYPE, false);
+        params.set(Params.BOSS_SCORE_TYPE, true);
         params.set(Params.BREAK_TIES, true);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);

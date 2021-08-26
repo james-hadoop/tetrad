@@ -22,7 +22,7 @@ import java.util.List;
 public class LinearSemSimulation implements Simulation {
 
     static final long serialVersionUID = 23L;
-    private RandomGraph randomGraph;
+    private final RandomGraph randomGraph;
     private LinearSemPm pm;
     private LinearSemIm im;
     private List<DataSet> dataSets = new ArrayList<>();
@@ -119,9 +119,6 @@ public class LinearSemSimulation implements Simulation {
             parameters.addAll(randomGraph.getParameters());
         }
 
-//        if (pm == null) {
-//            parameters.addAll(SemPm.getParameterNames());
-//        }
         if (im == null) {
             parameters.addAll(LinearSemIm.getParameterNames());
         }
@@ -157,18 +154,13 @@ public class LinearSemSimulation implements Simulation {
 
             if (pm == null) {
                 pm = new LinearSemPm(graph);
-                im = new LinearSemIm(pm, parameters);
-                ims.add(im);
-                return im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), saveLatentVars);
-            } else {
-                im = new LinearSemIm(pm, parameters);
-                ims.add(im);
-                return im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), saveLatentVars);
             }
-        } else {
-            ims.add(im);
-            return im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), saveLatentVars);
+
+            im = new LinearSemIm(pm, parameters);
         }
+
+        ims.add(im);
+        return im.simulateData(parameters.getInt(Params.SAMPLE_SIZE), saveLatentVars);
     }
 
     public List<LinearSemIm> getSemIms() {

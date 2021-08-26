@@ -27,6 +27,7 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.search.TestType;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetradapp.model.DataWrapper;
 import edu.cmu.tetradapp.util.DoubleTextField;
 
@@ -78,7 +79,7 @@ public class BuildPureClustersParamsEditor extends JPanel implements ParameterEd
 
     public void setup() {
         DoubleTextField alphaField = new DoubleTextField(
-                params.getDouble("alpha", 0.001), 4, NumberFormatUtil.getInstance().getNumberFormat());
+                params.getDouble(Params.ALPHA), 4, NumberFormatUtil.getInstance().getNumberFormat());
         alphaField.setFilter(new DoubleTextField.Filter() {
             public double filter(double value, double oldValue) {
                 try {
@@ -148,7 +149,7 @@ public class BuildPureClustersParamsEditor extends JPanel implements ParameterEd
         }
 
         params.set("varNames", varNames);
-        alphaField.setValue(params.getDouble("alpha", 0.001));
+        alphaField.setValue(params.getDouble(Params.ALPHA));
 
         Box b = Box.createVerticalBox();
 

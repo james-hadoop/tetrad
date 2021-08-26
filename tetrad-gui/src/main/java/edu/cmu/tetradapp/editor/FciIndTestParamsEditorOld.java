@@ -22,6 +22,7 @@
 package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetradapp.util.DoubleTextField;
 import edu.cmu.tetradapp.util.IntTextField;
 
@@ -59,7 +60,7 @@ class FciIndTestParamsEditorOld extends JComponent {
         this.params = params;
 
         // set up text and ties them to the parameters object being edited.
-        alphaField = new DoubleTextField(params().getDouble("alpha", 0.001), 8,
+        alphaField = new DoubleTextField(params().getDouble(Params.ALPHA), 8,
                 new DecimalFormat("0.0########"));
         alphaField.setFilter(new DoubleTextField.Filter() {
             public double filter(double value, double oldValue) {

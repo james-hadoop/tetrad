@@ -94,7 +94,6 @@ class RandomGraphEditor extends JPanel {
             } catch (Exception ignored) {
             }
 
-            avgDegreeField.setValue(getAvgDegree());
             return value;
         });
 
@@ -108,7 +107,6 @@ class RandomGraphEditor extends JPanel {
             } catch (Exception ignored) {
             }
 
-            avgDegreeField.setValue(getAvgDegree());
             return value;
         });
 
@@ -135,7 +133,6 @@ class RandomGraphEditor extends JPanel {
             } catch (Exception ignored) {
             }
 
-            maxOutdegreeField.setValue(getMaxOutdegree());
             return value;
         });
 
@@ -150,8 +147,6 @@ class RandomGraphEditor extends JPanel {
                 // Ignore.
             }
 
-            maxIndegreeField.setValue(getMaxIndegree());
-            maxDegreeField.setValue(getMaxDegree());
             return value;
         });
 
@@ -165,8 +160,6 @@ class RandomGraphEditor extends JPanel {
             } catch (Exception ignored) {
             }
 
-            maxIndegreeField.setValue(getMaxIndegree());
-            maxOutdegreeField.setValue(getMaxOutdegree());
             return value;
         });
 
@@ -192,11 +185,6 @@ class RandomGraphEditor extends JPanel {
             } else {
                 throw new IllegalArgumentException();
             }
-
-            maxIndegreeField.setValue(getMaxIndegree());
-            maxOutdegreeField.setValue(getMaxOutdegree());
-            maxDegreeField.setValue(getMaxDegree());
-            avgDegreeField.setValue(getAvgDegree());
         });
 
         if (isAddCycles()) {
