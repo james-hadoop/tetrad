@@ -352,25 +352,24 @@ public class TeyssierScorer {
                 if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
 
                 if (test.isDependent(n, z0, parents)) {
-
                     parents.add(z0);
                     changed = true;
                 }
+            }
+        }
 
-                boolean changed2 = true;
+        boolean changed2 = true;
 
-                while (changed2) {
-                    changed2 = false;
+        while (changed2) {
+            changed2 = false;
 
-                    for (Node z1 : new ArrayList<>(parents)) {
-                        parents.remove(z1);
+            for (Node z1 : new ArrayList<>(parents)) {
+                parents.remove(z1);
 
-                        if (test.isIndependent(n, z1, parents)) {
-                            changed2 = true;
-                        } else {
-                            parents.add(z1);
-                        }
-                    }
+                if (test.isIndependent(n, z1, parents)) {
+                    changed2 = true;
+                } else {
+                    parents.add(z1);
                 }
             }
         }
@@ -416,30 +415,31 @@ public class TeyssierScorer {
                 changed = true;
             }
 
-            boolean changed2 = true;
+        }
 
-            while (changed2) {
-                changed2 = false;
+        boolean changed2 = true;
 
-                Node w = null;
+        while (changed2) {
+            changed2 = false;
 
-                for (Node z0 : new HashSet<>(parents)) {
-                    parents.remove(z0);
+            Node w = null;
 
-                    double s2 = score(n, parents);
+            for (Node z0 : new HashSet<>(parents)) {
+                parents.remove(z0);
 
-                    if (s2 > sMax) {
-                        sMax = s2;
-                        w = z0;
-                    }
+                double s2 = score(n, parents);
 
-                    parents.add(z0);
+                if (s2 >= sMax) {
+                    sMax = s2;
+                    w = z0;
                 }
 
-                if (w != null) {
-                    parents.remove(w);
-                    changed2 = true;
-                }
+                parents.add(z0);
+            }
+
+            if (w != null) {
+                parents.remove(w);
+                changed2 = true;
             }
         }
 

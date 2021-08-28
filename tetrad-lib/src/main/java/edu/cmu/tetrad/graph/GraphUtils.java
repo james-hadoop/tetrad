@@ -269,6 +269,8 @@ public final class GraphUtils {
 
         Collections.shuffle(allEdges);
 
+        int trials = 0;
+
         while (!allEdges.isEmpty() && dag.getNumEdges() < numEdges) {
             List<Integer> e = allEdges.removeFirst();
 
@@ -291,7 +293,10 @@ public final class GraphUtils {
                 continue;
             }
 
-            if (connected && dag.getIndegree(n1) == 0 && dag.getOutdegree(n1) == 0) {
+            if (connected && dag.getNumEdges() > 0 && dag.getDegree(n1) == 0 && dag.getDegree(n2) == 0) {
+                if (trials > 10 * allEdges.size()) break;
+                allEdges.addLast(e);
+                trials++;
                 continue;
             }
 

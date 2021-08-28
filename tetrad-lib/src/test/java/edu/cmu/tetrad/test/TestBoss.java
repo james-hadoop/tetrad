@@ -263,8 +263,6 @@ public final class TestBoss {
 
     @Test
     public void testBoss4() {
-//        RandomUtil.getInstance().setSeed(386829384L);
-
         Parameters params = new Parameters();
         params.set(Params.SAMPLE_SIZE, 200);
         params.set(Params.NUM_MEASURES, 100);
@@ -314,77 +312,62 @@ public final class TestBoss {
     }
 
     @Test
-    public void testBoss5() {
-//        int m = 100;
-//        int e = 100;
-//        int N = 50;
-
-//        int m = 100;
-//        int e = 200;
-//        int N = 100;
-
-        int m = 100;
-        int e = 300;
-        int N = 150;
-
-//        int m = 100;
-//        int e = 400;
-//        int N = 200;
-
+    public void testLuFigure3() {
         Parameters params = new Parameters();
-        params.set(Params.SAMPLE_SIZE, N);
-        params.set(Params.NUM_MEASURES, m);
-        params.set(Params.AVG_DEGREE, 2. * e / (double) m);
+        params.set(Params.SAMPLE_SIZE, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
+        params.set(Params.NUM_MEASURES, 20);
+        params.set(Params.AVG_DEGREE, 4);
         params.set(Params.RANDOMIZE_COLUMNS, true);
-        params.set(Params.COEF_LOW, 0);
-        params.set(Params.COEF_HIGH, 1);
+        params.set(Params.COEF_LOW, 0.2);
+        params.set(Params.COEF_HIGH, 0.8);
         params.set(Params.VERBOSE, true);
 
-        params.set(Params.NUM_RUNS, 1);
+        params.set(Params.NUM_RUNS, 5);
 
         params.set(Params.BOSS_METHOD, 1);
         params.set(Params.BOSS_SCORE_TYPE, false);
-        params.set(Params.BREAK_TIES, false);
+        params.set(Params.BREAK_TIES, true);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
 
-//        params.set(Params.PENALTY_DISCOUNT, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0);
-        params.set(Params.PENALTY_DISCOUNT, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0);
+        params.set(Params.PENALTY_DISCOUNT, 2.0);
         params.set(Params.ALPHA, 0.001);
-
+//
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
+//        algorithms.add(new PcAll(new FisherZ()));
+//        algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
+//        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+//        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
+//        statistics.add(new ParameterColumn(Params.BOSS_SCORE_TYPE));
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new AdjacencyTPR());
-        statistics.add(new AdjacencyFPR());
         statistics.add(new SHD_CPDAG());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
-        comparison.setShowAlgorithmIndices(true);
+//        comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
         comparison.setSaveData(false);
 
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations,
-                "smallsamplesize-" + m + "-" + e + "-" + N + ".txt",
-                algorithms, statistics, params);
+                "Lu.figure.3.txt", algorithms, statistics, params);
     }
 
     @Test
-    public void testBoss6() {
+    public void testLuFigure6() {
 //        RandomUtil.getInstance().setSeed(386829384L);
 
         Parameters params = new Parameters();
-        params.set(Params.SAMPLE_SIZE, 500);
+        params.set(Params.SAMPLE_SIZE, 10000);
         params.set(Params.NUM_MEASURES, 20);
         params.set(Params.AVG_DEGREE, 2, 4, 6, 8);//, 10, 12);//, 14);//, 1 6, 18, 20);
         params.set(Params.RANDOMIZE_COLUMNS, true);
@@ -434,14 +417,14 @@ public final class TestBoss {
     }
 
     @Test
-    public void testClarkExammple() {
+    public void testClark() {
         Parameters params = new Parameters();
         params.set(Params.SAMPLE_SIZE, 500);
 //        params.set(Params.NUM_MEASURES, 20);
 //        params.set(Params.AVG_DEGREE, 2, 4, 6, 8);//, 10, 12);//, 14);//, 1 6, 18, 20);
         params.set(Params.RANDOMIZE_COLUMNS, true);
-        params.set(Params.COEF_LOW, 0.2);
-        params.set(Params.COEF_HIGH, 0.8);
+        params.set(Params.COEF_LOW, .2);
+        params.set(Params.COEF_HIGH, 1);
         params.set(Params.VERBOSE, true);
 
         params.set(Params.NUM_RUNS, 100);
@@ -451,14 +434,14 @@ public final class TestBoss {
         params.set(Params.BREAK_TIES, true);
         params.set(Params.CACHE_SCORES, false);
         params.set(Params.NUM_STARTS, 1);
+        params.set(Params.USE_SCORE, true);
 
-        params.set(Params.COLLIDER_DISCOVERY_RULE, 3);
-
-        params.set(Params.PENALTY_DISCOUNT, 2.0);
+        params.set(Params.COLLIDER_DISCOVERY_RULE, 2);
+        params.set(Params.PENALTY_DISCOUNT, 1.0);
         params.set(Params.ALPHA, 0.001);
 //
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.FmlBicScore(), new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison
                 .algorithm.oracle.cpdag.PcAll(new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison
@@ -522,58 +505,7 @@ public final class TestBoss {
                 "clark.txt", algorithms, statistics, params);
     }
 
-    //@Test
-    public void testBoss7() {
-//        RandomUtil.getInstance().setSeed(386829384L);
 
-        Parameters params = new Parameters();
-        params.set(Params.SAMPLE_SIZE, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
-        params.set(Params.NUM_MEASURES, 20);
-        params.set(Params.AVG_DEGREE, 4);//, 6, 8, 10);//, 12, 14, 1 6, 18, 20);
-        params.set(Params.RANDOMIZE_COLUMNS, true);
-        params.set(Params.COEF_LOW, 0.2);
-        params.set(Params.COEF_HIGH, 0.8);
-        params.set(Params.VERBOSE, true);
-
-        params.set(Params.NUM_RUNS, 5);
-
-        params.set(Params.BOSS_METHOD, 1);
-        params.set(Params.BOSS_SCORE_TYPE, true);
-        params.set(Params.BREAK_TIES, true);
-        params.set(Params.CACHE_SCORES, true);
-        params.set(Params.NUM_STARTS, 1);
-
-        params.set(Params.PENALTY_DISCOUNT, 2.0);
-        params.set(Params.ALPHA, 0.001);
-//
-        Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
-//        algorithms.add(new PcAll(new FisherZ()));
-//        algorithms.add(new Fges(new SemBicScore()));
-
-        Simulations simulations = new Simulations();
-        simulations.add(new LinearSemSimulation(new RandomForward()));
-
-        Statistics statistics = new Statistics();
-//        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
-//        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
-//        statistics.add(new ParameterColumn(Params.BOSS_SCORE_TYPE));
-        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
-        statistics.add(new SHD_CPDAG());
-        statistics.add(new ElapsedTime());
-
-        Comparison comparison = new Comparison();
-//        comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-        comparison.setSaveData(false);
-
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", simulations,
-                "Lu.figure.3.txt", algorithms, statistics, params);
-    }
 
     //@Test
     public void testBoss8() {

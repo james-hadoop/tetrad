@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 
 import static java.lang.Double.POSITIVE_INFINITY;
-import static java.util.Collections.addAll;
 
 
 /**
@@ -154,7 +153,7 @@ public class Boss {
         if (breakTies) {
             do {
                 while (relocateLoop(scorer)) ;
-            } while (twoStepLoop(scorer));
+            } while (twoStepLoop2(scorer));
         } else {
             while (relocateLoop(scorer)) ;
         }
@@ -209,8 +208,55 @@ public class Boss {
                     Node r2 = scorer.get(_r2);
 
                     if ((scorer.getParents(v).contains(r1) && scorer.getParents(v).contains(r2))
-                        || (scorer.getParents(r1).contains(v) && scorer.getParents(r2).contains(v))
-                        || triangle(v, r1, r2, scorer)) {
+                            || (scorer.getParents(r1).contains(v) && scorer.getParents(r2).contains(v))
+                            || triangle(v, r1, r2, scorer)) {
+                        double score = scorer.score();
+                        scorer.bookmark();
+
+                        scorer.swap(v, r1);
+                        scorer.swap(v, r2);
+
+                        if (scorer.score() < score) {
+                            return true;
+                        }
+
+                        scorer.goToBookmark();
+                    }
+                }
+            }
+        }
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (" + "Simultaneous Moves" + ")");
+        }
+
+        return false;
+    }
+
+    private boolean twoStepLoop2(TeyssierScorer scorer) {
+        List<Node> order = scorer.getOrder();
+
+        for (Node v : order) {
+            Set<Node> adj = new HashSet<>(scorer.getParents(v));
+
+            for (Node w : order) {
+                if (scorer.getParents(w).contains(v)) {
+                    adj.add(w);
+                }
+            }
+
+            List<Node> _adj = new ArrayList<>(adj);
+
+            for (int _r1 = 0; _r1 < _adj.size(); _r1++) {
+                for (int _r2 = _r1 + 1; _r2 < _adj.size(); _r2++) {
+                    if (_r1 == _r2) continue;
+
+                    Node r1 = scorer.get(_r1);
+                    Node r2 = scorer.get(_r2);
+
+                    if ((scorer.getParents(v).contains(r1) && scorer.getParents(v).contains(r2))
+                            || (scorer.getParents(r1).contains(v) && scorer.getParents(r2).contains(v))
+                            || triangle(v, r1, r2, scorer)) {
                         double score = scorer.score();
                         scorer.bookmark();
 
