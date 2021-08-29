@@ -98,11 +98,11 @@ public class MBFS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        Node target = graph.getNode(targetName);
-        return GraphUtils.markovBlanketDag(target, new EdgeListGraph(graph));
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        Node target = graph.getNode(targetName);
+//        return GraphUtils.markovBlanketDag(target, new EdgeListGraph(graph));
+//    }
 
     @Override
     public String getDescription() {

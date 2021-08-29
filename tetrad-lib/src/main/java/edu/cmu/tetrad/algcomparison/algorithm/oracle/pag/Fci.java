@@ -108,10 +108,10 @@ public class Fci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInd
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new DagToPag2(new EdgeListGraph(graph)).convert();
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new DagToPag2(new EdgeListGraph(graph)).convert();
+//    }
 
     public String getDescription() {
         return "FCI (Fast Causal Inference) using " + test.getDescription()

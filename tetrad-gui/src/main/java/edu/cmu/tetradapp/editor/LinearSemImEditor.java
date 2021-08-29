@@ -1958,7 +1958,6 @@ public final class LinearSemImEditor extends JPanel implements LayoutEditable, D
             list.add("Implied covariance matrix (measured variables only)");
             list.add("Implied correlation matrix (all variables)");
             list.add("Implied correlation matrix (measured variables only)");
-            list.add("Error Covariance Matrix)");
             return list;
         }
 

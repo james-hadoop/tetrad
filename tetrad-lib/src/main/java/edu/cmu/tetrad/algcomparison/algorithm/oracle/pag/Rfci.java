@@ -84,10 +84,10 @@ public class Rfci implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new DagToPag2(new EdgeListGraph(graph)).convert();
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new DagToPag2(new EdgeListGraph(graph)).convert();
+//    }
 
     public String getDescription() {
         return "RFCI (Really Fast Causal Inference) using " + test.getDescription();

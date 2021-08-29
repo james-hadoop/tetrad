@@ -120,10 +120,10 @@ public class Mgm implements Algorithm {
     }
 
     // Need to marry the parents on this.
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return GraphUtils.undirectedGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return GraphUtils.undirectedGraph(graph);
+//    }
 
     @Override
     public String getDescription() {

@@ -121,10 +121,10 @@ public class ImagesPcStableMax implements MultiDataSetAlgorithm, HasKnowledge {
     	}
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new EdgeListGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new EdgeListGraph(graph);
+//    }
 
     @Override
     public String getDescription() {

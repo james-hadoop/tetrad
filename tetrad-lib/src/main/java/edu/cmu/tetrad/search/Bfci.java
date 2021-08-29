@@ -178,7 +178,7 @@ public final class Bfci implements GraphSearch {
             }
         }
 
-        SepsetProducer sepsets = new SepsetsGreedy(bossGraph, test, null, maxDegree);
+        SepsetProducer sepsets = new SepsetsTeyssier(bossGraph, scorer, null, maxDegree);
 
         FciOrient fciOrient = new FciOrient(sepsets);
         fciOrient.setVerbose(verbose);

@@ -209,6 +209,7 @@ public final class Params {
     public static final String BREAK_TIES = "breakTies";
     public static final String USE_SCORE = "useScore";
     public static final String OUTPUT_CPDAG = "outputCpdag";
+    public static final String ZS_RISK_BOUND = "zSRiskBound";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(

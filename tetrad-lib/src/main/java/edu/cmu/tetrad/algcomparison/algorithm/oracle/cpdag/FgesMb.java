@@ -112,11 +112,11 @@ public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesS
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        Node target = graph.getNode(targetName);
-        return GraphUtils.markovBlanketDag(target, new EdgeListGraph(graph));
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        Node target = graph.getNode(targetName);
+//        return GraphUtils.markovBlanketDag(target, new EdgeListGraph(graph));
+//    }
 
     @Override
     public String getDescription() {

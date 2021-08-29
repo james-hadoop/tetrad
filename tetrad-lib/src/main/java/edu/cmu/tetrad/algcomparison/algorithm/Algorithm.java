@@ -31,7 +31,7 @@ public interface Algorithm extends HasParameters, TetradSerializable {
      * @param graph The true directed graph, if there is one.
      * @return The comparison graph.
      */
-    Graph getComparisonGraph(Graph graph);
+//    Graph getComparisonGraph(Graph graph);
 
     /**
      * Returns a short, one-line description of this algorithm. This will be

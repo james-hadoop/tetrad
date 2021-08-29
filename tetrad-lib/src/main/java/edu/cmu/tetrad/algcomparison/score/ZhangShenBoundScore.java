@@ -18,11 +18,11 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Score(
-        name = "EBIC Score",
-        command = "ebic-score",
+        name = "ZS Bound Score",
+        command = "zsbound-score",
         dataType = {DataType.Continuous, DataType.Covariance}
 )
-public class EbicScore implements ScoreWrapper {
+public class ZhangShenBoundScore implements ScoreWrapper {
 
     static final long serialVersionUID = 23L;
     private DataModel dataSet;
@@ -31,24 +31,24 @@ public class EbicScore implements ScoreWrapper {
     public Score getScore(DataModel dataSet, Parameters parameters) {
         this.dataSet = dataSet;
 
-        edu.cmu.tetrad.search.EbicScore score;
+        edu.cmu.tetrad.search.ZhangShenBoundScore score;
 
         if (dataSet instanceof DataSet) {
-            score = new edu.cmu.tetrad.search.EbicScore((DataSet) this.dataSet);
+            score = new edu.cmu.tetrad.search.ZhangShenBoundScore((DataSet) this.dataSet);
         } else if (dataSet instanceof ICovarianceMatrix) {
-            score = new edu.cmu.tetrad.search.EbicScore((ICovarianceMatrix) this.dataSet);
+            score = new edu.cmu.tetrad.search.ZhangShenBoundScore((ICovarianceMatrix) this.dataSet);
         } else {
             throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
         }
 
-        score.setGamma(parameters.getDouble(Params.EBIC_GAMMA));
+        score.setRiskBound(parameters.getDouble(Params.ZS_RISK_BOUND));
 
         return score;
     }
 
     @Override
     public String getDescription() {
-        return "EBIC Score";
+        return "Zhang-Shen Bound Score";
     }
 
     @Override
@@ -59,7 +59,7 @@ public class EbicScore implements ScoreWrapper {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.add(Params.EBIC_GAMMA);
+        parameters.add(Params.ZS_RISK_BOUND);
         return parameters;
     }
 

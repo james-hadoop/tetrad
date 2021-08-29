@@ -146,10 +146,10 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
+//    }
 
     @Override
     public String getDescription() {

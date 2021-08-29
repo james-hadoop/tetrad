@@ -99,10 +99,10 @@ public class TsGfci implements Algorithm, TakesInitialGraph, HasKnowledge, Takes
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new TsDagToPag(new EdgeListGraph(graph)).convert();
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new TsDagToPag(new EdgeListGraph(graph)).convert();
+//    }
 
     public String getDescription() {
         return "tsGFCI (Time Series GFCI) using " + test.getDescription() + " and " + score.getDescription()

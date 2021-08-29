@@ -101,10 +101,10 @@ public class TsFci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new TsDagToPag(new EdgeListGraph(graph)).convert();
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new TsDagToPag(new EdgeListGraph(graph)).convert();
+//    }
 
     public String getDescription() {
         return "tsFCI (Time Series Fast Causal Inference) using " + test.getDescription()

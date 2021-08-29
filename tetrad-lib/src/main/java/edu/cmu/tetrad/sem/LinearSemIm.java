@@ -426,9 +426,9 @@ public final class LinearSemIm implements IM, ILinearSemIm, TetradSerializable {
             distributions = _semIm.distributions;
             functions = _semIm.functions;
             scoreType = _semIm.scoreType;
-            simulatedPositiveDataOnly = semIm.simulatedPositiveDataOnly;
-            variablesHash = semIm.variablesHash;
-            sampleCovInv = semIm.sampleCovInv;
+            simulatedPositiveDataOnly = _semIm.simulatedPositiveDataOnly;
+            variablesHash = _semIm.variablesHash;
+            sampleCovInv = _semIm.sampleCovInv;
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("SemIm could not be deep cloned.", e);
         }

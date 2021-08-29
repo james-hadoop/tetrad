@@ -102,14 +102,14 @@ public class PcStableMax implements Algorithm, TakesInitialGraph, HasKnowledge, 
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        if (compareToTrue) {
-            return new EdgeListGraph(graph);
-        } else {
-            return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
-        }
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        if (compareToTrue) {
+//            return new EdgeListGraph(graph);
+//        } else {
+//            return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
+//        }
+//    }
 
     @Override
     public String getDescription() {

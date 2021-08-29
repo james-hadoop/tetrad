@@ -82,10 +82,10 @@ public class Pcd implements Algorithm, HasKnowledge {
     	}    	
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return SearchGraphUtils.cpdagForDag(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return SearchGraphUtils.cpdagForDag(graph);
+//    }
 
     @Override
     public String getDescription() {

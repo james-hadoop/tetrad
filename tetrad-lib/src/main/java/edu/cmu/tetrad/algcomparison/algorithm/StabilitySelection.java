@@ -113,10 +113,10 @@ public class StabilitySelection implements Algorithm, TakesInitialGraph {
         counts.put(edge, counts.get(edge) + 1);
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return algorithm.getComparisonGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return algorithm.getComparisonGraph(graph);
+//    }
 
     @Override
     public String getDescription() {

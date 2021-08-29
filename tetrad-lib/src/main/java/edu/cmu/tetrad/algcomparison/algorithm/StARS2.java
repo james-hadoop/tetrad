@@ -207,10 +207,10 @@ public class StARS2 implements Algorithm, TakesInitialGraph {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return algorithm.getComparisonGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return algorithm.getComparisonGraph(graph);
+//    }
 
     @Override
     public String getDescription() {

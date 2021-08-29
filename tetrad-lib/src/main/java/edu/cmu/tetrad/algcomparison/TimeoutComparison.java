@@ -1649,10 +1649,10 @@ public class TimeoutComparison {
             return algorithm.search(DataModel, this.parameters, trueGraph);
         }
 
-        @Override
-        public Graph getComparisonGraph(Graph graph) {
-            return algorithm.getComparisonGraph(graph);
-        }
+//        @Override
+//        public Graph getComparisonGraph(Graph graph) {
+//            return algorithm.getComparisonGraph(graph);
+//        }
 
         @Override
         public String getDescription() {
@@ -1715,10 +1715,10 @@ public class TimeoutComparison {
             return algorithmWrapper.getAlgorithm().search(DataModel, parameters, trueGraph);
         }
 
-        @Override
-        public Graph getComparisonGraph(Graph graph) {
-            return algorithmWrapper.getComparisonGraph(graph);
-        }
+//        @Override
+//        public Graph getComparisonGraph(Graph graph) {
+//            return algorithmWrapper.getComparisonGraph(graph);
+//        }
 
         @Override
         public String getDescription() {

@@ -28,7 +28,7 @@ import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.score.EbicScore;
+import edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulationTrueModel;
@@ -140,7 +140,7 @@ public final class TestBoss {
 
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new EbicScore(), new FisherZ()));
+        algorithms.add(new BOSS(new ZhangShenBoundScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -234,7 +234,7 @@ public final class TestBoss {
         params.set(Params.CACHE_SCORES, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new EbicScore(), new FisherZ()));
+        algorithms.add(new BOSS(new ZhangShenBoundScore(), new FisherZ()));
 //        algorithms.add(new Fges(new SemBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
 

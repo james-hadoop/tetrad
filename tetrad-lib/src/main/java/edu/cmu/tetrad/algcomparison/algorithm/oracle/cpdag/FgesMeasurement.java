@@ -105,10 +105,10 @@ public class FgesMeasurement implements Algorithm, TakesInitialGraph, HasKnowled
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
+//    }
 
     @Override
     public String getDescription() {

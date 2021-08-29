@@ -117,10 +117,10 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new DagToPag2(graph).convert();
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new DagToPag2(graph).convert();
+//    }
 
     @Override
     public String getDescription() {

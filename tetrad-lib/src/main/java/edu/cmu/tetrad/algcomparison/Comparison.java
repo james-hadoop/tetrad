@@ -1860,10 +1860,10 @@ public class Comparison {
             return algorithm.search(DataModel, this.parameters, trueGraph);
         }
 
-        @Override
-        public Graph getComparisonGraph(Graph graph) {
-            return algorithm.getComparisonGraph(graph);
-        }
+//        @Override
+//        public Graph getComparisonGraph(Graph graph) {
+//            return algorithm.getComparisonGraph(graph);
+//        }
 
         @Override
         public String getDescription() {
@@ -1926,10 +1926,10 @@ public class Comparison {
             return algorithmWrapper.getAlgorithm().search(DataModel, parameters, trueGraph);
         }
 
-        @Override
-        public Graph getComparisonGraph(Graph graph) {
-            return algorithmWrapper.getComparisonGraph(graph);
-        }
+//        @Override
+//        public Graph getComparisonGraph(Graph graph) {
+//            return algorithmWrapper.getComparisonGraph(graph);
+//        }
 
         @Override
         public String getDescription() {

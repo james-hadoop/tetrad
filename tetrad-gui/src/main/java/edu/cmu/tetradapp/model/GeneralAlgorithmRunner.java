@@ -32,10 +32,7 @@ import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.Triple;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.session.ParamsResettable;
 import edu.cmu.tetrad.session.SessionModel;
@@ -613,7 +610,7 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
         List<Graph> compareGraphs = new ArrayList<>();
 
         for (Graph graph : graphs) {
-            compareGraphs.add(algorithm.getComparisonGraph(graph));
+            compareGraphs.add(new EdgeListGraph(graph));//algorithm.getComparisonGraph(graph));
         }
 
         return compareGraphs;

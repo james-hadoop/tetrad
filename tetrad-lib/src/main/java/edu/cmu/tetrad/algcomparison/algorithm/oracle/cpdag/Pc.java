@@ -98,10 +98,10 @@ public class Pc implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInde
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
+//    }
 
     @Override
     public String getDescription() {

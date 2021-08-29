@@ -70,10 +70,10 @@ public class Cfci implements Algorithm, HasKnowledge {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new DagToPag2(new EdgeListGraph(graph)).convert();
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new DagToPag2(new EdgeListGraph(graph)).convert();
+//    }
 
     @Override
     public String getDescription() {

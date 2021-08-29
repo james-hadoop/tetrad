@@ -83,10 +83,10 @@ public class Lingam implements Algorithm {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new EdgeListGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new EdgeListGraph(graph);
+//    }
 
     public String getDescription() {
         return "LiNGAM (Linear Non-Gaussian Acyclic Model";
