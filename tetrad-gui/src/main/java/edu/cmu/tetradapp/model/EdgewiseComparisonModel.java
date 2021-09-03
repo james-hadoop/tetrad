@@ -89,7 +89,7 @@ public final class EdgewiseComparisonModel implements SessionModel, SimulationPa
             this.targetGraph = model1.getGraph();
         }
 
-        targetGraph = GraphUtils.replaceNodes(targetGraph, referenceGraph.getNodes());
+        targetGraph = GraphUtils.replaceNodes(targetGraph, GraphUtils.restrictToMeasured(referenceGraph).getNodes());
 
         newExecution();
 

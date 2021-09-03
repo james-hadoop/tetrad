@@ -22,7 +22,7 @@ import java.util.List;
         command = "sem-bic-score",
         dataType = {DataType.Continuous, DataType.Covariance}
 )
-public class SemBicScore implements ScoreWrapper {
+public class LinearGaussianBicScore implements ScoreWrapper {
 
     static final long serialVersionUID = 23L;
     private DataModel dataSet;
@@ -60,7 +60,7 @@ public class SemBicScore implements ScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "Sem BIC Score";
+        return "Linear, Gaussian BIC Score";
     }
 
     @Override

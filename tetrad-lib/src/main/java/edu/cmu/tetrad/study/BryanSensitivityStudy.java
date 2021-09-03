@@ -26,7 +26,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -66,7 +66,7 @@ public class BryanSensitivityStudy {
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+        algorithms.add(new Gfci(new LinearGaussianBicScore(), new FisherZ()));
 //        algorithms.add(new Fci(new FisherZ()));
 
         Comparison comparison = new Comparison();
@@ -83,7 +83,7 @@ public class BryanSensitivityStudy {
             Graph graph = getGraph1();
             Simulations simulations = new Simulations();
             simulations.add(new LinearSemSimulation(new SingleGraph(graph)));
-            comparison.compareFromSimulations("bryan.simulation", simulations, "graph1.txt", algorithms, statistics, parameters);
+            comparison.compareFromSimulations("bryan.simulation", "graph1.txt", simulations, algorithms, statistics, parameters);
         }
 
         {
@@ -91,7 +91,7 @@ public class BryanSensitivityStudy {
             Graph graph = getGraph2();
             Simulations simulations = new Simulations();
             simulations.add(new LinearSemSimulation(new SingleGraph(graph)));
-            comparison.compareFromSimulations("bryan.simulation", simulations, "graph2.txt", algorithms, statistics, parameters);
+            comparison.compareFromSimulations("bryan.simulation", "graph2.txt", simulations, algorithms, statistics, parameters);
         }
 
         {
@@ -99,7 +99,7 @@ public class BryanSensitivityStudy {
             Graph graph = getGraph3();
             Simulations simulations = new Simulations();
             simulations.add(new LinearSemSimulation(new SingleGraph(graph)));
-            comparison.compareFromSimulations("bryan.simulation", simulations, "graph3.txt", algorithms, statistics, parameters);
+            comparison.compareFromSimulations("bryan.simulation", "graph3.txt", simulations, algorithms, statistics, parameters);
         }
 
         {
@@ -107,7 +107,7 @@ public class BryanSensitivityStudy {
             Graph graph = getGraph4();
             Simulations simulations = new Simulations();
             simulations.add(new LinearSemSimulation(new SingleGraph(graph)));
-            comparison.compareFromSimulations("bryan.simulation", simulations, "graph4.txt", algorithms, statistics, parameters);
+            comparison.compareFromSimulations("bryan.simulation", "graph4.txt", simulations, algorithms, statistics, parameters);
         }
     }
 

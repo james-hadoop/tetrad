@@ -123,7 +123,8 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
     @Override
     public String getDescription() {
-        return "BOSS";
+        return "BOSS (Best Order Score Search) using " + test.getDescription()
+                + " or " + score.getDescription();
     }
 
     @Override

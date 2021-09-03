@@ -77,7 +77,7 @@ public final class TestCopy {
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new Pc(new FisherZ()));
-        algorithms.add(new PcStableMax(new FisherZ(), false));
+        algorithms.add(new PcMax(new FisherZ()));
 
         Simulations simulations = new Simulations();
 

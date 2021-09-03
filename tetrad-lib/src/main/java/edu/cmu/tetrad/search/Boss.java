@@ -153,7 +153,7 @@ public class Boss {
         if (breakTies) {
             do {
                 while (relocateLoop(scorer)) ;
-            } while (twoStepLoop2(scorer));
+            } while (twoStepLoop(scorer));
         } else {
             while (relocateLoop(scorer)) ;
         }

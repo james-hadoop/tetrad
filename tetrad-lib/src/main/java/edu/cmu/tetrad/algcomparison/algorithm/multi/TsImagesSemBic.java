@@ -2,15 +2,13 @@ package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.annotation.TimeSeries;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.IndTestScore;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.search.LinearSemBicScoreImages;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -144,7 +142,7 @@ public class TsImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
     public List<String> getParameters() {
         List<String> parameters = new LinkedList<>();
         parameters.addAll((new Fges()).getParameters());
-        parameters.addAll((new SemBicScore()).getParameters());
+        parameters.addAll((new LinearGaussianBicScore()).getParameters());
         parameters.add(Params.RANDOM_SELECTION_SIZE);
 
         parameters.add(Params.VERBOSE);

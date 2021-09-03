@@ -5,6 +5,7 @@ import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
+import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
@@ -22,11 +23,11 @@ import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * PC.
- *
- * @author jdramsey
- */
+@edu.cmu.tetrad.annotation.Algorithm(
+        name = "PC",
+        command = "pc",
+        algoType = AlgType.forbid_latent_common_causes
+)
 @Bootstrapping
 public class Pc implements Algorithm, TakesInitialGraph, HasKnowledge, TakesIndependenceWrapper {
 
@@ -98,11 +99,6 @@ public class Pc implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInde
         }
     }
 
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
-//    }
-
     @Override
     public String getDescription() {
         return "PC (\"Peter and Clark\"), Priority Rule, using " + test.getDescription()
@@ -118,7 +114,17 @@ public class Pc implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInde
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
+//        parameters.add(Params.DEPTH);
+
+        parameters.add(Params.STABLE_FAS);
+        parameters.add(Params.CONCURRENT_FAS);
+//        parameters.add(Params.COLLIDER_DISCOVERY_RULE);
+        parameters.add(Params.CONFLICT_RULE);
         parameters.add(Params.DEPTH);
+        parameters.add(Params.FAS_HEURISTIC);
+//        parameters.add(Params.USE_MAX_P_ORIENTATION_HEURISTIC);
+//        parameters.add(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH);
+
 
         parameters.add(Params.VERBOSE);
 

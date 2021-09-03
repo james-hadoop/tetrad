@@ -96,10 +96,8 @@ public class SemGraphWrapper implements SessionModel, GraphSource,
             semGraph.setShowErrorTerms(false);
             setSemGraph(semGraph);
         } else if (params.getString("newGraphInitializationMode", "manual").equals("random")) {
-            RandomUtil.getInstance().setSeed(new Date().getTime());
             setSemGraph(new SemGraph(edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters)));
         } else {
-            RandomUtil.getInstance().setSeed(new Date().getTime());
             setSemGraph(new SemGraph(edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters)));
         }
 
@@ -121,7 +119,6 @@ public class SemGraphWrapper implements SessionModel, GraphSource,
                 setSemGraph(semGraph);
             }
         } else if (params.getString("newGraphInitializationMode", "manual").equals("random")) {
-            RandomUtil.getInstance().setSeed(new Date().getTime());
             setSemGraph(new SemGraph(edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters)));
         }
         log();
@@ -134,7 +131,6 @@ public class SemGraphWrapper implements SessionModel, GraphSource,
             semGraph.setShowErrorTerms(false);
             setSemGraph(semGraph);
         } else if (params.getString("newGraphInitializationMode", "manual").equals("random")) {
-            RandomUtil.getInstance().setSeed(new Date().getTime());
             setSemGraph(new SemGraph(edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters)));
         }
         log();
@@ -146,7 +142,6 @@ public class SemGraphWrapper implements SessionModel, GraphSource,
             semGraph.setShowErrorTerms(false);
             setSemGraph(semGraph);
         } else if (params.getString("newGraphInitializationMode", "manual").equals("random")) {
-            RandomUtil.getInstance().setSeed(new Date().getTime());
             setSemGraph(new SemGraph(edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters)));
         }
         this.parameters = params;

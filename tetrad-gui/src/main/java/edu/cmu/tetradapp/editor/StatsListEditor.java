@@ -2,7 +2,6 @@ package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TextTable;
 import edu.cmu.tetradapp.model.TabularComparison;
@@ -16,21 +15,24 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import static edu.cmu.tetrad.graph.GraphUtils.getComparisonGraph;
+
 public class StatsListEditor extends JPanel {
 
     private static final long serialVersionUID = 8455624852328328919L;
 
     private final TabularComparison comparison;
     private final Parameters params;
-
+    private final List<Graph> referenceGraphs;
     private Graph targetGraph;
     private Graph referenceGraph;
     private JTextArea area;
-    private List<Graph> referenceGraphs;
 
     public StatsListEditor(TabularComparison comparison) {
         this.comparison = comparison;
         this.params = comparison.getParams();
+        referenceGraphs = comparison.getReferenceGraphs();
+        referenceGraph = getComparisonGraph(referenceGraphs.get(0), params);
         setup();
     }
 
@@ -38,7 +40,6 @@ public class StatsListEditor extends JPanel {
 
         // We'll leave the underlying model the same but just complain if there's not exactly
         // one reference and one target graph.
-        referenceGraphs = comparison.getReferenceGraphs();
         List<Graph> targetGraphs = comparison.getTargetGraphs();
 
         if (referenceGraphs.size() != 1) throw new IllegalArgumentException("Expecting one comparison graph.");
@@ -46,11 +47,10 @@ public class StatsListEditor extends JPanel {
 
         JMenuBar menubar = menubar();
         targetGraph = targetGraphs.get(0);
-        show(referenceGraphs, menubar);
+        show(menubar);
     }
 
-    private void show(List<Graph> referenceGraphs, JMenuBar menubar) {
-        referenceGraph = GraphUtils.getComparisonGraph(referenceGraphs.get(0), params);
+    private void show(JMenuBar menubar) {
         setLayout(new BorderLayout());
         add(menubar, BorderLayout.NORTH);
         add(getTableDisplay(), BorderLayout.CENTER);
@@ -186,7 +186,7 @@ public class StatsListEditor extends JPanel {
         graph.addActionListener(e -> {
             params.set("graphComparisonType", "DAG");
             menu.setText("Compare to DAG...");
-            referenceGraph = GraphUtils.getComparisonGraph(referenceGraphs.get(0), params);
+            referenceGraph = getComparisonGraph(referenceGraphs.get(0), params);
 
             area.setText(tableTextWithHeader());
             area.moveCaretPosition(0);
@@ -200,7 +200,7 @@ public class StatsListEditor extends JPanel {
         cpdag.addActionListener(e -> {
             params.set("graphComparisonType", "CPDAG");
             menu.setText("Compare to CPDAG...");
-            referenceGraph = GraphUtils.getComparisonGraph(referenceGraphs.get(0), params);
+            referenceGraph = getComparisonGraph(referenceGraphs.get(0), params);
 
             area.setText(tableTextWithHeader());
             area.moveCaretPosition(0);
@@ -214,7 +214,7 @@ public class StatsListEditor extends JPanel {
         pag.addActionListener(e -> {
             params.set("graphComparisonType", "PAG");
             menu.setText("Compare to PAG...");
-            referenceGraph = GraphUtils.getComparisonGraph(referenceGraphs.get(0), params);
+            referenceGraph = getComparisonGraph(referenceGraphs.get(0), params);
 
             area.setText(tableTextWithHeader());
             area.moveCaretPosition(0);

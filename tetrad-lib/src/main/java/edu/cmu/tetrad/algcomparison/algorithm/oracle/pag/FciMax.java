@@ -112,7 +112,7 @@ public class FciMax implements Algorithm, TakesInitialGraph, HasKnowledge, Takes
 //    }
 
     public String getDescription() {
-        return "FCI (Fast Causal Inference) using " + test.getDescription()
+        return "FCI-Max (Fast Causal Inference) using " + test.getDescription()
                 + (algorithm != null ? " with initial graph from "
                         + algorithm.getDescription() : "");
     }

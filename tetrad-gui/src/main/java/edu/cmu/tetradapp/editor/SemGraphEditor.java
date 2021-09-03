@@ -526,7 +526,6 @@ public final class SemGraphEditor extends JPanel
                         return;
                     }
 
-                    RandomUtil.getInstance().setSeed(new Date().getTime());
                     Graph graph1 = edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters);
 
                     boolean addCycles = parameters.getBoolean("randomAddCycles", false);

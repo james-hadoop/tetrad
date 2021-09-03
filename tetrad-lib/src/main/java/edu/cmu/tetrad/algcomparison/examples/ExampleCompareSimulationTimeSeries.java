@@ -28,11 +28,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.TsGfci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.TsImages;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.search.IndTestScore;
-import edu.cmu.tetrad.search.IndependenceTest;
-import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.ScoredIndTest;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.simulation.TimeSeriesSemSimulation;
@@ -72,8 +68,8 @@ public class ExampleCompareSimulationTimeSeries {
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new TsFci(new FisherZ()));
-        algorithms.add(new TsGfci(new FisherZ(), new SemBicScore()));
-        algorithms.add(new TsImages(new SemBicScore()));
+        algorithms.add(new TsGfci(new FisherZ(), new LinearGaussianBicScore()));
+        algorithms.add(new TsImages(new LinearGaussianBicScore()));
 
         Simulations simulations = new Simulations();
 

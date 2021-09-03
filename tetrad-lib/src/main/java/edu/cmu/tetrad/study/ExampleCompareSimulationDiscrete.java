@@ -117,7 +117,7 @@ public class ExampleCompareSimulationDiscrete {
 
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("comparison.discrete.study", simulations, "comparison_all_" + sampleSize, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparison.discrete.study", "comparison_all_" + sampleSize, simulations, algorithms, statistics, parameters);
     }
 }
 

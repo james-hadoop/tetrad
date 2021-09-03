@@ -25,7 +25,7 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
 
@@ -83,7 +83,7 @@ public class ExampleCompareFromFiles {
 //        algorithms.add(new Fci(new ChiSquare()));
 //        algorithms.add(new Rfci(new ChiSquare()));
 //        algorithms.add(new Rfci(new FisherZ()));
-        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+        algorithms.add(new Gfci(new LinearGaussianBicScore(), new FisherZ()));
 //        algorithms.add(new Fges(new BdeuScore(),true));
 //        algorithms.add(new Fges(new DiscreteBicScore(),true));
 //        algorithms.add(new Fges(new SemBicScore()));

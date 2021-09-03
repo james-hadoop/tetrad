@@ -2,7 +2,7 @@ package edu.cmu.tetrad.algcomparison.examples;
 
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.FAS;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
@@ -77,7 +77,7 @@ public class RunKemmeren {
             parameters.set("sepsetsReturnEmptyIfNotFixed", true);
             parameters.set("verbose", true);
 
-            SemBicScore score = new SemBicScore();
+            LinearGaussianBicScore score = new LinearGaussianBicScore();
             SemBicTest test = new SemBicTest();
 
 //            Fges search = new Fges(score);

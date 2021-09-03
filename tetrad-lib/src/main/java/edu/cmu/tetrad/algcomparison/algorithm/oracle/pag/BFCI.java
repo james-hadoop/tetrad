@@ -42,7 +42,7 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     public BFCI() {
     }
 
-    public BFCI(IndependenceWrapper test, ScoreWrapper score) {
+    public BFCI(ScoreWrapper score, IndependenceWrapper test) {
         this.test = test;
         this.score = score;
     }
@@ -64,15 +64,15 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             search.setUseScore(parameters.getBoolean(Params.USE_SCORE));
 //            boss.setGspDepth(parameters.getInt(Params.DEPTH));
 
-            search.setMethod(Boss.Method.BOSS);
+//            search.setMethod(Boss.Method.BOSS);
 
-            if (parameters.getInt(Params.BOSS_METHOD) == 1) {
-                search.setMethod(Boss.Method.BOSS);
-            } else if (parameters.getInt(Params.BOSS_METHOD) == 2) {
-                search.setMethod(Boss.Method.SP);
-            } else {
-                throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
-            }
+//            if (parameters.getInt(Params.BOSS_METHOD) == 1) {
+//                search.setMethod(Boss.Method.BOSS);
+//            } else if (parameters.getInt(Params.BOSS_METHOD) == 2) {
+//                search.setMethod(Boss.Method.SP);
+//            } else {
+//                throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
+//            }
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE) ) {
                 search.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -88,7 +88,7 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
             return search.search();
         } else {
-            BFCI algorithm = new BFCI(test, score);
+            BFCI algorithm = new BFCI(score, test);
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(knowledge);
@@ -124,8 +124,8 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
     @Override
     public String getDescription() {
-        return "GFCI (Greedy Fast Causal Inference) using " + test.getDescription()
-                + " and " + score.getDescription();
+        return "BFCI (BOSS-FCI) using " + test.getDescription()
+                + " or " + score.getDescription();
     }
 
     @Override
@@ -144,7 +144,7 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
-        params.add(Params.BOSS_METHOD);
+//        params.add(Params.BOSS_METHOD);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.BREAK_TIES);
         params.add(Params.USE_SCORE);

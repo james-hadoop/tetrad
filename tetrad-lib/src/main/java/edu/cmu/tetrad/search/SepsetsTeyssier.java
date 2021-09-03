@@ -37,9 +37,7 @@ public class SepsetsTeyssier implements SepsetProducer {
     private final Graph graph;
     private final TeyssierScorer scorer;
     private final SepsetMap extraSepsets;
-    private int depth = 3;
-    private boolean verbose = false;
-    private Graph dag;
+    private int depth;
 
     public SepsetsTeyssier(Graph graph, TeyssierScorer scorer, SepsetMap extraSepsets, int depth) {
         this.graph = graph;
@@ -116,7 +114,7 @@ public class SepsetsTeyssier implements SepsetProducer {
         nodes.add(a);
         nodes.add(b);
         scorer.score(nodes);
-        return scorer.getParents(a).contains(b);
+        return !scorer.getParents(a).contains(b) || !scorer.getParents(b).contains(a);
     }
 
     @Override
@@ -136,7 +134,6 @@ public class SepsetsTeyssier implements SepsetProducer {
 
     @Override
     public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
     }
 
     public Graph getDag() {

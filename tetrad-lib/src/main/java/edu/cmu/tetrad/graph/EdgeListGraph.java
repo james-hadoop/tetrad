@@ -156,7 +156,6 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
         this.pag = graph.isPag();
         this.cpdag = graph.isCpdag();
-//        }
     }
 
     /**
@@ -190,10 +189,10 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
     private static boolean visibleEdgeHelper(Node A, Node B, Graph graph) {
         if (A.getNodeType() != NodeType.MEASURED) {
-            throw new IllegalArgumentException();
+            return false;
         }
         if (B.getNodeType() != NodeType.MEASURED) {
-            throw new IllegalArgumentException();
+            return false;
         }
 
         final LinkedList<Node> path = new LinkedList<>();
@@ -400,7 +399,9 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         Edge edge1 = getEdge(node1, node2);
         Edge edge2 = getEdge(node2, node3);
 
-        return !(edge1 == null || edge2 == null) && edge1.getProximalEndpoint(node2) == Endpoint.ARROW && edge2.getProximalEndpoint(node2) == Endpoint.ARROW;
+        if (edge1 == null || edge2 == null) return false;
+
+        return edge1.getProximalEndpoint(node2) == Endpoint.ARROW && edge2.getProximalEndpoint(node2) == Endpoint.ARROW;
 
     }
 
@@ -1567,6 +1568,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
                 graph.addEdge(edge);
             }
         }
+
+        setPag(graph.isPag());
 
         return graph;
     }

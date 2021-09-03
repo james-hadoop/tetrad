@@ -4,7 +4,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
@@ -14,14 +14,12 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.BdeuScoreImages;
 import edu.cmu.tetrad.search.IndTestScore;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.search.LinearSemBicScoreImages;
-import edu.cmu.tetrad.search.TsDagToPag;
 import edu.cmu.tetrad.search.TsGFci;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -54,7 +52,7 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
     }
 
     public TsImages(ScoreWrapper score) {
-        if (!(score instanceof SemBicScore || score instanceof BdeuScore)) {
+        if (!(score instanceof LinearGaussianBicScore || score instanceof BdeuScore)) {
             throw new IllegalArgumentException("Only SEM BIC score or BDeu score can be used with this, sorry.");
         }
 
@@ -152,7 +150,7 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
 
         TsGFci search;
 
-        if (score instanceof SemBicScore) {
+        if (score instanceof LinearGaussianBicScore) {
             LinearSemBicScoreImages gesScore = new LinearSemBicScoreImages(dataModels);
             gesScore.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
             IndependenceTest test = new IndTestScore(gesScore);

@@ -95,16 +95,17 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
                             + referenceName + "'.");
         }
 
-        for (int i = 0; i < targetGraphs.size(); i++) {
-            targetGraphs.set(i, GraphUtils.replaceNodes(targetGraphs.get(i), referenceGraphs.get(i).getNodes()));
-        }
-
         if (referenceGraphs.size() != targetGraphs.size()) {
             throw new IllegalArgumentException("I was expecting the same number of graphs in each parent.");
         }
 
         for (int i = 0; i < targetGraphs.size(); i++) {
-            targetGraphs.set(i, GraphUtils.replaceNodes(targetGraphs.get(i), referenceGraphs.get(i).getNodes()));
+            targetGraphs.set(i, GraphUtils.replaceNodes(targetGraphs.get(i), GraphUtils.restrictToMeasured(referenceGraphs.get(i)).getNodes()));
+
+            if (targetGraphs.get(i).isPag() || referenceGraphs.get(i).isPag()) {
+                targetGraphs.get(i).setPag(true);
+                referenceGraphs.get(i).setPag(true);
+            }
         }
 
         newExecution();

@@ -23,7 +23,7 @@ import static java.util.Collections.shuffle;
 public class TeyssierScorer {
     private final Map<ScoreKey, Pair> cache = new HashMap<>();
     private final List<Node> variables;
-    private final ParentCalculation parentCalculation = ParentCalculation.IteratedGrowShrink;
+    private ParentCalculation parentCalculation = ParentCalculation.IteratedGrowShrink;
     private final Map<Node, Integer> variablesHash;
     private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
     private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
@@ -501,8 +501,8 @@ public class TeyssierScorer {
     }
 
     public boolean defCollider(Node a, Node b, Node c) {
-        if (!adjacent(a, b)) return false;
-        if (!adjacent(b, c)) return false;
+//        if (!adjacent(a, b)) return false;
+//        if (!adjacent(b, c)) return false;
         return getParents(b).contains(a) && getParents(b).contains(c);
     }
 

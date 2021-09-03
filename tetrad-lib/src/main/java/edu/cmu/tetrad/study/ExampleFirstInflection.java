@@ -27,7 +27,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.FirstInflection;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -108,7 +108,7 @@ public class ExampleFirstInflection {
 
         Algorithms algorithms = new Algorithms();
 
-        Algorithm fges = new Fges(new SemBicScore());
+        Algorithm fges = new Fges(new LinearGaussianBicScore());
 //        algorithms.add(new FirstInflection(fges, "alpha", -7, -2, -.5));
         algorithms.add(new FirstInflection(fges, "penaltyDiscount", 0.7, 5, 1));
 

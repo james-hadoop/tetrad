@@ -23,7 +23,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.AlgorithmFactory;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.TsImages;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.SingleGraphAlg;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
@@ -663,7 +663,7 @@ public class AlgorithmCard extends JPanel {
                 switch (dataType) {
                     case Continuous:
                         scoreModels.stream()
-                                .filter(e -> e.getScore().getClazz().equals(SemBicScore.class))
+                                .filter(e -> e.getScore().getClazz().equals(LinearGaussianBicScore.class))
                                 .forEach(e -> scoreComboBox.addItem(e));
                         break;
                     case Discrete:

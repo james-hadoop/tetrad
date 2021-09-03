@@ -10,7 +10,6 @@ import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.search.GFci;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -42,7 +41,7 @@ public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     public Gfci() {
     }
 
-    public Gfci(IndependenceWrapper test, ScoreWrapper score) {
+    public Gfci(ScoreWrapper score, IndependenceWrapper test) {
         this.test = test;
         this.score = score;
     }
@@ -67,7 +66,7 @@ public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
             return search.search();
         } else {
-            Gfci algorithm = new Gfci(test, score);
+            Gfci algorithm = new Gfci(score, test);
 
             //algorithm.setKnowledge(knowledge);
 //          if (initialGraph != null) {

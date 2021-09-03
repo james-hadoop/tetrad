@@ -24,15 +24,11 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.data.KnowledgeEdge;
-import edu.cmu.tetrad.graph.EdgeListGraph;
-import edu.cmu.tetrad.graph.Endpoint;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * J.M. Ogarrio and P. Spirtes and J. Ramsey, "A Hybrid Causal Search Algorithm
@@ -102,7 +98,7 @@ public final class Bfci implements GraphSearch {
         }
 
         boss.setBreakTies(breakTies);
-        boss.setMethod(method);
+//        boss.setMethod(method);
         boss.setNumStarts(numStarts);
         boss.setCacheScores(cacheScores);
         boss.setScoreType(scoreType);
@@ -145,36 +141,59 @@ public final class Bfci implements GraphSearch {
 
         scorer.score(perm);
 
-        for (Node b : perm) {
+        List<Triple> triples = new ArrayList<>();
 
-            List<Node> into = graph.getNodesInTo(b, Endpoint.ARROW);
+        Map<Node, Set<Node>> parents = new HashMap<>();
+
+        for (Node n : scorer.getOrder()) {
+            parents.put(n, scorer.getParents(n));
+        }
+
+        for (Node b : perm) {
+            Set<Node> into = scorer.getParents(b);
 
             for (Node a : into) {
                 for (Node c : into) {
-                    if (a == c) continue;
-                    if (scorer.adjacent(a, c)) continue;
 
+                    D:
                     for (Node d : perm) {
-                        if (!scorer.adjacent(c, d)) continue;
-                        if (d == b) continue;
-
                         if (configuration(scorer, a, b, c, d)) {
+                            scorer.bookmark();
+                            double score = scorer.score();
                             scorer.swap(b, c);
 
-                            if (configuration(scorer, d, c, b, a)) {
-                                if (!graph.isAdjacentTo(b, c)) continue;
-                                if (!graph.isAdjacentTo(d, c)) continue;
-
-                                graph.removeEdge(b, d);
-                                System.out.println("a = " + a + " b = " + b + " c = " + c + " d = " + d);
-                                graph.setEndpoint(b, c, Endpoint.ARROW);
-                                graph.setEndpoint(d, c, Endpoint.ARROW);
+                            for (Node n : scorer.getOrder()) {
+                                if (n != b && n != c && !scorer.getParents(n).equals(parents.get(n))) {
+                                    continue D;
+                                }
                             }
 
-                            scorer.swap(b, c);
+                            if (configuration(scorer, d, c, b, a) && score == scorer.score()) {
+                                triples.add(new Triple(b, c, d));
+                            }
+
+                            scorer.goToBookmark();
                         }
-                    }
+                     }
                 }
+            }
+        }
+
+        for (Triple triple : triples) {
+            Node b = triple.getX();
+            Node d = triple.getZ();
+
+            graph.removeEdge(b, d);
+        }
+
+        for (Triple triple : triples) {
+            Node b = triple.getX();
+            Node c = triple.getY();
+            Node d = triple.getZ();
+
+            if (graph.isAdjacentTo(b, c) && graph.isAdjacentTo(c, d) && !graph.isDefCollider(b, c, d)) {
+                graph.setEndpoint(b, c, Endpoint.ARROW);
+                graph.setEndpoint(d, c, Endpoint.ARROW);
             }
         }
 
@@ -194,6 +213,13 @@ public final class Bfci implements GraphSearch {
     }
 
     private boolean configuration(TeyssierScorer scorer, Node a, Node b, Node c, Node d) {
+        if (a == b) return false;
+        if (a == c) return false;
+        if (a == d) return false;
+        if (b == c) return false;
+        if (b == d) return false;
+        if (c == d) return false;
+
         if (!scorer.adjacent(a, b)) return false;
         if (!scorer.adjacent(b, c)) return false;
         if (!scorer.adjacent(c, d)) return false;

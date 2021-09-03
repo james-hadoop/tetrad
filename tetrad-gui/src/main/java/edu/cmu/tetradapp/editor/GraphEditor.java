@@ -480,7 +480,6 @@ public final class GraphEditor extends JPanel implements GraphEditable, LayoutEd
                         return;
                     }
 
-                    RandomUtil.getInstance().setSeed(new Date().getTime());
                     Graph graph1 = GraphUtils.randomGraph(
                             parameters.getInt(Params.NUM_MEASURES),
                             parameters.getInt(Params.NUM_LATENTS),

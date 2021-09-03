@@ -1758,6 +1758,18 @@ public final class GraphUtils {
         return convertedGraph;
     }
 
+    public static Graph restrictToMeasured(Graph graph) {
+        graph = new EdgeListGraph(graph);
+
+        for (Node node : graph.getNodes()) {
+            if (node.getNodeType() == NodeType.LATENT) {
+                graph.removeNode(node);
+            }
+        }
+
+        return graph;
+    }
+
     /**
      * Converts the given list of nodes, <code>originalNodes</code>, to use the
      * new variables (with the same names as the old).

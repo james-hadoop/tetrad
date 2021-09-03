@@ -227,7 +227,7 @@ public class TestGeneralResamplingTest {
 		
 		ScoreWrapper score = new BdeuScore();
 		IndependenceWrapper test =  new BDeuTest();
-		Algorithm algorithm = new Gfci(test, score);
+		Algorithm algorithm = new Gfci(score, test);
 		
 		GeneralResamplingTest bootstrapTest = new GeneralResamplingTest(data, algorithm, numBootstrapSamples);
 		bootstrapTest.setResamplingWithReplacement(true);
@@ -288,7 +288,7 @@ public class TestGeneralResamplingTest {
 
 		ScoreWrapper score = new BdeuScore();
 		IndependenceWrapper test =  new ChiSquare();
-		Algorithm algorithm = new Gfci(test, score);
+		Algorithm algorithm = new Gfci(score, test);
 		
 		GeneralResamplingTest bootstrapTest = new GeneralResamplingTest(data, algorithm, numBootstrapSamples);
 		bootstrapTest.setResamplingWithReplacement(true);

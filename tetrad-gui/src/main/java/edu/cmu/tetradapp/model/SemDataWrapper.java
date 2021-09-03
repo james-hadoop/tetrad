@@ -164,8 +164,6 @@ public class SemDataWrapper extends DataWrapper implements SessionModel,
             return this.dataModelList;
         }
 
-        RandomUtil.getInstance().setSeed(new Date().getTime());
-
         DataModelList dataModelList = new DataModelList();
         int sampleSize = params.getInt("sampleSize", 1000);
         boolean latentDataSaved = params.getBoolean("latentDataSaved", false);
