@@ -61,20 +61,21 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             Score score = this.score.getScore(dataSet, parameters);
             IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
 
-            Boss boss;
+            Boss2 boss;
 
             if (parameters.getBoolean(Params.USE_SCORE) && !(score instanceof GraphScore)) {
-                boss = new Boss(score);
+                boss = new Boss2(score);
             } else {
-                boss = new Boss(test);
+                boss = new Boss2(test);
             }
 
             boss.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            boss.setKnowledge(knowledge);
 
-            boss.setMethod(Boss.Method.BOSS);
+            boss.setMethod(Boss2.Method.BOSS);
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE) ) {
                 boss.setScoreType(TeyssierScorer.ScoreType.Edge);

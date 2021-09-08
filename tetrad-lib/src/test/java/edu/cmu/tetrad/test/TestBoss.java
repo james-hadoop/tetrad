@@ -25,8 +25,10 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Rfci;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
@@ -126,9 +128,8 @@ public final class TestBoss {
         Parameters params = new Parameters();
         params.set(Params.NUM_MEASURES, 100);
         params.set(Params.AVG_DEGREE, 2, 4, 6);
-//        params.set(Params.AVG_DEGREE, 0, 1, 2, 3, 4, 5);
         params.set(Params.SAMPLE_SIZE, 10000);
-        params.set(Params.NUM_RUNS, 1);
+        params.set(Params.NUM_RUNS, 30);
         params.set(Params.RANDOMIZE_COLUMNS, false);
         params.set(Params.PENALTY_DISCOUNT, 2);
         params.set(Params.COEF_LOW, 0.1);
@@ -159,11 +160,11 @@ public final class TestBoss {
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-        comparison.setSaveData(false);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", "testBoss.txt",
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss",
                 simulations, algorithms, statistics, params);
     }
 
@@ -206,11 +207,11 @@ public final class TestBoss {
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-        comparison.setSaveData(false);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", "testBoss2.txt",
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss2",
                 simulations, algorithms, statistics, params);
     }
 
@@ -252,11 +253,11 @@ public final class TestBoss {
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-        comparison.setSaveData(false);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", "testBoss3.txt",
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss3",
                 simulations, algorithms, statistics, params);
     }
 
@@ -301,10 +302,10 @@ public final class TestBoss {
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-        comparison.setSaveData(false);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", "testBoss4.txt", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss4", simulations, algorithms, statistics, params);
     }
 
     @Test
@@ -322,7 +323,7 @@ public final class TestBoss {
         params.set(Params.VAR_HIGH, 3);
         params.set(Params.VERBOSE, true);
 
-        params.set(Params.NUM_RUNS, 5);
+        params.set(Params.NUM_RUNS, 30);
 
         params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.BREAK_TIES, true);
@@ -344,15 +345,16 @@ public final class TestBoss {
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
+        statistics.add(new F1Adj());
         statistics.add(new SHD_CPDAG());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
 //        comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-        comparison.setSaveData(false);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", "Lu.figure.3.txt", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/Lu.figure.3", simulations,
                 algorithms, statistics, params);
     }
 
@@ -406,11 +408,11 @@ public final class TestBoss {
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-        comparison.setSaveData(false);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", "Lu.figure.6.txt", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/Lu.figure.6", simulations,
                 algorithms, statistics, params);
     }
 
@@ -495,11 +497,11 @@ public final class TestBoss {
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-        comparison.setSaveData(false);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", "clark.txt", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/clark", simulations,
                 algorithms, statistics, params);
     }
 
@@ -552,11 +554,11 @@ public final class TestBoss {
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-        comparison.setSaveData(false);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", "testBoss8.txt", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss8", simulations,
                 algorithms, statistics, params);
     }
 
@@ -742,10 +744,11 @@ public final class TestBoss {
 //        algorithms.add(new GSPIndep(new FisherZ()));
 
         Comparison comparison = new Comparison();
-        comparison.setSaveData(false);
+        comparison.setSaveData(true);
         comparison.setShowAlgorithmIndices(true);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/soluscomparison", simulations, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/soluscomparison",
+                simulations, algorithms, statistics, parameters);
     }
 
     //@Test
@@ -1197,8 +1200,8 @@ public final class TestBoss {
     public void testBfci() {
         Parameters params = new Parameters();
         params.set(Params.SAMPLE_SIZE, 1000);
-        params.set(Params.NUM_MEASURES, 50);
-        params.set(Params.NUM_LATENTS, 10);
+        params.set(Params.NUM_MEASURES, 25);
+        params.set(Params.NUM_LATENTS, 8);
         params.set(Params.AVG_DEGREE, 6);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.COEF_LOW, 0);
@@ -1207,12 +1210,12 @@ public final class TestBoss {
         params.set(Params.VAR_HIGH, 3);
         params.set(Params.VERBOSE, true);
 
-        params.set(Params.NUM_RUNS, 1);
+        params.set(Params.NUM_RUNS, 30);
 
         params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.BREAK_TIES, true);
         params.set(Params.CACHE_SCORES, true);
-        params.set(Params.NUM_STARTS, 1);
+        params.set(Params.NUM_STARTS, 3);
         params.set(Params.USE_SCORE, true);
 
         params.set(Params.MAX_PATH_LENGTH, -1);
@@ -1223,10 +1226,10 @@ public final class TestBoss {
 
         Algorithms algorithms = new Algorithms();
 //        algorithms.add(new Fci(new FisherZ()));
-        algorithms.add(new FciMax(new FisherZ()));
+//        algorithms.add(new FciMax(new FisherZ()));
 //        algorithms.add(new Rfci(new FisherZ()));
-        algorithms.add(new Gfci(new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore(), new FisherZ()));
-        algorithms.add(new BFCI(new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore(), new FisherZ()));
+//        algorithms.add(new Gfci(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new BFCI(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 //        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
@@ -1245,11 +1248,11 @@ public final class TestBoss {
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
 //        comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_PAG);
-        comparison.setSaveData(false);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss", "bfci.txt", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/bfci", simulations,
                 algorithms, statistics, params);
     }
 

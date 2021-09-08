@@ -51,6 +51,7 @@ public class RandomUtil {
      */
     private static final RandomUtil randomUtil = new RandomUtil();
     private static long seedUniquifier = 8682522807148012L;
+    private static long current;
     private final Map<Long, RandomGenerator> seedsToGenerators = new HashedMap<>();
     // Random number generator from the Apache library.
     private RandomGenerator randomGenerator;
@@ -68,7 +69,6 @@ public class RandomUtil {
      * Constructs a new random number generator based on the getModel date in milliseconds.
      */
     private RandomUtil() {
-//        this(new Random().nextLong());// new Well19937a(new Date().getTime()).nextLong());
         this(seedUniquifier() ^ System.nanoTime());
     }
 
@@ -85,9 +85,8 @@ public class RandomUtil {
         // L'Ecuyer, "Tables of Linear Congruential Generators of
         // Different Sizes and Good Lattice Structure", 1999
         long current = seedUniquifier;
-        long next = current * 1181783497276652981L;
-        seedUniquifier = next;
-        return next;
+        seedUniquifier = current *  1181783497276652981L;
+        return seedUniquifier;
     }
 
     /**
