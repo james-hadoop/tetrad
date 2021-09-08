@@ -124,9 +124,9 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
     /**
      * Holds the graphs.
      */
-    private GraphSelectionWrapper wrapper;
-    private JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.LEFT);
-    private List<GraphWorkbench> workbenches = new ArrayList<>();
+    private final GraphSelectionWrapper wrapper;
+    private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.LEFT);
+    private final List<GraphWorkbench> workbenches = new ArrayList<>();
     private GraphPropertiesAction graphAction;
     private TriplesAction triplesAction;
     private Map<String, List<Integer>> layoutGraph;
@@ -135,7 +135,6 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
     /**
      * Constructs a graph selection editor.
      *
-     * @param wrapper
      * @throws NullPointerException if <code>wrapper</code> is null.
      */
     public GraphSelectionEditor(GraphSelectionWrapper wrapper) {
@@ -409,12 +408,6 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
         for (int i = 0; i < tabbedPane.getTabCount(); i++) {
             Graph selection = wrapper.getSelectionGraph(i);
 
-//            if (selection.getNumNodes() > 500) {
-//                throw new IllegalArgumentException("That is too many nodes for me to display ("
-//                        + selection.getNumNodes() + ") I can only go up to 500 nodes.\n"
-//                        + "Try a smaller selection.");
-//            }
-
             if (!layoutGraph.isEmpty()) {
                 for (Node node : selection.getNodes()) {
                     List<Integer> center = layoutGraph.get(node.getName());
@@ -443,9 +436,6 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
 
     /**
      * File save menu - Zhou
-     * @param editable
-     * @param comp
-     * @return 
      */
     private JMenu createSaveMenu(GraphEditable editable) { 
         JMenu save = new JMenu("Save As");

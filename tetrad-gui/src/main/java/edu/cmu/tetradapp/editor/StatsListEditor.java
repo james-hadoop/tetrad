@@ -129,6 +129,7 @@ public class StatsListEditor extends JPanel {
         statistics.add(new F1Arrow());
         statistics.add(new MathewsCorrAdj());
         statistics.add(new MathewsCorrArrow());
+        statistics.add(new SHD());
         statistics.add(new SHD_CPDAG());
         statistics.add(new NumAmbiguousTriples());
         statistics.add(new PercentAmbiguous());
