@@ -83,6 +83,12 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
                 boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
             }
 
+            if (parameters.getInt(Params.BOSS_METHOD) == 1) {
+                boss.setMethod(Boss2.Method.BOSS);
+            } else {
+                boss.setMethod(Boss2.Method.SP);
+            }
+
             List<Node> perm = boss.bestOrder(score.getVariables());
             return boss.getGraph(perm, parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
@@ -138,7 +144,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
         ArrayList<String> params = new ArrayList<>();
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
-//        params.add(Params.BOSS_METHOD);
+        params.add(Params.BOSS_METHOD);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.BREAK_TIES);
         params.add(Params.USE_SCORE);

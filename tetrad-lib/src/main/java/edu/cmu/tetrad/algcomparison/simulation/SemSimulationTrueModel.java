@@ -73,7 +73,7 @@ public class SemSimulationTrueModel implements Simulation {
             ICovarianceMatrix cov = new CovarianceMatrix(getSemIms().get(0).getMeasuredNodes(), impl,
                     Integer.MAX_VALUE);
             if (parameters.getBoolean(Params.RANDOMIZE_COLUMNS)) {
-                cov = DataUtils.reorderColumns(cov);
+                cov = DataUtils.shuffleColumnsCov(cov);
             }
 
             cov.setName("" + (i + 1));

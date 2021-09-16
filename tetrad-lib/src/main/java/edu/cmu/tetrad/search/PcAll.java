@@ -285,7 +285,8 @@ public final class PcAll implements GraphSearch {
 
         long startTime = System.currentTimeMillis();
 
-        List<Node> allNodes = getIndependenceTest().getVariables();
+        List<Node> allNodes = new ArrayList<>(getIndependenceTest().getVariables());
+        Collections.shuffle(allNodes);
 
         if (!allNodes.containsAll(nodes)) {
             throw new IllegalArgumentException("All of the given nodes must " +
@@ -348,7 +349,7 @@ public final class PcAll implements GraphSearch {
 
         MeekRules meekRules = new MeekRules();
         meekRules.setKnowledge(knowledge);
-        meekRules.setVerbose(true);
+        meekRules.setVerbose(verbose);
         meekRules.orientImplied(graph);
 
         TetradLogger.getInstance().log("graph", "\nReturning this graph: " + graph);

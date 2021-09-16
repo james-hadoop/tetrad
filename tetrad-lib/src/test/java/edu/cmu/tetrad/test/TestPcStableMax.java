@@ -211,7 +211,7 @@ public class TestPcStableMax {
         Graph cpdag = pc.search();
 
         for (int i = 0; i < 1; i++) {
-            DataSet data2 = DataUtils.reorderColumns(data);
+            DataSet data2 = DataUtils.shuffleColumns(data);
             IndependenceTest test2 = new IndTestFisherZ(data2, 0.05);
             PcStableMax pc2 = new PcStableMax(test2);
             pc2.setVerbose(false);

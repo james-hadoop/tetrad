@@ -874,7 +874,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x3, x1, list(x2)));
         facts.add(new IndependenceFact(x1, x4, list())); // unfaithful.
 
-        return new Ret("Simple 4-node path canceling model that GES should get right", facts);
+        return new Ret("Simple 4-node path canceling model", facts);
     }
 
     public Ret getFigure8() {
@@ -1225,10 +1225,10 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 
         Algorithms algorithms = new Algorithms();
-//        algorithms.add(new Fci(new FisherZ()));
-//        algorithms.add(new FciMax(new FisherZ()));
-//        algorithms.add(new Rfci(new FisherZ()));
-//        algorithms.add(new Gfci(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new Fci(new FisherZ()));
+        algorithms.add(new FciMax(new FisherZ()));
+        algorithms.add(new Rfci(new FisherZ()));
+        algorithms.add(new Gfci(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
         algorithms.add(new BFCI(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 //        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
 
@@ -1272,6 +1272,59 @@ public final class TestBoss {
         public IndependenceFacts getFacts() {
             return facts;
         }
+    }
+
+    @Test
+    public void testWayne() {
+        List<Ret> allFacts = new ArrayList<>();
+        allFacts.add(getFactsSimpleCanceling());
+//        allFacts.add(getFactsRaskutti());
+//        allFacts.add(getFigure6());
+//        allFacts.add(getFigure7());
+//        allFacts.add(getFigure8());
+//        allFacts.add(getFigure12());
+
+        int count = 0;
+
+        boolean printCpdag = false;
+
+
+        Boss.Method[] methods = {GSP, Boss.Method.BOSS, Boss.Method.SP};
+
+        for (Ret facts : allFacts) {
+            count++;
+
+            TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()));
+
+            OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
+            OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
+
+            System.out.println();
+            System.out.println(facts.getLabel());
+            System.out.println(facts.getFacts());
+
+            List<Node> variables = facts.facts.getVariables();
+
+            PermutationGenerator gen = new PermutationGenerator(variables.size());
+            int[] perm;
+
+            while ((perm = gen.next()) != null) {
+                List<Node> p = GraphUtils.asList(perm, variables);
+
+                System.out.println("Initial permutation = " + p);
+
+//                scorer.score(p);
+//
+//                System.out.println(scorer.getGraph(false));
+//
+                Boss2 boss = new Boss2(new IndTestDSep(facts.getFacts()));
+
+                List<Node> order = boss.bestOrder(p);
+                System.out.println(boss.getGraph(order, true));
+
+            }
+
+         }
     }
 }
 

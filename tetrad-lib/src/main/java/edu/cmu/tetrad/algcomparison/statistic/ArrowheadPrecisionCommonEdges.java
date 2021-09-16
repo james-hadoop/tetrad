@@ -3,6 +3,7 @@ package edu.cmu.tetrad.algcomparison.statistic;
 import edu.cmu.tetrad.algcomparison.statistic.utils.ArrowConfusion;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
 
 /**
  * The arrow precision. This counts arrowheads maniacally, wherever they occur in the graphs.

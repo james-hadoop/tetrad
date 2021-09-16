@@ -114,6 +114,7 @@ public final class Bfci implements GraphSearch {
 
 
         graph.reorientAllWith(Endpoint.CIRCLE);
+        fciOrientbk(knowledge, graph, graph.getNodes());
 
         for (Node b : perm) {
             List<Node> adj = graph.getAdjacentNodes(b);
@@ -130,6 +131,9 @@ public final class Bfci implements GraphSearch {
                 }
             }
         }
+
+//        if (true) return graph;
+
 
         TeyssierScorer scorer;
 
@@ -174,7 +178,7 @@ public final class Bfci implements GraphSearch {
 
                             scorer.goToBookmark();
                         }
-                     }
+                    }
                 }
             }
         }

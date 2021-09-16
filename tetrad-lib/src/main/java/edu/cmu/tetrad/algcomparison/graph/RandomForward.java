@@ -17,7 +17,7 @@ public class RandomForward implements RandomGraph {
 
     @Override
     public Graph createGraph(Parameters parameters) {
-        return GraphUtils.randomGraphRandomForwardEdges(
+        return GraphUtils.randomGraph(
                 parameters.getInt("numMeasures") + parameters.getInt("numLatents"),
                 parameters.getInt("numLatents"),
                 parameters.getInt("avgDegree") * parameters.getInt("numMeasures") / 2,

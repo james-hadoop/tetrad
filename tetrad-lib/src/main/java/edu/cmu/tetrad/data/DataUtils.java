@@ -718,10 +718,8 @@ public final class DataUtils {
      * @param dataSet The data set to shuffle.
      * @return Ibid.
      */
-    public static DataSet shuffleColumns(DataSet dataSet) {
-        int numVariables;
-
-        numVariables = dataSet.getNumColumns();
+    public static DataSet shuffleColumnsCov(DataSet dataSet) {
+        int numVariables = dataSet.getNumColumns();
 
         List<Integer> indicesList = new ArrayList<>();
         for (int i = 0; i < numVariables; i++) indicesList.add(i);
@@ -1660,27 +1658,26 @@ public final class DataUtils {
         return knowledge;
     }
 
-    public static DataSet reorderColumns(DataSet dataModel) {
+    public static DataSet shuffleColumns(DataSet dataModel) {
         String name = dataModel.getName();
-        List<Node> vars = new ArrayList<>();
+        int numVariables = dataModel.getNumColumns();
 
-        List<Node> variables = dataModel.getVariables();
-        Collections.shuffle(variables);
+        List<Integer> indicesList = new ArrayList<>();
+        for (int i = 0; i < numVariables; i++) indicesList.add(i);
+        Collections.shuffle(indicesList);
 
-        for (Node node : variables) {
-            Node _node = dataModel.getVariable(node.getName());
+        int[] indices = new int[numVariables];
 
-            if (_node != null) {
-                vars.add(_node);
-            }
+        for (int i = 0; i < numVariables; i++) {
+            indices[i] = indicesList.get(i);
         }
 
-        DataSet dataSet = dataModel.subsetColumns(vars);
+        DataSet dataSet = dataModel.subsetColumns(indices);
         dataSet.setName(name);
         return dataSet;
     }
 
-    public static List<DataSet> reorderColumns(List<DataSet> dataSets) {
+    public static List<DataSet> shuffleColumns2(List<DataSet> dataSets) {
         List<Node> vars = new ArrayList<>();
 
         List<Node> variables = dataSets.get(0).getVariables();
@@ -1709,7 +1706,7 @@ public final class DataUtils {
         return ret;
     }
 
-    public static ICovarianceMatrix reorderColumns(ICovarianceMatrix cov) {
+    public static ICovarianceMatrix shuffleColumnsCov(ICovarianceMatrix cov) {
         List<String> vars = new ArrayList<>();
 
         List<Node> variables = new ArrayList<>(cov.getVariables());

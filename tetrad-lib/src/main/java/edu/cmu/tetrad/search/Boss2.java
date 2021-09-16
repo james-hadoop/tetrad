@@ -8,7 +8,10 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.lang.Double.POSITIVE_INFINITY;
 
@@ -71,11 +74,11 @@ public class Boss2 {
         makeValidKnowledgeOrder(order);
 //        }
 
-        System.out.println("valid knowledge order = " + order);
         scorer.score(order);
 
         for (int r = 0; r < numStarts; r++) {
-            if (r > 0) scorer.shuffleVariables();
+//            if (r > 0)
+                scorer.shuffleVariables();
 
             List<Node> perm;
 
@@ -123,16 +126,15 @@ public class Boss2 {
         });
     }
 
-    private boolean satisfiesKnowledge(List<Node> order) {
+    private boolean satisfiesKnowledge(TeyssierScorer scorer) {
         if (!knowledge.isEmpty()) {
-            for (int i = 0; i < order.size(); i++) {
-                for (int j = i + 1; j < order.size(); j++) {
-                    if (knowledge.isForbidden(order.get(i).getName(), order.get(j).getName())) {
+            for (int i = 0; i < scorer.size(); i++) {
+                for (int j = i + 1; j < scorer.size(); j++) {
+                    if (knowledge.isForbidden(scorer.get(i).getName(), scorer.get(j).getName())) {
                         return false;
                     }
                 }
             }
-
         }
 
         return true;
@@ -177,15 +179,19 @@ public class Boss2 {
 
                 double score2 = POSITIVE_INFINITY;
 
-                if (scorer.score() < score2 && satisfiesKnowledge(scorer.getOrder())) {
-                    scorer.bookmark();
-                    score2 = scorer.score();
+                if (scorer.score() < score2) {
+                    if (satisfiesKnowledge(scorer)) {
+                        scorer.bookmark();
+                        score2 = scorer.score();
+                    }
                 }
 
                 while (scorer.promote(v)) {
-                    if (scorer.score() < score2 && satisfiesKnowledge(scorer.getOrder())) {
-                        scorer.bookmark();
-                        score2 = scorer.score();
+                    if (scorer.score() < score2) {
+                        if (satisfiesKnowledge(scorer)) {
+                            scorer.bookmark();
+                            score2 = scorer.score();
+                        }
                     }
                 }
 
@@ -211,14 +217,14 @@ public class Boss2 {
 
                     if (((scorer.getParents(v).contains(r1) && scorer.getParents(v).contains(r2))
                             || (scorer.getParents(r1).contains(v) && scorer.getParents(r2).contains(v)))
-                            && triangle(v, r1, r2, scorer) && satisfiesKnowledge(scorer.getOrder())) {
+                            && triangle(v, r1, r2, scorer)) {
                         double score = scorer.score();
                         scorer.bookmark();
 
                         scorer.swap(v, r1);
                         scorer.swap(v, r2);
 
-                        if (scorer.score() < score && satisfiesKnowledge(scorer.getOrder())) {
+                        if (scorer.score() < score && satisfiesKnowledge(scorer)) {
                             return true;
                         }
 
