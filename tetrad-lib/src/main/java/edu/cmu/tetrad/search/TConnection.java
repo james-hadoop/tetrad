@@ -41,7 +41,7 @@ import java.util.*;
  */
 public class TConnection {
     private PathType pathType = PathType.ALL_PATHS;
-    private double timeLimit = 1000;
+    private double timeLimit = 100000;
 
     public List<LinkedList<Node>> findPaths(Graph g, Node x, Node y, List<Node> z, Map<Edge, Double> times) {
         if (!g.containsNode(x)) {
@@ -108,10 +108,12 @@ public class TConnection {
     public static class Records {
         private final Graph graph;
         private final Map<Edge, Double> times;
+        private final Map<Edge, Integer> counts;
 
         public Records() {
             graph = new EdgeListGraph();
             times = new HashMap<>();
+            counts = new HashMap<>();
         }
 
         public void addRecord(String x, String y, double time) {
@@ -139,15 +141,27 @@ public class TConnection {
 
             Edge e = graph.getEdge(graph.getNode(x), graph.getNode(y));
 
-            times.put(e, time);
+            if (times.get(e) == null) {
+                times.put(e, time);
+                counts.put(e, 1);
+            } else {
+                times.put(e, times.get(e) + time);
+                counts.put(e, counts.get(e) + 1);
+            }
         }
 
         public Graph getGraph() {
             return graph;
         }
 
-        public Map<Edge, Double> getTimes() {
-            return times;
+        public Map<Edge, Double> getTimesAvg() {
+            Map<Edge, Double> timesAvg = new HashMap<>();
+
+            for (Edge e : getGraph().getEdges()) {
+                timesAvg.put(e, times.get(e) / counts.get(e));
+            }
+
+            return timesAvg;
         }
 
         public String toString() {
@@ -158,11 +172,13 @@ public class TConnection {
 
             s.append("Var1\tVar2\tDelay\n");
 
+            Map<Edge, Double> timesAvg = getTimesAvg();
+
             for (int i = 0; i < edges.size(); i++) {
                 Edge e = edges.get(i);
                 s.append(e.getNode1().toString()).append("\t");
                 s.append(e.getNode2().toString()).append("\t");
-                s.append(nf.format(times.get(e))).append("\t");
+                s.append(nf.format(timesAvg.get(e))).append("\t");
 
                 if (i < edges.size() - 1) {
                     s.append("\n");
@@ -190,13 +206,15 @@ public class TConnection {
             while ((line = r.readLine()) != null) {
                 String[] tokens = line.split("\t");
 
-                if (tokens.length != 3) {
-                    throw new IllegalArgumentException("Expecting 3 tokens: " + line);
-                }
+//                if (tokens.length != 3) {
+//                    throw new IllegalArgumentException("Expecting 3 tokens: " + line);
+//                }
 
                 String v1 = tokens[0];
                 String v2 = tokens[1];
                 double time = Double.parseDouble(tokens[2]);
+
+
 
                 records.addRecord(v1, v2, time);
             }
