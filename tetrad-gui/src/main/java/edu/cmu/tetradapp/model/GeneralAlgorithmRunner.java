@@ -68,9 +68,16 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
     //===========================CONSTRUCTORS===========================//
     public GeneralAlgorithmRunner(GeneralAlgorithmRunner runner, Parameters parameters) {
         this(runner.getDataWrapper(), runner, parameters, null, null);
-        this.sourceGraph = runner.sourceGraph;
-        this.knowledge = runner.knowledge;
-        this.algorithm = runner.algorithm;
+        this.sourceGraph = runner.getSourceGraph();
+
+        if (runner.getKnowledge() == null) {
+            throw new NullPointerException("Null knowledge");
+        }
+
+        if (runner.getKnowledge() != null && !runner.getKnowledge().isEmpty()) {
+            this.knowledge = runner.getKnowledge();
+        }
+        this.algorithm = runner.getAlgorithm();
         this.parameters = parameters;
     }
 
@@ -200,9 +207,9 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
         }
 
         if (knowledgeBoxModel != null) {
-            knowledge = knowledgeBoxModel.getKnowledge();
-        } else {
-            knowledge = new Knowledge2();
+            if (knowledgeBoxModel.getKnowledge() != null && !knowledgeBoxModel.getKnowledge().isEmpty()) {
+                knowledge = knowledgeBoxModel.getKnowledge();
+            }
         }
 
         if (facts != null) {
@@ -232,11 +239,16 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                 if (algo instanceof HasKnowledge) {
                     ((HasKnowledge) algo).setKnowledge(getKnowledge());
                 }
+
             } else if (algo instanceof TakesIndependenceWrapper) {
                 IndependenceWrapper wrapper = ((TakesIndependenceWrapper) algo).getIndependenceWrapper();
                 if (wrapper instanceof DSeparationTest) {
                     ((DSeparationTest) wrapper).setGraph(getSourceGraph());
                 }
+            }
+
+            if (algo instanceof HasKnowledge) {
+                ((HasKnowledge) algo).setKnowledge(getKnowledge());
             }
 
             graphList.add(algo.search(getDataModel(), parameters, sourceGraph));
@@ -261,6 +273,11 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
 
                     graphList.add(((MultiDataSetAlgorithm) algo).search(sub, parameters));
                 }
+
+                if (algo instanceof HasKnowledge) {
+                    ((HasKnowledge) algo).setKnowledge(getKnowledge());
+                }
+
             } else if (getAlgorithm() instanceof ClusterAlgorithm) {
                 for (int k = 0; k < parameters.getInt("numRuns"); k++) {
                     getDataModelList().forEach(dataModel -> {
@@ -278,6 +295,10 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                         }
                     });
                 }
+
+                if (algo instanceof HasKnowledge) {
+                    ((HasKnowledge) algo).setKnowledge(getKnowledge());
+                }
             } else {
                 if (getDataModelList().size() != 1) {
                     throw new IllegalArgumentException("Expecting a single dataset here.");
@@ -285,14 +306,19 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
 
                 if (algo != null) {
                     getDataModelList().forEach(data -> {
-                        IKnowledge knowledgeFromData = data.getKnowledge();
-                        if (!(knowledgeFromData == null || knowledgeFromData.getVariables().isEmpty())) {
-                            this.knowledge = knowledgeFromData;
+                        if (data.getKnowledge() != null && !data.getKnowledge().getVariables().isEmpty()) {
+                            if (algo instanceof HasKnowledge) {
+                                ((HasKnowledge) algo).setKnowledge(data.getKnowledge());
+                            }
+                        } else {
+                            if (algo instanceof HasKnowledge) {
+                                ((HasKnowledge) algo).setKnowledge(getKnowledge());
+                            }
                         }
 
                         DataType algDataType = algo.getDataType();
 
-                        if (data.isContinuous() && (algDataType == DataType.Continuous || algDataType == DataType.Mixed)) {
+                        if (data.isContinuous() && (algDataType == DataType.Continuous || algDataType   == DataType.Mixed)) {
                             graphList.add(algo.search(data, parameters, sourceGraph));
                         } else if (data.isDiscrete() && (algDataType == DataType.Discrete || algDataType == DataType.Mixed)) {
                             graphList.add(algo.search(data, parameters, sourceGraph));
@@ -306,11 +332,7 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
             }
         }
 
-        if (algo instanceof HasKnowledge) {
-            ((HasKnowledge) algo).setKnowledge(getKnowledge());
-        }
-
-        if (getKnowledge().getVariablesNotInTiers().size()
+        if (getKnowledge() != null && getKnowledge().getVariablesNotInTiers().size()
                 < getKnowledge().getVariables().size()) {
             for (Graph graph : graphList) {
                 SearchGraphUtils.arrangeByKnowledgeTiers(graph, getKnowledge());

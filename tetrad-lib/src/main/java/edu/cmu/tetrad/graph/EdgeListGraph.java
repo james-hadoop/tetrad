@@ -1080,6 +1080,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public boolean setEndpoint(Node from, Node to, Endpoint endPoint)
             throws IllegalArgumentException {
+        if (!isAdjacentTo(from, to)) return false;
+
         Edge edge = getEdge(from, to);
         ancestors = null;
 

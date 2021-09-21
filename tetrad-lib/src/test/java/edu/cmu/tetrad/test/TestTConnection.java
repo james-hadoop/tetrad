@@ -204,25 +204,37 @@ public class TestTConnection {
     @Test
     public void test5() {
         try {
-            TConnection.Records records = TConnection.Records.fromFile(new File("/Users/josephramsey/Downloads/data.latency.txt").toPath());
+            TConnection.Records records = TConnection.Records.fromFile(
+                    new File("/Users/josephramsey/Downloads/data.latency.txt").toPath());
+
+            System.out.println();
+            System.out.println("Records with average delays:");
             System.out.println(records);
+
+            System.out.println();
+            System.out.println("T-connecting paths:");
+            System.out.println();
 
             TConnection tconn = new TConnection();
 
-            tconn.setPathType(TConnection.PathType.DIRECT);
-            tconn.setTimeLimit(300);
+            tconn.setPathType(TConnection.PathType.ALL_PATHS);
+            tconn.setTimeLimit(3000);
 
             Graph graph = records.getGraph();
             List<Node> nodes = graph.getNodes();
 
-            for (int i = 0; i < nodes.size(); i++) {
-                for (int j = 0; j < nodes.size(); j++) {
-                    Node x1 = nodes.get(i);
-                    Node x2 = nodes.get(j);
-                    List<Node> cond = new ArrayList<>();
+            List<Node> cond = new ArrayList<>();
+//            cond.add(graph.getNode("lM1"));
+            cond.add(graph.getNode("lSMA"));
+            cond.add(graph.getNode("rPMv"));
+
+            for (Node x1 : nodes) {
+                for (Node x2 : nodes) {
                     List<LinkedList<Node>> temporalPaths = tconn.findPaths(graph, x1, x2, cond, records.getTimesAvg());
 
-                    System.out.println(x1 + " " + x2 + " " + temporalPaths);
+                    for (List<Node> path : temporalPaths) {
+                        System.out.println("<" + x1 + " " + x2 + "> conditional on "+ cond + " " + GraphUtils.pathString(path, graph));
+                    }
                 }
             }
         } catch (IOException e) {

@@ -997,7 +997,7 @@ public class TestFges {
 
                 Graph trueCpdag = SearchGraphUtils.cpdagForDag(dag);
 
-                GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison3(cpdag, trueCpdag, System.out);
+                GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison(cpdag, trueCpdag);
                 NumberFormat nf = new DecimalFormat("0.00");
 
                 System.out.println(i +

@@ -101,23 +101,13 @@ public final class GFci implements GraphSearch {
 
         this.graph = new EdgeListGraph(nodes);
 
-//        Fges fges = new Fges(score);
-//        fges.setKnowledge(getKnowledge());
-//        fges.setVerbose(verbose);
-//        fges.setFaithfulnessAssumed(faithfulnessAssumed);
-//        fges.setMaxDegree(maxDegree);
-//        fges.setOut(out);
-//        graph = fges.search();
-
-        Boss boss = new Boss(score);
-        boss.setBreakTies(true);
-        boss.setMethod(Boss.Method.BOSS);
-        boss.setNumStarts(1);
-        boss.setCacheScores(true);
-        List<Node> perm = boss.bestOrder(score.getVariables());
-        graph = boss.getGraph(perm, true);
-
-
+        Fges fges = new Fges(score);
+        fges.setKnowledge(getKnowledge());
+        fges.setVerbose(verbose);
+        fges.setFaithfulnessAssumed(faithfulnessAssumed);
+        fges.setMaxDegree(maxDegree);
+        fges.setOut(out);
+        graph = fges.search();
 
         Graph fgesGraph = new EdgeListGraph(graph);
 

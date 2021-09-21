@@ -60,7 +60,7 @@ public class FmlBicScore implements ScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "Sem BIC Score";
+        return "FML BIC Score";
     }
 
     @Override

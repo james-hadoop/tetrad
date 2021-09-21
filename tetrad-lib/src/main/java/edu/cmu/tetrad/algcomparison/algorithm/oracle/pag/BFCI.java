@@ -51,7 +51,6 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Bfci search = new Bfci(test.getTest(dataSet, parameters, trueGraph), score.getScore(dataSet, parameters));
-//            search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
             search.setKnowledge(knowledge);
             search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
             search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
@@ -60,19 +59,8 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             search.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
-
             search.setUseScore(parameters.getBoolean(Params.USE_SCORE));
-//            boss.setGspDepth(parameters.getInt(Params.DEPTH));
-
-//            search.setMethod(Boss.Method.BOSS);
-
-//            if (parameters.getInt(Params.BOSS_METHOD) == 1) {
-//                search.setMethod(Boss.Method.BOSS);
-//            } else if (parameters.getInt(Params.BOSS_METHOD) == 2) {
-//                search.setMethod(Boss.Method.SP);
-//            } else {
-//                throw new IllegalArgumentException("Unexpected method: " + parameters.getInt(Params.BOSS_METHOD));
-//            }
+            search.setKnowledge(knowledge);
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE) ) {
                 search.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -137,8 +125,7 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
 
-//        params.add(Params.FAITHFULNESS_ASSUMED);
-        params.add(Params.MAX_DEGREE);
+//        params.add(Params.MAX_DEGREE);
         params.add(Params.MAX_PATH_LENGTH);
         params.add(Params.COMPLETE_RULE_SET_USED);
 
@@ -161,6 +148,7 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
     @Override
     public void setKnowledge(IKnowledge knowledge) {
+        if (knowledge == null) throw new NullPointerException("Null kowledge");
         this.knowledge = knowledge;
     }
 

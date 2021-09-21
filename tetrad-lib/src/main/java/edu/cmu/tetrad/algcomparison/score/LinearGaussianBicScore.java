@@ -15,7 +15,7 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Score(
-        name = "Sem BIC Score",
+        name = "Linear Gaussian BIC Score",
         command = "sem-bic-score",
         dataType = {DataType.Continuous, DataType.Covariance}
 )

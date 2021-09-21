@@ -521,7 +521,7 @@ public class RBExperiments {
 
 		tableColumns.add(Comparison.TableColumn.SHD);
 
-		GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison3(graph, trueGraph, null);
+		GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison(graph, trueGraph);
 
 		List<Node> variables = new ArrayList<>();
 		for (TableColumn column : tableColumns) {

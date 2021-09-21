@@ -501,9 +501,11 @@ public class TeyssierScorer {
     }
 
     public boolean defCollider(Node a, Node b, Node c) {
-//        if (!adjacent(a, b)) return false;
-//        if (!adjacent(b, c)) return false;
         return getParents(b).contains(a) && getParents(b).contains(c);
+    }
+
+    public void setParentCalculation(ParentCalculation parentCalculation) {
+        this.parentCalculation = parentCalculation;
     }
 
     public enum ScoreType {Edge, SCORE}

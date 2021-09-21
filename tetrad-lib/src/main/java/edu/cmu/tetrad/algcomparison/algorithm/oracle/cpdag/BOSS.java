@@ -10,7 +10,6 @@ import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.*;
@@ -33,7 +32,7 @@ import java.util.List;
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper, TakesInitialGraph {
+public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private ScoreWrapper score = null;
@@ -61,32 +60,25 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             Score score = this.score.getScore(dataSet, parameters);
             IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
 
-            Boss2 boss;
+            Boss boss;
 
             if (parameters.getBoolean(Params.USE_SCORE) && !(score instanceof GraphScore)) {
-                boss = new Boss2(score);
+                boss = new Boss(score);
             } else {
-                boss = new Boss2(test);
+                boss = new Boss(test);
             }
 
+            boss.setMethod(Boss.Method.BOSS);
             boss.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            boss.setKnowledge(knowledge);
-
-            boss.setMethod(Boss2.Method.BOSS);
+            boss.setKnowledge(getKnowledge());
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE) ) {
                 boss.setScoreType(TeyssierScorer.ScoreType.Edge);
             } else {
                 boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
-            }
-
-            if (parameters.getInt(Params.BOSS_METHOD) == 1) {
-                boss.setMethod(Boss2.Method.BOSS);
-            } else {
-                boss.setMethod(Boss2.Method.SP);
             }
 
             List<Node> perm = boss.bestOrder(score.getVariables());
@@ -114,7 +106,6 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
             }
 
-            search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
 
             search.setParameters(parameters);
@@ -122,11 +113,6 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             return search.search();
         }
     }
-
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        return new EdgeListGraph(graph);
-//    }
 
     @Override
     public String getDescription() {
@@ -144,13 +130,11 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
         ArrayList<String> params = new ArrayList<>();
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
-        params.add(Params.BOSS_METHOD);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.BREAK_TIES);
         params.add(Params.USE_SCORE);
         params.add(Params.OUTPUT_CPDAG);
         params.add(Params.VERBOSE);
-//        params.add(Params.DEPTH);
         return params;
     }
 
@@ -162,6 +146,8 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     @Override
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
+
+        System.out.println("In BOSS setKnowledge():" + knowledge);
     }
 
     @Override
@@ -172,21 +158,6 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     @Override
     public void setScoreWrapper(ScoreWrapper score) {
         this.score = score;
-    }
-
-    @Override
-    public Graph getInitialGraph() {
-        return initialGraph;
-    }
-
-    @Override
-    public void setInitialGraph(Graph initialGraph) {
-        this.initialGraph = initialGraph;
-    }
-
-    @Override
-    public void setInitialGraph(Algorithm algorithm) {
-        this.algorithm = algorithm;
     }
 
     @Override

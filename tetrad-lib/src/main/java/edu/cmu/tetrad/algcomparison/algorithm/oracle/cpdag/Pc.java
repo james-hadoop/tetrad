@@ -138,6 +138,8 @@ public class Pc implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInde
 
     @Override
     public void setKnowledge(IKnowledge knowledge) {
+        System.out.println("In PC setKnowledge():" + knowledge);
+
         this.knowledge = knowledge;
     }
 

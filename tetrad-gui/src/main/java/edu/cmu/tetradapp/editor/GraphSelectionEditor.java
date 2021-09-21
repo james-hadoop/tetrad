@@ -711,6 +711,7 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
             // if selected are already set use'em.
             List<Node> selectedNodes = wrapper.getSelectedVariables();
             List<Node> initVars = new ArrayList<>(wrapper.getVariables());
+            variableModel.removeAll(initVars);
             initVars.removeAll(selectedNodes);
             variableModel.addAll(initVars);
             selectedModel.addAll(selectedNodes);
@@ -985,16 +986,28 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
         }
 
         public void reset() {
+            VariableListModel sourceModel = (VariableListModel) getSourceList().getModel();
             VariableListModel selectedModel = (VariableListModel) getSelectedList().getModel();
-            VariableListModel variableModel = (VariableListModel) getSourceList().getModel();
             List<Node> variableNames = wrapper.getVariables();
 
             // if regressors are already set use'em.
             selectedModel.removeAll();
-            variableModel.removeAll();
-            variableModel.addAll(variableNames);
-            variableModel.removeAll(wrapper.getSelectedVariables());
+            sourceModel.removeAll();
+            sourceModel.addAll(variableNames);
+            sourceModel.removeAll(wrapper.getSelectedVariables());
             selectedModel.addAll(wrapper.getSelectedVariables());
+
+//            for (int i = 0; i < sourceModel.getSize(); i++) {
+//                System.out.println(sourceModel.getElementAt(i));
+//            }
+//
+//            System.out.println("Selected: " + wrapper.getSelectedVariables());
+//
+//            for (int i = 0; i < selectedModel.getSize(); i++) {
+//                System.out.println(selectedModel.getElementAt(i));
+//            }
+//
+//            System.out.println();
 
             getSelectedList().setSelectedIndices(new int[0]);
             getSourceList().setSelectedIndices(new int[0]);
@@ -1237,11 +1250,6 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
         /**
          * Creates a new copy subsession action for the given LayoutEditable and
          * clipboard.
-         *
-         * @param component
-         * @param wrapper
-         * @param sourceList
-         * @param selectedList
          */
         public GraphSelectionTextInputAction(JComponent component, GraphSelectionWrapper wrapper,
                 JList<Node> sourceList, JList<Node> selectedList) {
@@ -1255,8 +1263,6 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
         /**
          * Copies a parentally closed selection of session nodes in the
          * frontmost session editor to the clipboard.
-         *
-         * @param e
          */
         @Override
         public void actionPerformed(ActionEvent actionEvent) {

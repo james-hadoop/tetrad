@@ -98,20 +98,15 @@ public final class Bfci implements GraphSearch {
         }
 
         boss.setBreakTies(breakTies);
-//        boss.setMethod(method);
         boss.setNumStarts(numStarts);
         boss.setCacheScores(cacheScores);
         boss.setScoreType(scoreType);
         boss.setVerbose(verbose);
-
         boss.setKnowledge(knowledge);
 
         List<Node> perm = boss.bestOrder(variables);
         graph = boss.getGraph(perm, true);
         Graph bossGraph = new EdgeListGraph(graph);
-
-//        if (true) return bossGraph;
-
 
         graph.reorientAllWith(Endpoint.CIRCLE);
         fciOrientbk(knowledge, graph, graph.getNodes());
@@ -131,9 +126,6 @@ public final class Bfci implements GraphSearch {
                 }
             }
         }
-
-//        if (true) return graph;
-
 
         TeyssierScorer scorer;
 
@@ -195,7 +187,7 @@ public final class Bfci implements GraphSearch {
             Node c = triple.getY();
             Node d = triple.getZ();
 
-            if (graph.isAdjacentTo(b, c) && graph.isAdjacentTo(c, d) && !graph.isDefCollider(b, c, d)) {
+            if (graph.isAdjacentTo(b, c) && graph.isAdjacentTo(d, c) && !graph.isDefCollider(b, c, d)) {
                 graph.setEndpoint(b, c, Endpoint.ARROW);
                 graph.setEndpoint(d, c, Endpoint.ARROW);
             }

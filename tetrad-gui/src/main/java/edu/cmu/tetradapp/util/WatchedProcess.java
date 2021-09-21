@@ -22,10 +22,9 @@ package edu.cmu.tetradapp.util;
 
 import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetrad.util.TaskManager;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * Runs a process, popping up a dialog with a stop button if the time to
@@ -37,23 +36,28 @@ import javax.swing.*;
 public abstract class WatchedProcess {
 
     /**
+     * The number of milliseconds the thread sleeps before checking on user
+     * input again.
+     */
+    private final long delay = 200L;
+    /**
+     * The anstor Window in front of which the stop dialog is being displayed.
+     */
+    private final Window owner;
+    /**
+     * The object on which the watch dialog should be centered.
+     */
+    private final Component centeringComp;
+    /**
      * The thread that the watched process dialog runs in. This thread can be
      * stopped (using wonderful yet deprecated stop( ) method, giving the user
      * control over any process that's running in it.
      */
     private Thread thread;
-
     /**
      * If the thread stops with an error, the error message is stored here.
      */
     private String errorMessage;
-
-    /**
-     * The number of milliseconds the thread sleeps before checking on user
-     * input again.
-     */
-    private final long delay = 200L;
-
     /**
      * The dialog displayed to the user that lets them click "Stop" when they
      * want the process to stop.
@@ -61,32 +65,10 @@ public abstract class WatchedProcess {
     private JDialog stopDialog;
 
     /**
-     * The anstor Window in front of which the stop dialog is being displayed.
-     */
-    private Window owner;
-
-    /**
-     * True iff the "watch process" dialogs should display. These threads block,
-     * so displaying them makes debugging difficult. On the other hand, not
-     * displaying them means that users cannot stop processes, so they hate
-     * that. SO...if you set this to false, make sure you set it to true before
-     * you're done working!
-     * <p/>
-     * It must be set to true for posted versions. There's unit test that checks
-     * for that.
-     */
-    private static boolean SHOW_DIALOG = true;
-
-    /**
-     * The object on which the watch dialog should be centered.
-     */
-    private Component centeringComp;
-
-    /**
      * Constructs a new watched process.
      *
      * @param owner The ancestor window in front of which the stop dialog is
-     * being displayed.
+     *              being displayed.
      */
     public WatchedProcess(Window owner) {
         this(owner, JOptionUtils.centeringComp());
@@ -96,7 +78,7 @@ public abstract class WatchedProcess {
      * Constructs a new watched process.
      *
      * @param owner The ancestor window in front of which the stop dialog is
-     * being displayed.
+     *              being displayed.
      */
     private WatchedProcess(Window owner, Component centeringComp) {
         if (owner == null) {
@@ -110,6 +92,7 @@ public abstract class WatchedProcess {
     }
 
     //=============================PUBLIC METHODS========================//
+
     /**
      * To watch a process, override this method, as follows:
      * <pre>
@@ -145,11 +128,7 @@ public abstract class WatchedProcess {
     }
 
     private boolean isShowDialog() {
-        return SHOW_DIALOG;
-    }
-
-    public void setShowDialog(boolean showDialog) {
-        SHOW_DIALOG = showDialog;
+        return true;
     }
 
     public boolean isAlive() {
@@ -158,21 +137,19 @@ public abstract class WatchedProcess {
 
     //================================PRIVATE METHODS====================//
     private void watchProcess() {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                try {
-                    watch();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    String message = e.getMessage();
+        Runnable runnable = () -> {
+            try {
+                watch();
+            } catch (Exception e) {
+                e.printStackTrace();
+                String message = e.getMessage();
 
-                    if (e.getCause() != null) {
-                        message = e.getCause().getMessage();
-                    }
-
-                    setErrorMessage(message);
-                    throw e;
+                if (e.getCause() != null) {
+                    message = e.getCause().getMessage();
                 }
+
+                setErrorMessage(message);
+                throw e;
             }
         };
 
@@ -182,54 +159,51 @@ public abstract class WatchedProcess {
         thread.start();
 
         if (isShowDialog()) {
-            Thread watcher = new Thread() {
-                public void run() {
-                    try {
-                        sleep(delay);
-                    } catch (InterruptedException e) {
-                        return;
-                    }
+            Thread watcher = new Thread(() -> {
+                try {
+                    Thread.sleep(delay);
+                } catch (InterruptedException e) {
+                    return;
+                }
 
-                    if (getErrorMessage() != null) {
-                        JOptionPane.showMessageDialog(
-                                centeringComp, getErrorMessage());
-                        return;
-                    }
+                if (getErrorMessage() != null) {
+                    JOptionPane.showMessageDialog(
+                            centeringComp, getErrorMessage());
+                    return;
+                }
 
-                    JProgressBar progressBar = new JProgressBar(0, 100);
-                    progressBar.setIndeterminate(true);
+                JProgressBar progressBar = new JProgressBar(0, 100);
+                progressBar.setIndeterminate(true);
 
-                    JButton stopButton = new JButton("Stop");
+                JButton stopButton = new JButton("Stop");
 
-                    stopButton.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            if (getThread() != null) {
-                                while (getThread().isAlive()) {
-                                    TaskManager.getInstance().setCanceled(true);
-                                    getThread().stop();
+                stopButton.addActionListener(e -> {
+                    if (getThread() != null) {
+                        while (getThread().isAlive()) {
+                            TaskManager.getInstance().setCanceled(true);
+                            getThread().stop();
 
-                                    try {
-                                        sleep(500);
-                                    } catch (InterruptedException e1) {
-                                        JOptionPane.showMessageDialog(
-                                                centeringComp,
-                                                "Could not stop thread.");
-                                        return;
-                                    }
-                                }
+                            try {
+                                Thread.sleep(500);
+                            } catch (InterruptedException e1) {
+                                JOptionPane.showMessageDialog(
+                                        centeringComp,
+                                        "Could not stop thread.");
+                                return;
+                            }
+                        }
 
 //                                JOptionPane.showMessageDialog(
 //                                        JOptionUtils.centeringComp(),
 //                                        "Execution stopped.");
-                            }
-                        }
-                    });
+                    }
+                });
 
-                    Box b = Box.createVerticalBox();
-                    Box b1 = Box.createHorizontalBox();
-                    b1.add(progressBar);
-                    b1.add(stopButton);
-                    b.add(b1);
+                Box b = Box.createVerticalBox();
+                Box b1 = Box.createHorizontalBox();
+                b1.add(progressBar);
+                b1.add(stopButton);
+                b.add(b1);
 
 //                    final JTextArea anomaliesTextArea = new JTextArea();
 //                    final TextAreaOutputStream out = new TextAreaOutputStream(
@@ -240,48 +214,47 @@ public abstract class WatchedProcess {
 //                    scroll.setPreferredSize(new Dimension(300, 50));
 //                    b2.add(scroll);
 //                    b.add(b2);
-                    if (isShowDialog()) {
-                        Frame ancestor = (Frame) JOptionUtils.centeringComp()
-                                .getTopLevelAncestor();
-                        JDialog dialog
-                                = new JDialog(ancestor, "Executing...", false);
-                        setStopDialog(dialog);
+                if (isShowDialog()) {
+                    Frame ancestor = (Frame) JOptionUtils.centeringComp()
+                            .getTopLevelAncestor();
+                    JDialog dialog
+                            = new JDialog(ancestor, "Executing...", false);
+                    setStopDialog(dialog);
 
-                        dialog.getContentPane().add(b);
-                        dialog.pack();
-                        dialog.setLocationRelativeTo(
-                                centeringComp);
+                    dialog.getContentPane().add(b);
+                    dialog.pack();
+                    dialog.setLocationRelativeTo(
+                            centeringComp);
 
 //                        LogUtils.getInstance().add(out, Level.FINER);
-                        while (getThread().isAlive()) {
-                            try {
-                                sleep(200);
-                                if (existsOtherDialog()) {
-                                    dialog.setVisible(false);
-                                } else {
-                                    dialog.setVisible(true);
-                                    dialog.toFront();
-                                }
+                    while (getThread().isAlive()) {
+                        try {
+                            Thread.sleep(200);
+                            if (existsOtherDialog()) {
+                                dialog.setVisible(false);
+                            } else {
+                                dialog.setVisible(true);
+                                dialog.toFront();
+                            }
 
 //                                anomaliesTextArea.setCaretPosition(out.getLengthWritten());
-                            } catch (InterruptedException e) {
-                                return;
-                            }
-                        }
-
-//                        LogUtils.getInstance().remove(out);
-                        dialog.setVisible(false);
-                        dialog.dispose();
-
-                        if (getErrorMessage() != null) {
-                            JOptionPane.showMessageDialog(
-                                    centeringComp,
-                                    "Stopped with error:\n"
-                                    + getErrorMessage());
+                        } catch (InterruptedException e) {
+                            return;
                         }
                     }
+
+//                        LogUtils.getInstance().remove(out);
+                    dialog.setVisible(false);
+                    dialog.dispose();
+
+                    if (getErrorMessage() != null) {
+                        JOptionPane.showMessageDialog(
+                                centeringComp,
+                                "Stopped with error:\n"
+                                        + getErrorMessage());
+                    }
                 }
-            };
+            });
 
             watcher.start();
         }
@@ -319,7 +292,6 @@ public abstract class WatchedProcess {
      * check for this periodically and respond gracefully.
      */
     public boolean isCanceled() {
-        boolean isCanceled = false;
-        return isCanceled;
+        return false;
     }
 }

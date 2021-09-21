@@ -585,7 +585,7 @@ public final class TestBoss {
         boolean printCpdag = false;
 
 
-        Boss.Method[] methods = {GSP, Boss.Method.BOSS, Boss.Method.SP};
+        Boss.Method[] methods = {Boss.Method.GSP, Boss.Method.BOSS, Boss.Method.SP};
 
         for (Ret facts : allFacts) {
             count++;
@@ -1317,7 +1317,7 @@ public final class TestBoss {
 //
 //                System.out.println(scorer.getGraph(false));
 //
-                Boss2 boss = new Boss2(new IndTestDSep(facts.getFacts()));
+                Boss boss = new Boss(new IndTestDSep(facts.getFacts()));
 
                 List<Node> order = boss.bestOrder(p);
                 System.out.println(boss.getGraph(order, true));
