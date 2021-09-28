@@ -40,6 +40,7 @@ public class ZhangShenBoundScore implements Score {
 
     // The variables of the covariance matrix.
     private final List<Node> variables;
+    private DataSet dataSet;
     private double riskBound;
     // The running maximum score, for estimating the true minimal model.
     double[] maxScores;
@@ -85,6 +86,8 @@ public class ZhangShenBoundScore implements Score {
      */
     public ZhangShenBoundScore(DataSet dataSet) {
         this(new CovarianceMatrix(dataSet));
+
+        this.dataSet = dataSet;
 
 //        if (dataSet == null) {
 //            throw new NullPointerException();
@@ -166,12 +169,12 @@ public class ZhangShenBoundScore implements Score {
             for (int j = 0; j < variables.size(); j++) {
                 this.estMinParents[j] = 0;
                 this.maxScores[j] = localScore(j, new int[0]);
-                this.estVarRys[j] = SemBicScore.getVarRy(j, new int[0], data, covariances, calculateRowSubsets);
+                this.estVarRys[j] = LinearGaussianBicScore.getVarRy(j, new int[0], data, covariances, calculateRowSubsets);
             }
         }
 
         final int pi = parents.length;
-        double varRy = SemBicScore.getVarRy(i, parents, data, covariances, calculateRowSubsets);
+        double varRy = LinearGaussianBicScore.getVarRy(i, parents, data, covariances, calculateRowSubsets);
 
         int m0 = estMinParents[i];
 
@@ -286,6 +289,11 @@ public class ZhangShenBoundScore implements Score {
         double v = localScore(i, k);
 
         return Double.isNaN(v);
+    }
+
+    @Override
+    public DataModel getData() {
+        return dataSet;
     }
 
     @Override

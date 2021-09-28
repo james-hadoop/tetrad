@@ -606,6 +606,7 @@ public class LayoutUtils {
             }
         }
 
+        GraphUtils.circleLayout(graph, 300, 300, 150);
         GraphUtils.fruchtermanReingoldLayout(graph);
         layoutEditable.layoutByGraph(graph);
         layout = Layout.fruchtermReingold;

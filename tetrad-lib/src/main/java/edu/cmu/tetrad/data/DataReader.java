@@ -914,11 +914,14 @@ public final class DataReader implements IDataReader {
                         String token = st.nextToken();
                         token = token.trim();
 
-                        if (token.length() == 0) {
+                        if (token.isEmpty()) {
                             continue;
                         }
 
                         String name = substitutePeriodsForSpaces(token);
+
+                        addVariable(knowledge, name);
+
                         knowledge.addToTier(tier - 1, name);
 
                         this.logger.log("info", "Adding to tier " + (tier - 1) + " " + name);
@@ -957,6 +960,9 @@ public final class DataReader implements IDataReader {
                         String token = st.nextToken();
                         token = token.trim();
                         String name = substitutePeriodsForSpaces(token);
+
+                        addVariable(knowledge, name);
+
                         from.add(name);
                     }
 
@@ -968,6 +974,9 @@ public final class DataReader implements IDataReader {
                         String token = st.nextToken();
                         token = token.trim();
                         String name = substitutePeriodsForSpaces(token);
+
+                        addVariable(knowledge, name);
+
                         to.add(name);
                     }
 
@@ -1008,6 +1017,9 @@ public final class DataReader implements IDataReader {
                         String token = st.nextToken();
                         token = token.trim();
                         String name = substitutePeriodsForSpaces(token);
+
+                        addVariable(knowledge, name);
+
                         from.add(name);
                     }
 
@@ -1019,6 +1031,9 @@ public final class DataReader implements IDataReader {
                         String token = st.nextToken();
                         token = token.trim();
                         String name = substitutePeriodsForSpaces(token);
+
+                        addVariable(knowledge, name);
+
                         to.add(name);
                     }
 
@@ -1071,6 +1086,10 @@ public final class DataReader implements IDataReader {
                                 + ": Line contains fewer than two elements.");
                     }
 
+                    addVariable(knowledge, from);
+
+                    addVariable(knowledge, to);
+
                     knowledge.setForbidden(from, to);
                 }
             } else if ("requiredirect".equalsIgnoreCase(line.trim())) {
@@ -1118,6 +1137,9 @@ public final class DataReader implements IDataReader {
                                 + ": Line contains fewer than two elements.");
                     }
 
+                    addVariable(knowledge, from);
+                    addVariable(knowledge, to);
+
                     knowledge.removeForbidden(from, to);
                     knowledge.setRequired(from, to);
                 }
@@ -1128,6 +1150,12 @@ public final class DataReader implements IDataReader {
         }
 
         return knowledge;
+    }
+
+    private void addVariable(IKnowledge knowledge, String from) {
+        if (!knowledge.getVariables().contains(from)) {
+            knowledge.addVariable(from);
+        }
     }
 
     private static String substitutePeriodsForSpaces(String s) {

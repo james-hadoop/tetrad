@@ -21,6 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Node;
 
 import java.util.List;
@@ -56,5 +57,7 @@ public interface Score {
     default Score defaultScore() {
         return this;
     }
+
+    DataModel getData();
 }
 

@@ -1667,32 +1667,32 @@ public final class GraphUtils {
      * @return A new, converted, graph.
      */
     public static Graph replaceNodes(Graph originalGraph, List<Node> newVariables) {
-        Graph reference = new EdgeListGraph(newVariables);
-        Graph convertedGraph = new EdgeListGraph(newVariables);
+        Map<String, Node> newNodes = new HashMap<>();
 
-        if (originalGraph == null) {
-            return null;
+        for (Node node : newVariables) {
+            newNodes.put(node.getName(), node);
         }
 
-        for (Edge edge : originalGraph.getEdges()) {
-            if (Thread.currentThread().isInterrupted()) {
-                break;
-            }
+        Graph convertedGraph = new EdgeListGraph(newVariables);
 
-            Node node1 = reference.getNode(edge.getNode1().getName());
-            Node node2 = reference.getNode(edge.getNode2().getName());
+        for (Edge edge : originalGraph.getEdges()) {
+            Node node1 = newNodes.get(edge.getNode1().getName());
+            Node node2 = newNodes.get(edge.getNode2().getName());
 
             if (node1 == null) {
                 node1 = edge.getNode1();
-                if (!convertedGraph.containsNode(node1)) {
-                    convertedGraph.addNode(node1);
-                }
+
             }
+            if (!convertedGraph.containsNode(node1)) {
+                convertedGraph.addNode(node1);
+            }
+
             if (node2 == null) {
                 node2 = edge.getNode2();
-                if (!convertedGraph.containsNode(node2)) {
-                    convertedGraph.addNode(node2);
-                }
+            }
+
+            if (!convertedGraph.containsNode(node2)) {
+                convertedGraph.addNode(node2);
             }
 
             if (!convertedGraph.containsNode(node1)) {

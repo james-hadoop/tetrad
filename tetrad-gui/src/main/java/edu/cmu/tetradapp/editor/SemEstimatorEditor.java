@@ -86,7 +86,7 @@ public final class SemEstimatorEditor extends JPanel {
         panel = new JPanel();
         setLayout(new BorderLayout());
 
-        JComboBox optimizerCombo = new JComboBox();
+        JComboBox<String> optimizerCombo = new JComboBox<>();
         optimizerCombo.addItem("Regression");
         optimizerCombo.addItem("EM");
         optimizerCombo.addItem("Powell");
@@ -94,11 +94,11 @@ public final class SemEstimatorEditor extends JPanel {
         optimizerCombo.addItem("RICF");
 
         optimizerCombo.addActionListener((e) -> {
-            JComboBox box = (JComboBox) e.getSource();
+            JComboBox<String> box = (JComboBox) e.getSource();
             wrapper.setSemOptimizerType((String) box.getSelectedItem());
         });
 
-        scoreBox = new JComboBox();
+        scoreBox = new JComboBox<String>();
         restarts = new IntTextField(1, 2);
 
         scoreBox.addItem("Fgls");

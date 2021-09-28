@@ -211,6 +211,11 @@ public class ConditionalGaussianScore implements Score {
         NumberFormat nf = new DecimalFormat("0.00");
         return "Conditional Gaussian Score Penalty " + nf.format(penaltyDiscount);
     }
+
+    @Override
+    public DataModel getData() {
+        return null;
+    }
 }
 
 

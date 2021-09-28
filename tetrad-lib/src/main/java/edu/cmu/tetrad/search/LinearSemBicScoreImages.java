@@ -257,6 +257,11 @@ public class LinearSemBicScoreImages implements ISemBicScore, Score {
     public boolean determines(List<Node> z, Node y) {
         return false;
     }
+
+    @Override
+    public DataModel getData() {
+        return null;
+    }
 }
 
 

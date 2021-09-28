@@ -288,6 +288,11 @@ public class DegenerateGaussianScore implements Score {
         return "Degenerate Gaussian Score Penalty " + nf.format(penaltyDiscount);
     }
 
+    @Override
+    public DataModel getData() {
+        return null;
+    }
+
     // Subsample of the continuous mixedVariables conditioning on the given cols.
     private Matrix getCov(List<Integer> rows, int[] cols) {
         if (rows.isEmpty()) return new Matrix(0, 0);

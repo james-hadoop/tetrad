@@ -49,7 +49,7 @@ public final class HbsmsBeam implements Hbsms {
         this.cov = cov;
         this.scorer = new FmlBicScorer(cov);
 //        this.scorer = new FgesScorer(data);
-        gis = new K2(new SemBicScore(scorer.getDataSet()));
+        gis = new K2(new LinearGaussianBicScore(scorer.getDataSet()));
 //        gis.setKnowledge(knowledge);
         this.initialGraph = new EdgeListGraph(graph);
     }

@@ -219,7 +219,7 @@ public final class Fask implements GraphSearch {
             fas.setKnowledge(knowledge);
             G = fas.search();
         } else if (adjacencyMethod == AdjacencyMethod.FAS_STABLE_CONCURRENT) {
-            Boss boss = new Boss(new SemBicScore(dataSet));
+            Boss boss = new Boss(new LinearGaussianBicScore(dataSet));
             boss.setScoreType(TeyssierScorer.ScoreType.Edge);
             boss.setMethod(Boss.Method.BOSS);
             boss.setKnowledge(knowledge);

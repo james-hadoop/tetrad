@@ -159,7 +159,7 @@ public class DMSearch {
         Graph cpdag = new EdgeListGraph();
 
         if (useFges) {
-            Score score = new SemBicScore(cov);
+            Score score = new LinearGaussianBicScore(cov);
             Fges fges = new Fges(score);
 
             cpdag = recursiveFges(cpdag, knowledge, this.gesDiscount, getMinDepth(), data, inputString);
@@ -632,7 +632,7 @@ public class DMSearch {
 
         this.cov = new CovarianceMatrix(data);
 
-        SemBicScore score = new SemBicScore(cov);
+        LinearGaussianBicScore score = new LinearGaussianBicScore(cov);
         score.setPenaltyDiscount(penalty);
         Fges fges = new Fges(score);
         fges.setKnowledge(knowledge);

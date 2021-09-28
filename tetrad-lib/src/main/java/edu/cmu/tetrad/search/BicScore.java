@@ -284,6 +284,11 @@ public class BicScore implements LocalDiscreteScore, IBDeuScore {
     }
 
     @Override
+    public DataModel getData() {
+        return getDataSet();
+    }
+
+    @Override
     public String toString() {
         return "BIC Score";
     }

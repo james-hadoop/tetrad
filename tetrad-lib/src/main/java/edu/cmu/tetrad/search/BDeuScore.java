@@ -276,6 +276,11 @@ public class BDeuScore implements LocalDiscreteScore, IBDeuScore, Score {
     public boolean determines(List<Node> z, Node y) {
         return false;
     }
+
+    @Override
+    public DataModel getData() {
+        return getDataSet();
+    }
 }
 
 

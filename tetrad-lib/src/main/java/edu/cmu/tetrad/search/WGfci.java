@@ -20,7 +20,7 @@ public class WGfci implements GraphSearch {
     private GFci gfci;
     private double alpha;
     private IndependenceTest test;
-    private SemBicScore score;
+    private LinearGaussianBicScore score;
 
     public WGfci(DataSet data) {
         this.searchVariables = data.getVariables();
@@ -40,7 +40,7 @@ public class WGfci implements GraphSearch {
         System.out.println("Cov matrix made.");
 
         test = new IndTestFisherZ(covariances, 0.001);
-        this.score = new SemBicScore(covariances);
+        this.score = new LinearGaussianBicScore(covariances);
         score.setPenaltyDiscount(4);
         this.gfci = new GFci(test, score);
     }

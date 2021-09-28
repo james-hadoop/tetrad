@@ -278,6 +278,11 @@ public class BdeuScoreImages implements IBDeuScore {
     }
 
     @Override
+    public DataModel getData() {
+        return getDataSet();
+    }
+
+    @Override
     public String toString() {
         return "BDeu Score Images";
     }

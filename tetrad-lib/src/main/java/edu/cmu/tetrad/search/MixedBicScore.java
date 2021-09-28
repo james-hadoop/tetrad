@@ -211,6 +211,11 @@ public class MixedBicScore implements Score {
         return false;
     }
 
+    @Override
+    public DataModel getData() {
+        throw new IllegalArgumentException();
+    }
+
     public ICovarianceMatrix getCovariances() {
         return covariances;
     }

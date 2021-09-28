@@ -18,9 +18,9 @@ public class SemBicScorer {
         Score score;
 
         if (data instanceof ICovarianceMatrix) {
-            score = new SemBicScore((ICovarianceMatrix) dag);
+            score = new LinearGaussianBicScore((ICovarianceMatrix) dag);
         } else if (data instanceof DataSet) {
-            score = new SemBicScore((DataSet) data);
+            score = new LinearGaussianBicScore((DataSet) data);
         } else {
             throw new IllegalArgumentException("Expecting a covariance matrix of a dataset.");
         }

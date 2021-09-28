@@ -135,6 +135,11 @@ public class MVPScore implements Score {
         return false;
     }
 
+    @Override
+    public DataModel getData() {
+        return dataSet;
+    }
+
 }
 
 

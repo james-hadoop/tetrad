@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.*;
 
-import static edu.cmu.tetrad.search.SemBicScore.bStar;
+import static edu.cmu.tetrad.search.LinearGaussianBicScore.bStar;
 import static java.lang.Math.log;
 
 /**

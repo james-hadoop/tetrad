@@ -60,6 +60,8 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             Score score = this.score.getScore(dataSet, parameters);
             IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
 
+            test.setVerbose(parameters.getBoolean(Params.VERBOSE));
+
             Boss boss;
 
             if (parameters.getBoolean(Params.USE_SCORE) && !(score instanceof GraphScore)) {

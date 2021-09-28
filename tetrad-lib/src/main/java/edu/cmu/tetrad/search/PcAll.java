@@ -285,8 +285,7 @@ public final class PcAll implements GraphSearch {
 
         long startTime = System.currentTimeMillis();
 
-        List<Node> allNodes = new ArrayList<>(getIndependenceTest().getVariables());
-        Collections.shuffle(allNodes);
+        List<Node> allNodes = getIndependenceTest().getVariables();
 
         if (!allNodes.containsAll(nodes)) {
             throw new IllegalArgumentException("All of the given nodes must " +
@@ -299,6 +298,7 @@ public final class PcAll implements GraphSearch {
             if (concurrent == Concurrent.NO) {
                 fas = new Fas(initialGraph, getIndependenceTest());
                 ((Fas) fas).setHeuristic(heuristic);
+                ((Fas) fas).setStable(false);
             } else {
                 fas = new FasConcurrent(initialGraph, getIndependenceTest());
                 ((FasConcurrent) fas).setStable(false);
@@ -322,10 +322,15 @@ public final class PcAll implements GraphSearch {
         graph = fas.search();
         sepsets = fas.getSepsets();
 
+
         SearchGraphUtils.pcOrientbk(knowledge, graph, nodes);
+
+
 
         if (colliderDiscovery == ColliderDiscovery.FAS_SEPSETS) {
             orientCollidersUsingSepsets(this.sepsets, knowledge, graph, verbose, conflictRule);
+
+
         } else if (colliderDiscovery == ColliderDiscovery.MAX_P) {
             if (verbose) {
                 System.out.println("MaxP orientation...");
@@ -337,6 +342,8 @@ public final class PcAll implements GraphSearch {
             orientCollidersMaxP.setMaxPathLength(maxPathLength);
             orientCollidersMaxP.setDepth(depth);
             orientCollidersMaxP.orient(graph);
+
+
         } else if (colliderDiscovery == ColliderDiscovery.CONSERVATIVE) {
             if (verbose) {
                 System.out.println("CPC orientation...");
@@ -346,6 +353,9 @@ public final class PcAll implements GraphSearch {
         }
 
         graph = GraphUtils.replaceNodes(graph, nodes);
+
+//        if (true) return graph;
+
 
         MeekRules meekRules = new MeekRules();
         meekRules.setKnowledge(knowledge);

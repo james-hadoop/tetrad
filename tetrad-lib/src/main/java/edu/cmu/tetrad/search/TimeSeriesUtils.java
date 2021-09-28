@@ -164,9 +164,9 @@ public class TimeSeriesUtils {
         if (timeLags.isDiscrete()) {
             score = new BDeuScore(timeLags);
         } else if (timeLags.isContinuous()) {
-            SemBicScore semBicScore = new SemBicScore(new CovarianceMatrix(timeLags));
-            semBicScore.setPenaltyDiscount(2.0);
-            score = semBicScore;
+            LinearGaussianBicScore linearGaussianBicScore = new LinearGaussianBicScore(new CovarianceMatrix(timeLags));
+            linearGaussianBicScore.setPenaltyDiscount(2.0);
+            score = linearGaussianBicScore;
         } else {
             throw new IllegalArgumentException("Mixed data set");
         }

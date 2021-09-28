@@ -156,9 +156,9 @@ public final class BoxDataSet implements DataSet, TetradSerializable {
         this.dataBox = dataBox;
         this.variables = new ArrayList<>(variables);
 
-        if (dataBox.numCols() != variables.size()) {
-            throw new IllegalArgumentException("Number of columns must match the number of variables.");
-        }
+//        if (dataBox.numCols() != variables.size()) {
+//            throw new IllegalArgumentException("Number of columns must match the number of variables.");
+//        }
     }
 
     /**

@@ -24,8 +24,6 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.FmlBicScorer;
-import edu.cmu.tetrad.sem.Scorer;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.PermutationGenerator;
 
@@ -152,7 +150,7 @@ public class Lingam {
             }
         }
 
-        final SemBicScore score = new SemBicScore(new CovarianceMatrix(data));
+        final LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix(data));
         score.setPenaltyDiscount(penaltyDiscount);
 
         if (true) {

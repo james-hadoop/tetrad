@@ -78,7 +78,7 @@ public final class FasLofs implements GraphSearch {
     public Graph search() {
         long start = System.currentTimeMillis();
 
-        SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
+        LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix(dataSet));
         score.setPenaltyDiscount(penaltyDiscount);
         IndependenceTest test = new IndTestScore(score, dataSet);
 

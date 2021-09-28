@@ -128,7 +128,7 @@ public class ImagesRunner extends AbstractAlgorithmRunner implements IFgesRunner
             DataSet dataSet = (DataSet) model;
 
             if (dataSet.isContinuous()) {
-                SemBicScore gesScore = new SemBicScore(new CovarianceMatrix((DataSet) model));
+                LinearGaussianBicScore gesScore = new LinearGaussianBicScore(new CovarianceMatrix((DataSet) model));
                 gesScore.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
                 fges = new Fges(gesScore);
             } else if (dataSet.isDiscrete()) {
@@ -142,7 +142,7 @@ public class ImagesRunner extends AbstractAlgorithmRunner implements IFgesRunner
                 throw new IllegalStateException("Data set must either be continuous or discrete.");
             }
         } else if (model instanceof ICovarianceMatrix) {
-            SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
+            LinearGaussianBicScore gesScore = new LinearGaussianBicScore((ICovarianceMatrix) model);
             gesScore.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
             fges = new Fges(gesScore);
         } else if (model instanceof DataModelList) {

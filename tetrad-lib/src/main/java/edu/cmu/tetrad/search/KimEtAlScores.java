@@ -152,7 +152,7 @@ public class KimEtAlScores implements Score {
         pn = min(pn, sn);
         double n = N;
 
-        double varry = SemBicScore.getVarRy(i, parents, data, covariances, calculateRowSubsets);
+        double varry = LinearGaussianBicScore.getVarRy(i, parents, data, covariances, calculateRowSubsets);
 
         double lambda;
 
@@ -289,6 +289,11 @@ public class KimEtAlScores implements Score {
         double v = localScore(i, k);
 
         return Double.isNaN(v);
+    }
+
+    @Override
+    public DataModel getData() {
+        return dataSet;
     }
 
     @Override

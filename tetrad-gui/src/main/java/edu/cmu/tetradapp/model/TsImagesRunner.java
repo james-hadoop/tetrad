@@ -126,7 +126,7 @@ public class TsImagesRunner extends AbstractAlgorithmRunner implements IFgesRunn
             DataSet dataSet = (DataSet) model;
 
             if (dataSet.isContinuous()) {
-                SemBicScore gesScore = new SemBicScore(new CovarianceMatrix((DataSet) model));
+                LinearGaussianBicScore gesScore = new LinearGaussianBicScore(new CovarianceMatrix((DataSet) model));
                 gesScore.setPenaltyDiscount(penaltyDiscount);
                 IndependenceTest test = new IndTestScore(gesScore);
                 fges = new TsGFci(test, gesScore);
@@ -142,7 +142,7 @@ public class TsImagesRunner extends AbstractAlgorithmRunner implements IFgesRunn
                 throw new IllegalStateException("Data set must either be continuous or discrete.");
             }
         } else if (model instanceof ICovarianceMatrix) {
-            SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
+            LinearGaussianBicScore gesScore = new LinearGaussianBicScore((ICovarianceMatrix) model);
             gesScore.setPenaltyDiscount(penaltyDiscount);
             IndependenceTest test = new IndTestScore(gesScore);
             fges = new TsGFci(test, gesScore);

@@ -22,8 +22,8 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.CovarianceMatrix;
+import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Matrix;
@@ -389,6 +389,11 @@ public class FmlBicScore implements Score {
         double v = localScore(i, k);
 
         return Double.isNaN(v);
+    }
+
+    @Override
+    public DataModel getData() {
+        return dataSet;
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {

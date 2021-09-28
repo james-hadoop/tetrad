@@ -24,7 +24,6 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.CombinationGenerator;
-import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import org.apache.commons.collections4.map.MultiKeyMap;
 
@@ -2668,7 +2667,7 @@ public final class SearchGraphUtils {
             Score score;
 
             if (dataModel.isContinuous()) {
-                score = new SemBicScore(new CovarianceMatrix(dataSet));
+                score = new LinearGaussianBicScore(new CovarianceMatrix(dataSet));
             } else if (dataSet.isDiscrete()) {
                 score = new BDeuScore(dataSet);
             } else {
@@ -2682,7 +2681,7 @@ public final class SearchGraphUtils {
             return ges.search();
         } else if (dataModel instanceof CovarianceMatrix) {
             ICovarianceMatrix cov = (CovarianceMatrix) dataModel;
-            Score score = new SemBicScore(cov);
+            Score score = new LinearGaussianBicScore(cov);
 
             Fges ges = new Fges(score);
 

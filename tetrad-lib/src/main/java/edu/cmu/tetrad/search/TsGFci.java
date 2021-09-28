@@ -277,12 +277,12 @@ public final class TsGFci implements GraphSearch {
             score = new GraphScore(dag);
         } else if (cov != null) {
             covarianceMatrix = cov;
-            SemBicScore score0 = new SemBicScore(cov);
+            LinearGaussianBicScore score0 = new LinearGaussianBicScore(cov);
             score0.setPenaltyDiscount(penaltyDiscount);
             score = score0;
         } else if (dataSet.isContinuous()) {
             covarianceMatrix = new CovarianceMatrix(dataSet);
-            SemBicScore score0 = new SemBicScore(covarianceMatrix);
+            LinearGaussianBicScore score0 = new LinearGaussianBicScore(covarianceMatrix);
             score0.setPenaltyDiscount(penaltyDiscount);
             score = score0;
         } else if (dataSet.isDiscrete()) {

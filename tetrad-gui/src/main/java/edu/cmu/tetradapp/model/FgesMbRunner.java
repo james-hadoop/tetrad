@@ -169,7 +169,7 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
             DataSet dataSet = (DataSet) model;
 
             if (dataSet.isContinuous()) {
-                SemBicScore score = new SemBicScore(new CovarianceMatrix((DataSet) model));
+                LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix((DataSet) model));
                 target = score.getVariable(targetName);
                 score.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
                 fges = new FgesMb(score);
@@ -185,7 +185,7 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
                 throw new IllegalStateException("Data set must either be continuous or discrete.");
             }
         } else if (model instanceof ICovarianceMatrix) {
-            SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
+            LinearGaussianBicScore gesScore = new LinearGaussianBicScore((ICovarianceMatrix) model);
             gesScore.setPenaltyDiscount(params.getDouble("alpha", 0.001));
             gesScore.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
             target = gesScore.getVariable(targetName);

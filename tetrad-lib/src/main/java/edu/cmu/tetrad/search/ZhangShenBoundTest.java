@@ -345,6 +345,11 @@ public class ZhangShenBoundTest implements Score {
     }
 
     @Override
+    public DataModel getData() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Score defaultScore() {
         return new ZhangShenBoundTest(covariances);
     }

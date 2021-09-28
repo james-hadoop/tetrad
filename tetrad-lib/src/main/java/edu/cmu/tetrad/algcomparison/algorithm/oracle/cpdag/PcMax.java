@@ -52,7 +52,8 @@ public class PcMax implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
             edu.cmu.tetrad.search.PcAll search = new edu.cmu.tetrad.search.PcAll(test.getTest(dataSet, parameters, trueGraph), initialGraph);
             search.setDepth(parameters.getInt(Params.DEPTH));
             search.setKnowledge(knowledge);
-            search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.STABLE);
+            search.setFasType(parameters.getBoolean(Params.STABLE_FAS) ?
+                    PcAll.FasType.STABLE : PcAll.FasType.REGULAR);
             search.setConcurrent(edu.cmu.tetrad.search.PcAll.Concurrent.NO);
             search.setColliderDiscovery(PcAll.ColliderDiscovery.MAX_P);
             search.setConflictRule(edu.cmu.tetrad.search.PcAll.ConflictRule.PRIORITY);

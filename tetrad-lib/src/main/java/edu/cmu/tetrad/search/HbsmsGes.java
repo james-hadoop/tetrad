@@ -54,7 +54,7 @@ public final class HbsmsGes implements Hbsms {
     public Graph search() {
         Score score1 = scoreGraph(getGraph(), scorer);
 
-        Fges fges = new Fges(new SemBicScore(data));
+        Fges fges = new Fges(new LinearGaussianBicScore(data));
         fges.setInitialGraph(graph);
         fges.setKnowledge(knowledge);
 

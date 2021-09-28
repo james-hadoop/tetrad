@@ -354,6 +354,11 @@ public class DirichletScore implements LocalDiscreteScore, Score {
     }
 
     @Override
+    public DataModel getData() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public String toString() {
         NumberFormat nf = new DecimalFormat("0.00");
         return "Dirichlet Score StructP " + nf.format(structurePrior) + " SampP " + nf.format(samplePrior);

@@ -158,7 +158,7 @@ public class MbfsRunner extends AbstractAlgorithmRunner implements
 
 		DataSet dataSet = (DataSet) getDataModelList().get(0);
 
-        SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
+        LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix(dataSet));
 		score.setPenaltyDiscount(getParams().getDouble("alpha", 0.001));
 		FgesMb search = new FgesMb(score);
         search.setFaithfulnessAssumed(true);
