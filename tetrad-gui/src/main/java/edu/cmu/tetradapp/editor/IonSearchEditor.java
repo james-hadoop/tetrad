@@ -26,7 +26,6 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.ImpliedOrientation;
 import edu.cmu.tetrad.search.IndTestType;
 import edu.cmu.tetrad.search.CpdagToDag;
 import edu.cmu.tetrad.search.SearchGraphUtils;
@@ -94,7 +93,7 @@ public class IonSearchEditor extends AbstractSearchEditor
         GraphWorkbench resultWorkbench = getWorkbench();
         Graph graph = resultWorkbench.getGraph();
         IKnowledge knowledge = (IKnowledge) getAlgorithmRunner().getParams().get("knowledge", new Knowledge2());
-        SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
+        SearchGraphUtils.arrangeByKnowledgeTiers(graph);
 //        resultWorkbench.setGraph(graph);
     }
 
@@ -597,8 +596,8 @@ public class IonSearchEditor extends AbstractSearchEditor
 
     protected void doDefaultArrangement(Graph resultGraph) {
         if (getKnowledge() != null && getKnowledge().isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(resultGraph,
-                    getKnowledge());
+            SearchGraphUtils.arrangeByKnowledgeTiers(resultGraph
+            );
         } else {
             GraphUtils.arrangeBySourceGraph(resultGraph,
                     getLatestWorkbenchGraph());

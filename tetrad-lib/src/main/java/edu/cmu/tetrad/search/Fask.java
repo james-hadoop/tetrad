@@ -21,6 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.algcomparison.statistic.BicEst;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IKnowledge;
@@ -390,6 +391,9 @@ public final class Fask implements GraphSearch {
         this.elapsed = stop - start;
 
         this.graph = graph;
+
+        double bic = new BicEst().getValue(null, graph, dataSet);
+        graph.addAttribute("BIC", bic);
 
         return graph;
     }

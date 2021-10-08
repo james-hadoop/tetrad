@@ -168,7 +168,7 @@ public class MbfsRunner extends AbstractAlgorithmRunner implements
             GraphUtils.arrangeBySourceGraph(searchGraph, getSourceGraph());
         }
         else if (knowledge.isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(searchGraph, knowledge);
+            SearchGraphUtils.arrangeByKnowledgeTiers(searchGraph);
         }
         else {
             GraphUtils.circleLayout(searchGraph, 200, 200, 150);

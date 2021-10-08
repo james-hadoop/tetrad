@@ -30,6 +30,7 @@ import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
 import java.io.PrintStream;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Extends Erin Korber's implementation of the Fast Causal Inference algorithm
@@ -538,7 +539,7 @@ public final class FciOrient {
      * The body of a DDP consists of colliders that are parents of c.
      */
     public void ddpOrient(Node a, Node b, Node c, Graph graph) {
-        Queue<Node> Q = new ArrayDeque<>();
+        Queue<Node> Q = new ArrayDeque<>(20);
         Set<Node> V = new HashSet<>();
 
         Node e = null;
@@ -622,6 +623,7 @@ public final class FciOrient {
                 graph.setEndpoint(a, b, Endpoint.ARROW);
                 graph.setEndpoint(c, b, Endpoint.ARROW);
             }
+
             changeFlag = true;
 
             return true;

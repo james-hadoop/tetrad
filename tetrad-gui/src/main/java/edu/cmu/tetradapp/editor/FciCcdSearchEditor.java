@@ -25,7 +25,6 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.ImpliedOrientation;
 import edu.cmu.tetrad.search.IndTestType;
 import edu.cmu.tetrad.search.CpdagToDag;
 import edu.cmu.tetrad.search.SearchGraphUtils;
@@ -115,7 +114,7 @@ public class FciCcdSearchEditor extends AbstractSearchEditor
         GraphWorkbench resultWorkbench = getWorkbench();
         Graph graph = resultWorkbench.getGraph();
         IKnowledge knowledge = (IKnowledge) getAlgorithmRunner().getParams().get("knowledge", new Knowledge2());
-        SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
+        SearchGraphUtils.arrangeByKnowledgeTiers(graph);
     }
 
     public Rectangle getVisibleRect() {
@@ -436,8 +435,8 @@ public class FciCcdSearchEditor extends AbstractSearchEditor
             GraphUtils.arrangeBySourceGraph(resultGraph,
                     getLatestWorkbenchGraph());
         } else if (getKnowledge().isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(resultGraph,
-                    getKnowledge());
+            SearchGraphUtils.arrangeByKnowledgeTiers(resultGraph
+            );
 //            alreadyLaidOut = true;
         } else {
             GraphUtils.circleLayout(resultGraph, 200, 200, 150);

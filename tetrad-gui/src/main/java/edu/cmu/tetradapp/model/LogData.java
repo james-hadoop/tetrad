@@ -50,19 +50,27 @@ public class LogData extends DataWrapper {
 
             DataSet dataSet = (DataSet) model;
 
-            if (!(dataSet.isContinuous())) {
-                throw new IllegalArgumentException("Not a continuous data set: " + dataSet.getName());
-            }
-
             double a = params.getDouble("a");
             boolean isUnlog = params.getBoolean("unlog");
             int base = params.getInt("base");
 
-            Matrix tetradMatrix = DataUtils.logData(dataSet.getDoubleData(), a, isUnlog, base);
+            Matrix doubleData = dataSet.getDoubleData();
+
+            Matrix tetradMatrix = DataUtils.logData(doubleData, a, isUnlog, base);
             List<Node> list = dataSet.getVariables();
 
             DataSet dataSet2 = new BoxDataSet(new DoubleDataBox(tetradMatrix.toArray()), list);
             outList.add(dataSet2);
+
+            for (int j = 0; j < dataSet.getNumColumns(); j++) {
+                Node node = dataSet.getVariable(j);
+
+                if (node instanceof DiscreteVariable) {
+                    for (int i = 0; i < dataSet.getNumRows(); i++) {
+                        dataSet2.setInt(i, j, dataSet.getInt(i, j));
+                    }
+                }
+            }
         }
 
         setDataModel(outList);

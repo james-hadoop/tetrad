@@ -206,10 +206,16 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
             transferVarNamesToParams(names);
         }
 
-        if (knowledgeBoxModel != null) {
-            if (knowledgeBoxModel.getKnowledge() != null && !knowledgeBoxModel.getKnowledge().isEmpty()) {
+        if (dataWrapper != null && dataWrapper.getKnowledge() != null && !dataWrapper.getKnowledge().isEmpty()) {
+            knowledge = dataWrapper.getKnowledge();
+        } else if (knowledgeBoxModel != null) {
+            if (knowledgeBoxModel.getKnowledge() != null) {
                 knowledge = knowledgeBoxModel.getKnowledge();
             }
+        }
+
+        if (knowledge == null) {
+            knowledge = new Knowledge2();
         }
 
         if (facts != null) {
@@ -318,7 +324,7 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
 
                         DataType algDataType = algo.getDataType();
 
-                        if (data.isContinuous() && (algDataType == DataType.Continuous || algDataType   == DataType.Mixed)) {
+                        if (data.isContinuous() && (algDataType == DataType.Continuous || algDataType == DataType.Mixed)) {
                             graphList.add(algo.search(data, parameters, sourceGraph));
                         } else if (data.isDiscrete() && (algDataType == DataType.Discrete || algDataType == DataType.Mixed)) {
                             graphList.add(algo.search(data, parameters, sourceGraph));
@@ -335,7 +341,7 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
         if (getKnowledge() != null && getKnowledge().getVariablesNotInTiers().size()
                 < getKnowledge().getVariables().size()) {
             for (Graph graph : graphList) {
-                SearchGraphUtils.arrangeByKnowledgeTiers(graph, getKnowledge());
+                SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
             }
         } else {
             for (Graph graph : graphList) {

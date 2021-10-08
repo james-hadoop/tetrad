@@ -176,7 +176,7 @@ public class PcGesSearchEditor extends AbstractSearchEditor
         GraphWorkbench resultWorkbench = getWorkbench();
         Graph graph = resultWorkbench.getGraph();
         IKnowledge knowledge = (IKnowledge) getAlgorithmRunner().getParams().get("knowledge", new Knowledge2());
-        SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
+        SearchGraphUtils.arrangeByKnowledgeTiers(graph);
     }
 
     public Rectangle getVisibleRect() {
@@ -797,8 +797,8 @@ public class PcGesSearchEditor extends AbstractSearchEditor
             GraphUtils.arrangeBySourceGraph(resultGraph,
                     getLatestWorkbenchGraph());
         } else if (getKnowledge().isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(resultGraph,
-                    getKnowledge());
+            SearchGraphUtils.arrangeByKnowledgeTiers(resultGraph
+            );
         } else {
             GraphUtils.circleLayout(resultGraph, 200, 200, 150);
         }

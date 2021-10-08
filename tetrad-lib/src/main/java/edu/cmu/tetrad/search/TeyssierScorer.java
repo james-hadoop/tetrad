@@ -264,7 +264,7 @@ public class TeyssierScorer {
 
     public Graph getGraph(boolean cpdag) {
         List<Node> order = getOrder();
-        Graph G1 = new EdgeListGraph(order);
+        Graph G1 = new EdgeListGraph(variables);
 
         for (int p = 0; p < order.size(); p++) {
             for (Node z : getParents(p)) {
@@ -506,6 +506,17 @@ public class TeyssierScorer {
 
     public void setParentCalculation(ParentCalculation parentCalculation) {
         this.parentCalculation = parentCalculation;
+    }
+
+    public double scoreAppended(Node v) {
+        order.addLast(v);
+
+        orderHash.put(v, order.indexOf(v));
+
+        Pair pair = getParentsInternal(indexOf(v));
+        order.removeLast();
+        orderHash.remove(v);
+        return pair.score;
     }
 
     public enum ScoreType {Edge, SCORE}

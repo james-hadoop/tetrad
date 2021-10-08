@@ -526,7 +526,7 @@ public class LayoutUtils {
             }
 
             IKnowledge knowledge = layoutEditable.getKnowledge();
-            SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
+            SearchGraphUtils.arrangeByKnowledgeTiers(graph);
             layoutEditable.layoutByGraph(graph);
         } catch (Exception e1) {
             JOptionPane.showMessageDialog(JOptionUtils.centeringComp(),

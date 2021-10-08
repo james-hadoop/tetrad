@@ -1,5 +1,7 @@
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.algcomparison.statistic.BicEst;
+import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
@@ -35,6 +37,7 @@ public class Boss {
     private int gspDepth = -1;
     private TeyssierScorer.ScoreType scoreType = TeyssierScorer.ScoreType.Edge;
     private IKnowledge knowledge = new Knowledge2();
+    private boolean firstRunUseDataOrder = false;
 
     public Boss(Score score) {
         this.score = score;
@@ -71,8 +74,15 @@ public class Boss {
         scorer.score(order);
 
         for (int r = 0; r < numStarts; r++) {
-            if (r > 0)
+            if (firstRunUseDataOrder) {
+                if (r > 0)
+                    scorer.shuffleVariables();
+            } else {
                 scorer.shuffleVariables();
+            }
+
+//            if (r > 0)
+            scorer.shuffleVariables();
 
             List<Node> _order = scorer.getOrder();
             makeValidKnowledgeOrder(_order);
@@ -144,7 +154,7 @@ public class Boss {
     public List<Node> boss(TeyssierScorer scorer) {
 
         // Take each variable in turn and try moving it to each position to the left (i.e.,
-        // try promoting it in the causal order). Score each causal order by building
+        // try promoting it in the causal from). Score each causal from by building
         // a DAG using something like the K2 method. (We actually use Grow-Shrink, a
         // Markov blanket algorithm, to find putative parents for each node.) Finally,
         // place the node in whichever position yielded the highest score. Do this
@@ -324,17 +334,29 @@ public class Boss {
     @NotNull
     public Graph getGraph(List<Node> order, boolean cpdag) {
         TeyssierScorer scorer;
+        DataModel dataModel;
 
         if (score != null) {
             scorer = new TeyssierScorer(score);
+            dataModel = score.getData();
         } else {
             scorer = new TeyssierScorer(test);
+            dataModel = test.getData();
         }
 
         scorer.setScoreType(scoreType);
 
         scorer.score(order);
-        return scorer.getGraph(cpdag);
+
+        Graph graph = scorer.getGraph(true);
+        Graph graph1 = scorer.getGraph(cpdag);
+
+        if (dataModel != null) {
+            double bic = new BicEst(score).getValue(null, graph, dataModel);
+            graph1.addAttribute("BIC", bic);
+        }
+
+        return graph1;
     }
 
     public void setCacheScores(boolean cachingScores) {
@@ -379,6 +401,10 @@ public class Boss {
 
     public void setGspDepth(int gspDepth) {
         this.gspDepth = gspDepth;
+    }
+
+    public void setFirstRunUseDataOrder(boolean firstRunUseDataOrder) {
+        this.firstRunUseDataOrder = firstRunUseDataOrder;
     }
 
     public enum Method {BOSS, SP, GSP}

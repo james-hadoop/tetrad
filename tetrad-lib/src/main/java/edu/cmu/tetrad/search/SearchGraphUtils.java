@@ -32,6 +32,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
+import static java.lang.Math.max;
+
 /**
  * Graph utilities for search algorithm. Lots of orientation method, for
  * instance.
@@ -188,7 +190,7 @@ public final class SearchGraphUtils {
         adj.remove(c);
         adj.remove(a);
 
-        for (int d = 0; d <= Math.min((depth == -1 ? 1000 : depth), Math.max(adj.size(), adj.size())); d++) {
+        for (int d = 0; d <= Math.min((depth == -1 ? 1000 : depth), max(adj.size(), adj.size())); d++) {
             if (d <= adj.size()) {
                 ChoiceGenerator gen = new ChoiceGenerator(adj.size(), d);
                 int[] choice;
@@ -1645,7 +1647,7 @@ public final class SearchGraphUtils {
 
         List<Node> nodes = graph.getNodes();
         int ySpace = 500 / knowledge.getNumTiers();
-        ySpace = ySpace < 50 ? 50 : ySpace;
+        ySpace = Math.max(ySpace, 50);
 
         List<String> notInTier = knowledge.getVariablesNotInTiers();
         Collections.sort(notInTier);
@@ -1685,13 +1687,74 @@ public final class SearchGraphUtils {
         }
     }
 
+    public static void arrangeByKnowledgeTiers(Graph graph) {
+        int maxLag = 0;
+
+        for (Node node : graph.getNodes()) {
+            String name = node.getName();
+
+            String[] tokens1 = name.split(":");
+
+            int index = tokens1.length > 1 ? Integer.parseInt(tokens1[tokens1.length - 1]) : 0;
+
+            if (index >= maxLag) {
+                maxLag = index;
+            }
+        }
+
+//        if (maxLag == 0) {
+//            GraphUtils.circleLayout(graph, 225, 200, 150);
+//            return;
+//        }
+
+        List<List<Node>> tiers = new ArrayList<>();
+
+        for (int i = 0; i <= maxLag; i++) {
+            tiers.add(new ArrayList<>());
+        }
+
+        for (Node node : graph.getNodes()) {
+            String name = node.getName();
+
+            String[] tokens = name.split(":");
+
+            int index = tokens.length > 1 ? Integer.parseInt(tokens[tokens.length - 1]) : 0;
+
+            if (!tiers.get(index).contains(node)) {
+                tiers.get(index).add(node);
+            }
+        }
+
+        for (int i = 0; i <= maxLag; i++) {
+            Collections.sort(tiers.get(i));
+        }
+
+        int ySpace = maxLag == 0 ? 150 : 150 / maxLag;
+        int y = 60;
+
+        for (int i = maxLag; i >= 0; i--) {
+            List<Node> tier = tiers.get(i);
+            int x = 60;
+
+            for (Node node : tier) {
+                System.out.println(node + " " + x + " " + y);
+                node.setCenterX(x);
+                node.setCenterY(y);
+                x += 90;
+            }
+
+            y += ySpace;
+
+        }
+    }
+
     /**
      * Double checks a sepset map against a cpdag to make sure that X is
      * adjacent to Y in the cpdag iff {X, Y} is not in the domain of the
      * sepset map.
      *
-     * @param sepset  a sepset map, over variables v.
-     * @param cpdag a cpdag over variables W, v subset of W.
+     * @param sepset a sepset map, over variables v.
+     * @param cpdag  a cpdag over variables W, v subset of W.
      * @return true if the sepset map is consistent with the cpdag.
      */
     public static boolean verifySepsetIntegrity(SepsetMap sepset, Graph cpdag) {
@@ -2152,8 +2215,8 @@ public final class SearchGraphUtils {
     public static Graph chooseDagInCpdag(Graph graph) {
         Graph newGraph = new EdgeListGraph(graph);
 
-        for(Edge edge : newGraph.getEdges()){
-            if(Edges.isBidirectedEdge(edge)){
+        for (Edge edge : newGraph.getEdges()) {
+            if (Edges.isBidirectedEdge(edge)) {
                 newGraph.removeEdge(edge);
             }
         }
@@ -2301,6 +2364,7 @@ public final class SearchGraphUtils {
         List<Edge> edgesRemoved = new ArrayList<>();
         List<Edge> edgesReorientedFrom = new ArrayList<>();
         List<Edge> edgesReorientedTo = new ArrayList<>();
+        List<Edge> correctAdjacency = new ArrayList<>();
 
         for (Edge edge : trueGraph.getEdges()) {
             Node n1 = edge.getNode1();
@@ -2336,13 +2400,19 @@ public final class SearchGraphUtils {
                 Endpoint e2a = _edge.getProximalEndpoint(node1);
                 Endpoint e2b = _edge.getProximalEndpoint(node2);
 
-                if (!((e1a != Endpoint.CIRCLE  && e2a != Endpoint.CIRCLE && e1a != e2a)
+                if (!((e1a != Endpoint.CIRCLE && e2a != Endpoint.CIRCLE && e1a != e2a)
                         || (e1b != Endpoint.CIRCLE && e2b != Endpoint.CIRCLE && e1b != e2b))) {
                     continue;
                 }
 
                 edgesReorientedFrom.add(edge);
                 edgesReorientedTo.add(_edge);
+            }
+        }
+
+        for (Edge edge : trueGraph.getEdges()) {
+            if (graph.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+                correctAdjacency.add(edge);
             }
         }
 
@@ -2355,6 +2425,7 @@ public final class SearchGraphUtils {
                 adjPrec, adjRec, arrowptPrec, arrowptRec, shd,
                 twoCycleCorrect, twoCycleFn, twoCycleFp,
                 edgesAdded, edgesRemoved, edgesReorientedFrom, edgesReorientedTo,
+                correctAdjacency,
                 counts);
     }
 
@@ -2376,6 +2447,7 @@ public final class SearchGraphUtils {
         List<Edge> edgesRemoved = new ArrayList<>();
         List<Edge> edgesReorientedFrom = new ArrayList<>();
         List<Edge> edgesReorientedTo = new ArrayList<>();
+        List<Edge> correctAdjacency = new ArrayList<>();
 
         for (Edge edge : trueGraph.getEdges()) {
             Node n1 = edge.getNode1();
@@ -2478,13 +2550,19 @@ public final class SearchGraphUtils {
                 Endpoint e2a = _edge.getProximalEndpoint(node1);
                 Endpoint e2b = _edge.getProximalEndpoint(node2);
 
-                if (!((e1a != Endpoint.CIRCLE  && e2a != Endpoint.CIRCLE && e1a != e2a)
+                if (!((e1a != Endpoint.CIRCLE && e2a != Endpoint.CIRCLE && e1a != e2a)
                         || (e1b != Endpoint.CIRCLE && e2b != Endpoint.CIRCLE && e1b != e2b))) {
                     continue;
                 }
 
                 edgesReorientedFrom.add(edge);
                 edgesReorientedTo.add(_edge);
+            }
+        }
+
+        for (Edge edge : trueGraph.getEdges()) {
+            if (graph.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+                correctAdjacency.add(edge);
             }
         }
 
@@ -2505,6 +2583,7 @@ public final class SearchGraphUtils {
                 shd,
                 twoCycleErrors.twoCycCor, twoCycleErrors.twoCycFn, twoCycleErrors.twoCycFp,
                 edgesAdded, edgesRemoved, edgesReorientedFrom, edgesReorientedTo,
+                correctAdjacency,
                 counts);
     }
 
@@ -2599,6 +2678,19 @@ public final class SearchGraphUtils {
             }
         }
 
+        builder.append("\n\n"
+                + "Edges in true correctly adjacent in estimated");
+
+        List<Edge> correctAdjacies = comparison.getCorrectAdjacencies();
+
+        if (edgesReorientedFrom.isEmpty()) {
+            builder.append("\n  --NONE--");
+        } else {
+            for (int i = 0; i < correctAdjacies.size(); i++) {
+                Edge adj = correctAdjacies.get(i);
+                builder.append("\n").append(i + 1).append(". ").append(adj);
+            }
+        }
         return builder.toString();
     }
 

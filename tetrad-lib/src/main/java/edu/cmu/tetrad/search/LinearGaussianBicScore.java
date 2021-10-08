@@ -49,7 +49,7 @@ public class LinearGaussianBicScore implements Score {
     private boolean calculateRowSubsets = false;
 
     // The dataset.
-    private DataSet dataSet;
+    private DataModel dataModel;
 
     // .. as matrix
     private Matrix data;
@@ -103,7 +103,7 @@ public class LinearGaussianBicScore implements Score {
             throw new NullPointerException();
         }
 
-        this.dataSet = dataSet;
+        this.dataModel = dataSet;
         this.data = dataSet.getDoubleData();
 
         if (!dataSet.existsMissingValue()) {
@@ -309,8 +309,8 @@ public class LinearGaussianBicScore implements Score {
         return bump > 0;
     }
 
-    public DataSet getDataSet() {
-        return dataSet;
+    public DataModel getDataModel() {
+        return dataModel;
     }
 
     public void setPenaltyDiscount(double penaltyDiscount) {
@@ -375,7 +375,7 @@ public class LinearGaussianBicScore implements Score {
 
     @Override
     public DataModel getData() {
-        return dataSet;
+        return dataModel;
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {
@@ -422,11 +422,13 @@ public class LinearGaussianBicScore implements Score {
     }
 
     private List<Integer> getRows(int i, int[] parents) {
-        if (dataSet == null) {
+        if (dataModel == null) {
             return null;
         }
 
         List<Integer> rows = new ArrayList<>();
+
+        DataSet dataSet = (DataSet) dataModel;
 
         K:
         for (int k = 0; k < dataSet.getNumRows(); k++) {
@@ -459,9 +461,11 @@ public class LinearGaussianBicScore implements Score {
     }
 
     private Matrix getCov(List<Integer> rows, int[] cols) {
-        if (dataSet == null) {
+        if (dataModel == null) {
             return matrix.getSelection(cols, cols);
         }
+
+        DataSet dataSet = (DataSet) dataModel;
 
         Matrix cov = new Matrix(cols.length, cols.length);
 

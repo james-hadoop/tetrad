@@ -11,8 +11,10 @@ import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.Fges;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -33,7 +35,6 @@ import java.util.List;
 )
 @Bootstrapping
 public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper {
-
     static final long serialVersionUID = 23L;
     private ScoreWrapper score = null;
     private IKnowledge knowledge = new Knowledge2();
@@ -58,6 +59,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
+
             IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
 
             test.setVerbose(parameters.getBoolean(Params.VERBOSE));
@@ -77,7 +79,7 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
             boss.setKnowledge(getKnowledge());
 
-            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE) ) {
+            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 boss.setScoreType(TeyssierScorer.ScoreType.Edge);
             } else {
                 boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
@@ -171,4 +173,5 @@ public class BOSS implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     public IndependenceWrapper getIndependenceWrapper() {
         return test;
     }
+
 }

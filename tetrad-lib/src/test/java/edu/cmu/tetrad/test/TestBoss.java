@@ -1320,7 +1320,7 @@ public final class TestBoss {
                 Boss boss = new Boss(new IndTestDSep(facts.getFacts()));
 
                 List<Node> order = boss.bestOrder(p);
-                System.out.println(boss.getGraph(order, true));
+                System.out.println(boss.getGraph(order, false));
 
             }
 

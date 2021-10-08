@@ -99,7 +99,7 @@ public class ExampleCompareSimulationDiscrete {
 
         algorithms.add(new PcAll(new ChiSquare()));
         algorithms.add(new PcAll(new GSquare()));
-//
+
         algorithms.add(new Fges(new BdeuScore()));
         algorithms.add(new Fges(new DiscreteBicScore()));
         algorithms.add(new Fges(new ConditionalGaussianBicScore()));

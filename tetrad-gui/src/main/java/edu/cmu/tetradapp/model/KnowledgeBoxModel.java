@@ -56,10 +56,6 @@ public class KnowledgeBoxModel implements SessionModel, ParamsResettable, Knowle
     private IKnowledge knowledge = new Knowledge2();
     private int numTiers = 3;
 
-    public KnowledgeBoxModel(GeneralAlgorithmRunner runner) {
-        this.knowledge = runner.getKnowledge();
-    }
-
     /**
      * Constructor from dataWrapper edge
      */
@@ -91,9 +87,6 @@ public class KnowledgeBoxModel implements SessionModel, ParamsResettable, Knowle
                     knowledge.addVariable(node.getName());
                 }
             }
-
-//            variableNodes.addAll(input.getVariables());
-//            variableNames.addAll(input.getVariableNames());
         }
 
         this.variables = new ArrayList<>(variableNodes);
@@ -107,11 +100,6 @@ public class KnowledgeBoxModel implements SessionModel, ParamsResettable, Knowle
         }
 
         TetradLogger.getInstance().log("info", "Knowledge");
-
-        // This is a conundrum. At this point I dont know whether I am in a
-        // simulation or not. If in a simulation, I should print the knowledge.
-        // If not, I should wait for resetParams to be called. For now I'm
-        // printing the knowledge if it's not empty.
         if (!knowledge.isEmpty()) {
             // printing out is bad for large knowledge input
 //            TetradLogger.getInstance().log("knowledge", params.get("knowledge", new Knowledge2()).toString());

@@ -26,6 +26,7 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.*;
 import edu.cmu.tetrad.util.Vector;
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.exception.OutOfRangeException;
 import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.correlation.Covariance;
@@ -1831,42 +1832,68 @@ public final class DataUtils {
 //    }
 
     public static DataSet getNonparanormalTransformed(DataSet dataSet) {
-        final Matrix data = dataSet.getDoubleData();
-        final Matrix X = data.like();
-        final double n = dataSet.getNumRows();
-        final double delta = 1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
+        try {
+            final Matrix data = dataSet.getDoubleData();
+            final Matrix X = data.like();
+            final double n = dataSet.getNumRows();
+            double delta = 1e-8;;// 1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
 
-        final NormalDistribution normalDistribution = new NormalDistribution();
+            final NormalDistribution normalDistribution = new NormalDistribution();
 
-        double std = Double.NaN;
+            double std = Double.NaN;
 
-        for (int j = 0; j < data.columns(); j++) {
-            final double[] x1 = data.getColumn(j).toArray();
-            double std1 = StatUtils.sd(x1);
-            double mu1 = StatUtils.mean(x1);
-            double[] x = ranks(data, x1);
+            for (int j = 0; j < data.columns(); j++) {
+                final double[] x1Orig = Arrays.copyOf(data.getColumn(j).toArray(), data.rows());
+                final double[] x1 = Arrays.copyOf(data.getColumn(j).toArray(), data.rows());
 
-            for (int i = 0; i < x.length; i++) {
-                x[i] /= n;
-                if (x[i] < delta) x[i] = delta;
-                if (x[i] > (1. - delta)) x[i] = 1. - delta;
-                x[i] = normalDistribution.inverseCumulativeProbability(x[i]);
+                double a2Orig = new AndersonDarlingTest(x1).getASquaredStar();
+
+                if (dataSet.getVariable(j) instanceof DiscreteVariable) {
+                    X.assignColumn(j, new Vector(x1));
+                    continue;
+                }
+
+                double std1 = StatUtils.sd(x1);
+                double mu1 = StatUtils.mean(x1);
+                double[] xTransformed = ranks(data, x1);
+
+                for (int i = 0; i < xTransformed.length; i++) {
+                    xTransformed[i] /= n;
+
+                    if (xTransformed[i] < delta) xTransformed[i] = delta;
+                    if (xTransformed[i] > (1. - delta)) xTransformed[i] = 1. - delta;
+
+//                    if (xTransformed[i] <= 0) xTransformed[i] = 0;
+//                    if (xTransformed[i] >= 1) xTransformed[i] = 1;
+                    xTransformed[i] = normalDistribution.inverseCumulativeProbability(xTransformed[i]);
+                }
+
+                if (Double.isNaN(std)) {
+                    std = StatUtils.sd(x1Orig);
+                }
+
+                for (int i = 0; i < xTransformed.length; i++) {
+//                    xTransformed[i] /= std;
+                    xTransformed[i] *= std1;
+                    xTransformed[i] += mu1;
+                }
+
+                double a2Transformed = new AndersonDarlingTest(xTransformed).getASquaredStar();
+
+                System.out.println(dataSet.getVariable(j) + ": A^2* = " + a2Orig + " transformed A^2* = " + a2Transformed);
+
+                if (a2Transformed < a2Orig) {
+                    X.assignColumn(j, new Vector(xTransformed));
+                } else {
+                    X.assignColumn(j, new Vector(x1Orig));
+                }
             }
 
-            if (Double.isNaN(std)) {
-                std = StatUtils.sd(x);
-            }
-
-            for (int i = 0; i < x.length; i++) {
-                x[i] /= std;
-                x[i] *= std1;
-                x[i] += mu1;
-            }
-
-            X.assignColumn(j, new Vector(x));
+            return new BoxDataSet(new VerticalDoubleDataBox(X.transpose().toArray()), dataSet.getVariables());
+        } catch (OutOfRangeException e) {
+            e.printStackTrace();
+            return dataSet;
         }
-
-        return new BoxDataSet(new VerticalDoubleDataBox(X.transpose().toArray()), dataSet.getVariables());
     }
 
     private static double[] ranks(Matrix data, double[] x) {

@@ -32,6 +32,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
+import static java.lang.Double.POSITIVE_INFINITY;
+
 /**
  * Implements the "fast adjacency search" used in several causal algorithm in this package. In the fast adjacency
  * search, at a given stage of the search, an edge X*-*Y is removed from the graph if X _||_ Y | S, where S is a subset
@@ -152,6 +154,35 @@ public class Fas implements IFas {
 
         if (heuristic == 1) {
             Collections.sort(nodes);
+
+//            TeyssierScorer scorer = new TeyssierScorer(test);
+//            scorer.score(test.getVariables());
+//
+//            List<Node> to = new ArrayList<>();
+//            List<Node> from = new ArrayList<>(test.getVariables());
+//
+//            scorer.score(to);
+//
+//            while (!from.isEmpty()) {
+//                double min = POSITIVE_INFINITY;
+//                Node minNode = null;
+//
+//                for (Node v : from) {
+//                    double s = scorer.scoreAppended(v);
+//
+//                    if (s < min) {
+//                        min = s;
+//                        minNode = v;
+//                    }
+//                }
+//
+//                to.add(minNode);
+//                from.remove(minNode);
+//            }
+//
+//            System.out.println("to = " + to);
+//
+//            nodes = to;
         }
 
         for (int i = 0; i < nodes.size(); i++) {

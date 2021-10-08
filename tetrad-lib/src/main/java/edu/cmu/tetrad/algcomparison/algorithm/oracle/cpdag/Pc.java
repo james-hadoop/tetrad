@@ -67,6 +67,7 @@ public class Pc implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInde
             search.setConcurrent(edu.cmu.tetrad.search.PcAll.Concurrent.NO);
             search.setColliderDiscovery(PcAll.ColliderDiscovery.FAS_SEPSETS);
             search.setConflictRule(PcAll.ConflictRule.PRIORITY);
+            search.setHeuristic(parameters.getInt(Params.FAS_HEURISTIC));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             return search.search();
         } else {

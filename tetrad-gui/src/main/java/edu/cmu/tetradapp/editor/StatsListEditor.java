@@ -1,6 +1,7 @@
 package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.algcomparison.statistic.*;
+import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TextTable;
@@ -26,6 +27,7 @@ public class StatsListEditor extends JPanel {
     private final List<Graph> referenceGraphs;
     private Graph targetGraph;
     private Graph referenceGraph;
+    private final DataModel dataModel;
     private JTextArea area;
 
     public StatsListEditor(TabularComparison comparison) {
@@ -33,6 +35,7 @@ public class StatsListEditor extends JPanel {
         this.params = comparison.getParams();
         referenceGraphs = comparison.getReferenceGraphs();
         referenceGraph = getComparisonGraph(referenceGraphs.get(0), params);
+        dataModel = comparison.getDataModel();
         setup();
     }
 
@@ -93,11 +96,24 @@ public class StatsListEditor extends JPanel {
         TextTable table = new TextTable(statistics.size(), 3);
         NumberFormat nf = new DecimalFormat("0.###");
 
-        for (int i = 0; i < statistics.size(); i++) {
-            table.setToken(i, 0, statistics.get(i).getAbbreviation());
-            table.setToken(i, 1, statistics.get(i).getDescription());
-            double value = statistics.get(i).getValue(referenceGraph, targetGraph, null);
+        List<String> abbr = new ArrayList<>();
+        List<String> desc = new ArrayList<>();
+        List<Double> vals = new ArrayList<>();
+
+        for (Statistic statistic : statistics) {
+            try {
+                vals.add(statistic.getValue(referenceGraph, targetGraph, dataModel));
+                abbr.add(statistic.getAbbreviation());
+                desc.add(statistic.getDescription());
+            } catch (Exception ignored) {
+            }
+        }
+
+        for (int i = 0; i < abbr.size(); i++) {
+            double value = vals.get(i);
             table.setToken(i, 2, Double.isNaN(value) ? "-" : "" + nf.format(value));
+            table.setToken(i, 0, abbr.get(i));
+            table.setToken(i, 1, desc.get(i));
         }
 
         table.setJustification(TextTable.LEFT_JUSTIFIED);
@@ -108,6 +124,9 @@ public class StatsListEditor extends JPanel {
     private List<Statistic> statistics() {
         List<Statistic> statistics = new ArrayList<>();
 
+        statistics.add(new BicTrue());
+        statistics.add(new BicEst());
+        statistics.add(new BicDiff());
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());

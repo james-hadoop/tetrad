@@ -31,6 +31,7 @@ import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetradapp.model.ForbiddenGraphModel;
 import edu.cmu.tetradapp.model.KnowledgeBoxModel;
+import edu.cmu.tetradapp.model.PairwiseForbiddenGraphModel;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -83,6 +84,10 @@ public class KnowledgeBoxEditor extends JPanel {
     }
 
     public KnowledgeBoxEditor(final ForbiddenGraphModel knowledgeBoxModel) {
+        this(knowledgeBoxModel, knowledgeBoxModel.getVarNames());
+    }
+
+    public KnowledgeBoxEditor(final PairwiseForbiddenGraphModel knowledgeBoxModel) {
         this(knowledgeBoxModel, knowledgeBoxModel.getVarNames());
     }
 

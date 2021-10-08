@@ -129,11 +129,11 @@ public class SemBicScore implements Score {
             Matrix bStar = bStar(b);
             return (bStar.transpose().times(cov).times(bStar).get(0, 0));
         } catch (SingularMatrixException e) {
-            List<Node> variables = covariances.getVariables();
-            List<Node> p = new ArrayList<>();
-            for (int _p : parents) p.add(variables.get(_p));
-            System.out.println("Singularity " + variables.get(i) + " | " + p);
-            return NEGATIVE_INFINITY;
+//            List<Node> variables = covariances.getVariables();
+//            List<Node> p = new ArrayList<>();
+//            for (int _p : parents) p.add(variables.get(_p));
+//            System.out.println("Singularity " + variables.get(i) + " | " + p);
+            return NaN;
         }
     }
 
@@ -264,7 +264,11 @@ public class SemBicScore implements Score {
         if (ruleType == RuleType.CHICKERING || ruleType == RuleType.NANDY) {
 
             // Standard BIC, with penalty discount and structure prior.
-            return -n * log(varey) - c * k * log(n);// - 2 * getStructurePrior(k);
+            double v = -n * log(varey) - c * k * log(n);
+
+            if (Double.isInfinite(v)) return 0;
+
+            return v;// - 2 * getStructurePrior(k);
         } else {
             throw new IllegalStateException("That rule type is not implemented: " + ruleType);
         }
@@ -372,7 +376,7 @@ public class SemBicScore implements Score {
 
     @Override
     public DataModel getData() {
-        return null;
+        return dataSet;
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {

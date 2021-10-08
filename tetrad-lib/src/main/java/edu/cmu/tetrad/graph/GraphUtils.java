@@ -4943,6 +4943,7 @@ public final class GraphUtils {
         private final List<Edge> edgesRemoved;
         private final List<Edge> edgesReorientedFrom;
         private final List<Edge> edgesReorientedTo;
+        private final List<Edge> edgesAdjacencies;
 
         public GraphComparison(int adjFn, int adjFp, int adjCorrect,
                                int arrowptFn, int arrowptFp, int arrowptCorrect,
@@ -4952,6 +4953,7 @@ public final class GraphUtils {
                                List<Edge> edgesAdded, List<Edge> edgesRemoved,
                                List<Edge> edgesReorientedFrom,
                                List<Edge> edgesReorientedTo,
+                               List<Edge> edgesAdjacencies,
                                int[][] counts) {
             this.adjFn = adjFn;
             this.adjFp = adjFp;
@@ -4973,6 +4975,7 @@ public final class GraphUtils {
             this.edgesRemoved = edgesRemoved;
             this.edgesReorientedFrom = edgesReorientedFrom;
             this.edgesReorientedTo = edgesReorientedTo;
+            this.edgesAdjacencies = edgesAdjacencies;
 
             this.counts = counts;
         }
@@ -5031,6 +5034,10 @@ public final class GraphUtils {
 
         public List<Edge> getEdgesReorientedTo() {
             return edgesReorientedTo;
+        }
+
+        public List<Edge> getCorrectAdjacencies() {
+            return edgesAdjacencies;
         }
 
         public double getAdjPrec() {

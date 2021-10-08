@@ -121,7 +121,7 @@ public class MbfsCpdagRunner extends AbstractAlgorithmRunner
             GraphUtils.arrangeBySourceGraph(graph, getSourceGraph());
         }
         else if (knowledge.isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
+            SearchGraphUtils.arrangeByKnowledgeTiers(graph);
         }
         else {
             GraphUtils.circleLayout(graph, 200, 200, 150);

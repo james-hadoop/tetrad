@@ -18,11 +18,11 @@ public class SemBicScorer {
         Score score;
 
         if (data instanceof ICovarianceMatrix) {
-            score = new LinearGaussianBicScore((ICovarianceMatrix) dag);
+            score = new LinearGaussianBicScore((ICovarianceMatrix) data);
         } else if (data instanceof DataSet) {
             score = new LinearGaussianBicScore((DataSet) data);
         } else {
-            throw new IllegalArgumentException("Expecting a covariance matrix of a dataset.");
+            throw new IllegalArgumentException("Expecting a covariance matrix or a dataset.");
         }
 
         dag = GraphUtils.replaceNodes(dag, data.getVariables());

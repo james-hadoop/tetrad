@@ -1915,6 +1915,14 @@
                 <model-class>edu.cmu.tetradapp.model.ForbiddenGraphModel</model-class>
                 <editor-class>edu.cmu.tetradapp.knowledge_editor.KnowledgeBoxEditor</editor-class>
             </model>
+            <model name="Pairwise Forbidden Graph" acronym="Forb-Graph" help="forb.graph">
+                <logger>
+                    <event id="info" description="Information" default="on"/>
+                    <event id="knowledge" description="Knowledge" default="on"/>
+                </logger>
+                <model-class>edu.cmu.tetradapp.model.PairwiseForbiddenGraphModel</model-class>
+                <editor-class>edu.cmu.tetradapp.knowledge_editor.KnowledgeBoxEditor</editor-class>
+            </model>
             <model name="Required Graph" acronym="Req-Graph" help="req.graph">
                 <logger>
                     <event id="info" description="Information" default="on"/>
