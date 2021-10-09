@@ -348,11 +348,10 @@ public class Boss {
 
         scorer.score(order);
 
-        Graph graph = scorer.getGraph(true);
         Graph graph1 = scorer.getGraph(cpdag);
 
         if (dataModel != null) {
-            double bic = new BicEst(score).getValue(null, graph, dataModel);
+            double bic = new BicEst(score).getValue(null, graph1, dataModel);
             graph1.addAttribute("BIC", bic);
         }
 

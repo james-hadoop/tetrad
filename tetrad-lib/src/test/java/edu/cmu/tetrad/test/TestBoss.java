@@ -27,8 +27,8 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Rfci;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
@@ -1256,24 +1256,6 @@ public final class TestBoss {
                 algorithms, statistics, params);
     }
 
-    private static class Ret {
-        private final String label;
-        private final IndependenceFacts facts;
-
-        public Ret(String label, IndependenceFacts facts) {
-            this.label = label;
-            this.facts = facts;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public IndependenceFacts getFacts() {
-            return facts;
-        }
-    }
-
     @Test
     public void testWayne() {
         List<Ret> allFacts = new ArrayList<>();
@@ -1304,6 +1286,7 @@ public final class TestBoss {
             System.out.println(facts.getFacts());
 
             List<Node> variables = facts.facts.getVariables();
+            Collections.sort(variables);
 
             PermutationGenerator gen = new PermutationGenerator(variables.size());
             int[] perm;
@@ -1318,13 +1301,77 @@ public final class TestBoss {
 //                System.out.println(scorer.getGraph(false));
 //
                 Boss boss = new Boss(new IndTestDSep(facts.getFacts()));
+                boss.setFirstRunUseDataOrder(true);
 
                 List<Node> order = boss.bestOrder(p);
                 System.out.println(boss.getGraph(order, false));
 
             }
 
-         }
+        }
+    }
+
+    @Test
+    public void testWayne2() {
+        Ret facts = getFactsSimpleCanceling();
+
+        int count = 0;
+
+        boolean printCpdag = false;
+
+        Boss.Method[] methods = {GSP, Boss.Method.BOSS, Boss.Method.SP};
+
+        count++;
+
+        TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()));
+
+        OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
+        OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
+
+        System.out.println();
+        System.out.println(facts.getLabel());
+        System.out.println(facts.getFacts());
+
+        List<Node> variables = facts.facts.getVariables();
+        Collections.sort(variables);
+
+        List<Node> p = new ArrayList<>();
+        p.add(variables.get(0));
+        p.add(variables.get(1));
+        p.add(variables.get(3));
+        p.add(variables.get(2));
+
+//        System.out.println("Initial permutation = " + p);
+
+//                scorer.score(p);
+//
+//                System.out.println(scorer.getGraph(false));
+//
+        Boss boss = new Boss(new IndTestDSep(facts.getFacts()));
+        boss.setFirstRunUseDataOrder(true);
+
+        List<Node> order = boss.bestOrder(p);
+        System.out.println(boss.getGraph(order, false));
+
+
+    }
+
+    private static class Ret {
+        private final String label;
+        private final IndependenceFacts facts;
+
+        public Ret(String label, IndependenceFacts facts) {
+            this.label = label;
+            this.facts = facts;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public IndependenceFacts getFacts() {
+            return facts;
+        }
     }
 }
 

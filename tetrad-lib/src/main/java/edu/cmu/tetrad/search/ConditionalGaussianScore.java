@@ -214,7 +214,7 @@ public class ConditionalGaussianScore implements Score {
 
     @Override
     public DataModel getData() {
-        return null;
+        return dataSet;
     }
 }
 
