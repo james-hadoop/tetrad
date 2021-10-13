@@ -236,7 +236,7 @@ public class CovarianceMatrix implements ICovarianceMatrix {
      * @return the knowledge associated with this data.
      */
     public final IKnowledge getKnowledge() {
-        return this.knowledge.copy();
+        return this.knowledge;
     }
 
     /**

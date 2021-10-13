@@ -2,13 +2,13 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.util.Parameters;
@@ -31,14 +31,13 @@ import java.util.List;
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesScoreWrapper {
+public class Fges implements Algorithm, TakesInitialGraph, UsesScoreWrapper {
 
     static final long serialVersionUID = 23L;
 
     private ScoreWrapper score;
     private Algorithm algorithm = null;
     private Graph initialGraph = null;
-    private IKnowledge knowledge = new Knowledge2();
 
     public Fges() {
 
@@ -64,7 +63,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
 
             edu.cmu.tetrad.search.Fges search
                     = new edu.cmu.tetrad.search.Fges(score, parallelism);
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setMeekVerbose(parameters.getBoolean(Params.MEEK_VERBOSE));
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
@@ -88,7 +87,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -119,11 +118,6 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
 
     }
 
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        return new EdgeListGraph(graph);
-//    }
-
     @Override
     public String getDescription() {
         return "FGES using " + score.getDescription();
@@ -149,16 +143,6 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
     }
 
     @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
-    }
-
-    @Override
     public Graph getInitialGraph() {
         return initialGraph;
     }
@@ -174,13 +158,13 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
     }
 
     @Override
-    public void setScoreWrapper(ScoreWrapper score) {
-        this.score = score;
+    public ScoreWrapper getScoreWrapper() {
+        return score;
     }
 
     @Override
-    public ScoreWrapper getScoreWrapper() {
-        return score;
+    public void setScoreWrapper(ScoreWrapper score) {
+        this.score = score;
     }
 
 }

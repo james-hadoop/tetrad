@@ -4,6 +4,7 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import org.jetbrains.annotations.NotNull;
 
@@ -272,6 +273,8 @@ public class TeyssierScorer {
             }
         }
 
+        GraphUtils.replaceNodes(G1, variables);
+
         if (cpdag) {
             return SearchGraphUtils.cpdagForDag(G1);
         } else {
@@ -446,7 +449,7 @@ public class TeyssierScorer {
         if (scoreType == ScoreType.Edge) {
             return new Pair(parents, parents.size());
         } else if (scoreType == ScoreType.SCORE) {
-            return new Pair(parents, -sMax);
+            return new Pair(parents, sMax);
         } else {
             throw new IllegalStateException("Unexpected score type: " + scoreType);
         }

@@ -1,14 +1,11 @@
 package edu.cmu.tetrad.algcomparison.algorithm.cluster;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.FindTwoFactorClusters;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -28,10 +25,9 @@ import java.util.List;
         dataType = DataType.Continuous
 )
 @Bootstrapping
-public class Ftfc implements Algorithm, HasKnowledge, ClusterAlgorithm {
+public class Ftfc implements Algorithm, ClusterAlgorithm {
 
     static final long serialVersionUID = 23L;
-    private IKnowledge knowledge = new Knowledge2();
 
     public Ftfc() {
     }
@@ -74,7 +70,7 @@ public class Ftfc implements Algorithm, HasKnowledge, ClusterAlgorithm {
 //  		}
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
             
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -99,11 +95,6 @@ public class Ftfc implements Algorithm, HasKnowledge, ClusterAlgorithm {
         }
     }
 
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
-//    }
-
     @Override
     public String getDescription() {
         return "FTFC (Find Two Factor Clusters)";
@@ -124,15 +115,4 @@ public class Ftfc implements Algorithm, HasKnowledge, ClusterAlgorithm {
 
         return parameters;
     }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
-    }
-
 }

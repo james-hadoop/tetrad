@@ -134,8 +134,10 @@ final class LoadDataAction extends AbstractAction {
         dataModelList.addAll(_dataModelList);
 
         dataEditor.replace(dataModelList);
-        dataEditor.selectFirstTab();
+        dataEditor.selectData();
         firePropertyChange("modelChanged", null, null);
+
+        dataEditor.selectData();
     }
 
     //======================= private methods =========================//

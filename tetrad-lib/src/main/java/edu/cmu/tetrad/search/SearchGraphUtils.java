@@ -2264,13 +2264,8 @@ public final class SearchGraphUtils {
     }
 
     public static Graph cpdagForDag(final Graph dag) {
-        return cpdagForDag(dag, new Knowledge2());
-    }
-
-    public static Graph cpdagForDag(final Graph dag, IKnowledge knowledge) {
         Graph cpdag = new EdgeListGraph(dag);
         MeekRules rules = new MeekRules();
-        rules.setKnowledge(knowledge);
         rules.setRevertToUnshieldedColliders(true);
         rules.orientImplied(cpdag);
         return cpdag;

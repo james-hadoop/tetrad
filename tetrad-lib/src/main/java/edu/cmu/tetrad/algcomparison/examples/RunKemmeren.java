@@ -80,10 +80,7 @@ public class RunKemmeren {
             LinearGaussianBicScore score = new LinearGaussianBicScore();
             SemBicTest test = new SemBicTest();
 
-//            Fges search = new Fges(score);
             FAS search = new FAS(test);
-//            Gfci search = new Gfci(test, score);
-            search.setKnowledge(knowledge);
             Graph graph = search.search(dataSet, parameters, null);
 
             System.out.println("Writing Output");

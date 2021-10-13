@@ -2,7 +2,6 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
@@ -34,11 +33,10 @@ import java.util.List;
         algoType = AlgType.search_for_Markov_blankets
 )
 @Bootstrapping
-public class MBFS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
+public class MBFS implements Algorithm, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
-    private IKnowledge knowledge = new Knowledge2();
     private String targetName;
 
     public MBFS() {
@@ -55,7 +53,7 @@ public class MBFS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
             edu.cmu.tetrad.search.Mbfs search = new edu.cmu.tetrad.search.Mbfs(test, parameters.getInt(Params.DEPTH));
 
             search.setDepth(parameters.getInt(Params.DEPTH));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
 
             this.targetName = parameters.getString(Params.TARGET_NAME);
             if (targetName.isEmpty()) {
@@ -73,7 +71,7 @@ public class MBFS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -98,12 +96,6 @@ public class MBFS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
         }
     }
 
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        Node target = graph.getNode(targetName);
-//        return GraphUtils.markovBlanketDag(target, new EdgeListGraph(graph));
-//    }
-
     @Override
     public String getDescription() {
         return "MBFS (Markov Blanket Fan Search) using " + test.getDescription();
@@ -122,16 +114,6 @@ public class MBFS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
 
         parameters.add(Params.VERBOSE);
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 
     @Override

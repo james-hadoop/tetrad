@@ -222,7 +222,7 @@ public class TestIrvine {
                         IKnowledge knowledge = null;
 
                         try {
-                            knowledge = new DataReader().parseKnowledge(knowledgeFile);
+                            knowledge = DataUtils.parseKnowledge(knowledgeFile, DelimiterType.TAB, "//");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

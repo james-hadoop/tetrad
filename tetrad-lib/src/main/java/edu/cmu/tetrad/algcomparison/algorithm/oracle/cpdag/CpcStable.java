@@ -2,7 +2,6 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.DataModel;
@@ -27,12 +26,11 @@ import java.util.List;
  * @author jdramsey
  */
 @Bootstrapping
-public class CpcStable implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
+public class CpcStable implements Algorithm, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
     private Algorithm algorithm = null;
-    private IKnowledge knowledge = new Knowledge2();
 
     public CpcStable() {
     }
@@ -55,7 +53,7 @@ public class CpcStable implements Algorithm, HasKnowledge, TakesIndependenceWrap
             }
             PcAll search = new PcAll(test.getTest(dataSet, parameters, trueGraph), init);
             search.setDepth(parameters.getInt(Params.DEPTH));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
             search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.STABLE);
             search.setConcurrent(edu.cmu.tetrad.search.PcAll.Concurrent.NO);
             search.setColliderDiscovery(edu.cmu.tetrad.search.PcAll.ColliderDiscovery.CONSERVATIVE);
@@ -67,7 +65,7 @@ public class CpcStable implements Algorithm, HasKnowledge, TakesIndependenceWrap
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, cpcStable, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -114,16 +112,6 @@ public class CpcStable implements Algorithm, HasKnowledge, TakesIndependenceWrap
 
         parameters.add(Params.VERBOSE);
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 
     @Override

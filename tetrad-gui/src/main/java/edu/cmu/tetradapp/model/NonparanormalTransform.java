@@ -41,8 +41,8 @@ public class NonparanormalTransform extends DataWrapper {
         DataWrapper dataWrapper = new DataWrapper(nonparanormalTransformed);
         setDataModel(nonparanormalTransformed);
         setSourceGraph(wrapper.getSourceGraph());
-        IKnowledge knowledge = new PairwiseForbiddenGraphModel(dataWrapper, params).getKnowledge();
-        setKnowledge(knowledge);
+//        IKnowledge knowledge = new PairwiseForbiddenGraphModel().getKnowledge();
+//        setKnowledge(knowledge);
 
         LogDataUtils.logDataModelList("Conversion of parent data to correlation matrix form.", getDataModelList());
     }

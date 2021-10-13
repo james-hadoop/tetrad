@@ -2,10 +2,9 @@ package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.util.Parameters;
@@ -24,7 +23,7 @@ import java.util.List;
  * @author jdramsey
  */
 @Bootstrapping
-public class CcdMaxConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
+public class CcdMaxConcatenated implements MultiDataSetAlgorithm, KnowledgeSettable {
 	static final long serialVersionUID = 23L;
 	private IKnowledge knowledge = new Knowledge2();
 	private IndependenceWrapper test;

@@ -1,12 +1,10 @@
 package edu.cmu.tetrad.algcomparison.algorithm.cluster;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
@@ -31,12 +29,10 @@ import java.util.List;
         dataType = DataType.Continuous
 )
 @Bootstrapping
-public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, ClusterAlgorithm {
+public class Fofc implements Algorithm, TakesInitialGraph, ClusterAlgorithm {
 
     static final long serialVersionUID = 23L;
     private Graph initialGraph = null;
-    private Algorithm algorithm = null;
-    private IKnowledge knowledge = new Knowledge2();
 
     public Fofc() {
     }
@@ -111,14 +107,9 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
         } else {
             Fofc algorithm = new Fofc();
 
-            //algorithm.setKnowledge(knowledge);
-//          if (initialGraph != null) {
-//      		algorithm.setInitialGraph(initialGraph);
-//  		}
-
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
             
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -143,11 +134,6 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
         }
     }
 
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
-//    }
-
     @Override
     public String getDescription() {
         return "FOFC (Find One Factor Clusters)";
@@ -171,16 +157,6 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
     }
 
     @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
-    }
-
-    @Override
     public Graph getInitialGraph() {
         return initialGraph;
     }
@@ -192,7 +168,6 @@ public class Fofc implements Algorithm, TakesInitialGraph, HasKnowledge, Cluster
 
     @Override
     public void setInitialGraph(Algorithm algorithm) {
-        this.algorithm = algorithm;
     }
 
 }

@@ -2,7 +2,6 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
@@ -33,13 +32,12 @@ import java.util.List;
         algoType = AlgType.search_for_Markov_blankets
 )
 @Bootstrapping
-public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesScoreWrapper {
+public class FgesMb implements Algorithm, TakesInitialGraph, UsesScoreWrapper {
 
     static final long serialVersionUID = 23L;
     private ScoreWrapper score;
     private Algorithm algorithm = null;
     private Graph initialGraph = null;
-    private IKnowledge knowledge = new Knowledge2();
     private String targetName;
 
     public FgesMb() {
@@ -64,7 +62,7 @@ public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesS
             Score score = this.score.getScore(dataSet, parameters);
             edu.cmu.tetrad.search.FgesMb search = new edu.cmu.tetrad.search.FgesMb(score);
             search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
 
@@ -89,7 +87,7 @@ public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesS
             }
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fgesMb, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -112,12 +110,6 @@ public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesS
         }
     }
 
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        Node target = graph.getNode(targetName);
-//        return GraphUtils.markovBlanketDag(target, new EdgeListGraph(graph));
-//    }
-
     @Override
     public String getDescription() {
         return "FGES (Fast Greedy Search) using " + score.getDescription();
@@ -137,16 +129,6 @@ public class FgesMb implements Algorithm, TakesInitialGraph, HasKnowledge, UsesS
         parameters.add(Params.VERBOSE);
 
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 
     @Override

@@ -80,21 +80,25 @@ public class DataWrapper implements SessionModel, KnowledgeEditable, KnowledgeBo
     /**
      * The parameters being edited.
      */
-    private Parameters parameters = null;
+    private Parameters parameters = new Parameters();
     private Map<String, String> allParamSettings;
 
     //==============================CONSTRUCTORS===========================//
     protected DataWrapper() {
         setDataModel(new BoxDataSet(new VerticalDoubleDataBox(0 , 0), new LinkedList<Node>()));
         this.parameters = new Parameters();
+
+        System.out.println("A");
     }
 
     /**
      * Constructs a data wrapper using a new DataSet as data model.
      */
     public DataWrapper(Parameters parameters) {
-        setDataModel(new BoxDataSet(new VerticalDoubleDataBox(0, 0), new LinkedList<Node>()));
+        setDataModel(new BoxDataSet(new VerticalDoubleDataBox(0, 0), new LinkedList<>()));
         this.parameters = parameters;
+
+        System.out.println("B");
     }
 
     public DataWrapper(Simulation wrapper, Parameters parameters) {
@@ -115,6 +119,9 @@ public class DataWrapper implements SessionModel, KnowledgeEditable, KnowledgeBo
 
         this.dataModelList = wrapper.getDataModelList();
         this.parameters = parameters;
+
+        System.out.println("C");
+
     }
 
     /**
@@ -158,6 +165,9 @@ public class DataWrapper implements SessionModel, KnowledgeEditable, KnowledgeBo
         this.dataModelList = dataModelList;
 
         LogDataUtils.logDataModelList("Standalone data set.", getDataModelList());
+
+        System.out.println("D");
+
     }
 
     /**
@@ -165,6 +175,9 @@ public class DataWrapper implements SessionModel, KnowledgeEditable, KnowledgeBo
      */
     public DataWrapper(DataSet dataSet) {
         setDataModel(dataSet);
+
+        System.out.println("E");
+
     }
 
     public DataWrapper(Graph graph, Parameters parameters) {
@@ -189,6 +202,9 @@ public class DataWrapper implements SessionModel, KnowledgeEditable, KnowledgeBo
         DataModelList dataModelList = new DataModelList();
         dataModelList.add(dataSet);
         this.dataModelList = dataModelList;
+
+        System.out.println("F");
+
     }
 
     public DataWrapper(DagWrapper dagWrapper, Parameters parameters) {
@@ -199,7 +215,7 @@ public class DataWrapper implements SessionModel, KnowledgeEditable, KnowledgeBo
         this(wrapper.getGraph(), parameters);
     }
 
-    public DataWrapper(GraphWrapper wrapper, Parameters parameters) {
+    public DataWrapper(GraphWrapper wrapper, Parameters parameters)   {
         this(wrapper.getGraph(), parameters);
     }
 
@@ -248,6 +264,9 @@ public class DataWrapper implements SessionModel, KnowledgeEditable, KnowledgeBo
         DataModelList dataModelList = new DataModelList();
         dataModelList.add(data2);
         this.dataModelList = dataModelList;
+
+        System.out.println("G");
+
     }
 
     public DataWrapper(MimBuildRunner mimBuild, Parameters parameters) {
@@ -256,6 +275,9 @@ public class DataWrapper implements SessionModel, KnowledgeEditable, KnowledgeBo
         DataModelList dataModelList = new DataModelList();
         dataModelList.add(cov);
         this.dataModelList = dataModelList;
+
+        System.out.println("H");
+
     }
 
     /**

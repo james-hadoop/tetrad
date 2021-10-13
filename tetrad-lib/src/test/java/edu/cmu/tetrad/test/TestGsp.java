@@ -58,7 +58,6 @@ public final class TestGsp {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new LinearGaussianBicScore(), new FisherZ()));
-        algorithms.add(new GSPIndep(new FisherZ()));
 //        algorithms.add(new Fges(new SemBicScore()));
 
         Simulations simulations = new Simulations();

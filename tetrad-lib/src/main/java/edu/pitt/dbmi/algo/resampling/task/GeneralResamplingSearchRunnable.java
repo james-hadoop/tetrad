@@ -5,7 +5,7 @@ import java.util.List;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.IKnowledge;
@@ -124,16 +124,16 @@ public class GeneralResamplingSearchRunnable implements Runnable {
 		Graph graph = null;
 		
 		if(dataSet != null){
-			if (algorithm instanceof HasKnowledge) {
-                ((HasKnowledge) algorithm).setKnowledge(getKnowledge());
+			if (algorithm instanceof KnowledgeSettable) {
+                ((KnowledgeSettable) algorithm).setKnowledge(getKnowledge());
         		if (verbose) {
         			out.println("knowledge being set ... ");
         		}
             }
 			graph = algorithm.search(dataSet, parameters, null);
 		}else{
-			if (multiDataSetAlgorithm instanceof HasKnowledge) {
-                ((HasKnowledge) multiDataSetAlgorithm).setKnowledge(getKnowledge());
+			if (multiDataSetAlgorithm instanceof KnowledgeSettable) {
+                ((KnowledgeSettable) multiDataSetAlgorithm).setKnowledge(getKnowledge());
         		if (verbose) {
         			out.println("knowledge being set ... ");
         		}

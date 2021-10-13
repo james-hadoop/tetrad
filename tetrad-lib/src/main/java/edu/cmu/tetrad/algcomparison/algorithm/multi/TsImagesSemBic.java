@@ -3,7 +3,7 @@ package edu.cmu.tetrad.algcomparison.algorithm.multi;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges;
 import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.annotation.TimeSeries;
 import edu.cmu.tetrad.data.*;
@@ -31,7 +31,7 @@ import java.util.List;
  */
 @TimeSeries
 @Bootstrapping
-public class TsImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
+public class TsImagesSemBic implements MultiDataSetAlgorithm, KnowledgeSettable {
 
     static final long serialVersionUID = 23L;
     private IKnowledge knowledge = new Knowledge2();

@@ -2,7 +2,6 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
@@ -31,11 +30,10 @@ import java.util.List;
         algoType = AlgType.produce_undirected_graphs
 )
 @Bootstrapping
-public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
+public class FAS implements Algorithm, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
-    private IKnowledge knowledge = new Knowledge2();
 
     public FAS() {
     }
@@ -51,7 +49,7 @@ public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
             search.setStable(parameters.getBoolean(Params.STABLE_FAS));
             search.setHeuristic(parameters.getInt(Params.FAS_HEURISTIC));
             search.setDepth(parameters.getInt(Params.DEPTH));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
@@ -65,7 +63,7 @@ public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -90,11 +88,6 @@ public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
         }
     }
 
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
-//    }
-
     @Override
     public String getDescription() {
         return "Fast adjacency search (FAS) using " + test.getDescription();
@@ -113,16 +106,6 @@ public class FAS implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
         parameters.add(Params.STABLE_FAS);
         parameters.add(Params.VERBOSE);
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 
     @Override

@@ -403,6 +403,7 @@ public final class Session implements TetradSerializable {
         public void modelCreated(SessionEvent event) {
             getSessionSupport().fireSessionEvent(event);
             setSessionChanged(true);
+            AvailableModels.getUnique().add(event.getNode().getModel());
         }
 
         /**
@@ -411,6 +412,7 @@ public final class Session implements TetradSerializable {
         public void modelDestroyed(SessionEvent event) {
             getSessionSupport().fireSessionEvent(event);
             setSessionChanged(true);
+            AvailableModels.getUnique().remove(event.getNode().getModel());
         }
 
         /**

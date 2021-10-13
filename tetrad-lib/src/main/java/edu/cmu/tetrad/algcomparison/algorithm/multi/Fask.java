@@ -2,7 +2,6 @@ package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
@@ -35,11 +34,10 @@ import static edu.cmu.tetrad.util.Params.*;
         algoType = AlgType.forbid_latent_common_causes,
         dataType = DataType.Continuous
 )
-public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, TakesInitialGraph {
+public class Fask implements Algorithm, TakesIndependenceWrapper, TakesInitialGraph {
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test = null;
     private Graph initialGraph = null;
-    private IKnowledge knowledge = new Knowledge2();
     private Algorithm algorithm = null;
 
     // Don't delete.
@@ -115,14 +113,14 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
                 throw new IllegalStateException("Unconfigured left right rule index: " + lrRule);
             }
 
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
             return getGraph(search);
         } else {
             Fask fask = new Fask(test);
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fask, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -186,16 +184,6 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
         parameters.add(FASK_NONEMPIRICAL);
         parameters.add(VERBOSE);
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 
     @Override

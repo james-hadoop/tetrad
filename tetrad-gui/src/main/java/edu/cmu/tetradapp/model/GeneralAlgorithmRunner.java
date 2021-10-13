@@ -28,7 +28,7 @@ import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.independence.TakesGraph;
 import edu.cmu.tetrad.algcomparison.score.DSeparationScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.data.*;
@@ -242,8 +242,8 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                     ((DSeparationScore) scoreWrapper).setGraph(getSourceGraph());
                 }
 
-                if (algo instanceof HasKnowledge) {
-                    ((HasKnowledge) algo).setKnowledge(getKnowledge());
+                if (algo instanceof KnowledgeSettable) {
+                    ((KnowledgeSettable) algo).setKnowledge(getKnowledge());
                 }
 
             } else if (algo instanceof TakesIndependenceWrapper) {
@@ -253,8 +253,8 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                 }
             }
 
-            if (algo instanceof HasKnowledge) {
-                ((HasKnowledge) algo).setKnowledge(getKnowledge());
+            if (algo instanceof KnowledgeSettable) {
+                ((KnowledgeSettable) algo).setKnowledge(getKnowledge());
             }
 
             graphList.add(algo.search(getDataModel(), parameters, sourceGraph));
@@ -280,8 +280,8 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                     graphList.add(((MultiDataSetAlgorithm) algo).search(sub, parameters));
                 }
 
-                if (algo instanceof HasKnowledge) {
-                    ((HasKnowledge) algo).setKnowledge(getKnowledge());
+                if (algo instanceof KnowledgeSettable) {
+                    ((KnowledgeSettable) algo).setKnowledge(getKnowledge());
                 }
 
             } else if (getAlgorithm() instanceof ClusterAlgorithm) {
@@ -302,8 +302,8 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                     });
                 }
 
-                if (algo instanceof HasKnowledge) {
-                    ((HasKnowledge) algo).setKnowledge(getKnowledge());
+                if (algo instanceof KnowledgeSettable) {
+                    ((KnowledgeSettable) algo).setKnowledge(getKnowledge());
                 }
             } else {
                 if (getDataModelList().size() != 1) {
@@ -313,12 +313,12 @@ public class GeneralAlgorithmRunner implements AlgorithmRunner, ParamsResettable
                 if (algo != null) {
                     getDataModelList().forEach(data -> {
                         if (data.getKnowledge() != null && !data.getKnowledge().getVariables().isEmpty()) {
-                            if (algo instanceof HasKnowledge) {
-                                ((HasKnowledge) algo).setKnowledge(data.getKnowledge());
+                            if (algo instanceof KnowledgeSettable) {
+                                ((KnowledgeSettable) algo).setKnowledge(data.getKnowledge());
                             }
                         } else {
-                            if (algo instanceof HasKnowledge) {
-                                ((HasKnowledge) algo).setKnowledge(getKnowledge());
+                            if (algo instanceof KnowledgeSettable) {
+                                ((KnowledgeSettable) algo).setKnowledge(getKnowledge());
                             }
                         }
 

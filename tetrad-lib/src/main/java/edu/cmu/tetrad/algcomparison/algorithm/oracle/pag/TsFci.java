@@ -2,7 +2,6 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
@@ -35,13 +34,12 @@ import java.util.List;
 )
 @TimeSeries
 @Bootstrapping
-public class TsFci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesIndependenceWrapper {
+public class TsFci implements Algorithm, TakesInitialGraph, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
     private Algorithm algorithm = null;
     private Graph initialGraph = null;
-    private IKnowledge knowledge = null;
 
     public TsFci() {
     }
@@ -57,14 +55,7 @@ public class TsFci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
-//    	if (!(dataSet instanceof TimeSeriesData)) {
-//            throw new IllegalArgumentException("You need a (labeled) time series data set to run TsFCI.");
-//        }
-        
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-        	if(knowledge != null) {
-        		dataSet.setKnowledge(knowledge);
-        	}
             edu.cmu.tetrad.search.TsFci search = new edu.cmu.tetrad.search.TsFci(test.getTest(dataSet, parameters, trueGraph));
             search.setDepth(parameters.getInt(Params.DEPTH));
             search.setKnowledge(dataSet.getKnowledge());
@@ -76,7 +67,7 @@ public class TsFci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, tsFci, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -101,11 +92,6 @@ public class TsFci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
         }
     }
 
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        return new TsDagToPag(new EdgeListGraph(graph)).convert();
-//    }
-
     public String getDescription() {
         return "tsFCI (Time Series Fast Causal Inference) using " + test.getDescription()
                 + (algorithm != null ? " with initial graph from "
@@ -123,16 +109,6 @@ public class TsFci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
 
         parameters.add(Params.VERBOSE);
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return this.knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 
     @Override

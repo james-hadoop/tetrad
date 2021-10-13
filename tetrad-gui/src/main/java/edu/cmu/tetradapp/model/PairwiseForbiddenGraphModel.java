@@ -47,24 +47,23 @@ public class PairwiseForbiddenGraphModel extends KnowledgeBoxModel {
      */
     public PairwiseForbiddenGraphModel(KnowledgeBoxInput input, Parameters params) {
         super(new KnowledgeBoxInput[]{input}, params);
-
-        if (input == null) {
-            throw new NullPointerException();
-        }
-
-        setKnowledgeBoxInput(input);
-
-        createKnowledge();
-
-        TetradLogger.getInstance().log("info", "Knowledge");
-
-        // This is a conundrum. At this point I dont know whether I am in a
-        // simulation or not. If in a simulation, I should print the knowledge.
-        // If not, I should wait for resetParams to be called. For now I'm
-        // printing the knowledge if it's not empty.
-        if (!((IKnowledge) params.get("knowledge", new Knowledge2())).isEmpty()) {
-            TetradLogger.getInstance().log("knowledge", params.get("knowledge", new Knowledge2()).toString());
-        }
+//
+//        if (input == null) {
+//            throw new NullPointerException();
+//        }
+//
+//
+//        createKnowledge();
+//
+//        TetradLogger.getInstance().log("info", "Knowledge");
+//
+//        // This is a conundrum. At this point I dont know whether I am in a
+//        // simulation or not. If in a simulation, I should print the knowledge.
+//        // If not, I should wait for resetParams to be called. For now I'm
+//        // printing the knowledge if it's not empty.
+//        if (!((IKnowledge) params.get("knowledge", new Knowledge2())).isEmpty()) {
+//            TetradLogger.getInstance().log("knowledge", params.get("knowledge", new Knowledge2()).toString());
+//        }
     }
 
     /**
@@ -82,75 +81,67 @@ public class PairwiseForbiddenGraphModel extends KnowledgeBoxModel {
             return;
         }
 
-        DataSet dataSet = (DataSet) (((DataWrapper) getKnowledgeBoxInput()).getDataModelList().get(0));
-
-        List<Node> vars = dataSet.getVariables();
-        List<Node> contVars = new ArrayList<>();
-
-        for (Node node : vars) {
-            if (node instanceof ContinuousVariable) contVars.add(node);
-        }
-
-        DataSet cont = dataSet.subsetColumns(contVars);
-
-        Fask fask = new Fask(DataUtils.getContinuousDataSet(cont),
-                new IndTestFisherZ(cont, 0.01));
-        fask.search();
-
-        knwl.clear();
-
-        List<String> varNames = getVarNames();
-        getKnowledgeBoxInput().getVariableNames().stream()
-                .filter(e -> !e.startsWith("E_"))
-                .forEach(e -> {
-                    varNames.add(e);
-                    knwl.addVariable(e);
-                });
-
-        List<Node> nodes = dataSet.getVariables();
-
-        Matrix _data = dataSet.getDoubleData();
-
-        int numOfNodes = nodes.size();
-
-        for (int i = 0; i < numOfNodes; i++) {
-            for (int j = i + 1; j < numOfNodes; j++) {
-                Node n1 = nodes.get(i);
-                Node n2 = nodes.get(j);
-
-                if (!(n1 instanceof ContinuousVariable && n2 instanceof ContinuousVariable)) {
-                    continue;
-                }
-
-                if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
-                    continue;
-                }
-
-                double[] x1 = _data.getColumn(i).toArray();
-                double[] x2 = _data.getColumn(j).toArray();
-
-                double a1 = new AndersonDarlingTest(x1).getASquaredStar();
-                double a2 = new AndersonDarlingTest(x2).getASquaredStar();
-
-                double v = fask.leftRight(n1, n2);
-
-                if (a1 > 1 || a2 > 1) {
-                    if (v > 0) {
-                        knwl.setForbidden(n2.getName(), n1.getName());
-                    } else {
-                        knwl.setForbidden(n1.getName(), n2.getName());
-                    }
-                } else if (a1 < 1 && a2 < 1) {
-                    if (abs(v) > 0.1) {
-                        if (v > 0) {
-                            knwl.setForbidden(n2.getName(), n1.getName());
-                        } else {
-                            knwl.setForbidden(n1.getName(), n2.getName());
-                        }
-                    }
-                }
-            }
-        }
+//        DataSet dataSet = (DataSet) (((DataWrapper) getKnowledgeBoxInput()).getDataModelList().get(0));
+//
+//        List<Node> vars = dataSet.getVariables();
+//        List<Node> contVars = new ArrayList<>();
+//
+//        for (Node node : vars) {
+//            if (node instanceof ContinuousVariable) contVars.add(node);
+//        }
+//
+//        DataSet cont = dataSet.subsetColumns(contVars);
+//
+//        Fask fask = new Fask(DataUtils.getContinuousDataSet(cont),
+//                new IndTestFisherZ(cont, 0.01));
+//        fask.search();
+//
+//        knwl.clear();
+//
+//        List<Node> nodes = dataSet.getVariables();
+//
+//        Matrix _data = dataSet.getDoubleData();
+//
+//        int numOfNodes = nodes.size();
+//
+//        for (int i = 0; i < numOfNodes; i++) {
+//            for (int j = i + 1; j < numOfNodes; j++) {
+//                Node n1 = nodes.get(i);
+//                Node n2 = nodes.get(j);
+//
+//                if (!(n1 instanceof ContinuousVariable && n2 instanceof ContinuousVariable)) {
+//                    continue;
+//                }
+//
+//                if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
+//                    continue;
+//                }
+//
+//                double[] x1 = _data.getColumn(i).toArray();
+//                double[] x2 = _data.getColumn(j).toArray();
+//
+//                double a1 = new AndersonDarlingTest(x1).getASquaredStar();
+//                double a2 = new AndersonDarlingTest(x2).getASquaredStar();
+//
+//                double v = fask.leftRight(n1, n2);
+//
+//                if (a1 > 1 || a2 > 1) {
+//                    if (v > 0) {
+//                        knwl.setForbidden(n2.getName(), n1.getName());
+//                    } else {
+//                        knwl.setForbidden(n1.getName(), n2.getName());
+//                    }
+//                } else if (a1 < 1 && a2 < 1) {
+//                    if (abs(v) > 0.1) {
+//                        if (v > 0) {
+//                            knwl.setForbidden(n2.getName(), n1.getName());
+//                        } else {
+//                            knwl.setForbidden(n1.getName(), n2.getName());
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
     public Graph getResultGraph() {

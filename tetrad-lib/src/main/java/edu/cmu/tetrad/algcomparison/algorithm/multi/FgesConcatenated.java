@@ -3,12 +3,10 @@ package edu.cmu.tetrad.algcomparison.algorithm.multi;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -26,7 +24,7 @@ import java.util.List;
  * @author jdramsey
  */
 @Bootstrapping
-public class FgesConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
+public class FgesConcatenated implements MultiDataSetAlgorithm, KnowledgeSettable {
 	static final long serialVersionUID = 23L;
 	private ScoreWrapper score;
 	private IKnowledge knowledge = new Knowledge2();

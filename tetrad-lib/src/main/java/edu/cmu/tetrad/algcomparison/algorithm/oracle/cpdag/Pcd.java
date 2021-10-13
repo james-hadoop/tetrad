@@ -1,17 +1,16 @@
 package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.IndTestScore;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.search.SemBicScoreDeterministic;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,16 +20,15 @@ import java.util.List;
  * @author jdramsey
  */
 @Bootstrapping
-public class Pcd implements Algorithm, HasKnowledge {
+public class Pcd implements Algorithm {
     static final long serialVersionUID = 23L;
-    private IKnowledge knowledge = new Knowledge2();
 
     public Pcd() {
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
-    	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
+        if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             IndTestScore test;
 
             if (dataSet instanceof ICovarianceMatrix) {
@@ -49,19 +47,19 @@ public class Pcd implements Algorithm, HasKnowledge {
 
             edu.cmu.tetrad.search.Pcd search = new edu.cmu.tetrad.search.Pcd(test);
             search.setDepth(parameters.getInt(Params.DEPTH));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             return search.search();
-    	}else{
-    		Pcd algorithm = new Pcd();
-   		
- 			DataSet data = (DataSet) dataSet;
-			GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+        } else {
+            Pcd algorithm = new Pcd();
+
+            DataSet data = (DataSet) dataSet;
+            GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
-            
+
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
                 case 0:
@@ -73,19 +71,14 @@ public class Pcd implements Algorithm, HasKnowledge {
                 case 2:
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
             }
-			search.setEdgeEnsemble(edgeEnsemble);
-			search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
-			
-			search.setParameters(parameters);
-			search.setVerbose(parameters.getBoolean(Params.VERBOSE));
-			return search.search();
-    	}    	
-    }
+            search.setEdgeEnsemble(edgeEnsemble);
+            search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
 
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        return SearchGraphUtils.cpdagForDag(graph);
-//    }
+            search.setParameters(parameters);
+            search.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            return search.search();
+        }
+    }
 
     @Override
     public String getDescription() {
@@ -107,15 +100,5 @@ public class Pcd implements Algorithm, HasKnowledge {
         parameters.add(Params.VERBOSE);
 
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 }

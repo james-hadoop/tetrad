@@ -24,7 +24,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.TsImages;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.SingleGraphAlg;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
 import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Gaussian;
@@ -543,7 +543,7 @@ public class AlgorithmCard extends JPanel {
             if ("all".equals(algoType)) {
                 if (knowledgeChkBox.isSelected()) {
                     algorithmModels.getModels(dataType, multiDataAlgo).stream()
-                            .filter(e -> HasKnowledge.class.isAssignableFrom(e.getAlgorithm().getClazz()))
+                            .filter(e -> KnowledgeSettable.class.isAssignableFrom(e.getAlgorithm().getClazz()))
                             .forEach(e -> algoModels.addElement(e));
                 } else {
                     algorithmModels.getModels(dataType, multiDataAlgo).stream()
@@ -552,7 +552,7 @@ public class AlgorithmCard extends JPanel {
             } else {
                 if (knowledgeChkBox.isSelected()) {
                     algorithmModels.getModels(AlgType.valueOf(algoType), dataType, multiDataAlgo).stream()
-                            .filter(e -> HasKnowledge.class.isAssignableFrom(e.getAlgorithm().getClazz()))
+                            .filter(e -> KnowledgeSettable.class.isAssignableFrom(e.getAlgorithm().getClazz()))
                             .forEach(e -> algoModels.addElement(e));
                 } else {
                     algorithmModels.getModels(AlgType.valueOf(algoType), dataType, multiDataAlgo).stream()

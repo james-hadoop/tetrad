@@ -1,12 +1,8 @@
 package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.util.Parameters;
 
@@ -18,10 +14,10 @@ import java.util.List;
  *
  * @author jdramsey
  */
-public class SingleGraphAlg implements Algorithm, HasKnowledge {
+public class SingleGraphAlg implements Algorithm {
 
     static final long serialVersionUID = 23L;
-    private Graph graph;
+    private final Graph graph;
 
     public SingleGraphAlg(Graph graph) {
         this.graph = graph;
@@ -31,11 +27,6 @@ public class SingleGraphAlg implements Algorithm, HasKnowledge {
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         return graph;
     }
-
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        return new EdgeListGraph(graph);
-//    }
 
     @Override
     public String getDescription() {
@@ -51,14 +42,4 @@ public class SingleGraphAlg implements Algorithm, HasKnowledge {
     public List<String> getParameters() {
         return new ArrayList<>();
     }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return new Knowledge2();
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-    }
-
 }

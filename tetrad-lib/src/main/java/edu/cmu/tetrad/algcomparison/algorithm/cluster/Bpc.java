@@ -1,7 +1,6 @@
 package edu.cmu.tetrad.algcomparison.algorithm.cluster;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
@@ -28,7 +27,7 @@ import java.util.List;
 //        algoType = AlgType.search_for_structure_over_latents
 //)
 @Bootstrapping
-public class Bpc implements Algorithm, TakesInitialGraph, HasKnowledge, ClusterAlgorithm {
+public class Bpc implements Algorithm, TakesInitialGraph, ClusterAlgorithm {
 
     static final long serialVersionUID = 23L;
     private Algorithm algorithm = null;
@@ -61,11 +60,6 @@ public class Bpc implements Algorithm, TakesInitialGraph, HasKnowledge, ClusterA
             return bpc.search();
         } else {
             Bpc algorithm = new Bpc();
-
-            //algorithm.setKnowledge(knowledge);
-//          if (initialGraph != null) {
-//      		algorithm.setInitialGraph(initialGraph);
-//  		}
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -117,16 +111,6 @@ public class Bpc implements Algorithm, TakesInitialGraph, HasKnowledge, ClusterA
         parameters.add(Params.VERBOSE);
 
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 
     @Override

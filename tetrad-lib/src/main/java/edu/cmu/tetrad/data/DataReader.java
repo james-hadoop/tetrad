@@ -21,23 +21,12 @@
 package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.NamingProtocol;
 import edu.cmu.tetrad.util.TetradLogger;
-import edu.cmu.tetrad.util.Matrix;
 
-import java.io.CharArrayReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -54,65 +43,51 @@ import java.util.regex.Pattern;
 public final class DataReader implements IDataReader {
 
     /**
+     * The tetrad logger.
+     */
+    private final TetradLogger logger = TetradLogger.getInstance();
+    /**
      * A set of characters that in any combination makes up a delimiter.
      */
     private DelimiterType delimiterType = DelimiterType.WHITESPACE;
-
     /**
      * True iff variable names in the data section of the file are listed in the
      * first row.
      */
     private boolean varNamesSupplied = true;
-
     /**
      * True iff case IDs are provided in the file.
      */
     private boolean idsSupplied = false;
-
     /**
      * Assuming caseIdsPresent is true, this is null if case IDs are in an
      * unlabeled initial column; otherwise, they are assumed to be in a labeled
      * column by this name.
      */
     private String idLabel = null;
-
     /**
      * The initial segment of a line that is to be considered a comment line.
      */
     private String commentMarker = "//";
-
     /**
      * A character that sets off quoted strings.
      */
     private char quoteChar = '"';
-
     /**
      * In parsing data, missing values will be marked either by this string or
      * by an empty string.
      */
     private String missingValueMarker = "*";
-
     /**
      * In parsing integral columns, columns with up to this many distinct values
      * will be parsed as discrete; otherwise, continuous.
      */
     private int maxIntegralDiscrete = 0;
-
     /**
      * Known variable definitions. These will usurp any guessed variable
      * definitions by name.
      */
     private List<Node> knownVariables = new LinkedList<>();
-
-    /**
-     * The tetrad logger.
-     */
-    private final TetradLogger logger = TetradLogger.getInstance();
-
-    /**
-     * True if variable names should be read lowercase.
-     */
-    private boolean readVariablesLowercase = false;
 
     /**
      * Constructs a new data parser.
@@ -121,6 +96,30 @@ public final class DataReader implements IDataReader {
     }
 
     //============================PUBLIC METHODS========================//
+
+    private static boolean isIntegral(Set<String> strings) {
+        for (String s : strings) {
+            try {
+                Integer.parseInt(s);
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean isDouble(Set<String> strings) {
+        for (String s : strings) {
+            try {
+                Double.parseDouble(s);
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /**
      * Lines beginning with blanks or this marker will be skipped.
@@ -312,7 +311,7 @@ public final class DataReader implements IDataReader {
         }
 
         // The delimiter comes from the delimiter type.
-        Pattern delimiter = delimiterType.getCpdag();
+        Pattern delimiter = delimiterType.getPattern();
 
         // Read in variable definitions.
         String line = lineizer.nextLine();
@@ -344,7 +343,7 @@ public final class DataReader implements IDataReader {
                 }
 
                 RegexTokenizer tokenizer = new RegexTokenizer(line,
-                        DelimiterType.COLON.getCpdag(), quoteChar);
+                        DelimiterType.COLON.getPattern(), quoteChar);
                 String name = tokenizer.nextToken().trim();
 
                 if ("".equals(name)) {
@@ -370,7 +369,7 @@ public final class DataReader implements IDataReader {
                 } else {
                     List<String> categories = new LinkedList<>();
                     tokenizer = new RegexTokenizer(values,
-                            delimiterType.getCpdag(), quoteChar);
+                            delimiterType.getPattern(), quoteChar);
 
                     while (tokenizer.hasMoreTokens()) {
                         String token = tokenizer.nextToken().trim();
@@ -429,18 +428,7 @@ public final class DataReader implements IDataReader {
                             + ": Duplicate variable name (" + name + ").");
                 }
 
-//               True if variable names should be read uppercase.
-                /*
-                 True if variable names should be read lowercase.
-                 */
-                boolean readVariablesUppercase = false;
-                if (readVariablesLowercase) {
-                    varNames.add(name.toLowerCase());
-                } else if (readVariablesUppercase) {
-                    varNames.add(name.toUpperCase());
-                } else {
-                    varNames.add(name);
-                }
+                varNames.add(name);
             }
 
             dataFirstLine = null;
@@ -531,11 +519,6 @@ public final class DataReader implements IDataReader {
             RegexTokenizer tokenizer1 = new RegexTokenizer(line2, description.getDelimiter(),
                     quoteChar);
 
-//            if (description.isMultColumnIncluded() && tokenizer1.hasMoreTokens()) {
-//                String token = tokenizer1.nextToken().trim();
-//                int multiplier = Integer.parseInt(token);
-//                dataSet.setMultiplier(row, multiplier);
-//            }
             int col = -1;
 
             while (tokenizer1.hasMoreTokens()) {
@@ -563,11 +546,9 @@ public final class DataReader implements IDataReader {
             dataSet.removeColumn(idVar);
         }
 
-        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getCpdag());
+        IKnowledge knowledge = DataUtils.parseKnowledge(lineizer, delimiterType.getPattern());
 
-        if (knowledge != null) {
-            dataSet.setKnowledge(knowledge);
-        }
+        dataSet.setKnowledge(knowledge);
 
         return dataSet;
     }
@@ -638,11 +619,7 @@ public final class DataReader implements IDataReader {
         this.logger.log("info", "Comment marker = " + commentMarker);
         this.logger.log("info", "Delimiter type = " + delimiterType);
         this.logger.log("info", "Quote char = " + quoteChar);
-        //        LogUtils.getInstance().info("Var names first row = " + varNamesSupplied);
-//        LogUtils.getInstance().info("IDs supplied = " + idsSupplied);
-//        LogUtils.getInstance().info("ID label = " + idLabel);
         this.logger.log("info", "Missing value marker = " + missingValueMarker);
-        //        LogUtils.getInstance().info("Max discrete = " + maxIntegralDiscrete);
         this.logger.log("info", "--------------------");
 
         Lineizer lineizer = new Lineizer(reader, commentMarker);
@@ -655,7 +632,7 @@ public final class DataReader implements IDataReader {
         }
 
         // Read br sample size.
-        RegexTokenizer st = new RegexTokenizer(line, delimiterType.getCpdag(), quoteChar);
+        RegexTokenizer st = new RegexTokenizer(line, delimiterType.getPattern(), quoteChar);
         String token = st.nextToken();
 
         int n;
@@ -680,7 +657,7 @@ public final class DataReader implements IDataReader {
             line = line.substring(0, line.length() - 1);
         }
 
-        st = new RegexTokenizer(line, delimiterType.getCpdag(), quoteChar);
+        st = new RegexTokenizer(line, delimiterType.getPattern(), quoteChar);
 
         List<String> vars = new ArrayList<>();
 
@@ -695,7 +672,7 @@ public final class DataReader implements IDataReader {
             vars.add(_token);
         }
 
-        String[] varNames = vars.toArray(new String[vars.size()]);
+        String[] varNames = vars.toArray(new String[0]);
 
         this.logger.log("info", "Variables:");
 
@@ -707,7 +684,7 @@ public final class DataReader implements IDataReader {
         Matrix c = new Matrix(vars.size(), vars.size());
 
         for (int i = 0; i < vars.size(); i++) {
-            st = new RegexTokenizer(lineizer.nextLine(), delimiterType.getCpdag(), quoteChar);
+            st = new RegexTokenizer(lineizer.nextLine(), delimiterType.getPattern(), quoteChar);
 
             for (int j = 0; j <= i; j++) {
                 if (!st.hasMoreTokens()) {
@@ -737,44 +714,16 @@ public final class DataReader implements IDataReader {
             }
         }
 
-        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getCpdag());
+        IKnowledge knowledge = DataUtils.parseKnowledge(lineizer, delimiterType.getPattern());
 
         ICovarianceMatrix covarianceMatrix
                 = new CovarianceMatrix(DataUtils.createContinuousVariables(varNames), c, n);
 
-        if (knowledge != null) {
-            covarianceMatrix.setKnowledge(knowledge);
-        }
+        covarianceMatrix.setKnowledge(knowledge);
 
         this.logger.log("info", "\nData set loaded!");
         this.logger.reset();
         return covarianceMatrix;
-    }
-
-    /**
-     * Loads knowledge from a file. Assumes knowledge is the only thing in the
-     * file. No jokes please. :)
-     */
-    @Override
-    public IKnowledge parseKnowledge(File file) throws IOException {
-        FileReader reader = new FileReader(file);
-        Lineizer lineizer = new Lineizer(reader, commentMarker);
-        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getCpdag());
-        this.logger.reset();
-        return knowledge;
-    }
-
-    /**
-     * Parses knowledge from the char array, assuming that's all there is in the
-     * char array.
-     */
-    @Override
-    public IKnowledge parseKnowledge(char[] chars) {
-        CharArrayReader reader = new CharArrayReader(chars);
-        Lineizer lineizer = new Lineizer(reader, commentMarker);
-        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getCpdag());
-        this.logger.reset();
-        return knowledge;
     }
 
     //============================PRIVATE METHODS========================//
@@ -829,394 +778,6 @@ public final class DataReader implements IDataReader {
     }
 
     /**
-     * Reads a knowledge file in tetrad2 format (almost--only does temporal
-     * tiers currently). Format is:
-     * <pre>
-     * /knowledge
-     * addtemporal
-     * 0 x1 x2
-     * 1 x3 x4
-     * 4 x5
-     * </pre>
-     */
-    private IKnowledge parseKnowledge(Lineizer lineizer, Pattern delimiter) {
-        IKnowledge knowledge = new Knowledge2();
-
-        String line = lineizer.nextLine();
-        String firstLine = line;
-
-        if (line == null) {
-            return new Knowledge2();
-        }
-
-        if (line.startsWith("/knowledge")) {
-            line = lineizer.nextLine();
-            firstLine = line;
-        }
-
-        this.logger.log("info", "\nLoading knowledge.");
-
-        SECTIONS:
-        while (lineizer.hasMoreLines()) {
-            if (firstLine == null) {
-                line = lineizer.nextLine();
-            } else {
-                line = firstLine;
-            }
-
-            // "addtemp" is the original in Tetrad 2.
-            if ("addtemporal".equalsIgnoreCase(line.trim())) {
-                while (lineizer.hasMoreLines()) {
-                    line = lineizer.nextLine();
-
-                    if (line.startsWith("forbiddirect")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("requiredirect")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("forbiddengroup")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("requiredgroup")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    int tier = -1;
-
-                    RegexTokenizer st = new RegexTokenizer(line, delimiter, quoteChar);
-                    if (st.hasMoreTokens()) {
-                        String token = st.nextToken();
-                        boolean forbiddenWithin = false;
-                        if (token.endsWith("*")) {
-                            forbiddenWithin = true;
-                            token = token.substring(0, token.length() - 1);
-                        }
-
-                        tier = Integer.parseInt(token);
-                        if (tier < 1) {
-                            throw new IllegalArgumentException(
-                                    lineizer.getLineNumber() + ": Tiers must be 1, 2...");
-                        }
-                        if (forbiddenWithin) {
-                            knowledge.setTierForbiddenWithin(tier - 1, true);
-                        }
-                    }
-
-                    while (st.hasMoreTokens()) {
-                        String token = st.nextToken();
-                        token = token.trim();
-
-                        if (token.isEmpty()) {
-                            continue;
-                        }
-
-                        String name = substitutePeriodsForSpaces(token);
-
-                        addVariable(knowledge, name);
-
-                        knowledge.addToTier(tier - 1, name);
-
-                        this.logger.log("info", "Adding to tier " + (tier - 1) + " " + name);
-                    }
-                }
-            } else if ("forbiddengroup".equalsIgnoreCase(line.trim())) {
-                while (lineizer.hasMoreLines()) {
-                    line = lineizer.nextLine();
-
-                    if (line.startsWith("forbiddirect")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("requiredirect")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("addtemporal")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("requiredgroup")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    Set<String> from = new HashSet<>();
-                    Set<String> to = new HashSet<>();
-
-                    RegexTokenizer st = new RegexTokenizer(line, delimiter, quoteChar);
-
-                    while (st.hasMoreTokens()) {
-                        String token = st.nextToken();
-                        token = token.trim();
-                        String name = substitutePeriodsForSpaces(token);
-
-                        addVariable(knowledge, name);
-
-                        from.add(name);
-                    }
-
-                    line = lineizer.nextLine();
-
-                    st = new RegexTokenizer(line, delimiter, quoteChar);
-
-                    while (st.hasMoreTokens()) {
-                        String token = st.nextToken();
-                        token = token.trim();
-                        String name = substitutePeriodsForSpaces(token);
-
-                        addVariable(knowledge, name);
-
-                        to.add(name);
-                    }
-
-                    KnowledgeGroup group = new KnowledgeGroup(KnowledgeGroup.FORBIDDEN, from, to);
-
-                    knowledge.addKnowledgeGroup(group);
-                }
-            } else if ("requiredgroup".equalsIgnoreCase(line.trim())) {
-                while (lineizer.hasMoreLines()) {
-                    line = lineizer.nextLine();
-
-                    if (line.startsWith("forbiddirect")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("requiredirect")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("forbiddengroup")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("addtemporal")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    Set<String> from = new HashSet<>();
-                    Set<String> to = new HashSet<>();
-
-                    RegexTokenizer st = new RegexTokenizer(line, delimiter, quoteChar);
-
-                    while (st.hasMoreTokens()) {
-                        String token = st.nextToken();
-                        token = token.trim();
-                        String name = substitutePeriodsForSpaces(token);
-
-                        addVariable(knowledge, name);
-
-                        from.add(name);
-                    }
-
-                    line = lineizer.nextLine();
-
-                    st = new RegexTokenizer(line, delimiter, quoteChar);
-
-                    while (st.hasMoreTokens()) {
-                        String token = st.nextToken();
-                        token = token.trim();
-                        String name = substitutePeriodsForSpaces(token);
-
-                        addVariable(knowledge, name);
-
-                        to.add(name);
-                    }
-
-                    KnowledgeGroup group = new KnowledgeGroup(KnowledgeGroup.REQUIRED, from, to);
-
-                    knowledge.addKnowledgeGroup(group);
-                }
-            } else if ("forbiddirect".equalsIgnoreCase(line.trim())) {
-                while (lineizer.hasMoreLines()) {
-                    line = lineizer.nextLine();
-
-                    if (line.startsWith("addtemporal")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("requiredirect")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("forbiddengroup")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("requiredgroup")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    RegexTokenizer st = new RegexTokenizer(line, delimiter, quoteChar);
-                    String from = null, to = null;
-
-                    if (st.hasMoreTokens()) {
-                        from = st.nextToken();
-                    }
-
-                    if (st.hasMoreTokens()) {
-                        to = st.nextToken();
-                    }
-
-                    if (st.hasMoreTokens()) {
-                        throw new IllegalArgumentException("Line " + lineizer.getLineNumber()
-                                + ": Lines contains more than two elements.");
-                    }
-
-                    if (from == null || to == null) {
-                        throw new IllegalArgumentException("Line " + lineizer.getLineNumber()
-                                + ": Line contains fewer than two elements.");
-                    }
-
-                    addVariable(knowledge, from);
-
-                    addVariable(knowledge, to);
-
-                    knowledge.setForbidden(from, to);
-                }
-            } else if ("requiredirect".equalsIgnoreCase(line.trim())) {
-                while (lineizer.hasMoreLines()) {
-                    line = lineizer.nextLine();
-
-                    if (line.startsWith("forbiddirect")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("addtemporal")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("forbiddengroup")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("requiredgroup")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    RegexTokenizer st = new RegexTokenizer(line, delimiter, quoteChar);
-                    String from = null, to = null;
-
-                    if (st.hasMoreTokens()) {
-                        from = st.nextToken();
-                    }
-
-                    if (st.hasMoreTokens()) {
-                        to = st.nextToken();
-                    }
-
-                    if (st.hasMoreTokens()) {
-                        throw new IllegalArgumentException("Line " + lineizer.getLineNumber()
-                                + ": Lines contains more than two elements.");
-                    }
-
-                    if (from == null || to == null) {
-                        throw new IllegalArgumentException("Line " + lineizer.getLineNumber()
-                                + ": Line contains fewer than two elements.");
-                    }
-
-                    addVariable(knowledge, from);
-                    addVariable(knowledge, to);
-
-                    knowledge.removeForbidden(from, to);
-                    knowledge.setRequired(from, to);
-                }
-            } else {
-                throw new IllegalArgumentException("Line " + lineizer.getLineNumber()
-                        + ": Expecting 'addtemporal', 'forbiddirect' or 'requiredirect'.");
-            }
-        }
-
-        return knowledge;
-    }
-
-    private void addVariable(IKnowledge knowledge, String from) {
-        if (!knowledge.getVariables().contains(from)) {
-            knowledge.addVariable(from);
-        }
-    }
-
-    private static String substitutePeriodsForSpaces(String s) {
-        return s.replaceAll(" ", ".");
-    }
-
-    public void setReadVariablesLowercase(boolean readVariablesLowercase) {
-        this.readVariablesLowercase = readVariablesLowercase;
-    }
-
-    public void setReadVariablesUppercase(boolean readVariablesUppercase) {
-        this.readVariablesLowercase = readVariablesUppercase;
-    }
-
-    private static class DataSetDescription {
-
-        private final List<Node> variables;
-        private final int numRows;
-        private final int idIndex;
-        private final boolean variablesSectionIncluded;
-        private final Pattern delimiter;
-//        private final boolean multColumnIncluded;
-
-        public DataSetDescription(List<Node> variables, int numRows, int idIndex,
-                                  boolean variablesSectionIncluded, Pattern delimiter
-                                  //                , boolean multColumnIncluded
-        ) {
-            this.variables = variables;
-            this.numRows = numRows;
-            this.idIndex = idIndex;
-            this.variablesSectionIncluded = variablesSectionIncluded;
-            this.delimiter = delimiter;
-//            this.multColumnIncluded = multColumnIncluded;
-        }
-
-        public List<Node> getVariables() {
-            return variables;
-        }
-
-        public int getNumRows() {
-            return numRows;
-        }
-
-        public int getIdIndex() {
-            return idIndex;
-        }
-
-        public boolean isVariablesSectionIncluded() {
-            return variablesSectionIncluded;
-        }
-
-        public Pattern getDelimiter() {
-            return delimiter;
-        }
-
-//        public boolean isMultColumnIncluded() {
-//            return multColumnIncluded;
-//        }
-    }
-
-    /**
      * Scans the file for variable definitions and number of cases.
      *
      * @param varNames  Names of variables, if known. Otherwise, if null,
@@ -1236,7 +797,7 @@ public final class DataReader implements IDataReader {
         List<Set<String>> dataStrings = new ArrayList<>();
 
         for (int i = 0; i < varNames.size(); i++) {
-            dataStrings.add(new HashSet<String>(varNames.size()));
+            dataStrings.add(new HashSet<>(varNames.size()));
         }
 
         int row = -1;
@@ -1331,20 +892,7 @@ public final class DataReader implements IDataReader {
                 categories.remove("");
                 categories.remove(missingValueMarker);
 
-                Collections.sort(categories, new Comparator<String>() {
-                    public int compare(String o1, String o2) {
-                        return o1.compareTo(o2);
-//                        try {
-//                            int i1 = Integer.parseInt(o1);
-//                            int i2 = Integer.parseInt(o2);
-//                            return i1 - i2;
-//                            return i2 < i1 ? -1 : i2 == i1 ? 0 : 1;
-//                        }
-//                        catch (NumberFormatException e) {
-//                            return o1.compareTo(o2);
-//                        }
-                    }
-                });
+                categories.sort(String::compareTo);
 
                 String name = varNames.get(i);
 
@@ -1362,13 +910,6 @@ public final class DataReader implements IDataReader {
             }
         }
 
-        boolean multColumnIncluded = false;
-
-//        if (variables.get(0).getName().equals("MULT")) {
-//            multColumnIncluded = true;
-//            variables.remove(0);
-//            varNames.remove(0);
-//        }
         // Print out a report of the variable definitions guessed at (or
         // read in through the /variables section or specified as known
         // variables.
@@ -1408,42 +949,43 @@ public final class DataReader implements IDataReader {
         return strings.size() > maxIntegralDiscrete;
     }
 
-    private static boolean isIntegral(Set<String> strings) {
-        for (String s : strings) {
-            try {
-                Integer.parseInt(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
+    private static class DataSetDescription {
+        private final List<Node> variables;
+        private final int numRows;
+        private final int idIndex;
+        private final boolean variablesSectionIncluded;
+        private final Pattern delimiter;
+
+        public DataSetDescription(List<Node> variables, int numRows, int idIndex,
+                                  boolean variablesSectionIncluded, Pattern delimiter
+                                  //                , boolean multColumnIncluded
+        ) {
+            this.variables = variables;
+            this.numRows = numRows;
+            this.idIndex = idIndex;
+            this.variablesSectionIncluded = variablesSectionIncluded;
+            this.delimiter = delimiter;
+//            this.multColumnIncluded = multColumnIncluded;
         }
 
-        return true;
-    }
-
-    private static boolean isDouble(Set<String> strings) {
-        for (String s : strings) {
-            try {
-                Double.parseDouble(s);
-            } catch (NumberFormatException e) {
-                return false;
-            }
+        public List<Node> getVariables() {
+            return variables;
         }
 
-        return true;
-    }
+        public int getNumRows() {
+            return numRows;
+        }
 
-//    /**
-//     * Loads text from the given file in the form of a char[] array.
-//     */
-//    private static char[] loadChars(File file) throws IOException {
-//        FileReader reader = new FileReader(file);
-//        CharArrayWriter writer = new CharArrayWriter();
-//        int c;
-//
-//        while ((c = reader.read()) != -1) {
-//            writer.write(c);
-//        }
-//
-//        return writer.toCharArray();
-//    }
+        public int getIdIndex() {
+            return idIndex;
+        }
+
+        public boolean isVariablesSectionIncluded() {
+            return variablesSectionIncluded;
+        }
+
+        public Pattern getDelimiter() {
+            return delimiter;
+        }
+    }
 }

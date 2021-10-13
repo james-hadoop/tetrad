@@ -1539,7 +1539,7 @@ public class PerformanceTests {
 
         System.out.println("Graph done");
 
-        Graph left = SearchGraphUtils.cpdagForDag(dag);//  pc1.search();
+        Graph left = SearchGraphUtils.cpdagForDag(dag);
 
         System.out.println("First FAS graph = " + left);
 
@@ -1549,11 +1549,8 @@ public class PerformanceTests {
         System.out.println("Second FAS graph = " + top);
 
         top = GraphUtils.replaceNodes(top, left.getNodes());
-//
-        top = GraphUtils.replaceNodes(top, left.getNodes());
 
         int[][] counts = GraphUtils.edgeMisclassificationCounts(left, top, true);
-//        int[][] counts = edgeMisclassificationCounts(top, top);
         System.out.println(GraphUtils.edgeMisclassifications(counts));
 
         Set<Edge> leftEdges = left.getEdges();

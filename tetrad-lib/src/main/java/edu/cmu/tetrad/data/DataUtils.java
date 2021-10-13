@@ -31,6 +31,9 @@ import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.correlation.Covariance;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.rmi.MarshalledObject;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -39,6 +42,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * Some static utility methods for dealing with data sets.
@@ -2001,6 +2005,352 @@ public final class DataUtils {
 
         double rho = (n * sum - n * m) / (m * (n * n - n));
         return n / (1. + (n - 1.) * rho);
+    }
+
+    /**
+     * Loads knowledge from a file. Assumes knowledge is the only thing in the
+     * file. No jokes please. :)
+     */
+    public static IKnowledge parseKnowledge(File file, DelimiterType delimiterType, String commentMarker) throws IOException {
+        FileReader reader = new FileReader(file);
+        Lineizer lineizer = new Lineizer(reader, commentMarker);
+        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getPattern());
+        TetradLogger.getInstance().reset();
+        return knowledge;
+    }
+
+    /**
+     * Reads a knowledge file in tetrad2 format (almost--only does temporal
+     * tiers currently). Format is:
+     * <pre>
+     * /knowledge
+     * addtemporal
+     * 0 x1 x2
+     * 1 x3 x4
+     * 4 x5
+     * </pre>
+     */
+    public static IKnowledge parseKnowledge(Lineizer lineizer, Pattern delimiter) {
+        IKnowledge knowledge = new Knowledge2();
+
+        String line = lineizer.nextLine();
+        String firstLine = line;
+
+        if (line == null) {
+            return new Knowledge2();
+        }
+
+        if (line.startsWith("/knowledge")) {
+            line = lineizer.nextLine();
+            firstLine = line;
+        }
+
+        TetradLogger.getInstance().log("info", "\nLoading knowledge.");
+
+        SECTIONS:
+        while (lineizer.hasMoreLines()) {
+            if (firstLine == null) {
+                line = lineizer.nextLine();
+            } else {
+                line = firstLine;
+            }
+
+            // "addtemp" is the original in Tetrad 2.
+            if ("addtemporal".equalsIgnoreCase(line.trim())) {
+                while (lineizer.hasMoreLines()) {
+                    line = lineizer.nextLine();
+
+                    if (line.startsWith("forbiddirect")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("requiredirect")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("forbiddengroup")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("requiredgroup")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    int tier = -1;
+
+                    RegexTokenizer st = new RegexTokenizer(line, delimiter, '"');
+                    if (st.hasMoreTokens()) {
+                        String token = st.nextToken();
+                        boolean forbiddenWithin = false;
+                        if (token.endsWith("*")) {
+                            forbiddenWithin = true;
+                            token = token.substring(0, token.length() - 1);
+                        }
+
+                        tier = Integer.parseInt(token);
+                        if (tier < 1) {
+                            throw new IllegalArgumentException(
+                                    lineizer.getLineNumber() + ": Tiers must be 1, 2...");
+                        }
+                        if (forbiddenWithin) {
+                            knowledge.setTierForbiddenWithin(tier - 1, true);
+                        }
+                    }
+
+                    while (st.hasMoreTokens()) {
+                        String token = st.nextToken();
+                        token = token.trim();
+
+                        if (token.isEmpty()) {
+                            continue;
+                        }
+
+                        String name = substitutePeriodsForSpaces(token);
+
+                        addVariable(knowledge, name);
+
+                        knowledge.addToTier(tier - 1, name);
+
+                        TetradLogger.getInstance().log("info", "Adding to tier " + (tier - 1) + " " + name);
+                    }
+                }
+            } else if ("forbiddengroup".equalsIgnoreCase(line.trim())) {
+                while (lineizer.hasMoreLines()) {
+                    line = lineizer.nextLine();
+
+                    if (line.startsWith("forbiddirect")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("requiredirect")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("addtemporal")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("requiredgroup")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    Set<String> from = new HashSet<>();
+                    Set<String> to = new HashSet<>();
+
+                    RegexTokenizer st = new RegexTokenizer(line, delimiter, '"');
+
+                    while (st.hasMoreTokens()) {
+                        String token = st.nextToken();
+                        token = token.trim();
+                        String name = substitutePeriodsForSpaces(token);
+
+                        addVariable(knowledge, name);
+
+                        from.add(name);
+                    }
+
+                    line = lineizer.nextLine();
+
+                    st = new RegexTokenizer(line, delimiter, '"');
+
+                    while (st.hasMoreTokens()) {
+                        String token = st.nextToken();
+                        token = token.trim();
+                        String name = substitutePeriodsForSpaces(token);
+
+                        addVariable(knowledge, name);
+
+                        to.add(name);
+                    }
+
+                    KnowledgeGroup group = new KnowledgeGroup(KnowledgeGroup.FORBIDDEN, from, to);
+
+                    knowledge.addKnowledgeGroup(group);
+                }
+            } else if ("requiredgroup".equalsIgnoreCase(line.trim())) {
+                while (lineizer.hasMoreLines()) {
+                    line = lineizer.nextLine();
+
+                    if (line.startsWith("forbiddirect")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("requiredirect")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("forbiddengroup")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("addtemporal")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    Set<String> from = new HashSet<>();
+                    Set<String> to = new HashSet<>();
+
+                    RegexTokenizer st = new RegexTokenizer(line, delimiter, '"');
+
+                    while (st.hasMoreTokens()) {
+                        String token = st.nextToken();
+                        token = token.trim();
+                        String name = substitutePeriodsForSpaces(token);
+
+                        addVariable(knowledge, name);
+
+                        from.add(name);
+                    }
+
+                    line = lineizer.nextLine();
+
+                    st = new RegexTokenizer(line, delimiter, '"');
+
+                    while (st.hasMoreTokens()) {
+                        String token = st.nextToken();
+                        token = token.trim();
+                        String name = substitutePeriodsForSpaces(token);
+
+                        addVariable(knowledge, name);
+
+                        to.add(name);
+                    }
+
+                    KnowledgeGroup group = new KnowledgeGroup(KnowledgeGroup.REQUIRED, from, to);
+
+                    knowledge.addKnowledgeGroup(group);
+                }
+            } else if ("forbiddirect".equalsIgnoreCase(line.trim())) {
+                while (lineizer.hasMoreLines()) {
+                    line = lineizer.nextLine();
+
+                    if (line.startsWith("addtemporal")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("requiredirect")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("forbiddengroup")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("requiredgroup")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    RegexTokenizer st = new RegexTokenizer(line, delimiter, '"');
+                    String from = null, to = null;
+
+                    if (st.hasMoreTokens()) {
+                        from = st.nextToken();
+                    }
+
+                    if (st.hasMoreTokens()) {
+                        to = st.nextToken();
+                    }
+
+                    if (st.hasMoreTokens()) {
+                        throw new IllegalArgumentException("Line " + lineizer.getLineNumber()
+                                + ": Lines contains more than two elements.");
+                    }
+
+                    if (from == null || to == null) {
+                        throw new IllegalArgumentException("Line " + lineizer.getLineNumber()
+                                + ": Line contains fewer than two elements.");
+                    }
+
+                    addVariable(knowledge, from);
+
+                    addVariable(knowledge, to);
+
+                    knowledge.setForbidden(from, to);
+                }
+            } else if ("requiredirect".equalsIgnoreCase(line.trim())) {
+                while (lineizer.hasMoreLines()) {
+                    line = lineizer.nextLine();
+
+                    if (line.startsWith("forbiddirect")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("addtemporal")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("forbiddengroup")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("requiredgroup")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    RegexTokenizer st = new RegexTokenizer(line, delimiter, '"');
+                    String from = null, to = null;
+
+                    if (st.hasMoreTokens()) {
+                        from = st.nextToken();
+                    }
+
+                    if (st.hasMoreTokens()) {
+                        to = st.nextToken();
+                    }
+
+                    if (st.hasMoreTokens()) {
+                        throw new IllegalArgumentException("Line " + lineizer.getLineNumber()
+                                + ": Lines contains more than two elements.");
+                    }
+
+                    if (from == null || to == null) {
+                        throw new IllegalArgumentException("Line " + lineizer.getLineNumber()
+                                + ": Line contains fewer than two elements.");
+                    }
+
+                    addVariable(knowledge, from);
+                    addVariable(knowledge, to);
+
+                    knowledge.removeForbidden(from, to);
+                    knowledge.setRequired(from, to);
+                }
+            } else {
+                throw new IllegalArgumentException("Line " + lineizer.getLineNumber()
+                        + ": Expecting 'addtemporal', 'forbiddirect' or 'requiredirect'.");
+            }
+        }
+
+        return knowledge;
+    }
+
+    private static void addVariable(IKnowledge knowledge, String from) {
+        if (!knowledge.getVariables().contains(from)) {
+            knowledge.addVariable(from);
+        }
+    }
+
+    private static String substitutePeriodsForSpaces(String s) {
+        return s.replaceAll(" ", ".");
     }
 }
 

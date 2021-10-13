@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.Double.POSITIVE_INFINITY;
 
 
@@ -68,10 +69,8 @@ public class Boss {
 
         scorer.setCachingScores(cachingScores);
 
-        double best = POSITIVE_INFINITY;
-        List<Node> bestPerm = null;
-
-        scorer.score(order);
+        List<Node> bestPerm = new ArrayList<>(order);
+        double best = scorer.score(bestPerm);
 
         for (int r = 0; r < numStarts; r++) {
             if (firstRunUseDataOrder) {
@@ -81,12 +80,8 @@ public class Boss {
                 scorer.shuffleVariables();
             }
 
-//            if (r > 0)
-            scorer.shuffleVariables();
-
             List<Node> _order = scorer.getOrder();
             makeValidKnowledgeOrder(_order);
-
             scorer.score(_order);
 
             List<Node> perm;
@@ -101,8 +96,10 @@ public class Boss {
                 throw new IllegalArgumentException("Unrecognized method: " + method);
             }
 
-            if (scorer.score() < best) {
-                best = scorer.score();
+            double _score = scorer.score(perm);
+
+            if (_score > best) {
+                best = _score;
                 bestPerm = perm;
             }
         }
@@ -188,9 +185,9 @@ public class Boss {
             for (Node v : scorer.getOrder()) {
                 scorer.moveToLast(v);
 
-                double score2 = POSITIVE_INFINITY;
+                double score2 = NEGATIVE_INFINITY;
 
-                if (scorer.score() < score2) {
+                if (scorer.score() > score2) {
                     if (satisfiesKnowledge(scorer.getOrder())) {
                         scorer.bookmark();
                         score2 = scorer.score();
@@ -198,7 +195,7 @@ public class Boss {
                 }
 
                 while (scorer.promote(v)) {
-                    if (scorer.score() < score2) {
+                    if (scorer.score() > score2) {
                         if (satisfiesKnowledge(scorer.getOrder())) {
                             scorer.bookmark();
                             score2 = scorer.score();
@@ -208,13 +205,13 @@ public class Boss {
 
                 scorer.goToBookmark();
             }
-        } while (scorer.score() < score);
+        } while (scorer.score() > score);
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Single Moves)");
         }
 
-        return scorer.score() < score;
+        return scorer.score() > score;
     }
 
     private boolean twoStepLoop(TeyssierScorer scorer) {
@@ -235,7 +232,7 @@ public class Boss {
                         scorer.swap(v, r1);
                         scorer.swap(v, r2);
 
-                        if (scorer.score() < score && satisfiesKnowledge(scorer.getOrder())) {
+                        if (scorer.score() > score && satisfiesKnowledge(scorer.getOrder())) {
                             return true;
                         }
 
@@ -297,7 +294,7 @@ public class Boss {
                 if (parentsv.equals(_parentsw)) {
                     scorer.swap(v, w);
 
-                    if (scorer.score() < s) {
+                    if (scorer.score() > s) {
                         return gspVisit(scorer, depth + 1, maxDepth, path, w);
                     }
 
@@ -311,7 +308,7 @@ public class Boss {
     }
 
     public List<Node> sp(TeyssierScorer scorer) {
-        double minScore = POSITIVE_INFINITY;
+        double minScore = NEGATIVE_INFINITY;
         List<Node> minP = null;
 
         List<Node> variables = scorer.getOrder();
@@ -322,7 +319,7 @@ public class Boss {
             List<Node> p = GraphUtils.asList(perm, variables);
             double score = scorer.score(p);
 
-            if (score < minScore) {
+            if (score > minScore) {
                 minScore = score;
                 minP = p;
             }
@@ -338,9 +335,11 @@ public class Boss {
 
         if (score != null) {
             scorer = new TeyssierScorer(score);
+            scorer.setKnowledge(knowledge);
             dataModel = score.getData();
         } else {
             scorer = new TeyssierScorer(test);
+            scorer.setKnowledge(knowledge);
             dataModel = test.getData();
         }
 

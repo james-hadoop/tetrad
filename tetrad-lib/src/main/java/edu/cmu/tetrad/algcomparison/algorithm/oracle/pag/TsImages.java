@@ -5,7 +5,6 @@ import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
@@ -41,12 +40,11 @@ import java.util.List;
 )
 @TimeSeries
 @Bootstrapping
-public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm, UsesScoreWrapper {
+public class TsImages implements Algorithm, MultiDataSetAlgorithm, UsesScoreWrapper {
 
     static final long serialVersionUID = 23L;
     private ScoreWrapper score;
     private Algorithm initialGraph = null;
-    private IKnowledge knowledge = null;
 
     public TsImages() {
     }
@@ -63,13 +61,9 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
     public Graph search(DataModel dataModel, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             DataSet dataSet = (DataSet) dataModel;
-            TsGFci search;
-            if(knowledge != null) {
-        		dataSet.setKnowledge(knowledge);
-        	}
             Score score1 = score.getScore(dataSet, parameters);
             IndependenceTest test = new IndTestScore(score1);
-            search = new TsGFci(test, score1);
+            TsGFci search = new TsGFci(test, score1);
             search.setKnowledge(dataSet.getKnowledge());
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             
@@ -79,7 +73,7 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
 
             DataSet data = (DataSet) dataModel;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -128,16 +122,6 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
 
         parameters.add(Params.VERBOSE);
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return this.knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 
     @Override

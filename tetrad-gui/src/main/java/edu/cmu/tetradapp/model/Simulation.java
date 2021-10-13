@@ -28,7 +28,7 @@ import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.SimulationUtils;
 import edu.cmu.tetrad.algcomparison.simulation.StandardizedSemSimulation;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataModelList;
 import edu.cmu.tetrad.data.IKnowledge;
@@ -327,8 +327,8 @@ public class Simulation extends DataWrapper implements SessionModel,
     }
 
     public IKnowledge getKnowledge() {
-        if (simulation instanceof HasKnowledge) {
-            return ((HasKnowledge) simulation).getKnowledge();
+        if (simulation instanceof KnowledgeSettable) {
+            return ((KnowledgeSettable) simulation).getKnowledge();
         } else {
             return new Knowledge2();
         }

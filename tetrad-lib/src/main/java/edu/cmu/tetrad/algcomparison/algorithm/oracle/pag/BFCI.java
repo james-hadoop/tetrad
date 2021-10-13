@@ -3,14 +3,14 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pag;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.Bfci;
+import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -32,12 +32,11 @@ import java.util.List;
         algoType = AlgType.allow_latent_common_causes
 )
 @Bootstrapping
-public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper {
+public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
     private ScoreWrapper score;
-    private IKnowledge knowledge = new Knowledge2();
 
     public BFCI() {
     }
@@ -51,7 +50,7 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Bfci search = new Bfci(test.getTest(dataSet, parameters, trueGraph), score.getScore(dataSet, parameters));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
             search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
             search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
 
@@ -60,9 +59,9 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setUseScore(parameters.getBoolean(Params.USE_SCORE));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
 
-            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE) ) {
+            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 search.setScoreType(TeyssierScorer.ScoreType.Edge);
             } else {
                 search.setScoreType(TeyssierScorer.ScoreType.SCORE);
@@ -79,7 +78,7 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             BFCI algorithm = new BFCI(score, test);
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -104,11 +103,6 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
             return search.search();
         }
     }
-
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        return new DagToPag2(graph).convert();
-//    }
 
     @Override
     public String getDescription() {
@@ -139,17 +133,6 @@ public class BFCI implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
         params.add(Params.VERBOSE);
         return params;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        if (knowledge == null) throw new NullPointerException("Null kowledge");
-        this.knowledge = knowledge;
     }
 
     @Override

@@ -119,7 +119,7 @@ public final class DataModelList extends AbstractList<DataModel>
     }
 
     public IKnowledge getKnowledge() {
-        return this.knowledge.copy();
+        return this.knowledge;
     }
 
     public void setKnowledge(IKnowledge knowledge) {

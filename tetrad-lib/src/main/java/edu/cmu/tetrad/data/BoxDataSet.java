@@ -524,7 +524,7 @@ public final class BoxDataSet implements DataSet, TetradSerializable {
      * null.)
      */
     public final IKnowledge getKnowledge() {
-        return this.knowledge.copy();
+        return this.knowledge;
     }
 
     /**

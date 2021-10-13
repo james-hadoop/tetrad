@@ -38,10 +38,7 @@ import edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
-import edu.cmu.tetrad.data.ContinuousVariable;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.IndependenceFacts;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LinearSemIm;
@@ -58,6 +55,8 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.search.Boss.Method.GSP;
+import static java.lang.Math.abs;
+import static java.lang.Math.sqrt;
 import static java.util.Collections.shuffle;
 import static java.util.Collections.sort;
 import static org.junit.Assert.assertEquals;
@@ -974,6 +973,40 @@ public final class TestBoss {
         return new Ret("Raskutti Theorem 2.4 SMR !==> Restricted Faithfulness", facts);
     }
 
+    public Ret getWayneExample1() {
+        Node x0 = new GraphNode("0");
+        Node x1 = new GraphNode("1");
+        Node x2 = new GraphNode("2");
+        Node x3 = new GraphNode("3");
+        Node x4 = new GraphNode("4");
+
+        IndependenceFacts facts = new IndependenceFacts();
+
+        facts.add(new IndependenceFact(x0, x2, list(x1)));
+        facts.add(new IndependenceFact(x0, x2, list(x1, x3)));
+        facts.add(new IndependenceFact(x0, x2, list(x1, x3, x4)));
+
+        facts.add(new IndependenceFact(x0, x4, list(x1, x3)));
+        facts.add(new IndependenceFact(x0, x4, list(x2, x3)));
+        facts.add(new IndependenceFact(x0, x4, list(x1, x2, x3)));
+
+        facts.add(new IndependenceFact(x1, x3, list(x0)));
+        facts.add(new IndependenceFact(x1, x3, list(x0, x2)));
+        facts.add(new IndependenceFact(x1, x3, list(x0, x2, x4)));
+
+        facts.add(new IndependenceFact(x1, x4, list(x0, x2)));
+        facts.add(new IndependenceFact(x1, x4, list(x2, x3)));
+        facts.add(new IndependenceFact(x1, x4, list(x0, x2, x3)));
+
+        facts.add(new IndependenceFact(x2, x3, list(x0)));
+        facts.add(new IndependenceFact(x2, x3, list(x1)));
+        facts.add(new IndependenceFact(x2, x3, list(x0, x1)));
+
+        facts.add(new IndependenceFact(x0, x4, list()));
+
+        return new Ret("Wayne example 1", facts);
+    }
+
     //@Test
     public void testFromIndependgetenceFactsa() {
         Node x1 = new GraphNode("1");
@@ -1313,13 +1346,14 @@ public final class TestBoss {
 
     @Test
     public void testWayne2() {
-        Ret facts = getFactsSimpleCanceling();
+//        Ret facts = getFactsSimpleCanceling();
+        Ret facts = getWayneExample1();
 
         int count = 0;
 
         boolean printCpdag = false;
 
-        Boss.Method[] methods = {GSP, Boss.Method.BOSS, Boss.Method.SP};
+        Boss.Method[] methods = {GSP, Boss.Method.BOSS};//, Boss.Method.SP};
 
         count++;
 
@@ -1329,8 +1363,8 @@ public final class TestBoss {
         OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
 
         System.out.println();
-        System.out.println(facts.getLabel());
-        System.out.println(facts.getFacts());
+//        System.out.println(facts.getLabel());
+//        System.out.println(facts.getFacts());
 
         List<Node> variables = facts.facts.getVariables();
         Collections.sort(variables);
@@ -1340,6 +1374,7 @@ public final class TestBoss {
         p.add(variables.get(1));
         p.add(variables.get(3));
         p.add(variables.get(2));
+        p.add(variables.get(4));
 
 //        System.out.println("Initial permutation = " + p);
 
@@ -1351,9 +1386,87 @@ public final class TestBoss {
         boss.setFirstRunUseDataOrder(true);
 
         List<Node> order = boss.bestOrder(p);
-        System.out.println(boss.getGraph(order, false));
+        Graph graph = boss.getGraph(order, true);
+        System.out.println(graph);
 
+        PermutationGenerator gen = new PermutationGenerator(5);
+        int[] perm;
 
+        while ((perm = gen.next()) != null) {
+            List<Node> _perm = GraphUtils.asList(perm, variables);
+
+            Boss _boss = new Boss(new IndTestDSep(facts.getFacts()));
+            boss.setFirstRunUseDataOrder(true);
+
+            List<Node> _order = boss.bestOrder(_perm);
+            System.out.println(boss.getGraph(_order, true).equals(graph));
+        }
+    }
+
+    @Test
+    public void testWayne3() {
+        for (int i = 0; i < 500; i++) {
+            Node x0 = new ContinuousVariable("X0");
+            Node x1 = new ContinuousVariable("X1");
+            Node x2 = new ContinuousVariable("X2");
+            Node x3 = new ContinuousVariable("X3");
+            Node x4 = new ContinuousVariable("X4");
+
+            List<Node> nodes = new ArrayList<>();
+            nodes.add(x0);
+            nodes.add(x1);
+            nodes.add(x2);
+            nodes.add(x3);
+            nodes.add(x4);
+
+            Graph graph = new EdgeListGraph(nodes);
+            graph.addDirectedEdge(x0, x1);
+            graph.addDirectedEdge(x1, x2);
+            graph.addDirectedEdge(x2, x4);
+            graph.addDirectedEdge(x0, x3);
+            graph.addDirectedEdge(x3, x4);
+
+            LinearSemPm pm = new LinearSemPm(graph);
+            LinearSemIm im0 = new LinearSemIm(pm);
+
+            StandardizedLinearSemIm im = new StandardizedLinearSemIm(im0, new Parameters());
+
+            double a = .1;
+            double b = .9;
+            double c = .1;
+            double path1 = a * b * c;
+            double d = sqrt(path1);
+            double e = -sqrt(path1);
+
+            im.setEdgeCoefficientUnchecked(x0, x1, a);
+            im.setEdgeCoefficientUnchecked(x1, x2, b);
+            im.setEdgeCoefficientUnchecked(x2, x4, c);
+            im.setEdgeCoefficientUnchecked(x1, x3, d);
+            im.setEdgeCoefficientUnchecked(x3, x4, e);
+
+            DataSet data = im.simulateData(100000, false);
+
+            SemBicScore score = new SemBicScore(data);
+            score.setPenaltyDiscount(2);
+
+            Fges fges = new Fges(score);
+            Boss boss = new Boss(score);
+            boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
+
+            Graph fgesGraph = fges.search();
+
+            List<Node> best = boss.bestOrder(data.getVariables());
+            Graph bossGraph = boss.getGraph(best, true);
+            boolean equals = fgesGraph.equals(bossGraph);
+
+            if (!equals && bossGraph.getNumEdges() == 5) {
+                System.out.println(equals);
+                System.out.println("FGES: " + fgesGraph);
+                System.out.println("BOSS: " + bossGraph);
+
+                System.out.println(im);
+            }
+        }
     }
 
     private static class Ret {

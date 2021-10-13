@@ -667,12 +667,13 @@ public class SessionNode implements Node, TetradSerializable {
      */
     public void destroyModel() {
         if (model != null) {
+            getSessionSupport().fireModelDestroyed(this);
             this.oldModel = model;
             this.model = null;
         }
 
         this.modelParamTypes = null;
-        getSessionSupport().fireModelDestroyed(this);
+//        getSessionSupport().fireModelDestroyed(this);
     }
 
     /**
@@ -1597,11 +1598,7 @@ public class SessionNode implements Node, TetradSerializable {
                 try {
                     this.model = (SessionModel) constructor.newInstance(arguments);
                     this.model.setName(getDisplayName());
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                    continue;
-//                    throw e;
-                } catch (IllegalAccessException e) {
+                } catch (InstantiationException | IllegalAccessException e) {
                     e.printStackTrace();
                     continue;
 //                    throw e;

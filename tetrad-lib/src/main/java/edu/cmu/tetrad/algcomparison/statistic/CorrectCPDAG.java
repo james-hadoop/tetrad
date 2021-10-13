@@ -2,7 +2,6 @@ package edu.cmu.tetrad.algcomparison.statistic;
 
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 
 /**
@@ -25,7 +24,8 @@ public class CorrectCPDAG implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
-        return SearchGraphUtils.cpdagForDag(trueGraph).equals(SearchGraphUtils.cpdagForDag(estGraph)) ?
+        return SearchGraphUtils.cpdagForDag(trueGraph)
+                .equals(SearchGraphUtils.cpdagForDag(estGraph)) ?
                 1 : 0;
     }
 

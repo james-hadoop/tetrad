@@ -2,16 +2,17 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,11 +27,10 @@ import java.util.List;
         oracleType = OracleType.Test
 )*/
 @Bootstrapping
-public class CcdMax implements Algorithm, HasKnowledge {
+public class CcdMax implements Algorithm {
 
     static final long serialVersionUID = 23L;
-    private IndependenceWrapper test;
-    private IKnowledge knowledge = new Knowledge2();
+    private final IndependenceWrapper test;
 
     public CcdMax(IndependenceWrapper test) {
         this.test = test;
@@ -44,7 +44,7 @@ public class CcdMax implements Algorithm, HasKnowledge {
             search.setDoColliderOrientations(parameters.getBoolean(Params.DO_COLLIDER_ORIENTATION));
             search.setUseHeuristic(parameters.getBoolean(Params.USE_MAX_P_ORIENTATION_HEURISTIC));
             search.setMaxPathLength(parameters.getInt(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
             search.setDepth(parameters.getInt(Params.DEPTH));
             search.setApplyOrientAwayFromCollider(parameters.getBoolean(Params.APPLY_R1));
             search.setUseOrientTowardDConnections(parameters.getBoolean(Params.ORIENT_TOWARD_DCONNECTIONS));
@@ -54,7 +54,7 @@ public class CcdMax implements Algorithm, HasKnowledge {
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -78,11 +78,6 @@ public class CcdMax implements Algorithm, HasKnowledge {
             return search.search();
         }
     }
-
-//    @Override
-//    public Graph getComparisonGraph(Graph graph) {
-//        return new EdgeListGraph(graph);
-//    }
 
     @Override
     public String getDescription() {
@@ -110,15 +105,5 @@ public class CcdMax implements Algorithm, HasKnowledge {
 
         parameters.add(Params.VERBOSE);
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 }
