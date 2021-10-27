@@ -220,7 +220,7 @@ public class LayoutMenu extends JMenu {
             }
         });
 
-        JMenuItem causalOrder = new JMenuItem("Causal Order");
+        JMenuItem causalOrder = new JMenuItem("Estimated Causal Order");
         add(causalOrder);
 
         causalOrder.addActionListener(new ActionListener() {

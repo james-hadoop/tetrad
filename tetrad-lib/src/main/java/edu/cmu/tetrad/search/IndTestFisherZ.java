@@ -213,13 +213,11 @@ public final class IndTestFisherZ implements IndependenceTest {
      */
     public synchronized boolean isIndependent(Node x, Node y, List<Node> z) {
         double p = getPValue(x, y, z);
-//        this.p = p;
 
-//        if (isSellke()) {
-//            return p > SearchGraphUtils.getSelkeAlpha(p, this.alpha);
-//        } else {
-        return p > alpha;
-//        }
+        if (Double.isNaN(p)) return true;
+        else {
+            return p > alpha;
+        }
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {

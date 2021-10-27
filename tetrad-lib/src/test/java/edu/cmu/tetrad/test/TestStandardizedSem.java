@@ -146,10 +146,10 @@ public class TestStandardizedSem {
 
         StandardizedLinearSemIm sem = new StandardizedLinearSemIm(im, new Parameters());
 
-        assertFalse(sem.setEdgeCoefficient(x1, x2, 1.2));
-        assertFalse(sem.setEdgeCoefficient(x1, x2, 1.5));
-        assertTrue(sem.setEdgeCoefficient(x1, x2, .5));
-        assertTrue(sem.setEdgeCoefficient(x1, x3, -.1));
+        assertFalse(sem.setEdgeCoef(x1, x2, 1.2));
+        assertFalse(sem.setEdgeCoef(x1, x2, 1.5));
+        assertTrue(sem.setEdgeCoef(x1, x2, .5));
+        assertTrue(sem.setEdgeCoef(x1, x3, -.1));
 
         assertTrue(isStandardized(sem));
     }
@@ -183,13 +183,13 @@ public class TestStandardizedSem {
             double low = range.getLow();
 
             double coef = low + random.nextDouble() * (high - low);
-            assertTrue(sem.setEdgeCoefficient(a, b, coef));
+            assertTrue(sem.setEdgeCoef(a, b, coef));
 
             coef = high + random.nextDouble() * (high - low);
-            assertFalse(sem.setEdgeCoefficient(a, b, coef));
+            assertFalse(sem.setEdgeCoef(a, b, coef));
 
             coef = low - random.nextDouble() * (high - low);
-            assertFalse(sem.setEdgeCoefficient(a, b, coef));
+            assertFalse(sem.setEdgeCoef(a, b, coef));
         }
     }
 
@@ -300,15 +300,15 @@ public class TestStandardizedSem {
                     double _coef = sem.getEdgeCoef(a, b);
 
                     double coef = low + random.nextDouble() * (high - low);
-                    assertTrue(sem.setEdgeCoefficient(a, b, coef));
+                    assertTrue(sem.setEdgeCoef(a, b, coef));
 
-                    sem.setEdgeCoefficient(a, b, _coef);
+                    sem.setEdgeCoef(a, b, _coef);
 
                     coef = high + random.nextDouble() * (high - low);
-                    assertFalse(sem.setEdgeCoefficient(a, b, coef));
+                    assertFalse(sem.setEdgeCoef(a, b, coef));
 
                     coef = low - random.nextDouble() * (high - low);
-                    assertFalse(sem.setEdgeCoefficient(a, b, coef));
+                    assertFalse(sem.setEdgeCoef(a, b, coef));
                 } else if (Edges.isBidirectedEdge(edge)) {
                     sem.setErrorCovariance(node1, node2, .15);
 

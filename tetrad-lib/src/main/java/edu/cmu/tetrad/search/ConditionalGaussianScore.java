@@ -104,9 +104,9 @@ public class ConditionalGaussianScore implements Score {
             }
 
             for (int p : parents) {
-                if (variables.get(i) instanceof DiscreteVariable) {
+                if (variables.get(p) instanceof DiscreteVariable) {
                     if (dataSet.getInt(k, p) == -99) continue K;
-                } else if (variables.get(i) instanceof ContinuousVariable) {
+                } else if (variables.get(p) instanceof ContinuousVariable) {
                     if (Double.isNaN(dataSet.getInt(k, p))) continue K;
                 }
             }

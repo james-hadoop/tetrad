@@ -54,10 +54,6 @@ public interface Score {
 
     String toString();
 
-    default Score defaultScore() {
-        return this;
-    }
-
     DataModel getData();
 }
 

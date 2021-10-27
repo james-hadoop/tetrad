@@ -389,7 +389,6 @@ class ContinuousDiscretizationEditor extends JPanel implements DiscretizationEdi
         List<String> cats = defaultCategories(numCategories);
         return new ContinuousDiscretizationSpec(breakpoints, cats, ContinuousDiscretizationSpec.NONE);
     }
-
     /**
      * Calculates the default discretization spec.
      */

@@ -93,7 +93,7 @@ public class PcMax implements Algorithm, TakesInitialGraph, TakesIndependenceWra
 
     @Override
     public String getDescription() {
-        return "PC-Stable-Max (\"Peter and Clark\"), Priority Rule, using " + test.getDescription()
+        return "PC-Max (\"Peter and Clark\"), Priority Rule, using " + test.getDescription()
                 + (algorithm != null ? " with initial graph from "
                 + algorithm.getDescription() : "");
     }

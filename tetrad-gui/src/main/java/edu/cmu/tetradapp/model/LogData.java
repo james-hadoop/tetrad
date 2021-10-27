@@ -60,6 +60,7 @@ public class LogData extends DataWrapper {
             List<Node> list = dataSet.getVariables();
 
             DataSet dataSet2 = new BoxDataSet(new DoubleDataBox(tetradMatrix.toArray()), list);
+            dataSet2.setKnowledge(dataSet.getKnowledge().copy());
             outList.add(dataSet2);
 
             for (int j = 0; j < dataSet.getNumColumns(); j++) {

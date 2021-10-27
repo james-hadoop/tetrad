@@ -349,11 +349,6 @@ public class ZhangShenBoundTest implements Score {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public Score defaultScore() {
-        return new ZhangShenBoundTest(covariances);
-    }
-
     private void setCovariances(ICovarianceMatrix covariances) {
         CorrelationMatrix correlations = new CorrelationMatrix(covariances);
 //        this.covariances = correlations;

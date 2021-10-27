@@ -37,8 +37,8 @@ public class NonparanormalTransform extends DataWrapper {
     public NonparanormalTransform(DataWrapper wrapper, Parameters params) {
         DataModel dataModel = wrapper.getSelectedDataModel();
         DataSet nonparanormalTransformed = DataUtils.getNonparanormalTransformed((DataSet) dataModel);
+        nonparanormalTransformed.setKnowledge(dataModel.getKnowledge().copy());
 
-        DataWrapper dataWrapper = new DataWrapper(nonparanormalTransformed);
         setDataModel(nonparanormalTransformed);
         setSourceGraph(wrapper.getSourceGraph());
 //        IKnowledge knowledge = new PairwiseForbiddenGraphModel().getKnowledge();

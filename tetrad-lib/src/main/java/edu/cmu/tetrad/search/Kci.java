@@ -50,15 +50,12 @@ public class Kci implements IndependenceTest, ScoreForFact {
     // The alpha level of the test.
     private double alpha;
 
-    // P value used to judge independence. This is the last p value calculated.
-    private double p;
-
     // A normal distribution with 1 degree of freedom.
     private final NormalDistribution normal = new NormalDistribution(new SynchronizedRandomGenerator(
             new Well44497b(193924L)), 0, 1);
 
     // True if the approximation algorithms should be used instead of Theorems 3 or 4.
-    private boolean approximate = false;
+    private boolean approximate = true;
 
     // Convenience map from nodes to their indices in the list of variables.
     private final Map<Node, Integer> hash;
@@ -83,6 +80,9 @@ public class Kci implements IndependenceTest, ScoreForFact {
 
     private boolean verbose = false;
 
+    // The latest independence fact.
+    private IndependenceFact fact;
+
     /**
      * Constructor.
      *
@@ -94,11 +94,10 @@ public class Kci implements IndependenceTest, ScoreForFact {
         this.variables = data.getVariables();
         int n = this.data.getNumRows();
 
-        Matrix Ones = new Matrix(n, 1);
-        for (int j = 0; j < n; j++) Ones.set(j, 0, 1);
+        Matrix ones = new Matrix(n, 1);
+        for (int j = 0; j < n; j++) ones.set(j, 0, 1);
 
         this.alpha = alpha;
-        this.p = -1;
 
         hash = new HashMap<>();
 
@@ -144,12 +143,12 @@ public class Kci implements IndependenceTest, ScoreForFact {
 
         int N = data.getNumRows();
 
-        Matrix Ones = new Matrix(N, 1);
-        for (int j = 0; j < N; j++) Ones.set(j, 0, 1);
+        Matrix ones = new Matrix(N, 1);
+        for (int j = 0; j < N; j++) ones.set(j, 0, 1);
 
         Matrix I = Matrix.identity(N);
 
-        Matrix H = Matrix.identity(N).minus(Ones.times(Ones.transpose()).scalarMult(1.0 / N));
+        Matrix H = Matrix.identity(N).minus(ones.times(ones.transpose()).scalarMult(1.0 / N));
 
         double[] h = new double[data.getNumColumns()];
         int count = 0;
@@ -181,7 +180,7 @@ public class Kci implements IndependenceTest, ScoreForFact {
 
         if (facts.get(fact) != null) {
             independent = facts.get(fact);
-            this.p = pValues.get(fact);
+            this.fact = fact;
         } else {
             if (z.isEmpty()) {
                 independent = isIndependentUnconditional(x, y, fact, _data, h, N, hash);
@@ -190,17 +189,16 @@ public class Kci implements IndependenceTest, ScoreForFact {
             }
 
             facts.put(fact, independent);
+            this.fact = fact;
         }
 
         if (verbose) {
-            double p = getPValue();
-
             if (independent) {
-                System.out.println(fact + " INDEPENDENT p = " + p);
+                System.out.println(fact + " INDEPENDENT p = " + pValues.get(fact));
                 TetradLogger.getInstance().log("info", fact + " Independent");
 
             } else {
-                System.out.println(fact + " dependent p = " + p);
+                System.out.println(fact + " dependent p = " + pValues.get(fact));
                 TetradLogger.getInstance().log("info", fact.toString());
             }
         }
@@ -239,12 +237,10 @@ public class Kci implements IndependenceTest, ScoreForFact {
         return isDependent(x, y, thez);
     }
 
-    /**
-     * Returns the probability associated with the most recently executed independence test, of Double.NaN if p value is
-     * not meaningful for tis test.
-     */
+    @Override
     public double getPValue() {
-        return p;
+        if (fact == null) return 01;
+        return pValues.get(fact);
     }
 
     /**
@@ -381,10 +377,10 @@ public class Kci implements IndependenceTest, ScoreForFact {
     private boolean isIndependentUnconditional(Node x, Node y, IndependenceFact fact, double[][] _data,
                                                double[] _h, int N,
                                                Map<Node, Integer> hash) {
-        Matrix Ones = new Matrix(N, 1);
-        for (int j = 0; j < N; j++) Ones.set(j, 0, 1);
+        Matrix ones = new Matrix(N, 1);
+        for (int j = 0; j < N; j++) ones.set(j, 0, 1);
 
-        Matrix H = Matrix.identity(N).minus(Ones.times(Ones.transpose()).scalarMult(1.0 / N));
+        Matrix H = Matrix.identity(N).minus(ones.times(ones.transpose()).scalarMult(1.0 / N));
 
         Matrix kx = center(kernelMatrix(_data, x, null, getWidthMultiplier(), hash, N, _h), H);
         Matrix ky = center(kernelMatrix(_data, y, null, getWidthMultiplier(), hash, N, _h), H);
@@ -398,8 +394,9 @@ public class Kci implements IndependenceTest, ScoreForFact {
                 double theta_appr = var_appr / mean_appr;
                 double p = 1.0 - new GammaDistribution(k_appr, theta_appr).cumulativeProbability(sta);
                 pValues.put(fact, p);
-                this.p = p;
-                return p > alpha;
+                this.fact = fact;
+
+                return pValues.get(fact) > alpha;
             } else {
                 return theorem4(kx, ky, fact, N);
             }
@@ -418,9 +415,6 @@ public class Kci implements IndependenceTest, ScoreForFact {
      */
     private boolean isIndependentConditional(Node x, Node y, List<Node> z, IndependenceFact fact, double[][] _data,
                                              int N, Matrix H, Matrix I, double[] _h, Map<Node, Integer> hash) {
-        Matrix kx;
-        Matrix ky;
-
         try {
             Matrix KXZ = center(kernelMatrix(_data, x, z, getWidthMultiplier(), hash, N, _h), H);
             Matrix Ky = center(kernelMatrix(_data, y, null, getWidthMultiplier(), hash, N, _h), H);
@@ -428,8 +422,8 @@ public class Kci implements IndependenceTest, ScoreForFact {
 
             Matrix Rz = (KZ.plus(I.scalarMult(epsilon)).inverse().scalarMult(epsilon));
 
-            kx = symmetrized(Rz.times(KXZ).times(Rz.transpose()));
-            ky = symmetrized(Rz.times(Ky).times(Rz.transpose()));
+            Matrix kx = symmetrized(Rz.times(KXZ).times(Rz.transpose()));
+            Matrix ky = symmetrized(Rz.times(Ky).times(Rz.transpose()));
 
             return proposition5(kx, ky, fact, N);
         } catch (Exception e) {
@@ -472,18 +466,7 @@ public class Kci implements IndependenceTest, ScoreForFact {
         double p = sum / (double) getNumBootstraps();
         pValues.put(fact, p);
 
-        final boolean independent = p > alpha;
-
-        if (independent) {
-            System.out.println(fact + " INDEPENDENT p = " + p);
-            TetradLogger.getInstance().log("info", fact + " Independent");
-
-        } else {
-            System.out.println(fact + " dependent p = " + p);
-            TetradLogger.getInstance().log("info", fact.toString());
-        }
-
-        return independent;
+        return pValues.get(fact) > alpha;
     }
 
     private boolean proposition5(Matrix kx, Matrix ky, IndependenceFact fact, int N) {
@@ -547,7 +530,7 @@ public class Kci implements IndependenceTest, ScoreForFact {
 
             double p = sum / (double) getNumBootstraps();
             pValues.put(fact, p);
-            this.p = p;
+            this.fact = fact;
 
             final boolean independent = p > alpha;
 
@@ -555,7 +538,7 @@ public class Kci implements IndependenceTest, ScoreForFact {
                 System.out.println(fact + " INDEPENDENT p = " + p);
                 TetradLogger.getInstance().log("info", fact + " Independent");
 
-            } else {
+            } else  {
                 System.out.println(fact + " dependent p = " + p);
                 TetradLogger.getInstance().log("info", fact.toString());
             }
@@ -647,6 +630,8 @@ public class Kci implements IndependenceTest, ScoreForFact {
     }
 
     private double getH(List<Integer> _z, double[] _h) {
+        if (_z.isEmpty()) throw new IllegalArgumentException("_z empty");
+
         double h = 0;
 
         for (int c : _z) {
@@ -660,9 +645,30 @@ public class Kci implements IndependenceTest, ScoreForFact {
     }
 
     private double kernelGaussian(double z, double width) {
-        if (width == 0) {
-            throw new IllegalArgumentException("Width is zero.");
+//        % use empirical kernel width instead of the median
+//        if ~exist('width', 'var')|isempty(width)|width==0
+//        if T < 200
+//        width = 0.8;
+//        elseif T < 1200
+//        width = 0.5;
+//    else
+//        width = 0.3;
+//        end
+//                end
+
+        int T = data.getNumRows();
+
+        if (T < 200) {
+            width = 0.8;
+        } else if (T < 1200) {
+            width = 0.5;
+        } else {
+            width = 0.3;
         }
+
+//        if (width == 0) {
+//            throw new IllegalArgumentException("Width is zero.");
+//        }
 
         z /= width;
         return Math.exp(-z * z);

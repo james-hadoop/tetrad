@@ -205,6 +205,9 @@ public final class Bfci implements GraphSearch {
         fciOrient.doFinalOrientation(graph);
 
         graph.setPag(true);
+
+        graph.removeAttribute("BIC");
+
         return graph;
     }
 

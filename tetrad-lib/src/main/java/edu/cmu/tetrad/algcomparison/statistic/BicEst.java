@@ -44,10 +44,7 @@ public class BicEst implements Statistic {
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
         Graph dag = SearchGraphUtils.dagFromCpdag(estGraph);
 
-        if (score != null) {
-            Fges fges = new Fges(score);
-            return fges.scoreDag(dag);
-        } else {
+        {
             DataModel data = null;
 
             if (dataModel != null && test != null) {
@@ -76,13 +73,12 @@ public class BicEst implements Statistic {
                         score = new ConditionalGaussianScore(dataSet, 1, 0, true);
                     }
 
-                    Score defaultScore = score.defaultScore();
-                    return new Fges(defaultScore).scoreDag(dag);
+                    return new Fges(score).scoreDag(dag);
                 }
             }
         }
 
-        throw new UnsupportedOperationException("Need a test, score, dataset or covariance matrix.");
+        return Double.NaN;
     }
 
     @Override

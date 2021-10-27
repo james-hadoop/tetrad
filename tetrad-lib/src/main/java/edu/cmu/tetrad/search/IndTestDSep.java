@@ -96,20 +96,20 @@ public class IndTestDSep implements IndependenceTest {
             throw new IllegalArgumentException("Subset may not be empty.");
         }
 
-//        List<Node> _vars = new ArrayList<>();
-//
-//        for (Node var : vars) {
-//            Node _var = getVariable(var.getName());
-//
-//            if (_var == null) {
-//                throw new IllegalArgumentException(
-//                        "All vars must be original vars");
-//            }
-//
-//            _vars.add(_var);
-//        }
+        List<Node> _vars = new ArrayList<>();
 
-        this._observedVars = vars;
+        for (Node var : vars) {
+            Node _var = getVariable(var.getName());
+
+            if (_var == null) {
+                throw new IllegalArgumentException(
+                        "All vars must be original vars");
+            }
+
+            _vars.add(_var);
+        }
+
+        this._observedVars = _vars;
         this.observedVars = new ArrayList<>(_observedVars);
 
         facts = new ArrayList<>();
@@ -288,7 +288,7 @@ public class IndTestDSep implements IndependenceTest {
     public Graph getGraph() {
         return this.graph;
     }
-    
+
     public void setGraph(Graph graph) {
         this.graph = graph;
     }
@@ -338,7 +338,7 @@ public class IndTestDSep implements IndependenceTest {
         this.verbose = verbose;
     }
 
-    
+
 }
 
 

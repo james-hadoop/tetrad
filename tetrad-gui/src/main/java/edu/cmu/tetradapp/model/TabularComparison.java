@@ -112,7 +112,7 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
             }
 
             if (referenceGraphs.size() != targetGraphs.size()) {
-                throw new IllegalArgumentException("I was expecting the same number of graphs in each parent.");
+                throw new IllegalArgumentException("Should have the same number of graphs in each parent.");
             }
 
             for (int i = 0; i < targetGraphs.size(); i++) {

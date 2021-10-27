@@ -190,7 +190,7 @@ public class ConditionalGaussianOtherScore implements Score {
 
     @Override
     public DataModel getData() {
-        return null;
+        return dataSet;
     }
 
 }

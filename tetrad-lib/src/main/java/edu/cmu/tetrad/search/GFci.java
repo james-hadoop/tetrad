@@ -161,6 +161,8 @@ public final class GFci implements GraphSearch {
 
         graph.setPag(true);
 
+        graph.removeAttribute("BIC");
+
         return graph;
     }
 

@@ -296,11 +296,6 @@ public class KimEtAlScores implements Score {
         return dataSet;
     }
 
-    @Override
-    public Score defaultScore() {
-        return new KimEtAlScores(covariances, 1.0);
-    }
-
     private void setCovariances(ICovarianceMatrix covariances) {
         CorrelationMatrix correlations = new CorrelationMatrix(covariances);
         this.covariances = covariances;

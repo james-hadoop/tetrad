@@ -47,6 +47,7 @@ import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
 import edu.cmu.tetrad.util.*;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
+import org.apache.commons.lang3.RandomUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -569,7 +570,7 @@ public final class TestBoss {
         return prefix;
     }
 
-    //@Test
+    @Test
     public void testAllFacts() {
         List<Ret> allFacts = new ArrayList<>();
         allFacts.add(getFactsSimpleCanceling());
@@ -584,7 +585,8 @@ public final class TestBoss {
         boolean printCpdag = false;
 
 
-        Boss.Method[] methods = {Boss.Method.GSP, Boss.Method.BOSS, Boss.Method.SP};
+        Boss.Method[] methods = {Boss.Method.SP, Boss.Method.BOSS};
+//        Boss.Method[] methods = {Boss.Method.GSP, Boss.Method.BOSS, Boss.Method.SP};
 
         for (Ret facts : allFacts) {
             count++;
@@ -608,7 +610,9 @@ public final class TestBoss {
                     Boss boss = new Boss(test);
                     boss.setCacheScores(true);
                     boss.setMethod(method);
+                    boss.setScoreType(TeyssierScorer.ScoreType.Edge);
                     boss.setNumStarts(1);
+                    boss.setFirstRunUseDataOrder(true);
 
                     List<Node> perm = boss.bestOrder(test.getVariables());
                     Graph cpdag = boss.getGraph(perm, true);
@@ -1186,7 +1190,7 @@ public final class TestBoss {
                     Node x = path.get(i);
                     Node y = path.get(i + 1);
                     if (pairs.contains(new NodePair(x, y))) continue;
-                    boolean set = imsd.setEdgeCoefficient(x, y, -factor * imsd.getEdgeCoef(x, y) * (products.get(0)) / sum);
+                    boolean set = imsd.setEdgeCoef(x, y, -factor * imsd.getEdgeCoef(x, y) * (products.get(0)) / sum);
                     if (set) {
                         pairs.add(new NodePair(x, y));
                         changed = true;
@@ -1485,6 +1489,20 @@ public final class TestBoss {
         public IndependenceFacts getFacts() {
             return facts;
         }
+    }
+
+    @Test
+    public void randomString() {
+        String all = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()_+";
+
+        String pass = "";
+
+        for (int i = 0; i < 8; i++) {
+            int c = RandomUtil.getInstance().nextInt(all.length());
+            pass += all.substring(c, c + 1);
+        }
+
+        System.out.println(pass);
     }
 }
 

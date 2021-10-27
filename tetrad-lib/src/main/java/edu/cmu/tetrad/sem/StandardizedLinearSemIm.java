@@ -225,7 +225,7 @@ public class StandardizedLinearSemIm implements Simulator, TetradSerializable {
      * @param coef The coefficient of a -> b.
      * @return true if the coefficent was set (i.e. was within range), false if not.
      */
-    public boolean setEdgeCoefficient(Node a, Node b, final double coef) {
+    public boolean setEdgeCoef(Node a, Node b, final double coef) {
         Edge edge = Edges.directedEdge(a, b);
 
         if (edgeParameters.get(edge) == null) {
@@ -319,7 +319,7 @@ public class StandardizedLinearSemIm implements Simulator, TetradSerializable {
 
     public void setParameterValue(Edge edge, double value) {
         if (Edges.isDirectedEdge(edge)) {
-            setEdgeCoefficient(edge.getNode1(), edge.getNode2(), value);
+            setEdgeCoef(edge.getNode1(), edge.getNode2(), value);
         } else if (Edges.isBidirectedEdge(edge)) {
             setErrorCovariance(edge.getNode1(), edge.getNode2(), value);
         } else {

@@ -290,7 +290,7 @@ public class DegenerateGaussianScore implements Score {
 
     @Override
     public DataModel getData() {
-        return null;
+        return dataSet;
     }
 
     // Subsample of the continuous mixedVariables conditioning on the given cols.
@@ -339,7 +339,7 @@ public class DegenerateGaussianScore implements Score {
             }
 
             for (int p : parents) {
-                Node pp = variables.get(i);
+                Node pp = variables.get(p);
 
                 List<Integer> AA = new ArrayList<>(this.embedding.get(nodesHash.get(pp)));
 

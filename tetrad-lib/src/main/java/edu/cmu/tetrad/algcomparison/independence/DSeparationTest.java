@@ -40,12 +40,7 @@ public class DSeparationTest implements IndependenceWrapper, TakesGraph {
 
     @Override
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters, Graph trueGraph) {
-        Graph g = GraphUtils.replaceNodes(trueGraph, dataSet.getVariables());
-//
-//        assert g != null;
-//        if (!g.equals(trueGraph)) throw new IllegalArgumentException();
-
-        return new IndTestDSep(g);
+        return new IndTestDSep(trueGraph);
     }
 
     @Override

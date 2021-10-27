@@ -205,11 +205,6 @@ public class EbicScore implements Score {
         return dataSet;
     }
 
-    @Override
-    public Score defaultScore() {
-        return new EbicScore(covariances);
-    }
-
     private void setCovariances(ICovarianceMatrix covariances) {
         CorrelationMatrix correlations = new CorrelationMatrix(covariances);
         this.covariances = covariances;

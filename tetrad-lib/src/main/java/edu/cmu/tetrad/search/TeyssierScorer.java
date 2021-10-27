@@ -24,8 +24,8 @@ import static java.util.Collections.shuffle;
 public class TeyssierScorer {
     private final Map<ScoreKey, Pair> cache = new HashMap<>();
     private final List<Node> variables;
-    private ParentCalculation parentCalculation = ParentCalculation.IteratedGrowShrink;
     private final Map<Node, Integer> variablesHash;
+    private ParentCalculation parentCalculation = ParentCalculation.IteratedGrowShrink;
     private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
     private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
     private HashMap<Node, Integer> bookmarkedNodesHash = new HashMap<>();
@@ -188,7 +188,10 @@ public class TeyssierScorer {
         double score = 0;
 
         for (int i = 0; i < order.size(); i++) {
-            score += scores.get(i).getScore();
+            double score1 = scores.get(i).getScore();
+
+            score += (Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
+//            score += score1;
         }
 
         return score;
@@ -342,42 +345,31 @@ public class TeyssierScorer {
         Node n = order.get(p);
 
         List<Node> parents = new ArrayList<>();
-        boolean changed = true;
 
         Set<Node> prefix = getPrefix(p);
 
+//        System.out.println("GS Indep target = " + n + " prefix = " + prefix + " order = " + order);
+
         // Grow-shrink
-        while (changed) {
-            changed = false;
+        for (Node z0 : prefix) {
+            if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
 
-            for (Node z0 : prefix) {
-                if (parents.contains(z0)) continue;
-                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
-
-                if (test.isDependent(n, z0, parents)) {
-                    parents.add(z0);
-                    changed = true;
-                }
+            if (test.isDependent(n, z0, parents)) {
+                parents.add(z0);
             }
         }
 
-        boolean changed2 = true;
+        for (Node z1 : new ArrayList<>(parents)) {
+            parents.remove(z1);
 
-        while (changed2) {
-            changed2 = false;
-
-            for (Node z1 : new ArrayList<>(parents)) {
-                parents.remove(z1);
-
-                if (test.isIndependent(n, z1, parents)) {
-                    changed2 = true;
-                } else {
-                    parents.add(z1);
-                }
+            if (test.isDependent(n, z1, parents)) {
+                parents.add(z1);
             }
         }
 
-        return new Pair(new HashSet<>(parents), parents.size());
+//        System.out.println("MB(" + n + ", " + prefix + ") = " + parents + " order = " + order);
+
+        return new Pair(new HashSet<>(parents), -parents.size());
     }
 
     @NotNull
@@ -447,9 +439,9 @@ public class TeyssierScorer {
         }
 
         if (scoreType == ScoreType.Edge) {
-            return new Pair(parents, parents.size());
+            return new Pair(parents, -parents.size());
         } else if (scoreType == ScoreType.SCORE) {
-            return new Pair(parents, sMax);
+            return new Pair(parents, Double.isNaN(sMax) ? Double.POSITIVE_INFINITY : sMax);
         } else {
             throw new IllegalStateException("Unexpected score type: " + scoreType);
         }

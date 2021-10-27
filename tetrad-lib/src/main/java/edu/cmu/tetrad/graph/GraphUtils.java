@@ -36,6 +36,7 @@ import java.io.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.RecursiveTask;
 import java.util.regex.Matcher;
 
@@ -1068,11 +1069,11 @@ public final class GraphUtils {
      */
     public static List<List<Node>> connectedComponents(Graph graph) {
         List<List<Node>> components = new LinkedList<>();
-        List<Node> unsortedNodes = new ArrayList<>(graph.getNodes());
+        LinkedList<Node> unsortedNodes = new LinkedList<>(graph.getNodes());
 
         while (!unsortedNodes.isEmpty()) {
-            Node seed = unsortedNodes.get(0);
-            Set<Node> component = new HashSet<>();
+            Node seed = unsortedNodes.removeFirst();
+            Set<Node> component = new ConcurrentSkipListSet<>();
             collectComponentVisit(seed, component, graph, unsortedNodes);
             components.add(new ArrayList<>(component));
         }
@@ -1718,6 +1719,12 @@ public final class GraphUtils {
             Edge newEdge = new Edge(node1, node2, endpoint1, endpoint2);
             convertedGraph.addEdge(newEdge);
         }
+
+//        for (Node node : originalGraph.getNodes()) {
+//            if (convertedGraph.getNode(node.getName()) == null) {
+//                convertedGraph.addNode(node);
+//            }
+//        }
 
         for (Triple triple : originalGraph.getUnderLines()) {
             if (Thread.currentThread().isInterrupted()) {

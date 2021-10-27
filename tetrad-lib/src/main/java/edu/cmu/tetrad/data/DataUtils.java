@@ -1937,6 +1937,16 @@ public final class DataUtils {
                     constant = false;
                     break;
                 }
+
+                if (previous instanceof Double && current instanceof Double) {
+                    double _previouw = (Double) previous;
+                    double _current= (Double) current;
+
+                    if (Double.isNaN(_previouw) && Double.isNaN(_current)) {
+                        constant = false;
+                        break;
+                    }
+                }
             }
 
             if (!constant) keepCols.add(j);
@@ -2351,6 +2361,26 @@ public final class DataUtils {
 
     private static String substitutePeriodsForSpaces(String s) {
         return s.replaceAll(" ", ".");
+    }
+
+    public static double[] removeMissingValues(double[] data) {
+        int c = 0;
+
+        for (double datum : data) {
+            if (Double.isNaN(datum)) c++;
+        }
+
+        double[] data2 = new double[data.length - c];
+
+        int i = 0;
+
+        for (double datum : data) {
+            if (!Double.isNaN(data[i])) {
+                data2[i++] = datum;
+            }
+        }
+
+        return data2;
     }
 }
 

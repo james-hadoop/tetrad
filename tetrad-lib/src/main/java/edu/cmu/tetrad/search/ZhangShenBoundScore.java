@@ -296,11 +296,6 @@ public class ZhangShenBoundScore implements Score {
         return dataSet;
     }
 
-    @Override
-    public Score defaultScore() {
-        return new ZhangShenBoundScore(covariances);
-    }
-
     public boolean isChanged() {
         return changed;
     }

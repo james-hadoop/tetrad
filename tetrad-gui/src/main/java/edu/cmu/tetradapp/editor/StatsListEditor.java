@@ -91,6 +91,10 @@ public class StatsListEditor extends JPanel {
 
     @NotNull
     private TextTable tableText() {
+        if (targetGraph == referenceGraph) {
+            throw new IllegalArgumentException();
+        }
+
         List<Statistic> statistics = statistics();
 
         TextTable table = new TextTable(statistics.size(), 3);
