@@ -24,32 +24,22 @@ public class StatsListEditor extends JPanel {
 
     private final TabularComparison comparison;
     private final Parameters params;
-    private final List<Graph> referenceGraphs;
-    private Graph targetGraph;
-    private Graph referenceGraph;
     private final DataModel dataModel;
+    private final Graph targetGraph;
+    private Graph referenceGraph;
     private JTextArea area;
 
     public StatsListEditor(TabularComparison comparison) {
         this.comparison = comparison;
         this.params = comparison.getParams();
-        referenceGraphs = comparison.getReferenceGraphs();
-        referenceGraph = getComparisonGraph(referenceGraphs.get(0), params);
+        this.targetGraph = comparison.getTargetGraph();
+        referenceGraph = getComparisonGraph(comparison.getReferenceGraph(), params);
         dataModel = comparison.getDataModel();
         setup();
     }
 
     private void setup() {
-
-        // We'll leave the underlying model the same but just complain if there's not exactly
-        // one reference and one target graph.
-        List<Graph> targetGraphs = comparison.getTargetGraphs();
-
-        if (referenceGraphs.size() != 1) throw new IllegalArgumentException("Expecting one comparison graph.");
-        if (targetGraphs.size() != 1) throw new IllegalArgumentException("Expecting one target graph.");
-
         JMenuBar menubar = menubar();
-        targetGraph = targetGraphs.get(0);
         show(menubar);
     }
 
@@ -210,7 +200,7 @@ public class StatsListEditor extends JPanel {
         graph.addActionListener(e -> {
             params.set("graphComparisonType", "DAG");
             menu.setText("Compare to DAG...");
-            referenceGraph = getComparisonGraph(referenceGraphs.get(0), params);
+            this.referenceGraph = getComparisonGraph(comparison.getReferenceGraph(), params);
 
             area.setText(tableTextWithHeader());
             area.moveCaretPosition(0);
@@ -224,7 +214,7 @@ public class StatsListEditor extends JPanel {
         cpdag.addActionListener(e -> {
             params.set("graphComparisonType", "CPDAG");
             menu.setText("Compare to CPDAG...");
-            referenceGraph = getComparisonGraph(referenceGraphs.get(0), params);
+            referenceGraph = getComparisonGraph(comparison.getReferenceGraph(), params);
 
             area.setText(tableTextWithHeader());
             area.moveCaretPosition(0);
@@ -238,7 +228,7 @@ public class StatsListEditor extends JPanel {
         pag.addActionListener(e -> {
             params.set("graphComparisonType", "PAG");
             menu.setText("Compare to PAG...");
-            referenceGraph = getComparisonGraph(referenceGraphs.get(0), params);
+            referenceGraph = getComparisonGraph(comparison.getReferenceGraph(), params);
 
             area.setText(tableTextWithHeader());
             area.moveCaretPosition(0);

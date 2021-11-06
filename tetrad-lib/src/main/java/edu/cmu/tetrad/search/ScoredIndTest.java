@@ -115,7 +115,7 @@ public class ScoredIndTest implements Score {
     }
 
     public DataSet getDataSet() {
-        throw new UnsupportedOperationException();
+        return (DataSet) test.getData();
     }
 
     public boolean isVerbose() {

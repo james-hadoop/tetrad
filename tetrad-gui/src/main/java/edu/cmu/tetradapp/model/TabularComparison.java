@@ -23,7 +23,6 @@ package edu.cmu.tetradapp.model;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.session.DoNotAddOldModel;
 import edu.cmu.tetrad.session.SessionModel;
@@ -49,8 +48,8 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
 
     static final long serialVersionUID = 23L;
     private final Parameters params;
-    private final List<Graph> targetGraphs;
-    private List<Graph> referenceGraphs;
+    private final Graph targetGraph;
+    private final Graph referenceGraph;
     private DataModel dataModel = null;
     private String name;
     private Map<String, String> allParamSettings;
@@ -61,12 +60,7 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
 
     //=============================CONSTRUCTORS==========================//
 
-    public TabularComparison(MultipleGraphSource model2,
-                             DataWrapper dataWrapper, Parameters params) {
-        this(null, model2, dataWrapper, params);
-    }
-
-    public TabularComparison(MultipleGraphSource model1, MultipleGraphSource model2,
+    public TabularComparison(GraphSource model1, GraphSource model2,
                              Parameters params) {
         this(model1, model2, null, params);
     }
@@ -76,13 +70,17 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
      * of omission and commission. The counts can be retrieved using the methods
      * <code>countOmissionErrors</code> and <code>countCommissionErrors</code>.
      */
-    public TabularComparison(MultipleGraphSource model1, MultipleGraphSource model2,
+    public TabularComparison(GraphSource model1, GraphSource model2,
                              DataWrapper dataWrapper, Parameters params) {
         if (params == null) {
             throw new NullPointerException("Parameters must not be null");
         }
 
-         this.params = params;
+        if (model1 == null || model2 == null) {
+            throw new NullPointerException("Null graph source>");
+        }
+
+        this.params = params;
 
         if (dataWrapper != null) {
             this.dataModel = dataWrapper.getDataModelList().get(0);
@@ -91,45 +89,35 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
         this.referenceName = params.getString("referenceGraphName", null);
         this.targetName = params.getString("targetGraphName", null);
 
-        if (model1 == null) {
-            this.referenceGraphs = model2.getGraphs();
-            this.targetGraphs = model2.getGraphs();
-        } else {
+//        if (model1 == null) {
+//            this.referenceGraph = model2.getGraph();
+//            this.targetGraph = model2.getGraph();
+//        } else {
 
-            if (referenceName.equals(model2.getName())) {
-                MultipleGraphSource g = model1;
-                model1 = model2;
-                model2 = g;
-            }
-
-            if (referenceName.equals(model1.getName())) {
-                this.referenceGraphs = model1.getGraphs();
-                this.targetGraphs = model2.getGraphs();
-            } else {
-                throw new IllegalArgumentException(
-                        "Neither of the supplied session models is named '"
-                                + referenceName + "'.");
-            }
-
-            if (referenceGraphs.size() != targetGraphs.size()) {
-                throw new IllegalArgumentException("Should have the same number of graphs in each parent.");
-            }
-
-            for (int i = 0; i < targetGraphs.size(); i++) {
-                targetGraphs.set(i, GraphUtils.replaceNodes(targetGraphs.get(i), GraphUtils.restrictToMeasured(referenceGraphs.get(i)).getNodes()));
-
-                if (targetGraphs.get(i).isPag() || referenceGraphs.get(i).isPag()) {
-                    targetGraphs.get(i).setPag(true);
-                    referenceGraphs.get(i).setPag(true);
-                }
-            }
+        if (referenceName.equals(model2.getName())) {
+            GraphSource g = model1;
+            model1 = model2;
+            model2 = g;
         }
+
+        if (referenceName.equals(model1.getName())) {
+            this.referenceGraph = model1.getGraph();
+            this.targetGraph = model2.getGraph();
+        } else {
+            throw new IllegalArgumentException(
+                    "Neither of the supplied session models is named '"
+                            + referenceName + "'.");
+        }
+
+        if (targetGraph.isPag() || referenceGraph.isPag()) {
+            targetGraph.setPag(true);
+            referenceGraph.setPag(true);
+        }
+//        }
 
         newExecution();
 
-        for (int i = 0; i < targetGraphs.size(); i++) {
-            addRecord(i);
-        }
+        addRecord();
 
         TetradLogger.getInstance().log("info", "Graph Comparison");
     }
@@ -154,12 +142,12 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
         dataSet.setNumberFormat(new DecimalFormat("0.00"));
     }
 
-    private void addRecord(int i) {
+    private void addRecord() {
         int newRow = dataSet.getNumRows();
 
         for (int j = 0; j < statistics.size(); j++) {
             Statistic statistic = statistics.get(j);
-            double value = statistic.getValue(this.referenceGraphs.get(i), this.targetGraphs.get(i), null);
+            double value = statistic.getValue(this.referenceGraph, this.targetGraph, null);
             dataSet.setDouble(newRow, j, value);
         }
     }
@@ -219,12 +207,12 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
         this.allParamSettings = new LinkedHashMap<>(paramSettings);
     }
 
-    public List<Graph> getReferenceGraphs() {
-        return referenceGraphs;
+    public Graph getReferenceGraph() {
+        return referenceGraph;
     }
 
-    public List<Graph> getTargetGraphs() {
-        return targetGraphs;
+    public Graph getTargetGraph() {
+        return targetGraph;
     }
 
     public String getTargetName() {

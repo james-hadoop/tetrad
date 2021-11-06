@@ -87,7 +87,7 @@ public final class FruchtermanReingoldLayout {
         List<List<Node>> components =
                 GraphUtils.connectedComponents(this.graph());
 
-        System.out.println("Connected components collected");
+        System.out.println("Connected components collected: " + components.size() + " components");
 
         components.sort((o1, o2) -> {
             int i1 = o1.size();

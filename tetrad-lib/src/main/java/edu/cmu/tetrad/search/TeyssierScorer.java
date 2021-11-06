@@ -266,6 +266,18 @@ public class TeyssierScorer {
         return new HashSet<>(scores.get(indexOf(v)).getParents());
     }
 
+    public Set<Node> getAdjacentNodes(Node v) {
+        Set<Node> adj = new HashSet<>();
+
+        for (Node w : order) {
+            if (getParents(v).contains(w) || getParents(w).contains(v)) {
+                adj.add(w);
+            }
+        }
+
+        return adj;
+    }
+
     public Graph getGraph(boolean cpdag) {
         List<Node> order = getOrder();
         Graph G1 = new EdgeListGraph(variables);
@@ -344,32 +356,47 @@ public class TeyssierScorer {
     private Pair getGrowShrinkIndep(int p) {
         Node n = order.get(p);
 
-        List<Node> parents = new ArrayList<>();
+        Set<Node> parents = new HashSet<>();
 
         Set<Node> prefix = getPrefix(p);
 
 //        System.out.println("GS Indep target = " + n + " prefix = " + prefix + " order = " + order);
 
-        // Grow-shrink
-        for (Node z0 : prefix) {
-            if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+        boolean changed1 = true;
 
-            if (test.isDependent(n, z0, parents)) {
-                parents.add(z0);
+        while (changed1) {
+            changed1 = false;
+
+            for (Node z0 : prefix) {
+                if (parents.contains(z0)) continue;
+                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+
+                if (test.isDependent(n, z0, new ArrayList<>(parents))) {
+                    parents.add(z0);
+                    changed1 = true;
+                }
             }
         }
 
-        for (Node z1 : new ArrayList<>(parents)) {
-            parents.remove(z1);
+        boolean changed2 = true;
 
-            if (test.isDependent(n, z1, parents)) {
-                parents.add(z1);
+        while (changed2) {
+            changed2 = false;
+
+            for (Node z1 : new HashSet<>(parents)) {
+                Set<Node> _p = new HashSet<>(parents);
+                _p.remove(z1);
+
+                if (test.isIndependent(n, z1, new ArrayList<>(_p))) {
+                    parents.remove(z1);
+                    changed2 = true;
+                }
             }
         }
+//
+////        System.out.println("MB(" + n + ", " + prefix + ") = " + parents + " order = " + order);
 
-//        System.out.println("MB(" + n + ", " + prefix + ") = " + parents + " order = " + order);
-
-        return new Pair(new HashSet<>(parents), -parents.size());
+        return new Pair(parents, -parents.size());
     }
 
     @NotNull
@@ -495,7 +522,7 @@ public class TeyssierScorer {
         return getParents(indexOf(a)).contains(c) || getParents(indexOf(c)).contains(a);
     }
 
-    public boolean defCollider(Node a, Node b, Node c) {
+    public boolean collider(Node a, Node b, Node c) {
         return getParents(b).contains(a) && getParents(b).contains(c);
     }
 

@@ -69,6 +69,7 @@ public final class Bfci implements GraphSearch {
     private Boss.Method method;
     private TeyssierScorer.ScoreType scoreType;
     private boolean useScore = true;
+    private int depth = -1;
 
     //============================CONSTRUCTORS============================//
     public Bfci(IndependenceTest test, Score score) {
@@ -97,10 +98,10 @@ public final class Bfci implements GraphSearch {
             variables = test.getVariables();
         }
 
-        boss.setBreakTies(breakTies);
         boss.setNumStarts(numStarts);
         boss.setCacheScores(cacheScores);
         boss.setScoreType(scoreType);
+        boss.setMaxNumTriangles(depth);
         boss.setVerbose(verbose);
         boss.setKnowledge(knowledge);
 
@@ -139,30 +140,16 @@ public final class Bfci implements GraphSearch {
 
         List<Triple> triples = new ArrayList<>();
 
-        Map<Node, Set<Node>> parents = new HashMap<>();
-
-        for (Node n : scorer.getOrder()) {
-            parents.put(n, scorer.getParents(n));
-        }
-
         for (Node b : perm) {
             Set<Node> into = scorer.getParents(b);
 
             for (Node a : into) {
                 for (Node c : into) {
-
-                    D:
                     for (Node d : perm) {
                         if (configuration(scorer, a, b, c, d)) {
                             scorer.bookmark();
                             double score = scorer.score();
                             scorer.swap(b, c);
-
-                            for (Node n : scorer.getOrder()) {
-                                if (n != b && n != c && !scorer.getParents(n).equals(parents.get(n))) {
-                                    continue D;
-                                }
-                            }
 
                             if (configuration(scorer, d, c, b, a) && score == scorer.score()) {
                                 triples.add(new Triple(b, c, d));
@@ -187,7 +174,7 @@ public final class Bfci implements GraphSearch {
             Node c = triple.getY();
             Node d = triple.getZ();
 
-            if (graph.isAdjacentTo(b, c) && graph.isAdjacentTo(d, c) && !graph.isDefCollider(b, c, d)) {
+            if (graph.isAdjacentTo(b, c) && graph.isAdjacentTo(d, c)) {
                 graph.setEndpoint(b, c, Endpoint.ARROW);
                 graph.setEndpoint(d, c, Endpoint.ARROW);
             }
@@ -212,21 +199,25 @@ public final class Bfci implements GraphSearch {
     }
 
     private boolean configuration(TeyssierScorer scorer, Node a, Node b, Node c, Node d) {
-        if (a == b) return false;
-        if (a == c) return false;
-        if (a == d) return false;
-        if (b == c) return false;
-        if (b == d) return false;
-        if (c == d) return false;
+        if (!distinct(a, b, c, d)) return false;
 
-        if (!scorer.adjacent(a, b)) return false;
-        if (!scorer.adjacent(b, c)) return false;
-        if (!scorer.adjacent(c, d)) return false;
-        if (!scorer.adjacent(b, d)) return false;
-        if (scorer.adjacent(a, d)) return false;
-        if (scorer.adjacent(a, c)) return false;
+        return scorer.adjacent(a, b)
+                && scorer.adjacent(b, c)
+                && scorer.adjacent(c, d)
+                && scorer.adjacent(b, d)
+                && !scorer.adjacent(a, c)
+                && scorer.collider(a, b, c);
+    }
 
-        return scorer.defCollider(a, b, c);
+    private boolean distinct(Node a, Node b, Node c, Node d) {
+        Set<Node> nodes = new HashSet<>();
+
+        nodes.add(a);
+        nodes.add(b);
+        nodes.add(c);
+        nodes.add(d);
+
+        return nodes.size() == 4;
     }
 
     @Override
@@ -427,5 +418,9 @@ public final class Bfci implements GraphSearch {
 
     public void setUseScore(boolean useScore) {
         this.useScore = useScore;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
     }
 }

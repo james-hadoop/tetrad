@@ -31,10 +31,14 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Rfci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
+import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
+import edu.cmu.tetrad.algcomparison.score.ConditionalGaussianBicScore;
+import edu.cmu.tetrad.algcomparison.score.FisherZScore;
 import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore;
+import edu.cmu.tetrad.algcomparison.simulation.LeeHastieSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -113,7 +117,6 @@ public final class TestBoss {
             boss.setCacheScores(true);
             boss.setMethod(method);
             boss.setNumStarts(1);
-            boss.setBreakTies(true);
             boss.setGspDepth(-1);
             boss.setVerbose(true);
             List<Node> perm = boss.bestOrder(order);
@@ -306,6 +309,113 @@ public final class TestBoss {
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss4", simulations, algorithms, statistics, params);
+    }
+
+    @Test
+    public void testBoss5() {
+        Parameters params = new Parameters();
+        params.set(Params.SAMPLE_SIZE, 10000);
+        params.set(Params.NUM_MEASURES, 20);
+        params.set(Params.AVG_DEGREE, 4);
+        params.set(Params.RANDOMIZE_COLUMNS, true);
+        params.set(Params.COEF_LOW, 0);
+        params.set(Params.COEF_HIGH, 1);
+        params.set(Params.VERBOSE, true);
+//        params.set(Params.MIN_CATEGORIES, 4);
+//        params.set(Params.MAX_CATEGORIES, 4);
+        params.set(Params.PERCENT_DISCRETE, 50);
+
+        params.set(Params.NUM_RUNS, 10);
+
+        params.set(Params.BOSS_METHOD, 1);
+        params.set(Params.BOSS_SCORE_TYPE, false);
+        params.set(Params.CACHE_SCORES, true);
+        params.set(Params.NUM_STARTS, 1);
+
+        params.set(Params.PENALTY_DISCOUNT, 2);
+//
+        params.set(Params.ALPHA, 0.01);
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new FisherZ()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new FisherZ()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GSP(new LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new LinearGaussianBicScore(), new FisherZ()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LinearSemSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+//        statistics.add(new AdjacencyPrecision());
+//        statistics.add(new AdjacencyRecall());
+//        statistics.add(new ArrowheadPrecisionCommonEdges());
+//        statistics.add(new ArrowheadRecallCommonEdges());
+//        statistics.add(new AdjacencyTPR());
+//        statistics.add(new AdjacencyFPR());
+        statistics.add(new SHD_CPDAG());
+//        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss5", simulations, algorithms, statistics, params);
+    }
+
+    @Test
+    public void testBoss6() {
+        Parameters params = new Parameters();
+        params.set(Params.SAMPLE_SIZE, 1000);
+        params.set(Params.NUM_MEASURES, 30);
+        params.set(Params.AVG_DEGREE, 4);
+        params.set(Params.RANDOMIZE_COLUMNS, true);
+        params.set(Params.COEF_LOW, 0);
+        params.set(Params.COEF_HIGH, 0.8);
+        params.set(Params.VERBOSE, true);
+//        params.set(Params.MIN_CATEGORIES, 4);
+//        params.set(Params.MAX_CATEGORIES, 4);
+        params.set(Params.PERCENT_DISCRETE, 50);
+
+        params.set(Params.NUM_RUNS, 1);
+
+        params.set(Params.BOSS_METHOD, 1);
+        params.set(Params.BOSS_SCORE_TYPE, false);
+        params.set(Params.CACHE_SCORES, true);
+        params.set(Params.NUM_STARTS, 1);
+
+        params.set(Params.PENALTY_DISCOUNT, 1);
+//
+        params.set(Params.ALPHA, 0.01);
+
+        Algorithms algorithms = new Algorithms();
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new ConditionalGaussianLRT()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new ConditionalGaussianLRT()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new ConditionalGaussianLRT()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new ConditionalGaussianBicScore()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GSP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LeeHastieSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new AdjacencyTPR());
+        statistics.add(new AdjacencyFPR());
+        statistics.add(new SHD_CPDAG());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss6", simulations, algorithms, statistics, params);
     }
 
     @Test
@@ -716,21 +826,19 @@ public final class TestBoss {
 
         parameters.set(Params.NUM_MEASURES, 10);
         parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7, 8, 9);
-        parameters.set(Params.NUM_RUNS, 1);
-        parameters.set(Params.BOSS_METHOD, 1);
-        parameters.set(Params.BOSS_SCORE_TYPE, true);
-        parameters.set(Params.BREAK_TIES, true);
-        parameters.set(Params.SAMPLE_SIZE, 10000);
-        parameters.set(Params.ALPHA, 0.001);
-        parameters.set(Params.DEPTH, -1);
+
         parameters.set(Params.USE_SCORE, false);
+        parameters.set(Params.VERBOSE, true);
+        parameters.set(Params.RANDOMIZE_COLUMNS, false);
+        parameters.set(Params.BOSS_METHOD, 1);
+        parameters.set(Params.DEPTH, 3);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
-        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadRecall());
         statistics.add(new SHD_CPDAG());
         statistics.add(new ElapsedTime());
 
@@ -749,6 +857,7 @@ public final class TestBoss {
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
         comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
         comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/soluscomparison",
                 simulations, algorithms, statistics, parameters);
@@ -864,6 +973,21 @@ public final class TestBoss {
         assert (scorer.score(nodes) == 7);
     }
 
+    public Ret getFactsSimple() {
+        Node x1 = new GraphNode("1");
+        Node x2 = new GraphNode("2");
+        Node x3 = new GraphNode("3");
+        Node x4 = new GraphNode("4");
+
+        IndependenceFacts facts = new IndependenceFacts();
+
+        facts.add(new IndependenceFact(x1, x3, list(x2)));
+        facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
+//        facts.add(new IndependenceFact(x1, x4, list())); // unfaithful.
+
+        return new Ret("Simple 4-node 2-path model", facts);
+    }
+
     public Ret getFactsSimpleCanceling() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
@@ -874,7 +998,6 @@ public final class TestBoss {
 
         facts.add(new IndependenceFact(x1, x3, list(x2)));
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
-        facts.add(new IndependenceFact(x3, x1, list(x2)));
         facts.add(new IndependenceFact(x1, x4, list())); // unfaithful.
 
         return new Ret("Simple 4-node path canceling model", facts);
@@ -1237,8 +1360,8 @@ public final class TestBoss {
     public void testBfci() {
         Parameters params = new Parameters();
         params.set(Params.SAMPLE_SIZE, 1000);
-        params.set(Params.NUM_MEASURES, 25);
-        params.set(Params.NUM_LATENTS, 8);
+        params.set(Params.NUM_MEASURES, 50);
+        params.set(Params.NUM_LATENTS, 10);
         params.set(Params.AVG_DEGREE, 6);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.COEF_LOW, 0);
@@ -1252,7 +1375,7 @@ public final class TestBoss {
         params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.BREAK_TIES, true);
         params.set(Params.CACHE_SCORES, true);
-        params.set(Params.NUM_STARTS, 3);
+        params.set(Params.NUM_STARTS, 1);
         params.set(Params.USE_SCORE, true);
 
         params.set(Params.MAX_PATH_LENGTH, -1);
@@ -1276,13 +1399,15 @@ public final class TestBoss {
 //        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
 //        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
 //        statistics.add(new ParameterColumn(Params.BOSS_SCORE_TYPE));
-        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+//        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecallCommonEdges());
 //        statistics.add(new SHD_CPDAG());
-        statistics.add(new ElapsedTime());
+//        statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
@@ -1296,7 +1421,8 @@ public final class TestBoss {
     @Test
     public void testWayne() {
         List<Ret> allFacts = new ArrayList<>();
-        allFacts.add(getFactsSimpleCanceling());
+        allFacts.add(getFactsSimple());
+//        allFacts.add(getFactsSimpleCanceling());
 //        allFacts.add(getFactsRaskutti());
 //        allFacts.add(getFigure6());
 //        allFacts.add(getFigure7());
@@ -1308,7 +1434,7 @@ public final class TestBoss {
         boolean printCpdag = false;
 
 
-        Boss.Method[] methods = {GSP, Boss.Method.BOSS, Boss.Method.SP};
+        Boss.Method[] methods = {GSP, Boss.Method.BOSS};
 
         for (Ret facts : allFacts) {
             count++;
@@ -1331,7 +1457,8 @@ public final class TestBoss {
             while ((perm = gen.next()) != null) {
                 List<Node> p = GraphUtils.asList(perm, variables);
 
-                System.out.println("Initial permutation = " + p);
+
+//                System.out.println("Initial permutation = " + p);
 
 //                scorer.score(p);
 //
@@ -1339,9 +1466,13 @@ public final class TestBoss {
 //
                 Boss boss = new Boss(new IndTestDSep(facts.getFacts()));
                 boss.setFirstRunUseDataOrder(true);
+                boss.setMaxNumTriangles(1);
+                boss.setMethod(GSP);
 
                 List<Node> order = boss.bestOrder(p);
-                System.out.println(boss.getGraph(order, false));
+//                System.out.println(boss.getGraph(order, false));
+
+                System.out.println(p + " " + order + " " + boss.getGraph(order, false).getNumEdges());
 
             }
 
@@ -1357,7 +1488,7 @@ public final class TestBoss {
 
         boolean printCpdag = false;
 
-        Boss.Method[] methods = {GSP, Boss.Method.BOSS};//, Boss.Method.SP};
+        Boss.Method[] methods = {GSP};//, Boss.Method.BOSS};//, Boss.Method.SP};
 
         count++;
 
@@ -1388,6 +1519,7 @@ public final class TestBoss {
 //
         Boss boss = new Boss(new IndTestDSep(facts.getFacts()));
         boss.setFirstRunUseDataOrder(true);
+        boss.setMethod(Boss.Method.BOSS);
 
         List<Node> order = boss.bestOrder(p);
         Graph graph = boss.getGraph(order, true);

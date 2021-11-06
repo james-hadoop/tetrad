@@ -2327,11 +2327,19 @@ public final class SearchGraphUtils {
 
                 Edge e1 = trueGraph.getEdge(l1, l2);
                 Edge e2 = estGraph.getEdge(l1, l2);
+                if (e1 != null && e2 != null) {
+                    if (!e2.getNode1().equals(e1.getNode1())) {
+                        e2 = new Edge(e1.getNode1(), e1.getNode2(),
+                                e2.getProximalEndpoint(e1.getNode1()),
+                                e2.getProximalEndpoint(e1.getNode2()));
+                    }
+                }
 
                 int shd = structuralHammingDistanceOneEdge(e1, e2);
                 error += shd;
             }
         }
+
         return error;
     }
 

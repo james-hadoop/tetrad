@@ -2471,6 +2471,16 @@ public final class GraphUtils {
             Node _from = graph.getNode(from);
             Node _to = graph.getNode(to);
 
+            if (_from == null) {
+                graph.addNode(new GraphNode(from));
+                _from = graph.getNode(from);
+            }
+
+            if (_to == null) {
+                graph.addNode(new GraphNode(to));
+                _to = graph.getNode(to);
+            }
+
             char end1 = edge.charAt(0);
             char end2 = edge.charAt(2);
 

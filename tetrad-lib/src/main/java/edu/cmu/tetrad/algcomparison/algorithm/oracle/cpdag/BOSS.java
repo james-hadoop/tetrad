@@ -1,15 +1,17 @@
 package edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.util.Parameters;
@@ -47,6 +49,10 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
+        if (trueGraph != null && dataSet.getVariables().size() == trueGraph.getNumNodes()) {
+            trueGraph = GraphUtils.replaceNodes(trueGraph, dataSet.getVariables());
+        }
+
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
 
@@ -62,13 +68,17 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                 boss = new Boss(test);
             }
 
+            int method = parameters.getInt(Params.BOSS_METHOD);
+
+            System.out.println("Method = " + method);
+
             boss.setMethod(Boss.Method.BOSS);
-            boss.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));
+
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
-//            boss.setKnowledge(getKnowledge());
             boss.setKnowledge(dataSet.getKnowledge());
+            boss.setGspDepth(parameters.getInt(Params.DEPTH));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 boss.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -125,9 +135,9 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_SCORE_TYPE);
-        params.add(Params.BREAK_TIES);
         params.add(Params.USE_SCORE);
         params.add(Params.OUTPUT_CPDAG);
+        params.add(Params.DEPTH);
         params.add(Params.VERBOSE);
         return params;
     }
