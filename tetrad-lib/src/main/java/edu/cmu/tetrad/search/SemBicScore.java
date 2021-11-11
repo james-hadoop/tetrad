@@ -31,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static edu.cmu.tetrad.util.MatrixUtils.convertCovToCorr;
-import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.Double.NaN;
 import static java.lang.Math.abs;
 import static java.lang.Math.log;
@@ -46,7 +45,7 @@ public class SemBicScore implements Score {
     private boolean calculateRowSubsets = false;
 
     // The dataset.
-    private DataSet dataSet;
+    private DataModel dataModel;
 
     // .. as matrix
     private Matrix data;
@@ -90,6 +89,7 @@ public class SemBicScore implements Score {
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
         this.indexMap = indexMap(this.variables);
+        this.dataModel = covariances;
     }
 
     /**
@@ -100,7 +100,7 @@ public class SemBicScore implements Score {
             throw new NullPointerException();
         }
 
-        this.dataSet = dataSet;
+        this.dataModel = dataSet;
         this.data = dataSet.getDoubleData();
 
         if (!dataSet.existsMissingValue()) {
@@ -310,8 +310,8 @@ public class SemBicScore implements Score {
         return bump > 0;
     }
 
-    public DataSet getDataSet() {
-        return dataSet;
+    public DataModel getDataModel() {
+        return dataModel;
     }
 
     public void setPenaltyDiscount(double penaltyDiscount) {
@@ -376,7 +376,7 @@ public class SemBicScore implements Score {
 
     @Override
     public DataModel getData() {
-        return dataSet;
+        return dataModel;
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {
@@ -423,18 +423,22 @@ public class SemBicScore implements Score {
     }
 
     private List<Integer> getRows(int i, int[] parents) {
-        if (dataSet == null) {
+        if (dataModel == null) {
             return null;
+        }
+
+        if (!(dataModel instanceof DataSet)) {
+            throw new IllegalStateException("Cannot subset rows if the data is not a DataSet.");
         }
 
         List<Integer> rows = new ArrayList<>();
 
         K:
-        for (int k = 0; k < dataSet.getNumRows(); k++) {
-            if (Double.isNaN(dataSet.getDouble(k, i))) continue;
+        for (int k = 0; k < sampleSize; k++) {
+            if (Double.isNaN(data.get(k, i))) continue;
 
             for (int p : parents) {
-                if (Double.isNaN(dataSet.getDouble(k, p))) continue K;
+                if (Double.isNaN(data.get(k, p))) continue K;
             }
 
             rows.add(k);
@@ -460,8 +464,12 @@ public class SemBicScore implements Score {
     }
 
     private Matrix getCov(List<Integer> rows, int[] cols) {
-        if (dataSet == null) {
+        if (dataModel == null) {
             return matrix.getSelection(cols, cols);
+        }
+
+        if ((dataModel instanceof ICovarianceMatrix)) {
+            return ((ICovarianceMatrix) dataModel).getSelection(cols, cols);
         }
 
         Matrix cov = new Matrix(cols.length, cols.length);
@@ -472,8 +480,8 @@ public class SemBicScore implements Score {
                 double muj = 0.0;
 
                 for (int k : rows) {
-                    mui += dataSet.getDouble(k, cols[i]);
-                    muj += dataSet.getDouble(k, cols[j]);
+                    mui += data.get(k, cols[i]);
+                    muj += data.get(k, cols[j]);
                 }
 
                 mui /= rows.size() - 1;
@@ -482,7 +490,7 @@ public class SemBicScore implements Score {
                 double _cov = 0.0;
 
                 for (int k : rows) {
-                    _cov += (dataSet.getDouble(k, cols[i]) - mui) * (dataSet.getDouble(k, cols[j]) - muj);
+                    _cov += (data.get(k, cols[i]) - mui) * (data.get(k, cols[j]) - muj);
                 }
 
                 double mean = _cov / (rows.size());
@@ -495,7 +503,7 @@ public class SemBicScore implements Score {
             double mui = 0.0;
 
             for (int k : rows) {
-                mui += dataSet.getDouble(k, cols[i]);
+                mui += data.get(k, cols[i]);
             }
 
             mui /= rows.size();
@@ -503,7 +511,7 @@ public class SemBicScore implements Score {
             double _cov = 0.0;
 
             for (int k : rows) {
-                _cov += (dataSet.getDouble(k, cols[i]) - mui) * (dataSet.getDouble(k, cols[i]) - mui);
+                _cov += (data.get(k, cols[i]) - mui) * (data.get(k, cols[i]) - mui);
             }
 
             double mean = _cov / (rows.size());

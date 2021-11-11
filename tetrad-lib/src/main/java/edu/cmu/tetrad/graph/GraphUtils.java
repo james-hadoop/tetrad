@@ -2609,6 +2609,84 @@ public final class GraphUtils {
         return JsonUtils.parseJSONObjectToTetradGraph(json.toString());
     }
 
+    public static Graph loadGraphGcpCausaldag(File file) {
+        System.out.println("KK " + file.getAbsolutePath());
+        File parentFile = file.getParentFile().getParentFile();
+        parentFile = new File(parentFile, "data");
+        File dataFile = new File(parentFile, file.getName().replace("causaldag.gsp", "data"));
+
+        System.out.println(dataFile.getAbsolutePath());
+
+        List<Node> variables = null;
+
+        try {
+            ContinuousTabularDatasetFileReader reader = new ContinuousTabularDatasetFileReader(dataFile.toPath(), Delimiter.TAB);
+            Data data = reader.readInData();
+
+            DataSet dataSet = (DataSet) DataConvertUtils.toDataModel(data);
+
+            variables = dataSet.getVariables();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            Reader in1 = new FileReader(file);
+            return readerToGraphCausaldag(in1, variables);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IllegalStateException();
+        }
+    }
+
+    public static Graph readerToGraphCausaldag(Reader reader, List<Node> variables) throws IOException {
+        Graph graph = new EdgeListGraph(variables);
+        try (BufferedReader in = new BufferedReader(reader)) {
+            for (String line = in.readLine(); line != null; line = in.readLine()) {
+                line = line.trim();
+
+                String[] tokens = line.split("[\\[\\]]");
+
+                for (String t :  tokens) {
+//                    System.out.println(t);
+
+                    String[] tokens2 = t.split("[,|]");
+
+                    if (tokens2[0].isEmpty()) continue;
+
+//                    String name = "X" + (Integer.parseInt(tokens2[0]) + 1);
+//                    Node x = graph.getNode(name);
+//
+//                    if (x == null) {
+//                        x = new GraphNode(name);
+//                        graph.addNode(x);
+//                    }
+
+                    Node x = variables.get(Integer.parseInt(tokens2[0]));
+
+                    for (int j = 1; j < tokens2.length; j++) {
+                        if (tokens2[j].isEmpty()) continue;
+
+//                        String name2 = "X" + (Integer.parseInt(tokens2[j]) + 1);
+//                        Node y = graph.getNode(name2);
+//
+//                        if (y == null) {
+//                            y = new GraphNode(name2);
+//                            graph.addNode(y);
+//                        }
+
+                        Node y = variables.get(Integer.parseInt(tokens2[j]));
+
+                        graph.addDirectedEdge(y, x);
+                    }
+                }
+            }
+        }
+
+        return graph;
+    }
+
     public static HashMap<String, PointXy> grabLayout(List<Node> nodes) {
         HashMap<String, PointXy> layout = new HashMap<>();
 

@@ -113,7 +113,7 @@ public class SepsetsTeyssier implements SepsetProducer {
         List<Node> nodes = new ArrayList<>(c);
         nodes.add(a);
         nodes.add(b);
-        scorer.score(nodes);
+        scorer.evaluate(nodes);
         return !scorer.getParents(a).contains(b) || !scorer.getParents(b).contains(a);
     }
 

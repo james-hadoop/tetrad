@@ -136,7 +136,7 @@ public final class Bfci implements GraphSearch {
             scorer = new TeyssierScorer(test);
         }
 
-        scorer.score(perm);
+        scorer.evaluate(perm);
 
         List<Triple> triples = new ArrayList<>();
 

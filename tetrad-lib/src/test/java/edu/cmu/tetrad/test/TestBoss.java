@@ -35,9 +35,9 @@ import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.ConditionalGaussianBicScore;
-import edu.cmu.tetrad.algcomparison.score.FisherZScore;
 import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore;
+import edu.cmu.tetrad.algcomparison.simulation.ConditionalGaussianSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.LeeHastieSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
@@ -51,7 +51,6 @@ import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
 import edu.cmu.tetrad.util.*;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
-import org.apache.commons.lang3.RandomUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -314,55 +313,64 @@ public final class TestBoss {
     @Test
     public void testBoss5() {
         Parameters params = new Parameters();
-        params.set(Params.SAMPLE_SIZE, 10000);
-        params.set(Params.NUM_MEASURES, 20);
-        params.set(Params.AVG_DEGREE, 4);
+        params.set(Params.SAMPLE_SIZE, 1000);
+        params.set(Params.NUM_MEASURES, 50);
+        params.set(Params.AVG_DEGREE, 6);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.COEF_LOW, 0);
         params.set(Params.COEF_HIGH, 1);
         params.set(Params.VERBOSE, true);
 //        params.set(Params.MIN_CATEGORIES, 4);
 //        params.set(Params.MAX_CATEGORIES, 4);
-        params.set(Params.PERCENT_DISCRETE, 50);
+//        params.set(Params.PERCENT_DISCRETE, 50);
 
-        params.set(Params.NUM_RUNS, 10);
+        params.set(Params.NUM_RUNS, 30);
 
         params.set(Params.BOSS_METHOD, 1);
         params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.CACHE_SCORES, true);
-        params.set(Params.NUM_STARTS, 1);
+        params.set(Params.NUM_STARTS, 5);
+
+        params.set(Params.GSP_DEPTH, 30);
 
         params.set(Params.PENALTY_DISCOUNT, 2);
 //
-        params.set(Params.ALPHA, 0.01);
+        params.set(Params.ALPHA, 0.001);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GSP(new LinearGaussianBicScore(), new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new LinearGaussianBicScore(), new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GSP(new LinearGaussianBicScore(), new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new LinearGaussianBicScore(), new FisherZ()));
+
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new ConditionalGaussianLRT()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new ConditionalGaussianLRT()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new ConditionalGaussianLRT()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new ConditionalGaussianBicScore()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GSP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
 
         Simulations simulations = new Simulations();
-        simulations.add(new LinearSemSimulation(new RandomForward()));
+        simulations.add(new LeeHastieSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
-//        statistics.add(new AdjacencyPrecision());
-//        statistics.add(new AdjacencyRecall());
-//        statistics.add(new ArrowheadPrecisionCommonEdges());
-//        statistics.add(new ArrowheadRecallCommonEdges());
-//        statistics.add(new AdjacencyTPR());
-//        statistics.add(new AdjacencyFPR());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new AdjacencyTPR());
+        statistics.add(new AdjacencyFPR());
         statistics.add(new SHD_CPDAG());
-//        statistics.add(new ElapsedTime());
+        statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss5", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBosslh", simulations, algorithms, statistics, params);
     }
 
     @Test
@@ -970,7 +978,8 @@ public final class TestBoss {
 
         sort(nodes);
         TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts));
-        assert (scorer.score(nodes) == 7);
+        scorer.evaluate(nodes);
+        assert (scorer.score() == 7);
     }
 
     public Ret getFactsSimple() {
@@ -1343,7 +1352,7 @@ public final class TestBoss {
         TeyssierScorer scorer = new TeyssierScorer(score);
 
         List<Node> order = scorer.getOrder();
-        scorer.score(order);
+        scorer.evaluate(order);
 
         Node v = order.get(5);
 

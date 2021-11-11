@@ -1,4 +1,5 @@
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.data.CovarianceMatrix;
@@ -22,11 +23,11 @@ public class TestAnneAnalysis {
 
 
     public static void main(String... args) {
-        new TestAnneAnalysis().run1();
+        new TestAnneAnalysis().run2();
     }
 
     private void run1() {
-        System.out.println("V PD N AFP AFN AP AR AHP AHR SHD");
+        System.out.println("V PD N AFP AFN AP AR SHD");//AHP AHR SHD");
 
         for (int v : new int[]{5, 10, 20}) {
 
@@ -66,14 +67,14 @@ public class TestAnneAnalysis {
                         double countShd = 0;
 
                         for (int i = 0; i < 1000; i++) {
-                            Graph trueCpdag;
+                            Graph trueAdj;
                             CovarianceMatrix cov;
 
                             {
                                 lineadj = inadj.readLine();
                                 linecor = incor.readLine();
 
-                                trueCpdag = getTrueG1(lineadj, vars);
+                                trueAdj = getTrueG1(lineadj, vars);
                                 cov = getCov1(linecor, vars, n);
                             }
 
@@ -87,18 +88,18 @@ public class TestAnneAnalysis {
                                     parameters.set(Params.STABLE_FAS, true);
                                     parameters.set(Params.ALPHA, alpha);
                                     parameters.set(Params.VERBOSE, false);
-                                    estCpdag = pc.search(cov, parameters, trueCpdag);
+                                    estCpdag = pc.search(cov, parameters, trueAdj);
                                 }
 
-                                estCpdag = GraphUtils.replaceNodes(estCpdag, trueCpdag.getNodes());
+                                estCpdag = GraphUtils.replaceNodes(estCpdag, trueAdj.getNodes());
 
-                                double afp = new AdjacencyFP().getValue(trueCpdag, estCpdag, null);
-                                double afn = new AdjacencyFN().getValue(trueCpdag, estCpdag, null);
-                                double ap = new AdjacencyPrecision().getValue(trueCpdag, estCpdag, null);
-                                double ar = new AdjacencyRecall().getValue(trueCpdag, estCpdag, null);
-                                double ahp = new ArrowheadPrecision().getValue(trueCpdag, estCpdag, null);
-                                double ahr = new ArrowheadRecall().getValue(trueCpdag, estCpdag, null);
-                                double shd = new SHD().getValue(trueCpdag, estCpdag, null);
+                                double afp = new AdjacencyFP().getValue(trueAdj, estCpdag, null);
+                                double afn = new AdjacencyFN().getValue(trueAdj, estCpdag, null);
+                                double ap = new AdjacencyPrecision().getValue(trueAdj, estCpdag, null);
+                                double ar = new AdjacencyRecall().getValue(trueAdj, estCpdag, null);
+                                double ahp = new ArrowheadPrecision().getValue(trueAdj, estCpdag, null);
+                                double ahr = new ArrowheadRecall().getValue(trueAdj, estCpdag, null);
+                                double shd = new SHD().getValue(trueAdj, estCpdag, null);
 
                                 if (!Double.isNaN(afp)) {
                                     sumFp += afp;
@@ -159,6 +160,112 @@ public class TestAnneAnalysis {
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    private void run2() {
+        System.out.println("V\tPD\tN\tAFP\tAFN\tAP\tAR\tSHD\tElapsed");
+
+        File fileadj = new File("/Users/josephramsey/Downloads/dataforjoe/data50000/adjmats_p20_b10.txt");
+        File filecor = new File("/Users/josephramsey/Downloads/dataforjoe/data50000/cormats_p20_b10.txt");
+
+        try {
+            BufferedReader inadj = new BufferedReader(new FileReader(fileadj));
+            BufferedReader incor = new BufferedReader(new FileReader(filecor));
+
+            List<Node> vars = new ArrayList<>();
+            for (int i = 0; i < 20; i++) vars.add(new ContinuousVariable("x" + (i + 1)));
+
+            double sumFp = 0;
+            double sumFn = 0;
+            double sumAp = 0;
+            double sumAr = 0;
+            double sumShd = 0;
+            long sumElapsed = 0;
+
+            double countFp = 0;
+            double countFn = 0;
+            double countAp = 0;
+            double countAr = 0;
+            double countShd = 0;
+            long countElapsed = 0;
+
+            for (int i = 0; i < 10; i++) {
+                CovarianceMatrix cov = getCov1(incor.readLine(), vars, 50000);
+                Graph trueAdj = getTrueG1(inadj.readLine(), vars);
+
+                {
+                    double elapsed = -System.currentTimeMillis();
+//                    edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges pc
+//                            = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore());
+                    edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS pc
+                            = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new LinearGaussianBicScore(),
+                            new FisherZ());
+                    Parameters parameters = new Parameters();
+                    parameters.set(Params.PENALTY_DISCOUNT, 2);
+                    parameters.set(Params.DEPTH, 1);
+                    parameters.set(Params.VERBOSE, false);
+                    Graph estAdj = pc.search(cov, parameters, trueAdj);
+                    estAdj = GraphUtils.replaceNodes(estAdj, trueAdj.getNodes());
+                    estAdj = GraphUtils.undirectedGraph(estAdj);
+
+                    elapsed += System.currentTimeMillis();
+
+                    double afp = new AdjacencyFP().getValue(trueAdj, estAdj, null);
+                    double afn = new AdjacencyFN().getValue(trueAdj, estAdj, null);
+                    double ap = new AdjacencyPrecision().getValue(trueAdj, estAdj, null);
+                    double ar = new AdjacencyRecall().getValue(trueAdj, estAdj, null);
+                    double shd = new SHD().getValue(trueAdj, estAdj, null);
+
+                    if (!Double.isNaN(afp)) {
+                        sumFp += afp;
+                        countFp += 1;
+                    }
+
+                    if (!Double.isNaN(afn)) {
+                        sumFn += afn;
+                        countFn += 1;
+                    }
+
+                    if (!Double.isNaN(ap)) {
+                        sumAp += ap;
+                        countAp += 1;
+                    }
+
+                    if (!Double.isNaN(ar)) {
+                        sumAr += ar;
+                        countAr += 1;
+                    }
+
+                    if (!Double.isNaN(shd)) {
+                        sumShd += shd;
+                        countShd += 1;
+                    }
+
+                    if (!Double.isNaN(elapsed)) {
+                        sumElapsed += elapsed;
+                        countElapsed += 1;
+                    }
+                }
+
+                double eFp = sumFp / countFp;
+                double eFn = sumFn / countFn;
+                double eAp = sumAp / countAp;
+                double eAr = sumAr / countAr;
+                double eShd = sumShd / countShd;
+                long eElapsed = sumElapsed / countElapsed;
+
+                NumberFormat nf = new DecimalFormat("0.00");
+
+                System.out.println(20 + "\t" + nf.format(1) + "\t" + 50000 + "\t" + nf.format(eFp) + "\t" + nf.format(eFn)
+                        + "\t" + nf.format(eAp) + "\t" + nf.format(eAr)
+                        + "\t" + nf.format(eShd) + "\t" + eElapsed);
+            }
+
+            inadj.close();
+            incor.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

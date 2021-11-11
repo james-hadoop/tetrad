@@ -1271,17 +1271,19 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         Score score;
 
-        if (this.score.getData() instanceof ICovarianceMatrix) {
-            score = new SemBicScore((ICovarianceMatrix) this.score.getData());
+        DataModel data = this.score.getData();
+
+        if (data instanceof ICovarianceMatrix) {
+            score = new SemBicScore((ICovarianceMatrix) data);
             ((SemBicScore) score).setPenaltyDiscount(1);
-        } else if (this.score.getData().isContinuous()) {
-            score = new SemBicScore((DataSet) this.score.getData());
+        } else if (data.isContinuous()) {
+            score = new SemBicScore((DataSet) data);
             ((SemBicScore) score).setPenaltyDiscount(1);
-        } else if (this.score.getData().isDiscrete()) {
-            score = new BicScore((DataSet) this.score.getData());
+        } else if (data.isDiscrete()) {
+            score = new BicScore((DataSet) data);
             ((BicScore) score).setPenaltyDiscount(1);
         } else {
-            score = new ConditionalGaussianScore((DataSet) this.score.getData(), 1,
+            score = new ConditionalGaussianScore((DataSet) data, 1,
                     0, true);
         }
 

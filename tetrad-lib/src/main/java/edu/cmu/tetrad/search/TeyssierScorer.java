@@ -62,12 +62,11 @@ public class TeyssierScorer {
         this.knowledge = knowledge;
     }
 
-    public double score(List<Node> order) {
+    public void evaluate(List<Node> order) {
         this.order = new LinkedList<>(order);
         initializeScores();
         this.bookmarkedOrder = new LinkedList<>(this.order);
         this.bookmarkedScores = new LinkedList<>(this.scores);
-        return score();
     }
 
     private void nodesHash(Map<Node, Integer> nodesHash, List<Node> variables) {
@@ -505,9 +504,8 @@ public class TeyssierScorer {
     }
 
     public void shuffleVariables() {
-        order = new LinkedList<>(order);
         shuffle(order);
-        score(order);
+        evaluate(order);
     }
 
     public void setScoreType(ScoreType scoreType) {

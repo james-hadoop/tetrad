@@ -68,16 +68,13 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                 boss = new Boss(test);
             }
 
-            int method = parameters.getInt(Params.BOSS_METHOD);
-
-            System.out.println("Method = " + method);
-
             boss.setMethod(Boss.Method.BOSS);
 
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
             boss.setKnowledge(dataSet.getKnowledge());
+            boss.setDepth(parameters.getInt(Params.DEPTH));
             boss.setGspDepth(parameters.getInt(Params.DEPTH));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {

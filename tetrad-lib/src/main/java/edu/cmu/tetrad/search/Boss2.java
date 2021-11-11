@@ -114,7 +114,7 @@ public class Boss2 {
 //        makeValidKnowledgeOrder(order);
 //        }
 
-        scorer.score(order);
+        scorer.evaluate(order);
 
         for (int r = 0; r < numStarts; r++) {
 //            if (r > 0)
@@ -127,7 +127,7 @@ public class Boss2 {
 //                throw new IllegalStateException("Cannot satisfy knowledge.");
 //            }
 
-            scorer.score(_order);
+            scorer.evaluate(_order);
 
             List<Node> perm;
 
@@ -372,10 +372,10 @@ public class Boss2 {
 
         while ((perm = gen.next()) != null) {
             List<Node> p = GraphUtils.asList(perm, variables);
-            double score = scorer.score(p);
+            scorer.evaluate(p);
 
-            if (score < minScore) {
-                minScore = score;
+            if (scorer.score() < minScore) {
+                minScore = scorer.score();
                 minP = p;
             }
         }
@@ -395,7 +395,7 @@ public class Boss2 {
 
         scorer.setScoreType(scoreType);
 
-        scorer.score(order);
+        scorer.evaluate(order);
         return scorer.getGraph(cpdag);
     }
 
