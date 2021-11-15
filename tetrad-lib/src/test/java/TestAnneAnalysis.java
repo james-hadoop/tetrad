@@ -202,7 +202,7 @@ public class TestAnneAnalysis {
                             = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new LinearGaussianBicScore(),
                             new FisherZ());
                     Parameters parameters = new Parameters();
-                    parameters.set(Params.PENALTY_DISCOUNT, 2);
+                    parameters.set(Params.PENALTY_DISCOUNT, 1);
                     parameters.set(Params.DEPTH, 1);
                     parameters.set(Params.VERBOSE, false);
                     Graph estAdj = pc.search(cov, parameters, trueAdj);
