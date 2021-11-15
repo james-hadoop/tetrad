@@ -13,7 +13,10 @@ import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.Boss;
+import edu.cmu.tetrad.search.IndependenceTest;
+import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -28,21 +31,21 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "BOSS",
-        command = "boss",
+        name = "GSP",
+        command = "gsp",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
+public class GSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
     static final long serialVersionUID = 23L;
     private ScoreWrapper score = null;
     private IndependenceWrapper test;
 
-    public BOSS() {
+    public GSP() {
 
     }
 
-    public BOSS(ScoreWrapper score, IndependenceWrapper test) {
+    public GSP(ScoreWrapper score, IndependenceWrapper test) {
         this.score = score;
         this.test = test;
     }
@@ -60,33 +63,22 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
             test.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
-            Boss boss;
+            Boss gsp = new Boss(test);
+            gsp.setMethod(Boss.Method.GSP);
 
-            if (parameters.getBoolean(Params.USE_SCORE) && !(score instanceof GraphScore)) {
-                boss = new Boss(score);
-            } else {
-                boss = new Boss(test);
-            }
+            gsp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
+            gsp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            gsp.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            gsp.setKnowledge(dataSet.getKnowledge());
+            gsp.setGspDepth(parameters.getInt(Params.GSP_DEPTH));
 
-            boss.setMethod(Boss.Method.BOSS);
+            gsp.setScoreType(TeyssierScorer.ScoreType.Edge);
+            gsp.setParentCalculation(TeyssierScorer.ParentCalculation.VermaPearl);
 
-            boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
-            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            boss.setKnowledge(dataSet.getKnowledge());
-            boss.setDepth(parameters.getInt(Params.DEPTH));
-            boss.setGspDepth(parameters.getInt(Params.DEPTH));
-
-            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
-                boss.setScoreType(TeyssierScorer.ScoreType.Edge);
-            } else {
-                boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
-            }
-
-            List<Node> perm = boss.bestOrder(score.getVariables());
-            return boss.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
+            List<Node> perm = gsp.bestOrder(score.getVariables());
+            return gsp.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
-            BOSS algorithm = new BOSS(score, test);
+            GSP algorithm = new GSP(score, test);
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -117,7 +109,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
     @Override
     public String getDescription() {
-        return "BOSS (Best Order Score Search) using " + test.getDescription()
+        return "GSP (Greedy Sparsest Permutation) using " + test.getDescription()
                 + " or " + score.getDescription();
     }
 
@@ -131,10 +123,8 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         ArrayList<String> params = new ArrayList<>();
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
-        params.add(Params.BOSS_SCORE_TYPE);
-        params.add(Params.USE_SCORE);
         params.add(Params.OUTPUT_CPDAG);
-        params.add(Params.DEPTH);
+        params.add(Params.GSP_DEPTH);
         params.add(Params.VERBOSE);
         return params;
     }

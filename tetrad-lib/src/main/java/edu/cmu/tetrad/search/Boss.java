@@ -7,13 +7,13 @@ import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.NodePair;
-import edu.cmu.tetrad.util.ChoiceGenerator;
-import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
 
@@ -38,6 +38,8 @@ public class Boss {
     private IKnowledge knowledge = new Knowledge2();
     private boolean firstRunUseDataOrder = false;
     private int depth = -1;
+    private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.GrowShrinkMb;
+    private TeyssierScorer scorer;
 
     public Boss(Score score) {
         this.score = score;
@@ -53,12 +55,12 @@ public class Boss {
         long start = System.currentTimeMillis();
         order = new ArrayList<>(order);
 
-        TeyssierScorer scorer;
-
         if (score != null && !(score instanceof GraphScore)) {
             scorer = new TeyssierScorer(score);
+//            scorer.setParentCalculation(parentCalculation);
         } else if (test != null) {
             scorer = new TeyssierScorer(test);
+//            scorer.setParentCalculation(parentCalculation);
         } else {
             throw new IllegalArgumentException("Need a score (not GraphScore) or a test.");
         }
@@ -114,6 +116,10 @@ public class Boss {
         return bestPerm;
     }
 
+    public int getNumEdges() {
+        return scorer.getNumEdges();
+    }
+
     private void makeValidKnowledgeOrder(List<Node> order) {
         if (!knowledge.isEmpty()) {
             order.sort((o1, o2) -> {
@@ -166,32 +172,146 @@ public class Boss {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Initial)");
         }
 
-        do {
-            bossLoop(scorer);
-        } while (extraSwapsLoop(scorer, depth == -1 ? Integer.MAX_VALUE : depth));
+//        do {
+        bossLoop(scorer);
+//        } while (triangleLoop1(scorer));
 
         return scorer.getOrder();
+    }
+
+
+    private void bossLoop0(TeyssierScorer scorer) {
+        scorer.bookmark();
+
+        double s0;
+
+        do {
+            s0 = scorer.score();
+
+            for (Node v : scorer.getOrder()) {
+                scorer.moveToLast(v);
+
+                double s = NEGATIVE_INFINITY;
+
+                if (scorer.score() > s0) {
+                    if (satisfiesKnowledge(scorer.getOrder())) {
+                        scorer.bookmark();
+                        s = scorer.score();
+                    }
+                }
+
+                while (scorer.promote(v)) {
+                    if (scorer.score() > s && scorer.score() > s0) {
+                        if (satisfiesKnowledge(scorer.getOrder())) {
+                            scorer.bookmark();
+                            s = scorer.score();
+                        }
+                    }
+                }
+
+                scorer.goToBookmark();
+            }
+        } while (scorer.score() > s0);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Single Moves)");
+        }
+
+        scorer.score();
     }
 
     private void bossLoop(TeyssierScorer scorer) {
         scorer.bookmark();
 
+        double s0;
+
+        do {
+            s0 = scorer.score();
+//            List<Node> _best = null;
+
+            double s = NEGATIVE_INFINITY;
+
+//            V:
+            for (Node v : scorer.getOrder()) {
+//                BestMut bestMut = getBestMut(scorer, v, s);
+//
+////                System.out.println(bestMut.bestMut.size() + " score = " + bestMut.score);
+//
+//                for (int w = bestMut.bestMut.size() - 1; w >= 0; w--) {
+//                    List<Node> best = bestMut.bestMut.get(w);
+//                    scorer.evaluate(best);
+//
+////                    if (scorer.score() > s) {
+//                    if (satisfiesKnowledge(scorer.getOrder())) {
+//                        scorer.bookmark();
+//                        s = bestMut.score;
+//                        _best = best;
+////                        break V;
+//                    }
+////                    }
+//                }
+
+                for (int i = scorer.size() - 1; i >= 0; i--) {
+                    scorer.moveTo(v, i);
+
+                    if (scorer.score() > s && scorer.score() > s0) {
+                        if (satisfiesKnowledge(scorer.getOrder())) {
+                            scorer.bookmark();
+                            s = scorer.score();
+                        }
+                    }
+                }
+
+//                scorer.evaluate(_best);
+                scorer.goToBookmark();
+            }
+        } while (scorer.score() > s0);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Single Moves)");
+        }
+
+        scorer.score();
+    }
+
+    private BestMut getBestMut(TeyssierScorer scorer, Node v, double score) {
+        List<List<Node>> best = new ArrayList<>();
+        double s = NEGATIVE_INFINITY;
+
+        for (int i = scorer.size() - 1; i >= 0; i--) {
+            scorer.moveTo(v, i);
+
+            if (scorer.score() > s && scorer.score() >= score) {
+                best.clear();
+                s = scorer.score();
+            }
+
+            if (scorer.score() >= score) {
+                best.add(scorer.getOrder());
+            }
+        }
+
+        BestMut bestMut = new BestMut();
+        bestMut.bestMut = best;
+        bestMut.score = s;
+
+//        for (List<Node> o : best) {
+//            scorer.evaluate(o);
+//            System.out.println("scoreee = " + scorer.score());
+//        }
+
+        return bestMut;
+    }
+
+    private void bossLoop2(TeyssierScorer scorer) {
+        scorer.bookmark();
         double score;
 
         do {
             score = scorer.score();
 
             for (Node v : scorer.getOrder()) {
-                scorer.moveToLast(v);
-
-                double score2 = NEGATIVE_INFINITY;
-
-                if (scorer.score() > score) {
-                    if (satisfiesKnowledge(scorer.getOrder())) {
-                        scorer.bookmark();
-                        score2 = scorer.score();
-                    }
-                }
+                double score2 = scorer.score();
 
                 while (scorer.promote(v)) {
                     if (scorer.score() > score2 && scorer.score() > score) {
@@ -213,118 +333,142 @@ public class Boss {
         scorer.score();
     }
 
-    private boolean extraSwapsLoop(TeyssierScorer scorer, int depth) {
+//    private void bossLoop(TeyssierScorer scorer) {
+//        scorer.bookmark();
+//        double s0 = NEGATIVE_INFINITY;
+//        List<Node> best = null;
+//
+//        while (true) {
+//            for (Node v : scorer.getOrder()) {
+//                double s = scorer.score();
+//                scorer.bookmark();
+//
+//                for (int i = 0; i < scorer.size(); i++) {
+//                    scorer.moveTo(v, i);
+//
+//                    if (scorer.score() >= s) {
+//                        if (satisfiesKnowledge(scorer.getOrder())) {
+//                            s = scorer.score();
+//                            scorer.bookmark();
+//                        }
+//                    }
+//                }
+//
+//                scorer.goToBookmark();
+//            }
+//
+//            if (scorer.score() > s0) {
+//                s0 = scorer.score();
+//                best = scorer.getOrder();
+//            } else {
+//                break;
+//            }
+//
+////            if (scorer.score() <= s0) break;
+//        }
+//
+//        if (verbose) {
+//            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Single Moves)");
+//        }
+//
+//        scorer.evaluate(best);
+//    }
+
+//    public List<Node> bossSearchAllIndices(TeyssierScorer scorer) {
+//
+//        // Take each variable in turn and try moving it to each position to the left (i.e.,
+//        // try promoting it in the causal order). Score each causal order by building
+//        // a DAG using something like the K2 method. (We actually use Grow-Shrink, a
+//        // Markov blanket algorithm, to find putative parents for each node.) Finally,
+//        // place the node in whichever position yielded the highest score. Do this
+//        // for each variable in turn. Once you're done, do it all again, until no more
+//        // variables can be relocated.
+//        double overall = Double.POSITIVE_INFINITY;
+//        List<Node> best = null;
+//
+//        while (true) {
+//            for (Node v : scorer.getOrder()) {
+//                scorer.moveTo(v, 0);
+//                double bestScore = scorer.score();
+//                scorer.bookmark(1);
+//
+//                while (scorer.moveRight(v)) {
+//                    if (scorer.score() <= bestScore) {
+//                        bestScore = scorer.score();
+//                        scorer.bookmark(1);
+//                    }
+//                }
+//
+//                scorer.goToBookmark(1);
+//            }
+//
+//            if (scorer.score() < overall) {
+//                overall = scorer.score();
+//                best = scorer.getOrder();
+//                if (verbose) {
+//                    System.out.println("Updated order = " + scorer.getOrder());
+//                }
+//            } else {
+//                break;
+//            }
+//        }
+//
+//        return best;
+//    }
+
+    private boolean triangleLoop1(TeyssierScorer scorer) {
         List<Node> b = scorer.getOrder();
 
-        for (Node r1 : b) {
-            for (Node r2 : scorer.getParents(r1)) {
-                List<NodePair> pairs = new ArrayList<>();
+        for (Node v : b) {
+            for (int _r1 = 0; _r1 < b.size(); _r1++) {
+                for (int _r2 = _r1 + 1; _r2 < b.size(); _r2++) {
+                    Node r1 = scorer.get(_r1);
+                    Node r2 = scorer.get(_r2);
 
-                for (Node v : b) {
-                    if (triangle(v, r1, r2, scorer)) {
-                        pairs.add(new NodePair(v, r1));
-                        pairs.add(new NodePair(v, r2));
-                    }
-                }
-
-                Collections.shuffle(pairs);
-
-                if (doPairs(scorer, pairs, depth)) return true;
-
-                List<NodePair> _pairs = new ArrayList<>(pairs);
-                Collections.shuffle(_pairs);
-
-                if (doPairs(scorer, _pairs, depth)) return true;
-            }
-        }
-
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (" + "Simultaneous Moves" + ")");
-        }
-
-        return false;
-    }
-
-    private boolean doPairs(TeyssierScorer scorer, List<NodePair> pairs, int depth) {
-//        System.out.println("doing # pairs = " + pairs);
-        if (depth > pairs.size()) depth = pairs.size();
-
-        ChoiceGenerator iterator = new ChoiceGenerator(pairs.size(), depth);
-        int[] choice;
-
-        while ((choice = iterator.next()) != null) {
-            if (choice.length == 0) continue;
-            double score = scorer.score();
-            scorer.bookmark();
-
-            for (int i : choice) {
-                flip(scorer, pairs.get(i).getFirst(), pairs.get(i).getSecond());
-            }
-
-            if (scorer.score() > score && satisfiesKnowledge(scorer.getOrder())) {
-                return true;
-            }
-
-            scorer.goToBookmark();
-        }
-
-        return false;
-    }
-
-    private void removeEdgesInTrianglesLoop(TeyssierScorer scorer) {
-//        while (doNumTriangles(scorer)) ;
+                    if (!adjacent(r1, r2, scorer)) continue;
+//                    if (!covered(r2, r2, scorer)) continue;
 //
-//        doNumTriangles(scorer);
-//        doNumTriangles(scorer);
-//        doNumTriangles(scorer);
+                    // r1->v<-r2, try r1->v->r2, r1<-v->r1, r1<-v<-r2
+                    if (scorer.getParents(v).contains(r1) && scorer.getParents(v).contains(r2)) {
+                        double score = scorer.score();
+                        scorer.bookmark();
 
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (" + "Simultaneous Moves" + ")");
-        }
-    }
+                        flip(r1, v, scorer);
+                        flip(r2, v, scorer);
 
-    private boolean doNumTriangles(TeyssierScorer scorer) {
-        boolean changed = false;
+                        if (scorer.score() > score && satisfiesKnowledge(scorer.getOrder())) {
+                            return true;
+                        }
 
-        for (Node x : variables) {
-            for (Node y : scorer.getAdjacentNodes(x)) {
-                if (!scorer.adjacent(x, y)) continue;
+                        scorer.goToBookmark();
 
-                List<Node> xy = new ArrayList<>();
-                xy.add(x);
-                xy.add(y);
-
-                List<Node> t = new ArrayList<>();
-
-                for (Node v : variables) {
-                    if (triangle(x, y, v, scorer)) {
-                        t.add(v);
+//                        flip(v, r1, scorer);
+//
+//                        if (scorer.score() > score && satisfiesKnowledge(scorer.getOrder())) {
+//                            return true;
+//                        }
+//
+//                        scorer.goToBookmark();
+//
+//                        flip(v, r2, scorer);
+//
+//                        if (scorer.score() > score && satisfiesKnowledge(scorer.getOrder())) {
+//                            return true;
+//                        }
+//
+//                        scorer.goToBookmark();
                     }
-                }
 
-                if (t.isEmpty()) continue;
+                    // r1<-v->r2, try r1->v<-r1
+                    if ((scorer.getParents(r1).contains(v) && scorer.getParents(r2).contains(v))) {
+                        double score = scorer.score();
+                        scorer.bookmark();
 
-                DepthChoiceGenerator gen = new DepthChoiceGenerator(t.size(), t.size());
-                int[] choice;
+                        flip(v, r1, scorer);
+                        flip(v, r2, scorer);
 
-                W:
-                while ((choice = gen.next()) != null) {
-                    List<Node> c = GraphUtils.asList(choice, t);
-
-                    for (Node t1 : c) {
-                        ChoiceGenerator gen2 = new ChoiceGenerator(2, 2);
-                        int[] choice2;
-
-                        while ((choice2 = gen2.next()) != null) {
-                            scorer.bookmark();
-
-                            List<Node> c2 = GraphUtils.asList(choice2, xy);
-                            flip(scorer, c2.get(choice2[0]), t1);
-
-                            if (!scorer.getParents(y).contains(x)) {
-                                changed = true;
-                                break W;
-                            }
+                        if (scorer.score() > score && satisfiesKnowledge(scorer.getOrder())) {
+                            return true;
                         }
 
                         scorer.goToBookmark();
@@ -333,10 +477,16 @@ public class Boss {
             }
         }
 
-        return changed;
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (" + "Simultaneous Moves" + ")");
+        }
+
+        return false;
     }
 
-    private void flip(TeyssierScorer scorer, Node x, Node y) {
+    private void flip(Node x, Node y, TeyssierScorer scorer) {
+//        scorer.swap(x, y);
+
         if (scorer.getParents(x).contains(y)) {
             scorer.moveTo(x, scorer.indexOf(y));
         } else if (scorer.getParents(y).contains(x)) {
@@ -353,43 +503,46 @@ public class Boss {
     }
 
     private List<Node> gsp(TeyssierScorer scorer) {
-        Set<List<Node>> path = new HashSet<>();
-        gspLoop(scorer, path, 1, gspDepth == -1 ? Integer.MAX_VALUE : gspDepth);
+        double score = scorer.score();
+
+        while (true) {
+            List<Node> order = gspLoop(scorer, 1, gspDepth == -1 ? Integer.MAX_VALUE : gspDepth);
+            scorer.evaluate(order);
+            if (scorer.score() <= score) break;
+            score = scorer.score();
+        }
+
         return scorer.getOrder();
     }
 
-    private double gspLoop(final TeyssierScorer scorer, final Set<List<Node>> path, final int depth,
-                           final int gspDepth) {
-        if (depth > gspDepth) return scorer.score();
-        List<Node> order = scorer.getOrder();
+    private List<Node> gspLoop(final TeyssierScorer scorer, final int depth, final int gspDepth) {
+        List<Node> _order = scorer.getOrder();
+
+        if (depth > gspDepth) {
+            return _order;
+        }
+
         double score = scorer.score();
 
         for (Node w : scorer.getOrder()) {
             for (Node v : scorer.getParents(w)) {
-                if (covered(scorer, v, w)) {
+                if (covered(v, w, scorer)) {
                     scorer.swap(v, w);
 
-                    if (scorer.score() >= score && !path.contains(order)) {
-                        path.add(order);
-
-                        double _score = gspLoop(scorer, path, score == scorer.score() ? depth + 1 : 1, gspDepth);
-
-                        if (_score > score) {
-                            return _score;
-                        }
-
-//                        path.remove(order);
+                    if (scorer.score() > score) {
+                        return gspLoop(scorer, depth + 1, gspDepth);
                     }
+
+                    scorer.evaluate(_order);
                 }
             }
         }
 
-        scorer.evaluate(order);
-        return score;
+        return _order;
     }
 
     // Checks if v-->w is covered.
-    private boolean covered(TeyssierScorer scorer, Node v, Node w) {
+    private boolean covered(Node v, Node w, TeyssierScorer scorer) {
         Set<Node> pw = new HashSet<>(scorer.getParents(w));
         pw.remove(v);
         Set<Node> pv = new HashSet<>(scorer.getParents(v));
@@ -418,23 +571,14 @@ public class Boss {
     }
 
     @NotNull
-    public Graph getGraph(List<Node> order, boolean cpdag) {
-        TeyssierScorer scorer;
+    public Graph getGraph(boolean cpdag) {
         DataModel dataModel;
 
         if (score != null) {
-            scorer = new TeyssierScorer(score);
-            scorer.setKnowledge(knowledge);
             dataModel = score.getData();
         } else {
-            scorer = new TeyssierScorer(test);
-            scorer.setKnowledge(knowledge);
             dataModel = test.getData();
         }
-
-        scorer.setScoreType(scoreType);
-
-        scorer.evaluate(order);
 
         Graph graph1 = scorer.getGraph(cpdag);
 
@@ -504,5 +648,14 @@ public class Boss {
         this.depth = depth;
     }
 
+    public void setParentCalculation(TeyssierScorer.ParentCalculation parentCalculation) {
+        this.parentCalculation = parentCalculation;
+    }
+
     public enum Method {BOSS, SP, GSP}
+
+    private class BestMut {
+        List<List<Node>> bestMut;
+        double score;
+    }
 }

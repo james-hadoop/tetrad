@@ -25,7 +25,7 @@ public class TeyssierScorer {
     private final Map<ScoreKey, Pair> cache = new HashMap<>();
     private final List<Node> variables;
     private final Map<Node, Integer> variablesHash;
-    private ParentCalculation parentCalculation = ParentCalculation.IteratedGrowShrink;
+    private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
     private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
     private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
     private HashMap<Node, Integer> bookmarkedNodesHash = new HashMap<>();
@@ -81,7 +81,7 @@ public class TeyssierScorer {
 
     public boolean promote(Node v) {
         int index = orderHash.get(v);
-        if (index == 0) return false;
+        if (index <= 0) return false;
 
         Node v1 = order.get(index - 1);
         Node v2 = order.get(index);
@@ -97,7 +97,7 @@ public class TeyssierScorer {
     public boolean demote(Node v) {
         int index = orderHash.get(v);
         if (index >= size() - 1) return false;
-        if (index == -1) return false;
+        if (index < 0) return false;
 
         Node v1 = order.get(index);
         Node v2 = order.get(index + 1);
@@ -111,16 +111,34 @@ public class TeyssierScorer {
     }
 
     public void moveTo(Node v, int toIndex) {
-        int vindex = indexOf(v);
+        if (toIndex < 0 || toIndex > size() - 1) return;
 
-        order.remove(v);
-        order.add(toIndex, v);
-
-        if (vindex < toIndex) {
-            updateScores(vindex, toIndex);
-        } else {
-            updateScores(toIndex, vindex);
+//        if (toIndex != indexOf(v)) {
+        if (toIndex < indexOf(v)) {
+            promote(v);
+            moveTo(v, toIndex);
+        } else if (toIndex > indexOf(v)) {
+            demote(v);
+            moveTo(v, toIndex);
         }
+//            else {
+//                if (toIndex < indexOf(v)) {
+//                    moveTo(v, toIndex - 1);
+//                }
+//                moveTo(v, toIndex);
+//
+////                int vindex = indexOf(v);
+////
+////                order.remove(v);
+////                order.add(toIndex, v);
+////
+////                if (vindex < toIndex) {
+////                    updateScores(vindex, toIndex);
+////                } else {
+////                    updateScores(toIndex, vindex);
+////                }
+//            }
+//        }
     }
 
     private boolean validKnowledgeOrder(List<Node> order) {
@@ -149,6 +167,12 @@ public class TeyssierScorer {
 
         order.remove(v);
         order.addLast(v);
+
+        scores.set(order.size() - 1, scores.get(vindex));
+
+        for (int j = vindex; j < order.size() - 1; j++) {
+            scores.set(j, scores.get(j + 1));
+        }
 
         updateScores(vindex, order.size() - 1);
     }
@@ -210,6 +234,7 @@ public class TeyssierScorer {
         for (int i = i1; i <= i2; i++) {
             recalculate(i);
             orderHash.put(order.get(i), i);
+
         }
     }
 
@@ -297,7 +322,7 @@ public class TeyssierScorer {
     }
 
     private Pair getParentsInternal(int p) {
-        if (parentCalculation == ParentCalculation.IteratedGrowShrink) {
+        if (parentCalculation == ParentCalculation.GrowShrinkMb) {
             if (test != null) {
                 return getGrowShrinkIndep(p);
             } else {
@@ -320,15 +345,15 @@ public class TeyssierScorer {
         Set<Node> prefix = getPrefix(p);
 
         for (Node y : prefix) {
-            List<Node> minus = new ArrayList<>(prefix);
+            Set<Node> minus = new HashSet<>(prefix);
             minus.remove(y);
 
-            if (test.isDependent(x, y, minus)) {
+            if (test.isDependent(x, y, new ArrayList<>(minus))) {
                 parents.add(y);
             }
         }
 
-        return new Pair(parents, parents.size());
+        return new Pair(parents, -parents.size());
     }
 
     private Pair vermaPearlScore(int p) {
@@ -541,7 +566,7 @@ public class TeyssierScorer {
 
     public enum ScoreType {Edge, SCORE}
 
-    public enum ParentCalculation {IteratedGrowShrink, VermaPearl}
+    public enum ParentCalculation {GrowShrinkMb, VermaPearl}
 
     private static class Pair {
         private final Set<Node> parents;

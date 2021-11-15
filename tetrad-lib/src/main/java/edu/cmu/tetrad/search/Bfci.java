@@ -106,7 +106,7 @@ public final class Bfci implements GraphSearch {
         boss.setKnowledge(knowledge);
 
         List<Node> perm = boss.bestOrder(variables);
-        graph = boss.getGraph(perm, true);
+        graph = boss.getGraph(true);
         Graph bossGraph = new EdgeListGraph(graph);
 
         graph.reorientAllWith(Endpoint.CIRCLE);

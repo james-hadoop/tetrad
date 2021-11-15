@@ -225,7 +225,7 @@ public final class Fask implements GraphSearch {
             boss.setMethod(Boss.Method.BOSS);
             boss.setKnowledge(knowledge);
             List<Node> order = boss.bestOrder(variables);
-            G = boss.getGraph(order, false);
+            G = boss.getGraph(false);
 
 //            FasConcurrent fas = new FasConcurrent(test);
 //            fas.setStable(true);

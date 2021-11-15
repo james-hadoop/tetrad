@@ -30,25 +30,12 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
- * Extends Erin Korber's implementation of the Fast Causal Inference algorithm (found in FCI.java) with Jiji Zhang's
- * Augmented FCI rules (found in sec. 4.1 of Zhang's 2006 PhD dissertation, "Causal Inference and Reasoning in Causally
- * Insufficient Systems").
- * <p>
- * This class is based off a copy of FCI.java taken from the repository on 2008/12/16, revision 7306. The extension is
- * done by extending doFinalOrientation() with methods for Zhang's rules R5-R10 which implements the augmented search.
- * (By a remark of Zhang's, the rule applications can be staged in this way.)
- *
- * @author Erin Korber, June 2004
- * @author Alex Smith, December 2008
  * @author Joseph Ramsey
- * @author Choh-Man Teng
  */
 public final class DagToPag2 {
 
     private final Graph dag;
-//    private final IndTestDSep dsep;
 
     /*
      * The background knowledge.
@@ -237,40 +224,6 @@ public final class DagToPag2 {
 
         return false;
     }
-
-//    private static boolean existsInducingPathVisit(Graph graph, Node a, Node b, Node x, Node y,
-//                                                   LinkedList<Node> path) {
-//        if (b == y) {
-//            path.addLast(b);
-//            return true;
-//        }
-//
-//        if (path.contains(b)) {
-//            return false;
-//        }
-//
-//        path.addLast(b);
-//
-//        for (Node c : graph.getAdjacentNodes(b)) {
-//            if (c == a) continue;
-//
-//            if (b.getNodeType() == NodeType.MEASURED) {
-//                if (!graph.isDefCollider(a, b, c)) continue;
-//
-//                if (!(graph.isAncestorOf(b, x) || graph.isAncestorOf(b, y))) {
-//                    continue;
-//                }
-//            }
-//
-//            if (DataGraphUtils.existsInducingPathVisit(graph, b, c, x, y, path)) {
-//                return true;
-//            }
-//        }
-//
-//        path.removeLast();
-//        return false;
-//    }
-
 
     public IKnowledge getKnowledge() {
         return knowledge;
