@@ -35,7 +35,7 @@ import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.ConditionalGaussianBicScore;
-import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
+//import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore;
 import edu.cmu.tetrad.algcomparison.simulation.LeeHastieSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
@@ -189,9 +189,9 @@ public final class TestBoss {
 
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new LinearGaussianBicScore(), new FisherZ()));
-//        algorithms.add(new GSP(new SemBicScore()));
-//        algorithms.add(new Fges(new SemBicScore()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+//        algorithms.add(new GSP(new LinearGaussianBicScore()));
+//        algorithms.add(new Fges(new LinearGaussianBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
 
         Simulations simulations = new Simulations();
@@ -237,7 +237,7 @@ public final class TestBoss {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new ZhangShenBoundScore(), new FisherZ()));
-//        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new Fges(new LinearGaussianBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
 
         Simulations simulations = new Simulations();
@@ -344,7 +344,7 @@ public final class TestBoss {
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GSP(new LinearGaussianBicScore(), new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 //
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new ConditionalGaussianLRT()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new ConditionalGaussianLRT()));
@@ -453,7 +453,7 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 //
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -504,12 +504,12 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 //
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison
-                .algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore()));
+                .algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -564,7 +564,7 @@ public final class TestBoss {
         algorithms.add(new edu.cmu.tetrad.algcomparison
                 .algorithm.oracle.cpdag.PcAll(new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison
-                .algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore()));
+                .algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
 
         Node x1 = new ContinuousVariable("X1");
         Node x2 = new ContinuousVariable("X2");
@@ -648,7 +648,7 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new FisherZ()));
         algorithms.add(new PcMax(new FisherZ()));
@@ -857,7 +857,7 @@ public final class TestBoss {
 
         Algorithms algorithms = new Algorithms();
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcAll(new DSeparationTest()));
-        algorithms.add(new BOSS(new LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 //        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.FmlBicScore()));
 //        algorithms.add(new BOSSIndep(new FisherZ()));
 //        algorithms.add(new GSPIndep(new DSeparationTest()));
@@ -1215,11 +1215,11 @@ public final class TestBoss {
         pc.setVerbose(true);
         System.out.println("PC " + pc.search());
 
-        edu.cmu.tetrad.search.Fges fges = new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search.SemBicScore(data));
+        edu.cmu.tetrad.search.Fges fges = new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search.LinearGaussianBicScore(data));
         fges.setVerbose(true);
         System.out.println("FGES " + fges.search());
 
-        Boss boss = new Boss(new edu.cmu.tetrad.search.SemBicScore(data));
+        Boss boss = new Boss(new edu.cmu.tetrad.search.LinearGaussianBicScore(data));
         boss.setCacheScores(false);
         System.out.println("BOSS " + boss.bestOrder(data.getVariables()));
     }
@@ -1254,11 +1254,11 @@ public final class TestBoss {
         pc.setVerbose(true);
         System.out.println("PC " + pc.search());
 
-        edu.cmu.tetrad.search.Fges fges = new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search.SemBicScore(data));
+        edu.cmu.tetrad.search.Fges fges = new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search.LinearGaussianBicScore(data));
         fges.setVerbose(true);
         System.out.println("FGES " + fges.search());
 
-        Boss boss = new Boss(new edu.cmu.tetrad.search.SemBicScore(data));
+        Boss boss = new Boss(new edu.cmu.tetrad.search.LinearGaussianBicScore(data));
         boss.setCacheScores(false);
         System.out.println("BOSS " + boss.bestOrder(data.getVariables()));
     }
@@ -1349,7 +1349,7 @@ public final class TestBoss {
         LinearSemPm pm = new LinearSemPm(graph);
         LinearSemIm im = new LinearSemIm(pm);
         DataSet dataSet = im.simulateData(1000, false);
-        edu.cmu.tetrad.search.SemBicScore score = new edu.cmu.tetrad.search.SemBicScore(dataSet);
+        edu.cmu.tetrad.search.LinearGaussianBicScore score = new edu.cmu.tetrad.search.LinearGaussianBicScore(dataSet);
         TeyssierScorer scorer = new TeyssierScorer(score);
 
         List<Node> order = scorer.getOrder();
@@ -1400,7 +1400,7 @@ public final class TestBoss {
         algorithms.add(new Rfci(new FisherZ()));
         algorithms.add(new Gfci(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
         algorithms.add(new BFCI(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
-//        algorithms.add(new BOSS(new SemBicScore(), new FisherZ()));
+//        algorithms.add(new BOSS(new LinearGaussianBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -1573,7 +1573,7 @@ public final class TestBoss {
 
             DataSet data = im.simulateData(100000, false);
 
-            SemBicScore score = new SemBicScore(data);
+            LinearGaussianBicScore score = new LinearGaussianBicScore(data);
             score.setPenaltyDiscount(2);
 
             Fges fges = new Fges(score);

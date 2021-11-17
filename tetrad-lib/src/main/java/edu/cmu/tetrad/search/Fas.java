@@ -32,6 +32,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
+import static java.lang.Double.POSITIVE_INFINITY;
+
 /**
  * Implements the "fast adjacency search" used in several causal algorithm in this package. In the fast adjacency
  * search, at a given stage of the search, an edge X*-*Y is removed from the graph if X _||_ Y | S, where S is a subset

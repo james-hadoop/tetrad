@@ -330,7 +330,7 @@ public class TestSimulatedFmri {
 //        algorithms.add(new FasLofs(Lofs2.Rule.Skew));
 //        algorithms.add(new FasLofs(Lofs2.Rule.RSkew));
 //
-//        algorithms.add(new FgesConcatenated(new edu.cmu.tetrad.algcomparison.score.SemBicScore(), true));
+//        algorithms.add(new FgesConcatenated(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), true));
 //        algorithms.add(new PcStableMaxConcatenated(new SemBicTest(), true));
         algorithms.add(new FaskConcatenated(new FisherZ()));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R1));

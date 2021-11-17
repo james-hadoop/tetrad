@@ -8,7 +8,7 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.IndTestScore;
 import edu.cmu.tetrad.search.IndependenceTest;
-import edu.cmu.tetrad.search.SemBicScore;
+import edu.cmu.tetrad.search.LinearGaussianBicScore;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 
@@ -32,12 +32,12 @@ public class SemBicTest implements IndependenceWrapper {
 
     @Override
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters, Graph trueGraph) {
-        SemBicScore score;
+        LinearGaussianBicScore score;
 
         if (dataSet instanceof ICovarianceMatrix) {
-            score = new SemBicScore((ICovarianceMatrix) dataSet);
+            score = new LinearGaussianBicScore((ICovarianceMatrix) dataSet);
         } else {
-            score = new SemBicScore((DataSet) dataSet);
+            score = new LinearGaussianBicScore((DataSet) dataSet);
         }
         score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
         score.setStructurePrior(parameters.getDouble(Params.STRUCTURE_PRIOR));

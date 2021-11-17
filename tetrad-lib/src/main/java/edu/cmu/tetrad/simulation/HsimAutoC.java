@@ -10,7 +10,7 @@ import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.CpdagToDag;
 import edu.cmu.tetrad.search.Fges;
-import edu.cmu.tetrad.search.SemBicScore;
+import edu.cmu.tetrad.search.LinearGaussianBicScore;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.DelimiterUtils;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
@@ -62,7 +62,7 @@ public class HsimAutoC {
         output = new double[5];
         //========first make the Dag for Hsim==========
         ICovarianceMatrix cov = new CovarianceMatrix(data);
-        SemBicScore score = new SemBicScore(cov);
+        LinearGaussianBicScore score = new LinearGaussianBicScore(cov);
 
         double penaltyDiscount = 2.0;
         Fges fges = new Fges(score);
@@ -124,7 +124,7 @@ public class HsimAutoC {
         //Path dataFileOut = Paths.get(filenameOut);
         //edu.cmu.tetrad.io.DataReader dataReaderOut = new VerticalTabularDiscreteDataReader(dataFileOut, delimiter);
         ICovarianceMatrix newcov = new CovarianceMatrix(data);
-        SemBicScore newscore = new SemBicScore(newcov);
+        LinearGaussianBicScore newscore = new LinearGaussianBicScore(newcov);
         Fges fgesOut = new Fges(newscore);
         fgesOut.setVerbose(false);
         fgesOut.setPenaltyDiscount(2.0);

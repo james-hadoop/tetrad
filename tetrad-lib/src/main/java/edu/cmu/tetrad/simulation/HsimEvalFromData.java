@@ -8,7 +8,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.search.CpdagToDag;
 import edu.cmu.tetrad.search.Fges;
-import edu.cmu.tetrad.search.SemBicScore;
+import edu.cmu.tetrad.search.LinearGaussianBicScore;
 import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.SemEstimator;
@@ -79,7 +79,7 @@ public class HsimEvalFromData {
 
                 //!#@^$@&%^!#$!&@^ CALCULATING TARGET ERRORS $%$#@^@!%!#^$!%$#%
                 ICovarianceMatrix newcov = new CovarianceMatrix(data1);
-                SemBicScore oscore = new SemBicScore(newcov);
+                LinearGaussianBicScore oscore = new LinearGaussianBicScore(newcov);
                 Fges ofgs = new Fges(oscore);
                 ofgs.setVerbose(false);
                 Graph oFGSGraph = ofgs.search();//***********This is the original FGS output on the data
@@ -105,7 +105,7 @@ public class HsimEvalFromData {
                         DataSet simData = fittedIM.simulateData(data1.getNumRows(), false);
                         //after making the full resim data (simData), run FGS on that
                         ICovarianceMatrix simcov = new CovarianceMatrix(simData);
-                        SemBicScore simscore = new SemBicScore(simcov);
+                        LinearGaussianBicScore simscore = new LinearGaussianBicScore(simcov);
                         Fges simfgs = new Fges(simscore);
                         simfgs.setVerbose(false);
                         Graph simGraphOut = simfgs.search();

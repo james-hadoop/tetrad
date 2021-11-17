@@ -172,7 +172,7 @@ public class PerformanceTestsDan {
             ICovarianceMatrix cov = new CovarianceMatrix(data);
 
             final IndTestFisherZ independenceTestGFci = new IndTestFisherZ(cov, alphaGFci);
-            final edu.cmu.tetrad.search.SemBicScore scoreGfci = new edu.cmu.tetrad.search.SemBicScore(cov);
+            final edu.cmu.tetrad.search.LinearGaussianBicScore scoreGfci = new edu.cmu.tetrad.search.LinearGaussianBicScore(cov);
 
             out6.println("GFCI.PAG_of_the_true_DAG");
 

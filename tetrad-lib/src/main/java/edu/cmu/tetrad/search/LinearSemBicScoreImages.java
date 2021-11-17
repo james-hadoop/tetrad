@@ -37,7 +37,7 @@ import java.util.List;
 public class LinearSemBicScoreImages implements ISemBicScore, Score {
 
     // The covariance matrix.
-    private final List<SemBicScore> semBicScores;
+    private final List<LinearGaussianBicScore> semBicScores;
 
     // The variables of the covariance matrix.
     private final List<Node> variables;
@@ -58,7 +58,7 @@ public class LinearSemBicScoreImages implements ISemBicScore, Score {
             throw new NullPointerException();
         }
 
-        List<SemBicScore> semBicScores = new ArrayList<>();
+        List<LinearGaussianBicScore> semBicScores = new ArrayList<>();
 
         for (DataModel model : dataModels) {
             if (model instanceof DataSet) {
@@ -68,11 +68,11 @@ public class LinearSemBicScoreImages implements ISemBicScore, Score {
                     throw new IllegalArgumentException("Datasets must be continuous.");
                 }
 
-                SemBicScore semBicScore = new SemBicScore(dataSet);
+                LinearGaussianBicScore semBicScore = new LinearGaussianBicScore(dataSet);
                 semBicScore.setPenaltyDiscount(penaltyDiscount);
                 semBicScores.add(semBicScore);
             } else if (model instanceof ICovarianceMatrix) {
-                SemBicScore semBicScore = new SemBicScore((ICovarianceMatrix) model);
+                LinearGaussianBicScore semBicScore = new LinearGaussianBicScore((ICovarianceMatrix) model);
                 semBicScore.setPenaltyDiscount(penaltyDiscount);
                 semBicScores.add(semBicScore);
             } else {
@@ -96,7 +96,7 @@ public class LinearSemBicScoreImages implements ISemBicScore, Score {
     public double localScoreDiff(int x, int y, int[] z) {
         double sum = 0.0;
 
-        for (SemBicScore score : semBicScores) {
+        for (LinearGaussianBicScore score : semBicScores) {
             sum += score.localScoreDiff(x, y, z);
         }
 
@@ -115,7 +115,7 @@ public class LinearSemBicScoreImages implements ISemBicScore, Score {
         double sum = 0.0;
         int count = 0;
 
-        for (SemBicScore score : semBicScores) {
+        for (LinearGaussianBicScore score : semBicScores) {
             double _score = score.localScore(i, parents);
 
             if (!Double.isNaN(_score)) {
@@ -142,7 +142,7 @@ public class LinearSemBicScoreImages implements ISemBicScore, Score {
         double sum = 0.0;
         int count = 0;
 
-        for (SemBicScore score : semBicScores) {
+        for (LinearGaussianBicScore score : semBicScores) {
             double _score = score.localScore(i, parent);
 
             if (!Double.isNaN(_score)) {
@@ -161,7 +161,7 @@ public class LinearSemBicScoreImages implements ISemBicScore, Score {
         double sum = 0.0;
         int count = 0;
 
-        for (SemBicScore score : semBicScores) {
+        for (LinearGaussianBicScore score : semBicScores) {
             double _score = score.localScore(i);
 
             if (!Double.isNaN(_score)) {
@@ -188,7 +188,7 @@ public class LinearSemBicScoreImages implements ISemBicScore, Score {
 
     public void setPenaltyDiscount(double penaltyDiscount) {
         this.penaltyDiscount = penaltyDiscount;
-        for (SemBicScore score : semBicScores) {
+        for (LinearGaussianBicScore score : semBicScores) {
             score.setPenaltyDiscount(penaltyDiscount);
         }
     }

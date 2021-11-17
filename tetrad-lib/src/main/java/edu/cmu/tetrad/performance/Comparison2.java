@@ -408,7 +408,7 @@ public class Comparison2 {
                 throw new IllegalArgumentException("Penalty discount not set.");
             }
 
-            SemBicScore semBicScore = new SemBicScore(new CovarianceMatrix(dataSet));
+            LinearGaussianBicScore semBicScore = new LinearGaussianBicScore(new CovarianceMatrix(dataSet));
             semBicScore.setPenaltyDiscount(params.getPenaltyDiscount());
             score = semBicScore;
 

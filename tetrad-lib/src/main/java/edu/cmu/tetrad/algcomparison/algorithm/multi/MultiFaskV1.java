@@ -156,7 +156,7 @@ public class MultiFaskV1 implements MultiDataSetAlgorithm, KnowledgeSettable {
 
     @Override
     public List<String> getParameters() {
-        // MultiFask uses SemBicScore internally, so we'll need to add the score parameters too - Zhou
+        // MultiFask uses LinearGaussianBicScore internally, so we'll need to add the score parameters too - Zhou
         List<String> parameters = new LinkedList<>();
         parameters.addAll((new Fges()).getParameters());
         parameters.addAll((new LinearGaussianBicScore()).getParameters());

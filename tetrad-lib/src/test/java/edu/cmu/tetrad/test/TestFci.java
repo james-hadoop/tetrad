@@ -450,7 +450,7 @@ public class TestFci {
     private Graph getPag(double alpha, double penaltyDiscount, DataSet data) {
         IndTestFisherZ test = new IndTestFisherZ(data, alpha);
 
-        SemBicScore score = new SemBicScore(new CovarianceMatrix(data));
+        LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix(data));
         score.setPenaltyDiscount(penaltyDiscount);
 
 //        GraphSearch search = new Fci(test);

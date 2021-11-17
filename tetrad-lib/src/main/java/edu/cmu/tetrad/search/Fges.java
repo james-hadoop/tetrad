@@ -1274,11 +1274,11 @@ public final class Fges implements GraphSearch, GraphScorer {
         DataModel data = this.score.getData();
 
         if (data instanceof ICovarianceMatrix) {
-            score = new SemBicScore((ICovarianceMatrix) data);
-            ((SemBicScore) score).setPenaltyDiscount(1);
+            score = new LinearGaussianBicScore((ICovarianceMatrix) data);
+            ((LinearGaussianBicScore) score).setPenaltyDiscount(1);
         } else if (data.isContinuous()) {
-            score = new SemBicScore((DataSet) data);
-            ((SemBicScore) score).setPenaltyDiscount(1);
+            score = new LinearGaussianBicScore((DataSet) data);
+            ((LinearGaussianBicScore) score).setPenaltyDiscount(1);
         } else if (data.isDiscrete()) {
             score = new BicScore((DataSet) data);
             ((BicScore) score).setPenaltyDiscount(1);
@@ -1291,7 +1291,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         for (Node node : getVariables()) {
 
-//            if (score instanceof SemBicScore) {
+//            if (score instanceof LinearGaussianBicScore) {
             List<Node> x = dag.getParents(node);
 
             int[] parentIndices = new int[x.size()];

@@ -84,7 +84,7 @@ public class TestGFci {
         ICovarianceMatrix cov = new CovarianceMatrix(data);
 
         IndTestFisherZ independenceTest = new IndTestFisherZ(cov, alpha);
-        SemBicScore score = new SemBicScore(cov);
+        LinearGaussianBicScore score = new LinearGaussianBicScore(cov);
         score.setPenaltyDiscount(penaltyDiscount);
 
         independenceTest.setAlpha(alpha);
@@ -214,8 +214,8 @@ public class TestGFci {
 //        System.out.println(data.getCorrelationMatrix());
 
         IndependenceTest test = new IndTestFisherZ(data, 0.001);
-        SemBicScore score = new SemBicScore(data);
-        score.setRuleType(SemBicScore.RuleType.CHICKERING);
+        LinearGaussianBicScore score = new LinearGaussianBicScore(data);
+        score.setRuleType(LinearGaussianBicScore.RuleType.CHICKERING);
         score.setPenaltyDiscount(2);
         GFci gFci = new GFci(test, score);
         gFci.setFaithfulnessAssumed(true);

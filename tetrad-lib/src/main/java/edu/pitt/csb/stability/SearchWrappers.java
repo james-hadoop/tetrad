@@ -27,7 +27,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Fges;
 import edu.cmu.tetrad.search.IndTestMultinomialLogisticRegression;
 import edu.cmu.tetrad.search.PcStable;
-import edu.cmu.tetrad.search.SemBicScore;
+import edu.cmu.tetrad.search.LinearGaussianBicScore;
 import edu.pitt.csb.mgm.MGM;
 import edu.pitt.csb.mgm.MixedUtils;
 
@@ -72,7 +72,7 @@ public class SearchWrappers {
         public FgesWrapper copy() {return new FgesWrapper(searchParams);}
 
         public Graph search(DataSet ds){
-            SemBicScore score = new SemBicScore(new CovarianceMatrix(MixedUtils.makeContinuousData(ds)));
+            LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix(MixedUtils.makeContinuousData(ds)));
             score.setPenaltyDiscount(searchParams[0]);
             Fges fg = new Fges(score);
             return fg.search();

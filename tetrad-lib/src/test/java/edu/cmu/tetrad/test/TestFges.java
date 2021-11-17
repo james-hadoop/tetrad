@@ -27,7 +27,7 @@ import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
-import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
+//import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.Simulation;
@@ -96,7 +96,7 @@ public class TestFges {
 
 //        ICovarianceMatrix cov = new CovarianceMatrix(data);
         ICovarianceMatrix cov = new CovarianceMatrix(data);
-        SemBicScore score = new SemBicScore(cov);
+        LinearGaussianBicScore score = new LinearGaussianBicScore(cov);
         score.setPenaltyDiscount(penaltyDiscount);
 
         Fges fges = new Fges(score);
@@ -400,7 +400,7 @@ public class TestFges {
 
 //        trueGraph = SearchGraphUtils.cpdagForDag(trueGraph);
 
-        ScoreWrapper score = new LinearGaussianBicScore();
+        ScoreWrapper score = new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore();
         IndependenceWrapper test = new FisherZ();
 
         Algorithm fges = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(score);
@@ -569,8 +569,8 @@ public class TestFges {
         knowledge.addToTier(5, "PUBS");
         knowledge.addToTier(6, "CITES");
 
-        SemBicScore score = new SemBicScore(cov);
-//        score.setRuleType(SemBicScore.RuleType.NANDY);
+        LinearGaussianBicScore score = new LinearGaussianBicScore(cov);
+//        score.setRuleType(LinearGaussianBicScore.RuleType.NANDY);
 //        score.setPenaltyDiscount(1);
 //        score.setStructurePrior(0);
         Fges fges = new Fges(score);
@@ -754,7 +754,7 @@ public class TestFges {
                             LinearSemPm pm = new LinearSemPm(dag);
                             LinearSemIm im = new LinearSemIm(pm, params);
                             DataSet data = im.simulateData(sampleSize, false);
-                            SemBicScore score = new SemBicScore(data);
+                            LinearGaussianBicScore score = new LinearGaussianBicScore(data);
                             score.setPenaltyDiscount(.5);
                             Fges fges = new Fges(score);
                             fges.setFaithfulnessAssumed(false);
@@ -925,7 +925,7 @@ public class TestFges {
 //
 //        edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcFges pcFges
 //                = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcFges(
-//                new edu.cmu.tetrad.algcomparison.score.SemBicScore(),false);
+//                new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(),false);
 //
 //        long start = System.currentTimeMillis();
 //
@@ -1015,7 +1015,7 @@ public class TestFges {
 
     private Graph searchSemFges(DataSet Dk, double penalty) {
         Dk = DataUtils.convertNumericalDiscreteToContinuous(Dk);
-        SemBicScore score = new SemBicScore(new CovarianceMatrix(Dk));
+        LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix(Dk));
         score.setPenaltyDiscount(penalty);
         Fges fges = new Fges(score);
         return fges.search();
@@ -1052,7 +1052,7 @@ public class TestFges {
         //m.setVerbose(this.verbose);
         Graph gm = m.search();
         DataSet dataSet = MixedUtils.makeContinuousData(ds);
-        SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
+        LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix(dataSet));
         score.setPenaltyDiscount(penalty);
         Fges fg = new Fges(score);
         fg.setBoundGraph(gm);
@@ -1570,7 +1570,7 @@ public class TestFges {
             LinearSemIm semIm = new LinearSemIm(linearSemPm);
             DataSet dataSet = semIm.simulateData(1000, false);
 
-            Fges fges = new Fges(new SemBicScore(new CovarianceMatrix(dataSet)));
+            Fges fges = new Fges(new LinearGaussianBicScore(new CovarianceMatrix(dataSet)));
             Graph cpdag = fges.search();
 
             Graph dag = dagFromCpdag(cpdag);
@@ -1668,7 +1668,7 @@ public class TestFges {
             parameters.set(Params.PENALTY_DISCOUNT, i / (double) 10);
 //            parameters.set("alpha", Double.parseDouble("1E-" + l));
 
-//            ScoreWrapper score = new edu.cmu.tetrad.algcomparison.score.SemBicScore();
+//            ScoreWrapper score = new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore();
 //            Algorithm alg = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(score);
 
             IndependenceWrapper test = new SemBicTest();
@@ -1727,7 +1727,7 @@ public class TestFges {
         LinearSemPm pm = new LinearSemPm(graph);
         LinearSemIm im = new LinearSemIm(pm);
         DataSet dataSet = im.simulateData(N, false);
-        SemBicScore score = new SemBicScore(dataSet);
+        LinearGaussianBicScore score = new LinearGaussianBicScore(dataSet);
 
         IndTestDSep dsep = new IndTestDSep(graph);
         int count = 1;
@@ -1755,7 +1755,7 @@ public class TestFges {
     }
 
     private double scoreGraphChange(Node x, Node y, Set<Node> parents,
-                                    Map<Node, Integer> hashIndices, SemBicScore score) {
+                                    Map<Node, Integer> hashIndices, LinearGaussianBicScore score) {
         int yIndex = hashIndices.get(y);
 
         if (x == y) {
@@ -1826,7 +1826,7 @@ public class TestFges {
             RandomGraph graph = new RandomForward();
             LinearFisherModel sim = new LinearFisherModel(graph);
             sim.createData(parameters, false);
-            ScoreWrapper score = new LinearGaussianBicScore();
+            ScoreWrapper score = new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore();
             Algorithm alg = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(score);
 
             parameters.set(Params.ALPHA, 1e-8);

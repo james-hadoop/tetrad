@@ -31,6 +31,7 @@ import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Extends Erin Korber's implementation of the Fast Causal Inference algorithm

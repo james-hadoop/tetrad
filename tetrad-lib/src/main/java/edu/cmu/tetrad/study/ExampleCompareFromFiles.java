@@ -86,7 +86,7 @@ public class ExampleCompareFromFiles {
         algorithms.add(new Gfci(new LinearGaussianBicScore(), new FisherZ()));
 //        algorithms.add(new Fges(new BdeuScore(),true));
 //        algorithms.add(new Fges(new DiscreteBicScore(),true));
-//        algorithms.add(new Fges(new SemBicScore()));
+//        algorithms.add(new Fges(new LinearGaussianBicScore()));
 //        algorithms.add(new Gfci(new ChiSquare(), new DiscreteBicScore())));
 //        algorithms.add(new Fges(new BdeuScore()));
 //        algorithms.add(new Fges(new DiscreteBicScore()));

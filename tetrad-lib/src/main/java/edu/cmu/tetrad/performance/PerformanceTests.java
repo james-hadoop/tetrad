@@ -376,7 +376,7 @@ public class PerformanceTests {
 
         out.println("Elapsed (calculating cov): " + (time3 - time2) + " ms");
 
-        SemBicScore semBicScore = new SemBicScore(cov);
+        LinearGaussianBicScore semBicScore = new LinearGaussianBicScore(cov);
         semBicScore.setPenaltyDiscount(penaltyDiscount);
 
         Fges pcStable = new Fges(semBicScore);
@@ -737,7 +737,7 @@ public class PerformanceTests {
         IndependenceTest independenceTest = new IndTestFisherZ(cov, alpha);
 //        GFci fci = new GFci(independenceTest);
 
-        SemBicScore score = new SemBicScore(cov);
+        LinearGaussianBicScore score = new LinearGaussianBicScore(cov);
         score.setPenaltyDiscount(penaltyDiscount);
         GFci fci = new GFci(independenceTest, score);
 
@@ -872,7 +872,7 @@ public class PerformanceTests {
 
                 out.println("Elapsed (calculating cov): " + (time3 - time2) + " ms\n");
 
-                SemBicScore score = new SemBicScore(cov);
+                LinearGaussianBicScore score = new LinearGaussianBicScore(cov);
                 score.setPenaltyDiscount(penaltyDiscount);
 
                 System.out.println(new Date());
@@ -1111,10 +1111,10 @@ public class PerformanceTests {
 
             out.println("Elapsed (calculating cov): " + (time3 - time2) + " ms\n");
 
-            SemBicScore score = new SemBicScore(cov);
+            LinearGaussianBicScore score = new LinearGaussianBicScore(cov);
             score.setPenaltyDiscount(penaltyDiscount);
 
-            System.out.println(new Date());
+            System.out.println(new Date() );
             System.out.println("\nStarting FGES-MB");
 
             fges = new FgesMb(score);
@@ -1372,7 +1372,7 @@ public class PerformanceTests {
 
             // Independence test.
             final IndTestFisherZ independenceTest = new IndTestFisherZ(cov, alpha);
-            final SemBicScore score = new SemBicScore(cov);
+            final LinearGaussianBicScore score = new LinearGaussianBicScore(cov);
             score.setPenaltyDiscount(penaltyDiscount);
 
             Graph estPag;

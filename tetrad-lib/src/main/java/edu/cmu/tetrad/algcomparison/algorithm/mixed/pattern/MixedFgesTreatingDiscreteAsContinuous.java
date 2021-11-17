@@ -9,7 +9,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Fges;
 import edu.cmu.tetrad.search.SearchGraphUtils;
-import edu.cmu.tetrad.search.SemBicScore;
+import edu.cmu.tetrad.search.LinearGaussianBicScore;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -28,7 +28,7 @@ public class MixedFgesTreatingDiscreteAsContinuous implements Algorithm {
     	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             DataSet mixedDataSet = DataUtils.getMixedDataSet(Dk);
             mixedDataSet = DataUtils.convertNumericalDiscreteToContinuous(mixedDataSet);
-            SemBicScore score = new SemBicScore(new CovarianceMatrix(mixedDataSet));
+            LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix(mixedDataSet));
             score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
             Fges fges = new Fges(score);
             fges.setVerbose(parameters.getBoolean(Params.VERBOSE));

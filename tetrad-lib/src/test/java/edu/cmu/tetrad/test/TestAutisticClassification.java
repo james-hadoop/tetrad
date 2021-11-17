@@ -29,7 +29,7 @@ import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Fas;
 import edu.cmu.tetrad.search.IndTestScore;
-import edu.cmu.tetrad.search.SemBicScore;
+import edu.cmu.tetrad.search.LinearGaussianBicScore;
 import edu.cmu.tetrad.util.Parameters;
 
 import java.io.File;
@@ -464,7 +464,7 @@ public class TestAutisticClassification {
         for (int i = 0; i < datasets.size(); i++) {
             DataSet dataSet = datasets.get(i);
 
-            SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
+            LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix(dataSet));
             Fas fas = new Fas(new IndTestScore(score));
             Graph graph = fas.search();
 

@@ -26,7 +26,7 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.Fges;
 import edu.cmu.tetrad.search.LingamCpdag;
 import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.SemBicScore;
+import edu.cmu.tetrad.search.LinearGaussianBicScore;
 import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.RandomUtil;
@@ -76,7 +76,7 @@ public class TestLingamCpdag {
         LinearSemIm semIm = new LinearSemIm(linearSemPm);
 
         DataSet dataSet = simulateDataNonNormal(semIm, sampleSize, variableDistributions);
-        Score score = new SemBicScore(new CovarianceMatrix(dataSet));
+        Score score = new LinearGaussianBicScore(new CovarianceMatrix(dataSet));
         Graph estCpdag = new Fges(score).search();
 
         LingamCpdag lingam = new LingamCpdag(estCpdag, dataSet);

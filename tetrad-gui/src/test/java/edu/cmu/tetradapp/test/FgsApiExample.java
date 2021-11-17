@@ -66,7 +66,7 @@ public class FgsApiExample {
         // which allows you to easily swap out ind. tests and scores
 
         // for continuous data can use sem bic score
-        //Algorithm fges = AlgorithmFactory.create(Fges.class, null, SemBicScore.class);
+        //Algorithm fges = AlgorithmFactory.create(Fges.class, null, LinearGaussianBicScore.class);
 
         // for discrete  data can use sem bic score
         //Algorithm fges = AlgorithmFactory.create(Fges.class, null, BdeuScore.class);

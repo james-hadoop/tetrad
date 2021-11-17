@@ -61,12 +61,12 @@ public class BicEst implements Statistic {
                 Score score;
 
                 if (data instanceof CovarianceMatrix) {
-                    return new Fges(new SemBicScore((CovarianceMatrix) data)).scoreDag(dag);
+                    return new Fges(new LinearGaussianBicScore((CovarianceMatrix) data)).scoreDag(dag);
                 } else if (data instanceof DataSet) {
                     DataSet dataSet = (DataSet) data;
 
                     if (dataSet.isContinuous()) {
-                        score = new SemBicScore(dataSet);
+                        score = new LinearGaussianBicScore(dataSet);
                     } else if (dataSet.isDiscrete()) {
                         score = new BicScore(dataSet);
                     } else {

@@ -27,7 +27,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Fges;
-import edu.cmu.tetrad.search.SemBicScore;
+import edu.cmu.tetrad.search.LinearGaussianBicScore;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.RandomUtil;
 
@@ -89,7 +89,7 @@ public final class ExploreAutisticsNeurotypicals {
                 String name = dataSet.getName() + "." + penaltyDiscount + ".graph.txt";
                 File file = new File(path, name);
 
-                SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
+                LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix(dataSet));
                 score.setPenaltyDiscount(penaltyDiscount);
                 Fges search = new Fges(score);
                 search.setVerbose(false);

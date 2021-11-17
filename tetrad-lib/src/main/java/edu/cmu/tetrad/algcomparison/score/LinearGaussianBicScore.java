@@ -23,7 +23,6 @@ import java.util.List;
         dataType = {DataType.Continuous, DataType.Covariance}
 )
 public class LinearGaussianBicScore implements ScoreWrapper {
-
     static final long serialVersionUID = 23L;
     private DataModel dataSet;
 
@@ -31,12 +30,12 @@ public class LinearGaussianBicScore implements ScoreWrapper {
     public Score getScore(DataModel dataSet, Parameters parameters) {
         this.dataSet = dataSet;
 
-        edu.cmu.tetrad.search.SemBicScore semBicScore;
+        edu.cmu.tetrad.search.LinearGaussianBicScore semBicScore;
 
         if (dataSet instanceof DataSet) {
-            semBicScore = new edu.cmu.tetrad.search.SemBicScore((DataSet) this.dataSet);
+            semBicScore = new edu.cmu.tetrad.search.LinearGaussianBicScore((DataSet) this.dataSet);
         } else if (dataSet instanceof ICovarianceMatrix) {
-            semBicScore = new edu.cmu.tetrad.search.SemBicScore((ICovarianceMatrix) this.dataSet);
+            semBicScore = new edu.cmu.tetrad.search.LinearGaussianBicScore((ICovarianceMatrix) this.dataSet);
         } else {
             throw new IllegalArgumentException("Expecting either a dataset or a covariance matrix.");
         }
@@ -46,10 +45,10 @@ public class LinearGaussianBicScore implements ScoreWrapper {
 
         switch (parameters.getInt(Params.SEM_BIC_RULE)) {
             case 1:
-                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.CHICKERING);
+                semBicScore.setRuleType(edu.cmu.tetrad.search.LinearGaussianBicScore.RuleType.CHICKERING);
                 break;
             case 2:
-                semBicScore.setRuleType(edu.cmu.tetrad.search.SemBicScore.RuleType.NANDY);
+                semBicScore.setRuleType(edu.cmu.tetrad.search.LinearGaussianBicScore.RuleType.NANDY);
                 break;
             default:
                 throw new IllegalStateException("Expecting 1 or 2: " + parameters.getInt(Params.SEM_BIC_RULE));

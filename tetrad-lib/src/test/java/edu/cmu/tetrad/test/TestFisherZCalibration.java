@@ -204,7 +204,7 @@ public class TestFisherZCalibration {
 //                                            boolean independent = test.isIndependent(_x1, _x2, Collections.singletonList(_x4));
 //                                            if (!independent) continue;
 //
-//                                            Fges fges = new Fges(new SemBicScore(dataSet));
+//                                            Fges fges = new Fges(new LinearGaussianBicScore(dataSet));
 //
 //                                            Graph out = fges.search();
 //
@@ -314,7 +314,7 @@ public class TestFisherZCalibration {
 //
 //            score = _score;
 //
-//            Fges fges = new Fges(new SemBicScore(dataSet));
+//            Fges fges = new Fges(new LinearGaussianBicScore(dataSet));
 //
 //            Graph out = fges.search();
 //
@@ -339,7 +339,7 @@ public class TestFisherZCalibration {
 ////
 //            delta *= 0.95;
 //
-////            Fges fges = new Fges(new SemBicScore(dataset));
+////            Fges fges = new Fges(new LinearGaussianBicScore(dataset));
 ////
 ////            Graph out = fges.search();
 ////
