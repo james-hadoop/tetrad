@@ -21,7 +21,6 @@
 
 package edu.cmu.tetradapp.model;
 
-import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.session.DoNotAddOldModel;
 import edu.cmu.tetrad.session.SessionModel;
@@ -30,7 +29,9 @@ import edu.cmu.tetrad.util.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -41,7 +42,9 @@ import java.util.*;
  */
 public final class Misclassifications implements SessionModel, DoNotAddOldModel {
     static final long serialVersionUID = 23L;
-    private Algorithm algorithm;
+    private final Parameters params;
+    private Graph targetGraph;
+    private final Graph referenceGraph;
     private boolean useVcpcOutputs = false;
     private boolean useCpcOutputs = false;
     private boolean usePcOutputs = false;
@@ -49,58 +52,45 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
     private boolean useScpcOutputs = false;
     private boolean useSFcpcOutputs = false;
     private boolean useFcpcOutputs = false;
-
     private Set<Edge> vcpcAdjacent;
     private Set<Edge> vcpcApparent;
     private Set<Edge> vcpcDefinite;
     private List<Node> vcpcNodes;
-
     private Set<Edge> fvcpcAdjacent;
     private Set<Edge> fvcpcApparent;
     private Set<Edge> fvcpcDefinite;
     private List<Node> fvcpcNodes;
-
     private Set<Edge> sfVcpcAdjacent;
     private Set<Edge> sfVcpcApparent;
     private Set<Edge> sfVcpcDefinite;
     private List<Node> sfVcpcNodes;
-
     private Set<Edge> sVcpcAdjacent;
     private Set<Edge> sVcpcApparent;
     private Set<Edge> sVcpcDefinite;
     private List<Node> sVcpcNodes;
-
     private Set<Edge> pcAdjacent;
     private Set<Edge> pcNonadjacent;
     private List<Node> pcNodes;
-
     private Set<Edge> cpcAdjacent;
     private Set<Edge> cpcNonadjacent;
     private List<Node> cpcNodes;
-
     private String name;
-    private Parameters params;
-    private List<Graph> targetGraphs = new ArrayList<>();
-    private List<Graph> referenceGraphs = new ArrayList<>();
-
     private NumberFormat nf;
 
     //=============================CONSTRUCTORS==========================//
-
-//    public Misclassifications(GeneralAlgorithmRunner model, Parameters params) {
-//        this(model, model.getDataWrapper(), params);
-//    }
 
     /**
      * Compares the results of a PC to a reference workbench by counting errors
      * of omission and commission. The counts can be retrieved using the methods
      * <code>countOmissionErrors</code> and <code>countCommissionErrors</code>.
      */
-    public Misclassifications(MultipleGraphSource model1, MultipleGraphSource model2,
+    public Misclassifications(GraphSource model1, GraphSource model2,
                               Parameters params) {
         if (params == null) {
             throw new NullPointerException("Parameters must not be null");
         }
+
+        this.params = params;
 
         if (model1 instanceof VcpcRunner && model2 instanceof PcRunner) {
             this.usePcOutputs = true;
@@ -150,7 +140,6 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
             setSvcpcFields((SampleVcpcRunner) model1);
         }
 
-
         if (model1 instanceof VcpcRunner && model2 instanceof SampleVcpcRunner) {
             this.useSvcpcOutputs = true;
             setVcpcFields((VcpcRunner) model1);
@@ -174,7 +163,6 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
             this.useSFcpcOutputs = true;
             setCpcFields((CpcRunner) model2);
             setSfvcpcFields((SampleVcpcFastRunner) model1);
-
         }
 
         if (model1 instanceof CpcRunner && model2 instanceof VcpcFastRunner) {
@@ -183,150 +171,34 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
             setVcpcFastFields((VcpcFastRunner) model2);
         }
 
-        // Need to be able to construct this object even if the models are
-        // null. Otherwise the interface is annoying.
-//        if (model2 == null) {
-//            model2 = new DagWrapper(new Dag());
-//        }
-//
-//        if (model1 == null) {
-//            model1 = new DagWrapper(new Dag());
-//        }
-
-//        if (!(model1 instanceof MultipleGraphSource) ||
-//                !(model2 instanceof MultipleGraphSource)) {
-//            throw new IllegalArgumentException("Must be graph sources.");
-//        }
-
-        this.params = params;
-
-        String referenceName = params.getString("referenceGraphName", null);
+        String referenceName = params.getString("referenceGraphName");
 
         if (referenceName == null) {
             throw new IllegalArgumentException("Must specify a reference graph.");
         }
 
         if (referenceName.equals(model1.getName())) {
-            if (model1 instanceof Simulation && model2 instanceof GeneralAlgorithmRunner) {
-                this.referenceGraphs = ((GeneralAlgorithmRunner) model2).getCompareGraphs(((Simulation) model1).getGraphs());
-            } else if (model1 instanceof MultipleGraphSource) {
-                this.referenceGraphs = ((MultipleGraphSource) model1).getGraphs();
-            }
-
-            if (model2 instanceof MultipleGraphSource) {
-                this.targetGraphs = ((MultipleGraphSource) model2).getGraphs();
-            }
-
-            if (referenceGraphs.size() == 1 && targetGraphs.size() > 1) {
-                Graph graph = referenceGraphs.get(0);
-                referenceGraphs = new ArrayList<>();
-                for (Graph _graph : targetGraphs) {
-                    referenceGraphs.add(_graph);
-                }
-            }
-
-            if (targetGraphs.size() == 1 && referenceGraphs.size() > 1) {
-                Graph graph = targetGraphs.get(0);
-                targetGraphs = new ArrayList<>();
-                for (Graph _graph : referenceGraphs) {
-                    targetGraphs.add(graph);
-                }
-            }
-
-            if (referenceGraphs == null) {
-                this.referenceGraphs = Collections.singletonList(((GraphSource) model1).getGraph());
-            }
-
-            if (targetGraphs == null) {
-                this.targetGraphs = Collections.singletonList(((GraphSource) model2).getGraph());
-            }
-        } else if (referenceName.equals(model2.getName())) {
-            if (model2 instanceof Simulation && model1 instanceof GeneralAlgorithmRunner) {
-                this.referenceGraphs = ((GeneralAlgorithmRunner) model1).getCompareGraphs(((Simulation) model2).getGraphs());
-            } else if (model1 instanceof MultipleGraphSource) {
-                this.referenceGraphs = ((MultipleGraphSource) model2).getGraphs();
-            }
-
-            if (model1 instanceof MultipleGraphSource) {
-                this.targetGraphs = ((MultipleGraphSource) model1).getGraphs();
-            }
-
-            if (referenceGraphs.size() == 1 && targetGraphs.size() > 1) {
-                Graph graph = referenceGraphs.get(0);
-                referenceGraphs = new ArrayList<>();
-                for (Graph _graph : targetGraphs) {
-                    referenceGraphs.add(_graph);
-                }
-            }
-
-            if (targetGraphs.size() == 1 && referenceGraphs.size() > 1) {
-                Graph graph = targetGraphs.get(0);
-                targetGraphs = new ArrayList<>();
-                for (Graph _graph : referenceGraphs) {
-                    targetGraphs.add(graph);
-                }
-            }
-
-            if (referenceGraphs == null) {
-                this.referenceGraphs = Collections.singletonList(((GraphSource) model2).getGraph());
-            }
-
-            if (targetGraphs == null) {
-                this.targetGraphs = Collections.singletonList(((GraphSource) model1).getGraph());
-            }
+            this.referenceGraph = model1.getGraph();
+            this.targetGraph = model2.getGraph();
         } else {
-            throw new IllegalArgumentException(
-                    "Neither of the supplied session models is named '" +
-                            referenceName + "'.");
+            this.referenceGraph = model2.getGraph();
+            this.targetGraph = model1.getGraph();
         }
 
-        for (int i = 0; i < targetGraphs.size(); i++) {
-            targetGraphs.set(i, GraphUtils.replaceNodes(targetGraphs.get(i), referenceGraphs.get(i).getNodes()));
-        }
+        targetGraph = GraphUtils.replaceNodes(targetGraph, referenceGraph.getNodes());
 
-//        if (model1 instanceof GeneralAlgorithmRunner && model2 instanceof GeneralAlgorithmRunner) {
-//            throw new IllegalArgumentException("Both parents can't be general algorithm runners.");
-//        }
-//
-//        if (model1 instanceof GeneralAlgorithmRunner) {
-//            GeneralAlgorithmRunner generalAlgorithmRunner = (GeneralAlgorithmRunner) model1;
-//            this.algorithm = generalAlgorithmRunner.getAlgorithm();
-//        } else if (model2 instanceof GeneralAlgorithmRunner) {
-//            GeneralAlgorithmRunner generalAlgorithmRunner = (GeneralAlgorithmRunner) model2;
-//            this.algorithm = generalAlgorithmRunner.getAlgorithm();
-//        }
+        TetradLogger.getInstance().log("info", "Graph Comparison");
 
-        if (algorithm != null)
+        this.nf = NumberFormatUtil.getInstance().getNumberFormat();
+    }
 
-        {
-            for (int i = 0; i < referenceGraphs.size(); i++) {
-                referenceGraphs.set(i, algorithm.getComparisonGraph(referenceGraphs.get(i)));
-            }
-        }
-
-        if (referenceGraphs.size() != targetGraphs.size())
-
-        {
-            throw new IllegalArgumentException("I was expecting the same number of graphs in each parent.");
-        }
-
-        TetradLogger.getInstance().
-
-                log("info", "Graph Comparison");
-
-        for (
-                int i = 0;
-                i < referenceGraphs.size(); i++)
-
-        {
-            TetradLogger.getInstance().log("comparison", "\nModel " + (i + 1));
-            TetradLogger.getInstance().log("comparison", getComparisonString(i));
-        }
-
-        this.nf = NumberFormatUtil.getInstance().
-
-                getNumberFormat();
-
+    /**
+     * Generates a simple exemplar of this class to test serialization.
+     *
+     * @see TetradSerializableUtils
+     */
+    public static Node serializableInstance() {
+        return new GraphNode("X");
     }
 
     private void setVcpcFields(VcpcRunner vcpc) {
@@ -369,15 +241,6 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
         cpcNodes = cpc.getGraph().getNodes();
     }
 
-    /**
-     * Generates a simple exemplar of this class to test serialization.
-     *
-     * @see TetradSerializableUtils
-     */
-    public static Node serializableInstance() {
-        return new GraphNode("X");
-    }
-
     //==============================PUBLIC METHODS========================//
 
     public String getName() {
@@ -388,14 +251,15 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
         this.name = name;
     }
 
-    public String getComparisonString(int i) {
+    public String getComparisonString() {
+        Graph referenceGraph = GraphUtils.getComparisonGraph(this.referenceGraph, params);
 
         if (this.useVcpcOutputs) {
             return (params.get("referenceGraphName", null) + " down the left; " +
                     params.get("targetGraphName", null) + " across the top.") +
                     "\n\nAdjacency Misclassification:\n" + adjacencyMisclassificationsOne() +
                     "\nEdge Misclassifications:\n" +
-                    MisclassificationUtils.edgeMisclassifications(targetGraphs.get(i), referenceGraphs.get(i));
+                    MisclassificationUtils.edgeMisclassifications(targetGraph, referenceGraph);
         }
 
         if (this.useCpcOutputs) {
@@ -403,14 +267,14 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
                     params.get("targetGraphName", null) + " across the top.") +
                     "\n\nAdjacency Misclassification:\n" + adjacencyMisclassificationsTwo() +
                     "\nEdge Misclassifications:\n" +
-                    MisclassificationUtils.edgeMisclassifications(targetGraphs.get(i), referenceGraphs.get(i));
+                    MisclassificationUtils.edgeMisclassifications(targetGraph, referenceGraph);
         }
         if (this.usePcOutputs) {
             return (params.get("referenceGraphName", null) + " down the left; " +
                     params.get("targetGraphName", null) + " across the top.") +
                     "\n\nAdjacency Misclassification:\n" + adjacencyMisclassificationsThree() +
                     "\nEdge Misclassifications:\n" +
-                    MisclassificationUtils.edgeMisclassifications(targetGraphs.get(i), referenceGraphs.get(i));
+                    MisclassificationUtils.edgeMisclassifications(targetGraph, referenceGraph);
         }
 
         if (this.useSvcpcOutputs) {
@@ -418,14 +282,14 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
                     params.get("referenceGraphName", null) + " across the top.") +
                     "\n\nAdjacency Misclassification:\n" + adjacencyMisclassificationsFour() +
                     "\nEdge Misclassifications:\n" +
-                    MisclassificationUtils.edgeMisclassifications(targetGraphs.get(i), referenceGraphs.get(i));
+                    MisclassificationUtils.edgeMisclassifications(targetGraph, referenceGraph);
         }
         if (this.useScpcOutputs) {
             return (params.get("referenceGraphName", null) + " down the left; " +
                     params.get("targetGraphName", null) + " across the top.") +
                     "\n\nAdjacency Misclassification:\n" + adjacencyMisclassificationsFive() +
                     "\nEdge Misclassifications:\n" +
-                    MisclassificationUtils.edgeMisclassifications(targetGraphs.get(i), referenceGraphs.get(i));
+                    MisclassificationUtils.edgeMisclassifications(targetGraph, referenceGraph);
         }
 
         if (this.useSFcpcOutputs) {
@@ -433,7 +297,7 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
                     params.get("targetGraphName", null) + " across the top.") +
                     "\n\nAdjacency Misclassification:\n" + adjacencyMisclassificationsSix() +
                     "\nEdge Misclassifications:\n" +
-                    MisclassificationUtils.edgeMisclassifications(targetGraphs.get(i), referenceGraphs.get(i));
+                    MisclassificationUtils.edgeMisclassifications(targetGraph, referenceGraph);
         }
 
         if (this.useFcpcOutputs) {
@@ -441,14 +305,14 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
                     params.get("targetGraphName", null) + " across the top.") +
                     "\n\nAdjacency Misclassification:\n" + adjacencyMisclassificationsSeven() +
                     "\n\nEndpoint Misclassification:\n" + "\nEdge Misclassifications:\n" +
-                    MisclassificationUtils.edgeMisclassifications(targetGraphs.get(i), referenceGraphs.get(i));
+                    MisclassificationUtils.edgeMisclassifications(targetGraph, referenceGraph);
         } else {
             return (params.get("referenceGraphName", null) + " down the left; " +
                     params.get("targetGraphName", null) + " across the top.") +
                     "\n\nEdge Misclassification:\n" +
-                    MisclassificationUtils.edgeMisclassifications(targetGraphs.get(i), referenceGraphs.get(i)) +
+                    MisclassificationUtils.edgeMisclassifications(targetGraph, referenceGraph) +
                     "\nEndpoint Misclassification:\n" +
-                    MisclassificationUtils.endpointMisclassification(targetGraphs.get(i), referenceGraphs.get(i));
+                    MisclassificationUtils.endpointMisclassification(targetGraph, referenceGraph);
         }
     }
 
@@ -546,7 +410,7 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
 
             }
         }
-        builder.append("\n").append(table9.toString());
+        builder.append("\n").append(table9);
         return builder.toString();
     }
 
@@ -651,7 +515,7 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
 
             }
         }
-        builder.append("\n").append(table9.toString());
+        builder.append("\n").append(table9);
         System.out.println("Sample CM: " + table9);
         return builder.toString();
     }
@@ -758,7 +622,7 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
 
             }
         }
-        builder.append("\n").append(table9.toString());
+        builder.append("\n").append(table9);
         System.out.println("Sample Fast CM: " + table9);
         return builder.toString();
     }
@@ -864,7 +728,7 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
 
             }
         }
-        builder.append("\n").append(table9.toString());
+        builder.append("\n").append(table9);
         System.out.println("Sample CM: " + table9);
         return builder.toString();
     }
@@ -972,7 +836,7 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
 
             }
         }
-        builder.append("\n").append(table9.toString());
+        builder.append("\n").append(table9);
         System.out.println("VCPC CM: " + table9);
         return builder.toString();
     }
@@ -1053,7 +917,7 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
 
             }
         }
-        builder.append("\n").append(table9.toString());
+        builder.append("\n").append(table9);
         System.out.println("PC CM: " + table9);
         return builder.toString();
     }
@@ -1160,7 +1024,7 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
 
             }
         }
-        builder.append("\n").append(table9.toString());
+        builder.append("\n").append(table9);
         return builder.toString();
     }
 
@@ -1176,9 +1040,6 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
      * class, even if Tetrad sessions were previously saved out using a version
      * of the class that didn't include it. (That's what the
      * "s.defaultReadObject();" is for. See J. Bloch, Effective Java, for help.
-     *
-     * @throws java.io.IOException
-     * @throws ClassNotFoundException
      */
     private void readObject(ObjectInputStream s)
             throws IOException, ClassNotFoundException {
@@ -1189,12 +1050,12 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
         return params;
     }
 
-    public List<Graph> getReferenceGraphs() {
-        return referenceGraphs;
+    public Graph getReferenceGraph() {
+        return referenceGraph;
     }
 
-    public List<Graph> getTargetGraphs() {
-        return targetGraphs;
+    public Graph getTargetGraph() {
+        return targetGraph;
     }
 }
 

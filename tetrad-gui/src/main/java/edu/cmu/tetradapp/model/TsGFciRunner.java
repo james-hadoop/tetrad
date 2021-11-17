@@ -26,6 +26,7 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
+
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -188,7 +189,7 @@ public class TsGFciRunner extends AbstractAlgorithmRunner
                 DataSet dataSet = (DataSet) model;
 
                 if (dataSet.isContinuous()) {
-                    SemBicScore gesScore = new SemBicScore(new CovarianceMatrix((DataSet) model));
+                    LinearGaussianBicScore gesScore = new LinearGaussianBicScore(new CovarianceMatrix((DataSet) model));
 //                    SemBicScore2 gesScore = new SemBicScore2(new CovarianceMatrix((DataSet) model));
 //                    SemGpScore gesScore = new SemGpScore(new CovarianceMatrix((DataSet) model));
 //                    SvrScore gesScore = new SvrScore((DataSet) model);
@@ -210,7 +211,7 @@ public class TsGFciRunner extends AbstractAlgorithmRunner
                     throw new IllegalStateException("Data set must either be continuous or discrete.");
                 }
             } else if (model instanceof ICovarianceMatrix) {
-                SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
+                LinearGaussianBicScore gesScore = new LinearGaussianBicScore((ICovarianceMatrix) model);
                 gesScore.setPenaltyDiscount(penaltyDiscount);
                 gesScore.setPenaltyDiscount(penaltyDiscount);
                 IndependenceTest test = new IndTestDSep((Graph) model);
@@ -237,7 +238,7 @@ public class TsGFciRunner extends AbstractAlgorithmRunner
                 if (allContinuous(list)) {
                     double penalty = params.getDouble("penaltyDiscount", 4);
 
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     fgesScore.setPenaltyDiscount(penalty);
                     IndependenceTest test = new IndTestDSep((Graph) model);
                     gfci = new TsGFci(test, fgesScore);
@@ -263,7 +264,7 @@ public class TsGFciRunner extends AbstractAlgorithmRunner
 
 //        gfci.setInitialGraph(initialGraph);
 //        gfci.setKnowledge(getParameters().getKnowledge());
-//        gfci.setNumPatternsToStore(params.getNumPatternsToSave());
+//        gfci.setNumCpdagsToStore(params.getNumCpdagsToSave());
         gfci.setVerbose(true);
 //        gfci.setHeuristicSpeedup(true);
 //        gfci.setMaxIndegree(3);
@@ -273,7 +274,7 @@ public class TsGFciRunner extends AbstractAlgorithmRunner
         if (getSourceGraph() != null) {
             GraphUtils.arrangeBySourceGraph(graph, getSourceGraph());
         } else if (((IKnowledge) getParams().get("knowledge", new Knowledge2())).isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(graph, (IKnowledge) getParams().get("knowledge", new Knowledge2()));
+            SearchGraphUtils.arrangeByKnowledgeTiers(graph);
         } else {
             GraphUtils.circleLayout(graph, 200, 200, 150);
         }

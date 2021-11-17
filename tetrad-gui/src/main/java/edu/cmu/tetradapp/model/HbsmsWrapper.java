@@ -24,8 +24,9 @@ package edu.cmu.tetradapp.model;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.util.*;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.TetradSerializableUtils;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -55,8 +56,8 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
 
     private Parameters params2;
 
-    private SemIm originalSemIm;
-    private SemIm newSemIm;
+    private LinearSemIm originalSemIm;
+    private LinearSemIm newSemIm;
 
     //============================CONSTRUCTORS============================//
 
@@ -169,12 +170,12 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
         if (getSourceGraph() != null) {
             GraphUtils.arrangeBySourceGraph(graph, getSourceGraph());
         } else if (knowledge.isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
+            SearchGraphUtils.arrangeByKnowledgeTiers(graph);
         } else {
             GraphUtils.circleLayout(graph, 200, 200, 150);
         }
 
-        setResultGraph(SearchGraphUtils.patternForDag(graph, knowledge));
+        setResultGraph(SearchGraphUtils.cpdagForDag(graph));
     }
 
     public boolean supportsKnowledge() {
@@ -249,15 +250,15 @@ public class HbsmsWrapper extends AbstractAlgorithmRunner implements GraphSource
         }
     }
 
-    public SemIm getOriginalSemIm() {
+    public LinearSemIm getOriginalSemIm() {
         return originalSemIm;
     }
 
-    public SemIm getNewSemIm() {
+    public LinearSemIm getNewSemIm() {
         return newSemIm;
     }
 
-    public void setNewSemIm(SemIm newSemIm) {
+    public void setNewSemIm(LinearSemIm newSemIm) {
         this.newSemIm = newSemIm;
     }
 }

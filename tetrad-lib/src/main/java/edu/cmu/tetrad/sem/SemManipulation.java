@@ -43,7 +43,7 @@ public final class SemManipulation implements TetradSerializable {
      *
      * @serial Cannot be null.
      */
-    private SemIm semIm;
+    private LinearSemIm semIm;
 
     /**
      * An array indicating whether each variable in turn is manipulated.
@@ -57,7 +57,7 @@ public final class SemManipulation implements TetradSerializable {
     /**
      * Constructs a container for evidence for the given Bayes IM.
      */
-    public SemManipulation(SemIm semIm) {
+    public SemManipulation(LinearSemIm semIm) {
         if (semIm == null) {
             throw new NullPointerException();
         }
@@ -108,7 +108,7 @@ public final class SemManipulation implements TetradSerializable {
      * Generates a simple exemplar of this class to test serialization.
      */
     public static SemManipulation serializableInstance() {
-        return new SemManipulation(SemIm.serializableInstance());
+        return new SemManipulation(LinearSemIm.serializableInstance());
     }
 
     //===========================PUBLIC METHODS=========================//

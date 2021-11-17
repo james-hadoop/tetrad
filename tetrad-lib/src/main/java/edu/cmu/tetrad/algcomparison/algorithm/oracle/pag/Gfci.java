@@ -3,19 +3,20 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pag;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.search.GFci;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,27 +33,26 @@ import java.util.List;
         algoType = AlgType.allow_latent_common_causes
 )
 @Bootstrapping
-public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIndependenceWrapper {
+public class Gfci implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
     private ScoreWrapper score;
-    private IKnowledge knowledge = new Knowledge2();
 
     public Gfci() {
     }
 
-    public Gfci(IndependenceWrapper test, ScoreWrapper score) {
+    public Gfci(ScoreWrapper score, IndependenceWrapper test) {
         this.test = test;
         this.score = score;
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
     	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            GFci search = new GFci(test.getTest(dataSet, parameters), score.getScore(dataSet, parameters));  
+            GFci search = new GFci(test.getTest(dataSet, parameters, trueGraph), score.getScore(dataSet, parameters));
             search.setMaxDegree(parameters.getInt(Params.MAX_DEGREE));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setFaithfulnessAssumed(parameters.getBoolean(Params.FAITHFULNESS_ASSUMED));
             search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
@@ -67,15 +67,11 @@ public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
             return search.search();
         } else {
-            Gfci algorithm = new Gfci(test, score);
+            Gfci algorithm = new Gfci(score, test);
 
-            //algorithm.setKnowledge(knowledge);
-//          if (initialGraph != null) {
-//      		algorithm.setInitialGraph(initialGraph);
-//  		}
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -101,11 +97,6 @@ public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
     }
 
     @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new DagToPag2(graph).convert();
-    }
-
-    @Override
     public String getDescription() {
         return "GFCI (Greedy Fast Causal Inference) using " + test.getDescription()
                 + " and " + score.getDescription();
@@ -122,22 +113,11 @@ public class Gfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesInd
 
         parameters.add(Params.FAITHFULNESS_ASSUMED);
         parameters.add(Params.MAX_DEGREE);
-//        parameters.add("printStream");
         parameters.add(Params.MAX_PATH_LENGTH);
         parameters.add(Params.COMPLETE_RULE_SET_USED);
 
         parameters.add(Params.VERBOSE);
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 
     @Override

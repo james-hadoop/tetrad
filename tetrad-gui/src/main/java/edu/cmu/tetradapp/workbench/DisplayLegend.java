@@ -3,19 +3,13 @@
  */
 package edu.cmu.tetradapp.workbench;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.util.Map;
-
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
 import edu.cmu.tetrad.util.TetradSerializableExcluded;
+
+import javax.swing.*;
+import java.awt.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Map;
 
 /**
  * Jan 22, 2019 3:39:27 PM
@@ -48,8 +42,14 @@ public class DisplayLegend extends JComponent implements TetradSerializableExclu
 		
 		for(String key : attributes.keySet()) {
 			Object value = attributes.get(key);
-			
-			JLabel attributeLabel = new JLabel(key + ":\t" + value.toString());
+			JLabel attributeLabel;
+
+			if (value instanceof Double) {
+				NumberFormat nf = new DecimalFormat("0.00");
+				attributeLabel = new JLabel(key + ":\t" + nf.format(((Double) value).doubleValue()));
+			} else {
+				attributeLabel = new JLabel(key + ":\t" + value.toString());
+			}
 			attributesPanel.add(attributeLabel);
 		}
 		

@@ -26,9 +26,9 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.FirstInflection;
 import edu.cmu.tetrad.algcomparison.algorithm.StARS;
 import edu.cmu.tetrad.algcomparison.algorithm.StabilitySelection;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -118,9 +118,9 @@ public class ExampleStARS {
         Algorithms algorithms = new Algorithms();
 
         parameters.set("logScale", false);
-        algorithms.add(new StabilitySelection(new Fges(new SemBicScore())));
-        algorithms.add(new StARS(new Fges(new SemBicScore()), "penaltyDiscount", 1, 5));
-        algorithms.add(new FirstInflection(new Fges(new SemBicScore()), "penaltyDiscount", 1, 5, .1));
+        algorithms.add(new StabilitySelection(new Fges(new LinearGaussianBicScore())));
+        algorithms.add(new StARS(new Fges(new LinearGaussianBicScore()), "penaltyDiscount", 1, 5));
+        algorithms.add(new FirstInflection(new Fges(new LinearGaussianBicScore()), "penaltyDiscount", 1, 5, .1));
 
         Simulations simulations = new Simulations();
 
@@ -132,7 +132,7 @@ public class ExampleStARS {
         comparison.setShowSimulationIndices(true);
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
         comparison.compareFromSimulations("first.inflection", simulations, algorithms, statistics, parameters);
     }

@@ -40,13 +40,10 @@ public class IndependenceFacts implements DataModel {
     private Set<IndependenceFact> unsortedFacts = new HashSet<>();
     private String name = "";
     private IKnowledge knowledge = new Knowledge2();
+    private List<Node> order;
 
     public IndependenceFacts() {
         // blank
-    }
-
-    public void add(IndependenceFact fact) {
-        this.unsortedFacts.add(fact);
     }
 
     public IndependenceFacts(IndependenceFacts facts) {
@@ -59,6 +56,10 @@ public class IndependenceFacts implements DataModel {
      */
     public static IndependenceFacts serializableInstance() {
         return new IndependenceFacts();
+    }
+
+    public void add(IndependenceFact fact) {
+        this.unsortedFacts.add(fact);
     }
 
     public String toString() {
@@ -101,12 +102,12 @@ public class IndependenceFacts implements DataModel {
         this.unsortedFacts.remove(fact);
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getName() {
         return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {
@@ -116,8 +117,11 @@ public class IndependenceFacts implements DataModel {
 
     public boolean isIndependent(Node x, Node y, List<Node> z) {
         IndependenceFact fact = new IndependenceFact(x, y, z);
-        System.out.println("Looking up " + fact + " in " + unsortedFacts);
-        return unsortedFacts.contains(fact);
+        boolean contains = unsortedFacts.contains(fact);
+//        if (contains) {
+//            System.out.println("Looking up " + fact + (contains ? " Independence fact holds" : ""));
+//        }
+        return contains;
     }
 
     public IKnowledge getKnowledge() {
@@ -135,9 +139,14 @@ public class IndependenceFacts implements DataModel {
         for (IndependenceFact fact : unsortedFacts) {
             variables.add(fact.getX());
             variables.add(fact.getY());
+            variables.addAll(fact.getZ());
+        }
 
-            for (Node z : fact.getZ()) {
-                variables.add(z);
+        if (order != null) {
+            if (new HashSet<>(variables).equals(new HashSet<>(order))) {
+                return order;
+            } else {
+                throw new IllegalArgumentException("The supplied order is not precisely for the variables in the facts.");
             }
         }
 
@@ -153,6 +162,10 @@ public class IndependenceFacts implements DataModel {
         }
 
         return names;
+    }
+
+    public void setOrder(List<Node> order) {
+        this.order = order;
     }
 }
 

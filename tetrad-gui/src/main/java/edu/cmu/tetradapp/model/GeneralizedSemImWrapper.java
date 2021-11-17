@@ -29,6 +29,7 @@ import edu.cmu.tetrad.sem.GeneralizedSemPm;
 import edu.cmu.tetrad.session.SessionModel;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
@@ -105,7 +106,7 @@ public class GeneralizedSemImWrapper implements SessionModel, KnowledgeBoxInput 
         this(wrapper.getSemPm());
     }
 
-    public GeneralizedSemImWrapper(GeneralizedSemPmWrapper genSemPm, SemImWrapper imWrapper) {
+    public GeneralizedSemImWrapper(GeneralizedSemPmWrapper genSemPm, LinearSemImWrapper imWrapper) {
         semIms.add(new GeneralizedSemIm(genSemPm.getSemPm(), imWrapper.getSemIm()));
     }
 

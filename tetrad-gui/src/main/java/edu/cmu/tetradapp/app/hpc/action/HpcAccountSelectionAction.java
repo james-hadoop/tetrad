@@ -1,13 +1,10 @@
 package edu.cmu.tetradapp.app.hpc.action;
 
+import edu.pitt.dbmi.tetrad.db.entity.HpcAccount;
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
-
-import javax.swing.AbstractAction;
-import javax.swing.JCheckBox;
-import javax.swing.JTabbedPane;
-
-import edu.pitt.dbmi.tetrad.db.entity.HpcAccount;
 
 /**
  * 

@@ -24,6 +24,9 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.graph.NodeVariableType;
 import edu.cmu.tetrad.util.*;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -32,7 +35,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.rmi.MarshalledObject;
 import java.util.*;
-import javax.swing.*;
 
 /**
  * <p>
@@ -665,12 +667,13 @@ public class SessionNode implements Node, TetradSerializable {
      */
     public void destroyModel() {
         if (model != null) {
+            getSessionSupport().fireModelDestroyed(this);
             this.oldModel = model;
             this.model = null;
         }
 
         this.modelParamTypes = null;
-        getSessionSupport().fireModelDestroyed(this);
+//        getSessionSupport().fireModelDestroyed(this);
     }
 
     /**
@@ -1085,7 +1088,7 @@ public class SessionNode implements Node, TetradSerializable {
     }
 
     @Override
-    public int compareTo(Node node) {
+    public int compareTo(@NotNull Node node) {
         return 0;
     }
 
@@ -1595,11 +1598,7 @@ public class SessionNode implements Node, TetradSerializable {
                 try {
                     this.model = (SessionModel) constructor.newInstance(arguments);
                     this.model.setName(getDisplayName());
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                    continue;
-//                    throw e;
-                } catch (IllegalAccessException e) {
+                } catch (InstantiationException | IllegalAccessException e) {
                     e.printStackTrace();
                     continue;
 //                    throw e;

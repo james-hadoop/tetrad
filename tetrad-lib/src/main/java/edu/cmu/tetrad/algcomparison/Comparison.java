@@ -26,6 +26,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.ExternalAlgorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.independence.TakesGraph;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.simulation.Simulation;
@@ -34,57 +35,23 @@ import edu.cmu.tetrad.algcomparison.statistic.ElapsedTime;
 import edu.cmu.tetrad.algcomparison.statistic.ParameterColumn;
 import edu.cmu.tetrad.algcomparison.statistic.Statistic;
 import edu.cmu.tetrad.algcomparison.statistic.Statistics;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.HasParameterValues;
 import edu.cmu.tetrad.algcomparison.utils.HasParameters;
-import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
-import edu.cmu.tetrad.data.ContinuousVariable;
-import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.data.DataWriter;
-import edu.cmu.tetrad.data.DiscreteVariable;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.data.simulation.LoadDataAndGraphs;
-import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.EdgeListGraph;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.search.SearchGraphUtils;
-import edu.cmu.tetrad.util.CombinationGenerator;
-import edu.cmu.tetrad.util.Experimental;
-import edu.cmu.tetrad.util.ForkJoinPoolInstance;
-import edu.cmu.tetrad.util.ParamDescription;
-import edu.cmu.tetrad.util.ParamDescriptions;
-import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.Params;
-import edu.cmu.tetrad.util.StatUtils;
-import edu.cmu.tetrad.util.TextTable;
+import edu.cmu.tetrad.util.*;
+import org.reflections.Reflections;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.Writer;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.RecursiveTask;
-
-import org.reflections.Reflections;
 
 /**
  * Script to do a comparison of a list of algorithms using a list of statistics
@@ -94,10 +61,6 @@ import org.reflections.Reflections;
  * @author Daniel Malinsky
  */
 public class Comparison {
-
-    public enum ComparisonGraph {
-        true_DAG, Pattern_of_the_true_DAG, PAG_of_the_true_DAG
-    }
 
     private boolean[] graphTypeUsed;
     private PrintStream out;
@@ -111,7 +74,7 @@ public class Comparison {
     private String dataPath = null;
     private String resultsPath = null;
     private boolean parallelized = false;
-    private boolean savePatterns = false;
+    private boolean saveCpdags = false;
     private boolean saveData = true;
     private boolean savePags = false;
     //    private boolean saveTrueDags = false;
@@ -219,25 +182,23 @@ public class Comparison {
             this.dirs.add(_dir.getAbsolutePath());
         }
 
-        compareFromSimulations(this.resultsPath, simulations, outputFileName, algorithms, statistics, parameters);
+        compareFromSimulations(this.resultsPath, outputFileName, simulations, algorithms, statistics, parameters);
     }
 
     public void compareFromSimulations(String resultsPath, Simulations simulations, Algorithms algorithms,
                                        Statistics statistics, Parameters parameters) {
-        compareFromSimulations(resultsPath, simulations, "Comparison.txt", algorithms, statistics, parameters);
+        compareFromSimulations(resultsPath, "Comparison.txt", simulations, algorithms, statistics, parameters);
     }
 
     /**
      * Compares algorithms.
-     *
-     * @param resultsPath Path to the file where the output should be printed.
+     *  @param resultsPath Path to the file where the output should be printed.
      * @param simulations The list of simulationWrapper that is used to generate
      *                    graphs and data for the comparison.
      * @param algorithms  The list of algorithms to be compared.
      * @param statistics  The list of statistics on which to compare the
-     *                    algorithm, and their utility weights.
      */
-    public void compareFromSimulations(String resultsPath, Simulations simulations, String outputFileName, Algorithms algorithms,
+    public void compareFromSimulations(String resultsPath, String outputFileName, Simulations simulations, Algorithms algorithms,
                                        Statistics statistics, Parameters parameters) {
         this.resultsPath = resultsPath;
 
@@ -562,8 +523,8 @@ public class Comparison {
 
                 File dir3 = null;
 
-                if (isSavePatterns()) {
-                    dir3 = new File(subdir, "patterns");
+                if (isSaveCpdags()) {
+                    dir3 = new File(subdir, "cpdags");
                     dir3.mkdirs();
                 }
 
@@ -594,9 +555,9 @@ public class Comparison {
                         out.close();
                     }
 
-                    if (isSavePatterns()) {
-                        File file3 = new File(dir3, "pattern." + (j + 1) + ".txt");
-                        GraphUtils.saveGraph(SearchGraphUtils.patternForDag(graph), file3, false);
+                    if (isSaveCpdags()) {
+                        File file3 = new File(dir3, "CPDAG." + (j + 1) + ".txt");
+                        GraphUtils.saveGraph(SearchGraphUtils.cpdagForDag(graph), file3, false);
                     }
 
                     if (isSavePags()) {
@@ -664,8 +625,8 @@ public class Comparison {
 
             File dir3 = null;
 
-            if (isSavePatterns()) {
-                dir3 = new File(subdir, "patterns");
+            if (isSaveCpdags()) {
+                dir3 = new File(subdir, "cpdags");
                 dir3.mkdirs();
             }
 
@@ -688,9 +649,9 @@ public class Comparison {
                 DataWriter.writeRectangularData((DataSet) dataModel, out, '\t');
                 out.close();
 
-                if (isSavePatterns()) {
-                    File file3 = new File(dir3, "pattern." + (j + 1) + ".txt");
-                    GraphUtils.saveGraph(SearchGraphUtils.patternForDag(graph), file3, false);
+                if (isSaveCpdags()) {
+                    File file3 = new File(dir3, "cpdag." + (j + 1) + ".txt");
+                    GraphUtils.saveGraph(SearchGraphUtils.cpdagForDag(graph), file3, false);
                 }
 
                 if (isSavePags()) {
@@ -750,9 +711,6 @@ public class Comparison {
                         out.println(clazz.getSimpleName() + ": " + algorithm.getDescription());
                         if (HasParameters.class.isAssignableFrom(clazz)) {
                             printParameters(algorithm.getParameters(), allParams, out);
-                        }
-                        if (TakesInitialGraph.class.isAssignableFrom(clazz)) {
-                            out.println("\t" + clazz.getSimpleName() + " can take an initial graph from some other algorithm as input");
                         }
                     }
                 }
@@ -1105,61 +1063,61 @@ public class Comparison {
         return parallelized;
     }
 
+    /**
+     * @return True if cpdags should be saved out.
+     */
+    public boolean isSaveCpdags() {
+        return saveCpdags;
+    }
+
 //    public void setParallelized(boolean parallelized) {
 //        this.parallelized = parallelized;
 //    }
 
     /**
-     * @return True if patterns should be saved out.
+     * @param saveCpdags True if cpdags should be saved out.
      */
-    public boolean isSavePatterns() {
-        return savePatterns;
+    public void setSaveCpdags(boolean saveCpdags) {
+        this.saveCpdags = saveCpdags;
     }
 
     /**
-     * @param savePatterns True if patterns should be saved out.
-     */
-    public void setSavePatterns(boolean savePatterns) {
-        this.savePatterns = savePatterns;
-    }
-
-    /**
-     * @return True if patterns should be saved out.
+     * @return True if cpdags should be saved out.
      */
     public boolean isSavePags() {
         return savePags;
     }
 
     /**
-     * @return True if patterns should be saved out.
+     * @return True if cpdags should be saved out.
      */
     public void setSavePags(boolean savePags) {
         this.savePags = savePags;
     }
 
+    /**
+     * @return True if cpdags should be saved out.
+     */
+    public boolean isSaveData() {
+        return this.saveData;
+    }
+
 //    /**
-//     * @return True if patterns should be saved out.
+//     * @return True if cpdags should be saved out.
 //     */
 //    public boolean isSaveTrueDags() {
 //        return saveTrueDags;
 //    }
 //
 //    /**
-//     * @param savePags True if patterns should be saved out.
+//     * @param savePags True if cpdags should be saved out.
 //     */
 //    public void setSaveTrueDags(boolean saveTrueDags) {
 //        this.saveTrueDags = saveTrueDags;
 //    }
 
     /**
-     * @return True if patterns should be saved out.
-     */
-    public boolean isSaveData() {
-        return this.saveData;
-    }
-
-    /**
-     * @return True if patterns should be saved out.
+     * @return True if cpdags should be saved out.
      */
     public void setSaveData(boolean saveData) {
         this.saveData = saveData;
@@ -1182,17 +1140,17 @@ public class Comparison {
     }
 
     /**
-     * @param saveGraphs True if all graphs should be saved to files.
-     */
-    public void setSaveGraphs(boolean saveGraphs) {
-        this.saveGraphs = saveGraphs;
-    }
-
-    /**
      * @return True if all graphs should be saved to files.
      */
     public boolean isSaveGraphs() {
         return saveGraphs;
+    }
+
+    /**
+     * @param saveGraphs True if all graphs should be saved to files.
+     */
+    public void setSaveGraphs(boolean saveGraphs) {
+        this.saveGraphs = saveGraphs;
     }
 
     /**
@@ -1224,38 +1182,6 @@ public class Comparison {
             throw new NullPointerException("Null compare graph.");
         }
         this.comparisonGraph = comparisonGraph;
-    }
-
-    private class AlgorithmTask extends RecursiveTask<Boolean> {
-
-        private List<AlgorithmSimulationWrapper> algorithmSimulationWrappers;
-        private List<AlgorithmWrapper> algorithmWrappers;
-        private List<SimulationWrapper> simulationWrappers;
-        private Statistics statistics;
-        private int numGraphTypes;
-        private double[][][][] allStats;
-        private final Run run;
-        private final PrintStream stdout;
-
-        public AlgorithmTask(List<AlgorithmSimulationWrapper> algorithmSimulationWrappers,
-                             List<AlgorithmWrapper> algorithmWrappers, List<SimulationWrapper> simulationWrappers,
-                             Statistics statistics, int numGraphTypes, double[][][][] allStats, Run run, PrintStream stdout) {
-            this.algorithmSimulationWrappers = algorithmSimulationWrappers;
-            this.simulationWrappers = simulationWrappers;
-            this.algorithmWrappers = algorithmWrappers;
-            this.statistics = statistics;
-            this.numGraphTypes = numGraphTypes;
-            this.allStats = allStats;
-            this.run = run;
-            this.stdout = stdout;
-        }
-
-        @Override
-        protected Boolean compute() {
-            doRun(algorithmSimulationWrappers, algorithmWrappers,
-                    simulationWrappers, statistics, numGraphTypes, allStats, run, stdout);
-            return true;
-        }
     }
 
     private void printParameters(List<String> names, Parameters parameters, PrintStream out) {
@@ -1328,8 +1254,8 @@ public class Comparison {
             Algorithm algorithm = algorithmWrapper.getAlgorithm();
             Simulation simulation = simulationWrapper.getSimulation();
 
-            if (algorithm instanceof HasKnowledge && simulation instanceof HasKnowledge) {
-                ((HasKnowledge) algorithm).setKnowledge(((HasKnowledge) simulation).getKnowledge());
+            if (algorithm instanceof KnowledgeSettable && simulation instanceof KnowledgeSettable) {
+                ((KnowledgeSettable) algorithm).setKnowledge(((KnowledgeSettable) simulation).getKnowledge());
             }
 
             if (algorithmWrapper.getAlgorithm() instanceof ExternalAlgorithm) {
@@ -1359,7 +1285,12 @@ public class Comparison {
             } else {
                 DataModel dataModel = copyData ? data.copy() : data;
                 Parameters _params = algorithmWrapper.getAlgorithmSpecificParameters();
-                graphOut = algorithm.search(dataModel, _params);
+
+                if (algorithm instanceof TakesGraph) {
+                    ((TakesGraph) algorithm).setGraph(trueGraph);
+                }
+
+                graphOut = algorithm.search(dataModel, _params, trueGraph);
             }
         } catch (Exception e) {
             stdout.println("Could not run " + algorithmWrapper.getDescription());
@@ -1396,9 +1327,9 @@ public class Comparison {
 
             if (this.comparisonGraph == ComparisonGraph.true_DAG) {
                 comparisonGraph = new EdgeListGraph(trueGraph);
-            } else if (this.comparisonGraph == ComparisonGraph.Pattern_of_the_true_DAG) {
-                comparisonGraph = SearchGraphUtils.patternForDag(new EdgeListGraph(trueGraph));
-            } else if (this.comparisonGraph == ComparisonGraph.PAG_of_the_true_DAG) {
+            } else if (this.comparisonGraph == ComparisonGraph.True_CPDAG) {
+                comparisonGraph = SearchGraphUtils.cpdagForDag(new EdgeListGraph(trueGraph));
+            } else if (this.comparisonGraph == ComparisonGraph.True_PAG) {
                 comparisonGraph = new DagToPag2(new EdgeListGraph(trueGraph)).convert();
             } else {
                 throw new IllegalArgumentException("Unrecognized graph type.");
@@ -1428,31 +1359,29 @@ public class Comparison {
                 truth[3] = getSubgraph(comparisonGraph, false, false, simulationWrapper.getDataModel(run.getRunIndex()));
             }
 
-            if (comparisonGraph != null) {
-                for (int u = 0; u < numGraphTypes; u++) {
-                    if (!graphTypeUsed[u]) {
+            for (int u = 0; u < numGraphTypes; u++) {
+                if (!graphTypeUsed[u]) {
+                    continue;
+                }
+
+                int statIndex = -1;
+
+                for (Statistic _stat : statistics.getStatistics()) {
+                    statIndex++;
+
+                    if (_stat instanceof ParameterColumn) {
                         continue;
                     }
 
-                    int statIndex = -1;
+                    double stat;
 
-                    for (Statistic _stat : statistics.getStatistics()) {
-                        statIndex++;
-
-                        if (_stat instanceof ParameterColumn) {
-                            continue;
-                        }
-
-                        double stat;
-
-                        if (_stat instanceof ElapsedTime) {
-                            stat = elapsed / 1000.0;
-                        } else {
-                            stat = _stat.getValue(truth[u], est[u], data);
-                        }
-
-                        allStats[u][run.getAlgSimIndex()][statIndex][run.getRunIndex()] = stat;
+                    if (_stat instanceof ElapsedTime) {
+                        stat = elapsed / 1000.0;
+                    } else {
+                        stat = _stat.getValue(comparisonGraph, est[u], data);
                     }
+
+                    allStats[u][run.getAlgSimIndex()][statIndex][run.getRunIndex()] = stat;
                 }
             }
 
@@ -1496,10 +1425,6 @@ public class Comparison {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-    }
-
-    private enum Mode {
-        Average, StandardDeviation, WorstCase, MedianCase
     }
 
     private String getHeader(int u) {
@@ -1841,6 +1766,46 @@ public class Comparison {
         }
     }
 
+    public enum ComparisonGraph {
+        true_DAG, True_CPDAG, True_PAG
+    }
+
+    private enum Mode {
+        Average, StandardDeviation, WorstCase, MedianCase
+    }
+
+    private class AlgorithmTask extends RecursiveTask<Boolean> {
+
+        private final Run run;
+        private final PrintStream stdout;
+        private List<AlgorithmSimulationWrapper> algorithmSimulationWrappers;
+        private List<AlgorithmWrapper> algorithmWrappers;
+        private List<SimulationWrapper> simulationWrappers;
+        private Statistics statistics;
+        private int numGraphTypes;
+        private double[][][][] allStats;
+
+        public AlgorithmTask(List<AlgorithmSimulationWrapper> algorithmSimulationWrappers,
+                             List<AlgorithmWrapper> algorithmWrappers, List<SimulationWrapper> simulationWrappers,
+                             Statistics statistics, int numGraphTypes, double[][][][] allStats, Run run, PrintStream stdout) {
+            this.algorithmSimulationWrappers = algorithmSimulationWrappers;
+            this.simulationWrappers = simulationWrappers;
+            this.algorithmWrappers = algorithmWrappers;
+            this.statistics = statistics;
+            this.numGraphTypes = numGraphTypes;
+            this.allStats = allStats;
+            this.run = run;
+            this.stdout = stdout;
+        }
+
+        @Override
+        protected Boolean compute() {
+            doRun(algorithmSimulationWrappers, algorithmWrappers,
+                    simulationWrappers, statistics, numGraphTypes, allStats, run, stdout);
+            return true;
+        }
+    }
+
     private class AlgorithmWrapper implements Algorithm {
 
         static final long serialVersionUID = 23L;
@@ -1854,14 +1819,14 @@ public class Comparison {
         }
 
         @Override
-        public Graph search(DataModel DataModel, Parameters parameters) {
-            return algorithm.search(DataModel, this.parameters);
+        public Graph search(DataModel DataModel, Parameters parameters, Graph trueGraph) {
+            return algorithm.search(DataModel, this.parameters, trueGraph);
         }
 
-        @Override
-        public Graph getComparisonGraph(Graph graph) {
-            return algorithm.getComparisonGraph(graph);
-        }
+//        @Override
+//        public Graph getComparisonGraph(Graph graph) {
+//            return algorithm.getComparisonGraph(graph);
+//        }
 
         @Override
         public String getDescription() {
@@ -1908,9 +1873,9 @@ public class Comparison {
     private class AlgorithmSimulationWrapper implements Algorithm {
 
         static final long serialVersionUID = 23L;
+        List<String> parameters = new ArrayList<>();
         private SimulationWrapper simulationWrapper;
         private AlgorithmWrapper algorithmWrapper;
-        List<String> parameters = new ArrayList<>();
 
         public AlgorithmSimulationWrapper(AlgorithmWrapper algorithm, SimulationWrapper simulation) {
             this.algorithmWrapper = algorithm;
@@ -1920,14 +1885,14 @@ public class Comparison {
         }
 
         @Override
-        public Graph search(DataModel DataModel, Parameters parameters) {
-            return algorithmWrapper.getAlgorithm().search(DataModel, parameters);
+        public Graph search(DataModel DataModel, Parameters parameters, Graph trueGraph) {
+            return algorithmWrapper.getAlgorithm().search(DataModel, parameters, trueGraph);
         }
 
-        @Override
-        public Graph getComparisonGraph(Graph graph) {
-            return algorithmWrapper.getComparisonGraph(graph);
-        }
+//        @Override
+//        public Graph getComparisonGraph(Graph graph) {
+//            return algorithmWrapper.getComparisonGraph(graph);
+//        }
 
         @Override
         public String getDescription() {
@@ -2018,6 +1983,10 @@ public class Comparison {
             return simulation.getParameters();
         }
 
+        public void setParameters(Parameters parameters) {
+            this.parameters = new Parameters(parameters);
+        }
+
         public void setValue(String name, Object value) {
             if (!(value instanceof Number)) {
                 throw new IllegalArgumentException();
@@ -2038,10 +2007,6 @@ public class Comparison {
 
         public Simulation getSimulation() {
             return simulation;
-        }
-
-        public void setParameters(Parameters parameters) {
-            this.parameters = new Parameters(parameters);
         }
 
         public Parameters getSimulationSpecificParameters() {

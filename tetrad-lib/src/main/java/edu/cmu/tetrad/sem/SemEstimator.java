@@ -21,8 +21,6 @@
 
 package edu.cmu.tetrad.sem;
 
-import cern.colt.list.DoubleArrayList;
-import cern.jet.stat.Descriptive;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
@@ -52,7 +50,7 @@ public final class SemEstimator implements TetradSerializable {
      *
      * @serial Cannot be null.
      */
-    private SemPm semPm;
+    private LinearSemPm linearSemPm;
 
     /**
      * The covariance matrix used to estimate the SemIm. Note that the variables
@@ -76,7 +74,7 @@ public final class SemEstimator implements TetradSerializable {
      *
      * @serial Can be null.
      */
-    private SemIm estimatedSem;
+    private LinearSemIm estimatedSem;
 
     /**
      * The data set being estimated from (needed to calculate means of
@@ -94,63 +92,63 @@ public final class SemEstimator implements TetradSerializable {
     /**
      * Constructs a Sem Estimator that does default estimation.
      *
-     * @param semPm   a SemPm specifying the graph and parameterization for the
+     * @param linearSemPm   a SemPm specifying the graph and parameterization for the
      *                model.
      * @param dataSet a DataSet, all of whose variables are contained in the
      *                given SemPm. (They are identified by name.)
      */
-    public SemEstimator(DataSet dataSet, SemPm semPm) {
-        this(dataSet, semPm, null);
+    public SemEstimator(DataSet dataSet, LinearSemPm linearSemPm) {
+        this(dataSet, linearSemPm, null);
     }
 
     /**
      * Constructs a SEM estimator that does default estimation.
      *
-     * @param semPm     a SemPm specifying the graph and parameterization for
+     * @param linearSemPm     a SemPm specifying the graph and parameterization for
      *                  the model.
      * @param covMatrix a CovarianceMatrix, all of whose variables are contained
      *                  in the given SemPm. (They are identified by name.)
      */
-    public SemEstimator(ICovarianceMatrix covMatrix, SemPm semPm) {
-        this(covMatrix, semPm, null);
+    public SemEstimator(ICovarianceMatrix covMatrix, LinearSemPm linearSemPm) {
+        this(covMatrix, linearSemPm, null);
     }
 
     /**
      * Constructs a new SemEstimator that uses the specified optimizer.
      *
-     * @param semPm        a SemPm specifying the graph and parameterization for
+     * @param linearSemPm        a SemPm specifying the graph and parameterization for
      *                     the model.
      * @param dataSet      a DataSet, all of whose variables are contained in
      *                     the given SemPm. (They are identified by name.)
      * @param semOptimizer the optimizer that optimizes the Sem.
      */
-    public SemEstimator(DataSet dataSet, SemPm semPm,
+    public SemEstimator(DataSet dataSet, LinearSemPm linearSemPm,
                         SemOptimizer semOptimizer) {
-        this(new CovarianceMatrix(dataSet), semPm, semOptimizer);
+        this(new CovarianceMatrix(dataSet), linearSemPm, semOptimizer);
         if (DataUtils.containsMissingValue(dataSet)) {
             throw new IllegalArgumentException("Expecting a data set with no missing values.");
         }
-        setDataSet(subset(dataSet, semPm));
+        setDataSet(subset(dataSet, linearSemPm));
     }
 
     /**
      * Constructs a new SemEstimator that uses the specified optimizer.
      *
-     * @param semPm        a SemPm specifying the graph and parameterization for
+     * @param linearSemPm        a SemPm specifying the graph and parameterization for
      *                     the model.
      * @param covMatrix    a covariance matrix, all of whose variables are
      *                     contained in the given SemPm. (They are identified by
      *                     name.)
      * @param semOptimizer the optimizer that optimizes the Sem.
      */
-    public SemEstimator(ICovarianceMatrix covMatrix, SemPm semPm,
+    public SemEstimator(ICovarianceMatrix covMatrix, LinearSemPm linearSemPm,
                         SemOptimizer semOptimizer) {
         if (covMatrix == null) {
             throw new NullPointerException(
                     "CovarianceMatrix must not be null.");
         }
 
-        if (semPm == null) {
+        if (linearSemPm == null) {
             throw new NullPointerException("SemPm must not be null.");
         }
 
@@ -158,10 +156,10 @@ public final class SemEstimator implements TetradSerializable {
             throw new IllegalArgumentException("Expecting a covariance matrix with no missing values.");
         }
 
-        semPm.getGraph().setShowErrorTerms(false);
+        linearSemPm.getGraph().setShowErrorTerms(false);
 
-        setCovMatrix(submatrix(covMatrix, semPm));
-        setSemPm(semPm);
+        setCovMatrix(submatrix(covMatrix, linearSemPm));
+        setSemPm(linearSemPm);
         setSemOptimizer(semOptimizer);
     }
 
@@ -170,7 +168,7 @@ public final class SemEstimator implements TetradSerializable {
      */
     public static SemEstimator serializableInstance() {
         return new SemEstimator(CovarianceMatrix.serializableInstance(),
-                SemPm.serializableInstance());
+                LinearSemPm.serializableInstance());
     }
 
     //==============================PUBLIC METHODS=========================//
@@ -179,7 +177,7 @@ public final class SemEstimator implements TetradSerializable {
      * Runs the estimator on the data and SemPm passed in through the
      * constructor.
      */
-    public SemIm estimate() {
+    public LinearSemIm estimate() {
         if (getSemOptimizer() != null) {
             getSemOptimizer().setNumRestarts(numRestarts);
             TetradLogger.getInstance().log("info", getSemOptimizer().toString());
@@ -195,7 +193,7 @@ public final class SemEstimator implements TetradSerializable {
         setEstimatedSem(null);
 
         // Create the Sem from the SemPm and CovarianceMatrix.
-        SemIm semIm = new SemIm(getSemPm(), getCovMatrix());
+        LinearSemIm semIm = new LinearSemIm(getSemPm(), getCovMatrix());
         GraphUtils.arrangeBySourceGraph(semIm.getSemPm().getGraph(),
                 getSemPm().getGraph());
 
@@ -229,7 +227,7 @@ public final class SemEstimator implements TetradSerializable {
 //        TetradLogger.getInstance().log("stats", "Final Score = " + nf.format(semIm.getScore()));
         TetradLogger.getInstance().log("stats", "Sample Size = " + semIm.getSampleSize());
         TetradLogger.getInstance().log("stats", "Model Chi Square = " + nf.format(semIm.getChiSquare()));
-        TetradLogger.getInstance().log("stats", "Model DOF = " + nf.format(semPm.getDof()));
+        TetradLogger.getInstance().log("stats", "Model DOF = " + nf.format(linearSemPm.getDof()));
         TetradLogger.getInstance().log("stats", "Model P Value = " + nf.format(semIm.getPValue()));
         TetradLogger.getInstance().log("stats", "Model BIC = " + nf.format(semIm.getBicScore()));
 
@@ -246,7 +244,7 @@ public final class SemEstimator implements TetradSerializable {
      * @return the estimated SemIm. If the <code>estimate</code> method has not
      * yet been called, <code>null</code> is returned.
      */
-    public SemIm getEstimatedSem() {
+    public LinearSemIm getEstimatedSem() {
         return this.estimatedSem;
     }
 
@@ -254,8 +252,8 @@ public final class SemEstimator implements TetradSerializable {
         return dataSet;
     }
 
-    public SemPm getSemPm() {
-        return semPm;
+    public LinearSemPm getSemPm() {
+        return linearSemPm;
     }
 
     public ICovarianceMatrix getCovMatrix() {
@@ -266,12 +264,12 @@ public final class SemEstimator implements TetradSerializable {
         return semOptimizer;
     }
 
-    public void setTrueSemIm(SemIm semIm) {
+    public void setTrueSemIm(LinearSemIm semIm) {
         /*
       The true SEM IM. If this is included. then its score will be printed
       out.
      */
-        SemIm trueSemIm = new SemIm(semIm);
+        LinearSemIm trueSemIm = new LinearSemIm(semIm);
         trueSemIm.setCovMatrix(this.getCovMatrix());
     }
 
@@ -285,7 +283,7 @@ public final class SemEstimator implements TetradSerializable {
         if (this.getEstimatedSem() == null) {
             buf.append("\n\t...SemIm has not been estimated yet.");
         } else {
-            SemIm sem = this.getEstimatedSem();
+            LinearSemIm sem = this.getEstimatedSem();
             buf.append("\n\n\tfml = ");
 
             buf.append("\n\n\tmeasuredNodes:\n");
@@ -303,7 +301,7 @@ public final class SemEstimator implements TetradSerializable {
 
     //============================PRIVATE METHODS==========================//
 
-    private SemOptimizer getDefaultOptimization(SemIm semIm) {
+    private SemOptimizer getDefaultOptimization(LinearSemIm semIm) {
         if (semIm == null) throw new NullPointerException();
 
         boolean containsLatent = false;
@@ -335,7 +333,7 @@ public final class SemEstimator implements TetradSerializable {
     }
 
     private boolean containsFixedParam() {
-        return new SemIm(getSemPm()).getNumFixedParams() > 0;
+        return new LinearSemIm(getSemPm()).getNumFixedParams() > 0;
     }
 
     /**
@@ -345,8 +343,8 @@ public final class SemEstimator implements TetradSerializable {
      *                                  <code>semPm</code> are in <code>covMatrix</code>.
      */
     private ICovarianceMatrix submatrix(ICovarianceMatrix covMatrix,
-                                        SemPm semPm) {
-        String[] measuredVarNames = semPm.getMeasuredVarNames();
+                                        LinearSemPm linearSemPm) {
+        String[] measuredVarNames = linearSemPm.getMeasuredVarNames();
 
         try {
             return covMatrix.getSubmatrix(measuredVarNames);
@@ -358,8 +356,8 @@ public final class SemEstimator implements TetradSerializable {
         }
     }
 
-    private DataSet subset(DataSet dataSet, SemPm semPm) {
-        String[] measuredVarNames = semPm.getMeasuredVarNames();
+    private DataSet subset(DataSet dataSet, LinearSemPm linearSemPm) {
+        String[] measuredVarNames = linearSemPm.getMeasuredVarNames();
         int[] varIndices = new int[measuredVarNames.length];
         final List<Node> dataVars = dataSet.getVariables();
 
@@ -371,9 +369,9 @@ public final class SemEstimator implements TetradSerializable {
         return dataSet.subsetColumns(varIndices);
     }
 
-    private static boolean containsCovarParam(SemPm semPm) {
+    private static boolean containsCovarParam(LinearSemPm linearSemPm) {
         boolean containsCovarParam = false;
-        List<Parameter> params = semPm.getParameters();
+        List<Parameter> params = linearSemPm.getParameters();
 
         for (Parameter param : params) {
             if (param.getType() == ParamType.COVAR) {
@@ -387,7 +385,7 @@ public final class SemEstimator implements TetradSerializable {
     /**
      * Sets the means of variables in the SEM IM based on the given data set.
      */
-    private void setMeans(SemIm semIm, DataSet dataSet) {
+    private void setMeans(LinearSemIm semIm, DataSet dataSet) {
         if (dataSet != null) {
             int numColumns = dataSet.getNumColumns();
 
@@ -417,16 +415,16 @@ public final class SemEstimator implements TetradSerializable {
         this.semOptimizer = semOptimizer;
     }
 
-    private void setEstimatedSem(SemIm estimatedSem) {
+    private void setEstimatedSem(LinearSemIm estimatedSem) {
         this.estimatedSem = estimatedSem;
     }
 
-    private void setSemPm(SemPm semPm) {
-        this.semPm = semPm;
+    private void setSemPm(LinearSemPm linearSemPm) {
+        this.linearSemPm = linearSemPm;
     }
 
     private void setDataSet(DataSet dataSet) {
-        List<Node> nodes1 = semPm.getMeasuredNodes();
+        List<Node> nodes1 = linearSemPm.getMeasuredNodes();
 
         List<Node> vars = new ArrayList<>();
 

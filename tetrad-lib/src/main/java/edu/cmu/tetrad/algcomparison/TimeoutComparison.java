@@ -26,18 +26,18 @@ import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
-import edu.cmu.tetrad.data.simulation.LoadDataAndGraphs;
 import edu.cmu.tetrad.algcomparison.simulation.Simulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.ElapsedTime;
 import edu.cmu.tetrad.algcomparison.statistic.ParameterColumn;
 import edu.cmu.tetrad.algcomparison.statistic.Statistic;
 import edu.cmu.tetrad.algcomparison.statistic.Statistics;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.HasParameterValues;
 import edu.cmu.tetrad.algcomparison.utils.HasParameters;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.simulation.LoadDataAndGraphs;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.search.SearchGraphUtils;
@@ -64,7 +64,7 @@ public class TimeoutComparison {
     private static final DateFormat DF = new SimpleDateFormat("EEE, MMMM dd, yyyy hh:mm:ss a");
 
     public enum ComparisonGraph {
-        true_DAG, Pattern_of_the_true_DAG, PAG_of_the_true_DAG
+        true_DAG, Cpdag_of_the_true_DAG, PAG_of_the_true_DAG
     }
 
     private boolean[] graphTypeUsed;
@@ -79,7 +79,7 @@ public class TimeoutComparison {
     private String dataPath = null;
     private String resultsPath = null;
     private boolean parallelized = true;
-    private boolean savePatterns = false;
+    private boolean saveCpdags = false;
     private boolean savePags = false;
     private ArrayList<String> dirs = null;
     private ComparisonGraph comparisonGraph = ComparisonGraph.true_DAG;
@@ -502,8 +502,8 @@ public class TimeoutComparison {
 
                 File dir3 = null;
 
-                if (isSavePatterns()) {
-                    dir3 = new File(subdir, "patterns");
+                if (isSaveCpdags()) {
+                    dir3 = new File(subdir, "cpdags");
                     dir3.mkdirs();
                 }
 
@@ -526,9 +526,9 @@ public class TimeoutComparison {
                     DataWriter.writeRectangularData((DataSet) dataModel, out, '\t');
                     out.close();
 
-                    if (isSavePatterns()) {
-                        File file3 = new File(dir3, "pattern." + (j + 1) + ".txt");
-                        GraphUtils.saveGraph(SearchGraphUtils.patternForDag(graph), file3, false);
+                    if (isSaveCpdags()) {
+                        File file3 = new File(dir3, "cpdag." + (j + 1) + ".txt");
+                        GraphUtils.saveGraph(SearchGraphUtils.cpdagForDag(graph), file3, false);
                     }
 
                     if (isSavePags()) {
@@ -952,28 +952,28 @@ public class TimeoutComparison {
     }
 
     /**
-     * @return True if patterns should be saved out.
+     * @return True if cpdags should be saved out.
      */
-    public boolean isSavePatterns() {
-        return savePatterns;
+    public boolean isSaveCpdags() {
+        return saveCpdags;
     }
 
     /**
-     * @param savePatterns True if patterns should be saved out.
+     * @param saveCpdags True if cpdags should be saved out.
      */
-    public void setSavePatterns(boolean savePatterns) {
-        this.savePatterns = savePatterns;
+    public void setSaveCpdags(boolean saveCpdags) {
+        this.saveCpdags = saveCpdags;
     }
 
     /**
-     * @return True if patterns should be saved out.
+     * @return True if cpdags should be saved out.
      */
     public boolean isSavePags() {
         return savePags;
     }
 
     /**
-     * @param savePags True if patterns should be saved out.
+     * @param savePags True if cpdags should be saved out.
      */
     public void setSavePags(boolean savePags) {
         this.savePags = savePags;
@@ -1139,8 +1139,8 @@ public class TimeoutComparison {
             Algorithm algorithm = algorithmWrapper.getAlgorithm();
             Simulation simulation = simulationWrapper.getSimulation();
 
-            if (algorithm instanceof HasKnowledge && simulation instanceof HasKnowledge) {
-                ((HasKnowledge) algorithm).setKnowledge(((HasKnowledge) simulation).getKnowledge());
+            if (algorithm instanceof KnowledgeSettable && simulation instanceof KnowledgeSettable) {
+                ((KnowledgeSettable) algorithm).setKnowledge(((KnowledgeSettable) simulation).getKnowledge());
             }
 
             if (algorithmWrapper.getAlgorithm() instanceof ExternalAlgorithm) {
@@ -1170,7 +1170,7 @@ public class TimeoutComparison {
             } else {
                 DataModel dataModel = copyData ? data.copy() : data;
                 Parameters _params = algorithmWrapper.getAlgorithmSpecificParameters();
-                out = algorithm.search(dataModel, _params);
+                out = algorithm.search(dataModel, _params, trueGraph);
             }
         } catch (Exception e) {
             System.out.println("Could not run " + algorithmWrapper.getDescription());
@@ -1205,8 +1205,8 @@ public class TimeoutComparison {
 
         if (this.comparisonGraph == ComparisonGraph.true_DAG) {
             comparisonGraph = new EdgeListGraph(trueGraph);
-        } else if (this.comparisonGraph == ComparisonGraph.Pattern_of_the_true_DAG) {
-            comparisonGraph = SearchGraphUtils.patternForDag(new EdgeListGraph(trueGraph));
+        } else if (this.comparisonGraph == ComparisonGraph.Cpdag_of_the_true_DAG) {
+            comparisonGraph = SearchGraphUtils.cpdagForDag(new EdgeListGraph(trueGraph));
         } else if (this.comparisonGraph == ComparisonGraph.PAG_of_the_true_DAG) {
             comparisonGraph = new DagToPag2(new EdgeListGraph(trueGraph)).convert();
         } else {
@@ -1645,14 +1645,14 @@ public class TimeoutComparison {
         }
 
         @Override
-        public Graph search(DataModel DataModel, Parameters parameters) {
-            return algorithm.search(DataModel, this.parameters);
+        public Graph search(DataModel DataModel, Parameters parameters, Graph trueGraph) {
+            return algorithm.search(DataModel, this.parameters, trueGraph);
         }
 
-        @Override
-        public Graph getComparisonGraph(Graph graph) {
-            return algorithm.getComparisonGraph(graph);
-        }
+//        @Override
+//        public Graph getComparisonGraph(Graph graph) {
+//            return algorithm.getComparisonGraph(graph);
+//        }
 
         @Override
         public String getDescription() {
@@ -1711,14 +1711,14 @@ public class TimeoutComparison {
         }
 
         @Override
-        public Graph search(DataModel DataModel, Parameters parameters) {
-            return algorithmWrapper.getAlgorithm().search(DataModel, parameters);
+        public Graph search(DataModel DataModel, Parameters parameters, Graph trueGraph) {
+            return algorithmWrapper.getAlgorithm().search(DataModel, parameters, trueGraph);
         }
 
-        @Override
-        public Graph getComparisonGraph(Graph graph) {
-            return algorithmWrapper.getComparisonGraph(graph);
-        }
+//        @Override
+//        public Graph getComparisonGraph(Graph graph) {
+//            return algorithmWrapper.getComparisonGraph(graph);
+//        }
 
         @Override
         public String getDescription() {
@@ -1764,7 +1764,7 @@ public class TimeoutComparison {
 
         @Override
         public void createData(Parameters parameters, boolean newModel) {
-            simulation.createData(parameters, false);
+            simulation.createData(parameters, true);
             this.graphs = new ArrayList<>();
             this.dataModels = new ArrayList<>();
             for (int i = 0; i < simulation.getNumDataModels(); i++) {

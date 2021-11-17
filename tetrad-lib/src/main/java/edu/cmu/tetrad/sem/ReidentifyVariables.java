@@ -117,7 +117,7 @@ public class ReidentifyVariables {
     // any other input latent.
     public static List<String> reidentifyVariables2(List<List<Node>> clusters, Graph trueGraph, DataSet data) {
         trueGraph = GraphUtils.replaceNodes(trueGraph, data.getVariables());
-        Map<Node, SemIm> ims = new HashMap<>();
+        Map<Node, LinearSemIm> ims = new HashMap<>();
         List<String> latentNames = new ArrayList<>();
 
         for (Node node : trueGraph.getNodes()) {
@@ -132,13 +132,13 @@ public class ReidentifyVariables {
 
             Graph subgraph = trueGraph.subgraph(all);
 
-            SemPm pm = new SemPm(subgraph);
+            LinearSemPm pm = new LinearSemPm(subgraph);
             pm.fixOneLoadingPerLatent();
 
             SemOptimizer semOptimizer = new SemOptimizerPowell();
             SemEstimator est = new SemEstimator(data, pm, semOptimizer);
             est.setScoreType(ScoreType.Fgls);
-            SemIm im = est.estimate();
+            LinearSemIm im = est.estimate();
 
             ims.put(node, im);
         }
@@ -209,14 +209,14 @@ public class ReidentifyVariables {
         return latentNames;
     }
 
-    private static double sumOfAbsLoadings(List<Node> searchChildren, Node latent, Graph mim, Map<Node, SemIm> ims) {
+    private static double sumOfAbsLoadings(List<Node> searchChildren, Node latent, Graph mim, Map<Node, LinearSemIm> ims) {
         double sum = 0.0;
 
 //        System.out.println(latent + " " + searchChildren + " " + mim.getChildren(latent));
 
         for (Node child : searchChildren) {
             if (mim.isParentOf(latent, child)) {
-                SemIm im = ims.get(latent);
+                LinearSemIm im = ims.get(latent);
                 double coef = im.getEdgeCoef(latent, child);
                 sum += abs(coef);
             }

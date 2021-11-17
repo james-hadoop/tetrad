@@ -26,7 +26,6 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.search.ImpliedOrientation;
 import edu.cmu.tetrad.search.IndTestType;
 import edu.cmu.tetrad.search.Mbfs;
 import edu.cmu.tetrad.search.SearchGraphUtils;
@@ -46,7 +45,7 @@ import java.util.Map;
 
 
 /**
- * Edits some algorithm to search for Markov blanket patterns.
+ * Edits some algorithm to search for Markov blanket cpdags.
  *
  * @author Joseph Ramsey
  */
@@ -115,7 +114,7 @@ public class MbSearchEditor extends AbstractSearchEditor
         GraphWorkbench resultWorkbench = getWorkbench();
         Graph graph = resultWorkbench.getGraph();
         IKnowledge knowledge = (IKnowledge) getAlgorithmRunner().getParams().get("knowledge", new Knowledge2());
-        SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
+        SearchGraphUtils.arrangeByKnowledgeTiers(graph);
 //        resultWorkbench.setGraph(graph);
     }
 
@@ -223,7 +222,7 @@ public class MbSearchEditor extends AbstractSearchEditor
                         return;
                     }
 
-                    MbPatternDisplay display = new MbPatternDisplay(search);
+                    MbCpdagDisplay display = new MbCpdagDisplay(search);
 
                     JOptionPane.showMessageDialog(JOptionUtils.centeringComp(),
                             display, "MB DAG's Consistent with forbid_latent_common_causes",

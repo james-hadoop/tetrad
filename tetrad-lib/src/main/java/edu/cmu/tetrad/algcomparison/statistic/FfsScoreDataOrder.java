@@ -4,10 +4,7 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.ForwardScoreSearch;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.sem.FmlBicScorer;
-import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemPm;
 
 import static java.lang.Math.tanh;
 
@@ -34,6 +31,7 @@ public class FfsScoreDataOrder implements Statistic {
         ForwardScoreSearch fss = new ForwardScoreSearch(new FmlBicScorer(((DataSet) dataModel), 1));
         fss.search(dataModel.getVariables());
         System.out.println("FFS score for variables in data order = " + fss.score());
+        System.out.println("Data order = " + dataModel.getVariables());
         return fss.score();
     }
 

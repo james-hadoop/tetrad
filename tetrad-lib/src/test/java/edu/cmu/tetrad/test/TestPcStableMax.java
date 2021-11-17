@@ -24,8 +24,8 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import org.junit.Test;
@@ -117,24 +117,24 @@ public class TestPcStableMax {
         PcStableMax pc = new PcStableMax(new IndTestFisherZ(dataSet, 0.11));
         pc.setKnowledge(knowledge);
 
-        Graph pattern = pc.search();
+        Graph cpdag = pc.search();
 
-        Graph _true = new EdgeListGraph(pattern.getNodes());
+        Graph _true = new EdgeListGraph(cpdag.getNodes());
 
-        _true.addDirectedEdge(pattern.getNode("ABILITY"), pattern.getNode("CITES"));
-        _true.addDirectedEdge(pattern.getNode("ABILITY"), pattern.getNode("GPQ"));
-        _true.addDirectedEdge(pattern.getNode("ABILITY"), pattern.getNode("PREPROD"));
-        _true.addDirectedEdge(pattern.getNode("GPQ"), pattern.getNode("QFJ"));
-        _true.addDirectedEdge(pattern.getNode("PREPROD"), pattern.getNode("CITES"));
-        _true.addDirectedEdge(pattern.getNode("PREPROD"), pattern.getNode("PUBS"));
-        _true.addDirectedEdge(pattern.getNode("PUBS"), pattern.getNode("CITES"));
-        _true.addDirectedEdge(pattern.getNode("QFJ"), pattern.getNode("CITES"));
-        _true.addDirectedEdge(pattern.getNode("QFJ"), pattern.getNode("PUBS"));
-        _true.addDirectedEdge(pattern.getNode("SEX"), pattern.getNode("PUBS"));
+        _true.addDirectedEdge(cpdag.getNode("ABILITY"), cpdag.getNode("CITES"));
+        _true.addDirectedEdge(cpdag.getNode("ABILITY"), cpdag.getNode("GPQ"));
+        _true.addDirectedEdge(cpdag.getNode("ABILITY"), cpdag.getNode("PREPROD"));
+        _true.addDirectedEdge(cpdag.getNode("GPQ"), cpdag.getNode("QFJ"));
+        _true.addDirectedEdge(cpdag.getNode("PREPROD"), cpdag.getNode("CITES"));
+        _true.addDirectedEdge(cpdag.getNode("PREPROD"), cpdag.getNode("PUBS"));
+        _true.addDirectedEdge(cpdag.getNode("PUBS"), cpdag.getNode("CITES"));
+        _true.addDirectedEdge(cpdag.getNode("QFJ"), cpdag.getNode("CITES"));
+        _true.addDirectedEdge(cpdag.getNode("QFJ"), cpdag.getNode("PUBS"));
+        _true.addDirectedEdge(cpdag.getNode("SEX"), cpdag.getNode("PUBS"));
 
-        System.out.println(pattern + " " + _true);
+        System.out.println(cpdag + " " + _true);
 
-        assertEquals(pattern, _true);
+        assertEquals(cpdag, _true);
     }
 
     /**
@@ -199,8 +199,8 @@ public class TestPcStableMax {
         }
 
         Graph graph = GraphUtils.randomGraph(nodes, 0, 10, 30, 15, 15, false);
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(200, false);
 
         TetradLogger.getInstance().setForceLog(false);
@@ -208,15 +208,15 @@ public class TestPcStableMax {
 
         PcStableMax pc = new PcStableMax(test);
         pc.setVerbose(false);
-        Graph pattern = pc.search();
+        Graph cpdag = pc.search();
 
         for (int i = 0; i < 1; i++) {
-            DataSet data2 = DataUtils.reorderColumns(data);
+            DataSet data2 = DataUtils.shuffleColumns(data);
             IndependenceTest test2 = new IndTestFisherZ(data2, 0.05);
             PcStableMax pc2 = new PcStableMax(test2);
             pc2.setVerbose(false);
-            Graph pattern2 = pc2.search();
-            assertTrue(pattern.equals(pattern2));
+            Graph cpdag2 = pc2.search();
+            assertTrue(cpdag.equals(cpdag2));
         }
     }
 }

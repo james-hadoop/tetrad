@@ -23,9 +23,9 @@ package edu.cmu.tetrad.algcomparison.examples;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulation;
+import edu.cmu.tetrad.util.Parameters;
 
 /**
  * An example script to save out data files and graphs from a simulation.
@@ -41,7 +41,7 @@ public class ExampleSave {
         parameters.set("avgDegree", 4);
         parameters.set("sampleSize", 100, 500, 1000);
 
-        Simulation simulation = new SemSimulation(new RandomForward());
+        Simulation simulation = new LinearSemSimulation(new RandomForward());
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
         comparison.saveToFiles("comparison", simulation, parameters);

@@ -128,7 +128,7 @@ public class ImagesRunner extends AbstractAlgorithmRunner implements IFgesRunner
             DataSet dataSet = (DataSet) model;
 
             if (dataSet.isContinuous()) {
-                SemBicScore gesScore = new SemBicScore(new CovarianceMatrix((DataSet) model));
+                LinearGaussianBicScore gesScore = new LinearGaussianBicScore(new CovarianceMatrix((DataSet) model));
                 gesScore.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
                 fges = new Fges(gesScore);
             } else if (dataSet.isDiscrete()) {
@@ -142,7 +142,7 @@ public class ImagesRunner extends AbstractAlgorithmRunner implements IFgesRunner
                 throw new IllegalStateException("Data set must either be continuous or discrete.");
             }
         } else if (model instanceof ICovarianceMatrix) {
-            SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
+            LinearGaussianBicScore gesScore = new LinearGaussianBicScore((ICovarianceMatrix) model);
             gesScore.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
             fges = new Fges(gesScore);
         } else if (model instanceof DataModelList) {
@@ -164,11 +164,11 @@ public class ImagesRunner extends AbstractAlgorithmRunner implements IFgesRunner
                 double penalty = getParams().getDouble("penaltyDiscount", 4);
 
                 if (params.getBoolean("firstNontriangular", false)) {
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     fgesScore.setPenaltyDiscount(penalty);
                     fges = new Fges(fgesScore);
                 } else {
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     fgesScore.setPenaltyDiscount(penalty);
                     fges = new Fges(fgesScore);
                 }
@@ -200,7 +200,7 @@ public class ImagesRunner extends AbstractAlgorithmRunner implements IFgesRunner
         if (getSourceGraph() != null) {
             GraphUtils.arrangeBySourceGraph(graph, getSourceGraph());
         } else if (((IKnowledge) getParams().get("knowledge", new Knowledge2())).isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(graph, (IKnowledge) getParams().get("knowledge", new Knowledge2()));
+            SearchGraphUtils.arrangeByKnowledgeTiers(graph);
         } else {
             GraphUtils.circleLayout(graph, 200, 200, 150);
         }

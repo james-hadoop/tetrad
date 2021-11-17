@@ -103,22 +103,18 @@ public class LayoutMenu extends JMenu {
             likeLag0.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     if (LayoutUtils.getLayout() == LayoutUtils.Layout.topToBottom
-                        || LayoutUtils.getLayout() == LayoutUtils.Layout.lag0TopToBottom) {
+                            || LayoutUtils.getLayout() == LayoutUtils.Layout.lag0TopToBottom) {
                         LayoutUtils.copyLag0LayoutTopToBottom(getLayoutEditable());
-                    }
-                    else if (LayoutUtils.getLayout() == LayoutUtils.Layout.bottomToTop
-                        || LayoutUtils.getLayout() == LayoutUtils.Layout.lag0BottomToTop) {
+                    } else if (LayoutUtils.getLayout() == LayoutUtils.Layout.bottomToTop
+                            || LayoutUtils.getLayout() == LayoutUtils.Layout.lag0BottomToTop) {
                         LayoutUtils.copyLag0LayoutBottomToTop(getLayoutEditable());
-                    }
-                    else if (LayoutUtils.getLayout() == LayoutUtils.Layout.leftToRight
-                        || LayoutUtils.getLayout() == LayoutUtils.Layout.lag0LeftToRight) {
+                    } else if (LayoutUtils.getLayout() == LayoutUtils.Layout.leftToRight
+                            || LayoutUtils.getLayout() == LayoutUtils.Layout.lag0LeftToRight) {
                         LayoutUtils.copyLag0LayoutLeftToRight(getLayoutEditable());
-                    }
-                    else if (LayoutUtils.getLayout() == LayoutUtils.Layout.rightToLeft
-                        || LayoutUtils.getLayout() == LayoutUtils.Layout.lag0RightToLeft) {
+                    } else if (LayoutUtils.getLayout() == LayoutUtils.Layout.rightToLeft
+                            || LayoutUtils.getLayout() == LayoutUtils.Layout.lag0RightToLeft) {
                         LayoutUtils.copyLag0LayoutRightToLeft(getLayoutEditable());
-                    }
-                    else {
+                    } else {
 //                        LayoutUtils.topToBottomLayout(getLayoutEditable());
                     }
 
@@ -144,19 +140,19 @@ public class LayoutMenu extends JMenu {
 
         });
 
-        if (getLayoutEditable().getKnowledge() != null) {
-            JMenuItem knowledgeTiersLayout = new JMenuItem("Knowledge Tiers");
-            add(knowledgeTiersLayout);
+//        if (getLayoutEditable().getKnowledge() != null) {
+        JMenuItem knowledgeTiersLayout = new JMenuItem("Knowledge Tiers");
+        add(knowledgeTiersLayout);
 
-            knowledgeTiersLayout.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    LayoutUtils.knowledgeLayout(getLayoutEditable());
+        knowledgeTiersLayout.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                LayoutUtils.knowledgeLayout(getLayoutEditable());
 
-                    // Copy the laid out graph to the clipboard.
-                    getCopyLayoutAction().actionPerformed(null);
-                }
-            });
-        }
+                // Copy the laid out graph to the clipboard.
+                getCopyLayoutAction().actionPerformed(null);
+            }
+        });
+//        }
 
 //        if (getLayoutEditable().getSourceGraph() != null) {
 //            JMenuItem lastResultLayout = new JMenuItem("Source Graph");
@@ -172,18 +168,18 @@ public class LayoutMenu extends JMenu {
 //            });
 //        }
 
-        JMenuItem layeredDrawing = new JMenuItem("Layered Drawing");
-        add(layeredDrawing);
-
-        layeredDrawing.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                LayoutEditable layoutEditable = getLayoutEditable();
-                LayoutUtils.layeredDrawingLayout(layoutEditable);
-
-                // Copy the laid out graph to the clipboard.
-                getCopyLayoutAction().actionPerformed(null);
-            }
-        });
+//        JMenuItem layeredDrawing = new JMenuItem("Layered Drawing");
+//        add(layeredDrawing);
+//
+//        layeredDrawing.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                LayoutEditable layoutEditable = getLayoutEditable();
+//                LayoutUtils.layeredDrawingLayout(layoutEditable);
+//
+//                // Copy the laid out graph to the clipboard.
+//                getCopyLayoutAction().actionPerformed(null);
+//            }
+//        });
 
 
         JMenuItem fruchtermanReingold = new JMenuItem("Fruchterman-Reingold");
@@ -224,7 +220,7 @@ public class LayoutMenu extends JMenu {
             }
         });
 
-        JMenuItem causalOrder = new JMenuItem("Causal Order");
+        JMenuItem causalOrder = new JMenuItem("Estimated Causal Order");
         add(causalOrder);
 
         causalOrder.addActionListener(new ActionListener() {

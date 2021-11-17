@@ -22,6 +22,8 @@
 package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.data.DataReader;
+import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.data.DelimiterType;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetradapp.model.KnowledgeEditable;
@@ -113,7 +115,7 @@ final class LoadKnowledgeAction extends AbstractAction {
             if (ret == JOptionPane.OK_OPTION) {
                 try {
                     DataReader reader = new DataReader();
-                    IKnowledge knowledge = reader.parseKnowledge(file);
+                    IKnowledge knowledge = DataUtils.parseKnowledge(file, DelimiterType.TAB, "//");
                     this.knowledgeEditable.setKnowledge(knowledge);
                 }
                 catch (Exception e1) {

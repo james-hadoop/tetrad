@@ -152,6 +152,35 @@ public class Fas implements IFas {
 
         if (heuristic == 1) {
             Collections.sort(nodes);
+
+//            TeyssierScorer scorer = new TeyssierScorer(test);
+//            scorer.score(test.getVariables());
+//
+//            List<Node> to = new ArrayList<>();
+//            List<Node> from = new ArrayList<>(test.getVariables());
+//
+//            scorer.score(to);
+//
+//            while (!from.isEmpty()) {
+//                double min = POSITIVE_INFINITY;
+//                Node minNode = null;
+//
+//                for (Node v : from) {
+//                    double s = scorer.scoreAppended(v);
+//
+//                    if (s < min) {
+//                        min = s;
+//                        minNode = v;
+//                    }
+//                }
+//
+//                to.add(minNode);
+//                from.remove(minNode);
+//            }
+//
+//            System.out.println("to = " + to);
+//
+//            nodes = to;
         }
 
         for (int i = 0; i < nodes.size(); i++) {
@@ -193,7 +222,7 @@ public class Fas implements IFas {
             }
         }
 
-        for (int d = 1; d <= _depth; d++) {
+        for (int d = 0; d <= _depth; d++) {
             boolean more;
 
             if (stable) {

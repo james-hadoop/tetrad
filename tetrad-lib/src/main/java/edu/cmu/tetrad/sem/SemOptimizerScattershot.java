@@ -23,9 +23,9 @@ package edu.cmu.tetrad.sem;
 
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradLogger;
-import edu.cmu.tetrad.util.Matrix;
 
 import java.util.List;
 
@@ -60,7 +60,7 @@ public class SemOptimizerScattershot implements SemOptimizer {
      * Optimizes the fitting function of the given Sem using the Powell method
      * from Numerical Recipes by adjusting the freeParameters of the Sem.
      */
-    public void optimize(SemIm semIm) {
+    public void optimize(LinearSemIm semIm) {
         Matrix sampleCovar = semIm.getSampleCovar();
 
         if (sampleCovar == null) {
@@ -81,14 +81,14 @@ public class SemOptimizerScattershot implements SemOptimizer {
         TetradLogger.getInstance().log("info", "Trying scattershot...");
 
         double min = Double.POSITIVE_INFINITY;
-        SemIm _sem = null;
+        LinearSemIm _sem = null;
 
         // With local search on points in the width 1 iteration, multiple iterations of the whole search
         // doesn't seem necessary.
         for (int i = 0; i < numRestarts + 1; i++) {
             TetradLogger.getInstance().log("details", "Trial " + (i + 1));
 //            System.out.println("Trial " + (i + 1));
-            SemIm _sem2 = new SemIm(semIm);
+            LinearSemIm _sem2 = new LinearSemIm(semIm);
             optimize2(_sem2);
             double chisq = _sem2.getChiSquare();
 
@@ -133,7 +133,7 @@ public class SemOptimizerScattershot implements SemOptimizer {
         return "Sem Optimizer Scattershot";
     }
 
-    private void optimize2(SemIm semIm) {
+    private void optimize2(LinearSemIm semIm) {
         FittingFunction f = new SemFittingFunction(semIm);
 
         double[] p = semIm.getFreeParamValues();
@@ -290,14 +290,14 @@ public class SemOptimizerScattershot implements SemOptimizer {
         /**
          * The wrapped Sem.
          */
-        private final SemIm sem;
+        private final LinearSemIm sem;
         private List<Parameter> freeParameters;
         private boolean avoidNegativeVariances = false;
 
         /**
          * Constructs a new CoefFittingFunction for the given Sem.
          */
-        public SemFittingFunction(SemIm sem) {
+        public SemFittingFunction(LinearSemIm sem) {
             this.sem = sem;
             this.freeParameters = sem.getFreeParameters();
         }

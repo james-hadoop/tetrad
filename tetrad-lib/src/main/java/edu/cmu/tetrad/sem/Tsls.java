@@ -44,8 +44,8 @@ import java.util.List;
  */
 
 class Tsls {
-    private SemPm spm;
-    private SemIm semIm;
+    private LinearSemPm spm;
+    private LinearSemIm semIm;
     private List<String> fixedLoadings;
     private DataSet dataSet;
     private String nodeName;
@@ -56,7 +56,7 @@ class Tsls {
      * We require a DataSet (with continuous dataSet) and a SemPm with matching
      * variables.
      */
-    public Tsls(SemPm spm, DataSet dataSet, String nm) {
+    public Tsls(LinearSemPm spm, DataSet dataSet, String nm) {
         initialization(spm, dataSet, nm);
     }
 
@@ -65,13 +65,13 @@ class Tsls {
      * nodes such that their loadings are fixed to 1.
      */
 
-    public Tsls(SemPm spm, DataSet dataSet, String nm,
+    public Tsls(LinearSemPm spm, DataSet dataSet, String nm,
                 List<String> fixedLoadings) {
         initialization(spm, dataSet, nm);
         this.fixedLoadings = fixedLoadings;
     }
 
-    private void initialization(SemPm spm, DataSet dataSet,
+    private void initialization(LinearSemPm spm, DataSet dataSet,
                                 String nm) {
         this.dataSet = dataSet;
         this.spm = spm;
@@ -81,13 +81,13 @@ class Tsls {
         semIm = null;
     }
 
-    public SemIm estimate() {
-        semIm = new SemIm(spm);
+    public LinearSemIm estimate() {
+        semIm = new LinearSemIm(spm);
         semIm = estimateCoeffs(semIm);
         return semIm;
     }
 
-    public SemIm getEstimatedSem() {
+    public LinearSemIm getEstimatedSem() {
         return semIm;
     }
 
@@ -148,7 +148,7 @@ class Tsls {
         }
     }
 
-    private SemIm estimateCoeffs(SemIm semIm) {
+    private LinearSemIm estimateCoeffs(LinearSemIm semIm) {
 
         //System.out.print("\n****************\nCalling 2SLS... ");
         SemGraph semGraph = semIm.getSemPm().getGraph();

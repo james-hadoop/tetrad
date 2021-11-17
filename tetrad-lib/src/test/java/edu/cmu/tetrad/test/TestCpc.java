@@ -27,8 +27,8 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -91,8 +91,8 @@ public class TestCpc {
         Dag trueGraph = new Dag(GraphUtils.randomGraph(nodes, 0, numEdges,
                 7, 5, 5, false));
 
-        SemPm semPm = new SemPm(trueGraph);
-        SemIm semIm = new SemIm(semPm);
+        LinearSemPm linearSemPm = new LinearSemPm(trueGraph);
+        LinearSemIm semIm = new LinearSemIm(linearSemPm);
         DataSet _dataSet = semIm.simulateData(1000, false);
 
         IndependenceTest test = new IndTestFisherZ(_dataSet, 0.05);

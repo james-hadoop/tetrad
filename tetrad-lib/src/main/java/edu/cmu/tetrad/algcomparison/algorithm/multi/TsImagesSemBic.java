@@ -1,21 +1,20 @@
 package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.annotation.TimeSeries;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.IndTestScore;
-import edu.cmu.tetrad.search.SearchGraphUtils;
-import edu.cmu.tetrad.search.SemBicScoreImages;
+import edu.cmu.tetrad.search.LinearSemBicScoreImages;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -33,7 +32,7 @@ import java.util.List;
  */
 @TimeSeries
 @Bootstrapping
-public class TsImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
+public class TsImagesSemBic implements MultiDataSetAlgorithm, KnowledgeSettable {
 
     static final long serialVersionUID = 23L;
     private IKnowledge knowledge = new Knowledge2();
@@ -51,7 +50,7 @@ public class TsImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
             }
 
             edu.cmu.tetrad.search.TsGFci search = new edu.cmu.tetrad.search.TsGFci(new IndTestScore(
-                    new SemBicScoreImages(dataModels)), new SemBicScoreImages(dataModels));
+                    new LinearSemBicScoreImages(dataModels)), new LinearSemBicScoreImages(dataModels));
             search.setFaithfulnessAssumed(true);
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
@@ -92,7 +91,7 @@ public class TsImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             return search(Collections.singletonList((DataModel) DataUtils.getContinuousDataSet(dataSet)), parameters);
         } else {
@@ -125,10 +124,10 @@ public class TsImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return SearchGraphUtils.patternForDag(new EdgeListGraph(graph));
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
+//    }
 
     @Override
     public String getDescription() {
@@ -144,7 +143,7 @@ public class TsImagesSemBic implements MultiDataSetAlgorithm, HasKnowledge {
     public List<String> getParameters() {
         List<String> parameters = new LinkedList<>();
         parameters.addAll((new Fges()).getParameters());
-        parameters.addAll((new SemBicScore()).getParameters());
+        parameters.addAll((new LinearGaussianBicScore()).getParameters());
         parameters.add(Params.RANDOM_SELECTION_SIZE);
 
         parameters.add(Params.VERBOSE);

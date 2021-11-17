@@ -207,7 +207,7 @@ public class BooleanFunction implements TetradSerializable {
 
         // Stores, for each parent encounted in the parent column, the
         // last value encounted in the function value column in an
-        // unbroken pattern. -2 means the pattern was broken, -1 means
+        // unbroken cpdag. -2 means the cpdag was broken, -1 means
         // no value was encounntered yet, 0 means false, and 1 means
         // true.
         int[] lastValues = new int[2];
@@ -226,12 +226,12 @@ public class BooleanFunction implements TetradSerializable {
 
                 if (-2 == lastValues[parentValue]) {
 
-                    // The pattern's already been broken for this
+                    // The cpdag's already been broken for this
                     // value.
                 }
                 else if (value == lastValues[parentValue]) {
 
-                    // We're in the middle of a pattern for this
+                    // We're in the middle of a cpdag for this
                     // value; keep going.
                 }
                 else if (-1 == lastValues[parentValue]) {
@@ -242,7 +242,7 @@ public class BooleanFunction implements TetradSerializable {
                 }
                 else {
 
-                    // The pattern has just been broken.
+                    // The cpdag has just been broken.
                     lastValues[parentValue] = -2;
                 }
             }

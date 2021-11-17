@@ -93,19 +93,4 @@ public interface IDataReader {
      * @return The parsed covariance matrix.
      */
     ICovarianceMatrix parseCovariance(char[] chars);
-
-    /**
-     * Parses knowledge from the given file.
-     * @param file The file containing the (text) covariance matrix.
-     * @return The parsed covariance matrix.
-     * @throws IOException If the file cannot be read.
-     */
-    IKnowledge parseKnowledge(File file) throws IOException;
-
-    /**
-     * Parses knowledge from the given char array.
-     * @param chars The file containing the (text) covariance matrix.
-     * @return The parsed covariance matrix.
-     */
-    IKnowledge parseKnowledge(char[] chars);
 }

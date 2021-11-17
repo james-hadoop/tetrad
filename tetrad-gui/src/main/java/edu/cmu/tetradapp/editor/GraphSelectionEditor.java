@@ -20,12 +20,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetradapp.editor;
 
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphNode;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.Triple;
-import edu.cmu.tetrad.graph.TripleClassifier;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.TetradSerializable;
 import edu.cmu.tetradapp.model.GraphSelectionWrapper;
 import edu.cmu.tetradapp.ui.DualListPanel;
@@ -37,29 +32,17 @@ import edu.cmu.tetradapp.util.WatchedProcess;
 import edu.cmu.tetradapp.workbench.DisplayEdge;
 import edu.cmu.tetradapp.workbench.DisplayNode;
 import edu.cmu.tetradapp.workbench.GraphWorkbench;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Window;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DragGestureEvent;
-import java.awt.dnd.DragGestureListener;
-import java.awt.dnd.DragSource;
-import java.awt.dnd.DragSourceAdapter;
-import java.awt.dnd.DragSourceDropEvent;
-import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetAdapter;
-import java.awt.dnd.DropTargetDropEvent;
+
+import javax.help.CSH;
+import javax.help.HelpBroker;
+import javax.help.HelpSet;
+import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -68,42 +51,8 @@ import java.io.BufferedReader;
 import java.io.CharArrayReader;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import javax.help.CSH;
-import javax.help.HelpBroker;
-import javax.help.HelpSet;
-import javax.swing.AbstractAction;
-import javax.swing.AbstractListModel;
-import javax.swing.Box;
-import javax.swing.ButtonGroup;
-import javax.swing.GroupLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
-import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.LayoutStyle;
-import javax.swing.ListModel;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
+import java.util.*;
 
 /**
  * Lets the user select a subgraph of a possible large graph and display it.
@@ -124,9 +73,9 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
     /**
      * Holds the graphs.
      */
-    private GraphSelectionWrapper wrapper;
-    private JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.LEFT);
-    private List<GraphWorkbench> workbenches = new ArrayList<>();
+    private final GraphSelectionWrapper wrapper;
+    private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.LEFT);
+    private final List<GraphWorkbench> workbenches = new ArrayList<>();
     private GraphPropertiesAction graphAction;
     private TriplesAction triplesAction;
     private Map<String, List<Integer>> layoutGraph;
@@ -135,7 +84,6 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
     /**
      * Constructs a graph selection editor.
      *
-     * @param wrapper
      * @throws NullPointerException if <code>wrapper</code> is null.
      */
     public GraphSelectionEditor(GraphSelectionWrapper wrapper) {
@@ -409,12 +357,6 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
         for (int i = 0; i < tabbedPane.getTabCount(); i++) {
             Graph selection = wrapper.getSelectionGraph(i);
 
-//            if (selection.getNumNodes() > 500) {
-//                throw new IllegalArgumentException("That is too many nodes for me to display ("
-//                        + selection.getNumNodes() + ") I can only go up to 500 nodes.\n"
-//                        + "Try a smaller selection.");
-//            }
-
             if (!layoutGraph.isEmpty()) {
                 for (Node node : selection.getNodes()) {
                     List<Integer> center = layoutGraph.get(node.getName());
@@ -443,9 +385,6 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
 
     /**
      * File save menu - Zhou
-     * @param editable
-     * @param comp
-     * @return 
      */
     private JMenu createSaveMenu(GraphEditable editable) { 
         JMenu save = new JMenu("Save As");
@@ -721,6 +660,7 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
             // if selected are already set use'em.
             List<Node> selectedNodes = wrapper.getSelectedVariables();
             List<Node> initVars = new ArrayList<>(wrapper.getVariables());
+            variableModel.removeAll(initVars);
             initVars.removeAll(selectedNodes);
             variableModel.addAll(initVars);
             selectedModel.addAll(selectedNodes);
@@ -995,16 +935,28 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
         }
 
         public void reset() {
+            VariableListModel sourceModel = (VariableListModel) getSourceList().getModel();
             VariableListModel selectedModel = (VariableListModel) getSelectedList().getModel();
-            VariableListModel variableModel = (VariableListModel) getSourceList().getModel();
             List<Node> variableNames = wrapper.getVariables();
 
             // if regressors are already set use'em.
             selectedModel.removeAll();
-            variableModel.removeAll();
-            variableModel.addAll(variableNames);
-            variableModel.removeAll(wrapper.getSelectedVariables());
+            sourceModel.removeAll();
+            sourceModel.addAll(variableNames);
+            sourceModel.removeAll(wrapper.getSelectedVariables());
             selectedModel.addAll(wrapper.getSelectedVariables());
+
+//            for (int i = 0; i < sourceModel.getSize(); i++) {
+//                System.out.println(sourceModel.getElementAt(i));
+//            }
+//
+//            System.out.println("Selected: " + wrapper.getSelectedVariables());
+//
+//            for (int i = 0; i < selectedModel.getSize(); i++) {
+//                System.out.println(selectedModel.getElementAt(i));
+//            }
+//
+//            System.out.println();
 
             getSelectedList().setSelectedIndices(new int[0]);
             getSourceList().setSelectedIndices(new int[0]);
@@ -1247,11 +1199,6 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
         /**
          * Creates a new copy subsession action for the given LayoutEditable and
          * clipboard.
-         *
-         * @param component
-         * @param wrapper
-         * @param sourceList
-         * @param selectedList
          */
         public GraphSelectionTextInputAction(JComponent component, GraphSelectionWrapper wrapper,
                 JList<Node> sourceList, JList<Node> selectedList) {
@@ -1265,8 +1212,6 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
         /**
          * Copies a parentally closed selection of session nodes in the
          * frontmost session editor to the clipboard.
-         *
-         * @param e
          */
         @Override
         public void actionPerformed(ActionEvent actionEvent) {

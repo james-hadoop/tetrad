@@ -23,7 +23,9 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.*;
+import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.MatrixUtils;
+import edu.cmu.tetrad.util.StatUtils;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
@@ -31,7 +33,8 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.sqrt;
 import static java.lang.StrictMath.log;
 
 /**
@@ -46,7 +49,7 @@ public final class IndTestFisherZ implements IndependenceTest {
     /**
      * The correlation matrix.
      */
-    private CorrelationMatrix cor;
+    private CovarianceMatrix cor;
 
     /**
      * The variables of the covariance matrix, in order. (Unmodifiable list.)
@@ -91,7 +94,7 @@ public final class IndTestFisherZ implements IndependenceTest {
         }
 
         if (!dataSet.existsMissingValue()) {
-            this.cor = new CorrelationMatrix(dataSet);
+            this.cor = new CovarianceMatrix(dataSet);
             this.variables = cor.getVariables();
             this.indexMap = indexMap(variables);
             this.nameMap = nameMap(variables);
@@ -213,13 +216,11 @@ public final class IndTestFisherZ implements IndependenceTest {
      */
     public synchronized boolean isIndependent(Node x, Node y, List<Node> z) {
         double p = getPValue(x, y, z);
-//        this.p = p;
 
-//        if (isSellke()) {
-//            return p > SearchGraphUtils.getSelkeAlpha(p, this.alpha);
-//        } else {
-        return p > alpha;
-//        }
+        if (Double.isNaN(p)) return true;
+        else {
+            return p > alpha;
+        }
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {

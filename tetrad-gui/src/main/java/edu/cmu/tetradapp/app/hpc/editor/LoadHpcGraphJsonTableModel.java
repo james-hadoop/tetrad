@@ -18,9 +18,8 @@
  */
 package edu.cmu.tetradapp.app.hpc.editor;
 
-import java.util.Vector;
-
 import javax.swing.table.DefaultTableModel;
+import java.util.Vector;
 
 /**
  * 

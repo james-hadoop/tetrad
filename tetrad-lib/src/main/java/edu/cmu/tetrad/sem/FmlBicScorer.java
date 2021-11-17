@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.*;
 
-import static edu.cmu.tetrad.search.SemBicScore.bStar;
+import static edu.cmu.tetrad.search.LinearGaussianBicScore.bStar;
 import static java.lang.Math.log;
 
 /**
@@ -60,12 +60,12 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
     private final List<Node> variables;
     private final Matrix sampleCovar;
     private final Map<Node, Integer> nodesHash;
+    private final Map<Integer, Set<Node>> parentsMap = new HashMap<>();
     private DataSet dataSet = null;
     private Graph dag = null;
     private Matrix implCovar;
     private double logDetSample;
     private double penaltyDiscount = 1;
-    private final Map<Integer, Set<Node>> parentsMap = new HashMap<>();
     private Edge changedEdge = null;
 
     //=============================CONSTRUCTORS============================//
@@ -112,6 +112,13 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
      */
     public static Scorer serializableInstance() {
         return new FmlBicScorer(CovarianceMatrix.serializableInstance());
+    }
+
+    private static int[] concat(int i, int[] parents) {
+        int[] all = new int[parents.length + 1];
+        all[0] = i;
+        System.arraycopy(parents, 0, all, 1, parents.length);
+        return all;
     }
 
     public DataSet getDataSet() {
@@ -166,6 +173,8 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         resetParameters(variables);
     }
 
+    //==============================PUBLIC METHODS=========================//
+
     private void resetParameters(List<Node> variables) {
         for (Node node : variables) {
             int idx = nodesHash.get(node);
@@ -201,8 +210,6 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         }
     }
 
-    //==============================PUBLIC METHODS=========================//
-
     /**
      * Runs the estimator on the data and SemPm passed in through the
      * constructor. Returns the fml score of the resulting model.
@@ -210,12 +217,14 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
     public double score(Graph dag) {
         this.dag = dag;
         this.changedEdge = null;
+        resetParameters(variables);
         return getBicScore();
     }
 
     @Override
     public double score(Edge edge) {
         this.changedEdge = edge;
+        resetParameters(edge);
         return getBicScore();
     }
 
@@ -255,13 +264,6 @@ public final class FmlBicScorer implements TetradSerializable, Scorer {
         }
 
         return fml;
-    }
-
-    private static int[] concat(int i, int[] parents) {
-        int[] all = new int[parents.length + 1];
-        all[0] = i;
-        System.arraycopy(parents, 0, all, 1, parents.length);
-        return all;
     }
 
     private Matrix implCovarMeas() {

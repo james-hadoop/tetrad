@@ -39,10 +39,14 @@ public class BicScore implements LocalDiscreteScore, IBDeuScore {
     private final int[] numCategories;
     private double structurePrior = 1;
 
+    private DataSet dataSet;
+
     public BicScore(DataSet dataSet) {
         if (dataSet == null) {
             throw new NullPointerException("Data was not provided.");
         }
+
+        this.dataSet = dataSet;
 
         if (dataSet instanceof BoxDataSet && ((BoxDataSet) dataSet).getDataBox() instanceof  VerticalIntDataBox) {
             DataBox dataBox = ((BoxDataSet) dataSet).getDataBox();
@@ -211,7 +215,7 @@ public class BicScore implements LocalDiscreteScore, IBDeuScore {
 
     @Override
     public DataSet getDataSet() {
-        throw new UnsupportedOperationException();
+        return dataSet;
     }
 
     private static int getRowIndex(int[] dim, int[] values) {
@@ -281,6 +285,11 @@ public class BicScore implements LocalDiscreteScore, IBDeuScore {
     @Override
     public boolean determines(List<Node> z, Node y) {
         return false;
+    }
+
+    @Override
+    public DataModel getData() {
+        return getDataSet();
     }
 
     @Override

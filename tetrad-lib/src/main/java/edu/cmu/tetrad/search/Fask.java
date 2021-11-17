@@ -21,6 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.algcomparison.statistic.BicEst;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IKnowledge;
@@ -29,9 +30,9 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.regression.RegressionResult;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
+import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
-import edu.cmu.tetrad.util.Matrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.text.DecimalFormat;
@@ -219,11 +220,18 @@ public final class Fask implements GraphSearch {
             fas.setKnowledge(knowledge);
             G = fas.search();
         } else if (adjacencyMethod == AdjacencyMethod.FAS_STABLE_CONCURRENT) {
-            FasConcurrent fas = new FasConcurrent(test);
-            fas.setStable(true);
-            fas.setVerbose(false);
-            fas.setKnowledge(knowledge);
-            G = fas.search();
+            Boss boss = new Boss(new LinearGaussianBicScore(dataSet));
+            boss.setScoreType(TeyssierScorer.ScoreType.Edge);
+            boss.setMethod(Boss.Method.BOSS);
+            boss.setKnowledge(knowledge);
+            List<Node> order = boss.bestOrder(variables);
+            G = boss.getGraph(false);
+
+//            FasConcurrent fas = new FasConcurrent(test);
+//            fas.setStable(true);
+//            fas.setVerbose(false);
+//            fas.setKnowledge(knowledge);
+//            G = fas.search();
         } else if (adjacencyMethod == AdjacencyMethod.FGES) {
             Fges fas = new Fges(new ScoredIndTest(test));
             fas.setVerbose(false);
@@ -383,6 +391,9 @@ public final class Fask implements GraphSearch {
         this.elapsed = stop - start;
 
         this.graph = graph;
+
+        double bic = new BicEst().getValue(null, graph, dataSet);
+        graph.addAttribute("BIC", bic);
 
         return graph;
     }

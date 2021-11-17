@@ -20,11 +20,11 @@ package edu.cmu.tetradapp.editor.search;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.AlgorithmFactory;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.SingleGraphAlg;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.TsImages;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.SingleGraphAlg;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Gaussian;
@@ -34,49 +34,17 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetradapp.app.TetradDesktop;
 import edu.cmu.tetradapp.model.GeneralAlgorithmRunner;
 import edu.cmu.tetradapp.ui.PaddingPanel;
-import edu.cmu.tetradapp.ui.model.AlgorithmModel;
-import edu.cmu.tetradapp.ui.model.AlgorithmModels;
-import edu.cmu.tetradapp.ui.model.IndependenceTestModel;
-import edu.cmu.tetradapp.ui.model.IndependenceTestModels;
-import edu.cmu.tetradapp.ui.model.ScoreModel;
-import edu.cmu.tetradapp.ui.model.ScoreModels;
+import edu.cmu.tetradapp.ui.model.*;
 import edu.cmu.tetradapp.util.DesktopController;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultListModel;
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.LayoutStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -131,9 +99,8 @@ public class AlgorithmCard extends JPanel {
         this.dataType = getDataType(algorithmRunner);
         this.hasMissingValues = hasMissingValues(algorithmRunner);
         this.desktop = (TetradDesktop) DesktopController.getInstance();
-        this.multiDataAlgo = (algorithmRunner.getSourceGraph() == null)
-                ? algorithmRunner.getDataModelList().size() > 1
-                : false;
+        this.multiDataAlgo = algorithmRunner.getSourceGraph() == null
+                && algorithmRunner.getDataModelList().size() > 1;
 
         initComponents();
         initListeners();
@@ -321,31 +288,29 @@ public class AlgorithmCard extends JPanel {
      * algo name when user changes the upstream (after clicking the "Execute"
      * button), because a new algo algorithmRunner is created and we lose the
      * stored models from the old algorithmRunner - Zhou
-     *
-     * @param models
      */
     private void restoreUserAlgoSelections(Map<String, Object> userAlgoSelections) {
         Object obj = userAlgoSelections.get(LINEAR_PARAM);
-        if ((obj != null) && (obj instanceof Boolean)) {
+        if ((obj instanceof Boolean)) {
             linearVarChkBox.setSelected((Boolean) obj);
+            obj = userAlgoSelections.get(GAUSSIAN_PARAM);
+        } else {
+            obj = userAlgoSelections.get(GAUSSIAN_PARAM);
         }
-        obj = userAlgoSelections.get(GAUSSIAN_PARAM);
-        if ((obj != null) && (obj instanceof Boolean)) {
+        if ((obj instanceof Boolean)) {
             gaussianVarChkBox.setSelected((Boolean) obj);
         }
         obj = userAlgoSelections.get(KNOWLEDGE_PARAM);
-        if ((obj != null) && (obj instanceof Boolean)) {
+        if ((obj instanceof Boolean)) {
             knowledgeChkBox.setSelected((Boolean) obj);
         }
         obj = userAlgoSelections.get(ALGO_TYPE_PARAM);
-        if ((obj != null) && (obj instanceof String)) {
+        if ((obj instanceof String)) {
             String actCmd = String.valueOf(obj);
             Optional<JRadioButton> opt = algoTypeOpts.stream()
                     .filter(e -> e.getActionCommand().equals(actCmd))
                     .findFirst();
-            if (opt.isPresent()) {
-                opt.get().setSelected(true);
-            }
+            opt.ifPresent(jRadioButton -> jRadioButton.setSelected(true));
         }
 
         refreshAlgorithmList();
@@ -546,7 +511,7 @@ public class AlgorithmCard extends JPanel {
             if ("all".equals(algoType)) {
                 if (knowledgeChkBox.isSelected()) {
                     algorithmModels.getModels(dataType, multiDataAlgo).stream()
-                            .filter(e -> HasKnowledge.class.isAssignableFrom(e.getAlgorithm().getClazz()))
+                            .filter(e -> KnowledgeSettable.class.isAssignableFrom(e.getAlgorithm().getClazz()))
                             .forEach(e -> algoModels.addElement(e));
                 } else {
                     algorithmModels.getModels(dataType, multiDataAlgo).stream()
@@ -555,7 +520,7 @@ public class AlgorithmCard extends JPanel {
             } else {
                 if (knowledgeChkBox.isSelected()) {
                     algorithmModels.getModels(AlgType.valueOf(algoType), dataType, multiDataAlgo).stream()
-                            .filter(e -> HasKnowledge.class.isAssignableFrom(e.getAlgorithm().getClazz()))
+                            .filter(e -> KnowledgeSettable.class.isAssignableFrom(e.getAlgorithm().getClazz()))
                             .forEach(e -> algoModels.addElement(e));
                 } else {
                     algorithmModels.getModels(AlgType.valueOf(algoType), dataType, multiDataAlgo).stream()
@@ -663,7 +628,7 @@ public class AlgorithmCard extends JPanel {
                 switch (dataType) {
                     case Continuous:
                         scoreModels.stream()
-                                .filter(e -> e.getScore().getClazz().equals(SemBicScore.class))
+                                .filter(e -> e.getScore().getClazz().equals(LinearGaussianBicScore.class))
                                 .forEach(e -> scoreComboBox.addItem(e));
                         break;
                     case Discrete:
@@ -756,7 +721,7 @@ public class AlgorithmCard extends JPanel {
         }
     }
 
-    private class DescriptionPanel extends JPanel {
+    private static class DescriptionPanel extends JPanel {
 
         private static final long serialVersionUID = 2329356999486712496L;
 
@@ -903,8 +868,6 @@ public class AlgorithmCard extends JPanel {
         /**
          * Create new radio buttons and add them to both the radio button list
          * and radio button group.
-         *
-         * @param radioButtons
          */
         private void populateAlgoTypeOptions() {
             JRadioButton showAllRadBtn = new JRadioButton("show all");

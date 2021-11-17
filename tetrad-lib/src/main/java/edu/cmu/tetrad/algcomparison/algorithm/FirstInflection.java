@@ -7,6 +7,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import org.apache.commons.math3.analysis.MultivariateFunction;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class FirstInflection implements Algorithm, TakesInitialGraph {
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         Parameters _parameters = new Parameters(parameters);
 
         Graph _previous = null;
@@ -53,7 +54,7 @@ public class FirstInflection implements Algorithm, TakesInitialGraph {
                 double value0 = getValue(value, parameters);
 
                 _parameters.set(parameter, value0);
-                intialGraph = algorithm.search(dataSet, _parameters);
+                intialGraph = algorithm.search(dataSet, _parameters, trueGraph);
 
                 if (_previous == null) {
                     _previous = intialGraph;
@@ -86,7 +87,7 @@ public class FirstInflection implements Algorithm, TakesInitialGraph {
                     value = getValue(value, parameters);
 
                     _parameters.set(parameter, value);
-                    intialGraph = algorithm.search(dataSet, _parameters);
+                    intialGraph = algorithm.search(dataSet, _parameters, trueGraph);
 
                     intialGraph = GraphUtils.replaceNodes(intialGraph, _previous.getNodes());
                     Set<Edge> edges1 = intialGraph.getEdges();
@@ -115,7 +116,7 @@ public class FirstInflection implements Algorithm, TakesInitialGraph {
                 double value0 = getValue(value, parameters);
 
                 _parameters.set(parameter, value0);
-                intialGraph = algorithm.search(dataSet, _parameters);
+                intialGraph = algorithm.search(dataSet, _parameters, trueGraph);
 
                 if (_previous == null) {
                     _previous = intialGraph;
@@ -148,7 +149,7 @@ public class FirstInflection implements Algorithm, TakesInitialGraph {
                     value = getValue(value, parameters);
 
                     _parameters.set(parameter, value);
-                    intialGraph = algorithm.search(dataSet, _parameters);
+                    intialGraph = algorithm.search(dataSet, _parameters, trueGraph);
 
                     intialGraph = GraphUtils.replaceNodes(intialGraph, _previous.getNodes());
                     Set<Edge> edges1 = intialGraph.getEdges();
@@ -313,14 +314,14 @@ public class FirstInflection implements Algorithm, TakesInitialGraph {
 
             if (archive.get(_p1) == null) {
                 params.set(paramName, _p1);
-                archive.put(_p1, algorithm.search(_dataSet, params));
+                archive.put(_p1, algorithm.search(_dataSet, params, null));
             }
 
             Graph out1 = archive.get(_p1);
 
             if (archive.get(_p2) == null) {
                 params.set(paramName, _p2);
-                archive.put(_p2, algorithm.search(_dataSet, params));
+                archive.put(_p2, algorithm.search(_dataSet, params, null));
             }
 
             Graph out2 = archive.get(_p2);
@@ -351,10 +352,10 @@ public class FirstInflection implements Algorithm, TakesInitialGraph {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return algorithm.getComparisonGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return algorithm.getComparisonGraph(graph);
+//    }
 
     @Override
     public String getDescription() {

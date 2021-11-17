@@ -1,19 +1,14 @@
 package edu.cmu.tetradapp.app.hpc.task;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimerTask;
-
-import javax.swing.table.DefaultTableModel;
-
 import edu.cmu.tetradapp.app.hpc.editor.HpcJobActivityEditor;
 import edu.cmu.tetradapp.app.hpc.manager.HpcJobManager;
 import edu.pitt.dbmi.ccd.commons.file.FilePrint;
 import edu.pitt.dbmi.tetrad.db.entity.HpcAccount;
 import edu.pitt.dbmi.tetrad.db.entity.HpcJobInfo;
 import edu.pitt.dbmi.tetrad.db.entity.HpcJobLog;
+
+import javax.swing.table.DefaultTableModel;
+import java.util.*;
 
 /**
  * 

@@ -24,8 +24,8 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.TextTable;
 import org.junit.Test;
@@ -212,8 +212,8 @@ public class TestFci {
         Dag trueGraph = new Dag(GraphUtils.randomGraph(nodes, numLatents, numEdges,
                 7, 5, 5, false));
 
-        SemPm bayesPm = new SemPm(trueGraph);
-        SemIm bayesIm = new SemIm(bayesPm);
+        LinearSemPm bayesPm = new LinearSemPm(trueGraph);
+        LinearSemIm bayesIm = new LinearSemIm(bayesPm);
         DataSet dataSet = bayesIm.simulateData(sampleSize, latentDataSaved);
 
         IndependenceTest test = new IndTestFisherZ(dataSet, 0.05);
@@ -292,8 +292,8 @@ public class TestFci {
 
             Graph dag = GraphUtils.randomGraphRandomForwardEdges(nodes, numLatents, numEdges,
                     10, 10, 10, false);
-            SemPm pm = new SemPm(dag);
-            SemIm im = new SemIm(pm);
+            LinearSemPm pm = new LinearSemPm(dag);
+            LinearSemIm im = new LinearSemIm(pm);
             DataSet data = im.simulateData(1000, false);
 
             Graph pag = getPag(alpha, penaltyDiscount, data);

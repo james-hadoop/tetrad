@@ -52,7 +52,7 @@ public class KnowledgeGraph implements Graph, TetradSerializableExcluded {
      */
     private IKnowledge knowledge;
     private boolean pag;
-    private boolean pattern;
+    private boolean cpdag;
 
     private Map<String,Object> attributes = new HashMap<>();
 
@@ -591,13 +591,13 @@ public class KnowledgeGraph implements Graph, TetradSerializableExcluded {
     }
 
     @Override
-    public boolean isPattern() {
-        return pattern;
+    public boolean isCpdag() {
+        return cpdag;
     }
 
     @Override
-    public void setPattern(boolean pattern) {
-        this.pattern = pattern;
+    public void setCpdag(boolean cpdag) {
+        this.cpdag = cpdag;
     }
 
     @Override

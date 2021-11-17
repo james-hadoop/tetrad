@@ -22,9 +22,9 @@
 package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.StandardizedSemIm;
-import edu.cmu.tetrad.util.NumberFormatUtil;
+import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
 import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.NumberFormatUtil;
 
 import javax.swing.table.AbstractTableModel;
 import java.text.NumberFormat;
@@ -41,7 +41,7 @@ final class StandardSemImImpliedCovTable extends AbstractTableModel {
     /**
      * The SemIm whose implied covariance matrices this model is displaying.
      */
-    private final StandardizedSemIm semIm;
+    private final StandardizedLinearSemIm semIm;
 
     /**
      * True iff the matrices for the observed variables ony should be
@@ -68,8 +68,8 @@ final class StandardSemImImpliedCovTable extends AbstractTableModel {
      * Constructs a new table for the given covariance matrix, the nodes for
      * which are as specified (in the order they appear in the matrix).
      */
-    public StandardSemImImpliedCovTable(StandardizedSemIm semIm, boolean measured,
-                           boolean correlations) {
+    public StandardSemImImpliedCovTable(StandardizedLinearSemIm semIm, boolean measured,
+                                        boolean correlations) {
         this.semIm = semIm;
         this.measured = measured;
         this.correlations = correlations;
@@ -200,7 +200,7 @@ final class StandardSemImImpliedCovTable extends AbstractTableModel {
         return correlations;
     }
 
-    private StandardizedSemIm getSemIm() {
+    private StandardizedLinearSemIm getSemIm() {
         return semIm;
     }
 }

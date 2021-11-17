@@ -90,17 +90,17 @@ public class Version implements TetradSerializable {
             throw new NullPointerException();
         }
 
-        Pattern pattern2 = Pattern.compile("(\\d*)\\.(\\d*)\\.(\\d*)");
-        Matcher matcher2 = pattern2.matcher(spec);
+        Pattern cpdag2 = Pattern.compile("(\\d*)\\.(\\d*)\\.(\\d*)");
+        Matcher matcher2 = cpdag2.matcher(spec);
 
-        Pattern pattern3 = Pattern.compile("(\\d*)\\.(\\d*)\\.(\\d*)-(\\d*)");
-        Matcher matcher3 = pattern3.matcher(spec);
+        Pattern cpdag3 = Pattern.compile("(\\d*)\\.(\\d*)\\.(\\d*)-(\\d*)");
+        Matcher matcher3 = cpdag3.matcher(spec);
 
-        Pattern pattern4 = Pattern.compile("(\\d*)\\.(\\d*)\\.(\\d*)-SNAPSHOT");
-        Matcher matcher4 = pattern4.matcher(spec);
+        Pattern cpdag4 = Pattern.compile("(\\d*)\\.(\\d*)\\.(\\d*)-SNAPSHOT");
+        Matcher matcher4 = cpdag4.matcher(spec);
 
-        Pattern pattern5 = Pattern.compile("(\\d*)\\.(\\d*)\\.(\\d*)-(\\d*)\\.(\\d*)");
-        Matcher matcher5 = pattern5.matcher(spec);
+        Pattern cpdag5 = Pattern.compile("(\\d*)\\.(\\d*)\\.(\\d*)-(\\d*)\\.(\\d*)");
+        Matcher matcher5 = cpdag5.matcher(spec);
 
         if (matcher2.matches()) {
             this.majorVersion = Integer.parseInt(matcher2.group(1));

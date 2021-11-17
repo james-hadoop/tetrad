@@ -6,10 +6,12 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Parameters;
-import static java.lang.Math.abs;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static java.lang.Math.abs;
 
 /**
  * First inflection point.
@@ -40,7 +42,7 @@ public class StARS2 implements Algorithm, TakesInitialGraph {
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         this._dataSet = (DataSet) dataSet;
 
 //        int numVars = Math.min(50, ((DataSet) dataSet).getNumColumns());
@@ -104,7 +106,7 @@ public class StARS2 implements Algorithm, TakesInitialGraph {
         System.out.println(parameter + " = " + _p);
         _parameters.set(parameter, getValue(_p, parameters));
 //
-        return algorithm.search(dataSet, _parameters);
+        return algorithm.search(dataSet, _parameters, null);
     }
 
 //    static class FittingFunction implements MultivariateFunction {
@@ -168,7 +170,7 @@ public class StARS2 implements Algorithm, TakesInitialGraph {
         List<Graph> graphs = new ArrayList<>();
 
         for (DataSet d : boostraps) {
-            Graph e = GraphUtils.undirectedGraph(algorithm.search(d, params));
+            Graph e = GraphUtils.undirectedGraph(algorithm.search(d, params, null));
             e = GraphUtils.replaceNodes(e, boostraps.get(0).getVariables());
             graphs.add(e);
 
@@ -207,10 +209,10 @@ public class StARS2 implements Algorithm, TakesInitialGraph {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return algorithm.getComparisonGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return algorithm.getComparisonGraph(graph);
+//    }
 
     @Override
     public String getDescription() {

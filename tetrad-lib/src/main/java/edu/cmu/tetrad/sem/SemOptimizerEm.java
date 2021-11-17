@@ -25,9 +25,9 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.graph.SemGraph;
+import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradLogger;
-import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.Vector;
 
 import java.util.List;
@@ -45,7 +45,7 @@ public class SemOptimizerEm implements SemOptimizer {
 
     private static final double FUNC_TOLERANCE = 1.0e-6;
 
-    private SemIm semIm;
+    private LinearSemIm semIm;
     private SemGraph graph;
 
     private Matrix yCov;   // Sample cov.
@@ -64,7 +64,7 @@ public class SemOptimizerEm implements SemOptimizer {
     public SemOptimizerEm() {
     }
 
-    public void optimize(SemIm semIm) {
+    public void optimize(LinearSemIm semIm) {
         if (numRestarts < 1) numRestarts = 1;
 
         Matrix sampleCovar = semIm.getSampleCovar();
@@ -83,11 +83,11 @@ public class SemOptimizerEm implements SemOptimizer {
         // Optimize the semIm. Note that the the covariance matrix of the
         // sample data is made available to the following CoefFittingFunction.
         double min = semIm.getChiSquare();
-        SemIm _sem = semIm;
+        LinearSemIm _sem = semIm;
 
         for (int count = 0; count < numRestarts; count++) {
             TetradLogger.getInstance().log("details", "Trial " + (count + 1));
-            SemIm _sem2 = new SemIm(semIm);
+            LinearSemIm _sem2 = new LinearSemIm(semIm);
 
             List<Parameter> freeParameters = _sem2.getFreeParameters();
 
@@ -131,7 +131,7 @@ public class SemOptimizerEm implements SemOptimizer {
         }
     }
 
-    private void optimize2(SemIm semIm) {
+    private void optimize2(LinearSemIm semIm) {
         boolean showErrors = semIm.getSemPm().getGraph().isShowErrorTerms();
         semIm.getSemPm().getGraph().setShowErrorTerms(true);
 
@@ -172,7 +172,7 @@ public class SemOptimizerEm implements SemOptimizer {
 
     //==============================PRIVATE METHODS========================//
 
-    private void initialize(SemIm semIm) {
+    private void initialize(LinearSemIm semIm) {
         this.semIm = semIm;
         graph = semIm.getSemPm().getGraph();
         yCov = semIm.getSampleCovar();

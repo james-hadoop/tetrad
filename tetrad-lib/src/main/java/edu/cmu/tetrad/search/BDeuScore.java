@@ -42,10 +42,14 @@ public class BDeuScore implements LocalDiscreteScore, IBDeuScore, Score {
 
     private final int[] numCategories;
 
+    private DataSet dataSet;
+
     public BDeuScore(DataSet dataSet) {
         if (dataSet == null) {
             throw new NullPointerException("Data was not provided.");
         }
+
+        this.dataSet = dataSet;
 
         if (dataSet instanceof BoxDataSet && ((BoxDataSet) dataSet).getDataBox() instanceof  VerticalIntDataBox) {
             DataBox dataBox = ((BoxDataSet) dataSet).getDataBox();
@@ -81,7 +85,7 @@ public class BDeuScore implements LocalDiscreteScore, IBDeuScore, Score {
     }
 
     @Override
-    public double localScore(int node, int parents[]) {
+    public double localScore(int node, int[] parents) {
 
         // Number of categories for node.
         int c = numCategories[node];
@@ -208,7 +212,7 @@ public class BDeuScore implements LocalDiscreteScore, IBDeuScore, Score {
 
     @Override
     public DataSet getDataSet() {
-        throw new UnsupportedOperationException();
+        return dataSet;
     }
 
     private static int getRowIndex(int[] dim, int[] values) {
@@ -275,6 +279,11 @@ public class BDeuScore implements LocalDiscreteScore, IBDeuScore, Score {
     @Override
     public boolean determines(List<Node> z, Node y) {
         return false;
+    }
+
+    @Override
+    public DataModel getData() {
+        return getDataSet();
     }
 }
 

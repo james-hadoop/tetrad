@@ -21,12 +21,18 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.ContinuousVariable;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DiscreteVariable;
 import edu.cmu.tetrad.graph.Node;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implements a conditional Gaussian BIC score for FGS.
@@ -104,9 +110,9 @@ public class ConditionalGaussianScore implements Score {
             }
 
             for (int p : parents) {
-                if (variables.get(i) instanceof DiscreteVariable) {
+                if (variables.get(p) instanceof DiscreteVariable) {
                     if (dataSet.getInt(k, p) == -99) continue K;
-                } else if (variables.get(i) instanceof ContinuousVariable) {
+                } else if (variables.get(p) instanceof ContinuousVariable) {
                     if (Double.isNaN(dataSet.getInt(k, p))) continue K;
                 }
             }
@@ -209,6 +215,11 @@ public class ConditionalGaussianScore implements Score {
     public String toString() {
         NumberFormat nf = new DecimalFormat("0.00");
         return "Conditional Gaussian Score Penalty " + nf.format(penaltyDiscount);
+    }
+
+    @Override
+    public DataModel getData() {
+        return dataSet;
     }
 }
 

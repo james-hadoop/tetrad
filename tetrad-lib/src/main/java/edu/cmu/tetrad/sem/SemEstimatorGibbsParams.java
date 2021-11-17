@@ -36,7 +36,7 @@ import java.io.ObjectInputStream;
 public final class SemEstimatorGibbsParams implements TetradSerializable {
     static final long serialVersionUID = 23L;
 
-    private SemIm startIm;
+    private LinearSemIm startIm;
     private boolean flatPrior;
     private int numIterations;
     private double stretch;
@@ -48,7 +48,7 @@ public final class SemEstimatorGibbsParams implements TetradSerializable {
     /**
      *
      */
-    private SemEstimatorGibbsParams(SemIm startIm, boolean flatPrior,
+    private SemEstimatorGibbsParams(LinearSemIm startIm, boolean flatPrior,
                                     double stretch, int numIterations) {
 
         // note that seed is never used... just as well to get rid of it?
@@ -67,15 +67,15 @@ public final class SemEstimatorGibbsParams implements TetradSerializable {
     public static SemEstimatorGibbsParams serializableInstance() {
         SemGraph graph = new SemGraph();
         graph.addNode(new GraphNode("X"));
-        return new SemEstimatorGibbsParams(new SemIm(new SemPm(graph)), false,
+        return new SemEstimatorGibbsParams(new LinearSemIm(new LinearSemPm(graph)), false,
                 0.0d, 1);
     }
 
-    public SemIm getStartIm() {
+    public LinearSemIm getStartIm() {
         return startIm;
     }
 
-    public void setStartIm(SemIm startIm) {
+    public void setStartIm(LinearSemIm startIm) {
         this.startIm = startIm;
     }
 

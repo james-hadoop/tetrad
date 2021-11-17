@@ -21,23 +21,15 @@
 package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.MatrixUtils;
 import edu.cmu.tetrad.util.NumberFormatUtil;
-import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.TetradSerializable;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Wraps a DataBox in such a way that mixed data sets can be stored. The type of
@@ -156,9 +148,9 @@ public final class BoxDataSet implements DataSet, TetradSerializable {
         this.dataBox = dataBox;
         this.variables = new ArrayList<>(variables);
 
-        if (dataBox.numCols() != variables.size()) {
-            throw new IllegalArgumentException("Number of columns must match the number of variables.");
-        }
+//        if (dataBox.numCols() != variables.size()) {
+//            throw new IllegalArgumentException("Number of columns must match the number of variables.");
+//        }
     }
 
     /**
@@ -524,7 +516,7 @@ public final class BoxDataSet implements DataSet, TetradSerializable {
      * null.)
      */
     public final IKnowledge getKnowledge() {
-        return this.knowledge.copy();
+        return this.knowledge;
     }
 
     /**

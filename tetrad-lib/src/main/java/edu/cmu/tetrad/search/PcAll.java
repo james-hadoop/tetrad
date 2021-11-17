@@ -21,13 +21,17 @@
 
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.algcomparison.statistic.BicEst;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Implements a convervative version of PC, in which the Markov condition is assumed but faithfulness is tested
@@ -184,7 +188,7 @@ public final class PcAll implements GraphSearch {
      * Sets the maximum number of variables conditioned on in any conditional independence test. If set to -1, the value
      * of 1000 will be used. May not be set to Integer.MAX_VALUE, due to a Java bug on multi-core systems.
      */
-    public final void setDepth(int depth) {
+    public void setDepth(int depth) {
         if (depth < -1) {
             throw new IllegalArgumentException("Depth must be -1 or >= 0: " + depth);
         }
@@ -200,7 +204,7 @@ public final class PcAll implements GraphSearch {
     /**
      * @return the elapsed time of search in milliseconds, after <code>search()</code> has been run.
      */
-    public final long getElapsedTime() {
+    public long getElapsedTime() {
         return this.elapsedTime;
     }
 
@@ -298,6 +302,7 @@ public final class PcAll implements GraphSearch {
             if (concurrent == Concurrent.NO) {
                 fas = new Fas(initialGraph, getIndependenceTest());
                 ((Fas) fas).setHeuristic(heuristic);
+                ((Fas) fas).setStable(false);
             } else {
                 fas = new FasConcurrent(initialGraph, getIndependenceTest());
                 ((FasConcurrent) fas).setStable(false);
@@ -325,6 +330,8 @@ public final class PcAll implements GraphSearch {
 
         if (colliderDiscovery == ColliderDiscovery.FAS_SEPSETS) {
             orientCollidersUsingSepsets(this.sepsets, knowledge, graph, verbose, conflictRule);
+
+
         } else if (colliderDiscovery == ColliderDiscovery.MAX_P) {
             if (verbose) {
                 System.out.println("MaxP orientation...");
@@ -348,7 +355,7 @@ public final class PcAll implements GraphSearch {
 
         MeekRules meekRules = new MeekRules();
         meekRules.setKnowledge(knowledge);
-        meekRules.setVerbose(true);
+        meekRules.setVerbose(verbose);
         meekRules.orientImplied(graph);
 
         TetradLogger.getInstance().log("graph", "\nReturning this graph: " + graph);
@@ -361,6 +368,10 @@ public final class PcAll implements GraphSearch {
         logTriples();
 
         TetradLogger.getInstance().flush();
+
+        double bic = new BicEst(independenceTest).getValue(null, graph, null);
+
+        graph.addAttribute("BIC", bic);
 
         return graph;
     }

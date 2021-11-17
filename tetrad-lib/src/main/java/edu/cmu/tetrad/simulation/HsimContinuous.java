@@ -72,9 +72,9 @@ public class HsimContinuous {
 
         //Do this step continuous instead of discrete:
         //learn a dirichlet IM for the subgraph using dataSet
-        SemPm subgraphPM = new SemPm(subgraph);
+        LinearSemPm subgraphPM = new LinearSemPm(subgraph);
         SemEstimator subgraphEstimator = new SemEstimator(data,subgraphPM);
-        SemIm subgraphIM = subgraphEstimator.estimate();
+        LinearSemIm subgraphIM = subgraphEstimator.estimate();
 
         //if (verbose) System.out.println(fittedsubgraphIM.getVariable());
 
@@ -119,7 +119,7 @@ public class HsimContinuous {
             //use the new Evidence object to create the updater
             SemUpdater conditionUpdate = new SemUpdater(subgraphIM);
             conditionUpdate.setEvidence(evidence);
-            SemIm updatedIM = conditionUpdate.getUpdatedSemIm();
+            LinearSemIm updatedIM = conditionUpdate.getUpdatedSemIm();
             //draw values for the node we're resimming
             DataSet newValues = updatedIM.simulateData(1,false);
             //DataSet newValues = updatedIM.simulateDataRecursive(1,false);

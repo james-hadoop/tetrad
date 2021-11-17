@@ -1,19 +1,19 @@
 package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.IndTestScore;
 import edu.cmu.tetrad.search.IndependenceTest;
+import edu.cmu.tetrad.search.LinearSemBicScoreImages3;
 import edu.cmu.tetrad.search.PcStableMax;
-import edu.cmu.tetrad.search.SemBicScoreImages3;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +27,7 @@ import java.util.List;
  * @author jdramsey
  */
 @Bootstrapping
-public class ImagesPcStableMax implements MultiDataSetAlgorithm, HasKnowledge {
+public class ImagesPcStableMax implements MultiDataSetAlgorithm, KnowledgeSettable {
     static final long serialVersionUID = 23L;
     private IKnowledge knowledge = new Knowledge2();
 
@@ -43,7 +43,7 @@ public class ImagesPcStableMax implements MultiDataSetAlgorithm, HasKnowledge {
                 dataSets.add((DataSet) dataModel);
             }
 
-            SemBicScoreImages3 score = new SemBicScoreImages3(dataSets);
+            LinearSemBicScoreImages3 score = new LinearSemBicScoreImages3(dataSets);
             score.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
             IndependenceTest test = new IndTestScore(score);
             PcStableMax search = new PcStableMax(test);
@@ -88,7 +88,7 @@ public class ImagesPcStableMax implements MultiDataSetAlgorithm, HasKnowledge {
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
     	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             return search(Collections.singletonList((DataModel) DataUtils.getContinuousDataSet(dataSet)), parameters);
     	}else{
@@ -121,10 +121,10 @@ public class ImagesPcStableMax implements MultiDataSetAlgorithm, HasKnowledge {
     	}
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new EdgeListGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new EdgeListGraph(graph);
+//    }
 
     @Override
     public String getDescription() {

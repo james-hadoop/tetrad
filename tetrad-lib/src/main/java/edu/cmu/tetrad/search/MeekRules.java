@@ -316,7 +316,7 @@ public class MeekRules implements ImpliedOrientation {
                 }
             }
 
-            if (knowledge.isForbidden(y.getName(), p.getName()) || knowledge.isRequired(p.getName(), y.getName())) continue;
+            if (!knowledge.isEmpty() && knowledge.isForbidden(y.getName(), p.getName()) || knowledge.isRequired(p.getName(), y.getName())) continue;
 
             graph.removeEdge(p, y);
             graph.addUndirectedEdge(p, y);

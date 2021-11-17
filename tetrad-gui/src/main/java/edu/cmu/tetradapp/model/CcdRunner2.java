@@ -180,7 +180,7 @@ public class CcdRunner2 extends AbstractAlgorithmRunner
                 DataSet dataSet = (DataSet) model;
 
                 if (dataSet.isContinuous()) {
-                    SemBicScore gesScore = new SemBicScore(new CovarianceMatrix((DataSet) model));
+                    LinearGaussianBicScore gesScore = new LinearGaussianBicScore(new CovarianceMatrix((DataSet) model));
 //                    SemBicScore2 gesScore = new SemBicScore2(new CovarianceMatrix((DataSet) model));
 //                    SemGpScore gesScore = new SemGpScore(new CovarianceMatrix((DataSet) model));
 //                    SvrScore gesScore = new SvrScore((DataSet) model);
@@ -205,7 +205,7 @@ public class CcdRunner2 extends AbstractAlgorithmRunner
                     throw new IllegalStateException("Data set must either be continuous or discrete.");
                 }
             } else if (model instanceof ICovarianceMatrix) {
-                SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
+                LinearGaussianBicScore gesScore = new LinearGaussianBicScore((ICovarianceMatrix) model);
                 gesScore.setPenaltyDiscount(penaltyDiscount);
                 gesScore.setPenaltyDiscount(penaltyDiscount);
                 IndependenceTest test = new IndTestScore(gesScore);
@@ -234,7 +234,7 @@ public class CcdRunner2 extends AbstractAlgorithmRunner
                 if (allContinuous(list)) {
                     double penalty = 4;//params.getPenaltyDiscount();
 
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     fgesScore.setPenaltyDiscount(penalty);
                     IndependenceTest test = new IndTestScore(fgesScore);
                     ccd = new CcdMax(test);
@@ -262,7 +262,7 @@ public class CcdRunner2 extends AbstractAlgorithmRunner
 
 //        gfci.setInitialGraph(initialGraph);
 //        gfci.setKnowledge(getParameters().getKnowledge());
-//        gfci.setNumPatternsToStore(params.getNumPatternsToSave());
+//        gfci.setNumCpdagsToStore(params.getNumCpdagsToSave());
 //        gfci.setHeuristicSpeedup(true);
 //        gfci.setMaxIndegree(3);
 //        ccd.setHeuristicSpeedup(params.isFaithfulnessAssumed());

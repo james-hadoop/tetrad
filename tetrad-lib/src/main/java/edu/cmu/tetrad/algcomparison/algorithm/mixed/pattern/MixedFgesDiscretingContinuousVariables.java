@@ -1,4 +1,4 @@
-package edu.cmu.tetrad.algcomparison.algorithm.mixed.pattern;
+package edu.cmu.tetrad.algcomparison.algorithm.mixed.cpdag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
@@ -9,7 +9,6 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Fges;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -29,7 +28,7 @@ public class MixedFgesDiscretingContinuousVariables implements Algorithm {
         this.score = score;
     }
 
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
     	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Discretizer discretizer = new Discretizer(DataUtils.getContinuousDataSet(dataSet));
             List<Node> nodes = dataSet.getVariables();
@@ -76,10 +75,10 @@ public class MixedFgesDiscretingContinuousVariables implements Algorithm {
     }
 
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return SearchGraphUtils.patternForDag(new EdgeListGraph(graph));
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
+//    }
 
     @Override
     public String getDescription() {

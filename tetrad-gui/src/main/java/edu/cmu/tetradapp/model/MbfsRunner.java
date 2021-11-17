@@ -158,7 +158,7 @@ public class MbfsRunner extends AbstractAlgorithmRunner implements
 
 		DataSet dataSet = (DataSet) getDataModelList().get(0);
 
-        SemBicScore score = new SemBicScore(new CovarianceMatrix(dataSet));
+        LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix(dataSet));
 		score.setPenaltyDiscount(getParams().getDouble("alpha", 0.001));
 		FgesMb search = new FgesMb(score);
         search.setFaithfulnessAssumed(true);
@@ -168,7 +168,7 @@ public class MbfsRunner extends AbstractAlgorithmRunner implements
             GraphUtils.arrangeBySourceGraph(searchGraph, getSourceGraph());
         }
         else if (knowledge.isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(searchGraph, knowledge);
+            SearchGraphUtils.arrangeByKnowledgeTiers(searchGraph);
         }
         else {
             GraphUtils.circleLayout(searchGraph, 200, 200, 150);

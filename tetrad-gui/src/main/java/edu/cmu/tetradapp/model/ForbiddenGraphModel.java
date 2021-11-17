@@ -30,6 +30,7 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -67,11 +68,11 @@ public class ForbiddenGraphModel extends KnowledgeBoxModel {
         this((KnowledgeBoxInput) wrapper, params);
     }
 
-    public ForbiddenGraphModel(SemImWrapper wrapper, Parameters params) {
+    public ForbiddenGraphModel(LinearSemImWrapper wrapper, Parameters params) {
         this((KnowledgeBoxInput) wrapper, params);
     }
 
-    public ForbiddenGraphModel(SemPmWrapper wrapper, Parameters params) {
+    public ForbiddenGraphModel(LinearSemPmWrapper wrapper, Parameters params) {
         this((KnowledgeBoxInput) wrapper, params);
     }
 
@@ -150,9 +151,13 @@ public class ForbiddenGraphModel extends KnowledgeBoxModel {
         this.variables = new ArrayList<>(variableNodes);
         this.variableNames = new ArrayList<>(variableNames);
 
-        setKnowledgeBoxInput(input);
-
         this.resultGraph = input.getResultGraph();
+
+        this.knowledge = new Knowledge2();
+
+        for (Node v : input.getVariables()) {
+            knowledge.addVariable(v.getName());
+        }
 
         createKnowledge(params);
 
@@ -174,14 +179,6 @@ public class ForbiddenGraphModel extends KnowledgeBoxModel {
         }
 
         knwl.clear();
-
-        List<String> varNames = getVarNames();
-        getKnowledgeBoxInput().getVariableNames().stream()
-                .filter(e -> !e.startsWith("E_"))
-                .forEach(e -> {
-                    varNames.add(e);
-                    knwl.addVariable(e);
-                });
 
         if (resultGraph == null) {
             throw new NullPointerException("I couldn't find a parent graph.");

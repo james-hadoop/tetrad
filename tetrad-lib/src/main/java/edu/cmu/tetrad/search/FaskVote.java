@@ -49,7 +49,7 @@ public class FaskVote {
         List<Node> nodes = G0.getNodes();
 
         for (DataSet dataSet : dataSets) {
-            Fask fask = new Fask(dataSet, test.getTest(dataSet, parameters));
+            Fask fask = new Fask(dataSet, test.getTest(dataSet, parameters, null));
             fask.setExternalGraph(GraphUtils.undirectedGraph(G0));
             fask.setAdjacencyMethod(Fask.AdjacencyMethod.EXTERNAL_GRAPH);
             fask.setEmpirical(!parameters.getBoolean(FASK_NONEMPIRICAL));

@@ -42,7 +42,7 @@ public class EbicScore implements ScoreWrapper {
         }
 
         score.setGamma(parameters.getDouble(Params.EBIC_GAMMA));
-//        score.setCorrelationThreshold(parameters.getDouble(Params.CORRELATION_THRESHOLD));
+
         return score;
     }
 
@@ -60,7 +60,6 @@ public class EbicScore implements ScoreWrapper {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add(Params.EBIC_GAMMA);
-//        parameters.add(Params.CORRELATION_THRESHOLD);
         return parameters;
     }
 

@@ -21,15 +21,15 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.data.DataReader;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.DeltaSextadTest;
 import edu.cmu.tetrad.search.IntSextad;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.ChoiceGenerator;
+import edu.cmu.tetrad.util.Parameters;
 import org.junit.Test;
 
 import java.io.File;
@@ -52,7 +52,7 @@ public class TestDeltaSextadTest {
 
     @Test
     public void testBollenExample1() {
-        SemIm sem = getSem1();
+        LinearSemIm sem = getSem1();
         DataSet data = sem.simulateData(3000, false);
 
         List<Node> variables = data.getVariables();
@@ -211,8 +211,8 @@ public class TestDeltaSextadTest {
             }
         }
 
-        SemPm pm = new SemPm(g);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(g);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(1000, false);
 
         List<Integer> indices = new ArrayList<>();
@@ -248,7 +248,7 @@ public class TestDeltaSextadTest {
         assertEquals(a, b, 1e-7);
     }
 
-    private SemIm getSem1() {
+    private LinearSemIm getSem1() {
         Graph graph = new EdgeListGraph();
 
         Node l1 = new GraphNode("l1");
@@ -273,12 +273,12 @@ public class TestDeltaSextadTest {
             graph.addDirectedEdge(l2, measures.get(i));
         }
 
-        SemPm pm = new SemPm(graph);
+        LinearSemPm pm = new LinearSemPm(graph);
 
         Parameters params = new Parameters();
 //        params.setCoefRange(0.3, 0.8);
 
-        return new SemIm(pm, params);
+        return new LinearSemIm(pm, params);
     }
 }
 

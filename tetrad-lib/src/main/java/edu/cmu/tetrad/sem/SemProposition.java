@@ -47,7 +47,7 @@ public final class SemProposition implements TetradSerializable {
     /**
      * @serial Cannot be null.
      */
-    private SemIm semIm;
+    private LinearSemIm semIm;
 
     /**
      * @serial Cannot be null.
@@ -59,7 +59,7 @@ public final class SemProposition implements TetradSerializable {
     /**
      * Creates a new Proposition which allows all values.
      */
-    public SemProposition(SemIm semIm) {
+    public SemProposition(LinearSemIm semIm) {
         if (semIm == null) {
             throw new NullPointerException();
         }
@@ -77,7 +77,7 @@ public final class SemProposition implements TetradSerializable {
         this.values = Arrays.copyOf(proposition.values, proposition.values.length);
     }
 
-    public static SemProposition tautology(SemIm semIm) {
+    public static SemProposition tautology(LinearSemIm semIm) {
         return new SemProposition(semIm);
     }
 
@@ -107,7 +107,7 @@ public final class SemProposition implements TetradSerializable {
      * Generates a simple exemplar of this class to test serialization.
      */
     public static SemProposition serializableInstance() {
-        return new SemProposition(SemIm.serializableInstance());
+        return new SemProposition(LinearSemIm.serializableInstance());
     }
 
     //===========================PUBLIC METHODS=========================//
@@ -115,7 +115,7 @@ public final class SemProposition implements TetradSerializable {
     /**
      * @return the Bayes IM that this is a proposition for.
      */
-    public SemIm getSemIm() {
+    public LinearSemIm getSemIm() {
         return this.semIm;
     }
 

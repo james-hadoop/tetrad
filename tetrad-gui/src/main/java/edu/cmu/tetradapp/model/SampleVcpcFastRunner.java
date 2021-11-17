@@ -25,8 +25,8 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
 
@@ -47,9 +47,9 @@ public class SampleVcpcFastRunner extends AbstractAlgorithmRunner
     private Graph trueGraph;
 //    private Vcpc vcpc = null;
 
-    private SemPm semPm;
+    private LinearSemPm linearSemPm;
 
-    private SemIm semIm;
+    private LinearSemIm semIm;
 
 
     private Set<Edge>sfVcpcAdjacent;
@@ -72,7 +72,7 @@ public class SampleVcpcFastRunner extends AbstractAlgorithmRunner
         super(dataWrapper, params, knowledgeBoxModel);
     }
 
-    public SampleVcpcFastRunner(SemImWrapper semImWrapper, Parameters params, DataWrapper dataWrapper) {
+    public SampleVcpcFastRunner(LinearSemImWrapper semImWrapper, Parameters params, DataWrapper dataWrapper) {
         super(dataWrapper, params, null);
         this.semIm = semImWrapper.getSemIm();
     }
@@ -206,7 +206,7 @@ public class SampleVcpcFastRunner extends AbstractAlgorithmRunner
             GraphUtils.arrangeBySourceGraph(graph, getSourceGraph());
         }
         else if (knowledge.isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
+            SearchGraphUtils.arrangeByKnowledgeTiers(graph);
         }
         else {
             GraphUtils.circleLayout(graph, 200, 200, 150);
@@ -287,11 +287,11 @@ public class SampleVcpcFastRunner extends AbstractAlgorithmRunner
         return "Sample-VCPC-Fast";
     }
 
-    public SemIm getSemIm() {
+    public LinearSemIm getSemIm() {
         return this.semIm;
     }
-    public SemPm getSemPm() {
-        return this.semPm;
+    public LinearSemPm getSemPm() {
+        return this.linearSemPm;
     }
     //========================== Private Methods ===============================//
 

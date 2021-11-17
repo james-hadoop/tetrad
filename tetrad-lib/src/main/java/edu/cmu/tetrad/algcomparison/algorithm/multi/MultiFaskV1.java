@@ -1,13 +1,11 @@
 package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
-import edu.cmu.tetrad.annotation.AlgType;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.SemBicScoreMultiFas;
 import edu.cmu.tetrad.util.Parameters;
@@ -38,7 +36,7 @@ import java.util.List;
 //        dataType = DataType.Continuous
 //)
 @Bootstrapping
-public class MultiFaskV1 implements MultiDataSetAlgorithm, HasKnowledge {
+public class MultiFaskV1 implements MultiDataSetAlgorithm, KnowledgeSettable {
 
     static final long serialVersionUID = 23L;
     private IKnowledge knowledge = new Knowledge2();
@@ -106,7 +104,7 @@ public class MultiFaskV1 implements MultiDataSetAlgorithm, HasKnowledge {
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             return search(Collections.singletonList((DataModel) DataUtils.getContinuousDataSet(dataSet)), parameters);
         } else {
@@ -139,12 +137,12 @@ public class MultiFaskV1 implements MultiDataSetAlgorithm, HasKnowledge {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new EdgeListGraph(graph);
-//        return SearchGraphUtils.patternForDag(graph);
-//        return new TsDagToPag(new EdgeListGraph(graph)).convert();
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new EdgeListGraph(graph);
+////        return SearchGraphUtils.cpdagForDag(graph);
+////        return new TsDagToPag(new EdgeListGraph(graph)).convert();
+//    }
 
     @Override
     public String getDescription() {
@@ -161,7 +159,7 @@ public class MultiFaskV1 implements MultiDataSetAlgorithm, HasKnowledge {
         // MultiFask uses SemBicScore internally, so we'll need to add the score parameters too - Zhou
         List<String> parameters = new LinkedList<>();
         parameters.addAll((new Fges()).getParameters());
-        parameters.addAll((new SemBicScore()).getParameters());
+        parameters.addAll((new LinearGaussianBicScore()).getParameters());
         parameters.add(Params.NUM_RUNS);
         parameters.add(Params.RANDOM_SELECTION_SIZE);
 

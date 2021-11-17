@@ -24,7 +24,7 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.sem.GeneralizedSemPm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public class ExperimentalSetup {
     private PmType pmType;
     private EsType esType = EsType.simpleSurgical;
     private BayesPm bayesPm = null;
-    private SemPm semPm = null;
+    private LinearSemPm linearSemPm = null;
     private GeneralizedSemPm generalizedSemPm = null;
 
     private Graph gNat;
@@ -57,8 +57,8 @@ public class ExperimentalSetup {
         this.gManip = new EdgeListGraph(gNat);
     }
 
-    public ExperimentalSetup(SemPm pm) {
-        this.semPm = pm;
+    public ExperimentalSetup(LinearSemPm pm) {
+        this.linearSemPm = pm;
         this.pmType = PmType.sem;
 
         SemGraph graph = pm.getGraph();

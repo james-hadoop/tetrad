@@ -1,17 +1,17 @@
 package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.search.FasLofs;
+import edu.cmu.tetrad.search.Lofs2;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.List;
  * @author jdramsey
  */
 @Bootstrapping
-public class FasLofsConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
+public class FasLofsConcatenated implements MultiDataSetAlgorithm, KnowledgeSettable {
 	static final long serialVersionUID = 23L;
 	private final Lofs2.Rule rule;
 	private IKnowledge knowledge = new Knowledge2();
@@ -90,7 +90,7 @@ public class FasLofsConcatenated implements MultiDataSetAlgorithm, HasKnowledge 
 	}
 
 	@Override
-	public Graph search(DataModel dataSet, Parameters parameters) {
+	public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
 		if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 			return search(Collections.singletonList((DataModel) DataUtils.getContinuousDataSet(dataSet)), parameters);
 		} else {
@@ -123,10 +123,10 @@ public class FasLofsConcatenated implements MultiDataSetAlgorithm, HasKnowledge 
 		}
 	}
 
-	@Override
-	public Graph getComparisonGraph(Graph graph) {
-		return new EdgeListGraph(graph);
-	}
+//	@Override
+//	public Graph getComparisonGraph(Graph graph) {
+//		return new EdgeListGraph(graph);
+//	}
 
 	@Override
 	public String getDescription() {

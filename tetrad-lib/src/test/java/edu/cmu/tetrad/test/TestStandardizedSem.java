@@ -25,10 +25,10 @@ import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
-import edu.cmu.tetrad.sem.StandardizedSemIm;
+import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
 import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.RandomUtil;
@@ -58,8 +58,8 @@ public class TestStandardizedSem {
         SemGraph graph = new SemGraph(new Dag(GraphUtils.randomGraph(nodes, 0, 5,
                 30, 15, 15, false)));
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet dataSet = im.simulateData(1000, false);
         DataSet dataSetStandardized = DataUtils.standardizeData(dataSet);
@@ -69,7 +69,7 @@ public class TestStandardizedSem {
         DataUtils.mean(_dataSet);
 
         SemEstimator estimator = new SemEstimator(dataSetStandardized, pm);
-        SemIm imStandardized = estimator.estimate();
+        LinearSemIm imStandardized = estimator.estimate();
 
         imStandardized.getEdgeCoef();
         imStandardized.getErrCovar();
@@ -78,7 +78,7 @@ public class TestStandardizedSem {
         imStandardized.getEdgeCoef();
         imStandardized.getErrCovar();
 
-        StandardizedSemIm sem = new StandardizedSemIm(im, new Parameters());
+        StandardizedLinearSemIm sem = new StandardizedLinearSemIm(im, new Parameters());
 
         imStandardized.getEdgeCoef();
         imStandardized.getErrCovar();
@@ -115,9 +115,9 @@ public class TestStandardizedSem {
         graph.addDirectedEdge(x1, x4);
         graph.addDirectedEdge(x5, x4);
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
-        StandardizedSemIm sem = new StandardizedSemIm(im, new Parameters());
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
+        StandardizedLinearSemIm sem = new StandardizedLinearSemIm(im, new Parameters());
 
         assertTrue(isStandardized(sem));
     }
@@ -141,15 +141,15 @@ public class TestStandardizedSem {
         graph.addDirectedEdge(x2, x3);
         graph.addDirectedEdge(x1, x2);
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
-        StandardizedSemIm sem = new StandardizedSemIm(im, new Parameters());
+        StandardizedLinearSemIm sem = new StandardizedLinearSemIm(im, new Parameters());
 
-        assertFalse(sem.setEdgeCoefficient(x1, x2, 1.2));
-        assertFalse(sem.setEdgeCoefficient(x1, x2, 1.5));
-        assertTrue(sem.setEdgeCoefficient(x1, x2, .5));
-        assertTrue(sem.setEdgeCoefficient(x1, x3, -.1));
+        assertFalse(sem.setEdgeCoef(x1, x2, 1.2));
+        assertFalse(sem.setEdgeCoef(x1, x2, 1.5));
+        assertTrue(sem.setEdgeCoef(x1, x2, .5));
+        assertTrue(sem.setEdgeCoef(x1, x3, -.1));
 
         assertTrue(isStandardized(sem));
     }
@@ -165,9 +165,9 @@ public class TestStandardizedSem {
 
         SemGraph graph = new SemGraph(new Dag(GraphUtils.randomGraph(nodes, 0, 10,
                 30, 15, 15, false)));
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
-        StandardizedSemIm sem = new StandardizedSemIm(im, new Parameters());
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
+        StandardizedLinearSemIm sem = new StandardizedLinearSemIm(im, new Parameters());
 
         for (int i = 0; i < 20; i++) {
             List<Edge> edges = new ArrayList<>(graph.getEdges());
@@ -178,18 +178,18 @@ public class TestStandardizedSem {
             Node a = edge.getNode1();
             Node b = edge.getNode2();
 
-            StandardizedSemIm.ParameterRange range = sem.getCoefficientRange(a, b);
+            StandardizedLinearSemIm.ParameterRange range = sem.getCoefficientRange(a, b);
             double high = range.getHigh();
             double low = range.getLow();
 
             double coef = low + random.nextDouble() * (high - low);
-            assertTrue(sem.setEdgeCoefficient(a, b, coef));
+            assertTrue(sem.setEdgeCoef(a, b, coef));
 
             coef = high + random.nextDouble() * (high - low);
-            assertFalse(sem.setEdgeCoefficient(a, b, coef));
+            assertFalse(sem.setEdgeCoef(a, b, coef));
 
             coef = low - random.nextDouble() * (high - low);
-            assertFalse(sem.setEdgeCoefficient(a, b, coef));
+            assertFalse(sem.setEdgeCoef(a, b, coef));
         }
     }
 
@@ -212,10 +212,10 @@ public class TestStandardizedSem {
         graph.addDirectedEdge(x1, x3);
         graph.addDirectedEdge(x2, x3);
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
-        StandardizedSemIm sem = new StandardizedSemIm(im, new Parameters());
+        StandardizedLinearSemIm sem = new StandardizedLinearSemIm(im, new Parameters());
         assertTrue(isStandardized(sem));
     }
 
@@ -242,10 +242,10 @@ public class TestStandardizedSem {
         graph.addDirectedEdge(x1, x2);
         graph.addBidirectedEdge(ex1, ex2);
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
 
-        StandardizedSemIm sem = new StandardizedSemIm(im, new Parameters());
+        StandardizedLinearSemIm sem = new StandardizedLinearSemIm(im, new Parameters());
 
         assertTrue(isStandardized(sem));
     }
@@ -278,9 +278,9 @@ public class TestStandardizedSem {
         Edge _edge = Edges.bidirectedEdge(node1, node2);
         graph.addEdge(_edge);
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
-        StandardizedSemIm sem = new StandardizedSemIm(im, new Parameters());
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
+        StandardizedLinearSemIm sem = new StandardizedLinearSemIm(im, new Parameters());
 
         graph.setShowErrorTerms(false);
 
@@ -291,7 +291,7 @@ public class TestStandardizedSem {
 
                 if (Edges.isDirectedEdge(edge)) {
                     double initial = sem.getEdgeCoef(a, b);
-                    StandardizedSemIm.ParameterRange range = sem.getCoefficientRange(a, b);
+                    StandardizedLinearSemIm.ParameterRange range = sem.getCoefficientRange(a, b);
                     assertEquals(initial, sem.getEdgeCoef(a, b), 0.1);
 
                     double low = range.getLow();
@@ -300,21 +300,21 @@ public class TestStandardizedSem {
                     double _coef = sem.getEdgeCoef(a, b);
 
                     double coef = low + random.nextDouble() * (high - low);
-                    assertTrue(sem.setEdgeCoefficient(a, b, coef));
+                    assertTrue(sem.setEdgeCoef(a, b, coef));
 
-                    sem.setEdgeCoefficient(a, b, _coef);
+                    sem.setEdgeCoef(a, b, _coef);
 
                     coef = high + random.nextDouble() * (high - low);
-                    assertFalse(sem.setEdgeCoefficient(a, b, coef));
+                    assertFalse(sem.setEdgeCoef(a, b, coef));
 
                     coef = low - random.nextDouble() * (high - low);
-                    assertFalse(sem.setEdgeCoefficient(a, b, coef));
+                    assertFalse(sem.setEdgeCoef(a, b, coef));
                 } else if (Edges.isBidirectedEdge(edge)) {
                     sem.setErrorCovariance(node1, node2, .15);
 
                     assertTrue(isStandardized(sem));
 
-                    StandardizedSemIm.ParameterRange range2 = sem.getCovarianceRange(a, b);
+                    StandardizedLinearSemIm.ParameterRange range2 = sem.getCovarianceRange(a, b);
 
                     double low = range2.getLow();
                     double high = range2.getHigh();
@@ -343,7 +343,7 @@ public class TestStandardizedSem {
         }
     }
 
-    private boolean isStandardized(StandardizedSemIm sem) {
+    private boolean isStandardized(StandardizedLinearSemIm sem) {
         Matrix cov = sem.getImplCovar();
         double[] means = sem.means();
 

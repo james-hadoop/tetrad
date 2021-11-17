@@ -7,11 +7,12 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.SemGraph;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
-import edu.cmu.tetrad.sem.StandardizedSemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
+import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,8 +22,8 @@ import java.util.List;
 public class StandardizedSemSimulation implements Simulation {
     static final long serialVersionUID = 23L;
     private RandomGraph randomGraph;
-    private SemPm pm;
-    private StandardizedSemIm standardizedIm;
+    private LinearSemPm pm;
+    private StandardizedLinearSemIm standardizedIm;
     private List<DataSet> dataSets = new ArrayList<>();
     private List<Graph> graphs = new ArrayList<>();
 
@@ -30,14 +31,14 @@ public class StandardizedSemSimulation implements Simulation {
         this.randomGraph = graph;
     }
 
-    public StandardizedSemSimulation(SemPm pm) {
+    public StandardizedSemSimulation(LinearSemPm pm) {
         SemGraph graph = pm.getGraph();
         graph.setShowErrorTerms(false);
         this.randomGraph = new SingleGraph(graph);
         this.pm = pm;
     }
 
-    public StandardizedSemSimulation(StandardizedSemIm im) {
+    public StandardizedSemSimulation(StandardizedLinearSemIm im) {
         this.randomGraph = new SingleGraph(im.getSemPm().getGraph());
         this.standardizedIm = im;
         this.pm = im.getSemPm();
@@ -108,13 +109,13 @@ public class StandardizedSemSimulation implements Simulation {
 
     private DataSet simulate(Graph graph, Parameters parameters) {
         if (standardizedIm == null) {
-            SemPm pm = this.pm;
+            LinearSemPm pm = this.pm;
 
             if (pm == null) {
-                pm = new SemPm(graph);
+                pm = new LinearSemPm(graph);
             }
 
-            standardizedIm = new StandardizedSemIm(new SemIm(pm), parameters);
+            standardizedIm = new StandardizedLinearSemIm(new LinearSemIm(pm), parameters);
         }
 
         return standardizedIm.simulateData(parameters.getInt(Params.SAMPLE_SIZE), false);

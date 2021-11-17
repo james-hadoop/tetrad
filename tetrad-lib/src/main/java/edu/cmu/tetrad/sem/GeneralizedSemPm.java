@@ -333,8 +333,8 @@ public final class GeneralizedSemPm implements PM, TetradSerializable {
         }
     }
 
-    public GeneralizedSemPm(SemPm semPm) {
-        this(semPm.getGraph());
+    public GeneralizedSemPm(LinearSemPm linearSemPm) {
+        this(linearSemPm.getGraph());
 
         // Write down equations.
         try {
@@ -353,7 +353,7 @@ public final class GeneralizedSemPm implements PM, TetradSerializable {
 
                     Node parent = parents.get(j);
 
-                    Parameter _parameter = semPm.getParameter(parent, node);
+                    Parameter _parameter = linearSemPm.getParameter(parent, node);
                     String parameter = _parameter.getName();
                     Set<Node> nodes = new HashSet<>();
                     nodes.add(node);
@@ -382,7 +382,7 @@ public final class GeneralizedSemPm implements PM, TetradSerializable {
             }
 
             for (Node node : variableNodes) {
-                Parameter _parameter = semPm.getParameter(node, node);
+                Parameter _parameter = linearSemPm.getParameter(node, node);
                 String parameter = _parameter.getName();
 
                 Set<Node> nodes = new HashSet<>();

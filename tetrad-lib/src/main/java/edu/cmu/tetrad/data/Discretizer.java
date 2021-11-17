@@ -241,6 +241,8 @@ public class Discretizer {
         double[] data = new double[_data.length];
         System.arraycopy(_data, 0, data, 0, data.length);
 
+        data = DataUtils.removeMissingValues(data);
+
         // first sort the data.
         Arrays.sort(data);
 

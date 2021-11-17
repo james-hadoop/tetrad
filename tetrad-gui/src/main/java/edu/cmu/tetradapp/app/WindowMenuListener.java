@@ -21,14 +21,13 @@
 
 package edu.cmu.tetradapp.app;
 
-import javax.swing.*;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
-
 import edu.cmu.tetradapp.app.hpc.action.HpcJobActivityAction;
 import edu.cmu.tetradapp.app.hpc.manager.HpcAccountManager;
 import edu.pitt.dbmi.tetrad.db.entity.HpcAccount;
 
+import javax.swing.*;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;

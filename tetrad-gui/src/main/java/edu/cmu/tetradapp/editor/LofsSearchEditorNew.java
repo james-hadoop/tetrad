@@ -47,7 +47,7 @@ import java.util.Map;
 
 
 /**
- * Edits some algorithm to search for Markov blanket patterns.
+ * Edits some algorithm to search for Markov blanket CPDAGs.
  *
  * @author Joseph Ramsey
  */
@@ -92,7 +92,7 @@ public class LofsSearchEditorNew extends AbstractSearchEditor
         GraphWorkbench resultWorkbench = getWorkbench();
         Graph graph = resultWorkbench.getGraph();
         IKnowledge knowledge = (IKnowledge) getAlgorithmRunner().getParams().get("knowledge", new Knowledge2());
-        SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
+        SearchGraphUtils.arrangeByKnowledgeTiers(graph);
 //        resultWorkbench.setGraph(graph);
     }
 
@@ -455,7 +455,7 @@ public class LofsSearchEditorNew extends AbstractSearchEditor
         JMenu graph = new JMenu("Graph");
         JMenuItem showDags = new JMenuItem("Show DAGs in forbid_latent_common_causes");
 //        JMenuItem meekOrient = new JMenuItem("Meek Orientation");
-        JMenuItem dagInPattern = new JMenuItem("Choose DAG in forbid_latent_common_causes");
+        JMenuItem dagInCpdag = new JMenuItem("Choose DAG in forbid_latent_common_causes");
         JMenuItem gesOrient = new JMenuItem("Global Score-based Reorientation");
         JMenuItem nextGraph = new JMenuItem("Next Graph");
         JMenuItem previousGraph = new JMenuItem("Previous Graph");
@@ -466,7 +466,7 @@ public class LofsSearchEditorNew extends AbstractSearchEditor
         graph.addSeparator();
 
 //        graph.add(meekOrient);
-        graph.add(dagInPattern);
+        graph.add(dagInCpdag);
         graph.add(gesOrient);
         graph.addSeparator();
 
@@ -489,7 +489,7 @@ public class LofsSearchEditorNew extends AbstractSearchEditor
                 new WatchedProcess(owner) {
                     public void watch() {
 
-                        // Needs to be a pattern search; this isn't checked
+                        // Needs to be a CPDAG search; this isn't checked
                         // before running the algorithm because of allowable
                         // "slop"--e.g. bidirected edges.
                         AlgorithmRunner runner = getAlgorithmRunner();
@@ -503,7 +503,7 @@ public class LofsSearchEditorNew extends AbstractSearchEditor
                             return;
                         }
 
-                        PatternDisplay display = new PatternDisplay(graph);
+                        CpdagDisplay display = new CpdagDisplay(graph);
                         GraphWorkbench workbench = getWorkbench();
 
                         EditorWindow editorWindow =
@@ -527,19 +527,19 @@ public class LofsSearchEditorNew extends AbstractSearchEditor
 //            }
 //        });
 
-        dagInPattern.addActionListener(new ActionListener() {
+        dagInCpdag.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Graph graph = new EdgeListGraph(getGraph());
 
-                // Removing bidirected edges from the pattern before selecting a DAG.                                   4
+                // Removing bidirected edges from the CPDAG before selecting a DAG.                                   4
                 for (Edge edge : graph.getEdges()) {
                     if (Edges.isBidirectedEdge(edge)) {
                         graph.removeEdge(edge);
                     }
                 }
 
-                PatternToDag search = new PatternToDag(new EdgeListGraphSingleConnections(graph));
-                Graph dag = search.patternToDagMeek();
+                CpdagToDag search = new CpdagToDag(new EdgeListGraph(graph));
+                Graph dag = search.cpdagToDagMeek();
 
                 getGraphHistory().add(dag);
                 getWorkbench().setGraph(dag);
@@ -664,7 +664,7 @@ public class LofsSearchEditorNew extends AbstractSearchEditor
         }
 
         if (params instanceof Parameters) {
-            if (getAlgorithmRunner() instanceof LingamPatternRunner) {
+            if (getAlgorithmRunner() instanceof LingamCpdagRunner) {
                 return new PcLingamIndTestParamsEditor(params);
             }
 
@@ -683,8 +683,8 @@ public class LofsSearchEditorNew extends AbstractSearchEditor
             GraphUtils.arrangeBySourceGraph(resultGraph,
                     getLatestWorkbenchGraph());
         } else if (getKnowledge().isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(resultGraph,
-                    getKnowledge());
+            SearchGraphUtils.arrangeByKnowledgeTiers(resultGraph
+            );
         } else {
             GraphUtils.circleLayout(resultGraph, 200, 200, 150);
         }

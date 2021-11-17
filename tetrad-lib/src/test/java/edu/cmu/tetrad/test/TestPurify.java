@@ -21,14 +21,14 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.CovarianceMatrix;
+import edu.cmu.tetrad.data.DataGraphUtils;
+import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
-import edu.cmu.tetrad.search.Mimbuild2;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.RandomUtil;
-
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -119,8 +119,8 @@ public class TestPurify {
 
         graph.addDirectedEdge(x1, x4);
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(1000, false);
 
         List<List<Node>> partition = new ArrayList<>();
@@ -224,8 +224,8 @@ public class TestPurify {
         graph.addDirectedEdge(x3, x4);
         graph.addDirectedEdge(x9, x10);
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(3000, false);
 
         List<List<Node>> partition = new ArrayList<>();
@@ -265,8 +265,8 @@ public class TestPurify {
 
         Graph graph = new EdgeListGraph(DataGraphUtils.randomSingleFactorModel(3, 3, 5, 0, 0, 0));
 
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(1000, false);
 
         List<Node> latents = new ArrayList<>();

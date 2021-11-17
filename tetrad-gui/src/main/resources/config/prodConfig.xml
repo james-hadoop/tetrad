@@ -72,13 +72,13 @@
                 <editor-class>edu.cmu.tetradapp.editor.GraphSelectionEditor
                 </editor-class>
             </model>
-            <model name="Choose Dag in Pattern" acronym="Dag in Pattern"
+            <model name="Choose Dag in Cpdag" acronym="Dag in Cpdag"
                    help="graph" category="Graph Manipulations">
                 <logger>
                     <event id="info" description="Information" default="on"/>
                     <event id="graph" description="Graph" default="on"/>
                 </logger>
-                <model-class>edu.cmu.tetradapp.model.DagInPatternWrapper
+                <model-class>edu.cmu.tetradapp.model.DagInCpdagWrapper
                 </model-class>
                 <editor-class>edu.cmu.tetradapp.editor.GraphEditor</editor-class>
             </model>
@@ -92,7 +92,7 @@
                 </model-class>
                 <editor-class>edu.cmu.tetradapp.editor.GraphEditor</editor-class>
             </model>
-            <model name="Show DAGs in Pattern" acronym="Dags in Pattern"
+            <model name="Show DAGs in Cpdag" acronym="Dags in Cpdag"
                    help="graph" category="Graph Manipulations">
                 <logger>
                     <event id="info" description="Information" default="on"/>
@@ -103,13 +103,13 @@
                 </model-class>
                 <editor-class>edu.cmu.tetradapp.editor.ScoredGraphsDisplay</editor-class>
             </model>
-            <model name="Generate Pattern from Dag" acronym="Pattern from Dag"
+            <model name="Generate Cpdag from Dag" acronym="Cpdag from Dag"
                    help="graph" category="Graph Manipulations">
                 <logger>
                     <event id="info" description="Information" default="on"/>
-                    <event id="pattern" description="Pattern" default="on"/>
+                    <event id="cpdag" description="Cpdag" default="on"/>
                 </logger>
-                <model-class>edu.cmu.tetradapp.model.PatternFromDagGraphWrapper
+                <model-class>edu.cmu.tetradapp.model.CpdagFromDagGraphWrapper
                 </model-class>
                 <editor-class>edu.cmu.tetradapp.editor.GraphEditor
                 </editor-class>
@@ -223,13 +223,13 @@
                     edu.cmu.tetradapp.editor.BayesPmParamsEditor
                 </params-editor-class>
             </model>
-            <model name="SEM Parametric Model" acronym="SEM PM" help="sem_im">
+            <model name="Linear SEM Parametric Model" acronym="SEM PM" help="sem_im">
                 <logger>
                     <event id="info" description="Information" default="on"/>
                     <event id="pm" description="Parametric Model" default="on"/>
                 </logger>
-                <model-class>edu.cmu.tetradapp.model.SemPmWrapper</model-class>
-                <editor-class>edu.cmu.tetradapp.editor.SemPmEditor
+                <model-class>edu.cmu.tetradapp.model.LinearSemPmWrapper</model-class>
+                <editor-class>edu.cmu.tetradapp.editor.LinearSemPmEditor
                 </editor-class>
             </model>
             <model name="Generalized SEM Parametric Model" acronym="Gen. SEM PM" help="sem_im">
@@ -300,16 +300,16 @@
                     edu.cmu.tetradapp.editor.DirichletBayesImParamsEditor
                 </params-editor-class>
             </model>
-            <model name="SEM Instantiated Model" acronym="SEM IM" help="sem_im">
+            <model name="Linear SEM Instantiated Model" acronym="SEM IM" help="sem_im">
                 <logger>
                     <event id="info" description="Information" default="on"/>
                     <event id="im" description="Instantiated Model" default="on"/>
                 </logger>
-                <model-class>edu.cmu.tetradapp.model.SemImWrapper</model-class>
-                <editor-class>edu.cmu.tetradapp.editor.SemImEditor
+                <model-class>edu.cmu.tetradapp.model.LinearSemImWrapper</model-class>
+                <editor-class>edu.cmu.tetradapp.editor.LinearSemImEditor
                 </editor-class>
                 <params-editor-class>
-                    edu.cmu.tetradapp.editor.SemImParamsEditor
+                    edu.cmu.tetradapp.editor.LinearSemImParamsEditor
                 </params-editor-class>
             </model>
             <model name="Standardized SEM Instantiated Model" acronym="St SEM IM" help="sem_im">
@@ -318,7 +318,7 @@
                     <event id="im" description="Instantiated Model" default="on"/>
                 </logger>
                 <model-class>edu.cmu.tetradapp.model.StandardizedSemImWrapper</model-class>
-                <editor-class>edu.cmu.tetradapp.editor.StandardizedSemImEditor</editor-class>
+                <editor-class>edu.cmu.tetradapp.editor.StandardizedLinearSemImEditor</editor-class>
             </model>
             <model name="Generalized SEM Instantiated Model" acronym="Gen. SEM IM" help="gen_sem_im">
                 <logger>
@@ -1080,7 +1080,7 @@
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
             <!--</editor-class>-->
             <!--</model>-->
-            <!--<model name="PCPattern" acronym="PCPattern" help="pcpattern"-->
+            <!--<model name="PCCpdag" acronym="PCCpdag" help="pccpdag"-->
             <!--category="forbid_latent_common_causes Searches">-->
             <!--<logger>-->
             <!--<event id="info" description="Information" default="on"/>-->
@@ -1092,7 +1092,7 @@
             <!--<event id="impliedOrientations" description="Implied Orientations" default="on"/>-->
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--</logger>-->
-            <!--<model-class>edu.cmu.tetradapp.model.PcPatternRunner-->
+            <!--<model-class>edu.cmu.tetradapp.model.PcCpdagRunner-->
             <!--</model-class>-->
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
             <!--</editor-class>-->
@@ -1157,7 +1157,7 @@
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--<event id="apparentlyNonadjacencies" description="Apparently Nonadjacencies" default="on"/>-->
             <!--<event id="definitelyNonadjacencies" description="Definitely Nonadjacencies" default="on"/>-->
-            <!--<event id="patterns" description="Disambiguated Patterns" default="on"/>-->
+            <!--<event id="cpdags" description="Disambiguated Cpdags" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.VcpcRunner</model-class>-->
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
@@ -1176,7 +1176,7 @@
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--<event id="apparentlyNonadjacencies" description="Apparently Nonadjacencies" default="on"/>-->
             <!--<event id="definitelyNonadjacencies" description="Definitely Nonadjacencies" default="on"/>-->
-            <!--<event id="patterns" description="Disambiguated Patterns" default="on"/>-->
+            <!--<event id="cpdags" description="Disambiguated Cpdags" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.SampleVcpcRunner</model-class>-->
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
@@ -1195,7 +1195,7 @@
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--<event id="apparentlyNonadjacencies" description="Apparently Nonadjacencies" default="on"/>-->
             <!--<event id="definitelyNonadjacencies" description="Definitely Nonadjacencies" default="on"/>-->
-            <!--<event id="patterns" description="Disambiguated Patterns" default="on"/>-->
+            <!--<event id="cpdags" description="Disambiguated Cpdags" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.VcpcFastRunner</model-class>-->
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
@@ -1214,7 +1214,7 @@
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--<event id="apparentlyNonadjacencies" description="Apparently Nonadjacencies" default="on"/>-->
             <!--<event id="definitelyNonadjacencies" description="Definitely Nonadjacencies" default="on"/>-->
-            <!--<event id="patterns" description="Disambiguated Patterns" default="on"/>-->
+            <!--<event id="cpdags" description="Disambiguated Cpdags" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.SampleVcpcFastRunner</model-class>-->
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
@@ -1233,7 +1233,7 @@
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--<event id="apparentlyNonadjacencies" description="Apparently Nonadjacencies" default="on"/>-->
             <!--<event id="definitelyNonadjacencies" description="Definitely Nonadjacencies" default="on"/>-->
-            <!--<event id="patterns" description="Disambiguated Patterns" default="on"/>-->
+            <!--<event id="cpdags" description="Disambiguated Cpdags" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.VcpcAltRunner</model-class>-->
             <!--<editor-class>edu.cmu.tetradapp.editor.PcGesSearchEditor-->
@@ -1451,7 +1451,7 @@
             <!--<event id="directedEdges" description="Directed Edges" default="on"/>-->
             <!--<event id="edgeEvaluations" description="Edge Evaluations"/>-->
             <!--<event id="impliedOrientations" description="Implied Orientations"/>-->
-            <!--<event id="rebuiltPatterns" description="Rebuilt Patterns"/>-->
+            <!--<event id="rebuiltCpdags" description="Rebuilt Cpdags"/>-->
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.FgesRunner</model-class>-->
@@ -1467,7 +1467,7 @@
             <!--<event id="directedEdges" description="Directed Edges" default="on"/>-->
             <!--<event id="edgeEvaluations" description="Edge Evaluations"/>-->
             <!--<event id="impliedOrientations" description="Implied Orientations"/>-->
-            <!--<event id="rebuiltPatterns" description="Rebuilt Patterns"/>-->
+            <!--<event id="rebuiltCpdags" description="Rebuilt Cpdags"/>-->
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.TsFgesRunner</model-class>-->
@@ -1498,7 +1498,7 @@
             <!--<event id="directedEdges" description="Directed Edges" default="on"/>-->
             <!--<event id="edgeEvaluations" description="Edge Evaluations"/>-->
             <!--<event id="impliedOrientations" description="Implied Orientations"/>-->
-            <!--<event id="rebuiltPatterns" description="Rebuilt Patterns"/>-->
+            <!--<event id="rebuiltCpdags" description="Rebuilt Cpdags"/>-->
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.ImagesRunner</model-class>-->
@@ -1514,7 +1514,7 @@
             <!--<event id="directedEdges" description="Directed Edges" default="on"/>-->
             <!--<event id="edgeEvaluations" description="Edge Evaluations"/>-->
             <!--<event id="impliedOrientations" description="Implied Orientations"/>-->
-            <!--<event id="rebuiltPatterns" description="Rebuilt Patterns"/>-->
+            <!--<event id="rebuiltCpdags" description="Rebuilt Cpdags"/>-->
             <!--<event id="graph" description="Graph" default="on"/>-->
             <!--</logger>-->
             <!--<model-class>edu.cmu.tetradapp.model.TsImagesRunner</model-class>-->
@@ -1865,9 +1865,9 @@
             </model>
             <model name="Model Fit" acronym="Model Fit"
                    help="Model Fit" category="Simuation-Algorithm Comparisons">
-                <model-class>edu.cmu.tetradapp.model.PatternFitModel
+                <model-class>edu.cmu.tetradapp.model.CpdagFitModel
                 </model-class>
-                <editor-class>edu.cmu.tetradapp.editor.PatternFitEditor</editor-class>
+                <editor-class>edu.cmu.tetradapp.editor.CpdagFitEditor</editor-class>
             </model>
         </models>
         <display-component image="graphIcon.gif"/>
@@ -1913,6 +1913,14 @@
                     <event id="knowledge" description="Knowledge" default="on"/>
                 </logger>
                 <model-class>edu.cmu.tetradapp.model.ForbiddenGraphModel</model-class>
+                <editor-class>edu.cmu.tetradapp.knowledge_editor.KnowledgeBoxEditor</editor-class>
+            </model>
+            <model name="Pairwise Forbidden Graph" acronym="Forb-Graph" help="forb.graph">
+                <logger>
+                    <event id="info" description="Information" default="on"/>
+                    <event id="knowledge" description="Knowledge" default="on"/>
+                </logger>
+                <model-class>edu.cmu.tetradapp.model.PairwiseForbiddenGraphModel</model-class>
                 <editor-class>edu.cmu.tetradapp.knowledge_editor.KnowledgeBoxEditor</editor-class>
             </model>
             <model name="Required Graph" acronym="Req-Graph" help="req.graph">

@@ -21,6 +21,8 @@
 package edu.cmu.tetrad.graph;
 
 import edu.cmu.tetrad.util.TetradSerializable;
+import org.jetbrains.annotations.NotNull;
+
 import java.beans.PropertyChangeListener;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -34,9 +36,9 @@ import java.util.regex.Pattern;
  */
 public interface Node extends TetradSerializable, Comparable<Node> {
 
-    public static final Pattern ALPHA = Pattern.compile("^[a-zA-Z]+$");
-    public static final Pattern ALPHA_NUM = Pattern.compile("^[a-zA-Z]+[0-9]+$");
-    public static final Pattern LAG = Pattern.compile("^.+:[0-9]+$");
+    Pattern ALPHA = Pattern.compile("^[a-zA-Z]+$");
+    Pattern ALPHA_NUM = Pattern.compile("^[a-zA-Z]+[0-9]+$");
+    Pattern LAG = Pattern.compile("^.+:[0-9]+$");
 
     long serialVersionUID = 23L;
 
@@ -69,8 +71,6 @@ public interface Node extends TetradSerializable, Comparable<Node> {
     /**
      * Sets the type (domain, interventional status, interventional value..) for
      * this node variable
-     *
-     * @param nodeVariableType
      */
     void setNodeVariableType(NodeVariableType nodeVariableType);
 
@@ -127,7 +127,7 @@ public interface Node extends TetradSerializable, Comparable<Node> {
     /**
      * Alphabetical order.
      */
-    public int compareTo(Node node);
+    int compareTo(@NotNull Node node);
 
     Map<String, Object> getAllAttributes();
 

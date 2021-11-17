@@ -95,7 +95,7 @@ public class SearchLogUtils {
         StringBuilder sb = new StringBuilder();
 
         sb.append("Dependent: ");
-        sb.append(independenceFact(x, y, condSet));
+        sb.append(dependenceFact(x, y, condSet));
 
         if (!Double.isNaN(pValue)) {
             sb.append("\tp = ").append(nf.format(pValue));
@@ -110,6 +110,28 @@ public class SearchLogUtils {
 
         sb.append(x.getName());
         sb.append(" _||_ ");
+        sb.append(y.getName());
+
+        Iterator it = condSet.iterator();
+
+        if (it.hasNext()) {
+            sb.append(" | ");
+            sb.append(it.next());
+        }
+
+        while (it.hasNext()) {
+            sb.append(", ");
+            sb.append(it.next());
+        }
+
+        return sb.toString();
+    }
+
+    public static String dependenceFact(Node x, Node y, List<Node> condSet) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(x.getName());
+        sb.append(" ~_||_ ");
         sb.append(y.getName());
 
         Iterator it = condSet.iterator();

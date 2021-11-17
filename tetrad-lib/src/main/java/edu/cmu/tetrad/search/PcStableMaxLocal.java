@@ -70,7 +70,7 @@ public class PcStableMaxLocal implements GraphSearch {
     private boolean recordSepsets = true;
     private SepsetMap sepsetMap = new SepsetMap();
     private SepsetProducer sepsetProducer;
-    private SemBicScore score;
+    private LinearGaussianBicScore score;
     private ConcurrentMap<Node, Integer> hashIndices;
 
     //=============================CONSTRUCTORS==========================//

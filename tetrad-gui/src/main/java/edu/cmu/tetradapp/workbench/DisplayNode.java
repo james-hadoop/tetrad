@@ -26,12 +26,14 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.graph.NodeVariableType;
 import edu.cmu.tetrad.util.TetradSerializableExcluded;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.*;
 
 /**
  * This class represents a node in a workbench; it is an abstract class, but
@@ -214,7 +216,7 @@ public class DisplayNode extends JComponent implements Node, TetradSerializableE
     }
 
     @Override
-    public int compareTo(Node node) {
+    public int compareTo(@NotNull Node node) {
         final String name = getName();
         String[] tokens1 = name.split(":");
         final String _name = node.getName();

@@ -27,6 +27,8 @@ import edu.cmu.tetrad.graph.NodeVariableType;
 import edu.cmu.tetrad.util.NamingProtocol;
 import edu.cmu.tetrad.util.TetradSerializableExcluded;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
+import org.jetbrains.annotations.NotNull;
+
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
@@ -148,7 +150,7 @@ public class KnowledgeModelNode implements Node, TetradSerializableExcluded {
     }
 
     @Override
-    public int compareTo(Node node) {
+    public int compareTo(@NotNull Node node) {
         final String name = getName();
         String[] tokens1 = name.split(":");
         final String _name = node.getName();

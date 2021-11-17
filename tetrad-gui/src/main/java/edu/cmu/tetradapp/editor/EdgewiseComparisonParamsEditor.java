@@ -23,10 +23,8 @@ package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.session.SessionModel;
 import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetradapp.model.DataWrapper;
-import edu.cmu.tetradapp.model.GeneralAlgorithmRunner;
 import edu.cmu.tetradapp.model.GraphSource;
-import edu.cmu.tetradapp.model.Simulation;
+import edu.cmu.tetradapp.model.MultipleGraphSource;
 
 import javax.swing.*;
 import java.awt.*;
@@ -62,14 +60,6 @@ public class EdgewiseComparisonParamsEditor extends JPanel implements ParameterE
      */
     private Object[] parentModels;
 
-    public void setParams(Parameters params) {
-        if (params == null) {
-            throw new NullPointerException();
-        }
-
-        this.params = params;
-    }
-
     public void setParentModels(Object[] parentModels) {
         this.parentModels = parentModels;
     }
@@ -79,139 +69,130 @@ public class EdgewiseComparisonParamsEditor extends JPanel implements ParameterE
     }
 
     public void setup() {
-        List<GraphSource> graphSources = new LinkedList<>();
+        List<Object> graphSources = new LinkedList<>();
 
         for (Object parentModel : parentModels) {
             if (parentModel instanceof GraphSource) {
-                graphSources.add((GraphSource) parentModel);
+                graphSources.add(parentModel);
+            } else if (parentModel instanceof MultipleGraphSource) {
+                graphSources.add(parentModel);
             }
         }
 
-        if (graphSources.size() == 1 && graphSources.get(0) instanceof GeneralAlgorithmRunner) {
-            model1 = (GeneralAlgorithmRunner) graphSources.get(0);
-            model2 = ((GeneralAlgorithmRunner) model1).getDataWrapper();
-        } else if (graphSources.size() == 2) {
-            model1 = (SessionModel) graphSources.get(0);
-            model2 = (SessionModel) graphSources.get(1);
+        if (graphSources.size() == 0) {
+            throw new IllegalArgumentException("Expecting a graph source.");
+        } else if (graphSources.size() == 1) {
+            params.set("selectedComparisonReferenceModel", graphSources.get(0).toString());
+        } else if (graphSources.size() > 2) {
+            throw new IllegalArgumentException("Expecing 1 or 2 graph sources");
         } else {
-            throw new IllegalArgumentException("Expecting 2 graph source.");
-        }
 
-        setLayout(new BorderLayout());
+            // Two graph sources
 
-        // Reset?
-        JRadioButton resetOnExecute = new JRadioButton("Reset");
-        JRadioButton dontResetOnExecute = new JRadioButton("Appended to");
-        ButtonGroup group1 = new ButtonGroup();
-        group1.add(resetOnExecute);
-        group1.add(dontResetOnExecute);
-
-        resetOnExecute.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                getParams().set("resetTableOnExecute", true);
+            if (params.getString("selectedComparisonReferenceModel").equals(graphSources.get(0).toString())) {
+                model1 = (SessionModel) graphSources.get(0);
+                model2 = (SessionModel) graphSources.get(1);
+            } else {
+                model1 = (SessionModel) graphSources.get(1);
+                model2 = (SessionModel) graphSources.get(0);
             }
-        });
 
-        dontResetOnExecute.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                getParams().set("resetTableOnExecute", false);
+            params.set("selectedComparisonReferenceModel", model1.toString());
+
+            setLayout(new BorderLayout());
+
+            // Reset?
+            JRadioButton resetOnExecute = new JRadioButton("Reset");
+            JRadioButton dontResetOnExecute = new JRadioButton("Appended to");
+            ButtonGroup group1 = new ButtonGroup();
+            group1.add(resetOnExecute);
+            group1.add(dontResetOnExecute);
+
+            resetOnExecute.addActionListener(e -> getParams().set("resetTableOnExecute", true));
+
+            dontResetOnExecute.addActionListener(e -> getParams().set("resetTableOnExecute", false));
+
+            if (getParams().getBoolean("resetTableOnExecute", false)) {
+                resetOnExecute.setSelected(true);
+            } else {
+                dontResetOnExecute.setSelected(true);
             }
-        });
 
-        if (getParams().getBoolean("resetTableOnExecute", false)) {
-            resetOnExecute.setSelected(true);
-        } else {
-            dontResetOnExecute.setSelected(true);
-        }
+            // Latents?
+            JRadioButton latents = new JRadioButton("Yes");
+            JRadioButton noLatents = new JRadioButton("No");
+            ButtonGroup group2 = new ButtonGroup();
+            group2.add(latents);
+            group2.add(noLatents);
 
-        // Latents?
-        JRadioButton latents = new JRadioButton("Yes");
-        JRadioButton noLatents = new JRadioButton("No");
-        ButtonGroup group2 = new ButtonGroup();
-        group2.add(latents);
-        group2.add(noLatents);
+            latents.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    getParams().set("keepLatents", true);
+                }
+            });
 
-        latents.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                getParams().set("keepLatents", true);
+            if (getParams().getBoolean("keepLatents", false)) {
+                latents.setSelected(true);
+            } else {
+                noLatents.setSelected(true);
             }
-        });
 
-        if (getParams().getBoolean("keepLatents", false)) {
-            latents.setSelected(true);
-        } else {
-            noLatents.setSelected(true);
-        }
+            // True graph?
+            JRadioButton graph1 = new JRadioButton(model1.getName());
+            JRadioButton graph2 = new JRadioButton(model2.getName());
 
-        // True graph?
-        JRadioButton graph1 = new JRadioButton(model1.getName());
-        JRadioButton graph2 = new JRadioButton(model2.getName());
+            graph1.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    getParams().set("referenceGraphName", model1.getName());
+                    getParams().set("targetGraphName", model2.getName());
+                }
+            });
 
-        graph1.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            graph2.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    getParams().set("referenceGraphName", model2.getName());
+                    getParams().set("targetGraphName", model1.getName());
+                }
+            });
+
+            ButtonGroup group = new ButtonGroup();
+            group.add(graph1);
+            group.add(graph2);
+
+            boolean alreadySet = false;
+
+            if (!alreadySet) {
+                graph1.setSelected(true);
+            }
+
+            if (graph1.isSelected()) {
                 getParams().set("referenceGraphName", model1.getName());
                 getParams().set("targetGraphName", model2.getName());
-            }
-        });
-
-        graph2.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            } else if (graph2.isSelected()) {
                 getParams().set("referenceGraphName", model2.getName());
                 getParams().set("targetGraphName", model1.getName());
             }
-        });
 
-        ButtonGroup group = new ButtonGroup();
-        group.add(graph1);
-        group.add(graph2);
+            Box b1 = Box.createVerticalBox();
 
-        boolean alreadySet = false;
+            Box b8 = Box.createHorizontalBox();
+            b8.add(new JLabel("Which of the two input graphs is the reference (true) graph?"));
+            b8.add(Box.createHorizontalGlue());
+            b1.add(b8);
 
-        if (model1 instanceof GeneralAlgorithmRunner) {
-            graph1.setSelected(true);
+            Box b9 = Box.createHorizontalBox();
+            b9.add(graph1);
+            b9.add(Box.createHorizontalGlue());
+            b1.add(b9);
+
+            Box b10 = Box.createHorizontalBox();
+            b10.add(graph2);
+            b10.add(Box.createHorizontalGlue());
+            b1.add(b10);
+
+            b1.add(Box.createHorizontalGlue());
+            add(b1, BorderLayout.CENTER);
         }
-
-        if (model2 instanceof GeneralAlgorithmRunner) {
-            graph2.setSelected(true);
-            alreadySet = true;
-        }
-
-        if (model2 instanceof Simulation) {
-            graph2.setSelected(true);
-            alreadySet = true;
-        }
-
-        if (!alreadySet) {
-            graph1.setSelected(true);
-        }
-
-        if (graph1.isSelected()) {
-            getParams().set("referenceGraphName", model1.getName());
-            getParams().set("targetGraphName", model2.getName());
-        } else if (graph2.isSelected()) {
-            getParams().set("referenceGraphName", model2.getName());
-            getParams().set("targetGraphName", model1.getName());
-        }
-
-        Box b1 = Box.createVerticalBox();
-
-        Box b8 = Box.createHorizontalBox();
-        b8.add(new JLabel("Which of the two input graphs is the true graph?"));
-        b8.add(Box.createHorizontalGlue());
-        b1.add(b8);
-
-        Box b9 = Box.createHorizontalBox();
-        b9.add(graph1);
-        b9.add(Box.createHorizontalGlue());
-        b1.add(b9);
-
-        Box b10 = Box.createHorizontalBox();
-        b10.add(graph2);
-        b10.add(Box.createHorizontalGlue());
-        b1.add(b10);
-
-        b1.add(Box.createHorizontalGlue());
-        add(b1, BorderLayout.CENTER);
     }
 
     /**
@@ -220,6 +201,14 @@ public class EdgewiseComparisonParamsEditor extends JPanel implements ParameterE
      */
     private synchronized Parameters getParams() {
         return this.params;
+    }
+
+    public void setParams(Parameters params) {
+        if (params == null) {
+            throw new NullPointerException();
+        }
+
+        this.params = params;
     }
 }
 

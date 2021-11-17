@@ -28,9 +28,9 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.search.GwpResult.AdjacencyEvaluationResult;
 import edu.cmu.tetrad.search.GwpResult.CoefficientEvaluationResult;
 import edu.cmu.tetrad.search.GwpResult.OrientationEvaluationResult;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.Matrix;
 
 import java.util.HashMap;
@@ -55,18 +55,18 @@ public class GraphWithParameters {
 
     private HashMap<Edge, Double> weightHash;
 
-//	public Dag patDag = null; //only non-null when graph is a pattern
+//	public Dag patDag = null; //only non-null when graph is a cpdag
 
     /*
       * estimate the weights for the nodes that have all parents determined.
       */
     //it would have been more efficient to only regression on the nodes that matter
 
-    public GraphWithParameters(SemIm semIm, Graph truePattern) {
-//		Graph g = (truePattern==null) ? semIm.getEstIm().getGraph() : truePattern;
+    public GraphWithParameters(LinearSemIm semIm, Graph trueCpdag) {
+//		Graph g = (trueCpdag==null) ? semIm.getEstIm().getGraph() : trueCpdag;
 //		this.graph = g;
 //		weightHash = new HashMap<Edge,Double>();
-        this(truePattern);
+        this(trueCpdag);
 
         //make the SemIm
 
@@ -89,7 +89,7 @@ public class GraphWithParameters {
         weightHash = new HashMap<>();
     }
 
-//	public PatternWithParameters(ColtDataSet B) {
+//	public CpdagWithParameters(ColtDataSet B) {
 //		Shimizu2006Search.makeDagWithParms(B);
 //	}
 
@@ -298,7 +298,7 @@ public class GraphWithParameters {
     /**
      * evalute coefficients for some node pairs
      *
-     * @param edges         edges from the pattern returned by PC-search
+     * @param edges         edges from the cpdag returned by PC-search
      */
     public CoefficientEvaluationResult evalCoeffsForNodePairs(GraphWithParameters standardGraph, List<Edge> edges) {
 
@@ -444,13 +444,13 @@ public class GraphWithParameters {
     }
 
     /**
-     * creates a PatternWithParameters by running a regression, given a graph and data
+     * creates a CpdagWithParameters by running a regression, given a graph and data
      */
     public static GraphWithParameters regress(DataSet dataSet, Graph graph) {
-        SemPm semPmEstDag = new SemPm(graph);
-        SemEstimator estimatorEstDag = new SemEstimator(dataSet, semPmEstDag);
+        LinearSemPm linearSemPmEstDag = new LinearSemPm(graph);
+        SemEstimator estimatorEstDag = new SemEstimator(dataSet, linearSemPmEstDag);
         estimatorEstDag.estimate();
-        SemIm semImEstDag = estimatorEstDag.getEstimatedSem();
+        LinearSemIm semImEstDag = estimatorEstDag.getEstimatedSem();
         GraphWithParameters estimatedGraph = new GraphWithParameters(semImEstDag, graph);
         return estimatedGraph;
     }

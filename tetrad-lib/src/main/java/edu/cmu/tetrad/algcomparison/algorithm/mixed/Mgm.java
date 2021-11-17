@@ -3,14 +3,8 @@ package edu.cmu.tetrad.algcomparison.algorithm.mixed;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.data.ContinuousVariable;
-import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.DiscreteVariable;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -38,7 +32,7 @@ public class Mgm implements Algorithm {
     }
 
     @Override
-    public Graph search(DataModel ds, Parameters parameters) {
+    public Graph search(DataModel ds, Parameters parameters, Graph trueGraph) {
         DataSet _data = (DataSet) ds;
 
         for (int j = 0; j < _data.getNumColumns(); j++) {
@@ -120,10 +114,10 @@ public class Mgm implements Algorithm {
     }
 
     // Need to marry the parents on this.
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return GraphUtils.undirectedGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return GraphUtils.undirectedGraph(graph);
+//    }
 
     @Override
     public String getDescription() {

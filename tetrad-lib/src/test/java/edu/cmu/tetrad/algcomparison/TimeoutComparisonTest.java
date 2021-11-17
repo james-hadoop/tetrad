@@ -22,33 +22,25 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
+import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
-import edu.cmu.tetrad.algcomparison.statistic.AdjacencyPrecision;
-import edu.cmu.tetrad.algcomparison.statistic.AdjacencyRecall;
-import edu.cmu.tetrad.algcomparison.statistic.ArrowheadPrecision;
-import edu.cmu.tetrad.algcomparison.statistic.ArrowheadRecall;
-import edu.cmu.tetrad.algcomparison.statistic.ElapsedTime;
-import edu.cmu.tetrad.algcomparison.statistic.F1Adj;
-import edu.cmu.tetrad.algcomparison.statistic.F1Arrow;
-import edu.cmu.tetrad.algcomparison.statistic.MathewsCorrAdj;
-import edu.cmu.tetrad.algcomparison.statistic.MathewsCorrArrow;
-import edu.cmu.tetrad.algcomparison.statistic.SHD;
-import edu.cmu.tetrad.algcomparison.statistic.Statistics;
+import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import java.io.IOException;
-import static java.lang.System.out;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+
+import static java.lang.System.out;
 
 /**
  *
@@ -107,14 +99,14 @@ public class TimeoutComparisonTest {
 
     private static Simulations getSimulations() {
         Simulations simulations = new Simulations();
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         return simulations;
     }
 
     private static Algorithms getAlgorithms() {
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new Gfci(new FisherZ(), new SemBicScore()));
+        algorithms.add(new Gfci(new LinearGaussianBicScore(), new FisherZ()));
 
         return algorithms;
     }

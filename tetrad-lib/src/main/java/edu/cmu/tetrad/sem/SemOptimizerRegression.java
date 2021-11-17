@@ -24,8 +24,8 @@ package edu.cmu.tetrad.sem;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.graph.SemGraph;
-import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.Vector;
 
 import java.util.List;
@@ -64,7 +64,7 @@ public class SemOptimizerRegression implements SemOptimizer {
     /**
      * Fit the freeParameters by doing local regressions.
      */
-    public void optimize(SemIm semIm) {
+    public void optimize(LinearSemIm semIm) {
         if (numRestarts != 1) {
             throw new IllegalArgumentException("Number of restarts must be 1 for this method.");
         }

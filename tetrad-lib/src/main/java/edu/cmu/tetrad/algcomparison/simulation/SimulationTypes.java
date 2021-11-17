@@ -27,7 +27,7 @@ package edu.cmu.tetrad.algcomparison.simulation;
 public final class SimulationTypes {
 
     public static final String BAYS_NET = "Bayes Net";
-    public static final String STRUCTURAL_EQUATION_MODEL = "Structural Equation Model";
+    public static final String LINEAR_STRUCTURAL_EQUATION_MODEL = "Linear Structural Equation Model";
     public static final String LINEAR_FISHER_MODEL = "Linear Fisher Model";
     public static final String LEE_AND_HASTIE = "Lee & Hastie";
     public static final String CONDITIONAL_GAUSSIAN = "Conditional Gaussian";

@@ -25,12 +25,11 @@ import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.search.ClusterUtils;
 import edu.cmu.tetrad.search.MimUtils;
 import edu.cmu.tetrad.search.Mimbuild2;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.ReidentifyVariables;
-import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
@@ -323,9 +322,9 @@ public class MimBuildRunner extends AbstractMimRunner implements GraphSource {
         return getResultGraph();
     }
 
-    public SemPm getSemPm() {
+    public LinearSemPm getSemPm() {
         Graph graph = getResultGraph();
-        return new SemPm(graph);
+        return new LinearSemPm(graph);
     }
 
     public Graph getFullGraph() {

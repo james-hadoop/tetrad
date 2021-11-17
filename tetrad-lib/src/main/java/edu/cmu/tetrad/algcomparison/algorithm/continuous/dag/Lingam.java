@@ -3,17 +3,16 @@ package edu.cmu.tetrad.algcomparison.algorithm.continuous.dag;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +33,7 @@ public class Lingam implements Algorithm {
 
     static final long serialVersionUID = 23L;
 
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             edu.cmu.tetrad.search.Lingam lingam = new edu.cmu.tetrad.search.Lingam();
             lingam.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
@@ -84,10 +83,10 @@ public class Lingam implements Algorithm {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new EdgeListGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new EdgeListGraph(graph);
+//    }
 
     public String getDescription() {
         return "LiNGAM (Linear Non-Gaussian Acyclic Model";

@@ -6,18 +6,14 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pag;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.independence.ProbabilisticTest;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,26 +30,15 @@ import java.util.List;
         dataType = DataType.Discrete
 )
 @Experimental
-public class RfciBsc implements Algorithm, HasKnowledge {
+public class RfciBsc implements Algorithm {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test = new ProbabilisticTest();
-    private IKnowledge knowledge = new Knowledge2();
 
 	@Override
-	public IKnowledge getKnowledge() {
-        return knowledge;
-	}
-
-	@Override
-	public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
-	}
-
-	@Override
-	public Graph search(DataModel dataSet, Parameters parameters) {
-		edu.cmu.tetrad.search.Rfci search = new edu.cmu.tetrad.search.Rfci(test.getTest(dataSet, parameters));
-		search.setKnowledge(knowledge);
+	public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
+		edu.cmu.tetrad.search.Rfci search = new edu.cmu.tetrad.search.Rfci(test.getTest(dataSet, parameters, trueGraph));
+		search.setKnowledge(dataSet.getKnowledge());
         search.setDepth(parameters.getInt(Params.DEPTH));
         search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
         search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
@@ -73,11 +58,6 @@ public class RfciBsc implements Algorithm, HasKnowledge {
         RfciBsc.setOutputRBD(parameters.getBoolean(Params.OUTPUT_RBD));
         RfciBsc.setVerbose(parameters.getBoolean(Params.VERBOSE));
 		return RfciBsc.search();
-	}
-
-	@Override
-	public Graph getComparisonGraph(Graph graph) {
-		return new DagToPag2(new EdgeListGraph(graph)).convert();
 	}
 
 	@Override

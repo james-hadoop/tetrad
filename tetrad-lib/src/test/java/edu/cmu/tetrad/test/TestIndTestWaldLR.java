@@ -28,13 +28,11 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.IndTestDSep;
-import edu.cmu.tetrad.search.IndTestTimeSeries;
 import edu.cmu.tetrad.search.IndependenceTest;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.pitt.csb.mgm.IndTestMultinomialLogisticRegressionWald;
-
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -67,8 +65,8 @@ public class TestIndTestWaldLR {
 
             Graph graph = GraphUtils.randomGraph(nodes, 0, 10,
                     3, 3, 3, false);
-            SemPm pm = new SemPm(graph);
-            SemIm im = new SemIm(pm);
+            LinearSemPm pm = new LinearSemPm(graph);
+            LinearSemIm im = new LinearSemIm(pm);
             DataSet data = im.simulateData(1000, false);
 
             Discretizer discretizer = new Discretizer(data);

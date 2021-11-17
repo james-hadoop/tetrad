@@ -21,11 +21,11 @@
 
 package edu.cmu.tetradapp.model;
 
-import edu.cmu.tetrad.sem.SemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.session.SessionModel;
+import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
 
 import java.text.NumberFormat;
@@ -37,20 +37,20 @@ public class EdgeWeightComparison implements SessionModel {
     static final long serialVersionUID = 23L;
 
     private String name;
-    private final SemIm reference;
-    private final SemIm target;
+    private final LinearSemIm reference;
+    private final LinearSemIm target;
 
     public EdgeWeightComparison(SemEstimatorWrapper reference, SemEstimatorWrapper target, Parameters parameters) {
         this.reference = reference.getEstimatedSemIm();
         this.target = target.getEstimatedSemIm();
     }
 
-    public EdgeWeightComparison(SemImWrapper reference, SemEstimatorWrapper target, Parameters parameters) {
+    public EdgeWeightComparison(LinearSemImWrapper reference, SemEstimatorWrapper target, Parameters parameters) {
         this.reference = reference.getSemIm();
         this.target = target.getEstimatedSemIm();
     }
 
-    public EdgeWeightComparison(SemImWrapper reference, SemImWrapper target, Parameters parameters) {
+    public EdgeWeightComparison(LinearSemImWrapper reference, LinearSemImWrapper target, Parameters parameters) {
         this.reference = reference.getSemIm();
         this.target = target.getSemIm();
     }
@@ -58,7 +58,7 @@ public class EdgeWeightComparison implements SessionModel {
     public String getDisplayString() {
         String displayString = "";
 
-        SemIm ref = reference;
+        LinearSemIm ref = reference;
         Matrix referenceMatrix = ref.getEdgeCoef();
         Matrix targetMatrix = target.getEdgeCoef();
 

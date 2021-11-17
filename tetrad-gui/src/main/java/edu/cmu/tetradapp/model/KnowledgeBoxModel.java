@@ -33,6 +33,7 @@ import edu.cmu.tetrad.session.SessionModel;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -48,17 +49,12 @@ public class KnowledgeBoxModel implements SessionModel, ParamsResettable, Knowle
 
     private String name;
     private Parameters params;
-    private KnowledgeBoxInput knowledgeBoxInput;
+    private IKnowledge knowledge;
     private List<String> varNames = new ArrayList<>();
     private List<Node> variables = new ArrayList<>();
     private List<String> variableNames = new ArrayList<>();
     private final Graph sourceGraph = new EdgeListGraph();
-    private IKnowledge knowledge = new Knowledge2();
     private int numTiers = 3;
-
-    public KnowledgeBoxModel(GeneralAlgorithmRunner runner) {
-        this.knowledge = runner.getKnowledge();
-    }
 
     /**
      * Constructor from dataWrapper edge
@@ -88,41 +84,35 @@ public class KnowledgeBoxModel implements SessionModel, ParamsResettable, Knowle
                 if (node.getNodeType() == NodeType.MEASURED) {
                     variableNodes.add(node);
                     variableNames.add(node.getName());
+                    knowledge.addVariable(node.getName());
                 }
             }
-
-//            variableNodes.addAll(input.getVariables());
-//            variableNames.addAll(input.getVariableNames());
         }
 
         this.variables = new ArrayList<>(variableNodes);
         this.variableNames = new ArrayList<>(variableNames);
 
         this.params = params;
-        this.setKnowledgeBoxInput(this);
+        this.knowledge = new Knowledge2();
 
-        if (knowledge.isEmpty()) {
-            freshenKnowledgeIfEmpty();
+        for (KnowledgeBoxInput input : inputs) {
+            for (Node v : input.getVariables()) {
+                knowledge.addVariable(v.getName());
+            }
         }
 
         TetradLogger.getInstance().log("info", "Knowledge");
-
-        // This is a conundrum. At this point I dont know whether I am in a
-        // simulation or not. If in a simulation, I should print the knowledge.
-        // If not, I should wait for resetParams to be called. For now I'm
-        // printing the knowledge if it's not empty.
         if (!knowledge.isEmpty()) {
             // printing out is bad for large knowledge input
 //            TetradLogger.getInstance().log("knowledge", params.get("knowledge", new Knowledge2()).toString());
         }
     }
 
-    private void freshenKnowledgeIfEmpty() {
+    private void freshenKnowledgeIfEmpty(List<String> varNames) {
         if (knowledge.isEmpty()) {
             createKnowledge(knowledge);
-            varNames = new ArrayList<>();
 
-            for (String varName : knowledgeBoxInput.getVariableNames()) {
+            for (String varName : varNames) {
                 if (!varName.startsWith("E_")) {
                     varNames.add(varName);
                 }
@@ -180,7 +170,7 @@ public class KnowledgeBoxModel implements SessionModel, ParamsResettable, Knowle
     }
 
     @Override
-    public IKnowledge getKnowledge() {
+    public IKnowledge  getKnowledge() {
         return knowledge;
     }
 
@@ -192,7 +182,7 @@ public class KnowledgeBoxModel implements SessionModel, ParamsResettable, Knowle
     @Override
     public void resetParams(Object params) {
         this.params = (Parameters) params;
-        freshenKnowledgeIfEmpty();
+        freshenKnowledgeIfEmpty(varNames);
 
         // printing out is bad for large knowledge input
 //        TetradLogger.getInstance().log("knowledge", knowledge.toString());
@@ -211,14 +201,6 @@ public class KnowledgeBoxModel implements SessionModel, ParamsResettable, Knowle
     @Override
     public List<String> getVariableNames() {
         return variableNames;
-    }
-
-    KnowledgeBoxInput getKnowledgeBoxInput() {
-        return knowledgeBoxInput;
-    }
-
-    void setKnowledgeBoxInput(KnowledgeBoxInput knowledgeBoxInput) {
-        this.knowledgeBoxInput = knowledgeBoxInput;
     }
 
     public int getNumTiers() {

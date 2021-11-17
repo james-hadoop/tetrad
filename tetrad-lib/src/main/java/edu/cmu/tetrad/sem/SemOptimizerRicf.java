@@ -24,8 +24,8 @@ package edu.cmu.tetrad.sem;
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.SemGraph;
-import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.TetradLogger;
 
 /**
  * Optimizes a SEM using RICF (see that class).
@@ -57,7 +57,7 @@ public class SemOptimizerRicf implements SemOptimizer {
      * Optimizes the fitting function of the given Sem using the Powell method
      * from Numerical Recipes by adjusting the freeParameters of the Sem.
      */
-    public void optimize(SemIm semIm) {
+    public void optimize(LinearSemIm semIm) {
         if (numRestarts < 1) numRestarts = 1;
 
         if (numRestarts != 1) {

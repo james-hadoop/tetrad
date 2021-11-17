@@ -23,40 +23,21 @@ package edu.cmu.tetradapp.editor;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.ParamType;
-import edu.cmu.tetrad.sem.Parameter;
-import edu.cmu.tetrad.sem.ScoreType;
-import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemOptimizer;
-import edu.cmu.tetrad.sem.SemOptimizerEm;
-import edu.cmu.tetrad.sem.SemOptimizerPowell;
-import edu.cmu.tetrad.sem.SemOptimizerRegression;
-import edu.cmu.tetrad.sem.SemOptimizerRicf;
-import edu.cmu.tetrad.sem.SemOptimizerScattershot;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.*;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.ProbUtils;
+import edu.cmu.tetradapp.model.LinearSemImWrapper;
 import edu.cmu.tetradapp.model.SemEstimatorWrapper;
-import edu.cmu.tetradapp.model.SemImWrapper;
 import edu.cmu.tetradapp.util.DesktopController;
 import edu.cmu.tetradapp.util.IntTextField;
 import edu.cmu.tetradapp.util.WatchedProcess;
-import java.awt.BorderLayout;
-import java.awt.Window;
+
+import javax.swing.*;
+import java.awt.*;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 
 /**
  * Lets the user interact with a SEM estimator.
@@ -73,12 +54,12 @@ public final class SemEstimatorEditor extends JPanel {
     private final JComboBox scoreBox;
     private final IntTextField restarts;
 
-    public SemEstimatorEditor(SemIm semIm, DataSet dataSet) {
+    public SemEstimatorEditor(LinearSemIm semIm, DataSet dataSet) {
     	this(new SemEstimatorWrapper(dataSet, semIm.getSemPm(), new Parameters()));
     }
     
-    public SemEstimatorEditor(SemPm semPm, DataSet dataSet) {
-        this(new SemEstimatorWrapper(dataSet, semPm, new Parameters()));
+    public SemEstimatorEditor(LinearSemPm linearSemPm, DataSet dataSet) {
+        this(new SemEstimatorWrapper(dataSet, linearSemPm, new Parameters()));
     }
 
     public SemEstimatorEditor(SemEstimatorWrapper _wrapper) {
@@ -86,7 +67,7 @@ public final class SemEstimatorEditor extends JPanel {
         panel = new JPanel();
         setLayout(new BorderLayout());
 
-        JComboBox optimizerCombo = new JComboBox();
+        JComboBox<String> optimizerCombo = new JComboBox<>();
         optimizerCombo.addItem("Regression");
         optimizerCombo.addItem("EM");
         optimizerCombo.addItem("Powell");
@@ -94,11 +75,11 @@ public final class SemEstimatorEditor extends JPanel {
         optimizerCombo.addItem("RICF");
 
         optimizerCombo.addActionListener((e) -> {
-            JComboBox box = (JComboBox) e.getSource();
+            JComboBox<String> box = (JComboBox) e.getSource();
             wrapper.setSemOptimizerType((String) box.getSelectedItem());
         });
 
-        scoreBox = new JComboBox();
+        scoreBox = new JComboBox<String>();
         restarts = new IntTextField(1, 2);
 
         scoreBox.addItem("Fgls");
@@ -208,7 +189,7 @@ public final class SemEstimatorEditor extends JPanel {
         for (int i = 0; i < estimators.size(); i++) {
             SemEstimator estimator = estimators.get(i);
 
-            SemIm estSem = estimator.getEstimatedSem();
+            LinearSemIm estSem = estimator.getEstimatedSem();
             String dataName = estimator.getDataSet().getName();
 
             estSem.getFreeParameters().forEach(parameter -> {
@@ -290,7 +271,7 @@ public final class SemEstimatorEditor extends JPanel {
         throw new IllegalStateException("Unknown param type.");
     }
 
-    private double paramValue(SemIm im, Parameter parameter) {
+    private double paramValue(LinearSemIm im, Parameter parameter) {
         double paramValue = im.getParamValue(parameter);
 
         if (parameter.getType() == ParamType.VAR) {
@@ -333,7 +314,7 @@ public final class SemEstimatorEditor extends JPanel {
         java.util.List<SemEstimator> newEstimators = new ArrayList<>();
 
         estimators.forEach(estimator -> {
-            SemPm semPm = estimator.getSemPm();
+            LinearSemPm linearSemPm = estimator.getSemPm();
 
             DataSet dataSet = estimator.getDataSet();
             ICovarianceMatrix covMatrix = estimator.getCovMatrix();
@@ -341,11 +322,11 @@ public final class SemEstimatorEditor extends JPanel {
             SemEstimator newEstimator;
 
             if (dataSet != null) {
-                newEstimator = new SemEstimator(dataSet, semPm, optimizer);
+                newEstimator = new SemEstimator(dataSet, linearSemPm, optimizer);
                 newEstimator.setNumRestarts(numRestarts);
                 newEstimator.setScoreType(wrapper.getScoreType());
             } else if (covMatrix != null) {
-                newEstimator = new SemEstimator(covMatrix, semPm, optimizer);
+                newEstimator = new SemEstimator(covMatrix, linearSemPm, optimizer);
                 newEstimator.setNumRestarts(numRestarts);
                 newEstimator.setScoreType(wrapper.getScoreType());
             } else {
@@ -368,7 +349,7 @@ public final class SemEstimatorEditor extends JPanel {
 
         if (semEstimators.size() == 1) {
             SemEstimator estimatedSem = semEstimators.get(0);
-            SemImEditor editor = new SemImEditor(new SemImWrapper(estimatedSem.getEstimatedSem()));
+            LinearSemImEditor editor = new LinearSemImEditor(new LinearSemImWrapper(estimatedSem.getEstimatedSem()));
             panel.removeAll();
             panel.add(editor, BorderLayout.CENTER);
             panel.revalidate();
@@ -379,7 +360,7 @@ public final class SemEstimatorEditor extends JPanel {
 
             for (int i = 0; i < semEstimators.size(); i++) {
                 SemEstimator estimatedSem = semEstimators.get(i);
-                SemImEditor editor = new SemImEditor(new SemImWrapper(estimatedSem.getEstimatedSem()));
+                LinearSemImEditor editor = new LinearSemImEditor(new LinearSemImWrapper(estimatedSem.getEstimatedSem()));
                 JPanel _panel = new JPanel();
                 _panel.setLayout(new BorderLayout());
                 _panel.add(editor, BorderLayout.CENTER);

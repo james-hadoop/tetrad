@@ -19,7 +19,7 @@ public class WFges implements GraphSearch {
     private Map<Node, List<Node>> variablesPerNode = new HashMap<>();
     private Fges fges;
     private double penaltyDiscount;
-    private SemBicScore score;
+    private LinearGaussianBicScore score;
 
     public WFges(DataSet data) {
         if (data == null) throw new NullPointerException("Data was not provided.");
@@ -40,7 +40,7 @@ public class WFges implements GraphSearch {
 
         System.out.println("Cov matrix made.");
 
-        SemBicScore score = new SemBicScore(covariances);
+        LinearGaussianBicScore score = new LinearGaussianBicScore(covariances);
         this.score = score;
         this.fges = new Fges(score);
     }

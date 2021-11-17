@@ -21,12 +21,12 @@
             </tocitem>
             <tocitem text="Parametric Model (PM)" target="pm_box">
                 <tocitem text="Bayes Parametric Model" target="pm_bayes"/>
-                <tocitem text="SEM Parametric Model" target="pm_sem"/>
+                <tocitem text="Linear SEM Parametric Model" target="pm_sem"/>
             </tocitem>
             <tocitem text="Instantiated Model (IM)" target="im_box">
                 <tocitem text="Bayes Instantiated Model" target="bayes_im"/>
                 <tocitem text="Dirichlet Bayes IM" target="dirichlet_bayes_im"/>
-                <tocitem text="SEM Instantiated Model" target="sem_im"/>
+                <tocitem text="Linear SEM Instantiated Model" target="sem_im"/>
             </tocitem>
             <tocitem text="Data" target="data_box">
                 <tocitem text="Data Set List" target="data_set_list"/>

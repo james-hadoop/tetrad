@@ -19,9 +19,9 @@
 package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
 import edu.cmu.tetrad.algcomparison.independence.BDeuTest;
 import edu.cmu.tetrad.algcomparison.independence.ChiSquare;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
@@ -102,7 +102,7 @@ public class TestGeneralResamplingTest {
 		parameters.set(Params.PENALTY_DISCOUNT, penaltyDiscount);
 		parameters.set(Params.FAITHFULNESS_ASSUMED, faithfulnessAssumed);
 		parameters.set(Params.MAX_DEGREE, maxDegree);
-		parameters.set("numPatternsToStore", 0);
+		parameters.set("numCpdagsToStore", 0);
 		parameters.set(Params.VERBOSE, verbose);
 
 		ScoreWrapper score = new BdeuScore();
@@ -159,7 +159,7 @@ public class TestGeneralResamplingTest {
 		parameters.set(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE, samplePrior);
 		parameters.set(Params.FAITHFULNESS_ASSUMED, faithfulnessAssumed);
 		parameters.set(Params.MAX_DEGREE, maxDegree);
-		parameters.set("numPatternsToStore", 0);
+		parameters.set("numCpdagsToStore", 0);
 		parameters.set(Params.VERBOSE, verbose);
 		
 		ScoreWrapper score = new BdeuScore();
@@ -222,12 +222,12 @@ public class TestGeneralResamplingTest {
 		parameters.set(Params.PENALTY_DISCOUNT, penaltyDiscount);
 		parameters.set(Params.FAITHFULNESS_ASSUMED, faithfulnessAssumed);
 		parameters.set(Params.MAX_DEGREE, maxDegree);
-		parameters.set("numPatternsToStore", 0);
+		parameters.set("numCpdagsToStore", 0);
 		parameters.set(Params.VERBOSE, verbose);
 		
 		ScoreWrapper score = new BdeuScore();
 		IndependenceWrapper test =  new BDeuTest();
-		Algorithm algorithm = new Gfci(test, score);
+		Algorithm algorithm = new Gfci(score, test);
 		
 		GeneralResamplingTest bootstrapTest = new GeneralResamplingTest(data, algorithm, numBootstrapSamples);
 		bootstrapTest.setResamplingWithReplacement(true);
@@ -283,12 +283,12 @@ public class TestGeneralResamplingTest {
 		parameters.set(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE, samplePrior);
 		parameters.set(Params.FAITHFULNESS_ASSUMED, faithfulnessAssumed);
 		parameters.set(Params.MAX_DEGREE, maxDegree);
-		parameters.set("numPatternsToStore", 0);
+		parameters.set("numCpdagsToStore", 0);
 		parameters.set(Params.VERBOSE, verbose);
 
 		ScoreWrapper score = new BdeuScore();
 		IndependenceWrapper test =  new ChiSquare();
-		Algorithm algorithm = new Gfci(test, score);
+		Algorithm algorithm = new Gfci(score, test);
 		
 		GeneralResamplingTest bootstrapTest = new GeneralResamplingTest(data, algorithm, numBootstrapSamples);
 		bootstrapTest.setResamplingWithReplacement(true);
@@ -347,7 +347,7 @@ public class TestGeneralResamplingTest {
 		parameters.set(Params.PENALTY_DISCOUNT, penaltyDiscount);
 		parameters.set(Params.DEPTH, depth);
 		parameters.set(Params.MAX_PATH_LENGTH, maxPathLength);
-		parameters.set("numPatternsToStore", 0);
+		parameters.set("numCpdagsToStore", 0);
 		parameters.set(Params.VERBOSE, verbose);
 		
 		IndependenceWrapper test =  new FisherZ();
@@ -408,7 +408,7 @@ public class TestGeneralResamplingTest {
 		parameters.set(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE, samplePrior);
 		parameters.set(Params.DEPTH, depth);
 		parameters.set(Params.MAX_PATH_LENGTH, maxPathLength);
-		parameters.set("numPatternsToStore", 0);
+		parameters.set("numCpdagsToStore", 0);
 		parameters.set(Params.VERBOSE, verbose);
 
 		IndependenceWrapper test =  new ChiSquare();

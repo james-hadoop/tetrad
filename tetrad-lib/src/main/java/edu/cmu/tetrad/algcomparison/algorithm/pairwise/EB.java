@@ -7,13 +7,13 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Lofs2;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,12 +45,12 @@ public class EB implements Algorithm, TakesInitialGraph {
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
     	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            initialGraph = algorithm.search(dataSet, parameters);
+            initialGraph = algorithm.search(dataSet, parameters, trueGraph);
 
             if (initialGraph != null) {
-                initialGraph = algorithm.search(dataSet, parameters);
+                initialGraph = algorithm.search(dataSet, parameters, trueGraph);
             } else {
                 throw new IllegalArgumentException("This EB algorithm needs both data and a graph source as inputs; it \n"
                         + "will orient the edges in the input graph using the data.");
@@ -95,10 +95,10 @@ public class EB implements Algorithm, TakesInitialGraph {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new EdgeListGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new EdgeListGraph(graph);
+//    }
 
     @Override
     public String getDescription() {

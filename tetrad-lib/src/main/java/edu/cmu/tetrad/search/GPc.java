@@ -27,7 +27,9 @@ import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -146,7 +148,7 @@ public final class GPc implements GraphSearch {
         logger.log("info", "Starting FCI algorithm.");
         logger.log("info", "Independence test = " + getIndependenceTest() + ".");
 
-        this.graph = new EdgeListGraphSingleConnections(nodes);
+        this.graph = new EdgeListGraph(nodes);
 
         if (score == null) {
             setScore();
@@ -159,7 +161,7 @@ public final class GPc implements GraphSearch {
 //        fges.setMaxDegree(fgesDepth);
         graph = fges.search();
 
-        Graph fgesGraph = new EdgeListGraphSingleConnections(graph);
+        Graph fgesGraph = new EdgeListGraph(graph);
 
 //        System.out.println("GFCI: FGES done");
 
@@ -291,12 +293,12 @@ public final class GPc implements GraphSearch {
             score = new GraphScore(dag);
         } else if (cov != null) {
             covarianceMatrix = cov;
-            SemBicScore score0 = new SemBicScore(cov);
+            LinearGaussianBicScore score0 = new LinearGaussianBicScore(cov);
             score0.setPenaltyDiscount(penaltyDiscount);
             score = score0;
         } else if (dataSet.isContinuous()) {
             covarianceMatrix = new CovarianceMatrix(dataSet);
-            SemBicScore score0 = new SemBicScore(covarianceMatrix);
+            LinearGaussianBicScore score0 = new LinearGaussianBicScore(covarianceMatrix);
             score0.setPenaltyDiscount(penaltyDiscount);
             score = score0;
         } else if (dataSet.isDiscrete()) {

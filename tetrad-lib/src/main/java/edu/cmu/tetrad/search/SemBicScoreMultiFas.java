@@ -27,8 +27,8 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
-import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.Vector;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
@@ -43,7 +43,7 @@ import java.util.*;
 public class SemBicScoreMultiFas implements ISemBicScore, Score {
 
     // The covariance matrix.
-    private List<SemBicScore> semBicScores;
+    private List<LinearGaussianBicScore> linearGaussianBicScores;
 
     // The variables of the covariance matrix.
     private List<Node> variables;
@@ -78,7 +78,7 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
             throw new NullPointerException();
         }
 
-        List<SemBicScore> semBicScores = new ArrayList<>();
+        List<LinearGaussianBicScore> linearGaussianBicScores = new ArrayList<>();
 
         for (DataModel model : dataModels) {
             if (model instanceof DataSet) {
@@ -88,30 +88,30 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
                     throw new IllegalArgumentException("Datasets must be continuous.");
                 }
 
-                SemBicScore semBicScore = new SemBicScore(new CovarianceMatrix(dataSet));
-                semBicScore.setPenaltyDiscount(penaltyDiscount);
-                semBicScores.add(semBicScore);
+                LinearGaussianBicScore linearGaussianBicScore = new LinearGaussianBicScore(new CovarianceMatrix(dataSet));
+                linearGaussianBicScore.setPenaltyDiscount(penaltyDiscount);
+                linearGaussianBicScores.add(linearGaussianBicScore);
             } else if (model instanceof ICovarianceMatrix) {
-                SemBicScore semBicScore = new SemBicScore((ICovarianceMatrix) model);
-                semBicScore.setPenaltyDiscount(penaltyDiscount);
-                semBicScores.add(semBicScore);
+                LinearGaussianBicScore linearGaussianBicScore = new LinearGaussianBicScore((ICovarianceMatrix) model);
+                linearGaussianBicScore.setPenaltyDiscount(penaltyDiscount);
+                linearGaussianBicScores.add(linearGaussianBicScore);
             } else {
                 throw new IllegalArgumentException("Only continuous data sets and covariance matrices may be used as input.");
             }
         }
 
-        List<Node> variables = semBicScores.get(0).getVariables();
+        List<Node> variables = linearGaussianBicScores.get(0).getVariables();
 
-        for (int i = 2; i < semBicScores.size(); i++) {
-            semBicScores.get(i).setVariables(variables);
+        for (int i = 2; i < linearGaussianBicScores.size(); i++) {
+            linearGaussianBicScores.get(i).setVariables(variables);
         }
 
-        this.semBicScores = semBicScores;
+        this.linearGaussianBicScores = linearGaussianBicScores;
         this.variables = variables;
-        this.sampleSize = semBicScores.get(0).getSampleSize();
+        this.sampleSize = linearGaussianBicScores.get(0).getSampleSize();
 
         this.indexMap = indexMap(this.variables);
-        this.covMap = covMap(this.semBicScores);
+        this.covMap = covMap(this.linearGaussianBicScores);
     }
 
 
@@ -129,7 +129,7 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
         int p;
         int N;
 
-        for (SemBicScore score : semBicScores) {
+        for (LinearGaussianBicScore score : linearGaussianBicScores) {
             try {
                 r = partialCorrelation(_x, _y, _z, score);
             } catch (SingularMatrixException e) {
@@ -159,7 +159,7 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
         double sum = 0.0;
         int count = 0;
 
-        for (SemBicScore score : semBicScores) {
+        for (LinearGaussianBicScore score : linearGaussianBicScores) {
             double _score = score.localScore(i, parents);
 
             if (!Double.isNaN(_score)) {
@@ -176,7 +176,7 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
     }
 
     private double localScoreOneDataSet(int i, int[] parents, int index) {
-        return semBicScores.get(index).localScore(i, parents);
+        return linearGaussianBicScores.get(index).localScore(i, parents);
     }
 
 
@@ -194,7 +194,7 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
         double sum = 0.0;
         int count = 0;
 
-        for (SemBicScore score : semBicScores) {
+        for (LinearGaussianBicScore score : linearGaussianBicScores) {
             double _score = score.localScore(i, parent);
 
             if (!Double.isNaN(_score)) {
@@ -213,7 +213,7 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
         double sum = 0.0;
         int count = 0;
 
-        for (SemBicScore score : semBicScores) {
+        for (LinearGaussianBicScore score : linearGaussianBicScores) {
             double _score = score.localScore(i);
 
             if (!Double.isNaN(_score)) {
@@ -244,7 +244,7 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
 
     public void setPenaltyDiscount(double penaltyDiscount) {
         this.penaltyDiscount = penaltyDiscount;
-        for (SemBicScore score : semBicScores) {
+        for (LinearGaussianBicScore score : linearGaussianBicScores) {
             score.setPenaltyDiscount(penaltyDiscount);
         }
     }
@@ -320,7 +320,7 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
         }
         return variables;
     }
-    private double partialCorrelation(Node x, Node y, List<Node> z, SemBicScore score) throws SingularMatrixException {
+    private double partialCorrelation(Node x, Node y, List<Node> z, LinearGaussianBicScore score) throws SingularMatrixException {
         int[] indices = new int[z.size() + 2];
         indices[0] = indexMap.get(x.getName());
         indices[1] = indexMap.get(y.getName());
@@ -339,9 +339,9 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
         return indexMap;
     }
 
-    private Map<Score, ICovarianceMatrix> covMap(List<SemBicScore> scores){
+    private Map<Score, ICovarianceMatrix> covMap(List<LinearGaussianBicScore> scores){
         Map<Score, ICovarianceMatrix> covMap = new HashMap<>();
-        SemBicScore score;
+        LinearGaussianBicScore score;
 
         for (int i = 0; i < scores.size(); i++){
             score = scores.get(i);
@@ -371,6 +371,11 @@ public class SemBicScoreMultiFas implements ISemBicScore, Score {
     @Override
     public boolean determines(List<Node> z, Node y) {
         return false;
+    }
+
+    @Override
+    public DataModel getData() {
+        return getDataSet();
     }
 }
 

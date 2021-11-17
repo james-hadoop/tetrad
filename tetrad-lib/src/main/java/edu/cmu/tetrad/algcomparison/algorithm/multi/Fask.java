@@ -2,13 +2,13 @@ package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -35,11 +35,10 @@ import static edu.cmu.tetrad.util.Params.*;
         algoType = AlgType.forbid_latent_common_causes,
         dataType = DataType.Continuous
 )
-public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, TakesInitialGraph {
+public class Fask implements Algorithm, TakesIndependenceWrapper, TakesInitialGraph {
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test = null;
     private Graph initialGraph = null;
-    private IKnowledge knowledge = new Knowledge2();
     private Algorithm algorithm = null;
 
     // Don't delete.
@@ -56,7 +55,7 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         DataSet _data = (DataSet) dataSet;
 
         for (int j = 0; j < _data.getNumColumns(); j++) {
@@ -70,7 +69,7 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             edu.cmu.tetrad.search.Fask search;
 
-            search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, test.getTest(dataSet, parameters));
+            search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, test.getTest(dataSet, parameters, trueGraph));
 
             search.setDepth(parameters.getInt(DEPTH));
             search.setSkewEdgeThreshold(parameters.getDouble(SKEW_EDGE_THRESHOLD));
@@ -82,7 +81,7 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
             if (initialGraph != null) {
                 search.setExternalGraph(initialGraph);
             } else if (algorithm != null) {
-                search.setExternalGraph(algorithm.search(dataSet, parameters));
+                search.setExternalGraph(algorithm.search(dataSet, parameters, trueGraph));
             }
 
             int lrRule = parameters.getInt(FASK_LEFT_RIGHT_RULE);
@@ -115,14 +114,14 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
                 throw new IllegalStateException("Unconfigured left right rule index: " + lrRule);
             }
 
-            search.setKnowledge(knowledge);
+            search.setKnowledge(dataSet.getKnowledge());
             return getGraph(search);
         } else {
             Fask fask = new Fask(test);
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fask, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -147,10 +146,10 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new EdgeListGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new EdgeListGraph(graph);
+//    }
 
     @Override
     public String getDescription() {
@@ -186,16 +185,6 @@ public class Fask implements Algorithm, HasKnowledge, TakesIndependenceWrapper, 
         parameters.add(FASK_NONEMPIRICAL);
         parameters.add(VERBOSE);
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 
     @Override

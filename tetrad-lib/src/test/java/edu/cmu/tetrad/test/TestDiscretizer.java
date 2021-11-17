@@ -26,8 +26,8 @@ import edu.cmu.tetrad.graph.Dag;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -110,8 +110,8 @@ public final class TestDiscretizer {
 
         Graph graph = new Dag(GraphUtils.randomGraph(nodes1, 0, 5,
                 3, 3, 3, false));
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(100, false);
 
         List<Node> nodes = data.getVariables();
@@ -143,8 +143,8 @@ public final class TestDiscretizer {
 
         Graph graph = new Dag(GraphUtils.randomGraph(nodes1, 0, 5,
                 3, 3, 3, false));
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(100, false);
 
         List<Node> nodes = data.getVariables();

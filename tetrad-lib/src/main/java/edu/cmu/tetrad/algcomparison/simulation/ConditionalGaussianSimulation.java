@@ -5,11 +5,19 @@ import edu.cmu.tetrad.bayes.BayesIm;
 import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.bayes.MlBayesIm;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.sem.*;
-import edu.cmu.tetrad.util.*;
-import java.util.*;
+import edu.cmu.tetrad.graph.Edge;
+import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.sem.LinearSemPm;
+import edu.cmu.tetrad.sem.ParamType;
+import edu.cmu.tetrad.sem.Parameter;
+import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
+import edu.cmu.tetrad.util.RandomUtil;
 import org.apache.commons.lang3.RandomUtils;
+
+import java.util.*;
 
 /**
  * A simulation method based on the conditional Gaussian assumption.
@@ -86,7 +94,7 @@ public class ConditionalGaussianSimulation implements Simulation {
             dataSet.setName("" + (i + 1));
 
             if (parameters.getBoolean(Params.RANDOMIZE_COLUMNS)) {
-                dataSet = DataUtils.reorderColumns(dataSet);
+                dataSet = DataUtils.shuffleColumns(dataSet);
             }
 
             dataSets.add(dataSet);
@@ -206,7 +214,7 @@ public class ConditionalGaussianSimulation implements Simulation {
         BayesPm bayesPm = new BayesPm(AG);
         BayesIm bayesIm = new MlBayesIm(bayesPm, MlBayesIm.RANDOM);
 
-        SemPm semPm = new SemPm(XG);
+        LinearSemPm linearSemPm = new LinearSemPm(XG);
 
         Map<Combination, Double> paramValues = new HashMap<>();
 
@@ -292,8 +300,8 @@ public class ConditionalGaussianSimulation implements Simulation {
                         }
                     }
 
-                    Parameter varParam = semPm.getParameter(y, y);
-                    Parameter muParam = semPm.getMeanParameter(y);
+                    Parameter varParam = linearSemPm.getParameter(y, y);
+                    Parameter muParam = linearSemPm.getMeanParameter(y);
 
                     Combination varComb = new Combination(varParam);
                     Combination muComb = new Combination(muParam);
@@ -306,7 +314,7 @@ public class ConditionalGaussianSimulation implements Simulation {
                     double value = RandomUtil.getInstance().nextNormal(0, getParamValue(varComb, paramValues));
 
                     for (Node x : continuousParents) {
-                        Parameter coefParam = semPm.getParameter(x, y);
+                        Parameter coefParam = linearSemPm.getParameter(x, y);
                         Combination coefComb = new Combination(coefParam);
 
                         for (DiscreteVariable v : discreteParents) {

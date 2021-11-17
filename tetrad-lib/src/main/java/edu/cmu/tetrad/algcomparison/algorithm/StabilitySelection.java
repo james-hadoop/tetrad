@@ -5,7 +5,9 @@ import edu.cmu.tetrad.data.BootstrapSampler;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.graph.Edge;
+import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.util.ForkJoinPoolInstance;
 import edu.cmu.tetrad.util.Parameters;
 
@@ -32,7 +34,7 @@ public class StabilitySelection implements Algorithm, TakesInitialGraph {
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         DataSet _dataSet = (DataSet) dataSet;
 
         double percentageB = parameters.getDouble("percentSubsampleSize");
@@ -63,7 +65,7 @@ public class StabilitySelection implements Algorithm, TakesInitialGraph {
                         BootstrapSampler sampler = new BootstrapSampler();
                         sampler.setWithoutReplacements(true);
                         DataSet sample = sampler.sample(_dataSet, (int) (percentageB * _dataSet.getNumRows()));
-                        Graph graph = algorithm.search(sample, parameters);
+                        Graph graph = algorithm.search(sample, parameters, null);
                         graphs.add(graph);
                     }
                 } else {
@@ -113,10 +115,10 @@ public class StabilitySelection implements Algorithm, TakesInitialGraph {
         counts.put(edge, counts.get(edge) + 1);
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return algorithm.getComparisonGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return algorithm.getComparisonGraph(graph);
+//    }
 
     @Override
     public String getDescription() {

@@ -25,8 +25,8 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphNode;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.SemProposition;
 import org.junit.Test;
 
@@ -46,8 +46,8 @@ public class TestSemProposition {
     @Test
     public void testEvidence() {
         Graph graph = constructGraph1();
-        SemPm semPm = new SemPm(graph);
-        SemIm semIm = new SemIm(semPm);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
+        LinearSemIm semIm = new LinearSemIm(linearSemPm);
         List nodes = semIm.getVariableNodes();
 
         SemProposition proposition = SemProposition.tautology(semIm);

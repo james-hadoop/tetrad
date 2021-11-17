@@ -21,7 +21,9 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.sem.*;
@@ -40,27 +42,27 @@ public final class HbsmsGes implements Hbsms {
     private final Graph graph;
     private double alpha = 0.05;
     private final Set<GraphWithPValue> significantModels = new HashSet<>();
-    private SemIm originalSemIm;
-    private SemIm newSemIm;
+    private LinearSemIm originalSemIm;
+    private LinearSemIm newSemIm;
     private final Scorer scorer;
 
     public HbsmsGes(Graph graph, DataSet data) {
         if (graph == null) throw new NullPointerException("Graph not specified.");
         this.data = data;
-        this.graph = SearchGraphUtils.patternForDag(graph);
+        this.graph = SearchGraphUtils.cpdagForDag(graph);
         this.scorer = new FmlBicScorer(data, 2);
     }
 
     public Graph search() {
         Score score1 = scoreGraph(getGraph(), scorer);
 
-        Fges fges = new Fges(new SemBicScore(data));
+        Fges fges = new Fges(new LinearGaussianBicScore(data));
         fges.setInitialGraph(graph);
         fges.setKnowledge(knowledge);
 
-        Graph best = SearchGraphUtils.dagFromPattern(fges.search(), knowledge);
+        Graph best = SearchGraphUtils.dagFromCpdag(fges.search(), knowledge);
 
-        SemPm pm = new SemPm(best);
+        LinearSemPm pm = new LinearSemPm(best);
         SemEstimator est = new SemEstimator(data, pm);
         this.newSemIm = est.estimate();
 
@@ -97,7 +99,7 @@ public final class HbsmsGes implements Hbsms {
     }
 
     public Score scoreGraph(Graph graph, Scorer scorer) {
-        Graph dag = SearchGraphUtils.dagFromPattern(graph, knowledge);
+        Graph dag = SearchGraphUtils.dagFromCpdag(graph, knowledge);
 
         scorer.score(dag);
         return new Score(this.scorer);
@@ -107,11 +109,11 @@ public final class HbsmsGes implements Hbsms {
         return graph;
     }
 
-    public SemIm getOriginalSemIm() {
+    public LinearSemIm getOriginalSemIm() {
         return originalSemIm;
     }
 
-    public SemIm getNewSemIm() {
+    public LinearSemIm getNewSemIm() {
         return newSemIm;
     }
 

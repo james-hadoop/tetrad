@@ -195,7 +195,7 @@ public class IndTestScore implements IndependenceTest {
     }
 
     public ICovarianceMatrix getCov() {
-        return ((SemBicScore) score).getCovariances();
+        return ((LinearGaussianBicScore) score).getCovariances();
     }
 
     public List<DataSet> getDataSets() {

@@ -21,10 +21,12 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.GesMe;
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.sem.*;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GesMe;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 
@@ -43,8 +45,8 @@ public class TestFgesFa {
 
         System.out.println(graph);
 
-        SemPm semPm = new SemPm(graph);
-        SemIm semIm = new SemIm(semPm);
+        LinearSemPm linearSemPm = new LinearSemPm(graph);
+        LinearSemIm semIm = new LinearSemIm(linearSemPm);
         DataSet dataSet = semIm.simulateData(1000, false);
 
         Parameters parameters = new Parameters();
@@ -59,9 +61,9 @@ public class TestFgesFa {
         parameters.set(Params.DETERMINISM_THRESHOLD, 1);
 
         GesMe alg = new GesMe();
-        Graph pattern = alg.search(dataSet, parameters);
+        Graph cpdag = alg.search(dataSet, parameters, null);
 
-        System.out.println(pattern);
+        System.out.println(cpdag);
     }
 
     public static void main(String... args) {

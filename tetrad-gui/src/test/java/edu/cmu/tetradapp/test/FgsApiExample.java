@@ -2,7 +2,7 @@ package edu.cmu.tetradapp.test;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.AlgorithmFactory;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges;
 import edu.cmu.tetrad.algcomparison.score.ConditionalGaussianBicScore;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
@@ -92,7 +92,7 @@ public class FgsApiExample {
         parameters.set(Params.DISCRETIZE, false);
 
         // perform the search
-        Graph graph = fges.search(dataModel, parameters);
+        Graph graph = fges.search(dataModel, parameters, null);
 
         // output the graph
         System.out.println();

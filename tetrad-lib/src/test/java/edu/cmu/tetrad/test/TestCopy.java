@@ -23,15 +23,14 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests to make sure the DelimiterType enumeration hasn't been tampered with.
@@ -77,11 +76,11 @@ public final class TestCopy {
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new Pc(new FisherZ()));
-        algorithms.add(new PcStableMax(new FisherZ(), false));
+        algorithms.add(new PcMax(new FisherZ()));
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Comparison comparison = new Comparison();
 

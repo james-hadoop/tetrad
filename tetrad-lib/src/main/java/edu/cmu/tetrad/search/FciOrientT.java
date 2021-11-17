@@ -479,7 +479,7 @@ public final class FciOrientT {
 
                     LinkedList<Node> reachable = new LinkedList<>();
                     reachable.add(a);
-                    System.out.println("Found pattern " + a + " " + b + " " + c);
+                    System.out.println("Found cpdag " + a + " " + b + " " + c);
                     reachablePathFind(a, b, c, reachable, graph);
                 }
             }

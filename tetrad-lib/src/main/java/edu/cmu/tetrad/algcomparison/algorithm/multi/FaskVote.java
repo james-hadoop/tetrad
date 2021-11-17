@@ -3,13 +3,11 @@ package edu.cmu.tetrad.algcomparison.algorithm.multi;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
-import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -37,7 +35,7 @@ import java.util.List;
         dataType = DataType.Continuous
 )
 //@Bootstrapping
-public class FaskVote implements MultiDataSetAlgorithm, HasKnowledge, TakesInitialGraph, TakesIndependenceWrapper {
+public class FaskVote implements MultiDataSetAlgorithm, KnowledgeSettable, TakesInitialGraph, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private IKnowledge knowledge = new Knowledge2();
@@ -100,7 +98,7 @@ public class FaskVote implements MultiDataSetAlgorithm, HasKnowledge, TakesIniti
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             return search(Collections.singletonList(DataUtils.getContinuousDataSet(dataSet)), parameters);
         } else {
@@ -134,10 +132,10 @@ public class FaskVote implements MultiDataSetAlgorithm, HasKnowledge, TakesIniti
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new EdgeListGraph(graph);
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new EdgeListGraph(graph);
+//    }
 
     @Override
     public String getDescription() {

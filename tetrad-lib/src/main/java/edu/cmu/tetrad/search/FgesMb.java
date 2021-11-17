@@ -28,6 +28,7 @@ import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.ForkJoinPoolInstance;
 import edu.cmu.tetrad.util.TaskManager;
 import edu.cmu.tetrad.util.TetradLogger;
+
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -119,14 +120,14 @@ public final class FgesMb {
     private TetradLogger logger = TetradLogger.getInstance();
 
     /**
-     * The top n graphs found by the algorithm, where n is numPatternsToStore.
+     * The top n graphs found by the algorithm, where n is numCpdagsToStore.
      */
     private LinkedList<ScoredGraph> topGraphs = new LinkedList<>();
 
     /**
-     * The number of top patterns to store.
+     * The number of top cpdags to store.
      */
-    private int numPatternsToStore = 0;
+    private int numCpdagsToStore = 0;
 
     /**
      * True if verbose output should be printed.
@@ -198,7 +199,7 @@ public final class FgesMb {
             throw new NullPointerException();
         }
         setFgesScore(score);
-        this.graph = new EdgeListGraphSingleConnections(getVariables());
+        this.graph = new EdgeListGraph(getVariables());
     }
 
     //==========================PUBLIC METHODS==========================//
@@ -223,21 +224,21 @@ public final class FgesMb {
      * model is significant. Then start deleting edges till a minimum is
      * achieved.
      *
-     * @return the resulting Pattern.
+     * @return the resulting Cpdag.
      */
 //    public Graph search() {
 //        topGraphs.clear();
 //
 //        lookupArrows = new ConcurrentHashMap<>();
 //        final List<Node> nodes = new ArrayList<>(variables);
-//        graph = new EdgeListGraphSingleConnections(nodes);
+//        graph = new EdgeListGraph(nodes);
 //
 //        if (adjacencies != null) {
 //            adjacencies = GraphUtils.replaceNodes(adjacencies, nodes);
 //        }
 //
 //        if (initialGraph != null) {
-//            graph = new EdgeListGraphSingleConnections(initialGraph);
+//            graph = new EdgeListGraph(initialGraph);
 //            graph = GraphUtils.replaceNodes(graph, nodes);
 //        }
 //
@@ -316,7 +317,7 @@ public final class FgesMb {
             adjacencies = GraphUtils.replaceNodes(adjacencies, nodes);
         }
 
-        graph = new EdgeListGraphSingleConnections(getVariables());
+        graph = new EdgeListGraph(getVariables());
 
         this.mode = Mode.heuristicSpeedup;
 
@@ -362,7 +363,7 @@ public final class FgesMb {
         neighbors = new ConcurrentHashMap<>();
         final List<Node> nodes = fgesScore.getVariables();
 
-        this.effectEdgesGraph = new EdgeListGraphSingleConnections();
+        this.effectEdgesGraph = new EdgeListGraph();
 
         for (Node target : targets) {
             this.effectEdgesGraph.addNode(target);
@@ -560,22 +561,22 @@ public final class FgesMb {
     }
 
     /**
-     * @return the number of patterns to store.
+     * @return the number of cpdags to store.
      */
-    public int getNumPatternsToStore() {
-        return numPatternsToStore;
+    public int getNumCpdagsToStore() {
+        return numCpdagsToStore;
     }
 
     /**
-     * Sets the number of patterns to store. This should be set to zero for fast
+     * Sets the number of cpdags to store. This should be set to zero for fast
      * search.
      */
-    public void setNumPatternsToStore(int numPatternsToStore) {
-        if (numPatternsToStore < 0) {
-            throw new IllegalArgumentException("# graphs to store must at least 0: " + numPatternsToStore);
+    public void setNumCpdagsToStore(int numCpdagsToStore) {
+        if (numCpdagsToStore < 0) {
+            throw new IllegalArgumentException("# graphs to store must at least 0: " + numCpdagsToStore);
         }
 
-        this.numPatternsToStore = numPatternsToStore;
+        this.numCpdagsToStore = numCpdagsToStore;
     }
 
     /**
@@ -723,7 +724,7 @@ public final class FgesMb {
     }
 
     /**
-     * The maximum of parents any nodes can have in output pattern.
+     * The maximum of parents any nodes can have in output cpdag.
      *
      * @return -1 for unlimited.
      */
@@ -732,7 +733,7 @@ public final class FgesMb {
     }
 
     /**
-     * The maximum of parents any nodes can have in output pattern.
+     * The maximum of parents any nodes can have in output cpdag.
      *
      * @param maxDegree -1 for unlimited.
      */
@@ -846,7 +847,7 @@ public final class FgesMb {
         final Set<Node> emptySet = new HashSet<>();
 
         long start = System.currentTimeMillis();
-        this.effectEdgesGraph = new EdgeListGraphSingleConnections(nodes);
+        this.effectEdgesGraph = new EdgeListGraph(nodes);
 
         class InitializeFromEmptyGraphTask extends RecursiveTask<Boolean> {
 
@@ -2222,12 +2223,12 @@ public final class FgesMb {
 
     // Stores the graph, if its totalScore knocks out one of the top ones.
     private void storeGraph(Graph graph) {
-        if (getNumPatternsToStore() > 0) {
-            Graph graphCopy = new EdgeListGraphSingleConnections(graph);
+        if (getNumCpdagsToStore() > 0) {
+            Graph graphCopy = new EdgeListGraph(graph);
             topGraphs.addLast(new ScoredGraph(graphCopy, totalScore));
         }
 
-        if (topGraphs.size() == getNumPatternsToStore() + 1) {
+        if (topGraphs.size() == getNumCpdagsToStore() + 1) {
             topGraphs.removeFirst();
         }
     }
@@ -2267,7 +2268,7 @@ public final class FgesMb {
 
         builder.append("Edge Posterior Log Bayes Factors:\n\n");
 
-        builder.append("For a DAG in the IMaGES pattern with model totalScore m, for each edge e in the "
+        builder.append("For a DAG in the IMaGES cpdag with model totalScore m, for each edge e in the "
                 + "DAG, the model totalScore that would result from removing each edge, calculating "
                 + "the resulting model totalScore m(e), and then reporting m - m(e). The totalScore used is "
                 + "the IMScore, L - SUM_i{kc ln n(i)}, L is the maximum likelihood of the model, "

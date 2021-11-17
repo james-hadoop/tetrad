@@ -240,48 +240,48 @@ public class TestExpressionParser {
 //        String regex = regex5;
         String regex = regex6;
 
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regex);
-        Matcher matcher = pattern.matcher("0.5");
+        java.util.regex.Pattern cpdag = java.util.regex.Pattern.compile(regex);
+        Matcher matcher = cpdag.matcher("0.5");
         boolean matches = matcher.matches();
 
         assertTrue(matches);
 
-        matcher = pattern.matcher(".5");
+        matcher = cpdag.matcher(".5");
         matches = matcher.matches();
 
         assertTrue(matches);
 
-        matcher = pattern.matcher("5.");
+        matcher = cpdag.matcher("5.");
         matches = matcher.matches();
 
         assertTrue(matches);
 
-        matcher = pattern.matcher("5");
+        matcher = cpdag.matcher("5");
         matches = matcher.matches();
 
         assertTrue(matches);
 
-        matcher = pattern.matcher(".");
+        matcher = cpdag.matcher(".");
         matches = matcher.matches();
 
         assertTrue(!matches);
 
-        matcher = pattern.matcher("-.5");
+        matcher = cpdag.matcher("-.5");
         matches = matcher.matches();
 
         assertTrue(matches);
 
-        matcher = pattern.matcher("-5.");
+        matcher = cpdag.matcher("-5.");
         matches = matcher.matches();
 
         assertTrue(matches);
 
-        matcher = pattern.matcher("-5");
+        matcher = cpdag.matcher("-5");
         matches = matcher.matches();
 
         assertTrue(matches);
 
-        matcher = pattern.matcher("-.");
+        matcher = cpdag.matcher("-.");
         matches = matcher.matches();
 
         assertTrue(!matches);

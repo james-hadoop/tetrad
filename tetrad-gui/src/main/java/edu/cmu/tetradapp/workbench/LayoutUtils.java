@@ -44,7 +44,7 @@ import java.util.prefs.Preferences;
 public class LayoutUtils {
     public enum Layout {
         lag0TopToBottom, lag0BottomToTop, lag0LeftToRight, lag0RightToLeft,
-        topToBottom, bottomToTop, leftToRight, rightToLeft, layered, source, knowledge, circle,
+        topToBottom, bottomToTop, leftToRight, rightToLeft, /*layered,*/ source, knowledge, circle,
         kamadaKawai, fruchtermReingold, distanceFromSelected
     }
 
@@ -485,19 +485,19 @@ public class LayoutUtils {
         layout = Layout.rightToLeft;
     }
 
-    public static void layeredDrawingLayout(LayoutEditable layoutEditable) {
-        Graph graph = layoutEditable.getGraph();
-
-        for (Node node : new ArrayList<>(graph.getNodes())) {
-            if (node.getNodeType() == NodeType.ERROR) {
-                graph.removeNode(node);
-            }
-        }
-
-        GraphUtils.hierarchicalLayout(graph);
-        layoutEditable.layoutByGraph(graph);
-        layout = Layout.layered;
-    }
+//    public static void layeredDrawingLayout(LayoutEditable layoutEditable) {
+//        Graph graph = layoutEditable.getGraph();
+//
+//        for (Node node : new ArrayList<>(graph.getNodes())) {
+//            if (node.getNodeType() == NodeType.ERROR) {
+//                graph.removeNode(node);
+//            }
+//        }
+//
+//        GraphUtils.hierarchicalLayout(graph);
+//        layoutEditable.layoutByGraph(graph);
+//        layout = Layout.layered;
+//    }
 
     private static void sourceGraphLayout(LayoutEditable layoutEditable) {
         Graph graph = new EdgeListGraph(layoutEditable.getGraph());
@@ -526,7 +526,7 @@ public class LayoutUtils {
             }
 
             IKnowledge knowledge = layoutEditable.getKnowledge();
-            SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
+            SearchGraphUtils.arrangeByKnowledgeTiers(graph);
             layoutEditable.layoutByGraph(graph);
         } catch (Exception e1) {
             JOptionPane.showMessageDialog(JOptionUtils.centeringComp(),
@@ -606,6 +606,7 @@ public class LayoutUtils {
             }
         }
 
+        GraphUtils.circleLayout(graph, 300, 300, 150);
         GraphUtils.fruchtermanReingoldLayout(graph);
         layoutEditable.layoutByGraph(graph);
         layout = Layout.fruchtermReingold;
@@ -652,9 +653,9 @@ public class LayoutUtils {
             case rightToLeft:
                 rightToLeftLayout(layoutEditable);
                 break;
-            case layered:
-                layeredDrawingLayout(layoutEditable);
-                break;
+//            case layered:
+//                layeredDrawingLayout(layoutEditable);
+//                break;
             case source:
                 sourceGraphLayout(layoutEditable);
                 break;

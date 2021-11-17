@@ -48,18 +48,13 @@ import edu.cmu.tetradapp.util.FinalizingEditor;
 import edu.cmu.tetradapp.util.WatchedProcess;
 import edu.pitt.dbmi.ccd.commons.file.MessageDigestHash;
 import edu.pitt.dbmi.ccd.rest.client.dto.user.JsonWebToken;
-import edu.pitt.dbmi.tetrad.db.entity.AlgorithmParamRequest;
-import edu.pitt.dbmi.tetrad.db.entity.AlgorithmParameter;
-import edu.pitt.dbmi.tetrad.db.entity.HpcAccount;
-import edu.pitt.dbmi.tetrad.db.entity.HpcJobInfo;
-import edu.pitt.dbmi.tetrad.db.entity.HpcParameter;
-import edu.pitt.dbmi.tetrad.db.entity.JvmOptions;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Dimension;
-import java.awt.Frame;
-import java.awt.Toolkit;
-import java.awt.Window;
+import edu.pitt.dbmi.tetrad.db.entity.*;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -71,21 +66,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingConstants;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Edits some algorithm to search for Markov blanket patterns.
+ * Edits some algorithm to search for Markov blanket cpdags.
  *
  * @author Joseph Ramsey
  * @author Chirayu Kong Wongchokprasitti, PhD (chw20@pitt.edu)

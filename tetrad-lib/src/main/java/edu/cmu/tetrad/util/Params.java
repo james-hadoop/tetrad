@@ -22,11 +22,11 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.Bootstrapping;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -59,6 +59,7 @@ public final class Params {
     public static final String CUTOFF_IND_TEST = "cutoffIndTest";
     public static final String DATA_TYPE = "dataType";
     public static final String DEPTH = "depth";
+    public static final String GSP_DEPTH = "gspDepth";
     public static final String DETERMINISM_THRESHOLD = "determinismThreshold";
     public static final String DIFFERENT_GRAPHS = "differentGraphs";
     public static final String DISCRETIZE = "discretize";
@@ -201,6 +202,15 @@ public final class Params {
     public static final String CORRELATION_THRESHOLD = "correlationThreshold";
     public static final String BEAM_WIDTH = "beamWidth";
     public static final String ZERO_EDGE_P = "zeroEdgeP";
+    public static final String NUM_STARTS = "numStarts";
+    public static final String RECURSIVE = "recursive";
+    public static final String CACHE_SCORES = "cacheScores";
+    public static final String BOSS_METHOD = "bossMethod";
+    public static final String BOSS_SCORE_TYPE = "bossScoreType";
+    public static final String BREAK_TIES = "breakTies";
+    public static final String USE_SCORE = "useScore";
+    public static final String OUTPUT_CPDAG = "outputCpdag";
+    public static final String ZS_RISK_BOUND = "zSRiskBound";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(
@@ -253,21 +263,18 @@ public final class Params {
     }
 
     public static Set<String> getAlgorithmParameters(Algorithm algorithm) {
-        return algorithm.getParameters()
-                .stream().collect(Collectors.toSet());
+        return new HashSet<>(algorithm.getParameters());
     }
 
     public static Set<String> getTestParameters(Algorithm algorithm) {
         return (algorithm instanceof TakesIndependenceWrapper)
-                ? ((TakesIndependenceWrapper) algorithm).getIndependenceWrapper().getParameters()
-                        .stream().collect(Collectors.toSet())
+                ? new HashSet<>(((TakesIndependenceWrapper) algorithm).getIndependenceWrapper().getParameters())
                 : Collections.emptySet();
     }
 
     public static Set<String> getScoreParameters(Algorithm algorithm) {
         return (algorithm instanceof UsesScoreWrapper)
-                ? ((UsesScoreWrapper) algorithm).getScoreWrapper().getParameters()
-                        .stream().collect(Collectors.toSet())
+                ? new HashSet<>(((UsesScoreWrapper) algorithm).getScoreWrapper().getParameters())
                 : Collections.emptySet();
     }
 
@@ -277,7 +284,7 @@ public final class Params {
                 : Collections.emptySet();
     }
 
-    public static final Set<String> getParameters() {
+    public static Set<String> getParameters() {
         return ALL_PARAMS_IN_HTML_MANUAL;
     }
 

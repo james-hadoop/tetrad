@@ -1,6 +1,19 @@
 package edu.cmu.tetrad.search;
 
-import static java.lang.Math.exp;
+import edu.cmu.tetrad.bayes.BayesIm;
+import edu.cmu.tetrad.bayes.BayesPm;
+import edu.cmu.tetrad.bayes.DirichletBayesIm;
+import edu.cmu.tetrad.bayes.DirichletEstimator;
+import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.performance.Comparison;
+import edu.cmu.tetrad.performance.Comparison.TableColumn;
+import edu.cmu.tetrad.util.RandomUtil;
+import edu.cmu.tetrad.util.TextTable;
+import edu.pitt.dbmi.algo.bayesian.constraint.inference.BCInference;
+import nu.xom.Builder;
+import nu.xom.Document;
+import nu.xom.ParsingException;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,22 +24,8 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static java.lang.Math.*;
-
-import edu.cmu.tetrad.bayes.BayesIm;
-import edu.cmu.tetrad.bayes.BayesPm;
-import edu.cmu.tetrad.bayes.DirichletBayesIm;
-import edu.cmu.tetrad.bayes.DirichletEstimator;
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.performance.Comparison;
-import edu.cmu.tetrad.performance.Comparison.*;
-import edu.cmu.tetrad.util.RandomUtil;
-import edu.cmu.tetrad.util.TextTable;
-import edu.pitt.dbmi.algo.bayesian.constraint.inference.BCInference;
-import nu.xom.Builder;
-import nu.xom.Document;
-import nu.xom.ParsingException;
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
 
 public class RBExperiments {
 
@@ -267,8 +266,8 @@ public class RBExperiments {
 		System.out.println("Dep data creation done!");
 
 		// learn structure of constraints using empirical data
-		Graph depPattern = runFGS(depData);
-		Graph estDepBN = SearchGraphUtils.dagFromPattern(depPattern);
+		Graph depCpdag = runFGS(depData);
+		Graph estDepBN = SearchGraphUtils.dagFromCpdag(depCpdag);
 		System.out.println("estDepBN: " + estDepBN.getEdges());
 		out.println("DepGraph(nodes,edges):" + estDepBN.getNumNodes() + "," + estDepBN.getNumEdges());
 		System.out.println("Dependency graph done!");
@@ -410,8 +409,8 @@ public class RBExperiments {
 		System.out.println("Dep data creation done!");
 
 		// learn structure of constraints using empirical data => constraint meta data
-		Graph depPattern = runFGS(depData);
-		Graph estDepBN = SearchGraphUtils.dagFromPattern(depPattern);
+		Graph depCpdag = runFGS(depData);
+		Graph estDepBN = SearchGraphUtils.dagFromCpdag(depCpdag);
 		System.out.println("estDepBN: " + estDepBN.getEdges());
 		//		out.println("DepGraph(nodes,edges):" + estDepBN.getNumNodes() + "," + estDepBN.getNumEdges());
 		System.out.println("Dependency graph done!");
@@ -521,7 +520,7 @@ public class RBExperiments {
 
 		tableColumns.add(Comparison.TableColumn.SHD);
 
-		GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison3(graph, trueGraph, null);
+		GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison(graph, trueGraph);
 
 		List<Node> variables = new ArrayList<>();
 		for (TableColumn column : tableColumns) {
@@ -808,9 +807,9 @@ public class RBExperiments {
 		Fges fgs = new Fges(sd);
 		fgs.setVerbose(false);
 		fgs.setFaithfulnessAssumed(true);
-		Graph fgsPattern = fgs.search();
-		fgsPattern = GraphUtils.replaceNodes(fgsPattern, data.getVariables());
-		return fgsPattern;
+		Graph fgsCpdag = fgs.search();
+		fgsCpdag = GraphUtils.replaceNodes(fgsCpdag, data.getVariables());
+		return fgsCpdag;
 	}
 
 	private allScores getLnProbsAll(List<Graph> pags, Map<IndependenceFact, Double> H, DataSet data, BayesIm im,
@@ -906,15 +905,15 @@ public class RBExperiments {
 	// for (int parentIndex = 0; parentIndex < parentValues.length;
 	// parentIndex++) {
 	// String parentName = im.getNode(parents[parentIndex]).getName();
-	// String[] splitParent = parentName.split(Pattern.quote("_||_"));
+	// String[] splitParent = parentName.split(Cpdag.quote("_||_"));
 	// Node X = pag.getNode(splitParent[0].trim());
 	//
-	// String[] splitParent2 = splitParent[1].trim().split(Pattern.quote("|"));
+	// String[] splitParent2 = splitParent[1].trim().split(Cpdag.quote("|"));
 	// Node Y = pag.getNode(splitParent2[0].trim());
 	//
 	// List<Node> Z = new ArrayList<Node>();
 	// if(splitParent2.length>1){
-	// String[] splitParent3 = splitParent2[1].trim().split(Pattern.quote(","));
+	// String[] splitParent3 = splitParent2[1].trim().split(Cpdag.quote(","));
 	// for(String s: splitParent3){
 	// Z.add(pag.getNode(s.trim()));
 	// }

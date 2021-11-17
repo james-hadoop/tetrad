@@ -3,6 +3,7 @@ package edu.cmu.tetrad.algcomparison.statistic;
 import edu.cmu.tetrad.algcomparison.statistic.utils.ArrowConfusion;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
 
 /**
  * The arrow recall. This counts arrowheads maniacally, wherever they occur in the graphs.
@@ -28,6 +29,7 @@ public class ArrowheadRecallCommonEdges implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
+        estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
         ArrowConfusion adjConfusion = new ArrowConfusion(trueGraph, estGraph);
         double arrowsTp = adjConfusion.getArrowsTpc();
         double arrowsFn = adjConfusion.getArrowsFnc();

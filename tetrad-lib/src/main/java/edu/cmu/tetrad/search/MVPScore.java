@@ -21,10 +21,11 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Node;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * Implements a mixed variable polynomial BIC score for fGES.
@@ -133,6 +134,11 @@ public class MVPScore implements Score {
     @Override
     public boolean determines(List<Node> z, Node y) {
         return false;
+    }
+
+    @Override
+    public DataModel getData() {
+        return dataSet;
     }
 
 }

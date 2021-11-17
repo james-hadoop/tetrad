@@ -1,0 +1,77 @@
+Fri Sep 03 10:44:03 EDT 2021
+
+Statistics:
+
+sampleSize = Extra column for sampleSize
+avgDegree = Extra column for avgDegree
+CorrSk = Correct Skeleton
+AP = Adjacency Precision
+AR = Adjacency Recall
+AHP = Arrowhead precision
+AHR = Arrowhead recall
+SHD = Structural Hamming Distance comparing CPDAGs
+F1All = F1 statistic for adjacencies and orientations combined
+E = Elapsed Time in Seconds
+
+Simulations:
+
+Simulation 1: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 100
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 10
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1.0
+High end of variance range (min = 0.0) = 3.0
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 1
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 1000
+Save latent variables. = No
+Yes if the data should be standardized = No
+
+Algorithms:
+
+1. BOSS (Best Order Score Search) using Fisher Z test or Zhang-Shen Bound Score
+
+Graphs are being compared to the True CPDAG.
+
+AVERAGE STATISTICS
+
+All edges
+
+  Alg  sampleSize  avgDegree  CorrSk    AP    AR   AHP   AHR     SHD  F1All       E
+    1     1000.00      10.00       -  1.00  0.86  1.00  0.85  144.00   0.79  427.90
+
+STANDARD DEVIATIONS
+
+All edges
+
+  Alg  sampleSize  avgDegree  CorrSk  AP  AR  AHP  AHR  SHD  F1All  E
+    1     1000.00      10.00       *   *   *    *    *    *      *  *
+
+WORST CASE
+
+All edges
+
+  Alg  sampleSize  avgDegree  CorrSk    AP    AR   AHP   AHR     SHD  F1All       E
+    1     1000.00      10.00       -  1.00  0.86  1.00  0.85  144.00   0.79  427.90
+
+MEDIAN CASE
+
+All edges
+
+  Alg  sampleSize  avgDegree  CorrSk    AP    AR   AHP   AHR     SHD  F1All       E
+    1     1000.00      10.00       -  1.00  0.86  1.00  0.85  144.00   0.79  427.90
+

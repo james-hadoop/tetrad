@@ -4,9 +4,11 @@ import edu.cmu.tetrad.annotation.TestOfIndependence;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +28,7 @@ public class Kci implements IndependenceWrapper {
 
 
     @Override
-    public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
+    public IndependenceTest getTest(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         final edu.cmu.tetrad.search.Kci kci = new edu.cmu.tetrad.search.Kci(DataUtils.getContinuousDataSet(dataSet),
                 parameters.getDouble(Params.ALPHA));
         kci.setApproximate(parameters.getBoolean(Params.KCI_USE_APPROMATION));

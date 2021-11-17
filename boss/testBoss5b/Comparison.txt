@@ -1,0 +1,100 @@
+Sun Nov 07 00:06:17 EDT 2021
+
+Statistics:
+
+AP = Adjacency Precision
+AR = Adjacency Recall
+AHPC = Arrowhead precision (common edges)
+AHRC = Arrowhead recall (common edges)
+ATPR = Adjacency True Positive Rate
+AFPR = Adjacency False Positive Rate
+SHD = Structural Hamming Distance comparing CPDAGs
+E = Elapsed Time in Seconds
+
+Simulations:
+
+Simulation 1: Linear, Gaussian SEM simulation using Graph constructed by adding random forward edges
+
+Comparison.printParameters
+Number of measured variables (min = 1) = 50
+Number of latent variables (min = 0) = 0
+Average degree of graph (min = 1) = 6
+The maximum degree of the graph (min = -1) = 100
+Maximum indegree of graph (min = 1) = 100
+Maximum outdegree of graph (min = 1) = 100
+Yes if graph should be connected = No
+Low end of coefficient range (min = 0.0) = 0
+High end of coefficient range (min = 0.0) = 1
+Low end of covariance range (min = 0.0) = 0.0
+High end of covariance range (min = 0.0) = 0.0
+Low end of variance range (min = 0.0) = 1.0
+High end of variance range (min = 0.0) = 3.0
+Yes if negative coefficient values should be considered = Yes
+Yes if negative covariance values should be considered = Yes
+Additive measurement noise variance (min = 0.0) = 0.0
+Number of runs (min = 1) = 10
+Yes if a different graph should be used for each run = No
+Yes if the order of the columns in each datasets should be randomized = Yes
+Sample size (min = 1) = 1000
+Save latent variables. = No
+Yes if the data should be standardized = No
+
+Algorithms:
+
+1. PC ("Peter and Clark"), Priority Rule, using Fisher Z test
+2. CPC (Conservative "Peter and Clark"), using Fisher Z test
+3. PC-Max ("Peter and Clark"), Priority Rule, using Fisher Z test
+4. FGES using Linear, Gaussian BIC Score
+5. GSP (Greedy Sparsest Permutation) using Fisher Z test or Linear, Gaussian BIC Score
+6. BOSS (Best Order Score Search) using Fisher Z test or Linear, Gaussian BIC Score
+
+Graphs are being compared to the True CPDAG.
+
+AVERAGE STATISTICS
+
+All edges
+
+  Alg    AP    AR  AHPC  AHRC  ATPR     AFPR     SHD     E
+    1  0.94  0.59  0.26  0.25  0.59  4.45E-3  199.80  0.36
+    2  0.95  0.59  0.80  0.81  0.59  3.85E-3  149.60  0.19
+    3  0.95  0.59  0.80  0.77  0.59  3.85E-3  152.50  0.15
+    4  0.72  0.83  0.83  0.82  0.83     0.04  180.60  1.01
+    5  0.44  0.80  0.50  0.52  0.80     0.11  426.80  0.23
+    6  0.99  0.89  0.99  0.98  0.89  1.65E-3   39.80  4.72
+
+STANDARD DEVIATIONS
+
+All edges
+
+  Alg    AP    AR     AHPC  AHRC  ATPR     AFPR    SHD     E
+    1  0.02  0.03     0.05  0.05  0.03  1.65E-3   7.24  0.34
+    2  0.02  0.03     0.06  0.04  0.03  1.76E-3  10.24  0.07
+    3  0.02  0.03     0.09  0.07  0.03  1.76E-3   8.53  0.03
+    4  0.13  0.03     0.07  0.07  0.03     0.02  77.75  0.43
+    5  0.03  0.03     0.06  0.07  0.03     0.02  50.94  0.04
+    6  0.02  0.02  9.49E-3  0.01  0.02  1.78E-3  10.23  1.06
+
+WORST CASE
+
+All edges
+
+  Alg    AP    AR  AHPC  AHRC  ATPR     AFPR     SHD     E
+    1  0.91  0.55  0.20  0.20  0.55  1.71E-3  189.00  0.18
+    2  0.91  0.56  0.70  0.73  0.56  8.57E-4  138.00  0.15
+    3  0.91  0.56  0.65  0.67  0.56  8.57E-4  137.00  0.12
+    4  0.56  0.79  0.73  0.71  0.79  9.03E-3   69.00  0.55
+    5  0.38  0.76  0.39  0.40  0.76     0.09  352.00  0.18
+    6  0.95  0.85  0.98  0.94  0.85        -   25.00  3.08
+
+MEDIAN CASE
+
+All edges
+
+  Alg    AP    AR  AHPC  AHRC  ATPR     AFPR     SHD     E
+    1  0.94  0.58  0.24  0.24  0.58  4.71E-3  199.00  0.28
+    2  0.96  0.58  0.80  0.83  0.58  3.43E-3  148.50  0.17
+    3  0.96  0.58  0.79  0.77  0.58  3.43E-3  151.50  0.14
+    4  0.68  0.83  0.80  0.81  0.83     0.05  199.00  0.97
+    5  0.44  0.79  0.50  0.51  0.79     0.11  419.00  0.23
+    6  0.99  0.89  1.00  0.98  0.89  1.24E-3   37.00  4.58
+

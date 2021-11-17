@@ -26,7 +26,7 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.graph.SemGraph;
-import edu.cmu.tetrad.sem.SemIm;
+import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.util.ProbUtils;
 import edu.cmu.tetrad.util.RandomUtil;
 
@@ -1644,7 +1644,7 @@ public final class DiscreteTetradTest implements TetradTest {
     /**
      * For one-factor models.
      */
-    private double piHat1(int indices[], int v[], SemIm semIm) {
+    private double piHat1(int indices[], int v[], LinearSemIm semIm) {
         double stdE[] = new double[indices.length];
         double stdU[] = new double[indices.length];
         double coeff[] = new double[indices.length];
@@ -1706,7 +1706,7 @@ public final class DiscreteTetradTest implements TetradTest {
     /**
      * For two factor models.
      */
-    private double piHat2(int indices[], int v[], SemIm semIm) {
+    private double piHat2(int indices[], int v[], LinearSemIm semIm) {
         SemGraph graph = semIm.getSemPm().getGraph();
         graph.setShowErrorTerms(true);
 

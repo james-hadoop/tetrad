@@ -26,12 +26,15 @@ import edu.cmu.tetrad.session.DoNotAddOldModel;
 import edu.cmu.tetrad.session.SessionModel;
 import edu.cmu.tetrad.session.SimulationParamsSource;
 import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Holds a tetrad dag with all of the constructors necessary for it to serve as
@@ -96,10 +99,8 @@ public class SemGraphWrapper implements SessionModel, GraphSource,
             semGraph.setShowErrorTerms(false);
             setSemGraph(semGraph);
         } else if (params.getString("newGraphInitializationMode", "manual").equals("random")) {
-            RandomUtil.getInstance().setSeed(new Date().getTime());
             setSemGraph(new SemGraph(edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters)));
         } else {
-            RandomUtil.getInstance().setSeed(new Date().getTime());
             setSemGraph(new SemGraph(edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters)));
         }
 
@@ -121,7 +122,6 @@ public class SemGraphWrapper implements SessionModel, GraphSource,
                 setSemGraph(semGraph);
             }
         } else if (params.getString("newGraphInitializationMode", "manual").equals("random")) {
-            RandomUtil.getInstance().setSeed(new Date().getTime());
             setSemGraph(new SemGraph(edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters)));
         }
         log();
@@ -134,7 +134,6 @@ public class SemGraphWrapper implements SessionModel, GraphSource,
             semGraph.setShowErrorTerms(false);
             setSemGraph(semGraph);
         } else if (params.getString("newGraphInitializationMode", "manual").equals("random")) {
-            RandomUtil.getInstance().setSeed(new Date().getTime());
             setSemGraph(new SemGraph(edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters)));
         }
         log();
@@ -146,7 +145,6 @@ public class SemGraphWrapper implements SessionModel, GraphSource,
             semGraph.setShowErrorTerms(false);
             setSemGraph(semGraph);
         } else if (params.getString("newGraphInitializationMode", "manual").equals("random")) {
-            RandomUtil.getInstance().setSeed(new Date().getTime());
             setSemGraph(new SemGraph(edu.cmu.tetradapp.util.GraphUtils.makeRandomGraph(getGraph(), parameters)));
         }
         this.parameters = params;
@@ -194,11 +192,11 @@ public class SemGraphWrapper implements SessionModel, GraphSource,
         this(new SemGraph(wrapper.getBayesUpdater().getManipulatedGraph()));
     }
 
-    public SemGraphWrapper(SemPmWrapper wrapper) {
+    public SemGraphWrapper(LinearSemPmWrapper wrapper) {
         this(new SemGraph(wrapper.getSemPm().getGraph()));
     }
 
-    public SemGraphWrapper(SemImWrapper wrapper) {
+    public SemGraphWrapper(LinearSemImWrapper wrapper) {
         this(new SemGraph(wrapper.getSemIm().getSemPm().getGraph()));
     }
 

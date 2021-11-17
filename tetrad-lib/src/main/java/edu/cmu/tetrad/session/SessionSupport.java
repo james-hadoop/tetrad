@@ -81,6 +81,7 @@ public class SessionSupport {
                 new SessionEvent(this.source, node, SessionEvent.NODE_ADDED);
 
         fireSessionEvent(event);
+//        AvailableModels.getUnique().add(event.getNode().getModel());
     }
 
     /**

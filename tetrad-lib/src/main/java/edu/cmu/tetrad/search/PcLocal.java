@@ -69,7 +69,7 @@ public class PcLocal implements GraphSearch {
     private boolean recordSepsets = true;
     private SepsetMap sepsetMap = new SepsetMap();
     private SepsetProducer sepsetProducer;
-    private SemBicScore score;
+    private LinearGaussianBicScore score;
     private ConcurrentMap<Node, Integer> hashIndices;
     private boolean verbose = false;
     private Graph initialGraph;

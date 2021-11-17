@@ -23,13 +23,13 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pc;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pcd;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pcd;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
@@ -80,7 +80,7 @@ public class TestKunMeasurementError {
         Algorithms algorithms = new Algorithms();
 
         IndependenceWrapper test = new SemBicTest();
-        ScoreWrapper score = new SemBicScore();
+        ScoreWrapper score = new LinearGaussianBicScore();
 
         algorithms.add(new Pc(test));
         algorithms.add(new Fges(score));

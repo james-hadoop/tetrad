@@ -120,12 +120,12 @@ public abstract class AbstractAlgorithmRunner
         this.dataWrapper = dataWrapper;
 
         //temporary workaround to get the knowledge box to coexist with the dataWrapper's knowledge
-        if (knowledgeBoxModel == null) {
+        if (dataWrapper.getKnowledge() != null) {
             getParams().set("knowledge", dataWrapper.getKnowledge());
         } else {
             getParams().set("knowledge", knowledgeBoxModel.getKnowledge());
         }
-        List names = dataSource.getVariableNames();
+        List<String> names = dataSource.getVariableNames();
         transferVarNamesToParams(names);
     }
 
@@ -133,14 +133,13 @@ public abstract class AbstractAlgorithmRunner
      * Constructs a wrapper for the given DataWrapper. The DatWrapper must
      * contain a DataSet that is either a DataSet or a DataSet or a DataList
      * containing either a DataSet or a DataSet as its selected model.
-     *
-     * @param knowledgeBoxModel
      */
-    public AbstractAlgorithmRunner(DataWrapper dataWrapper,
-                                   Parameters params, KnowledgeBoxModel knowledgeBoxModel, IndependenceFactsModel facts) {
+    public AbstractAlgorithmRunner(DataWrapper dataWrapper, Parameters params, KnowledgeBoxModel knowledgeBoxModel,
+                                   IndependenceFactsModel facts) {
         if (dataWrapper == null) {
             throw new NullPointerException();
         }
+
         if (params == null) {
             throw new NullPointerException();
         }
@@ -160,7 +159,7 @@ public abstract class AbstractAlgorithmRunner
         }
 
         getParams().set("independenceFacts", facts.getFacts());
-        List names = dataSource.getVariableNames();
+        List<String> names = dataSource.getVariableNames();
         transferVarNamesToParams(names);
     }
 
@@ -179,7 +178,7 @@ public abstract class AbstractAlgorithmRunner
 
         this.dataWrapper = dataWrapper;
 
-        List names = dataSource.getVariableNames();
+        List<String> names = dataSource.getVariableNames();
         transferVarNamesToParams(names);
     }
 
@@ -238,7 +237,7 @@ public abstract class AbstractAlgorithmRunner
             getParams().set("knowledge", knowledgeBoxModel.getKnowledge());
         }
 
-        List names = dataSource.getVariableNames();
+        List<String> names = dataSource.getVariableNames();
         transferVarNamesToParams(names);
         this.dataModel = dataSource;
     }

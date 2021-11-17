@@ -37,8 +37,8 @@ import java.awt.event.ItemListener;
 import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * This is the wizard which allows the user to select the x and y-axis variables
@@ -48,8 +48,8 @@ import java.util.List;
  * @author Joseph Ramsey
  */
 public class ScatterPlotView extends JPanel {
-    private ScatterPlot scatterPlot;
-    private ScatterPlotChart scatterPlotChart;
+    private final ScatterPlot scatterPlot;
+    private final ScatterPlotChart scatterPlotChart;
     private String x;
     private String y;
     private static final String[] tiles = new String[]{"1-tile", "2-tile", "tertile", "quartile", "quintile", "sextile",
@@ -61,13 +61,11 @@ public class ScatterPlotView extends JPanel {
 //        if (!dataSet.isContinuous()) throw new IllegalArgumentException("Data set not continuous.");
         if (!(dataSet.getNumColumns() >= 2)) throw new IllegalArgumentException("Need at least two columns.");
 
-        DataSet dataSet1 = dataSet;
-
         this.x = dataSet.getVariable(0).getName();
         this.y = dataSet.getVariable(1).getName();
 
         setLayout(new BorderLayout());
-        ScatterPlot ScatterPlot = new ScatterPlot(dataSet1, false, x, y);
+        ScatterPlot ScatterPlot = new ScatterPlot(dataSet, false, x, y);
         ScatterPlotChart ScatterPlotChart = new ScatterPlotChart(ScatterPlot);
         this.scatterPlot = ScatterPlot;
         this.scatterPlotChart = ScatterPlotChart;
@@ -820,7 +818,6 @@ public class ScatterPlotView extends JPanel {
             final double ymin = scatterPlot.getYmin();
             final double ymax = scatterPlot.getYmax();
 
-
             Graphics2D g = (Graphics2D) graphics;
 
             g.setColor(Color.white);
@@ -872,7 +869,7 @@ public class ScatterPlotView extends JPanel {
             double _yRange = ymax - ymin;
             int x, y;
 
-            g.setColor(Color.red);
+            g.setColor(Color.blue);
             for (Point2D.Double _pt : pts) {
                 x = (int) (((_pt.getX() - xmin) / _xRange) * xRange + xMin);
                 y = (int) (((ymax - _pt.getY()) / _yRange) * yRange + yMin);

@@ -1,11 +1,8 @@
 package edu.pitt.dbmi.algo.resampling.task;
 
-import java.io.PrintStream;
-import java.util.List;
-
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.IKnowledge;
@@ -13,6 +10,9 @@ import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingSearch;
+
+import java.io.PrintStream;
+import java.util.List;
 
 /**
  * 
@@ -124,16 +124,16 @@ public class GeneralResamplingSearchRunnable implements Runnable {
 		Graph graph = null;
 		
 		if(dataSet != null){
-			if (algorithm instanceof HasKnowledge) {
-                ((HasKnowledge) algorithm).setKnowledge(knowledge);
+			if (algorithm instanceof KnowledgeSettable) {
+                ((KnowledgeSettable) algorithm).setKnowledge(getKnowledge());
         		if (verbose) {
         			out.println("knowledge being set ... ");
         		}
             }
-			graph = algorithm.search(dataSet, parameters);
+			graph = algorithm.search(dataSet, parameters, null);
 		}else{
-			if (multiDataSetAlgorithm instanceof HasKnowledge) {
-                ((HasKnowledge) multiDataSetAlgorithm).setKnowledge(knowledge);
+			if (multiDataSetAlgorithm instanceof KnowledgeSettable) {
+                ((KnowledgeSettable) multiDataSetAlgorithm).setKnowledge(getKnowledge());
         		if (verbose) {
         			out.println("knowledge being set ... ");
         		}

@@ -2,16 +2,16 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pag;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,21 +21,20 @@ import java.util.List;
  * @author jdramsey
  */
 @Bootstrapping
-public class Cfci implements Algorithm, HasKnowledge {
+public class Cfci implements Algorithm {
 
     static final long serialVersionUID = 23L;
-    private IndependenceWrapper test;
-    private IKnowledge knowledge = new Knowledge2();
+    private final IndependenceWrapper test;
 
     public Cfci(IndependenceWrapper test) {
         this.test = test;
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            edu.cmu.tetrad.search.Cfci search = new edu.cmu.tetrad.search.Cfci(test.getTest(dataSet, parameters));
-            search.setKnowledge(knowledge);
+            edu.cmu.tetrad.search.Cfci search = new edu.cmu.tetrad.search.Cfci(test.getTest(dataSet, parameters, trueGraph));
+            search.setKnowledge(dataSet.getKnowledge());
             search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
             search.setDepth(parameters.getInt(Params.DEPTH));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
@@ -45,7 +44,7 @@ public class Cfci implements Algorithm, HasKnowledge {
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -70,10 +69,10 @@ public class Cfci implements Algorithm, HasKnowledge {
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new DagToPag2(new EdgeListGraph(graph)).convert();
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new DagToPag2(new EdgeListGraph(graph)).convert();
+//    }
 
     @Override
     public String getDescription() {
@@ -96,15 +95,5 @@ public class Cfci implements Algorithm, HasKnowledge {
 
         parameters.add(Params.VERBOSE);
         return parameters;
-    }
-
-    @Override
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
     }
 }

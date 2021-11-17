@@ -24,9 +24,9 @@ package edu.cmu.tetrad.search;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.SemEstimator;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -205,7 +205,7 @@ public class Washdown {
         clusters = removeEmpty(clusters);
 
         Graph graph = pureMeasurementModel(clusters);
-        SemPm pm = new SemPm(graph);
+        LinearSemPm pm = new LinearSemPm(graph);
 
         SemEstimator estimator;
 
@@ -215,7 +215,7 @@ public class Washdown {
             estimator = new SemEstimator(dataSet, pm);
         }
 
-        SemIm est = estimator.estimate();
+        LinearSemIm est = estimator.estimate();
 
         return est.getBicScore();
     }
@@ -224,7 +224,7 @@ public class Washdown {
         clusters = removeEmpty(clusters);
 
         Graph graph = pureMeasurementModel(clusters);
-        SemPm pm = new SemPm(graph);
+        LinearSemPm pm = new LinearSemPm(graph);
 
         SemEstimator estimator;
 
@@ -234,7 +234,7 @@ public class Washdown {
             estimator = new SemEstimator(dataSet, pm);
         }
 
-        SemIm est = estimator.estimate();
+        LinearSemIm est = estimator.estimate();
 
         double pValue = est.getPValue();
 

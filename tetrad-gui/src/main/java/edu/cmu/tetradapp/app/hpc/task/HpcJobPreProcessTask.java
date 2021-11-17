@@ -1,14 +1,5 @@
 package edu.cmu.tetradapp.app.hpc.task;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import edu.cmu.tetradapp.app.TetradDesktop;
 import edu.cmu.tetradapp.app.hpc.manager.HpcAccountManager;
 import edu.cmu.tetradapp.app.hpc.manager.HpcAccountService;
@@ -22,12 +13,15 @@ import edu.pitt.dbmi.ccd.rest.client.dto.data.DataFile;
 import edu.pitt.dbmi.ccd.rest.client.service.data.DataUploadService;
 import edu.pitt.dbmi.ccd.rest.client.service.data.RemoteDataFileService;
 import edu.pitt.dbmi.ccd.rest.client.service.jobqueue.JobQueueService;
-import edu.pitt.dbmi.tetrad.db.entity.AlgorithmParamRequest;
-import edu.pitt.dbmi.tetrad.db.entity.AlgorithmParameter;
-import edu.pitt.dbmi.tetrad.db.entity.HpcAccount;
-import edu.pitt.dbmi.tetrad.db.entity.HpcJobInfo;
-import edu.pitt.dbmi.tetrad.db.entity.HpcJobLog;
-import edu.pitt.dbmi.tetrad.db.entity.HpcParameter;
+import edu.pitt.dbmi.tetrad.db.entity.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 

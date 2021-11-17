@@ -31,6 +31,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 /**
  * Puts up a panel showing some graph properties, e.g., number of nodes and
@@ -103,6 +105,8 @@ class GraphPropertiesAction extends AbstractAction implements ClipboardOwner {
         JScrollPane scroll = new JScrollPane(textArea);
         scroll.setPreferredSize(new Dimension(300, 300));
 
+        NumberFormat nf = new DecimalFormat("0.00");
+
         textArea.append("\nNumber of nodes: " + String.valueOf(getGraph().getNumNodes()));
         textArea.append("\nNumber of latents: " + String.valueOf(numLatents));
         textArea.append("\nNumber of edges: " + String.valueOf(getGraph().getNumEdges()));
@@ -113,6 +117,9 @@ class GraphPropertiesAction extends AbstractAction implements ClipboardOwner {
         textArea.append("\nMax indegree: " + String.valueOf(maxIndegree));
         textArea.append("\nMax outdegree: " + String.valueOf(maxOutdegree));
         textArea.append("\nNumber of latents: " + String.valueOf(numLatents));
+        textArea.append("\nAverage Degree: " + nf.format(2.0 * getGraph().getNumEdges() / getGraph().getNumNodes()));
+        textArea.append("\nDensity: " + nf.format(2.0 * getGraph().getNumEdges() /
+                (getGraph().getNumNodes() * (getGraph().getNumNodes() - 1))));
         textArea.append("\n" + (cyclic ? "Cyclic": "Acyclic"));
 
         Box b2 = Box.createHorizontalBox();

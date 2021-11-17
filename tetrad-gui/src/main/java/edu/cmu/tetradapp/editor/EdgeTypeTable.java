@@ -18,30 +18,13 @@
  */
 package edu.cmu.tetradapp.editor;
 
-import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.EdgeTypeProbability;
-import edu.cmu.tetrad.graph.Edges;
-import edu.cmu.tetrad.graph.Endpoint;
-import edu.cmu.tetrad.graph.Graph;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
+import edu.cmu.tetrad.graph.*;
+
+import javax.swing.*;
+import javax.swing.table.*;
+import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 
 /**
  *
@@ -131,7 +114,7 @@ public class EdgeTypeTable extends JPanel {
                 tableModel.addRow(rowData);
             });
         } else {
-            title.setText("Edges");
+//            title.setText("Edges");
 
             table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
@@ -237,17 +220,17 @@ public class EdgeTypeTable extends JPanel {
         Endpoint endpoint1 = edge.getEndpoint1();
         Endpoint endpoint2 = edge.getEndpoint2();
 
-        if (node1Name.compareTo(node2Name) > 0) {
+//        if (node1Name.compareTo(node2Name) > 0) {
             // swap endpoints
-            Endpoint tmpEndpoint = endpoint1;
-            endpoint1 = endpoint2;
-            endpoint2 = tmpEndpoint;
+//            Endpoint tmpEndpoint = endpoint1;
+//            endpoint1 = endpoint2;
+//            endpoint2 = tmpEndpoint;
 
             // swap node names
-            String tmpStr = node1Name;
-            node1Name = node2Name;
-            node2Name = tmpStr;
-        }
+//            String tmpStr = node1Name;
+//            node1Name = node2Name;
+//            node2Name = tmpStr;
+//        }
 
         String endpoint1Str = "";
         if (endpoint1 == Endpoint.TAIL) {

@@ -22,13 +22,8 @@ package edu.cmu.tetradapp.model;
 
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
-import edu.cmu.tetrad.algcomparison.simulation.BayesNetSimulation;
-import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulation;
-import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
-import edu.cmu.tetrad.algcomparison.simulation.SimulationUtils;
-import edu.cmu.tetrad.algcomparison.simulation.StandardizedSemSimulation;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.simulation.*;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataModelList;
 import edu.cmu.tetrad.data.IKnowledge;
@@ -38,6 +33,7 @@ import edu.cmu.tetrad.session.SessionModel;
 import edu.cmu.tetrad.session.SimulationParamsSource;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +49,7 @@ import java.util.Map;
  * @author jdramsey
  */
 public class Simulation extends DataWrapper implements SessionModel,
-        SimulationParamsSource, MultipleGraphSource, MultipleDataSource {
+        SimulationParamsSource, MultipleGraphSource, MultipleDataSource, GraphSource {
 
     static final long serialVersionUID = 23L;
 
@@ -114,65 +110,65 @@ public class Simulation extends DataWrapper implements SessionModel,
     public Simulation(BayesImWrapperObs wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getBayesIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(BayesPmWrapper wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getBayesPm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(BayesEstimatorWrapper wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getEstimatedBayesIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(DirichletBayesImWrapper wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getDirichletBayesIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(DirichletEstimatorWrapper wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getEstimatedBayesIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(CptInvariantUpdaterWrapper wrapper, Parameters parameters) {
         simulation = new BayesNetSimulation(wrapper.getBayesUpdater().getManipulatedBayesIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
-    public Simulation(SemPmWrapper wrapper, Parameters parameters) {
-        simulation = new SemSimulation(wrapper.getSemPm());
+    public Simulation(LinearSemPmWrapper wrapper, Parameters parameters) {
+        simulation = new LinearSemSimulation(wrapper.getSemPm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
-    public Simulation(SemImWrapper wrapper, Parameters parameters) {
-        simulation = new SemSimulation(wrapper.getSemIm());
+    public Simulation(LinearSemImWrapper wrapper, Parameters parameters) {
+        simulation = new LinearSemSimulation(wrapper.getSemIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(StandardizedSemImWrapper wrapper, Parameters parameters) {
         simulation = new StandardizedSemSimulation(wrapper.getStandardizedSemIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(SemEstimatorWrapper wrapper, Parameters parameters) {
-        simulation = new SemSimulation(wrapper.getEstimatedSemIm());
+        simulation = new LinearSemSimulation(wrapper.getEstimatedSemIm());
         this.parameters = parameters;
-//        createSimulation();
+        createSimulation();
     }
 
     public Simulation(SemUpdaterWrapper wrapper, Parameters parameters) {
-        simulation = new SemSimulation(wrapper.getSemUpdater().getManipulatedSemIm());
+        simulation = new LinearSemSimulation(wrapper.getSemUpdater().getManipulatedSemIm());
         this.parameters = parameters;
 //        createSimulation();
     }
@@ -282,14 +278,14 @@ public class Simulation extends DataWrapper implements SessionModel,
         // Every time the users click the Simulate button, new data needs to be created
         // regardless of already created data - Zhou
         //if (simulation.getNumDataModels() == 0) {
-        simulation.createData(parameters, false);
+        simulation.createData(parameters, true);
         //}
     }
 
-    @Override
     /**
      * Returns all of the graphs in the simulation, in order.
      */
+    @Override
     public List<Graph> getGraphs() {
         List<Graph> graphs = new ArrayList<>();
 
@@ -298,6 +294,16 @@ public class Simulation extends DataWrapper implements SessionModel,
         }
 
         return graphs;
+    }
+
+    public Graph getGraph() {
+        List<Graph> graphs = getGraphs();
+
+        if (graphs.size() != 1) {
+            throw new IllegalArgumentException("Expecting a single graph.");
+        }
+
+        return graphs.get(0);
     }
 
     public boolean isFixedSimulation() {
@@ -317,8 +323,8 @@ public class Simulation extends DataWrapper implements SessionModel,
     }
 
     public IKnowledge getKnowledge() {
-        if (simulation instanceof HasKnowledge) {
-            return ((HasKnowledge) simulation).getKnowledge();
+        if (simulation instanceof KnowledgeSettable) {
+            return ((KnowledgeSettable) simulation).getKnowledge();
         } else {
             return new Knowledge2();
         }

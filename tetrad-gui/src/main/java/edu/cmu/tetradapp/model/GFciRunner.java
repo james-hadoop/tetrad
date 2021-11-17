@@ -211,7 +211,7 @@ public class GFciRunner extends AbstractAlgorithmRunner
 
                 if (dataSet.isContinuous()) {
                     IndependenceTest test = new IndTestFisherZ(new CovarianceMatrix((DataSet) model), 0.001);
-                    SemBicScore gesScore = new SemBicScore(new CovarianceMatrix((DataSet) model));
+                    LinearGaussianBicScore gesScore = new LinearGaussianBicScore(new CovarianceMatrix((DataSet) model));
                     gesScore.setPenaltyDiscount(penaltyDiscount);
 //                    SemBicScore2 gesScore = new SemBicScore2(new CovarianceMatrix((DataSet) model));
 //                    SemGpScore gesScore = new SemGpScore(new CovarianceMatrix((DataSet) model));
@@ -233,7 +233,7 @@ public class GFciRunner extends AbstractAlgorithmRunner
                 }
             } else if (model instanceof ICovarianceMatrix) {
                 IndependenceTest test = new IndTestFisherZ((ICovarianceMatrix) model, 0.001);
-                SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
+                LinearGaussianBicScore gesScore = new LinearGaussianBicScore((ICovarianceMatrix) model);
                 gesScore.setPenaltyDiscount(penaltyDiscount);
                 gesScore.setPenaltyDiscount(penaltyDiscount);
                 gfci = new GFci(test, gesScore);
@@ -258,7 +258,7 @@ public class GFciRunner extends AbstractAlgorithmRunner
                 if (allContinuous(list)) {
                     double penalty = params.getDouble("penaltyDiscount", 4);
 
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     IndTestScore test = new IndTestScore(fgesScore);
                     fgesScore.setPenaltyDiscount(penalty);
                     gfci = new GFci(test, fgesScore);
@@ -283,7 +283,7 @@ public class GFciRunner extends AbstractAlgorithmRunner
 
 //        gfci.setInitialGraph(initialGraph);
 //        gfci.setKnowledge(getParameters().getKnowledge());
-//        gfci.setNumPatternsToStore(params.getNumPatternsToSave());
+//        gfci.setNumCpdagsToStore(params.getNumCpdagsToSave());
         gfci.setVerbose(true);
 //        gfci.setHeuristicSpeedup(true);
 //        gfci.setMaxIndegree(3);
@@ -293,7 +293,7 @@ public class GFciRunner extends AbstractAlgorithmRunner
         if (getSourceGraph() != null) {
             GraphUtils.arrangeBySourceGraph(graph, getSourceGraph());
         } else if (((IKnowledge) getParams().get("knowledge", new Knowledge2())).isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(graph, (IKnowledge) getParams().get("knowledge", new Knowledge2()));
+            SearchGraphUtils.arrangeByKnowledgeTiers(graph);
         } else {
             GraphUtils.circleLayout(graph, 200, 200, 150);
         }

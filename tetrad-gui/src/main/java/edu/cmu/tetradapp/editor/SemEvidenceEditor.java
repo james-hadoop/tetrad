@@ -21,8 +21,8 @@
 
 package edu.cmu.tetradapp.editor;
 
+import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.sem.SemEvidence;
-import edu.cmu.tetrad.sem.SemIm;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetradapp.util.DoubleTextField;
 
@@ -62,7 +62,7 @@ class SemEvidenceEditor extends JPanel {
         for (int i = 0; i < evidence.getNumNodes(); i++) {
             int _i = i;
             Box c = Box.createHorizontalBox();
-            SemIm semIm = evidence.getSemIm();
+            LinearSemIm semIm = evidence.getSemIm();
             String name = (semIm.getVariableNodes().get(i)).getName();
             JLabel label = new JLabel(name + " =  ") {
                 public Dimension getMaximumSize() {

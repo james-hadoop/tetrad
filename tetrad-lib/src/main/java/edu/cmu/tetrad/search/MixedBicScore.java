@@ -29,7 +29,10 @@ import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.Vector;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.lang.Math.sqrt;
 
@@ -209,6 +212,11 @@ public class MixedBicScore implements Score {
     @Override
     public boolean determines(List<Node> z, Node y) {
         return false;
+    }
+
+    @Override
+    public DataModel getData() {
+        throw new IllegalArgumentException();
     }
 
     public ICovarianceMatrix getCovariances() {

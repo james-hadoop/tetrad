@@ -3,6 +3,7 @@ package edu.cmu.tetrad.algcomparison.statistic;
 import edu.cmu.tetrad.algcomparison.statistic.utils.ArrowConfusion;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
 
 /**
  * The arrow precision. This counts arrowheads maniacally, wherever they occur in the graphs.
@@ -28,6 +29,7 @@ public class ArrowheadPrecision implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph, DataModel dataModel) {
+        estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
         ArrowConfusion confusion = new ArrowConfusion(trueGraph, estGraph);
         double arrowsTp = confusion.getArrowsTp();
         double arrowsFp = confusion.getArrowsFp();

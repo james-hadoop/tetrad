@@ -416,7 +416,7 @@ public class ClusterUtils {
 //            if ((i + 1) % 1000 == 0) System.out.println("Loading " + (i + 1));
 //
 //            String line = in.readLine();
-//            RegexTokenizer tokenizer = new RegexTokenizer(line, DelimiterType.WHITESPACE.getPattern(), '\"');
+//            RegexTokenizer tokenizer = new RegexTokenizer(line, DelimiterType.WHITESPACE.getCpdag(), '\"');
 //
 //            if (ignoreFirstCol) {
 //                tokenizer.nextToken();

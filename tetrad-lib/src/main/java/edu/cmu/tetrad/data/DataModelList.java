@@ -22,6 +22,7 @@ package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.TetradSerializable;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.AbstractList;
@@ -119,7 +120,7 @@ public final class DataModelList extends AbstractList<DataModel>
     }
 
     public IKnowledge getKnowledge() {
-        return this.knowledge.copy();
+        return this.knowledge;
     }
 
     public void setKnowledge(IKnowledge knowledge) {

@@ -26,10 +26,10 @@ import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.sem.SemPm;
+import edu.cmu.tetrad.sem.LinearSemPm;
+import edu.cmu.tetrad.util.Matrix;
 import edu.cmu.tetrad.util.ProbUtils;
 import edu.cmu.tetrad.util.TetradLogger;
-import edu.cmu.tetrad.util.Matrix;
 
 import java.util.Arrays;
 import java.util.List;
@@ -751,7 +751,7 @@ public final class ContinuousTetradTest implements TetradTest {
         ICovarianceMatrix sampleCov, subSampleCov;
         double sig;
         int indices[], nvar;
-        SemPm semPm;
+        LinearSemPm linearSemPm;
         String varNames[], submatrixNames[];
 
         /**
@@ -778,7 +778,7 @@ public final class ContinuousTetradTest implements TetradTest {
             for (int i = 0; i < indices.length; i++) {
                 submatrixNames[i] = varNames[indices[i]];
             }
-            semPm = buildSemPm(indices);
+            linearSemPm = buildSemPm(indices);
 
             //For some implementation reason, semPm changes the order of the nodes:
             //it doesn't match the order in subMatrixNames anymore.
@@ -806,7 +806,7 @@ public final class ContinuousTetradTest implements TetradTest {
 //            return semIm.getScore() > sig;
         }
 
-        protected abstract SemPm buildSemPm(int indices[]);
+        protected abstract LinearSemPm buildSemPm(int indices[]);
     }
 
     class OneFactorEstimator extends SimpleFactorEstimator {
@@ -817,7 +817,7 @@ public final class ContinuousTetradTest implements TetradTest {
             super(sampleCov, sig, nvar);
         }
 
-        protected SemPm buildSemPm(int[] values) {
+        protected LinearSemPm buildSemPm(int[] values) {
             Graph graph = new EdgeListGraph();
             Node latent = new GraphNode("__l");
             latent.setNodeType(NodeType.LATENT);
@@ -827,8 +827,8 @@ public final class ContinuousTetradTest implements TetradTest {
                 graph.addNode(node);
                 graph.addDirectedEdge(latent, node);
             }
-            semPm = new SemPm(graph);
-            return semPm;
+            linearSemPm = new LinearSemPm(graph);
+            return linearSemPm;
         }
 
     }
@@ -848,7 +848,7 @@ public final class ContinuousTetradTest implements TetradTest {
             super.init(indices);
         }
 
-        protected SemPm buildSemPm(int[] values) {
+        protected LinearSemPm buildSemPm(int[] values) {
             Graph graph = new EdgeListGraph();
             Node latent1 = new GraphNode("__l1");
             Node latent2 = new GraphNode("__l2");
@@ -866,8 +866,8 @@ public final class ContinuousTetradTest implements TetradTest {
                     graph.addDirectedEdge(latent2, node);
                 }
             }
-            semPm = new SemPm(graph);
-            return semPm;
+            linearSemPm = new LinearSemPm(graph);
+            return linearSemPm;
         }
     }
 

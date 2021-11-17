@@ -6,7 +6,7 @@ import edu.cmu.tetrad.util.Parameters;
 /**
  * @author jdramsey
  */
-public interface GraphSettable extends GraphSource {
+public interface GraphSettable {
     Parameters getParameters();
     void setGraph(Graph newValue);
 

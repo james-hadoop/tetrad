@@ -6,6 +6,7 @@ import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradSerializable;
+
 import java.util.List;
 
 /**
@@ -20,9 +21,10 @@ public interface Algorithm extends HasParameters, TetradSerializable {
      *
      * @param dataSet    The data set to run to the search on.
      * @param parameters The paramters of the search.
+     * @param trueGraph
      * @return The result graph.
      */
-    Graph search(DataModel dataSet, Parameters parameters);
+    Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph);
 
     /**
      * Returns that graph that the result should be compared to.
@@ -30,7 +32,7 @@ public interface Algorithm extends HasParameters, TetradSerializable {
      * @param graph The true directed graph, if there is one.
      * @return The comparison graph.
      */
-    Graph getComparisonGraph(Graph graph);
+//    Graph getComparisonGraph(Graph graph);
 
     /**
      * Returns a short, one-line description of this algorithm. This will be

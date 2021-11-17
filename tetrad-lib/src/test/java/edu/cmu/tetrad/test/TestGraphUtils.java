@@ -21,18 +21,20 @@
 
 package edu.cmu.tetrad.test;
 
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.util.RandomUtil;
 import org.junit.Test;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
+import static java.util.Collections.EMPTY_LIST;
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -247,8 +249,8 @@ public final class TestGraphUtils {
         assertTrue(graph.isAncestorOf(a, b));
         assertTrue(graph.isAncestorOf(a, c));
 
-        assertTrue(graph.isDConnectedTo(a, b, Collections.EMPTY_LIST));
-        assertTrue(graph.isDConnectedTo(a, c, Collections.EMPTY_LIST));
+        assertTrue(graph.isDConnectedTo(a, b, EMPTY_LIST));
+        assertTrue(graph.isDConnectedTo(a, c, EMPTY_LIST));
 
         assertTrue(graph.isDConnectedTo(a, c, Collections.singletonList(b)));
         assertTrue(graph.isDConnectedTo(c, a, Collections.singletonList(b)));

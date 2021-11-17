@@ -3,9 +3,8 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pag;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
+import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Bootstrapping;
@@ -14,19 +13,13 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.BdeuScoreImages;
-import edu.cmu.tetrad.search.IndTestScore;
-import edu.cmu.tetrad.search.IndependenceTest;
-import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.SemBicScoreImages;
-import edu.cmu.tetrad.search.TsDagToPag;
-import edu.cmu.tetrad.search.TsGFci;
+import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,18 +36,17 @@ import java.util.List;
 )
 @TimeSeries
 @Bootstrapping
-public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm, UsesScoreWrapper {
+public class TsImages implements Algorithm, MultiDataSetAlgorithm, UsesScoreWrapper {
 
     static final long serialVersionUID = 23L;
     private ScoreWrapper score;
     private Algorithm initialGraph = null;
-    private IKnowledge knowledge = null;
 
     public TsImages() {
     }
 
     public TsImages(ScoreWrapper score) {
-        if (!(score instanceof SemBicScore || score instanceof BdeuScore)) {
+        if (!(score instanceof LinearGaussianBicScore || score instanceof BdeuScore)) {
             throw new IllegalArgumentException("Only SEM BIC score or BDeu score can be used with this, sorry.");
         }
 
@@ -62,16 +54,12 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
     }
 
     @Override
-    public Graph search(DataModel dataModel, Parameters parameters) {
+    public Graph search(DataModel dataModel, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             DataSet dataSet = (DataSet) dataModel;
-            TsGFci search;
-            if(knowledge != null) {
-        		dataSet.setKnowledge(knowledge);
-        	}
             Score score1 = score.getScore(dataSet, parameters);
             IndependenceTest test = new IndTestScore(score1);
-            search = new TsGFci(test, score1);
+            TsGFci search = new TsGFci(test, score1);
             search.setKnowledge(dataSet.getKnowledge());
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             
@@ -81,7 +69,7 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
 
             DataSet data = (DataSet) dataModel;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
-            search.setKnowledge(knowledge);
+            search.setKnowledge(data.getKnowledge());
 
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
@@ -106,10 +94,10 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        return new TsDagToPag(new EdgeListGraph(graph)).convert();
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        return new TsDagToPag(new EdgeListGraph(graph)).convert();
+//    }
 
     public String getDescription() {
         return "tsFCI (Time Series Fast Causal Inference) using " + score.getDescription()
@@ -133,16 +121,6 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
     }
 
     @Override
-    public IKnowledge getKnowledge() {
-        return this.knowledge;
-    }
-
-    @Override
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
-    }
-
-    @Override
     public Graph search(List<DataModel> dataSets, Parameters parameters) {
         List<DataModel> dataModels = new ArrayList<>();
 
@@ -152,8 +130,8 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
 
         TsGFci search;
 
-        if (score instanceof SemBicScore) {
-            SemBicScoreImages gesScore = new SemBicScoreImages(dataModels);
+        if (score instanceof LinearGaussianBicScore) {
+            LinearSemBicScoreImages gesScore = new LinearSemBicScoreImages(dataModels);
             gesScore.setPenaltyDiscount(parameters.getDouble(Params.PENALTY_DISCOUNT));
             IndependenceTest test = new IndTestScore(gesScore);
             search = new TsGFci(test, gesScore);

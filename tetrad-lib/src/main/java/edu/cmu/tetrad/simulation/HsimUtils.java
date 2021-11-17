@@ -2,16 +2,18 @@ package edu.cmu.tetrad.simulation;
 
 import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DiscreteVariable;
 import edu.cmu.tetrad.data.VerticalIntDataBox;
-import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.graph.Edge;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.SearchGraphUtils;
-import edu.cmu.tetrad.sem.GeneralizedSemPm;
-import edu.cmu.tetrad.sem.TemplateExpander;
 import edu.cmu.tetrad.util.TextTable;
 
-import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Erich on 4/22/2016.
@@ -64,8 +66,8 @@ public class HsimUtils {
     }
 
     //this method returns an array of doubles, which are standard error metrics for graph learning
-    public static double[] errorEval(Graph estPattern, Graph truePattern) {
-        GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison2(estPattern, truePattern);
+    public static double[] errorEval(Graph estCpdag, Graph trueCpdag) {
+        GraphUtils.GraphComparison comparison = SearchGraphUtils.getGraphComparison2(estCpdag, trueCpdag);
 
         int adjTp = comparison.getAdjCor();
         int adjFp = comparison.getAdjFp();
@@ -75,9 +77,9 @@ public class HsimUtils {
         int arrowptFp = comparison.getAhdFp();
         int arrowptFn = comparison.getAhdFn();
 
-        estPattern = GraphUtils.replaceNodes(estPattern, truePattern.getNodes());
+        estCpdag = GraphUtils.replaceNodes(estCpdag, trueCpdag.getNodes());
 
-        int[][] counts = GraphUtils.edgeMisclassificationCounts(truePattern, estPattern, false);
+        int[][] counts = GraphUtils.edgeMisclassificationCounts(trueCpdag, estCpdag, false);
 
         double edgeRatio = HsimUtils.correctnessRatio(counts);
 

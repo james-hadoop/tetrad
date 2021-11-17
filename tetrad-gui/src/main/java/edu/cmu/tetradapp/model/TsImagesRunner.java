@@ -126,7 +126,7 @@ public class TsImagesRunner extends AbstractAlgorithmRunner implements IFgesRunn
             DataSet dataSet = (DataSet) model;
 
             if (dataSet.isContinuous()) {
-                SemBicScore gesScore = new SemBicScore(new CovarianceMatrix((DataSet) model));
+                LinearGaussianBicScore gesScore = new LinearGaussianBicScore(new CovarianceMatrix((DataSet) model));
                 gesScore.setPenaltyDiscount(penaltyDiscount);
                 IndependenceTest test = new IndTestScore(gesScore);
                 fges = new TsGFci(test, gesScore);
@@ -142,7 +142,7 @@ public class TsImagesRunner extends AbstractAlgorithmRunner implements IFgesRunn
                 throw new IllegalStateException("Data set must either be continuous or discrete.");
             }
         } else if (model instanceof ICovarianceMatrix) {
-            SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
+            LinearGaussianBicScore gesScore = new LinearGaussianBicScore((ICovarianceMatrix) model);
             gesScore.setPenaltyDiscount(penaltyDiscount);
             IndependenceTest test = new IndTestScore(gesScore);
             fges = new TsGFci(test, gesScore);
@@ -166,7 +166,7 @@ public class TsImagesRunner extends AbstractAlgorithmRunner implements IFgesRunn
             if (allContinuous(list)) {
                 double penalty = penaltyDiscount;
 
-                SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                 fgesScore.setPenaltyDiscount(penalty);
                 IndependenceTest test = new IndTestScore(fgesScore);
                 fges = new TsGFci(test, fgesScore);
@@ -189,7 +189,7 @@ public class TsImagesRunner extends AbstractAlgorithmRunner implements IFgesRunn
         }
 
         fges.setKnowledge((IKnowledge) getParams().get("knowledge", new Knowledge2()));
-//        fges.setNumPatternsToStore(params.getNumPatternsToSave()); // removed for TsGFci
+//        fges.setNumCpdagsToStore(params.getNumCpdagsToSave()); // removed for TsGFci
 //        fges.setHeuristicSpeedup(((Parameters) params.getIndTestParams()).isFaithfulnessAssumed()); // removed for TsGFci
         fges.setVerbose(true);
         Graph graph = fges.search();
@@ -197,7 +197,7 @@ public class TsImagesRunner extends AbstractAlgorithmRunner implements IFgesRunn
         if (getSourceGraph() != null) {
             GraphUtils.arrangeBySourceGraph(graph, getSourceGraph());
         } else if (((IKnowledge) getParams().get("knowledge", new Knowledge2())).isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(graph, (IKnowledge) getParams().get("knowledge", new Knowledge2()));
+            SearchGraphUtils.arrangeByKnowledgeTiers(graph);
         } else {
             GraphUtils.circleLayout(graph, 200, 200, 150);
         }

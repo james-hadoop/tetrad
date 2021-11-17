@@ -20,17 +20,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetradapp.editor;
 
-import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetradapp.model.EdgewiseComparisonModel;
 import edu.cmu.tetradapp.model.GraphWrapper;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.util.List;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * Provides a little display/editor for notes in the session workbench. This may
@@ -46,12 +42,15 @@ public class EdgewiseComparisonEditor extends JPanel {
      * The model for the note.
      */
     private final EdgewiseComparisonModel comparison;
+    private final Parameters params;
+    private JTextArea area;
 
     /**
      * Constructs the editor given the model
      */
     public EdgewiseComparisonEditor(EdgewiseComparisonModel comparison) {
         this.comparison = comparison;
+        this.params = comparison.getParams();
         setup();
     }
 
@@ -59,44 +58,111 @@ public class EdgewiseComparisonEditor extends JPanel {
     private void setup() {
         setLayout(new BorderLayout());
 
-        List<Graph> referenceGraphs = comparison.getReferenceGraphs();
-        JTabbedPane pane = new JTabbedPane(JTabbedPane.LEFT);
+        JTabbedPane pane2 = new JTabbedPane(JTabbedPane.LEFT);
+        String compareString = comparison.getComparisonString();
 
-        for (int i = 0; i < referenceGraphs.size(); i++) {
-            JTabbedPane pane2 = new JTabbedPane(JTabbedPane.TOP);
-            String compareString = comparison.getComparisonString(i);
+        Font font = new Font("Monospaced", Font.PLAIN, 14);
+        area = new JTextArea();
+        area.setText(compareString);
 
-            Font font = new Font("Monospaced", Font.PLAIN, 14);
-            final JTextArea textPane = new JTextArea();
-            textPane.setText(compareString);
+        area.setFont(font);
 
-            textPane.setFont(font);
+        JScrollPane scrollTextPane = new JScrollPane(area);
+        scrollTextPane.setPreferredSize(new Dimension(400, 400));
 
-            JScrollPane scrollTextPane = new JScrollPane(textPane);
-            scrollTextPane.setPreferredSize(new Dimension(400, 400));
+        pane2.add("Comparison", scrollTextPane);
 
-            pane2.add("Comparison", scrollTextPane);
+        GraphEditor graphEditor = new GraphEditor(new GraphWrapper(comparison.getTargetGraph()));
+        graphEditor.enableEditing(false);
 
-            GraphEditor graphEditor = new GraphEditor(new GraphWrapper(comparison.getTargetGraphs().get(i)));
-            graphEditor.enableEditing(false);
+        JScrollPane scrollTargetGraph = new JScrollPane(graphEditor.getWorkbench());
+        scrollTargetGraph.setPreferredSize(new Dimension(400, 400));
 
-            JScrollPane scrollTargetGraph = new JScrollPane(graphEditor.getWorkbench());
-            scrollTargetGraph.setPreferredSize(new Dimension(400, 400));
+        pane2.add("Target Graph", scrollTargetGraph);
 
-            pane2.add("Target Graph", scrollTargetGraph);
+        graphEditor = new GraphEditor(new GraphWrapper(comparison.getReferenceGraph()));
+        graphEditor.enableEditing(false);
 
-            graphEditor = new GraphEditor(new GraphWrapper(comparison.getReferenceGraphs().get(i)));
-            graphEditor.enableEditing(false);
+        JScrollPane scrollTrueGraph = new JScrollPane(graphEditor.getWorkbench());
+        scrollTrueGraph.setPreferredSize(new Dimension(400, 400));
 
-            JScrollPane scrollTrueGraph = new JScrollPane(graphEditor.getWorkbench());
-            scrollTrueGraph.setPreferredSize(new Dimension(400, 400));
+        pane2.add("True Graph", scrollTrueGraph);
 
-            pane2.add("True Graph", scrollTrueGraph);
-
-            pane.add("" + (i + 1), pane2);
-        }
-
-        add(pane);
+        add(menubar(), BorderLayout.NORTH);
+        add(pane2, BorderLayout.CENTER);
     }
 
+    @NotNull
+    private JMenuBar menubar() {
+        JMenuBar menubar = new JMenuBar();
+        JMenu menu = new JMenu("Compare To...");
+        JMenuItem graph = new JCheckBoxMenuItem("DAG");
+        JMenuItem cpdag = new JCheckBoxMenuItem("CPDAG");
+        JMenuItem pag = new JCheckBoxMenuItem("PAG");
+
+        ButtonGroup group = new ButtonGroup();
+        group.add(graph);
+        group.add(cpdag);
+        group.add(pag);
+
+        menu.add(graph);
+        menu.add(cpdag);
+        menu.add(pag);
+
+        menubar.add(menu);
+
+        switch (params.getString("graphComparisonType")) {
+            case "CPDAG":
+                menu.setText("Compare to CPDAG...");
+                cpdag.setSelected(true);
+                break;
+            case "PAG":
+                menu.setText("Compare to PAG...");
+                pag.setSelected(true);
+                break;
+            default:
+                menu.setText("Compare to DAG...");
+                graph.setSelected(true);
+                break;
+        }
+
+        graph.addActionListener(e -> {
+            params.set("graphComparisonType", "DAG");
+            menu.setText("Compare to DAG...");
+
+            area.setText(comparison.getComparisonString());
+            area.moveCaretPosition(0);
+            area.setSelectionStart(0);
+            area.setSelectionEnd(0);
+
+            area.repaint();
+
+        });
+
+        cpdag.addActionListener(e -> {
+            params.set("graphComparisonType", "CPDAG");
+            menu.setText("Compare to CPDAG...");
+
+            area.setText(comparison.getComparisonString());
+            area.moveCaretPosition(0);
+            area.setSelectionStart(0);
+            area.setSelectionEnd(0);
+
+            area.repaint();
+
+        });
+
+        pag.addActionListener(e -> {
+            params.set("graphComparisonType", "PAG");
+            menu.setText("Compare to PAG...");
+
+            area.setText(comparison.getComparisonString());
+            area.moveCaretPosition(0);
+            area.setSelectionStart(0);
+            area.setSelectionEnd(0);
+            area.repaint();
+        });
+
+        return menubar;
+    }
 }

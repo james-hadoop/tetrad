@@ -1,11 +1,20 @@
 package edu.cmu.tetrad.simulation;
 
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.data.CovarianceMatrix;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataWriter;
+import edu.cmu.tetrad.graph.Dag;
+import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.search.CpdagToDag;
+import edu.cmu.tetrad.search.Fges;
+import edu.cmu.tetrad.search.SearchGraphUtils;
+import edu.cmu.tetrad.search.SemBicScore;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.DelimiterUtils;
 import edu.pitt.dbmi.data.reader.tabular.VerticalDiscreteTabularDatasetFileReader;
+
 import java.io.FileWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,9 +52,9 @@ public class HsimRun {
             Graph estGraph = fges.search();
             System.out.println(estGraph);
 
-            Graph estPattern = new EdgeListGraphSingleConnections(estGraph);
-            PatternToDag patternToDag = new PatternToDag(estPattern);
-            Graph estGraphDAG = patternToDag.patternToDagMeek();
+            Graph estCpdag = new EdgeListGraph(estGraph);
+            CpdagToDag cpdagToDag = new CpdagToDag(estCpdag);
+            Graph estGraphDAG = cpdagToDag.cpdagToDagMeek();
             Dag estDAG = new Dag(estGraphDAG);
 
             //===========Identify the nodes to be resimulated===========

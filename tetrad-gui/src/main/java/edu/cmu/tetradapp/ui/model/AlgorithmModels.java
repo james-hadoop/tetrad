@@ -24,11 +24,8 @@ import edu.cmu.tetrad.annotation.AlgorithmAnnotations;
 import edu.cmu.tetrad.annotation.AnnotatedClass;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetradapp.Tetrad;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -77,7 +74,7 @@ public final class AlgorithmModels {
     }
 
     public static AlgorithmModels getInstance() {
-        INSTANCE.refreshModels();   // if we had a subscriber pattern for app settings would not have to waste time doing this every time!
+        INSTANCE.refreshModels();   // if we had a subscriber cpdag for app settings would not have to waste time doing this every time!
         return INSTANCE;
     }
 

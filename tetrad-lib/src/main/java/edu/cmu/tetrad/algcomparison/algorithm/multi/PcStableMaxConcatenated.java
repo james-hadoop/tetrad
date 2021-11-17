@@ -3,17 +3,16 @@ package edu.cmu.tetrad.algcomparison.algorithm.multi;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.PcStableMax;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -27,7 +26,7 @@ import java.util.List;
  * @author jdramsey
  */
 @Bootstrapping
-public class PcStableMaxConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
+public class PcStableMaxConcatenated implements MultiDataSetAlgorithm, KnowledgeSettable {
 
     static final long serialVersionUID = 23L;
     private boolean compareToTrue = false;
@@ -55,7 +54,7 @@ public class PcStableMaxConcatenated implements MultiDataSetAlgorithm, HasKnowle
 
             DataSet dataSet = DataUtils.concatenate(dataSets);
             PcStableMax search = new PcStableMax(
-                    test.getTest(dataSet, parameters));
+                    test.getTest(dataSet, parameters, null));
             search.setUseHeuristic(parameters.getBoolean(Params.USE_MAX_P_ORIENTATION_HEURISTIC));
             search.setMaxPathLength(parameters.getInt(Params.MAX_P_ORIENTATION_MAX_PATH_LENGTH));
             search.setKnowledge(knowledge);
@@ -97,7 +96,7 @@ public class PcStableMaxConcatenated implements MultiDataSetAlgorithm, HasKnowle
     }
 
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             return search(Collections.singletonList((DataModel) DataUtils.getContinuousDataSet(dataSet)), parameters);
         } else {
@@ -130,14 +129,14 @@ public class PcStableMaxConcatenated implements MultiDataSetAlgorithm, HasKnowle
         }
     }
 
-    @Override
-    public Graph getComparisonGraph(Graph graph) {
-        if (compareToTrue) {
-            return new EdgeListGraph(graph);
-        } else {
-            return SearchGraphUtils.patternForDag(new EdgeListGraph(graph));
-        }
-    }
+//    @Override
+//    public Graph getComparisonGraph(Graph graph) {
+//        if (compareToTrue) {
+//            return new EdgeListGraph(graph);
+//        } else {
+//            return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
+//        }
+//    }
 
     @Override
     public String getDescription() {

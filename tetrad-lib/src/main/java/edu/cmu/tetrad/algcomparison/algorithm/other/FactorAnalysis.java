@@ -2,11 +2,15 @@ package edu.cmu.tetrad.algcomparison.algorithm.other;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.annotation.Bootstrapping;
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.ContinuousVariable;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +23,7 @@ import java.util.Vector;
 public class FactorAnalysis implements Algorithm {
     static final long serialVersionUID = 23L;
 
-    public Graph search(DataModel ds, Parameters parameters) {
+    public Graph search(DataModel ds, Parameters parameters, Graph trueGraph) {
     	if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 
             DataSet selectedModel = (DataSet) ds;

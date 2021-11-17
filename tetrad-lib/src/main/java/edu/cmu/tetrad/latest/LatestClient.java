@@ -1,8 +1,5 @@
 package edu.cmu.tetrad.latest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -10,6 +7,10 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * Author : Jeremy Espino MD Created 9/20/16 11:06 AM

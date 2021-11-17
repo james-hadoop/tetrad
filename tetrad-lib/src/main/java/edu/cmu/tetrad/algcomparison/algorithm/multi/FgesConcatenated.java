@@ -3,16 +3,15 @@ package edu.cmu.tetrad.algcomparison.algorithm.multi;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
-import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.KnowledgeSettable;
 import edu.cmu.tetrad.annotation.Bootstrapping;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +25,7 @@ import java.util.List;
  * @author jdramsey
  */
 @Bootstrapping
-public class FgesConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
+public class FgesConcatenated implements MultiDataSetAlgorithm, KnowledgeSettable {
 	static final long serialVersionUID = 23L;
 	private ScoreWrapper score;
 	private IKnowledge knowledge = new Knowledge2();
@@ -61,7 +60,7 @@ public class FgesConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
 			Graph initial = null;
 			if (initialGraph != null) {
 
-				initial = initialGraph.search(dataSet, parameters);
+				initial = initialGraph.search(dataSet, parameters, null);
 			}
 
 			edu.cmu.tetrad.search.Fges search = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters));
@@ -116,7 +115,7 @@ public class FgesConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
 	}
 
 	@Override
-	public Graph search(DataModel dataSet, Parameters parameters) {
+	public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
 		if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
 			return search(Collections.singletonList((DataModel) DataUtils.getContinuousDataSet(dataSet)), parameters);
 		} else {
@@ -150,14 +149,14 @@ public class FgesConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
 		}
 	}
 
-	@Override
-	public Graph getComparisonGraph(Graph graph) {
-		if (compareToTrue) {
-			return new EdgeListGraph(graph);
-		} else {
-			return SearchGraphUtils.patternForDag(new EdgeListGraph(graph));
-		}
-	}
+//	@Override
+//	public Graph getComparisonGraph(Graph graph) {
+//		if (compareToTrue) {
+//			return new EdgeListGraph(graph);
+//		} else {
+//			return SearchGraphUtils.cpdagForDag(new EdgeListGraph(graph));
+//		}
+//	}
 
 	@Override
 	public String getDescription() {
@@ -196,7 +195,7 @@ public class FgesConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
 	/**
 	 * @param compareToTrue
 	 *            true if the result should be compared to the true graph, false
-	 *            if to the pattern of the true graph.
+	 *            if to the cpdag of the true graph.
 	 */
 	public void setCompareToTrue(boolean compareToTrue) {
 		this.compareToTrue = compareToTrue;

@@ -25,16 +25,17 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.Regression;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.regression.RegressionResult;
-import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.Matrix;
+import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.Vector;
+import org.apache.commons.math3.exception.MaxCountExceededException;
+import org.apache.commons.math3.linear.BlockRealMatrix;
+import org.apache.commons.math3.linear.EigenDecomposition;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import org.apache.commons.math3.exception.MaxCountExceededException;
-import org.apache.commons.math3.linear.BlockRealMatrix;
-import org.apache.commons.math3.linear.EigenDecomposition;
 
 /**
  * Contains some utilities for doing autoregression. Should probably be improved
@@ -164,9 +165,9 @@ public class TimeSeriesUtils {
         if (timeLags.isDiscrete()) {
             score = new BDeuScore(timeLags);
         } else if (timeLags.isContinuous()) {
-            SemBicScore semBicScore = new SemBicScore(new CovarianceMatrix(timeLags));
-            semBicScore.setPenaltyDiscount(2.0);
-            score = semBicScore;
+            LinearGaussianBicScore linearGaussianBicScore = new LinearGaussianBicScore(new CovarianceMatrix(timeLags));
+            linearGaussianBicScore.setPenaltyDiscount(2.0);
+            score = linearGaussianBicScore;
         } else {
             throw new IllegalArgumentException("Mixed data set");
         }

@@ -55,7 +55,7 @@ final class Lineizer {
     private int lineNumber = 0;
 
     /**
-     * Constructs a tokenizer for the given input line, using the given Pattern
+     * Constructs a tokenizer for the given input line, using the given Cpdag
      * as delimiter.
      */
     public Lineizer(Reader reader, String commentMarker) {

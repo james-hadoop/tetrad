@@ -21,6 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Node;
@@ -453,6 +454,11 @@ public class SemBicScoreDeterministic implements Score {
         }
 
         return false;
+    }
+
+    @Override
+    public DataModel getData() {
+        return null;
     }
 
     public double getDeterminismThreshold() {

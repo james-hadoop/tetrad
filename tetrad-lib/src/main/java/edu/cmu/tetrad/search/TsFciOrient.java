@@ -550,7 +550,7 @@ public final class TsFciOrient {
                     reachable.add(a);
 
                     if (verbose) {
-                        System.out.println("Found pattern " + a + " " + b + " " + c);
+                        System.out.println("Found cpdag " + a + " " + b + " " + c);
                         reachablePathFind(a, b, c, reachable, graph);
                     }
                 }

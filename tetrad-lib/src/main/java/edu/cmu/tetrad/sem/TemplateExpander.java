@@ -313,8 +313,8 @@ public class TemplateExpander {
     }
 
     private String replaceNewParameters(GeneralizedSemPm semPm, String formula, List<String> usedNames) {
-        String parameterPattern = "\\$|(([a-zA-Z]{1})([a-zA-Z0-9-_/]*))";
-        Pattern p = Pattern.compile("NEW\\((" + parameterPattern + ")\\)");
+        String parameterCpdag = "\\$|(([a-zA-Z]{1})([a-zA-Z0-9-_/]*))";
+        Pattern p = Pattern.compile("NEW\\((" + parameterCpdag + ")\\)");
 
         while (true) {
             Matcher m = p.matcher(formula);
@@ -331,7 +331,7 @@ public class TemplateExpander {
             usedNames.add(nextName);
         }
 
-        Pattern p2 = Pattern.compile("new\\((" + parameterPattern + ")\\)");
+        Pattern p2 = Pattern.compile("new\\((" + parameterCpdag + ")\\)");
 
         while (true) {
             Matcher m = p2.matcher(formula);

@@ -21,9 +21,9 @@
 
 package edu.cmu.tetradapp.editor;
 
-import javax.swing.*;
-
 import edu.cmu.tetradapp.app.hpc.action.LoadHpcGraphJsonAction;
+
+import javax.swing.*;
 
 
 /**

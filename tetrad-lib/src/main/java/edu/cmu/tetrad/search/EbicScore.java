@@ -38,6 +38,7 @@ import static java.lang.Math.*;
  */
 public class EbicScore implements Score {
 
+    private DataSet dataSet;
     // The covariance matrix.
     private ICovarianceMatrix covariances;
 
@@ -85,6 +86,8 @@ public class EbicScore implements Score {
             throw new NullPointerException();
         }
 
+        this.dataSet = dataSet;
+
         this.variables = dataSet.getVariables();
         this.sampleSize = dataSet.getNumRows();
 
@@ -118,7 +121,7 @@ public class EbicScore implements Score {
 
     public double localScore(int i, int... parents) throws RuntimeException {
         final int pi = parents.length + 1;
-        double varRy = SemBicScore.getVarRy(i, parents, data, covariances, calculateRowSubsets);
+        double varRy = LinearGaussianBicScore.getVarRy(i, parents, data, covariances, calculateRowSubsets);
 
         double gamma = this.gamma;//  1.0 - riskBound;
 
@@ -198,8 +201,8 @@ public class EbicScore implements Score {
     }
 
     @Override
-    public Score defaultScore() {
-        return new EbicScore(covariances);
+    public DataModel getData() {
+        return dataSet;
     }
 
     private void setCovariances(ICovarianceMatrix covariances) {

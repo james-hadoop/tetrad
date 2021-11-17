@@ -36,8 +36,8 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * Wraps a Session as a Graph so that an AbstractWorkbench can be used to edit
@@ -83,7 +83,7 @@ public class SessionWrapper extends EdgeListGraph implements SessionWrapperIndir
     private transient SessionHandler sessionHandler;
     private boolean highlighted = false;
     private boolean pag;
-    private boolean pattern;
+    private boolean cpdag;
 
     //==========================CONSTRUCTORS=======================//
 
@@ -761,13 +761,13 @@ public class SessionWrapper extends EdgeListGraph implements SessionWrapperIndir
     }
 
     @Override
-    public boolean isPattern() {
-        return pattern;
+    public boolean isCpdag() {
+        return cpdag;
     }
 
     @Override
-    public void setPattern(boolean pattern) {
-        this.pattern = pattern;
+    public void setCpdag(boolean cpdag) {
+        this.cpdag = cpdag;
     }
 
     /**

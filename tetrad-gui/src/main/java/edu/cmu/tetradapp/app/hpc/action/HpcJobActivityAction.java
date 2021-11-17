@@ -1,15 +1,11 @@
 package edu.cmu.tetradapp.app.hpc.action;
 
-import java.awt.Frame;
-import java.awt.HeadlessException;
-import java.awt.event.ActionEvent;
-
-import javax.swing.AbstractAction;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-
 import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetradapp.app.hpc.editor.HpcJobActivityEditor;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 
 /**
  * 

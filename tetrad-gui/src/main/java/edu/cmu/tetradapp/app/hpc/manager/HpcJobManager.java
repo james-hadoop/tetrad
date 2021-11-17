@@ -1,21 +1,5 @@
 package edu.cmu.tetradapp.app.hpc.manager;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.apache.http.client.ClientProtocolException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import edu.cmu.tetradapp.app.TetradDesktop;
 import edu.cmu.tetradapp.app.hpc.task.HpcJobPreProcessTask;
 import edu.cmu.tetradapp.app.hpc.task.HpcJobsScheduledTask;
@@ -31,8 +15,17 @@ import edu.pitt.dbmi.tetrad.db.entity.HpcJobInfo;
 import edu.pitt.dbmi.tetrad.db.entity.HpcJobLog;
 import edu.pitt.dbmi.tetrad.db.entity.HpcJobLogDetail;
 import edu.pitt.dbmi.tetrad.db.service.HpcJobInfoService;
-import edu.pitt.dbmi.tetrad.db.service.HpcJobLogService;
 import edu.pitt.dbmi.tetrad.db.service.HpcJobLogDetailService;
+import edu.pitt.dbmi.tetrad.db.service.HpcJobLogService;
+import org.apache.http.client.ClientProtocolException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 

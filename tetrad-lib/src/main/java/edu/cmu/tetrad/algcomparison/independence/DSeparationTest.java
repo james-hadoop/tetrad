@@ -7,6 +7,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.IndTestDSep;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ import java.util.List;
         command = "d-sep-test",
         dataType = DataType.Graph
 )
-public class DSeparationTest implements IndependenceWrapper {
+public class DSeparationTest implements IndependenceWrapper, TakesGraph {
 
     static final long serialVersionUID = 23L;
     private Graph graph;
@@ -31,18 +32,14 @@ public class DSeparationTest implements IndependenceWrapper {
     public DSeparationTest() {
 
     }
-    
+
     public DSeparationTest(Graph graph) {
         this.graph = graph;
     }
 
     @Override
-    public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
-        if (dataSet == null) {
-            return new IndTestDSep(graph);
-        } else {
-            throw new IllegalArgumentException("Expecting no data for a d-separation test.");
-        }
+    public IndependenceTest getTest(DataModel dataSet, Parameters parameters, Graph trueGraph) {
+        return new IndTestDSep(trueGraph);
     }
 
     @Override
@@ -63,5 +60,5 @@ public class DSeparationTest implements IndependenceWrapper {
     public void setGraph(Graph graph) {
         this.graph = graph;
     }
-    
+
 }

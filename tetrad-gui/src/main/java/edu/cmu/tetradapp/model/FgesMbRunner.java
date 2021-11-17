@@ -163,13 +163,13 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
             target = gesScore.getVariable(targetName);
             fges = new FgesMb(gesScore);
             fges.setKnowledge((IKnowledge) getParams().get("knowledge", new Knowledge2()));
-            fges.setNumPatternsToStore(params.getInt("numPatternsToSave", 1));
+            fges.setNumCpdagsToStore(params.getInt("numCpdagsToSave", 1));
             fges.setVerbose(true);
         } else if (model instanceof DataSet) {
             DataSet dataSet = (DataSet) model;
 
             if (dataSet.isContinuous()) {
-                SemBicScore score = new SemBicScore(new CovarianceMatrix((DataSet) model));
+                LinearGaussianBicScore score = new LinearGaussianBicScore(new CovarianceMatrix((DataSet) model));
                 target = score.getVariable(targetName);
                 score.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
                 fges = new FgesMb(score);
@@ -185,7 +185,7 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
                 throw new IllegalStateException("Data set must either be continuous or discrete.");
             }
         } else if (model instanceof ICovarianceMatrix) {
-            SemBicScore gesScore = new SemBicScore((ICovarianceMatrix) model);
+            LinearGaussianBicScore gesScore = new LinearGaussianBicScore((ICovarianceMatrix) model);
             gesScore.setPenaltyDiscount(params.getDouble("alpha", 0.001));
             gesScore.setPenaltyDiscount(params.getDouble("penaltyDiscount", 4));
             target = gesScore.getVariable(targetName);
@@ -210,12 +210,12 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
                 double penalty = getParams().getDouble("penaltyDiscount", 4);
 
                 if (params.getBoolean("firstNontriangular", false)) {
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     fgesScore.setPenaltyDiscount(penalty);
                     target = fgesScore.getVariable(targetName);
                     fges = new FgesMb(fgesScore);
                 } else {
-                    SemBicScoreImages fgesScore = new SemBicScoreImages(list);
+                    LinearSemBicScoreImages fgesScore = new LinearSemBicScoreImages(list);
                     fgesScore.setPenaltyDiscount(penalty);
                     target = fgesScore.getVariable(targetName);
                     fges = new FgesMb(fgesScore);
@@ -307,7 +307,7 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
 
 //        fges.setInitialGraph(initialGraph);
         fges.setKnowledge((IKnowledge) getParams().get("knowledge", new Knowledge2()));
-        fges.setNumPatternsToStore(params.getInt("numPatternsToSave", 1));
+        fges.setNumCpdagsToStore(params.getInt("numCpdagsToSave", 1));
         fges.setVerbose(true);
 //        fges.setHeuristicSpeedup(((Parameters) params.getIndTestParams()).isFaithfulnessAssumed());
         fges.setMaxDegree(params.getInt("depth", -1));
@@ -316,7 +316,7 @@ public class FgesMbRunner extends AbstractAlgorithmRunner implements
         if (getSourceGraph() != null) {
             GraphUtils.arrangeBySourceGraph(graph, getSourceGraph());
         } else if (((IKnowledge) getParams().get("knowledge", new Knowledge2())).isDefaultToKnowledgeLayout()) {
-            SearchGraphUtils.arrangeByKnowledgeTiers(graph, (IKnowledge) getParams().get("knowledge", new Knowledge2()));
+            SearchGraphUtils.arrangeByKnowledgeTiers(graph);
         } else {
             GraphUtils.circleLayout(graph, 200, 200, 150);
         }

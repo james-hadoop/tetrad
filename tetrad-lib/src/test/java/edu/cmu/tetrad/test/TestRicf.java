@@ -23,9 +23,9 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.sem.LinearSemIm;
+import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.Ricf;
-import edu.cmu.tetrad.sem.SemIm;
-import edu.cmu.tetrad.sem.SemPm;
 import edu.cmu.tetrad.util.Matrix;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -266,8 +266,8 @@ public class TestRicf {
 
         Graph graph = new Dag(GraphUtils.randomGraph(nodes, 0, 10,
                 30, 15, 15, false));
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(graph);
+        LinearSemIm im = new LinearSemIm(pm);
         DataSet data = im.simulateData(1000, false);
         CovarianceMatrix cov = new CovarianceMatrix(data);
 
@@ -313,8 +313,8 @@ public class TestRicf {
         Graph g2 = GraphUtils.randomGraph(nodes, 0, 5,
                 0, 0, 0, false);
 
-        SemPm pm = new SemPm(g1);
-        SemIm im = new SemIm(pm);
+        LinearSemPm pm = new LinearSemPm(g1);
+        LinearSemIm im = new LinearSemIm(pm);
 
         DataSet dataset = im.simulateData(1000, false);
 
