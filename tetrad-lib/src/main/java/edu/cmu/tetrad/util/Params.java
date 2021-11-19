@@ -60,6 +60,7 @@ public final class Params {
     public static final String DATA_TYPE = "dataType";
     public static final String DEPTH = "depth";
     public static final String GSP_DEPTH = "gspDepth";
+    public static final String TRIANGLE_DEPTH = "triangleDepth";
     public static final String DETERMINISM_THRESHOLD = "determinismThreshold";
     public static final String DIFFERENT_GRAPHS = "differentGraphs";
     public static final String DISCRETIZE = "discretize";

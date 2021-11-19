@@ -97,8 +97,6 @@ public class DataWrapper implements SessionModel, KnowledgeEditable, KnowledgeBo
     public DataWrapper(Parameters parameters) {
         setDataModel(new BoxDataSet(new VerticalDoubleDataBox(0, 0), new LinkedList<>()));
         this.parameters = parameters;
-
-        System.out.println("B");
     }
 
     public DataWrapper(Simulation wrapper, Parameters parameters) {

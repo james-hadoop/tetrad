@@ -840,7 +840,7 @@ public final class TestBoss {
         parameters.set(Params.VERBOSE, true);
         parameters.set(Params.RANDOMIZE_COLUMNS, false);
         parameters.set(Params.BOSS_METHOD, 1);
-        parameters.set(Params.DEPTH, 3);
+        parameters.set(Params.DEPTH, 5);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
@@ -1432,12 +1432,12 @@ public final class TestBoss {
     public void testWayne() {
         List<Ret> allFacts = new ArrayList<>();
         allFacts.add(getFactsSimple());
-        allFacts.add(getFactsSimpleCanceling());
-        allFacts.add(getFactsRaskutti());
-        allFacts.add(getFigure6());
-        allFacts.add(getFigure7());
-        allFacts.add(getFigure8());
-        allFacts.add(getFigure12());
+//        allFacts.add(getFactsSimpleCanceling());
+//        allFacts.add(getFactsRaskutti());
+//        allFacts.add(getFigure6());
+//        allFacts.add(getFigure7());
+//        allFacts.add(getFigure8());
+//        allFacts.add(getFigure12());
 //
         int count = 0;
 
@@ -1467,7 +1467,7 @@ public final class TestBoss {
 
                 Boss boss = new Boss(new IndTestDSep(facts.getFacts()));
                 boss.setFirstRunUseDataOrder(true);
-                boss.setMethod(Boss.Method.BOSS);
+                boss.setMethod(GSP);
 
                 List<Node> order = boss.bestOrder(p);
 

@@ -74,7 +74,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
             boss.setKnowledge(dataSet.getKnowledge());
-            boss.setDepth(parameters.getInt(Params.DEPTH));
+            boss.setDepth(parameters.getInt(Params.TRIANGLE_DEPTH));
             boss.setGspDepth(parameters.getInt(Params.DEPTH));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
@@ -134,7 +134,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.USE_SCORE);
         params.add(Params.OUTPUT_CPDAG);
-        params.add(Params.DEPTH);
+        params.add(Params.TRIANGLE_DEPTH);
         params.add(Params.VERBOSE);
         return params;
     }
