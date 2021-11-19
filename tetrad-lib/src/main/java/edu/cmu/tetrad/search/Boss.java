@@ -444,7 +444,7 @@ public class Boss {
                 }
             }
         }
-nm
+
         path.remove(edge);
         return newOrder;
     }
