@@ -8,10 +8,7 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
 
@@ -35,7 +32,7 @@ public class Boss {
     private TeyssierScorer.ScoreType scoreType = TeyssierScorer.ScoreType.Edge;
     private IKnowledge knowledge = new Knowledge2();
     private boolean firstRunUseDataOrder = false;
-    private int depth = -1;
+    private int triangleDepth = -1;
     private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.GrowShrinkMb;
     private TeyssierScorer scorer;
 
@@ -90,8 +87,8 @@ public class Boss {
                 perm = boss(scorer);
             } else if (method == Method.SP) {
                 perm = sp(scorer);
-            } else if (method == Method.GSP) {
-                perm = gsp3(scorer);
+            } else if (method == Method.AGSP) {
+                perm = agsp(scorer);
             } else {
                 throw new IllegalArgumentException("Unrecognized method: " + method);
             }
@@ -251,14 +248,14 @@ public class Boss {
     }
 
     private void triangleLoop(TeyssierScorer scorer) {
-        if (depth == 0) return;
+        if (triangleDepth == 0) return;
 
         Set<NodePair> path = new HashSet<>();
-        int _depth = depth == -1 ? Integer.MAX_VALUE : depth;
+        int _depth = triangleDepth == -1 ? Integer.MAX_VALUE : triangleDepth;
         double s = scorer.score();
 
         for (int i = scorer.size() - 1; i >= 0; i--) {
-            for (int j = i - 1; j > -0; j--) {
+            for (int j = i - 1; j >= 0; j--) {
                 Node x = scorer.get(i);
                 Node y = scorer.get(j);
                 if (!scorer.adjacent(x, y)) continue;
@@ -321,49 +318,112 @@ public class Boss {
     private List<Node> gsp(TeyssierScorer scorer) {
         Set<NodePair> path = new HashSet<>();
 
+        List<NodePair> edges = new ArrayList<>();
+
+        for (int i = 0; i < scorer.size(); i++) {
+            for (int j = i + 1; j < scorer.size(); j++) {
+                edges.add(new NodePair(scorer.get(i), scorer.get(j)));
+            }
+        }
+
         double score = scorer.score();
         double _score = score;
 
         do {
             score = _score;
-            _score = gspLoop(scorer, 1, gspDepth == -1 ? Integer.MAX_VALUE : gspDepth, path);
+            List<Node> order = gspLoop(scorer, 1, gspDepth == -1 ? Integer.MAX_VALUE : gspDepth, path, edges, null);
+
+            path.clear();
+
+            scorer.evaluate(order);
+            List<Node> order2 = gspLoopOneEqualStep(scorer, 1, gspDepth == -1 ? Integer.MAX_VALUE : gspDepth, path, edges, null);
+
+            if (order2 == null) {
+                scorer.evaluate(order);
+                break;
+            }
+
+            scorer.evaluate(order2);
+            _score = scorer.score();
         } while (_score > score);
 
         return scorer.getOrder();
     }
 
-    private double gspLoop(TeyssierScorer scorer, int depth, int gspDepth, Set<NodePair> path) {
-        List<Node> _order = scorer.getOrder();
+    private List<Node> gspLoop(TeyssierScorer scorer, int depth, int gspDepth, Set<NodePair> path, List<NodePair> edges, NodePair edge) {
+        if (edge != null) {
+            if (path.contains(edge)) return scorer.getOrder();
+            path.add(edge);
+        }
+
+        List<Node> order = scorer.getOrder();
+
+        scorer.evaluate(order);
+        List<Node> newOrder = scorer.getOrder();
+        double newScore = scorer.score();
 
         if (depth > gspDepth) {
-            return scorer.score();
+            return scorer.getOrder();
         }
 
         double score = scorer.score();
+        List<Node> best = scorer.getOrder();
 
-        for (int i = scorer.size() - 1; i >= 0; i--) {
-            for (int j = i - 1; j >= 0; j--) {
-                Node w = scorer.get(i);
-                Node v = scorer.get(j);
+        for (NodePair _edge : edges) {
+            Node x = _edge.getFirst();
+            Node y = _edge.getSecond();
 
-                if (!scorer.adjacent(w, v)) continue;
-                if (path.contains(new NodePair(w, v))) continue;
+            scorer.evaluate(order);
 
-                if (covered(v, w, scorer)) {
-//                    scorer.swap(v, w);
-                    flip(scorer, v, w);
+            if (covered(x, y, scorer)) {
+                flip(scorer, x, y);
 
-                    if (scorer.score() > score) {
-                        path.add(new NodePair(w, v));
-                        return gspLoop(scorer, depth + 1, gspDepth, path);
-                    }
+                if (scorer.score() > newScore) {
+                    List<Node> _order = gspLoop(scorer, depth + 1, gspDepth, path, edges, edge);
 
                     scorer.evaluate(_order);
+
+                    if (scorer.score() > score) {
+                        newScore = scorer.score();
+                        newOrder = scorer.getOrder();
+                    }
                 }
             }
         }
 
-        return scorer.score();
+        path.remove(edge);
+        return newOrder;
+    }
+
+    private List<Node> gspLoopOneEqualStep(TeyssierScorer scorer, int depth, int gspDepth, Set<NodePair> path, List<NodePair> edges, NodePair edge) {
+        if (edge != null) {
+            if (path.contains(edge)) return scorer.getOrder();
+            path.add(edge);
+        }
+
+        List<Node> order = scorer.getOrder();
+
+        scorer.evaluate(order);
+//        List<Node> newOrder = scorer.getOrder();
+        double newScore = scorer.score();
+
+        for (NodePair _edge : edges) {
+            Node x = _edge.getFirst();
+            Node y = _edge.getSecond();
+
+            scorer.evaluate(order);
+
+            if (covered(x, y, scorer)) {
+                flip(scorer, x, y);
+
+                if (scorer.score() == newScore) {
+                    return scorer.getOrder();
+                }
+            }
+        }
+
+//        path.remove(edge);
+        return null;
     }
 
     private List<Node> gsp2(TeyssierScorer scorer) {
@@ -400,7 +460,7 @@ public class Boss {
     }
 
     private List<Node> gsp3(TeyssierScorer scorer) {
-        Set<NodePair> edges = new HashSet<>();
+        List<NodePair> edges = new ArrayList<>();
 
         for (int i = 0; i < scorer.size(); i++) {
             for (int j = i + 1; j < scorer.size(); j++) {
@@ -408,14 +468,17 @@ public class Boss {
             }
         }
 
-        return gsp3Visit(scorer, null, scorer.getOrder(), edges, new ArrayList<>());
+        return gsp3Visit(scorer, null, scorer.getOrder(), edges, new ArrayList<>(), 1);
     }
 
-    private List<Node> gsp3Visit(TeyssierScorer scorer, NodePair edge, List<Node> order, Set<NodePair> edges, List<NodePair> path) {
+    private List<Node> gsp3Visit(TeyssierScorer scorer, NodePair edge, List<Node> order,
+                                 List<NodePair> edges, List<NodePair> path, int depth) {
+        System.out.println("depth = " + depth);
+        if (depth > (gspDepth == -1 ? Integer.MAX_VALUE : gspDepth)) return scorer.getOrder();
+
         if (edge != null) {
             if (path.contains(edge)) return order;
             path.add(edge);
-//            System.out.println("Adding " + edge + " " + -scorer.score() + " path = " + path);
         }
 
         scorer.evaluate(order);
@@ -426,20 +489,20 @@ public class Boss {
             Node x = _edge.getFirst();
             Node y = _edge.getSecond();
 
-            if (covered(x, y, scorer)) {
-                scorer.evaluate(order);
+            scorer.evaluate(order);
 
+            if (covered(x, y, scorer)) {
+                double score = scorer.score();
                 flip(scorer, x, y);
 
-//                System.out.println("Covered: " + _edge + " reversed to " + -scorer.score());
-
                 if (scorer.score() >= newScore) {
-                    List<Node> _order = gsp3Visit(scorer, _edge, scorer.getOrder(), edges, path);
+                    List<Node> _order = gsp3Visit(scorer, _edge, scorer.getOrder(), edges, path, depth + 1);
                     scorer.evaluate(_order);
 
                     if (scorer.score() > newScore) {
                         newScore = scorer.score();
                         newOrder = scorer.getOrder();
+                        return scorer.getOrder();
                     }
                 }
             }
@@ -450,54 +513,89 @@ public class Boss {
     }
 
     private void flip(TeyssierScorer scorer, Node x, Node y) {
+        if (!scorer.adjacent(x, y)) throw new IllegalArgumentException("Expecting adjacent X, Y");
+
         if (scorer.getParents(x).contains(y)) {
             scorer.moveTo(x, scorer.indexOf(y));
-        } else  if (scorer.getParents(y).contains(x)) {
+//            System.out.println("Moving " + x + " to before " + y + ": " + scorer.getOrder() + " count = " + -scorer.score());
+        } else if (scorer.getParents(y).contains(x)) {
+//            System.out.println("Moving " + y + " to before " + x + ": " + scorer.getOrder() + " count = " + -scorer.score());
             scorer.moveTo(y, scorer.indexOf(x));
         }
     }
 
-    private List<Node> agsp(TeyssierScorer scorer) {
-        List<NodePair> allPairs = new ArrayList<>();
-
-        for (int i = scorer.size() - 1; i >= 0; i--) {
-            for (int j = i - 1; j >= 0; j--) {
-                Node w = scorer.get(i);
-                Node v = scorer.get(j);
-                allPairs.add(new NodePair(w, v));
-            }
+    private void flip2(TeyssierScorer scorer, Node x, Node y) {
+        if (!scorer.adjacent(x, y)) throw new IllegalArgumentException("Expecting adjacent X, Y");
+        if (!scorer.getParents(y).contains(x)) {
+            throw new IllegalArgumentException("Expecting " + x + "-->" + y);
         }
 
-        double score0 = NEGATIVE_INFINITY;
+//        if (scorer.getParents(x).contains(y)) {
+//        scorer.moveTo(x, scorer.indexOf(y));
+//            System.out.println("Moving " + x + " to before " + y + ": " + scorer.getOrder() + " count = " + -scorer.score());
+//        } else if (scorer.getParents(y).contains(x)) {
+//            System.out.println("Moving " + y + " to before " + x + ": " + scorer.getOrder() + " count = " + -scorer.score());
+        scorer.moveTo(y, scorer.indexOf(x));
+//        }
+    }
 
-        while (scorer.score() > score0) {
-            score0 = scorer.score();
+    private List<Node> agsp(@NotNull TeyssierScorer scorer) {
+        double oldScore;
+        double newScore;
+        int round = 0;
 
-            for (NodePair pair : allPairs) {
-                Node w = pair.getFirst();
-                Node v = pair.getSecond();
+        do {
+            if (verbose) {
+                System.out.println("AGSP Round = " + ++round);
+            }
 
-                if (!scorer.adjacent(w, v)) continue;
+            oldScore = scorer.score();
 
-                if (covered(w, v, scorer)) {
-                    continue;
-                }
+            for (int k = 0; k < 2; k++) {
+                for (int i = 0; i < scorer.size(); i++) {
+                    for (int j = i + 1; j < scorer.size(); j++) {
+                        Node x = scorer.get(i);
+                        Node y = scorer.get(j);
 
-                double score = scorer.score();
-                scorer.swap(v, w);
+                        if (!scorer.adjacent(y, x)) continue;
 
-                if (!(scorer.score() > score)) {
-                    scorer.swap(v, w);
+                        if (scorer.getParents(x).contains(y)) {
+                            Node r = x;
+                            x = y;
+                            y = r;
+                        }
+
+                        scorer.bookmark();
+
+                        double s1 = scorer.score();
+
+                        if (scorer.indexOf(x) < scorer.indexOf(y)) {
+                            scorer.moveTo(y, scorer.indexOf(x));
+                        } else {
+                            scorer.moveTo(y, scorer.indexOf(x) + 1);
+                        }
+
+                        double s2 = scorer.score();
+
+                        if (s2 >= s1) {
+                            continue;
+                        }
+
+                        scorer.goToBookmark();
+                    }
                 }
             }
-        }
+
+            newScore = scorer.score();
+        } while (newScore > oldScore);
 
         return scorer.getOrder();
     }
 
     // Checks if v-->w is covered.
     private boolean covered(Node v, Node w, TeyssierScorer scorer) {
-        if (!scorer.adjacent(v, w)) return false;
+        if (!scorer.adjacent(v, w)) throw new IllegalArgumentException(
+                "When checking if <X, Y> is covered, X and Y should be adjacent.");
         Set<Node> pw = new HashSet<>(scorer.getParents(w));
         pw.remove(v);
         Set<Node> pv = new HashSet<>(scorer.getParents(v));
@@ -590,23 +688,15 @@ public class Boss {
         this.firstRunUseDataOrder = firstRunUseDataOrder;
     }
 
-    public void setMaxNumTriangles(int maxNumTriangles) {
-        if (maxNumTriangles < -1) throw new IllegalArgumentException("Depth must be >= -1.");
-    }
+    public void setTriangleDepth(int triangleDepth) {
+        if (triangleDepth < -1) throw new IllegalArgumentException("Depth should be >= -1.");
 
-    public int getDepth() {
-        return depth;
-    }
-
-    public void setDepth(int depth) {
-        if (depth < -1) throw new IllegalArgumentException("Depth should be >= -1.");
-
-        this.depth = depth;
+        this.triangleDepth = triangleDepth;
     }
 
     public void setParentCalculation(TeyssierScorer.ParentCalculation parentCalculation) {
         this.parentCalculation = parentCalculation;
     }
 
-    public enum Method {BOSS, SP, GSP}
+    public enum Method {BOSS, SP, AGSP}
 }

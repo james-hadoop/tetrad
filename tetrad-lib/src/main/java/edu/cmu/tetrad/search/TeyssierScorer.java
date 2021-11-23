@@ -112,15 +112,20 @@ public class TeyssierScorer {
     }
 
     public void moveTo(Node v, int toIndex) {
+        if (!order.contains(v)) return;
         int vindex = indexOf(v);
+
+        if (vindex == toIndex) return;
+
+        Node to = order.get(toIndex);
 
         order.remove(v);
         order.add(toIndex, v);
 
-        if (vindex < toIndex) {
-            updateScores(vindex, toIndex);
-        } else {
+        if (toIndex < vindex) {
             updateScores(toIndex, vindex);
+        } else {
+            updateScores(vindex, toIndex);
         }
     }
 
@@ -185,7 +190,11 @@ public class TeyssierScorer {
             System.out.println();
         }
 
-        return orderHash.get(v);
+        Integer integer = orderHash.get(v);
+
+        if (integer == null) System.out.println("First 'evaluate' a permutation containing variablle " + v + ".");
+
+        return integer;
     }
 
     private double sum() {
@@ -308,18 +317,18 @@ public class TeyssierScorer {
             } else {
                 return getGrowShrinkScore(p);
             }
-        } else if (parentCalculation == ParentCalculation.VermaPearl) {
+        } else if (parentCalculation == ParentCalculation.Pearl) {
             if (test != null) {
-                return vermaPearl(p);
+                return pearlParents(p);
             } else {
-                return vermaPearlScore(p);
+                return pearlScore(p);
             }
         } else {
             throw new IllegalStateException("Unrecognized parent calculation: " + parentCalculation);
         }
     }
 
-    private Pair vermaPearl(int p) {
+    public Pair pearlParents(int p) {
         Node x = order.get(p);
         Set<Node> parents = new HashSet<>();
         Set<Node> prefix = getPrefix(p);
@@ -336,7 +345,7 @@ public class TeyssierScorer {
         return new Pair(parents, -parents.size());
     }
 
-    private Pair vermaPearlScore(int p) {
+    private Pair pearlScore(int p) {
         Node x = order.get(p);
         Set<Node> parents = new HashSet<>();
         Set<Node> prefix = getPrefix(p);
@@ -523,7 +532,7 @@ public class TeyssierScorer {
     }
 
     public boolean adjacent(Node a, Node c) {
-        return getParents(indexOf(a)).contains(c) || getParents(indexOf(c)).contains(a);
+        return getParents(a).contains(c) || getParents(c).contains(a);
     }
 
     public boolean collider(Node a, Node b, Node c) {
@@ -551,7 +560,7 @@ public class TeyssierScorer {
 
     public enum ScoreType {Edge, SCORE}
 
-    public enum ParentCalculation {GrowShrinkMb, VermaPearl}
+    public enum ParentCalculation {GrowShrinkMb, Pearl}
 
     private static class Pair {
         private final Set<Node> parents;
