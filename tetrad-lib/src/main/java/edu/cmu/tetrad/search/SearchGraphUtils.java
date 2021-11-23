@@ -2271,7 +2271,10 @@ public final class SearchGraphUtils {
         return cpdag;
     }
 
-    private static int structuralHammingDistanceOneEdge(Edge e1, Edge e2) {
+    private static int structuralHammingDistanceOneEdge(Node l1, Node l2, Graph trueGraph, Graph estGraph) {
+        Edge e1 = trueGraph.getEdge(l1, l2);
+        Edge e2 = estGraph.getEdge(l1, l2);
+
         if (noEdge(e1) && undirected(e2)) {
             return 1;
         } else if (noEdge(e2) && undirected(e1)) {
@@ -2315,27 +2318,14 @@ public final class SearchGraphUtils {
         int error = 0;
 
         estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
-
         List<Node> _allNodes = estGraph.getNodes();
 
-        List<Node> allNodes = new ArrayList<>(_allNodes);
+        for (int i1 = 0; i1 < _allNodes.size(); i1++) {
+            for (int i2 = i1 + 1; i2 < _allNodes.size(); i2++) {
+                Node n1 = _allNodes.get(i1);
+                Node n2 = _allNodes.get(i2);
 
-        for (int i1 = 0; i1 < allNodes.size(); i1++) {
-            for (int i2 = i1 + 1; i2 < allNodes.size(); i2++) {
-                Node l1 = allNodes.get(i1);
-                Node l2 = allNodes.get(i2);
-
-                Edge e1 = trueGraph.getEdge(l1, l2);
-                Edge e2 = estGraph.getEdge(l1, l2);
-                if (e1 != null && e2 != null) {
-                    if (!e2.getNode1().equals(e1.getNode1())) {
-                        e2 = new Edge(e1.getNode1(), e1.getNode2(),
-                                e2.getProximalEndpoint(e1.getNode1()),
-                                e2.getProximalEndpoint(e1.getNode2()));
-                    }
-                }
-
-                int shd = structuralHammingDistanceOneEdge(e1, e2);
+                int shd = structuralHammingDistanceOneEdge(n1, n2, trueGraph, estGraph);
                 error += shd;
             }
         }

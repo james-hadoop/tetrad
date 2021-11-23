@@ -24,6 +24,7 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.AGSP;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
@@ -60,7 +61,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static edu.cmu.tetrad.search.Boss.Method.GSP;
+import static edu.cmu.tetrad.search.Boss.Method.AGSP;
 import static java.lang.Math.sqrt;
 import static java.util.Collections.shuffle;
 import static java.util.Collections.sort;
@@ -836,11 +837,16 @@ public final class TestBoss {
         parameters.set(Params.NUM_MEASURES, 10);
         parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
-        parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.VERBOSE, true);
         parameters.set(Params.RANDOMIZE_COLUMNS, false);
-        parameters.set(Params.BOSS_METHOD, 1);
-        parameters.set(Params.DEPTH, 5);
+        parameters.set(Params.DEPTH, -1);
+
+        parameters.set(Params.BOSS_SCORE_TYPE, false);
+        parameters.set(Params.USE_SCORE, false);
+        parameters.set(Params.OUTPUT_CPDAG, true);
+        parameters.set(Params.TRIANGLE_DEPTH, 2);
+        parameters.set(Params.GSP_DEPTH, 10);
+
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
@@ -856,19 +862,15 @@ public final class TestBoss {
 //        simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcAll(new DSeparationTest()));
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-//        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.FmlBicScore()));
-//        algorithms.add(new BOSSIndep(new FisherZ()));
-//        algorithms.add(new GSPIndep(new DSeparationTest()));
-//        algorithms.add(new GSPIndep(new FisherZ()));
+//        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new AGSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
-        comparison.setShowAlgorithmIndices(true);
+        comparison.setShowAlgorithmIndices(false);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/soluscomparison",
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/soluscomparison",
                 simulations, algorithms, statistics, parameters);
     }
 
@@ -1432,13 +1434,13 @@ public final class TestBoss {
     public void testWayne() {
         List<Ret> allFacts = new ArrayList<>();
         allFacts.add(getFactsSimple());
-//        allFacts.add(getFactsSimpleCanceling());
-//        allFacts.add(getFactsRaskutti());
-//        allFacts.add(getFigure6());
-//        allFacts.add(getFigure7());
-//        allFacts.add(getFigure8());
-//        allFacts.add(getFigure12());
-//
+        allFacts.add(getFactsSimpleCanceling());
+        allFacts.add(getFactsRaskutti());
+        allFacts.add(getFigure6());
+        allFacts.add(getFigure7());
+        allFacts.add(getFigure8());
+        allFacts.add(getFigure12());
+
         int count = 0;
 
         boolean printCpdag = false;
@@ -1467,7 +1469,9 @@ public final class TestBoss {
 
                 Boss boss = new Boss(new IndTestDSep(facts.getFacts()));
                 boss.setFirstRunUseDataOrder(true);
-                boss.setMethod(GSP);
+                boss.setTriangleDepth(-1);
+                boss.setGspDepth(2);
+                boss.setMethod(AGSP);
 
                 List<Node> order = boss.bestOrder(p);
 
@@ -1487,7 +1491,7 @@ public final class TestBoss {
 
         boolean printCpdag = false;
 
-        Boss.Method[] methods = {GSP};//, Boss.Method.BOSS};//, Boss.Method.SP};
+        Boss.Method[] methods = {AGSP};//, Boss.Method.BOSS};//, Boss.Method.SP};
 
         count++;
 
@@ -1626,6 +1630,104 @@ public final class TestBoss {
         }
 
         System.out.println(pass);
+    }
+
+    @Test
+    public void testWayne4() {
+        int[] numNodes = new int[]{20};//5, 6, 7, 8};
+        int[] avgDegree = new int[]{6};//2, 3, 4};
+        int[] size = new int[]{1000};//, 10000, 100000};
+        double coefLow = 0.2;
+        double coefHigh = 0.7;
+        boolean coefSymmetric = true;
+        double varlow = 1;
+        double varHigh = 3;
+        boolean randomizeColumns = false;
+        double[] alpha = new double[]{0.001, 0.01, 0.1};
+        System.out.println("NumNodes\tAvgDegree\tSize\tAlpha\tPercPearl\tPercGc");
+
+        for (int m : numNodes) {
+            for (int a : avgDegree) {
+                for (int s : size) {
+                    for (double _alpha : alpha) {
+
+                        int pearlCount = 0;
+                        int gsCount = 0;
+                        int total = 0;
+                        NumberFormat nf = new DecimalFormat("0.00");
+
+                        int numEdges = (int) (a * m / 2.);
+
+                        Graph graph = GraphUtils.randomGraph(m, 0,
+                                numEdges, 100, 100, 100, false);
+
+                        Parameters parameters = new Parameters();
+                        parameters.set(Params.COEF_LOW, coefLow);
+                        parameters.set(Params.COEF_HIGH, coefHigh);
+                        parameters.set(Params.COEF_SYMMETRIC, coefSymmetric);
+                        parameters.set(Params.VAR_LOW, varlow);
+                        parameters.set(Params.VAR_HIGH, varHigh);
+                        parameters.set(Params.RANDOMIZE_COLUMNS, randomizeColumns);
+
+                        LinearSemPm pm = new LinearSemPm(graph);
+                        LinearSemIm im = new LinearSemIm(pm, parameters);
+
+                        DataSet dataSet = im.simulateData(s, false);
+                        List<Node> V = dataSet.getVariables();
+
+                        IndTestDSep dsep = new IndTestDSep(graph);
+                        IndependenceTest test = new IndTestFisherZ(dataSet, _alpha);
+
+                        LinearGaussianBicScore score = new LinearGaussianBicScore(dataSet);
+
+                        // Random permutation over 1...|V|.
+                        List<Integer> l = new ArrayList<>();
+                        for (int w = 0; w < V.size(); w++) {
+                            l.add(w);
+                        }
+
+                        for (int r = 0; r < 1; r++) {
+                            Collections.shuffle(l);
+
+                            int[] perm = new int[l.size()];
+                            for (int w = 0; w < V.size(); w++) {
+                                perm[w] = l.get(w);
+                            }
+
+                            List<Node> _perm0 = GraphUtils.asList(perm, dsep.getVariables());
+                            List<Node> _perm = GraphUtils.asList(perm, test.getVariables());
+
+                            TeyssierScorer scorer0 = new TeyssierScorer(dsep);
+                            scorer0.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
+                            scorer0.evaluate(_perm0);
+                            Graph g1 = scorer0.getGraph(true);
+
+                            TeyssierScorer scorer1 = new TeyssierScorer(test);
+                            scorer1.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
+                            scorer1.evaluate(_perm);
+                            Graph g2 = scorer1.getGraph(true);
+
+                            TeyssierScorer scorer2 = new TeyssierScorer(score);
+                            scorer2.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
+                            scorer2.evaluate(_perm);
+                            Graph g3 = scorer2.getGraph(true);
+
+                            g2 = GraphUtils.replaceNodes(g2, g1.getNodes());
+//
+                            g3 = GraphUtils.replaceNodes(g3, g1.getNodes());
+//
+                            if (g1.equals(g2)) pearlCount++;
+                            if (g1.equals(g3)) gsCount++;
+                            total++;
+
+                        }
+
+                        System.out.println(m + "\t" + a + "\t" + s + "\t" + _alpha + "\t" + nf.format(pearlCount / (double) total)
+                                + "\t" + nf.format(gsCount / (double) total));
+                    }
+                }
+            }
+        }
     }
 }
 

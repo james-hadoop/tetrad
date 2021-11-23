@@ -306,6 +306,17 @@ public class Comparison {
         double[][][][] allStats = calcStats(algorithmSimulationWrappers, algorithmWrappers, simulationWrappers,
                 statistics, numRuns, stdout);
 
+        out.println("Algorithms:");
+        out.println();
+
+        for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+            AlgorithmSimulationWrapper wrapper = algorithmSimulationWrappers.get(t);
+
+            if (wrapper.getSimulationWrapper() == simulationWrappers.get(0)) {
+                out.println((t + 1) + ". " + wrapper.getAlgorithmWrapper().getDescription());
+            }
+        }
+
         // Print out the preliminary information for statistics types, etc.
         if (allStats != null) {
             out.println();
@@ -351,6 +362,8 @@ public class Comparison {
                 }
             }
 
+            printTables(statistics, parameters, simulationWrappers, algorithmWrappers, algorithmSimulationWrappers, allStats, numTables, numStats, statTables, utilities, newOrder);
+
             out.println("Simulations:");
             out.println();
 
@@ -373,16 +386,7 @@ public class Comparison {
             }
 //            }
 
-            out.println("Algorithms:");
-            out.println();
 
-            for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
-                AlgorithmSimulationWrapper wrapper = algorithmSimulationWrappers.get(t);
-
-                if (wrapper.getSimulationWrapper() == simulationWrappers.get(0)) {
-                    out.println((t + 1) + ". " + wrapper.getAlgorithmWrapper().getDescription());
-                }
-            }
 
             if (isSortByUtility()) {
                 out.println();
@@ -416,59 +420,6 @@ public class Comparison {
 
             out.println();
 
-            // Add utilities to table as the last column.
-            for (int u = 0; u < numTables; u++) {
-                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
-                    statTables[u][t][numStats] = utilities[t];
-                }
-            }
-
-            // Print all of the tables.
-            printStats(statTables, statistics, Mode.Average, newOrder, algorithmSimulationWrappers,
-                    algorithmWrappers, simulationWrappers, utilities, parameters);
-
-            statTables = calcStatTables(allStats, Mode.StandardDeviation, numTables,
-                    algorithmSimulationWrappers, numStats, statistics);
-
-            for (int u = 0; u < numTables; u++) {
-                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
-                    statTables[u][t][numStats] = utilities[t];
-                }
-            }
-
-            printStats(statTables, statistics, Mode.StandardDeviation, newOrder, algorithmSimulationWrappers, algorithmWrappers,
-                    simulationWrappers, utilities, parameters);
-
-            statTables = calcStatTables(allStats, Mode.WorstCase, numTables, algorithmSimulationWrappers,
-                    numStats, statistics);
-
-            for (int u = 0; u < numTables; u++) {
-                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
-                    statTables[u][t][numStats] = utilities[t];
-                }
-            }
-
-            printStats(statTables, statistics, Mode.WorstCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
-                    simulationWrappers, utilities, parameters);
-
-            statTables = calcStatTables(allStats, Mode.MedianCase, numTables, algorithmSimulationWrappers,
-                    numStats, statistics);
-
-            for (int u = 0; u < numTables; u++) {
-                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
-                    statTables[u][t][numStats] = utilities[t];
-                }
-            }
-
-            printStats(statTables, statistics, Mode.MedianCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
-                    simulationWrappers, utilities, parameters);
-
-            // Add utilities to table as the last column.
-            for (int u = 0; u < numTables; u++) {
-                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
-                    statTables[u][t][numStats] = utilities[t];
-                }
-            }
         }
 
         for (int i = 0; i < simulations.getSimulations().size(); i++) {
@@ -476,6 +427,62 @@ public class Comparison {
         }
 
         out.close();
+    }
+
+    private void printTables(Statistics statistics, Parameters parameters, List<SimulationWrapper> simulationWrappers, List<AlgorithmWrapper> algorithmWrappers, List<AlgorithmSimulationWrapper> algorithmSimulationWrappers, double[][][][] allStats, int numTables, int numStats, double[][][] statTables, double[] utilities, int[] newOrder) {
+        // Add utilities to table as the last column.
+        for (int u = 0; u < numTables; u++) {
+            for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                statTables[u][t][numStats] = utilities[t];
+            }
+        }
+
+        // Print all of the tables.
+        printStats(statTables, statistics, Mode.Average, newOrder, algorithmSimulationWrappers,
+                algorithmWrappers, simulationWrappers, utilities, parameters);
+
+        statTables = calcStatTables(allStats, Mode.StandardDeviation, numTables,
+                algorithmSimulationWrappers, numStats, statistics);
+
+        for (int u = 0; u < numTables; u++) {
+            for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                statTables[u][t][numStats] = utilities[t];
+            }
+        }
+
+        printStats(statTables, statistics, Mode.StandardDeviation, newOrder, algorithmSimulationWrappers, algorithmWrappers,
+                simulationWrappers, utilities, parameters);
+
+        statTables = calcStatTables(allStats, Mode.WorstCase, numTables, algorithmSimulationWrappers,
+                numStats, statistics);
+
+        for (int u = 0; u < numTables; u++) {
+            for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                statTables[u][t][numStats] = utilities[t];
+            }
+        }
+
+        printStats(statTables, statistics, Mode.WorstCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
+                simulationWrappers, utilities, parameters);
+
+        statTables = calcStatTables(allStats, Mode.MedianCase, numTables, algorithmSimulationWrappers,
+                numStats, statistics);
+
+        for (int u = 0; u < numTables; u++) {
+            for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                statTables[u][t][numStats] = utilities[t];
+            }
+        }
+
+        printStats(statTables, statistics, Mode.MedianCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
+                simulationWrappers, utilities, parameters);
+
+        // Add utilities to table as the last column.
+        for (int u = 0; u < numTables; u++) {
+            for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                statTables[u][t][numStats] = utilities[t];
+            }
+        }
     }
 
     /**
