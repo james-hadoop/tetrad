@@ -23,8 +23,8 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.AGSP;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
@@ -36,7 +36,6 @@ import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.ConditionalGaussianBicScore;
-//import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore;
 import edu.cmu.tetrad.algcomparison.simulation.LeeHastieSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
@@ -118,7 +117,6 @@ public final class TestBoss {
             boss.setCacheScores(true);
             boss.setMethod(method);
             boss.setNumStarts(1);
-            boss.setGspDepth(-1);
             boss.setVerbose(true);
             List<Node> perm = boss.bestOrder(order);
             Graph dag = boss.getGraph(false);
@@ -1467,15 +1465,19 @@ public final class TestBoss {
             while ((perm = gen.next()) != null) {
                 List<Node> p = GraphUtils.asList(perm, variables);
 
-                Boss boss = new Boss(new IndTestDSep(facts.getFacts()));
-                boss.setFirstRunUseDataOrder(true);
-                boss.setTriangleDepth(-1);
-                boss.setGspDepth(2);
-                boss.setMethod(AGSP);
+                Boss search = new Boss(new IndTestDSep(facts.getFacts()));
+                search.setFirstRunUseDataOrder(true);
+                search.setTriangleDepth(-1);
+                search.setMethod(Boss.Method.AGSP);
+                List<Node> order = search.bestOrder(p);
+                System.out.println(p + " " + order + " " + search.getNumEdges());
 
-                List<Node> order = boss.bestOrder(p);
 
-                System.out.println(p + " " + order + " " + boss.getNumEdges());
+//                Pc search = new Pc(new IndTestDSep(facts.getFacts()));
+//                System.out.println(p + " " + search.search().getNumEdges());
+
+//                Fges search = new Fges(new GraphScore(facts.getFacts()));
+//                System.out.println(p + " " + search.search().getNumEdges());
 
             }
 
@@ -1526,8 +1528,9 @@ public final class TestBoss {
         while ((perm = gen.next()) != null) {
             List<Node> _perm = GraphUtils.asList(perm, variables);
 
-            Boss _boss = new Boss(new IndTestDSep(facts.getFacts()));
-            boss.setFirstRunUseDataOrder(true);
+//            Boss _boss = new Boss(new IndTestDSep(facts.getFacts()));
+//            Pc pc = new Pc(new IndTestDSep(facts.getFacts()));
+//            boss.setFirstRunUseDataOrder(true);
 
             List<Node> _order = boss.bestOrder(_perm);
             System.out.println(boss.getGraph(true).equals(graph));
@@ -1600,24 +1603,6 @@ public final class TestBoss {
         }
     }
 
-    private static class Ret {
-        private final String label;
-        private final IndependenceFacts facts;
-
-        public Ret(String label, IndependenceFacts facts) {
-            this.label = label;
-            this.facts = facts;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public IndependenceFacts getFacts() {
-            return facts;
-        }
-    }
-
     @Test
     public void randomString() {
         String all = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()_+";
@@ -1634,26 +1619,34 @@ public final class TestBoss {
 
     @Test
     public void testWayne4() {
-        int[] numNodes = new int[]{20};//5, 6, 7, 8};
-        int[] avgDegree = new int[]{6};//2, 3, 4};
-        int[] size = new int[]{1000};//, 10000, 100000};
+//        int[] numNodes = new int[]{30};//4, 5, 6, 7};
+//        int[] avgDegree = new int[]{8};//1, 2, 3, 4};
+//        int[] size = new int[]{1000};//100, 1000, 10000, 100000};
+
+        int[] numNodes = new int[]{4, 5, 6, 7};
+        int[] avgDegree = new int[]{1, 2, 3, 4};
+        int[] size = new int[]{100, 1000, 10000, 100000};
+
         double coefLow = 0.2;
         double coefHigh = 0.7;
         boolean coefSymmetric = true;
         double varlow = 1;
         double varHigh = 3;
         boolean randomizeColumns = false;
-        double[] alpha = new double[]{0.001, 0.01, 0.1};
-        System.out.println("NumNodes\tAvgDegree\tSize\tAlpha\tPercPearl\tPercGc");
+        double[] alpha = new double[]{0.001, 0.005, 0.01, 0.05, 0.1};
+        int numRuns = 100 ;
+        System.out.println("NumNodes\tAvgDegree\tSize\tGS\tPearl0.001\tPearl0.005\tPearl0.01\tPear0.05\tPearl0.1");
 
         for (int m : numNodes) {
             for (int a : avgDegree) {
                 for (int s : size) {
-                    for (double _alpha : alpha) {
+                    int gsCount = 0;
+                    int[] pearlCounts = new int[alpha.length];
 
-                        int pearlCount = 0;
-                        int gsCount = 0;
-                        int total = 0;
+                    int gsShd = 0;
+                    int[] pearlShd = new int[alpha.length];
+
+                    for (int r = 0; r < numRuns; r++) {
                         NumberFormat nf = new DecimalFormat("0.00");
 
                         int numEdges = (int) (a * m / 2.);
@@ -1676,9 +1669,9 @@ public final class TestBoss {
                         List<Node> V = dataSet.getVariables();
 
                         IndTestDSep dsep = new IndTestDSep(graph);
-                        IndependenceTest test = new IndTestFisherZ(dataSet, _alpha);
 
                         LinearGaussianBicScore score = new LinearGaussianBicScore(dataSet);
+                        score.setPenaltyDiscount(1);
 
                         // Random permutation over 1...|V|.
                         List<Integer> l = new ArrayList<>();
@@ -1686,47 +1679,87 @@ public final class TestBoss {
                             l.add(w);
                         }
 
-                        for (int r = 0; r < 1; r++) {
-                            Collections.shuffle(l);
+                        Collections.shuffle(l);
+                        Collections.shuffle(l);
+                        Collections.shuffle(l);
 
-                            int[] perm = new int[l.size()];
-                            for (int w = 0; w < V.size(); w++) {
-                                perm[w] = l.get(w);
-                            }
-
-                            List<Node> _perm0 = GraphUtils.asList(perm, dsep.getVariables());
-                            List<Node> _perm = GraphUtils.asList(perm, test.getVariables());
-
-                            TeyssierScorer scorer0 = new TeyssierScorer(dsep);
-                            scorer0.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
-                            scorer0.evaluate(_perm0);
-                            Graph g1 = scorer0.getGraph(true);
-
-                            TeyssierScorer scorer1 = new TeyssierScorer(test);
-                            scorer1.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
-                            scorer1.evaluate(_perm);
-                            Graph g2 = scorer1.getGraph(true);
-
-                            TeyssierScorer scorer2 = new TeyssierScorer(score);
-                            scorer2.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
-                            scorer2.evaluate(_perm);
-                            Graph g3 = scorer2.getGraph(true);
-
-                            g2 = GraphUtils.replaceNodes(g2, g1.getNodes());
-//
-                            g3 = GraphUtils.replaceNodes(g3, g1.getNodes());
-//
-                            if (g1.equals(g2)) pearlCount++;
-                            if (g1.equals(g3)) gsCount++;
-                            total++;
-
+                        int[] perm = new int[l.size()];
+                        for (int w = 0; w < V.size(); w++) {
+                            perm[w] = l.get(w);
                         }
 
-                        System.out.println(m + "\t" + a + "\t" + s + "\t" + _alpha + "\t" + nf.format(pearlCount / (double) total)
-                                + "\t" + nf.format(gsCount / (double) total));
+                        List<Node> _perm0 = GraphUtils.asList(perm, dsep.getVariables());
+
+                        TeyssierScorer scorer1 = new TeyssierScorer(dsep);
+                        scorer1.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
+                        scorer1.evaluate(_perm0);
+                        Graph g1 = scorer1.getGraph(true);
+
+                        IndependenceTest test = new IndTestFisherZ(dataSet, 0.05);
+                        List<Node> _perm = GraphUtils.asList(perm, test.getVariables());
+
+                        TeyssierScorer scorer2 = new TeyssierScorer(score);
+                        scorer2.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
+                        scorer2.evaluate(_perm);
+
+                        Graph g2 = scorer2.getGraph(true);
+                        g2 = GraphUtils.replaceNodes(g2, g1.getNodes());
+
+                        if (g1.equals(g2)) gsCount++;
+                        gsShd += SearchGraphUtils.structuralHammingDistance(
+                                SearchGraphUtils.cpdagForDag(g1), SearchGraphUtils.cpdagForDag(g2));
+
+                        for (int i = 0; i < alpha.length; i++) {
+//                            test.setAlpha(alpha[i]);
+                            test = new IndTestFisherZ(dataSet, alpha[i]);
+
+                            TeyssierScorer scorer3 = new TeyssierScorer(test);
+                            scorer3.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
+                            scorer3.evaluate(_perm);
+                            Graph g3 = scorer3.getGraph(true);
+
+                            g3 = GraphUtils.replaceNodes(g3, g1.getNodes());
+
+                            if (g1.equals(g3)) pearlCounts[i]++;
+                            pearlShd[i] += SearchGraphUtils.structuralHammingDistance(
+                                    SearchGraphUtils.cpdagForDag(g1), SearchGraphUtils.cpdagForDag(g3));
+                        }
                     }
+
+                    System.out.print(m + "\t" + a + "\t" + s + "\t");
+
+//                    System.out.print(gsCount / (double) numRuns + "\t");
+                    System.out.print(gsShd / (double) numRuns + "\t");
+
+//                    for (int i = 0; i < alpha.length; i++) {
+//                        System.out.print(pearlCounts[i] / (double) numRuns + "\t");
+//                    }
+
+                    for (int i = 0; i < alpha.length; i++) {
+                        System.out.print(pearlShd[i] / (double) numRuns + "\t");
+                    }
+
+                    System.out.println();
                 }
             }
+        }
+    }
+
+    private static class Ret {
+        private final String label;
+        private final IndependenceFacts facts;
+
+        public Ret(String label, IndependenceFacts facts) {
+            this.label = label;
+            this.facts = facts;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public IndependenceFacts getFacts() {
+            return facts;
         }
     }
 }

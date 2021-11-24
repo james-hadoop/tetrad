@@ -75,7 +75,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
             boss.setKnowledge(dataSet.getKnowledge());
             boss.setTriangleDepth(parameters.getInt(Params.TRIANGLE_DEPTH));
-            boss.setGspDepth(parameters.getInt(Params.GSP_DEPTH));
+            boss.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 boss.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -83,7 +83,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                 boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
             }
 
-            List<Node> perm = boss.bestOrder(score.getVariables());
+            boss.bestOrder(score.getVariables());
             return boss.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
             BOSS algorithm = new BOSS(score, test);
