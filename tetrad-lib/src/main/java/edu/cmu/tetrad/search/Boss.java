@@ -159,7 +159,7 @@ public class Boss {
         // variables can be relocated. Then try to remove edges X--Y by reorienting edge
         // in triangles X--V--Y, repeatedly, until no more such edges can be removed.
         // Apparently, it suffices in the oracle to consider only on such triangle at
-        // a time, though to hedge bets we allow the user the user to specify a maximum
+        // a time, though to hedge bets we allow the user to specify a maximum
         // number of triangles to consider per such edge.
 
         if (verbose) {

@@ -166,7 +166,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss",
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBoss",
                 simulations, algorithms, statistics, params);
     }
 
@@ -213,7 +213,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss2",
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBoss2",
                 simulations, algorithms, statistics, params);
     }
 
@@ -259,7 +259,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss3",
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBoss3",
                 simulations, algorithms, statistics, params);
     }
 
@@ -307,7 +307,7 @@ public final class TestBoss {
         comparison.setSaveData(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss4", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBoss4", simulations, algorithms, statistics, params);
     }
 
     @Test
@@ -370,7 +370,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBossagaain", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBossagaain", simulations, algorithms, statistics, params);
     }
 
     @Test
@@ -423,8 +423,55 @@ public final class TestBoss {
         comparison.setSaveData(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss6", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBoss6", simulations, algorithms, statistics, params);
     }
+
+    @Test
+    public void testBoss7() {
+        Parameters params = new Parameters();
+        params.set(Params.SAMPLE_SIZE, 10000);
+        params.set(Params.NUM_MEASURES, 10, 20, 50, 100);
+        params.set(Params.AVG_DEGREE, 2, 4, 6, 8);
+        params.set(Params.RANDOMIZE_COLUMNS, true);
+        params.set(Params.COEF_LOW, 0);
+        params.set(Params.COEF_HIGH, 1);
+        params.set(Params.TRIANGLE_DEPTH, 2);
+        params.set(Params.VERBOSE, true);
+
+        params.set(Params.NUM_RUNS, 1);
+
+        params.set(Params.BOSS_SCORE_TYPE, false);
+        params.set(Params.CACHE_SCORES, true);
+        params.set(Params.NUM_STARTS, 1);
+
+        params.set(Params.PENALTY_DISCOUNT, 2);
+
+        params.set(Params.ALPHA, 0.001);
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LinearSemSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new AdjacencyTPR());
+        statistics.add(new AdjacencyFPR());
+        statistics.add(new SHD_CPDAG());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBossForGreg", simulations, algorithms, statistics, params);
+    }
+
 
     @Test
     public void testLuFigure3() {
@@ -472,7 +519,7 @@ public final class TestBoss {
 //        comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/Lu.figure.3", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/Lu.figure.3", simulations,
                 algorithms, statistics, params);
     }
 
@@ -530,7 +577,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/Lu.figure.6", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/Lu.figure.6", simulations,
                 algorithms, statistics, params);
     }
 
@@ -619,7 +666,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/clark", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/clark", simulations,
                 algorithms, statistics, params);
     }
 
@@ -676,7 +723,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/testBoss8", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/tetrad/Documents/testBoss8", simulations,
                 algorithms, statistics, params);
     }
 
@@ -1424,7 +1471,7 @@ public final class TestBoss {
 //        comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_PAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/boss/bfci", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/bfci", simulations,
                 algorithms, statistics, params);
     }
 
@@ -1490,7 +1537,6 @@ public final class TestBoss {
         Ret facts = getWayneExample1();
 
         int count = 0;
-
         boolean printCpdag = false;
 
         Boss.Method[] methods = {AGSP};//, Boss.Method.BOSS};//, Boss.Method.SP};
