@@ -23,8 +23,8 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.AGSP;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
@@ -60,7 +60,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static edu.cmu.tetrad.search.Boss.Method.AGSP;
+import static edu.cmu.tetrad.search.Boss.Method.GASP;
 import static java.lang.Math.sqrt;
 import static java.util.Collections.shuffle;
 import static java.util.Collections.sort;
@@ -890,10 +890,10 @@ public final class TestBoss {
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
         parameters.set(Params.TRIANGLE_DEPTH, 2);
-        parameters.set(Params.GSP_DEPTH, 10);
-
+        parameters.set(Params.GSP_DEPTH, -1);
 
         Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
@@ -907,8 +907,8 @@ public final class TestBoss {
 //        simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-//        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-        algorithms.add(new AGSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+//        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
@@ -1514,8 +1514,8 @@ public final class TestBoss {
 
                 Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                 search.setFirstRunUseDataOrder(true);
-                search.setTriangleDepth(-1);
-                search.setMethod(Boss.Method.AGSP);
+                search.setTriangleDepth(2);
+                search.setMethod(Boss.Method.BOSS);
                 List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());
 
@@ -1539,7 +1539,7 @@ public final class TestBoss {
         int count = 0;
         boolean printCpdag = false;
 
-        Boss.Method[] methods = {AGSP};//, Boss.Method.BOSS};//, Boss.Method.SP};
+        Boss.Method[] methods = {GASP};//, Boss.Method.BOSS};//, Boss.Method.SP};
 
         count++;
 

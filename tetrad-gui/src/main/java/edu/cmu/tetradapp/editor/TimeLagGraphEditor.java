@@ -357,10 +357,10 @@ public final class TimeLagGraphEditor extends JPanel
                     maxLag = graph.getMaxLag();
                     numInitialLags = graph.getNumInitialLags();
 
-                    final SpinnerModel maxLagSpinnerModel = new SpinnerNumberModel(graph.getMaxLag(), 0, 300, 1);
-                    JSpinner maxLagSpinner = new JSpinner(maxLagSpinnerModel);
+                    final SpinnerModel maxLgaspinnerModel = new SpinnerNumberModel(graph.getMaxLag(), 0, 300, 1);
+                    JSpinner maxLgaspinner = new JSpinner(maxLgaspinnerModel);
 
-                    maxLagSpinner.addChangeListener(e -> {
+                    maxLgaspinner.addChangeListener(e -> {
                         JSpinner spinner = (JSpinner) e.getSource();
                         SpinnerNumberModel model = (SpinnerNumberModel) spinner.getModel();
                         int value = (Integer) model.getValue();
@@ -389,7 +389,7 @@ public final class TimeLagGraphEditor extends JPanel
                     Box b2 = Box.createHorizontalBox();
                     b2.add(new JLabel("Maximum Lag = "));
                     b2.add(Box.createHorizontalGlue());
-                    b2.add(maxLagSpinner);
+                    b2.add(maxLgaspinner);
                     box.add(b2);
                     box.setBorder(new EmptyBorder(10, 10, 10, 10));
 

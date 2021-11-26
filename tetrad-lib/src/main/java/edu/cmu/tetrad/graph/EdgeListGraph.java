@@ -756,7 +756,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             Node t = Q.poll();
 
             for (Node c : getParents(t)) {
-                if (c == t) continue;
+//                if (c == t) continue;
                 if (V.contains(c)) {
                     continue;
                 }

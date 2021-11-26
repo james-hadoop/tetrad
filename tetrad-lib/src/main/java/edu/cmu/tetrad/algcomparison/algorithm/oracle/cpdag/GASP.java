@@ -27,21 +27,21 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "AGSP",
-        command = "agsp",
+        name = "GASP",
+        command = "gasp",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class AGSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
+public class GASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
     static final long serialVersionUID = 23L;
     private ScoreWrapper score = null;
     private IndependenceWrapper test;
 
-    public AGSP() {
+    public GASP() {
 
     }
 
-    public AGSP(ScoreWrapper score, IndependenceWrapper test) {
+    public GASP(ScoreWrapper score, IndependenceWrapper test) {
         this.score = score;
         this.test = test;
     }
@@ -67,13 +67,12 @@ public class AGSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                 gsp = new Boss(test);
             }
 
-            gsp.setMethod(Boss.Method.AGSP);
+            gsp.setMethod(Boss.Method.GASP);
 
             gsp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             gsp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             gsp.setVerbose(parameters.getBoolean(Params.VERBOSE));
             gsp.setKnowledge(dataSet.getKnowledge());
-//            gsp.setGspDepth(parameters.getInt(Params.GSP_DEPTH));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 gsp.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -87,7 +86,7 @@ public class AGSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             gsp.bestOrder(score.getVariables());
             return gsp.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
-            AGSP algorithm = new AGSP(score, test);
+            GASP algorithm = new GASP(score, test);
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -118,7 +117,7 @@ public class AGSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
     @Override
     public String getDescription() {
-        return "AGSP (Adjusted Greedy Sparsest Permutation) using " + test.getDescription()
+        return "GASP (Greedy, Adjusted, Sparsest Permutation) using " + test.getDescription()
                 + " or " + score.getDescription();
     }
 
@@ -133,7 +132,6 @@ public class AGSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.OUTPUT_CPDAG);
-//        params.add(Params.GSP_DEPTH);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.USE_SCORE);
         params.add(Params.VERBOSE);

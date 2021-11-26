@@ -34,18 +34,19 @@ public class Boss {
     private int triangleDepth = -1;
     private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.GrowShrinkMb;
     private TeyssierScorer scorer;
+    private Set<TriangleProblem> triangleProblems = new HashSet<>();
 
-    public Boss(Score score) {
+    public Boss(@NotNull Score score) {
         this.score = score;
         this.variables = new ArrayList<>(score.getVariables());
     }
 
-    public Boss(IndependenceTest test) {
+    public Boss(@NotNull IndependenceTest test) {
         this.test = test;
         this.variables = new ArrayList<>(test.getVariables());
     }
 
-    public List<Node> bestOrder(List<Node> order) {
+    public List<Node> bestOrder(@NotNull List<Node> order) {
         long start = System.currentTimeMillis();
         order = new ArrayList<>(order);
 
@@ -86,8 +87,8 @@ public class Boss {
                 perm = boss(scorer);
             } else if (method == Method.SP) {
                 perm = sp(scorer);
-            } else if (method == Method.AGSP) {
-                perm = agsp(scorer);
+            } else if (method == Method.GASP) {
+                perm = gasp(scorer);
             } else {
                 throw new IllegalArgumentException("Unrecognized method: " + method);
             }
@@ -148,7 +149,7 @@ public class Boss {
         return true;
     }
 
-    public List<Node> boss(TeyssierScorer scorer) {
+    public List<Node> boss(@NotNull TeyssierScorer scorer) {
 
         // Take each variable in turn and try moving it to each position to the left (i.e.,
         // try promoting it in the causal from). Score each causal from by building
@@ -167,16 +168,18 @@ public class Boss {
         }
 
         while (true) {
+
             bossLoop(scorer);
+
             double s = scorer.score();
             triangleLoop(scorer);
-            if (scorer.score() <= s) break;
+            if (scorer.score() == s) break;
         }
 
         return scorer.getOrder();
     }
 
-    private void bossLoop(TeyssierScorer scorer) {
+    private void bossLoop(@NotNull TeyssierScorer scorer) {
         double s0;
         scorer.bookmark();
 
@@ -207,7 +210,32 @@ public class Boss {
         scorer.score();
     }
 
-    private void triangleLoop(TeyssierScorer scorer) {
+    private static class TriangleProblem {
+        public Set<Node> XX;
+        public Set<NodePair> ZZ;
+
+        public TriangleProblem(Node x, Node y, Set<NodePair> ZZ) {
+            XX = new HashSet<>();
+            XX.add(x);
+            XX.add(y);
+            this.ZZ = ZZ;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof TriangleProblem)) return false;
+            TriangleProblem that = (TriangleProblem) o;
+            return XX.equals(that.XX) && ZZ.equals(that.ZZ);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(XX, ZZ);
+        }
+    }
+
+    private void triangleLoop(@NotNull TeyssierScorer scorer) {
         if (triangleDepth == 0) return;
 
         Set<NodePair> path = new HashSet<>();
@@ -215,10 +243,10 @@ public class Boss {
         double s = scorer.score();
 
         for (int i = scorer.size() - 1; i >= 0; i--) {
+            Node x = scorer.get(i);
+
             for (int j = i - 1; j >= 0; j--) {
-                Node x = scorer.get(i);
                 Node y = scorer.get(j);
-                if (!scorer.adjacent(x, y)) continue;
 
                 List<NodePair> ZZ = new ArrayList<>();
 
@@ -227,6 +255,10 @@ public class Boss {
                         ZZ.add(new NodePair(x, z));
                         ZZ.add(new NodePair(y, z));
                     }
+                }
+
+                if (triangleProblems.contains(new TriangleProblem(x, y, new HashSet<>(ZZ)))) {
+                    continue;
                 }
 
                 List<Node> order = scorer.getOrder();
@@ -275,14 +307,14 @@ public class Boss {
         }
     }
 
-    private List<Node> agsp(@NotNull TeyssierScorer scorer) {
+    private List<Node> gasp(@NotNull TeyssierScorer scorer) {
         double oldScore;
         double newScore;
         int round = 0;
 
         do {
             if (verbose) {
-                System.out.println("AGSP Round = " + ++round);
+                System.out.println("GASP Round = " + ++round);
             }
 
             oldScore = scorer.score();
@@ -290,30 +322,38 @@ public class Boss {
             for (int k = 0; k < 2; k++) {
                 for (int i = 0; i < scorer.size(); i++) {
                     for (int j = i + 1; j < scorer.size(); j++) {
-                        Node x = scorer.get(i);
-                        Node y = scorer.get(j);
+                        Node r = scorer.get(i);
+                        Node s = scorer.get(j);
 
-                        if (!scorer.adjacent(y, x)) continue;
+                        Node x, y;
 
-                        if (scorer.getParents(x).contains(y)) {
-                            Node r = x;
-                            x = y;
+                        if (scorer.getParents(s).contains(r)) {
+                            x = r;
+                            y = s;
+                        } else if (scorer.getParents(r).contains(s)) {
+                            x = s;
                             y = r;
+                        } else {
+                            continue;
                         }
 
                         scorer.bookmark();
 
-                        double s1 = scorer.score();
+                        double sOld = scorer.score();
 
                         if (scorer.indexOf(x) < scorer.indexOf(y)) {
                             scorer.moveTo(y, scorer.indexOf(x));
-                        } else {
+                        } else if (scorer.indexOf(x) > scorer.indexOf(y)) {
                             scorer.moveTo(y, scorer.indexOf(x) + 1);
+                        } else {
+                            continue;
                         }
 
-                        double s2 = scorer.score();
+                        double sNew = scorer.score();
 
-                        if (s2 >= s1) {
+                        if (sNew >= sOld) {
+
+                            // Accept the change.
                             continue;
                         }
 
@@ -328,7 +368,7 @@ public class Boss {
         return scorer.getOrder();
     }
 
-    public List<Node> sp(TeyssierScorer scorer) {
+    public List<Node> sp(@NotNull TeyssierScorer scorer) {
         double minScore = NEGATIVE_INFINITY;
         List<Node> minP = null;
 
@@ -419,5 +459,5 @@ public class Boss {
         this.parentCalculation = parentCalculation;
     }
 
-    public enum Method {BOSS, SP, AGSP}
+    public enum Method {BOSS, SP, GASP}
 }
