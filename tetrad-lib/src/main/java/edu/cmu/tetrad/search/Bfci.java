@@ -63,13 +63,12 @@ public final class Bfci implements GraphSearch {
     // The print stream that output is directed to.
     private PrintStream out = System.out;
 
-    private boolean breakTies;
     private boolean cacheScores;
     private int numStarts;
     private Boss.Method method;
     private TeyssierScorer.ScoreType scoreType;
     private boolean useScore = true;
-    private int depth = -1;
+    private int triangleDepth = 0;
 
     //============================CONSTRUCTORS============================//
     public Bfci(IndependenceTest test, Score score) {
@@ -101,7 +100,7 @@ public final class Bfci implements GraphSearch {
         boss.setNumStarts(numStarts);
         boss.setCacheScores(cacheScores);
         boss.setScoreType(scoreType);
-        boss.setTriangleDepth(depth);
+        boss.setTriangleDepth(triangleDepth);
         boss.setVerbose(verbose);
         boss.setKnowledge(knowledge);
 
@@ -238,7 +237,7 @@ public final class Bfci implements GraphSearch {
     public void setMaxDegree(int maxDegree) {
         if (maxDegree < -1) {
             throw new IllegalArgumentException(
-                    "Depth must be -1 (unlimited) or >= 0: " + maxDegree);
+                    "Max degree must be -1 (unlimited) or >= 0: " + maxDegree);
         }
 
         this.maxDegree = maxDegree;
@@ -388,10 +387,6 @@ public final class Bfci implements GraphSearch {
         logger.log("info", "Finishing BK Orientation.");
     }
 
-    public void setBreakTies(boolean breakTies) {
-        this.breakTies = breakTies;
-    }
-
     public void setCacheScores(boolean cacheScores) {
         this.cacheScores = cacheScores;
     }
@@ -420,7 +415,7 @@ public final class Bfci implements GraphSearch {
         this.useScore = useScore;
     }
 
-    public void setDepth(int depth) {
-        this.depth = depth;
+    public void setTriangleDepth(int triangleDepth) {
+        this.triangleDepth = triangleDepth;
     }
 }

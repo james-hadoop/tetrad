@@ -55,10 +55,8 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             search.setKnowledge(dataSet.getKnowledge());
             search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
             search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
-            search.setDepth(parameters.getInt(Params.DEPTH));
+            search.setTriangleDepth(parameters.getInt(Params.TRIANGLE_DEPTH));
 
-
-            search.setBreakTies(parameters.getBoolean(Params.BREAK_TIES));
             search.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
@@ -123,17 +121,14 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
 
-//        params.add(Params.MAX_DEGREE);
         params.add(Params.MAX_PATH_LENGTH);
         params.add(Params.COMPLETE_RULE_SET_USED);
 
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
-//        params.add(Params.BOSS_METHOD);
         params.add(Params.BOSS_SCORE_TYPE);
-        params.add(Params.BREAK_TIES);
         params.add(Params.USE_SCORE);
-        params.add(Params.DEPTH);
+        params.add(Params.TRIANGLE_DEPTH);
         params.add(Params.VERBOSE);
 
         params.add(Params.VERBOSE);
