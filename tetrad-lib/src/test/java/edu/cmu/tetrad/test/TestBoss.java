@@ -455,6 +455,8 @@ public final class TestBoss {
         simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
+        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecisionCommonEdges());
