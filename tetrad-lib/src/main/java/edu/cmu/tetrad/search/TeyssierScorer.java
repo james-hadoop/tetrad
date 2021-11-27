@@ -59,6 +59,28 @@ public class TeyssierScorer {
         nodesHash(variablesHash, variables);
     }
 
+    public boolean reverseIfEdge(Node x, Node y) {
+        if (getParents(y).contains(x)) {
+            if (indexOf(x) < indexOf(y)) {
+                moveTo(y, indexOf(x));
+                return true;
+            } else {
+                moveTo(y, indexOf(x) + 1);
+                return true;
+            }
+        } else if (getParents(x).contains(y)) {
+            if (indexOf(y) < indexOf(x)) {
+                moveTo(x, indexOf(y));
+                return true;
+            } else {
+                moveTo(x, indexOf(y) + 1);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
     }

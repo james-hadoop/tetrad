@@ -909,8 +909,8 @@ public final class TestBoss {
 //        simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-//        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+//        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
@@ -1517,7 +1517,7 @@ public final class TestBoss {
                 Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                 search.setFirstRunUseDataOrder(true);
                 search.setTriangleDepth(2);
-                search.setMethod(Boss.Method.BOSS);
+                search.setMethod(GASP);
                 List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());
 
@@ -1682,7 +1682,7 @@ public final class TestBoss {
         double varHigh = 3;
         boolean randomizeColumns = false;
         double[] alpha = new double[]{0.001, 0.005, 0.01, 0.05, 0.1};
-        int numRuns = 100 ;
+        int numRuns = 100;
         System.out.println("NumNodes\tAvgDegree\tSize\tGS\tPearl0.001\tPearl0.005\tPearl0.01\tPear0.05\tPearl0.1");
 
         for (int m : numNodes) {

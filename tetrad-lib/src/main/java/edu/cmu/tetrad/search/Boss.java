@@ -4,7 +4,10 @@ import edu.cmu.tetrad.algcomparison.statistic.BicEst;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.NodePair;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
@@ -150,6 +153,7 @@ public class Boss {
     }
 
     public List<Node> boss(@NotNull TeyssierScorer scorer) {
+        triangleProblems = new HashSet<>();
 
         // Take each variable in turn and try moving it to each position to the left (i.e.,
         // try promoting it in the causal from). Score each causal from by building
@@ -180,13 +184,10 @@ public class Boss {
     }
 
     private void bossLoop(@NotNull TeyssierScorer scorer) {
-        double s0;
+        double s = scorer.score();
         scorer.bookmark();
 
         do {
-            s0 = scorer.score();
-
-            double s = NEGATIVE_INFINITY;
             for (Node v : scorer.getOrder()) {
                 for (int i = scorer.size() - 1; i >= 0; i--) {
                     scorer.moveTo(v, i);
@@ -201,7 +202,7 @@ public class Boss {
 
                 scorer.goToBookmark();
             }
-        } while (scorer.score() > s0);
+        } while (scorer.score() > s);
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Single Moves)");
@@ -210,37 +211,13 @@ public class Boss {
         scorer.score();
     }
 
-    private static class TriangleProblem {
-        public Set<Node> XX;
-        public Set<NodePair> ZZ;
-
-        public TriangleProblem(Node x, Node y, Set<NodePair> ZZ) {
-            XX = new HashSet<>();
-            XX.add(x);
-            XX.add(y);
-            this.ZZ = ZZ;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof TriangleProblem)) return false;
-            TriangleProblem that = (TriangleProblem) o;
-            return XX.equals(that.XX) && ZZ.equals(that.ZZ);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(XX, ZZ);
-        }
-    }
-
     private void triangleLoop(@NotNull TeyssierScorer scorer) {
         if (triangleDepth == 0) return;
 
         Set<NodePair> path = new HashSet<>();
         int _depth = triangleDepth == -1 ? Integer.MAX_VALUE : triangleDepth;
         double s = scorer.score();
+        List<Node> order = scorer.getOrder();
 
         for (int i = scorer.size() - 1; i >= 0; i--) {
             Node x = scorer.get(i);
@@ -257,11 +234,9 @@ public class Boss {
                     }
                 }
 
-                if (triangleProblems.contains(new TriangleProblem(x, y, new HashSet<>(ZZ)))) {
+                if (triangleProblems.contains(new TriangleProblem(x, y, ZZ))) {
                     continue;
                 }
-
-                List<Node> order = scorer.getOrder();
 
                 triangleVisit(scorer, ZZ, path, _depth);
 
@@ -292,6 +267,7 @@ public class Boss {
         for (NodePair z : ZZ) {
             if (path.contains(z)) continue;
 
+//            scorer.reverseIfEdge(z.getFirst(), z.getSecond());
             scorer.swap(z.getFirst(), z.getSecond());
             path.add(z);
 
@@ -308,8 +284,8 @@ public class Boss {
     }
 
     private List<Node> gasp(@NotNull TeyssierScorer scorer) {
-        double oldScore;
-        double newScore;
+        double s1;
+        double s2;
         int round = 0;
 
         do {
@@ -317,41 +293,21 @@ public class Boss {
                 System.out.println("GASP Round = " + ++round);
             }
 
-            oldScore = scorer.score();
+            s1 = scorer.score();
 
             for (int k = 0; k < 2; k++) {
                 for (int i = 0; i < scorer.size(); i++) {
                     for (int j = i + 1; j < scorer.size(); j++) {
-                        Node r = scorer.get(i);
-                        Node s = scorer.get(j);
-
-                        Node x, y;
-
-                        if (scorer.getParents(s).contains(r)) {
-                            x = r;
-                            y = s;
-                        } else if (scorer.getParents(r).contains(s)) {
-                            x = s;
-                            y = r;
-                        } else {
-                            continue;
-                        }
+                        Node x = scorer.get(i);
+                        Node y = scorer.get(j);
 
                         scorer.bookmark();
 
-                        double sOld = scorer.score();
+                        double s3 = scorer.score();
+                        scorer.reverseIfEdge(x, y);
+                        double s4 = scorer.score();
 
-                        if (scorer.indexOf(x) < scorer.indexOf(y)) {
-                            scorer.moveTo(y, scorer.indexOf(x));
-                        } else if (scorer.indexOf(x) > scorer.indexOf(y)) {
-                            scorer.moveTo(y, scorer.indexOf(x) + 1);
-                        } else {
-                            continue;
-                        }
-
-                        double sNew = scorer.score();
-
-                        if (sNew >= sOld) {
+                        if (s4 >= s3) {
 
                             // Accept the change.
                             continue;
@@ -362,8 +318,8 @@ public class Boss {
                 }
             }
 
-            newScore = scorer.score();
-        } while (newScore > oldScore);
+            s2 = scorer.score();
+        } while (s2 > s1);
 
         return scorer.getOrder();
     }
@@ -460,4 +416,30 @@ public class Boss {
     }
 
     public enum Method {BOSS, SP, GASP}
+
+    private static class TriangleProblem {
+        public Set<Node> XX;
+        public Set<NodePair> ZZ;
+
+        public TriangleProblem(Node x, Node y, List<NodePair> ZZ) {
+            Set<Node> XX = new HashSet<>();
+            XX.add(x);
+            XX.add(y);
+            this.XX = XX;
+            this.ZZ = new HashSet<>(ZZ);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof TriangleProblem)) return false;
+            TriangleProblem that = (TriangleProblem) o;
+            return XX.equals(that.XX) && ZZ.equals(that.ZZ);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(XX, ZZ);
+        }
+    }
 }
