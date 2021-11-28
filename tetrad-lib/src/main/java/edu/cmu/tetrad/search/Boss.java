@@ -215,7 +215,7 @@ public class Boss {
         if (triangleDepth == 0) return;
 
         Set<NodePair> path = new HashSet<>();
-        int _depth = triangleDepth == -1 ? Integer.MAX_VALUE : triangleDepth;
+        int _triangleDepth = triangleDepth == -1 ? Integer.MAX_VALUE : triangleDepth;
         double s = scorer.score();
         List<Node> order = scorer.getOrder();
 
@@ -234,11 +234,11 @@ public class Boss {
                     }
                 }
 
-                if (triangleProblems.contains(new TriangleProblem(x, y, ZZ))) {
-                    continue;
-                }
+//                if (triangleProblems.contains(new TriangleProblem(x, y, ZZ))) {
+//                    continue;
+//                }
 
-                triangleVisit(scorer, ZZ, path, _depth);
+                triangleVisit(scorer, ZZ, path, _triangleDepth);
 
                 if (scorer.score() > s) {
                     if (verbose) {
@@ -261,25 +261,29 @@ public class Boss {
     private void triangleVisit(TeyssierScorer scorer, List<NodePair> ZZ, Set<NodePair> path, int depth) {
         if (path.size() > depth) return;
 
-        double score = scorer.score();
-        List<Node> order = scorer.getOrder();
+        double s = scorer.score();
+        List<Node> pi = scorer.getOrder();
 
         for (NodePair z : ZZ) {
             if (path.contains(z)) continue;
 
-//            scorer.reverseIfEdge(z.getFirst(), z.getSecond());
             scorer.swap(z.getFirst(), z.getSecond());
+
+//            if (scorer.score() > s) {
+//                return;
+//            }
+
             path.add(z);
 
             triangleVisit(scorer, ZZ, path, depth);
 
             path.remove(z);
 
-            if (scorer.score() > score) {
+            if (scorer.score() > s) {
                 return;
             }
 
-            scorer.evaluate(order);
+            scorer.evaluate(pi);
         }
     }
 

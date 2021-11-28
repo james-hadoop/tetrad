@@ -909,8 +909,8 @@ public final class TestBoss {
 //        simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-//        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+//        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
@@ -1517,7 +1517,7 @@ public final class TestBoss {
                 Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                 search.setFirstRunUseDataOrder(true);
                 search.setTriangleDepth(2);
-                search.setMethod(GASP);
+                search.setMethod(Boss.Method.BOSS);
                 List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());
 

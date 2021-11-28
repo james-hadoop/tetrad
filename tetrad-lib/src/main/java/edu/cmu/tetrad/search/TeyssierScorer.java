@@ -580,6 +580,10 @@ public class TeyssierScorer {
         return adjacent(x, y) && adjacent(y, z) && adjacent(x, z);
     }
 
+    public boolean chain(Node x, Node y, Node z) {
+        return adjacent(y, z) && adjacent(x, z);
+    }
+
     public enum ScoreType {Edge, SCORE}
 
     public enum ParentCalculation {GrowShrinkMb, Pearl}
