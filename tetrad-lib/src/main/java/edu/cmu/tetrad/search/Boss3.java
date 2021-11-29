@@ -1,7 +1,7 @@
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.AndersonDarlingTest;
-import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.algcomparison.statistic.BicEst;
+import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
@@ -10,10 +10,12 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
-import static java.lang.Double.POSITIVE_INFINITY;
 
 
 /**
@@ -23,74 +25,33 @@ import static java.lang.Double.POSITIVE_INFINITY;
  *
  * @author josephramsey
  */
-public class Boss2 {
+public class Boss3 {
     private final List<Node> variables;
-//    private final Fask fask;
-    private HashMap<String, Node> hash;
     private Score score;
     private IndependenceTest test;
     private boolean cachingScores = true;
     private int numStarts = 1;
-    private Method method = Method.BOSS;
+    private Method method = Method.Boss3;
     private boolean verbose = false;
     private boolean breakTies = false;
     private int gspDepth = -1;
     private TeyssierScorer.ScoreType scoreType = TeyssierScorer.ScoreType.Edge;
     private IKnowledge knowledge = new Knowledge2();
-    private boolean obeyFask = false;
-    private Map<Node, Boolean> nongaussian = new HashMap<>();
+    private boolean firstRunUseDataOrder = false;
 
-    public Boss2(Score score) {
+    public Boss3(Score score) {
         this.score = score;
         this.variables = new ArrayList<>(score.getVariables());
-
-        DataSet data = (DataSet) score.getData();
-
-//        if (data.isContinuous()) {
-////            this.fask = new Fask(data, new IndTestScore(score));
-//
-//            this.hash = new HashMap<>();
-//
-//            for (Node node : score.getVariables()) {
-//                this.hash.put(node.getName(), node);
-//            }
-////
-////            fask.search();
-//
-//            for (Node node : score.getVariables()) {
-//                double[] d = data.getDoubleData()
-//                        .getColumn(score.getVariables().indexOf(node)).toArray();
-//                nongaussian.put(node, new AndersonDarlingTest(d).getP() < 0.01);
-//            }
-//        } else {
-////            this.fask = null;
-//            obeyFask = false;
-//        }
-
     }
 
-    public Boss2(IndependenceTest test) {
+    public Boss3(IndependenceTest test) {
         this.test = test;
         this.variables = new ArrayList<>(test.getVariables());
-//        if (test.getData().isContinuous()) {
-//            this.fask = new Fask((DataSet) test.getData(), test);
-//            this.hash = new HashMap<>();
-//
-//            for (Node node : test.getVariables()) {
-//                this.hash.put(node.getName(), node);
-//            }
-//
-//            fask.search();
-//        } else {
-//            fask = null;
-//            obeyFask = false;
-//        }
     }
 
     public List<Node> bestOrder(List<Node> order) {
         long start = System.currentTimeMillis();
         order = new ArrayList<>(order);
-
 
         TeyssierScorer scorer;
 
@@ -102,38 +63,31 @@ public class Boss2 {
             throw new IllegalArgumentException("Need a score (not GraphScore) or a test.");
         }
 
-
         scorer.setKnowledge(knowledge);
         scorer.setScoreType(scoreType);
 
         scorer.setCachingScores(cachingScores);
 
-        double best = POSITIVE_INFINITY;
-        List<Node> bestPerm = null;
-
-//        if (knowledge != null) {
-//        makeValidKnowledgeOrder(order);
-//        }
-
-        scorer.evaluate(order);
+        List<Node> bestPerm = new ArrayList<>(order);
+        scorer.evaluate(bestPerm);
+        double best = scorer.score();
 
         for (int r = 0; r < numStarts; r++) {
-//            if (r > 0)
-            scorer.shuffleVariables();
+            if (firstRunUseDataOrder) {
+                if (r > 0)
+                    scorer.shuffleVariables();
+            } else {
+                scorer.shuffleVariables();
+            }
 
             List<Node> _order = scorer.getOrder();
             makeValidKnowledgeOrder(_order);
-
-//            if (!satisfiesKnowledge(_order)) {
-//                throw new IllegalStateException("Cannot satisfy knowledge.");
-//            }
-
             scorer.evaluate(_order);
 
             List<Node> perm;
 
-            if (method == Method.BOSS) {
-                perm = boss(scorer);
+            if (method == Method.Boss3) {
+                perm = Boss3(scorer);
             } else if (method == Method.SP) {
                 perm = sp(scorer);
             } else if (method == Method.GSP) {
@@ -142,8 +96,11 @@ public class Boss2 {
                 throw new IllegalArgumentException("Unrecognized method: " + method);
             }
 
-            if (scorer.score() < best) {
-                best = scorer.score();
+            scorer.evaluate(perm);
+            double _score = scorer.score();
+
+            if (_score > best) {
+                best = _score;
                 bestPerm = perm;
             }
         }
@@ -152,37 +109,30 @@ public class Boss2 {
 
         if (verbose) {
             System.out.println("Final order = " + scorer.getOrder());
-            System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
+            System.out.println("Boss3 Elapsed time = " + (stop - start) / 1000.0 + " s");
         }
 
         return bestPerm;
     }
 
     private void makeValidKnowledgeOrder(List<Node> order) {
-        order.sort((o1, o2) -> {
-            if (o1.getName().equals(o2.getName())) {
-                return 0;
-            } else if (knowledge.isRequired(o1.getName(), o2.getName())) {
-                return 1;
-            } else if (knowledge.isRequired(o2.getName(), o1.getName())) {
-                return -1;
-            } else if (knowledge.isForbidden(o2.getName(), o1.getName())) {
-                return -1;
-            } else if (knowledge.isForbidden(o1.getName(), o2.getName())) {
-                return 1;
-//            } else if (fask.leftRight(hash.get(o1.getName()), hash.get(o2.getName())) < 0) {
-//                return 1;
-//            } else if (fask.leftRight(hash.get(o1.getName()), hash.get(o2.getName())) > 0) {
-//                return -1;
-            }
-//            else if (obeyFask && nongaussian.get(o1) && nongaussian.get(o2) ) {
-//                return fask.leftRight(hash.get(o1.getName()), hash.get(o2.getName())) > 0
-//                        ? 1 : -1;
-//            }
-            else {
-                return 1;
-            }
-        });
+        if (!knowledge.isEmpty()) {
+            order.sort((o1, o2) -> {
+                if (o1.getName().equals(o2.getName())) {
+                    return 0;
+                } else if (knowledge.isRequired(o1.getName(), o2.getName())) {
+                    return 1;
+                } else if (knowledge.isRequired(o2.getName(), o1.getName())) {
+                    return -1;
+                } else if (knowledge.isForbidden(o2.getName(), o1.getName())) {
+                    return -1;
+                } else if (knowledge.isForbidden(o1.getName(), o2.getName())) {
+                    return 1;
+                } else {
+                    return 1;
+                }
+            });
+        }
     }
 
     private boolean satisfiesKnowledge(List<Node> order) {
@@ -192,14 +142,6 @@ public class Boss2 {
                     if (knowledge.isForbidden(order.get(i).getName(), order.get(j).getName())) {
                         return false;
                     }
-//                    else if (fask.leftRight(order.get(i), order.get(j)) > 0) {
-//                        return false;
-////                    } else if (obeyFask
-////                            && nongaussian.get(order.get(i)) && nongaussian.get(order.get(j))) {
-////                        return fask.leftRight(order.get(i), order.get(j)) > 0;
-//////                        return false;
-////                    }
-//                    }
                 }
             }
         }
@@ -207,10 +149,10 @@ public class Boss2 {
         return true;
     }
 
-    public List<Node> boss(TeyssierScorer scorer) {
+    public List<Node> Boss3(TeyssierScorer scorer) {
 
         // Take each variable in turn and try moving it to each position to the left (i.e.,
-        // try promoting it in the causal order). Score each causal order by building
+        // try promoting it in the causal from). Score each causal from by building
         // a DAG using something like the K2 method. (We actually use Grow-Shrink, a
         // Markov blanket algorithm, to find putative parents for each node.) Finally,
         // place the node in whichever position yielded the highest score. Do this
@@ -244,7 +186,7 @@ public class Boss2 {
             for (Node v : scorer.getOrder()) {
                 scorer.moveToLast(v);
 
-                double score2 = POSITIVE_INFINITY;
+                double score2 = NEGATIVE_INFINITY;
 
                 if (scorer.score() > score2) {
                     if (satisfiesKnowledge(scorer.getOrder())) {
@@ -291,7 +233,7 @@ public class Boss2 {
                         scorer.swap(v, r1);
                         scorer.swap(v, r2);
 
-                        if (scorer.score() < score && satisfiesKnowledge(scorer.getOrder())) {
+                        if (scorer.score() > score && satisfiesKnowledge(scorer.getOrder())) {
                             return true;
                         }
 
@@ -377,9 +319,10 @@ public class Boss2 {
         while ((perm = gen.next()) != null) {
             List<Node> p = GraphUtils.asList(perm, variables);
             scorer.evaluate(p);
+            double score = scorer.score();
 
-            if (scorer.score() > minScore) {
-                minScore = scorer.score();
+            if (score > minScore) {
+                minScore = score;
                 minP = p;
             }
         }
@@ -390,17 +333,30 @@ public class Boss2 {
     @NotNull
     public Graph getGraph(List<Node> order, boolean cpdag) {
         TeyssierScorer scorer;
+        DataModel dataModel;
 
         if (score != null) {
             scorer = new TeyssierScorer(score);
+            scorer.setKnowledge(knowledge);
+            dataModel = score.getData();
         } else {
             scorer = new TeyssierScorer(test);
+            scorer.setKnowledge(knowledge);
+            dataModel = test.getData();
         }
 
         scorer.setScoreType(scoreType);
 
         scorer.evaluate(order);
-        return scorer.getGraph(cpdag);
+
+        Graph graph1 = scorer.getGraph(cpdag);
+
+        if (dataModel != null) {
+            double bic = new BicEst(score).getValue(null, graph1, dataModel);
+            graph1.addAttribute("BIC", bic);
+        }
+
+        return graph1;
     }
 
     public void setCacheScores(boolean cachingScores) {
@@ -447,13 +403,9 @@ public class Boss2 {
         this.gspDepth = gspDepth;
     }
 
-    public boolean isObeyFask() {
-        return obeyFask;
+    public void setFirstRunUseDataOrder(boolean firstRunUseDataOrder) {
+        this.firstRunUseDataOrder = firstRunUseDataOrder;
     }
 
-    public void setObeyFask(boolean obeyFask) {
-        this.obeyFask = obeyFask;
-    }
-
-    public enum Method {BOSS, SP, GSP}
+    public enum Method {Boss3, SP, GSP}
 }

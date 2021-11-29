@@ -489,7 +489,7 @@ public final class TestBoss {
         params.set(Params.TRIANGLE_DEPTH, 2);
         params.set(Params.VERBOSE, true);
 
-        params.set(Params.NUM_RUNS, 1);
+        params.set(Params.NUM_RUNS, 5);
 
         params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.CACHE_SCORES, true);
@@ -501,6 +501,7 @@ public final class TestBoss {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new ChiSquare()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.BdeuScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new BayesNetSimulation(new RandomForward()));
@@ -942,8 +943,8 @@ public final class TestBoss {
         parameters.set(Params.BOSS_SCORE_TYPE, false);
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.TRIANGLE_DEPTH, 2);
-        parameters.set(Params.GSP_DEPTH, -1);
+        parameters.set(Params.TRIANGLE_DEPTH, 3);
+        parameters.set(Params.GSP_DEPTH, 3);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
@@ -1567,7 +1568,7 @@ public final class TestBoss {
 
                 Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                 search.setFirstRunUseDataOrder(true);
-                search.setTriangleDepth(-1);
+                search.setTriangleDepth(3);
                 search.setMethod(Boss.Method.BOSS);
                 List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());

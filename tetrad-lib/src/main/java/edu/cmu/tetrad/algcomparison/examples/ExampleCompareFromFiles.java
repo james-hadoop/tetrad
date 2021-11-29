@@ -84,7 +84,7 @@ public class ExampleCompareFromFiles {
         comparison.setSortByUtility(true);
         comparison.setShowUtilities(true);
 
-        comparison.compareFromFiles("comparison", algorithms, statistics, parameters);
+        comparison.compareFromFiles("comparison", algorithms);
     }
 }
 

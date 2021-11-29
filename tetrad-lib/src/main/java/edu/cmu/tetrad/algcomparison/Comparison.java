@@ -73,7 +73,6 @@ public class Comparison {
     private boolean sortByUtility = false;
     private String dataPath = null;
     private String resultsPath = null;
-    private boolean parallelized = false;
     private boolean saveCpdags = false;
     private boolean saveData = true;
     private boolean savePags = false;
@@ -81,9 +80,8 @@ public class Comparison {
     private ArrayList<String> dirs = null;
     private ComparisonGraph comparisonGraph = ComparisonGraph.true_DAG;
 
-    public void compareFromFiles(String filePath, Algorithms algorithms,
-                                 Statistics statistics, Parameters parameters) {
-        compareFromFiles(filePath, filePath, algorithms, statistics, parameters);
+    public void compareFromFiles(String filePath, Algorithms algorithms) {
+        compareFromFiles(filePath, filePath, algorithms);
     }
 
     /**
@@ -93,12 +91,8 @@ public class Comparison {
      *                    been saved.
      * @param resultsPath Path to the file where the results should be stored.
      * @param algorithms  The list of algorithms to be compared.
-     * @param statistics  The list of statistics on which to compare the
-     *                    algorithm, and their utility weights.
-     * @param parameters  The list of parameters and their values.
      */
-    public void compareFromFiles(String dataPath, String resultsPath, Algorithms algorithms,
-                                 Statistics statistics, Parameters parameters) {
+    public void compareFromFiles(String dataPath, String resultsPath, Algorithms algorithms) {
         for (Algorithm algorithm : algorithms.getAlgorithms()) {
             if (algorithm instanceof ExternalAlgorithm) {
                 throw new IllegalArgumentException("Not expecting any implementations of ExternalAlgorithm here.");
@@ -117,7 +111,7 @@ public class Comparison {
             throw new NullPointerException("No files in " + file.getAbsolutePath());
         }
 
-        this.dirs = new ArrayList<String>();
+        this.dirs = new ArrayList<>();
 
         int count = 0;
 
@@ -165,7 +159,7 @@ public class Comparison {
             throw new NullPointerException("No files in " + file.getAbsolutePath());
         }
 
-        this.dirs = new ArrayList<String>();
+        this.dirs = new ArrayList<>();
 
         int count = 0;
 
@@ -252,7 +246,6 @@ public class Comparison {
             if (varyingParameters.isEmpty()) {
                 algorithmWrappers.add(new AlgorithmWrapper(algorithm, parameters));
             } else {
-
                 int[] dims = new int[_dims.size()];
                 for (int i = 0; i < _dims.size(); i++) {
                     dims[i] = _dims.get(i);
@@ -291,10 +284,7 @@ public class Comparison {
 
                 if (algorithmWrapper.getAlgorithm() instanceof ExternalAlgorithm) {
                     ExternalAlgorithm external = (ExternalAlgorithm) algorithmWrapper.getAlgorithm();
-//                    external.setSimulation(simulationWrapper.getSimulation());
-//                    external.setPath(dirs.get(simulationWrappers.indexOf(simulationWrapper)));
-//                    external.setPath(resultsPath);
-                    external.setSimIndex(simulationWrappers.indexOf(external.getSimulation()));
+                    external.setSimIndex(simulationWrappers.indexOf(new SimulationWrapper(external.getSimulation(), parameters)));
                 }
 
                 algorithmSimulationWrappers.add(new AlgorithmSimulationWrapper(
@@ -318,112 +308,91 @@ public class Comparison {
         }
 
         // Print out the preliminary information for statistics types, etc.
-        if (allStats != null) {
-            out.println();
-            out.println("Statistics:");
-            out.println();
+        out.println();
+        out.println("Statistics:");
+        out.println();
 
-            for (Statistic stat : statistics.getStatistics()) {
-                out.println(stat.getAbbreviation() + " = " + stat.getDescription());
-            }
+        for (Statistic stat : statistics.getStatistics()) {
+            out.println(stat.getAbbreviation() + " = " + stat.getDescription());
         }
 
         out.println();
-//        out.println("Parameters:");
-////        out.println(parameters);
-//        out.println();
 
-//        printParameters(new ArrayList<>(parameters.getParametersNames()), parameters, out);
-//
-//        out.println();
-        if (allStats != null) {
-            int numTables = allStats.length;
-            int numStats = allStats[0][0].length - 1;
+        int numTables = allStats.length;
+        int numStats = allStats[0][0].length - 1;
 
-            double[][][] statTables = calcStatTables(allStats, Mode.Average, numTables, algorithmSimulationWrappers,
-                    numStats, statistics);
-            double[] utilities = calcUtilities(statistics, algorithmSimulationWrappers, statTables[0]);
+        double[][][] statTables = calcStatTables(allStats, Mode.Average, numTables, algorithmSimulationWrappers,
+                numStats, statistics);
+        double[] utilities = calcUtilities(statistics, algorithmSimulationWrappers, statTables[0]);
 
-            // Add utilities to table as the last column.
-            for (int u = 0; u < numTables; u++) {
-                for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
-                    statTables[u][t][numStats] = utilities[t];
-                }
+        // Add utilities to table as the last column.
+        for (int u = 0; u < numTables; u++) {
+            for (int t = 0; t < algorithmSimulationWrappers.size(); t++) {
+                statTables[u][t][numStats] = utilities[t];
             }
-
-            int[] newOrder;
-
-            if (isSortByUtility()) {
-                newOrder = sort(algorithmSimulationWrappers, utilities);
-            } else {
-                newOrder = new int[algorithmSimulationWrappers.size()];
-                for (int q = 0; q < algorithmSimulationWrappers.size(); q++) {
-                    newOrder[q] = q;
-                }
-            }
-
-            printTables(statistics, parameters, simulationWrappers, algorithmWrappers, algorithmSimulationWrappers, allStats, numTables, numStats, statTables, utilities, newOrder);
-
-            out.println("Simulations:");
-            out.println();
-
-//            if (simulationWrappers.size() == 1) {
-//                out.println(simulationWrappers.get(0).getDescription());
-//            } else {
-            int i = 0;
-
-            for (SimulationWrapper simulation : simulationWrappers) {
-                out.print("Simulation " + (++i) + ": ");
-                out.println(simulation.getDescription());
-                out.println();
-
-                printParameters(simulation.getParameters(), simulation.getSimulationSpecificParameters(), out);
-
-//                    for (String param : simulation.getParameters()) {
-//                        out.println(param + " = " + simulation.getValue(param));
-//                    }
-                out.println();
-            }
-//            }
-
-
-
-            if (isSortByUtility()) {
-                out.println();
-                out.println("Sorting by utility, high to low.");
-            }
-
-            if (isShowUtilities()) {
-                out.println();
-                out.println("Weighting of statistics:");
-                out.println();
-                out.println("U = ");
-
-                for (Statistic stat : statistics.getStatistics()) {
-                    String statName = stat.getAbbreviation();
-                    double weight = statistics.getWeight(stat);
-                    if (weight != 0.0) {
-                        out.println("    " + weight + " * f(" + statName + ")");
-                    }
-                }
-
-                out.println();
-                out.println("...normed to range between 0 and 1.");
-
-                out.println();
-                out.println("Note that f for each statistic is a function that maps the statistic to the ");
-                out.println("interval [0, 1], with higher being better.");
-            }
-
-            out.println();
-            out.println("Graphs are being compared to the " + comparisonGraph.toString().replace("_", " ") + ".");
-
-            out.println();
-
         }
 
-        for (int i = 0; i < simulations.getSimulations().size(); i++) {
-            saveToFiles(resultsPath + "/simulation" + (i + 1), simulations.getSimulations().get(i), parameters);
+        int[] newOrder;
+
+        if (isSortByUtility()) {
+            newOrder = sort(algorithmSimulationWrappers, utilities);
+        } else {
+            newOrder = new int[algorithmSimulationWrappers.size()];
+            for (int q = 0; q < algorithmSimulationWrappers.size(); q++) {
+                newOrder[q] = q;
+            }
+        }
+
+        printTables(statistics, parameters, simulationWrappers, algorithmWrappers, algorithmSimulationWrappers, allStats, numTables, numStats, statTables, utilities, newOrder);
+
+        out.println("Simulations:");
+        out.println();
+
+        int i = 0;
+
+        for (SimulationWrapper simulation : simulationWrappers) {
+            out.print("Simulation " + (++i) + ": ");
+            out.println(simulation.getDescription());
+            out.println();
+
+            printParameters(simulation.getParameters(), simulation.getSimulationSpecificParameters(), out);
+            out.println();
+        }
+
+        if (isSortByUtility()) {
+            out.println();
+            out.println("Sorting by utility, high to low.");
+        }
+
+        if (isShowUtilities()) {
+            out.println();
+            out.println("Weighting of statistics:");
+            out.println();
+            out.println("U = ");
+
+            for (Statistic stat : statistics.getStatistics()) {
+                String statName = stat.getAbbreviation();
+                double weight = statistics.getWeight(stat);
+                if (weight != 0.0) {
+                    out.println("    " + weight + " * f(" + statName + ")");
+                }
+            }
+
+            out.println();
+            out.println("...normed to range between 0 and 1.");
+
+            out.println();
+            out.println("Note that f for each statistic is a function that maps the statistic to the ");
+            out.println("interval [0, 1], with higher being better.");
+        }
+
+        out.println();
+        out.println("Graphs are being compared to the " + comparisonGraph.toString().replace("_", " ") + ".");
+
+        out.println();
+
+        for (int t = 0; t < simulations.getSimulations().size(); t++) {
+            saveToFiles(resultsPath + "/simulation" + (t + 1), simulations.getSimulations().get(t), parameters);
         }
 
         out.close();
@@ -557,7 +526,7 @@ public class Comparison {
                     if (isSaveData()) {
                         File file = new File(dir2, "data." + (j + 1) + ".txt");
                         Writer out = new FileWriter(file);
-                        DataModel dataModel = (DataModel) simulationWrapper.getDataModel(j);
+                        DataModel dataModel = simulationWrapper.getDataModel(j);
                         DataWriter.writeRectangularData((DataSet) dataModel, out, '\t');
                         out.close();
                     }
@@ -622,10 +591,8 @@ public class Comparison {
                 return;
             }
 
-            File subdir = dir;
-
-            File dir1 = new File(subdir, "graph");
-            File dir2 = new File(subdir, "data");
+            File dir1 = new File(dir, "graph");
+            File dir2 = new File(dir, "data");
 
             dir1.mkdirs();
             dir2.mkdirs();
@@ -633,14 +600,14 @@ public class Comparison {
             File dir3 = null;
 
             if (isSaveCpdags()) {
-                dir3 = new File(subdir, "cpdags");
+                dir3 = new File(dir, "cpdags");
                 dir3.mkdirs();
             }
 
             File dir4 = null;
 
             if (isSavePags()) {
-                dir4 = new File(subdir, "pags");
+                dir4 = new File(dir, "pags");
                 dir4.mkdirs();
             }
 
@@ -1067,6 +1034,7 @@ public class Comparison {
     }
 
     public boolean isParallelized() {
+        boolean parallelized = false;
         return parallelized;
     }
 
@@ -1460,7 +1428,7 @@ public class Comparison {
                                         List<AlgorithmSimulationWrapper> wrappers, int numStats, Statistics statistics) {
         double[][][] statTables = new double[numTables][wrappers.size()][numStats + 1];
 
-        for (int u = 0; u < numTables; u++) {
+        for (int t = 0; t < numTables; t++) {
             for (int i = 0; i < wrappers.size(); i++) {
                 for (int j = 0; j < numStats; j++) {
                     if (statistics.getStatistics().get(j) instanceof ParameterColumn) {
@@ -1506,16 +1474,16 @@ public class Comparison {
                             }
                         }
 
-                        statTables[u][i][j] = stat;
+                        statTables[t][i][j] = stat;
                     } else if (mode == Mode.Average) {
-                        final double mean = StatUtils.mean(allStats[u][i][j]);
-                        statTables[u][i][j] = mean;
+                        final double mean = StatUtils.mean(allStats[t][i][j]);
+                        statTables[t][i][j] = mean;
                     } else if (mode == Mode.WorstCase) {
-                        statTables[u][i][j] = StatUtils.min(allStats[u][i][j]);
+                        statTables[t][i][j] = StatUtils.min(allStats[t][i][j]);
                     } else if (mode == Mode.StandardDeviation) {
-                        statTables[u][i][j] = StatUtils.sd(allStats[u][i][j]);
+                        statTables[t][i][j] = StatUtils.sd(allStats[t][i][j]);
                     } else if (mode == Mode.MedianCase) {
-                        statTables[u][i][j] = StatUtils.median(allStats[u][i][j]);
+                        statTables[t][i][j] = StatUtils.median(allStats[t][i][j]);
                     } else {
                         throw new IllegalStateException();
                     }
