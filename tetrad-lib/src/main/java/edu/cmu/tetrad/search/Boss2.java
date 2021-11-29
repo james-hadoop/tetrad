@@ -339,10 +339,10 @@ public class Boss2 {
         double s = scorer.score();
 
         for (Node w : scorer.getOrder()) {
-            Set<Node> parentsw = scorer.getParents(scorer.indexOf(w));
+            Set<Node> parentsw = scorer.getParents(scorer.index(w));
 
             for (Node v : parentsw) {
-                Set<Node> parentsv = scorer.getParents(scorer.indexOf(v));
+                Set<Node> parentsv = scorer.getParents(scorer.index(v));
                 Set<Node> _parentsw = new HashSet<>(parentsw);
                 _parentsw.remove(v);
 

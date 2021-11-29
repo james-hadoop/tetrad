@@ -32,11 +32,13 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Rfci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
+import edu.cmu.tetrad.algcomparison.independence.ChiSquare;
 import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.ConditionalGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore;
+import edu.cmu.tetrad.algcomparison.simulation.BayesNetSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.LeeHastieSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
@@ -473,6 +475,54 @@ public final class TestBoss {
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
         comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBossForGreg", simulations, algorithms, statistics, params);
+    }
+
+    @Test
+    public void testBoss7a() {
+        Parameters params = new Parameters();
+        params.set(Params.SAMPLE_SIZE, 10000);
+        params.set(Params.NUM_MEASURES, 10, 20, 50, 100);
+        params.set(Params.AVG_DEGREE, 2, 4, 6, 8);
+        params.set(Params.RANDOMIZE_COLUMNS, true);
+        params.set(Params.COEF_LOW, 0);
+        params.set(Params.COEF_HIGH, 1);
+        params.set(Params.TRIANGLE_DEPTH, 2);
+        params.set(Params.VERBOSE, true);
+
+        params.set(Params.NUM_RUNS, 1);
+
+        params.set(Params.BOSS_SCORE_TYPE, false);
+        params.set(Params.CACHE_SCORES, true);
+        params.set(Params.NUM_STARTS, 1);
+
+        params.set(Params.PENALTY_DISCOUNT, 2);
+
+        params.set(Params.ALPHA, 0.001);
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new ChiSquare()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new BayesNetSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
+        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new AdjacencyTPR());
+        statistics.add(new AdjacencyFPR());
+        statistics.add(new SHD_CPDAG());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBossForGregDiscrete", simulations, algorithms, statistics, params);
     }
 
 
@@ -1412,7 +1462,7 @@ public final class TestBoss {
             scorer.moveTo(v, r);
 //            System.out.println(r + " " + scorer.indexOf(v));
 
-            assertEquals(r, scorer.indexOf(v));
+            assertEquals(r, scorer.index(v));
         }
     }
 

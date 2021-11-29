@@ -59,26 +59,26 @@ public class TeyssierScorer {
         nodesHash(variablesHash, variables);
     }
 
-    public boolean reverseIfEdge(Node x, Node y) {
+    public void reverse(Node x, Node y) {
+
+        // x->y
         if (getParents(y).contains(x)) {
-            if (indexOf(x) < indexOf(y)) {
-                moveTo(y, indexOf(x));
-                return true;
+            if (index(x) < index(y)) {
+                moveTo(y, index(x));
             } else {
-                moveTo(y, indexOf(x) + 1);
-                return true;
-            }
-        } else if (getParents(x).contains(y)) {
-            if (indexOf(y) < indexOf(x)) {
-                moveTo(x, indexOf(y));
-                return true;
-            } else {
-                moveTo(x, indexOf(y) + 1);
-                return true;
+                moveTo(y, index(x) + 1);
             }
         }
 
-        return false;
+        // y -> x
+        else if (getParents(x).contains(y)) {
+            if (index(y) < index(x)) {
+                moveTo(x, index(y));
+            } else {
+                moveTo(x, index(y) + 1);
+            }
+        }
+
     }
 
     public void setKnowledge(IKnowledge knowledge) {
@@ -135,11 +135,11 @@ public class TeyssierScorer {
 
     public void moveTo(Node v, int toIndex) {
         if (!order.contains(v)) return;
-        int vindex = indexOf(v);
+        int vindex = index(v);
 
         if (vindex == toIndex) return;
 
-        Node to = order.get(toIndex);
+//        Node to = order.get(toIndex);
 
         order.remove(v);
         order.add(toIndex, v);
@@ -164,7 +164,7 @@ public class TeyssierScorer {
     }
 
     public void moveToFirst(Node v) {
-        int vindex = indexOf(v);
+        int vindex = index(v);
 
         order.remove(v);
         order.addFirst(v);
@@ -173,7 +173,7 @@ public class TeyssierScorer {
     }
 
     public void moveToLast(Node v) {
-        int vindex = indexOf(v);
+        int vindex = index(v);
 
         order.remove(v);
         order.addLast(v);
@@ -207,7 +207,7 @@ public class TeyssierScorer {
         return new ArrayList<>(order);
     }
 
-    public int indexOf(Node v) {
+    public int index(Node v) {
         if (!orderHash.containsKey(v)) {
             System.out.println();
         }
@@ -298,7 +298,7 @@ public class TeyssierScorer {
     }
 
     public Set<Node> getParents(Node v) {
-        return new HashSet<>(scores.get(indexOf(v)).getParents());
+        return new HashSet<>(scores.get(index(v)).getParents());
     }
 
     public Set<Node> getAdjacentNodes(Node v) {
@@ -570,7 +570,7 @@ public class TeyssierScorer {
 
         orderHash.put(v, order.indexOf(v));
 
-        Pair pair = getParentsInternal(indexOf(v));
+        Pair pair = getParentsInternal(index(v));
         order.removeLast();
         orderHash.remove(v);
         return pair.score;

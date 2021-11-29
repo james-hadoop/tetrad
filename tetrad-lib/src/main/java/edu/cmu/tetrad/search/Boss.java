@@ -283,43 +283,85 @@ public class Boss {
         }
     }
 
-    private List<Node> gasp(@NotNull TeyssierScorer scorer) {
-        double s1;
-        double s2;
-        int round = 0;
+    private List<Node> gasp1(@NotNull TeyssierScorer scorer) {
+        if (scorer.size() < 2) return scorer.getOrder();
 
-        do {
-            if (verbose) {
-                System.out.println("GASP Round = " + ++round);
+        List<NodePair> list = new ArrayList<>();
+
+        for (int i = 0; i < scorer.size(); i++) {
+            for (int j = i + 1; j < scorer.size(); j++) {
+                list.add(new NodePair(scorer.get(i), scorer.get(j)));
             }
+        }
 
-            s1 = scorer.score();
+        Collections.reverse(list);
 
-            for (int k = 0; k < 2; k++) {
-                for (int i = 0; i < scorer.size(); i++) {
-                    for (int j = i + 1; j < scorer.size(); j++) {
-                        Node x = scorer.get(i);
-                        Node y = scorer.get(j);
+        for (int k = 0; k < 3; k++) {
+            for (NodePair pair : list) {
+                if (scorer.adjacent(pair.getFirst(), pair.getSecond())) {
+                    scorer.bookmark();
+                    double sOld = scorer.score();
 
-                        scorer.bookmark();
+                    scorer.reverse(pair.getFirst(), pair.getSecond());
+                    double sNew = scorer.score();
 
-                        double s3 = scorer.score();
-                        scorer.reverseIfEdge(x, y);
-                        double s4 = scorer.score();
+                    if (sNew >= sOld) {
 
-                        if (s4 >= s3) {
-
-                            // Accept the change.
-                            continue;
-                        }
-
-                        scorer.goToBookmark();
+                        // Accept change.
+                        continue;
                     }
+
+                    // Change is bad.
+                    scorer.goToBookmark();
                 }
             }
+        }
 
-            s2 = scorer.score();
-        } while (s2 > s1);
+        return scorer.getOrder();
+    }
+
+    private List<Node> gasp(@NotNull TeyssierScorer scorer) {
+        if (scorer.size() < 2) return scorer.getOrder();
+
+        List<NodePair> list = new ArrayList<>();
+
+        for (int i = 0; i < scorer.size(); i++) {
+            for (int j = i + 1; j < scorer.size(); j++) {
+                list.add(new NodePair(scorer.get(i), scorer.get(j)));
+            }
+        }
+
+        Collections.reverse(list);
+        Deque<NodePair> deque = new LinkedList<>(list);
+
+        Map<NodePair, Integer> counts = new HashMap<>();
+        for (NodePair pair : deque) counts.put(pair, 0);
+
+
+        do {
+            NodePair pair = deque.removeFirst();
+            deque.addLast(pair);
+            counts.put(pair, counts.get(pair) + 1);
+
+            if (counts.get(deque.peek()) > 2) {
+                scorer.goToBookmark();
+                continue;
+            }
+
+            if (scorer.adjacent(pair.getFirst(), pair.getSecond())) {
+                scorer.bookmark();
+
+                double sOld = scorer.score();
+                scorer.reverse(pair.getFirst(), pair.getSecond());
+                double sNew = scorer.score();
+
+                if (sNew >= sOld) {
+                    continue;
+                }
+
+                scorer.goToBookmark();
+            }
+        } while (counts.get(deque.peek()) <= 5);
 
         return scorer.getOrder();
     }
