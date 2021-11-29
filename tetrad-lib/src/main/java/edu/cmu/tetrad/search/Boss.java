@@ -234,10 +234,6 @@ public class Boss {
                     }
                 }
 
-//                if (triangleProblems.contains(new TriangleProblem(x, y, ZZ))) {
-//                    continue;
-//                }
-
                 triangleVisit(scorer, ZZ, path, _triangleDepth);
 
                 if (scorer.score() > s) {
@@ -269,9 +265,9 @@ public class Boss {
 
             scorer.swap(z.getFirst(), z.getSecond());
 
-//            if (scorer.score() > s) {
-//                return;
-//            }
+            if (scorer.score() > s) {
+                return;
+            }
 
             path.add(z);
 
