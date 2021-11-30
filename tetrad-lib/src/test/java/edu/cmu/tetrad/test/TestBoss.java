@@ -935,6 +935,9 @@ public final class TestBoss {
 
         parameters.set(Params.NUM_MEASURES, 10);
         parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7);//, 8, 9);
+//
+//        parameters.set(Params.NUM_MEASURES, 8);
+//        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7);//, 8, 9);
 
         parameters.set(Params.VERBOSE, true);
         parameters.set(Params.RANDOMIZE_COLUMNS, false);
@@ -943,8 +946,8 @@ public final class TestBoss {
         parameters.set(Params.BOSS_SCORE_TYPE, false);
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.TRIANGLE_DEPTH, 3);
-        parameters.set(Params.GSP_DEPTH, 3);
+        parameters.set(Params.TRIANGLE_DEPTH, 2);
+        parameters.set(Params.GSP_DEPTH, 1);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
