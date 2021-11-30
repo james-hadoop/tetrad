@@ -1568,7 +1568,7 @@ public final class TestBoss {
 
                 Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                 search.setFirstRunUseDataOrder(true);
-                search.setTriangleDepth(3);
+                search.setTriangleDepth(9);
                 search.setMethod(Boss.Method.BOSS);
                 List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());

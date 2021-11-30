@@ -8,12 +8,15 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodePair;
+import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.util.Collections.reverse;
+import static java.util.Collections.shuffle;
 
 
 /**
@@ -73,12 +76,25 @@ public class Boss {
         double best = scorer.score();
 
         for (int r = 0; r < numStarts; r++) {
-            if (firstRunUseDataOrder) {
-                if (r > 0)
-                    scorer.shuffleVariables();
-            } else {
-                scorer.shuffleVariables();
+//            if (firstRunUseDataOrder) {
+//
+//
+//                if (r > 0)
+//                    scorer.shuffleVariables();
+//            } else {
+
+//                Fges fges = new Fges(score);
+//                List<Node> ordering = fges.search().getCausalOrdering();
+//                scorer.evaluate(ordering);
+//
+            List<Node> order2 = scorer.getOrder();
+
+            for (int i = 0; i < 10 ; i++) {
+                shuffle(order2);
             }
+
+            scorer.evaluate(order2);
+//            }
 
             List<Node> _order = scorer.getOrder();
             makeValidKnowledgeOrder(_order);
@@ -215,7 +231,7 @@ public class Boss {
         if (triangleDepth == 0) return;
 
         Set<NodePair> path = new HashSet<>();
-        int _depth = triangleDepth == -1 ? Integer.MAX_VALUE : triangleDepth;
+        int _depth = triangleDepth == -1 ? 10 : triangleDepth;
         double s = scorer.score();
         List<Node> order = scorer.getOrder();
 
@@ -227,22 +243,27 @@ public class Boss {
 
                 List<NodePair> ZZ = new ArrayList<>();
 
-                for (Node z : scorer.getOrder()) {
+                List<Node> order1 = scorer.getOrder();
+                reverse(order1);
+
+                for (Node z : order1) {
                     if (scorer.triangle(x, y, z)) {
                         ZZ.add(new NodePair(x, z));
                         ZZ.add(new NodePair(y, z));
                     }
                 }
 
-                triangleVisit(scorer, ZZ, path, _depth);
+                for (int w = 1; w < _depth; w++) {
+                    triangleVisit2(scorer, ZZ, w);
 
-                if (scorer.score() > s) {
-                    if (verbose) {
-                        System.out.println("# Edges = " + scorer.getNumEdges() + " Score = "
-                                + scorer.score() + " (Triangle)");
+                    if (scorer.score() > s) {
+                        if (verbose) {
+                            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = "
+                                    + scorer.score() + " (Triangle)");
+                        }
+
+                        return;
                     }
-
-                    return;
                 }
 
                 scorer.evaluate(order);
@@ -278,41 +299,34 @@ public class Boss {
         }
     }
 
-    private List<Node> gasp1(@NotNull TeyssierScorer scorer) {
-        if (scorer.size() < 2) return scorer.getOrder();
+    private void triangleVisit2(TeyssierScorer scorer, List<NodePair> ZZ, int size) {
+        if (size > ZZ.size()) return;
 
-        List<NodePair> list = new ArrayList<>();
+        double score = scorer.score();
+        List<Node> order = scorer.getOrder();
 
-        for (int i = 0; i < scorer.size(); i++) {
-            for (int j = i + 1; j < scorer.size(); j++) {
-                list.add(new NodePair(scorer.get(i), scorer.get(j)));
-            }
-        }
+        ChoiceGenerator gen = new ChoiceGenerator(ZZ.size(), size);
+        int[] choice;
 
-        Collections.reverse(list);
+        while ((choice = gen.next()) != null) {
+            PermutationGenerator gen2 = new PermutationGenerator(choice.length);
+            int[] choice2;
 
-        for (int k = 0; k < 3; k++) {
-            for (NodePair pair : list) {
-                if (scorer.adjacent(pair.getFirst(), pair.getSecond())) {
-                    scorer.bookmark();
-                    double sOld = scorer.score();
+            while ((choice2 = gen2.next()) != null) {
+                scorer.evaluate(order);
 
-                    scorer.reverse(pair.getFirst(), pair.getSecond());
-                    double sNew = scorer.score();
+                for (int i = 0; i < choice.length; i++) {
+                    NodePair z = ZZ.get(choice[choice2[i]]);
+                    scorer.swap(z.getFirst(), z.getSecond());
 
-                    if (sNew >= sOld) {
-
-                        // Accept change.
-                        continue;
+                    if (scorer.score() > score) {
+                        return;
                     }
-
-                    // Change is bad.
-                    scorer.goToBookmark();
                 }
             }
         }
 
-        return scorer.getOrder();
+        scorer.evaluate(order);
     }
 
     private List<Node> gasp(@NotNull TeyssierScorer scorer) {
@@ -326,7 +340,7 @@ public class Boss {
             }
         }
 
-        Collections.reverse(list);
+        reverse(list);
         Deque<NodePair> deque = new LinkedList<>(list);
 
         Map<NodePair, Integer> counts = new HashMap<>();
