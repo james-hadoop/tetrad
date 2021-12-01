@@ -24,7 +24,6 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
@@ -831,7 +830,7 @@ public final class TestBoss {
                     boss.setMethod(method);
                     boss.setScoreType(TeyssierScorer.ScoreType.Edge);
                     boss.setNumStarts(1);
-                    boss.setFirstRunUseDataOrder(true);
+                    boss.setUseDataOrder(true);
 
                     List<Node> perm = boss.bestOrder(test.getVariables());
                     Graph cpdag = boss.getGraph(true);
@@ -946,7 +945,7 @@ public final class TestBoss {
         parameters.set(Params.BOSS_SCORE_TYPE, false);
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.TRIANGLE_DEPTH, 2);
+        parameters.set(Params.TRIANGLE_DEPTH, 3);
         parameters.set(Params.GSP_DEPTH, 1);
 
         Statistics statistics = new Statistics();
@@ -1547,7 +1546,6 @@ public final class TestBoss {
 
         boolean printCpdag = false;
 
-
         for (Ret facts : allFacts) {
             count++;
 
@@ -1570,8 +1568,8 @@ public final class TestBoss {
                 List<Node> p = GraphUtils.asList(perm, variables);
 
                 Boss search = new Boss(new IndTestDSep(facts.getFacts()));
-                search.setFirstRunUseDataOrder(true);
-                search.setTriangleDepth(9);
+                search.setUseDataOrder(true);
+                search.setTriangleDepth(-1);
                 search.setMethod(Boss.Method.BOSS);
                 List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());
@@ -1618,7 +1616,7 @@ public final class TestBoss {
         p.add(variables.get(4));
 
         Boss boss = new Boss(new IndTestDSep(facts.getFacts()));
-        boss.setFirstRunUseDataOrder(true);
+        boss.setUseDataOrder(true);
         boss.setMethod(Boss.Method.BOSS);
 
         List<Node> order = boss.bestOrder(p);
