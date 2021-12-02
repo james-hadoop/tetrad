@@ -953,8 +953,8 @@ public final class TestBoss {
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new SHD_CPDAG());
         statistics.add(new ElapsedTime());
 

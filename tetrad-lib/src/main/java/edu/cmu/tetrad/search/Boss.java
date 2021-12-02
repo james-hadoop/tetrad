@@ -218,11 +218,11 @@ public class Boss {
         do {
             s0 = s;
 
-            for (Node v : scorer.getOrder()) {
+            for (Node x : scorer.getOrder()) {
                 s = NEGATIVE_INFINITY;
 
                 for (int i = scorer.size() - 1; i >= 0; i--) {
-                    scorer.moveTo(v, i);
+                    scorer.moveTo(x, i);
 
                     if (scorer.score() > s) {
                         if (satisfiesKnowledge(scorer.getOrder())) {
@@ -365,6 +365,11 @@ public class Boss {
         }
     }
 
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
     private MultiSwapRet multiSwap2(TeyssierScorer scorer, Set<Node> W, int depth) {
         List<Node> pi = scorer.getOrder();
         depth = Math.min(depth, W.size());
@@ -373,6 +378,8 @@ public class Boss {
 
         int[] indices = new int[WW.size()];
         for (int i = 0; i < WW.size(); i++) indices[i] = scorer.index(WW.get(i));
+
+        MultiSwapRet best = new MultiSwapRet(scorer.getOrder(), scorer.score());
 
         ChoiceGenerator gen = new ChoiceGenerator(WW.size(), depth);
         int[] choice;
@@ -383,17 +390,19 @@ public class Boss {
 
             while ((perm = permGen.next()) != null) {
                 for (int i = 0; i < depth; i++) {
-                    scorer.moveTo(WW.get(choice[i]), indices[perm[i]]);
+                    scorer.moveTo(WW.get(choice[i]), indices[choice[perm[i]]]);
                 }
 
                 if (scorer.score() > s0) {
-                    return new MultiSwapRet(scorer.getOrder(), scorer.score());
+                    best = new MultiSwapRet(scorer.getOrder(), scorer.score());
                 }
             }
         }
 
-        scorer.evaluate(pi);
-        return new MultiSwapRet(scorer.getOrder(), scorer.score());
+        return best;
+
+//        scorer.evaluate(pi);
+//        return new MultiSwapRet(scorer.getOrder(), scorer.score());
     }
 
     private static class MultiSwapRet {
