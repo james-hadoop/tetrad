@@ -85,7 +85,7 @@ public class Boss {
             List<Node> perm;
 
             if (method == Method.BOSS) {
-                perm = boss(scorer, start);
+                perm = boss2(scorer, start);
             } else if (method == Method.GASP) {
                 perm = gasp(scorer);
             } else if (method == Method.SP) {
@@ -150,7 +150,7 @@ public class Boss {
         return true;
     }
 
-    public List<Node> boss(@NotNull TeyssierScorer scorer, long start) {
+    public List<Node> boss2(@NotNull TeyssierScorer scorer, long start) {
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Initial)");
