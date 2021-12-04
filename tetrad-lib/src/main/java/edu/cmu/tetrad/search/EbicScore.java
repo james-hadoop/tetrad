@@ -120,7 +120,7 @@ public class EbicScore implements Score {
     }
 
     public double localScore(int i, int... parents) throws RuntimeException {
-        final int pi = parents.length + 1;
+        final int pi = parents.length;
         double varRy = LinearGaussianBicScore.getVarRy(i, parents, data, covariances, calculateRowSubsets);
 
         double gamma = this.gamma;//  1.0 - riskBound;

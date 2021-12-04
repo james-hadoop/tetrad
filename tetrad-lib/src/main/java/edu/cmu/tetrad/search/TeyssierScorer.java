@@ -29,7 +29,7 @@ public class TeyssierScorer {
     private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
     private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
     private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
-    private HashMap<Node, Integer> bookmarkedNodesHash = new HashMap<>();
+//    private final HashMap<Node, Integer> bookmarkedNodesHash = new HashMap<>();
     private Score score;
     private IndependenceTest test;
     private LinkedList<Node> order;
@@ -117,29 +117,12 @@ public class TeyssierScorer {
         return true;
     }
 
-    public boolean demote(Node v) {
-        int index = orderHash.get(v);
-        if (index >= size() - 1) return false;
-        if (index == -1) return false;
-
-        Node v1 = order.get(index);
-        Node v2 = order.get(index + 1);
-
-        order.set(index, v2);
-        order.set(index + 1, v1);
-
-        updateScores(index, index + 1);
-
-        return true;
-    }
 
     public void moveTo(Node v, int toIndex) {
         if (!order.contains(v)) return;
         int vindex = index(v);
 
         if (vindex == toIndex) return;
-
-//        Node to = order.get(toIndex);
 
         order.remove(v);
         order.add(toIndex, v);
@@ -161,15 +144,6 @@ public class TeyssierScorer {
         }
 
         return true;
-    }
-
-    public void moveToFirst(Node v) {
-        int vindex = index(v);
-
-        order.remove(v);
-        order.addFirst(v);
-
-        updateScores(0, vindex);
     }
 
     public void moveToLast(Node v) {
@@ -214,7 +188,9 @@ public class TeyssierScorer {
 
         Integer integer = orderHash.get(v);
 
-        if (integer == null) System.out.println("First 'evaluate' a permutation containing variablle " + v + ".");
+        if (integer == null)
+            throw new IllegalArgumentException("First 'evaluate' a permutation containing variablle "
+                    + v + ".");
 
         return integer;
     }
@@ -510,15 +486,35 @@ public class TeyssierScorer {
     }
 
     public void bookmark() {
-        this.bookmarkedOrder = new LinkedList<>(order);
-        this.bookmarkedScores = new LinkedList<>(scores);
-        this.bookmarkedNodesHash = new HashMap<>(orderHash);
+        for (int i = 0; i < order.size(); i++) {
+            if (!(order.get(i).equals(bookmarkedOrder.get(i))
+                    && scores.get(i).equals(bookmarkedScores.get(i)))) {
+                bookmarkedOrder.set(i, order.get(i));
+                bookmarkedScores.set(i, scores.get(i));
+//                bookmarkedNodesHash.put(order.get(i), i);
+            }
+        }
+
+
+//        this.bookmarkedOrder = new LinkedList<>(order);
+//        this.bookmarkedScores = new LinkedList<>(scores);
+//        this.bookmarkedNodesHash = new HashMap<>(orderHash);
     }
 
     public void goToBookmark() {
-        this.order = new LinkedList<>(bookmarkedOrder);
-        this.scores = new LinkedList<>(bookmarkedScores);
-        this.orderHash = new HashMap<>(bookmarkedNodesHash);
+        for (int i = 0; i < order.size(); i++) {
+            if (!(order.get(i).equals(bookmarkedOrder.get(i))
+                    && scores.get(i).equals(bookmarkedScores.get(i)))) {
+                order.set(i, bookmarkedOrder.get(i));
+                scores.set(i, bookmarkedScores.get(i));
+                orderHash.put(order.get(i), i);
+            }
+        }
+
+
+//        this.order = new LinkedList<>(bookmarkedOrder);
+//        this.scores = new LinkedList<>(bookmarkedScores);
+//        this.orderHash = new HashMap<>(bookmarkedNodesHash);
     }
 
     public void setCachingScores(boolean cachingScores) {
@@ -565,23 +561,9 @@ public class TeyssierScorer {
         this.parentCalculation = parentCalculation;
     }
 
-    public double scoreAppended(Node v) {
-        order.addLast(v);
-
-        orderHash.put(v, order.indexOf(v));
-
-        Pair pair = getParentsInternal(index(v));
-        order.removeLast();
-        orderHash.remove(v);
-        return pair.score;
-    }
 
     public boolean triangle(Node x, Node y, Node z) {
         return adjacent(x, y) && adjacent(y, z) && adjacent(x, z);
-    }
-
-    public boolean chain(Node x, Node y, Node z) {
-        return adjacent(y, z) && adjacent(x, z);
     }
 
     public enum ScoreType {Edge, SCORE}
@@ -603,6 +585,17 @@ public class TeyssierScorer {
 
         public double getScore() {
             return score;
+        }
+
+        public int hashCode() {
+            return parents.hashCode() + new Double(score).hashCode();
+        }
+
+        public boolean equals(Object o) {
+            if (o == null) return false;
+            if (!(o instanceof Pair)) return false;
+            Pair thatPair = (Pair) o;
+            return this.parents.equals(thatPair.parents) && this.score == thatPair.score;
         }
     }
 

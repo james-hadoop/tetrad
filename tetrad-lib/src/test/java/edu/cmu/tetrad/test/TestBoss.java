@@ -167,7 +167,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBoss",
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/testBoss",
                 simulations, algorithms, statistics, params);
     }
 
@@ -214,7 +214,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBoss2",
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/testBoss2",
                 simulations, algorithms, statistics, params);
     }
 
@@ -260,7 +260,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBoss3",
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/testBoss3",
                 simulations, algorithms, statistics, params);
     }
 
@@ -308,7 +308,7 @@ public final class TestBoss {
         comparison.setSaveData(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBoss4", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/testBoss4", simulations, algorithms, statistics, params);
     }
 
     @Test
@@ -371,7 +371,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBossagaain", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/testBossagaain", simulations, algorithms, statistics, params);
     }
 
     @Test
@@ -424,7 +424,7 @@ public final class TestBoss {
         comparison.setSaveData(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBoss6", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/testBoss6", simulations, algorithms, statistics, params);
     }
 
     @Test
@@ -473,7 +473,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBossForGreg", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/testBossForGreg", simulations, algorithms, statistics, params);
     }
 
     @Test
@@ -522,7 +522,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/testBossForGregDiscrete", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/testBossForGregDiscrete", simulations, algorithms, statistics, params);
     }
 
 
@@ -572,7 +572,7 @@ public final class TestBoss {
 //        comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/Lu.figure.3", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/Lu.figure.3", simulations,
                 algorithms, statistics, params);
     }
 
@@ -630,7 +630,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/Lu.figure.6", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/Lu.figure.6", simulations,
                 algorithms, statistics, params);
     }
 
@@ -719,7 +719,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/clark", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/clark", simulations,
                 algorithms, statistics, params);
     }
 
@@ -967,7 +967,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(false);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/soluscomparison",
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/soluscomparison",
                 simulations, algorithms, statistics, parameters);
     }
 
@@ -1523,7 +1523,7 @@ public final class TestBoss {
 //        comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_PAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Documents/boss/bfci", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/bfci", simulations,
                 algorithms, statistics, params);
     }
 

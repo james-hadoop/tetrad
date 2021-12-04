@@ -26,7 +26,7 @@ public class TestIrvine {
 
     @Test
     public void test1() {
-        File dir = new File("/Users/josephramsey/Documents/GitHub/tetrad-example-analyses");
+        File dir = new File("/Users/josephramsey/Downloads/GitHub/tetrad-example-analyses");
 
         File[] files = dir.listFiles();
 
@@ -175,7 +175,7 @@ public class TestIrvine {
 
     @Test
     public void test2() {
-        File dir = new File("/Users/josephramsey/Documents/GitHub/tetrad-example-analyses");
+        File dir = new File("/Users/josephramsey/Downloads/GitHub/tetrad-example-analyses");
 
         File[] files = dir.listFiles();
 
@@ -268,7 +268,7 @@ public class TestIrvine {
 
     @Test
     public void testMeasles() {
-        File dir = new File("/Users/josephramsey/Documents/GitHub/tetrad-example-analyses/hungarian-measles");
+        File dir = new File("/Users/josephramsey/Downloads/GitHub/tetrad-example-analyses/hungarian-measles");
         File lagFile = new File(dir, "results.time.lag.runs/boss.lag2.txt");
         Graph lag = GraphUtils.loadGraphTxt(lagFile);
 
