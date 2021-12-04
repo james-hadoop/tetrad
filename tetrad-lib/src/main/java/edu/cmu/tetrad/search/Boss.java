@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static java.lang.Double.*;
+import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.util.Collections.reverse;
 
 
@@ -405,16 +405,6 @@ public class Boss {
 //        return new MultiSwapRet(scorer.getOrder(), scorer.score());
     }
 
-    private static class MultiSwapRet {
-        public MultiSwapRet(List<Node> pi, double score) {
-            this.order = pi;
-            this.score = score;
-        }
-
-        public List<Node> order;
-        public double score;
-    }
-
     private List<Node> gasp(@NotNull TeyssierScorer scorer) {
         if (scorer.size() < 2) return scorer.getOrder();
 
@@ -553,5 +543,14 @@ public class Boss {
     }
 
     public enum Method {BOSS, SP, GASP}
+
+    private static class MultiSwapRet {
+        public List<Node> order;
+        public double score;
+        public MultiSwapRet(List<Node> pi, double score) {
+            this.order = pi;
+            this.score = score;
+        }
+    }
 
 }

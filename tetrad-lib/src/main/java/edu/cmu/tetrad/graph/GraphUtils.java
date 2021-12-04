@@ -36,7 +36,9 @@ import java.io.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RecursiveTask;
 import java.util.regex.Matcher;
 
@@ -4072,10 +4074,10 @@ public final class GraphUtils {
 
     // Breadth first.
     public static boolean isDConnectedTo(Node x, Node y, List<Node> z, Graph graph) {
-//        if (x == y) throw new IllegalArgumentException("Attempting to calculate d-connection with x = y.");
-//        if (z.contains(x) || z.contains(y)) throw new IllegalArgumentException("Attempting to calculate d-connection by z contains x or y.");
+        if (x == y) throw new IllegalArgumentException("Attempting to calculate d-connection with x = y.");
+        if (z.contains(x) || z.contains(y)) throw new IllegalArgumentException("Attempting to calculate d-connection by z contains x or y.");
 
-        Queue<EdgeNode> Q = new ArrayDeque<>();
+        Queue<EdgeNode> Q = new LinkedBlockingDeque<>();
         Set<EdgeNode> V = new HashSet<>();
 
         for (Edge edge : graph.getEdges(x)) {

@@ -477,9 +477,14 @@ public class GeneralAlgorithmEditor extends JPanel implements PropertyChangeList
     }
 
     private HpcAccount showRemoteComputingOptions(String algoId) {
-        List<HpcAccount> hpcAccounts = desktop.getHpcAccountManager().getHpcAccounts();
+        List<HpcAccount> hpcAccounts = null;
+        try {
+            hpcAccounts = desktop.getHpcAccountManager().getHpcAccounts();
 
-        if (hpcAccounts == null || hpcAccounts.isEmpty()) {
+            if (hpcAccounts == null || hpcAccounts.isEmpty()) {
+                return null;
+            }
+        } catch (Exception e) {
             return null;
         }
 
