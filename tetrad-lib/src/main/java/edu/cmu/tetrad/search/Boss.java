@@ -203,6 +203,51 @@ public class Boss {
         }
     }
 
+    private void betterMutation2(@NotNull TeyssierScorer scorer, long start) {
+        double s0;
+        double s = scorer.score();
+        scorer.bookmark();
+
+        int round = 0;
+
+        D:
+        do {
+            s0 = scorer.score();
+
+//            s = scorer.score();
+
+            scorer.goToBookmark();
+
+            F:
+            for (Node x : scorer.getOrder()) {
+                for (int i = 0; i < scorer.size(); i++) {
+                    scorer.moveTo(x, i);
+
+                    if (scorer.score() > s) {
+//                        if (satisfiesKnowledge(scorer.getOrder())) {
+                            s = scorer.score();
+                            scorer.bookmark();
+                            continue D;
+//                        }
+                    }
+
+//                    continue D;
+
+                }
+
+            }
+
+            System.out.println("Round " + ++round);
+        } while (s > s0);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (Single Moves)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+    }
+
     private void betterTriMutation(@NotNull TeyssierScorer scorer, long start) {
         if (triangleDepth == 0) return;
 

@@ -264,7 +264,7 @@ public class TeyssierScorer {
     }
 
     private void recalculate(int p) {
-        if (!getPrefix(p).equals(prefixes.get(p))) {
+        if (prefixes.get(p) == null || !prefixes.get(p).containsAll(getPrefix(p))) {
             scores.set(p, getParentsInternal(p));
         }
     }
