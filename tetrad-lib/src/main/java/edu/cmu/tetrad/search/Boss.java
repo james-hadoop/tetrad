@@ -151,7 +151,6 @@ public class Boss {
     }
 
     public List<Node> boss(@NotNull TeyssierScorer scorer, long start) {
-
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Initial)");
         }
@@ -162,7 +161,7 @@ public class Boss {
         do {
             betterMutation(scorer, start);
             s0 = scorer.score();
-            betterTriMutation(scorer, start);
+            betterTriMutation2(scorer, start);
             s = scorer.score();
         } while (s > s0);
 
@@ -173,14 +172,15 @@ public class Boss {
         double s0;
         double s = scorer.score();
         scorer.bookmark();
+        List<Node> order = scorer.getOrder();
 
         do {
             s0 = s;
 
-            for (Node x : scorer.getOrder()) {
+            for (Node x : order) {
                 s = NEGATIVE_INFINITY;
 
-                for (int i = scorer.size() - 1; i >= 0; i--) {
+                for (int i = 0; i < order.size(); i++) {
                     scorer.moveTo(x, i);
 
                     if (scorer.score() > s) {
@@ -203,78 +203,39 @@ public class Boss {
         }
     }
 
-    private void betterMutation2(@NotNull TeyssierScorer scorer, long start) {
-        double s0;
-        double s = scorer.score();
-        scorer.bookmark();
-
-        int round = 0;
-
-        D:
-        do {
-            s0 = scorer.score();
-
-//            s = scorer.score();
-
-            scorer.goToBookmark();
-
-            F:
-            for (Node x : scorer.getOrder()) {
-                for (int i = 0; i < scorer.size(); i++) {
-                    scorer.moveTo(x, i);
-
-                    if (scorer.score() > s) {
-//                        if (satisfiesKnowledge(scorer.getOrder())) {
-                            s = scorer.score();
-                            scorer.bookmark();
-                            continue D;
-//                        }
-                    }
-
-//                    continue D;
-
-                }
-
-            }
-
-            System.out.println("Round " + ++round);
-        } while (s > s0);
-
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " Score = " + scorer.score()
-                    + " (Single Moves)"
-                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-        }
-    }
-
-    private void betterTriMutation(@NotNull TeyssierScorer scorer, long start) {
+    private void betterTriMutation2(@NotNull TeyssierScorer scorer, long start) {
         if (triangleDepth == 0) return;
 
         int _depth = triangleDepth == -1 ? Integer.MAX_VALUE : triangleDepth;
         MultiSwapRet ret0 = new MultiSwapRet(scorer.getOrder(), scorer.score());
 
-        for (int i = 0; i < scorer.size(); i++) {
-            Node x = scorer.get(i);
+        List<Node> pi = scorer.getOrder();
 
-            for (int j = 1; j < i; j++) {
-                Node y = scorer.get(j);
+        I:
+        for (int i = pi.size() - 1; i >= 0; i--) {
+            Node x = pi.get(i);
+
+            for (int j = i - 1; j >= 0; j--) {
+                Node y = pi.get(j);
 
                 if (!scorer.adjacent(x, y)) continue;
 
                 Set<Node> W = new HashSet<>();
 
-                for (Node z : scorer.getOrder()) {
-                    if (scorer.triangle(x, y, z)) {
+                for (Node z : pi) {
+                    if (scorer.adjacent(x, z) && scorer.adjacent(y, z)) {
                         W.add(x);
                         W.add(y);
                         W.add(z);
                     }
                 }
 
-                MultiSwapRet ret = multiSwap(scorer, W, _depth);
+                MultiSwapRet ret = multiSwap2(scorer, W, _depth);
 
                 if (ret.score > ret0.score) {
+                    scorer.evaluate(ret.order);
+//                    ret0 = ret;
+
                     if (verbose) {
                         System.out.println("# Edges = " + scorer.getNumEdges()
                                 + " Score = "
@@ -283,8 +244,7 @@ public class Boss {
                                 + " Elapsed = " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
                     }
 
-                    scorer.evaluate(ret.order);
-                    return;
+                    continue I;
                 }
 
                 scorer.evaluate(ret0.order);
@@ -305,7 +265,7 @@ public class Boss {
         return super.hashCode();
     }
 
-    private MultiSwapRet multiSwap(TeyssierScorer scorer, Set<Node> W, int depth) {
+    private MultiSwapRet multiSwap2(TeyssierScorer scorer, Set<Node> W, int depth) {
         depth = Math.min(depth, W.size());
         List<Node> WW = new ArrayList<>(W);
 
@@ -477,6 +437,7 @@ public class Boss {
     private static class MultiSwapRet {
         public List<Node> order;
         public double score;
+
         public MultiSwapRet(List<Node> pi, double score) {
             this.order = pi;
             this.score = score;
