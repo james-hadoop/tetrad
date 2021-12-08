@@ -300,6 +300,8 @@ public class Boss {
         int _depth = depth == -1 ? 10 : depth;
 
         for (int k = 0; k < _depth; k++) {
+            System.out.println("Round " + (k + 1));
+
             do {
                 oldGraph = newGraph;
 

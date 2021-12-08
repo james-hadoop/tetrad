@@ -942,8 +942,8 @@ public final class TestBoss {
         parameters.set(Params.BOSS_SCORE_TYPE, false);
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.TRIANGLE_DEPTH, 3);
-        parameters.set(Params.GSP_DEPTH, 1);
+        parameters.set(Params.TRIANGLE_DEPTH, 4);
+        parameters.set(Params.GSP_DEPTH, 6);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
