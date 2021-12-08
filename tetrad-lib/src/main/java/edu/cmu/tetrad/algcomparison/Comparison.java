@@ -78,7 +78,7 @@ public class Comparison {
     private boolean savePags = false;
     //    private boolean saveTrueDags = false;
     private ArrayList<String> dirs = null;
-    private ComparisonGraph comparisonGraph = ComparisonGraph.true_DAG;
+    private ComparisonGraph comparisonGraph = ComparisonGraph.True_DAG;
 
     public void compareFromFiles(String filePath, Algorithms algorithms) {
         compareFromFiles(filePath, filePath, algorithms);
@@ -1300,7 +1300,7 @@ public class Comparison {
 
             Graph comparisonGraph;
 
-            if (this.comparisonGraph == ComparisonGraph.true_DAG) {
+            if (this.comparisonGraph == ComparisonGraph.True_DAG) {
                 comparisonGraph = new EdgeListGraph(trueGraph);
             } else if (this.comparisonGraph == ComparisonGraph.True_CPDAG) {
                 comparisonGraph = SearchGraphUtils.cpdagForDag(new EdgeListGraph(trueGraph));
@@ -1742,7 +1742,7 @@ public class Comparison {
     }
 
     public enum ComparisonGraph {
-        true_DAG, True_CPDAG, True_PAG
+        True_DAG, True_CPDAG, True_PAG
     }
 
     private enum Mode {

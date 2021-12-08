@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static java.util.Collections.shuffle;
+import static java.util.Collections.sort;
 
 
 /**
@@ -29,7 +30,7 @@ public class TeyssierScorer {
     private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
     private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
     private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
-//    private final HashMap<Node, Integer> bookmarkedNodesHash = new HashMap<>();
+    //    private final HashMap<Node, Integer> bookmarkedNodesHash = new HashMap<>();
     private Score score;
     private IndependenceTest test;
     private LinkedList<Node> order;
@@ -264,7 +265,7 @@ public class TeyssierScorer {
     }
 
     private void recalculate(int p) {
-        if (!getPrefix(p).equals(prefixes.get(p))) {
+        if (prefixes.get(0) == null || (!prefixes.get(p).containsAll(getPrefix(p)))) {
             scores.set(p, getParentsInternal(p));
         }
     }
@@ -418,7 +419,8 @@ public class TeyssierScorer {
         boolean changed = true;
 
         double sMax = score(n, new HashSet<>());
-        Set<Node> prefix = getPrefix(p);
+        List<Node> prefix = new ArrayList<>(getPrefix(p));
+//        sort(prefix);
 
         // Grow-shrink
         while (changed) {
@@ -487,8 +489,8 @@ public class TeyssierScorer {
 
     public void bookmark() {
         for (int i = 0; i < order.size(); i++) {
-            if (!(order.get(i).equals(bookmarkedOrder.get(i))
-                    && scores.get(i).equals(bookmarkedScores.get(i)))) {
+            if (!(order.get(i).equals(bookmarkedOrder.get(i)))) {
+//                    && scores.get(i).equals(bookmarkedScores.get(i)))) {
                 bookmarkedOrder.set(i, order.get(i));
                 bookmarkedScores.set(i, scores.get(i));
 //                bookmarkedNodesHash.put(order.get(i), i);
@@ -503,8 +505,8 @@ public class TeyssierScorer {
 
     public void goToBookmark() {
         for (int i = 0; i < order.size(); i++) {
-            if (!(order.get(i).equals(bookmarkedOrder.get(i))
-                    && scores.get(i).equals(bookmarkedScores.get(i)))) {
+            if (!(order.get(i).equals(bookmarkedOrder.get(i)))) {
+//                    && scores.get(i).equals(bookmarkedScores.get(i)))) {
                 order.set(i, bookmarkedOrder.get(i));
                 scores.set(i, bookmarkedScores.get(i));
                 orderHash.put(order.get(i), i);

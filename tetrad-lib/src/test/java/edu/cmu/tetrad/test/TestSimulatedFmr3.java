@@ -228,7 +228,7 @@ public class TestSimulatedFmr3 {
 //            comparison.setParallelized(false);
             comparison.setSaveGraphs(false);
             comparison.setTabDelimitedTables(false);
-            comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
+            comparison.setComparisonGraph(Comparison.ComparisonGraph.True_DAG);
 
             comparison.compareFromSimulations("comparison_" + dirs[i], simulations, algorithms, statistics, parameters);
         }

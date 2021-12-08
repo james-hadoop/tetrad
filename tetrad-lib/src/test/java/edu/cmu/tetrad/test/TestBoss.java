@@ -24,6 +24,7 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
@@ -933,7 +934,7 @@ public final class TestBoss {
         Parameters parameters = new Parameters();
 
         parameters.set(Params.NUM_MEASURES, 10);
-        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6);
+        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
         parameters.set(Params.VERBOSE, true);
         parameters.set(Params.RANDOMIZE_COLUMNS, false);
@@ -941,7 +942,7 @@ public final class TestBoss {
         parameters.set(Params.BOSS_SCORE_TYPE, false);
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.TRIANGLE_DEPTH, -1);
+        parameters.set(Params.TRIANGLE_DEPTH, 3);
         parameters.set(Params.GSP_DEPTH, 1);
 
         Statistics statistics = new Statistics();
@@ -960,11 +961,12 @@ public final class TestBoss {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-//        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
-        comparison.setShowAlgorithmIndices(false);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setTabDelimitedTables(false);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
         comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/soluscomparison",
@@ -1565,7 +1567,7 @@ public final class TestBoss {
 
                 Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                 search.setUseDataOrder(true);
-                search.setTriangleDepth(-1);
+                search.setDepth(-1);
                 search.setMethod(Boss.Method.BOSS);
                 List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());

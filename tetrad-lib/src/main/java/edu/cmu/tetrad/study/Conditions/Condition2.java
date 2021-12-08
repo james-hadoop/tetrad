@@ -210,7 +210,7 @@ public class Condition2 {
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
         comparison.setSaveGraphs(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_DAG);
 
         comparison.generateReportFromExternalAlgorithms("/Users/user/comparison-data/condition_2",
                 "/Users/user/causal-comparisons/condition_2", "Comparison.txt",

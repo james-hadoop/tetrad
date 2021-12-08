@@ -12,7 +12,6 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -74,7 +73,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
             boss.setKnowledge(dataSet.getKnowledge());
-            boss.setTriangleDepth(parameters.getInt(Params.TRIANGLE_DEPTH));
+            boss.setDepth(parameters.getInt(Params.TRIANGLE_DEPTH));
             boss.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {

@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Tetrad" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="edu.cmu.tetradapp.Tetrad" />
+    <module name="tetrad-gui" />
+    <option name="PROGRAM_PARAMETERS" value="-Xmx10g" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -73,7 +73,7 @@ public class LingamStudy {
         comparison.setShowSimulationIndices(true);
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_DAG);
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearFisherModel(new RandomForward()));

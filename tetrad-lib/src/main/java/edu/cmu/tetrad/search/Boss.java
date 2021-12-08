@@ -13,9 +13,11 @@ import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.LinkedBlockingDeque;
 
+import static java.lang.Double.MAX_VALUE;
 import static java.lang.Double.NEGATIVE_INFINITY;
-import static java.util.Collections.reverse;
+import static java.util.Collections.shuffle;
 
 
 /**
@@ -36,7 +38,7 @@ public class Boss {
     private TeyssierScorer.ScoreType scoreType = TeyssierScorer.ScoreType.Edge;
     private IKnowledge knowledge = new Knowledge2();
     private boolean useDataOrder = false;
-    private int triangleDepth = -1;
+    private int depth = -1;
     private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.GrowShrinkMb;
     private TeyssierScorer scorer;
 
@@ -70,15 +72,16 @@ public class Boss {
         scorer.setCachingScores(cachingScores);
 
         List<Node> bestPerm = new ArrayList<>(order);
-        scorer.evaluate(bestPerm);
-        double best = scorer.score();
+//        scorer.evaluate(bestPerm);
+        double best = NEGATIVE_INFINITY;// scorer.score();
 
         for (int r = 0; r < (useDataOrder ? 1 : numStarts); r++) {
             if (!useDataOrder) {
-                scorer.shuffleVariables();
+                shuffle(order);
+//                scorer.shuffleVariables();
             }
 
-            List<Node> _order = scorer.getOrder();
+            List<Node> _order = new ArrayList<>(order);//scorer.getOrder();
             makeValidKnowledgeOrder(_order);
             scorer.evaluate(_order);
 
@@ -204,9 +207,9 @@ public class Boss {
     }
 
     private void betterTriMutation(@NotNull TeyssierScorer scorer, long start) {
-        if (triangleDepth == 0) return;
+        if (depth == 0) return;
 
-        int _depth = triangleDepth == -1 ? Integer.MAX_VALUE : triangleDepth;
+        int _depth = depth == -1 ? Integer.MAX_VALUE : depth;
         MultiSwapRet ret0 = new MultiSwapRet(scorer.getOrder(), scorer.score());
 
         for (int i = 0; i < scorer.size(); i++) {
@@ -220,7 +223,7 @@ public class Boss {
                 Set<Node> W = new HashSet<>();
 
                 for (Node z : scorer.getOrder()) {
-                    if (scorer.triangle(x, y, z)) {
+                    if (scorer.adjacent(x, z) && scorer.adjacent(y, z)) {
                         W.add(x);
                         W.add(y);
                         W.add(z);
@@ -291,47 +294,46 @@ public class Boss {
     }
 
     private List<Node> gasp(@NotNull TeyssierScorer scorer) {
-        if (scorer.size() < 2) return scorer.getOrder();
+        Graph newGraph = scorer.getGraph(true);
+        Graph oldGraph;
 
-        List<NodePair> list = new ArrayList<>();
+        int _depth = depth == -1 ? 10 : depth;
 
-        for (int i = 0; i < scorer.size(); i++) {
-            for (int j = i + 1; j < scorer.size(); j++) {
-                list.add(new NodePair(scorer.get(i), scorer.get(j)));
-            }
-        }
+        for (int k = 0; k < _depth; k++) {
+            do {
+                oldGraph = newGraph;
 
-        reverse(list);
-        Deque<NodePair> deque = new LinkedList<>(list);
+                Queue<NodePair> Q = new LinkedBlockingDeque<>();
+                Set<NodePair> V = new HashSet<>();
 
-        Map<NodePair, Integer> counts = new HashMap<>();
-        for (NodePair pair : deque) counts.put(pair, 0);
-
-
-        do {
-            NodePair pair = deque.removeFirst();
-            deque.addLast(pair);
-            counts.put(pair, counts.get(pair) + 1);
-
-            if (counts.get(deque.peek()) > 2) {
-                scorer.goToBookmark();
-                continue;
-            }
-
-            if (scorer.adjacent(pair.getFirst(), pair.getSecond())) {
-                scorer.bookmark();
-
-                double sOld = scorer.score();
-                scorer.reverse(pair.getFirst(), pair.getSecond());
-                double sNew = scorer.score();
-
-                if (sNew >= sOld) {
-                    continue;
+                for (int i = 0; i < scorer.size(); i++) {
+                    for (int j = i + 1; j < scorer.size(); j++) {
+                        Q.offer(new NodePair(scorer.get(i), scorer.get(j)));
+                    }
                 }
 
-                scorer.goToBookmark();
-            }
-        } while (counts.get(deque.peek()) <= 5);
+                while (!Q.isEmpty()) {
+                    NodePair pair = Q.poll();
+
+                    scorer.bookmark();
+
+                    double sOld = scorer.score();
+                    scorer.reverse(pair.getFirst(), pair.getSecond());
+                    double sNew = scorer.score();
+
+                    if (sNew < sOld) {
+                        scorer.goToBookmark();
+                    }
+
+                    if (!V.contains(pair)) {
+                        Q.offer(pair);
+                        V.add(pair);
+                    }
+                }
+
+                newGraph = scorer.getGraph(true);
+            } while (!newGraph.equals(oldGraph));
+        }
 
         return scorer.getOrder();
     }
@@ -417,21 +419,23 @@ public class Boss {
         this.useDataOrder = useDataOrder;
     }
 
-    public void setTriangleDepth(int triangleDepth) {
-        if (triangleDepth < -1) throw new IllegalArgumentException("Depth should be >= -1.");
+    public void setDepth(int depth) {
+        if (depth < -1) throw new IllegalArgumentException("Depth should be >= -1.");
 
-        this.triangleDepth = triangleDepth;
+        this.depth = depth;
     }
 
     public void setParentCalculation(TeyssierScorer.ParentCalculation parentCalculation) {
         this.parentCalculation = parentCalculation;
     }
 
+
     public enum Method {BOSS, SP, GASP}
 
     private static class MultiSwapRet {
         public List<Node> order;
         public double score;
+
         public MultiSwapRet(List<Node> pi, double score) {
             this.order = pi;
             this.score = score;

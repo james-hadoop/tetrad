@@ -17,7 +17,6 @@ public class AdjacencyConfusion {
 
     public AdjacencyConfusion(Graph truth, Graph est) {
         est = GraphUtils.replaceNodes(est, truth.getNodes());
-        assert est != null;
 
         int adjTp = 0;
         int adjFp = 0;
