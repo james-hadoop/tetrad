@@ -13,9 +13,7 @@ import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.LinkedBlockingDeque;
 
-import static java.lang.Double.MAX_VALUE;
 import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.util.Collections.shuffle;
 
@@ -91,6 +89,8 @@ public class Boss {
                 perm = boss(scorer, start);
             } else if (method == Method.GASP) {
                 perm = gasp(scorer);
+            } else if (method == Method.QUICK_GASP) {
+                perm = quickGasp(scorer);
             } else if (method == Method.SP) {
                 perm = sp(scorer);
             } else {
@@ -109,7 +109,7 @@ public class Boss {
 
         if (verbose) {
             System.out.println("Final order = " + scorer.getOrder());
-            System.out.println("BOSS Elapsed time = " + (stop - start) / 1000.0 + " s");
+            System.out.println("Elapsed time = " + (stop - start) / 1000.0 + " s");
         }
 
         return bestPerm;
@@ -224,13 +224,13 @@ public class Boss {
 
                 for (Node z : scorer.getOrder()) {
                     if (scorer.adjacent(x, z) && scorer.adjacent(y, z)) {
-                        W.add(x);
-                        W.add(y);
+//                        W.add(x);
+//                        W.add(y);
                         W.add(z);
                     }
                 }
 
-                MultiSwapRet ret = multiSwap(scorer, W, _depth);
+                MultiSwapRet ret = multiSwap(scorer, x, y, W, _depth);
 
                 if (ret.score > ret0.score) {
                     if (verbose) {
@@ -263,7 +263,7 @@ public class Boss {
         return super.hashCode();
     }
 
-    private MultiSwapRet multiSwap(TeyssierScorer scorer, Set<Node> W, int depth) {
+    private MultiSwapRet multiSwap(TeyssierScorer scorer, Node x, Node y, Set<Node> W, int depth) {
         depth = Math.min(depth, W.size());
         List<Node> WW = new ArrayList<>(W);
 
@@ -271,18 +271,41 @@ public class Boss {
         for (int i = 0; i < WW.size(); i++) indices[i] = scorer.index(WW.get(i));
 
         MultiSwapRet best = new MultiSwapRet(scorer.getOrder(), scorer.score());
+        List<Node> pi = scorer.getOrder();
 
         ChoiceGenerator gen = new ChoiceGenerator(WW.size(), depth);
         int[] choice;
 
         while ((choice = gen.next()) != null) {
+            int[] choice2 = Arrays.copyOf(choice, choice.length + 2);
+            choice2[choice.length] = scorer.index(x);
+            choice2[choice.length + 1] = scorer.index(y);
+
+            List<Node> myNodes = new ArrayList<>();
+            List<Integer> myIndices = new ArrayList<>();
+
+            int min = Integer.MAX_VALUE;
+            int max = Integer.MIN_VALUE;
+
+            for (int i : choice2) {
+                Node node = scorer.get(i);
+                myNodes.add(node);
+                int index = scorer.index(node);
+                myIndices.add(index);
+
+                if (index > max) max = index;
+                if (index < min) min = index;
+            }
+
             PermutationGenerator permGen = new PermutationGenerator(depth);
             int[] perm;
 
             while ((perm = permGen.next()) != null) {
-                for (int i = 0; i < depth; i++) {
-                    scorer.moveTo(WW.get(choice[i]), indices[choice[perm[i]]]);
+                for (int w = 0; w < depth; w++) {
+                    pi.set(myIndices.get(perm[w]), myNodes.get(w));
                 }
+
+                scorer.evaluate(pi, 0, scorer.size() - 1);
 
                 if (scorer.score() > best.score) {
                     best = new MultiSwapRet(scorer.getOrder(), scorer.score());
@@ -297,44 +320,58 @@ public class Boss {
         Graph newGraph = scorer.getGraph(true);
         Graph oldGraph;
 
-        int _depth = depth == -1 ? 10 : depth;
+        int _depth = depth == -1 ? 100 : depth;
 
         for (int k = 0; k < _depth; k++) {
-            System.out.println("Round " + (k + 1));
+            if (verbose) {
+                System.out.println("Round " + (k + 1));
+            }
 
             do {
                 oldGraph = newGraph;
+                List<NodePair> pairs = scorer.getAdjacencies();
+                shuffle(pairs);
 
-                Queue<NodePair> Q = new LinkedBlockingDeque<>();
-                Set<NodePair> V = new HashSet<>();
-
-                for (int i = 0; i < scorer.size(); i++) {
-                    for (int j = i + 1; j < scorer.size(); j++) {
-                        Q.offer(new NodePair(scorer.get(i), scorer.get(j)));
-                    }
-                }
-
-                while (!Q.isEmpty()) {
-                    NodePair pair = Q.poll();
-
+                for (NodePair pair : pairs) {
                     scorer.bookmark();
 
                     double sOld = scorer.score();
-                    scorer.reverse(pair.getFirst(), pair.getSecond());
+                    scorer.tuck(pair.getFirst(), pair.getSecond());
                     double sNew = scorer.score();
 
                     if (sNew < sOld) {
                         scorer.goToBookmark();
                     }
-
-                    if (!V.contains(pair)) {
-                        Q.offer(pair);
-                        V.add(pair);
-                    }
                 }
 
                 newGraph = scorer.getGraph(true);
             } while (!newGraph.equals(oldGraph));
+        }
+
+        return scorer.getOrder();
+    }
+
+
+    private List<Node> quickGasp(@NotNull TeyssierScorer scorer) {
+        int _depth = depth == -1 ? 100 : depth;
+
+        for (int k = 0; k < _depth; k++) {
+            System.out.println("Round " + (k + 1));
+
+            List<NodePair> pairs = scorer.getAdjacencies();
+            shuffle(pairs);
+
+            for (NodePair pair : pairs) {
+                scorer.bookmark();
+
+                double sOld = scorer.score();
+                scorer.tuck(pair.getFirst(), pair.getSecond());
+                double sNew = scorer.score();
+
+                if (sNew < sOld) {
+                    scorer.goToBookmark();
+                }
+            }
         }
 
         return scorer.getOrder();
@@ -432,7 +469,7 @@ public class Boss {
     }
 
 
-    public enum Method {BOSS, SP, GASP}
+    public enum Method {BOSS, SP, GASP, QUICK_GASP}
 
     private static class MultiSwapRet {
         public List<Node> order;

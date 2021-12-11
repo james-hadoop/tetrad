@@ -63,6 +63,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.search.Boss.Method.GASP;
+import static edu.cmu.tetrad.search.Boss.Method.QUICK_GASP;
 import static java.lang.Math.sqrt;
 import static java.util.Collections.shuffle;
 import static java.util.Collections.sort;
@@ -1568,7 +1569,7 @@ public final class TestBoss {
                 Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                 search.setUseDataOrder(true);
                 search.setDepth(-1);
-                search.setMethod(Boss.Method.BOSS);
+                search.setMethod(GASP);
                 List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());
 

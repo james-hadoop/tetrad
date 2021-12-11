@@ -2,16 +2,12 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.EdgeListGraph;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 import static java.util.Collections.shuffle;
-import static java.util.Collections.sort;
 
 
 /**
@@ -40,6 +36,8 @@ public class TeyssierScorer {
     private LinkedList<Set<Node>> prefixes;
     private ScoreType scoreType = ScoreType.Edge;
     private Map<Node, Integer> orderHash = new HashMap<>();
+    private Map<NodePair, Set<Node>> lastMoveHash = new HashMap<>();
+    private List<Node> lastOrder;
 
     public TeyssierScorer(Score score) {
         this.score = score;
@@ -60,14 +58,14 @@ public class TeyssierScorer {
         nodesHash(variablesHash, variables);
     }
 
-    public void reverse(Node x, Node y) {
+    public void tuck(Node x, Node y) {
 
         // x->y
         if (getParents(y).contains(x)) {
             if (index(x) < index(y)) {
                 moveTo(y, index(x));
-            } else {
-                moveTo(y, index(x) + 1);
+            } else if (index(x) > index(y)) {
+                moveTo(y, index(x));
             }
         }
 
@@ -75,11 +73,10 @@ public class TeyssierScorer {
         else if (getParents(x).contains(y)) {
             if (index(y) < index(x)) {
                 moveTo(x, index(y));
-            } else {
-                moveTo(x, index(y) + 1);
+            } else if (index(y) > index(x)) {
+                moveTo(x, index(y));
             }
         }
-
     }
 
     public void setKnowledge(IKnowledge knowledge) {
@@ -87,8 +84,17 @@ public class TeyssierScorer {
     }
 
     public void evaluate(List<Node> order) {
+        evaluate(order, 0, order.size() - 1);
+//        this.order = new LinkedList<>(order);
+//        initializeScores();
+//        this.bookmarkedOrder = new LinkedList<>(this.order);
+//        this.bookmarkedScores = new LinkedList<>(this.scores);
+    }
+
+    public void evaluate(List<Node> order, int min, int max) {
         this.order = new LinkedList<>(order);
-        initializeScores();
+        lastOrder = new LinkedList<>(order);
+        initializeScores(min, max);
         this.bookmarkedOrder = new LinkedList<>(this.order);
         this.bookmarkedScores = new LinkedList<>(this.scores);
     }
@@ -121,9 +127,12 @@ public class TeyssierScorer {
 
     public void moveTo(Node v, int toIndex) {
         if (!order.contains(v)) return;
+
         int vindex = index(v);
 
         if (vindex == toIndex) return;
+
+        if (lastMoveSame(vindex, toIndex)) return;
 
         order.remove(v);
         order.add(toIndex, v);
@@ -134,6 +143,55 @@ public class TeyssierScorer {
             updateScores(vindex, toIndex);
         }
     }
+
+    private boolean lastMoveSame(int i1, int i2) {
+        if (i1 <= i2) {
+            for (int i = i1; i <= i2; i++) {
+                if (!getPrefix(i).equals(prefixes.get(i))) return false;
+            }
+        } else {
+            for (int i = i2; i <= i1; i++) {
+                if (!getPrefix(i).equals(prefixes.get(i))) return false;
+            }
+        }
+
+
+//        if (i1 <= i2) {
+//            for (int i = i1; i <= i2; i++) {
+//                if (!getPrefix(i).equals(prefixes.get(i))) return false;
+//            }
+//        } else {
+//            for (int i = i2; i <= i1; i++) {
+//                if (!getPrefix(i).equals(prefixes.get(i))) return false;
+//            }
+//        }
+//
+        return true;
+//
+//        return false;
+
+
+//        List<Node> nodes1 = interveningNodes(order, i1, 2);
+//        List<Node> nodes2 = interveningNodes(lastOrder, i2, i1);
+//        return nodes1.equals(nodes2);
+    }
+
+    @NotNull
+//    private List<Node> interveningNodes(List<Node> pi, int i1, int i2) {
+//        List<Node> nodes = new ArrayList<>();
+//
+//        if (i1 <= i2) {
+//            for (int i = i1; i <= i2; i++) {
+//                nodes.add(pi.get(i));
+//            }
+//        } else {
+//            for (int i = i2; i <= i1; i++) {
+//                nodes.add(pi.get(i));
+//            }
+//        }
+//
+//        return nodes;
+//    }
 
     private boolean validKnowledgeOrder(List<Node> order) {
         for (int i = 0; i < order.size(); i++) {
@@ -210,20 +268,43 @@ public class TeyssierScorer {
     }
 
     private void initializeScores() {
-        this.scores = new LinkedList<>();
-        for (int i1 = 0; i1 < order.size(); i1++) this.scores.add(null);
+        initializeScores(0, order.size() - 1);
+    }
 
-        this.prefixes = new LinkedList<>();
-        for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
+    private void initializeScores(int min, int max) {
 
-        updateScores(0, order.size() - 1);
+        if (max == size() - 1 && min == 0) {
+            this.scores = new LinkedList<>();
+            for (int i1 = 0; i1 < order.size(); i1++) this.scores.add(null);
+        } else {
+            for (int i1 = min; i1 <= max; i1++) this.scores.set(i1, null);
+        }
+
+        if (max == size() - 1 && min == 0) {
+            this.prefixes = new LinkedList<>();
+            for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
+        } else {
+            for (int i1 = min; i1 <= max; i1++) this.prefixes.set(i1, null);
+        }
+
+        updateScores(min, max);
     }
 
     private void updateScores(int i1, int i2) {
+//        if (lastOrder == null) {
+//            lastOrder = order;
+//        }
+
+        for (int i = i1; i <= i2; i++) {
+            lastOrder.set(i, order.get(i));
+        }
+
         for (int i = i1; i <= i2; i++) {
             recalculate(i);
             orderHash.put(order.get(i), i);
         }
+
+//        lastOrder = new ArrayList<>(order);
     }
 
     private double score(Node n, Set<Node> pi) {
@@ -265,7 +346,7 @@ public class TeyssierScorer {
     }
 
     private void recalculate(int p) {
-        if (prefixes.get(0) == null || (!prefixes.get(p).containsAll(getPrefix(p)))) {
+        if (prefixes.get(p) == null || !prefixes.get(p).containsAll(getPrefix(p))) {
             scores.set(p, getParentsInternal(p));
         }
     }
@@ -307,6 +388,19 @@ public class TeyssierScorer {
         } else {
             return G1;
         }
+    }
+
+    public List<NodePair> getAdjacencies() {
+        List<Node> order = getOrder();
+        List<NodePair> pairs = new ArrayList<>();
+
+        for (int p = 0; p < order.size(); p++) {
+            for (Node z : getParents(p)) {
+                pairs.add(new NodePair(z, order.get(p)));
+            }
+        }
+
+        return pairs;
     }
 
     private Pair getParentsInternal(int p) {
@@ -541,6 +635,7 @@ public class TeyssierScorer {
         order = new LinkedList<>(order);
         shuffle(order);
         evaluate(order);
+        lastOrder = new LinkedList<>(order);
     }
 
     public void setScoreType(ScoreType scoreType) {
