@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static java.lang.Math.max;
 import static java.util.Collections.shuffle;
 
 
@@ -83,20 +84,21 @@ public class TeyssierScorer {
         this.knowledge = knowledge;
     }
 
-    public void evaluate(List<Node> order) {
-        evaluate(order, 0, order.size() - 1);
+    public double evaluate(List<Node> order) {
+        return evaluate(order, 0, order.size() - 1);
 //        this.order = new LinkedList<>(order);
 //        initializeScores();
 //        this.bookmarkedOrder = new LinkedList<>(this.order);
 //        this.bookmarkedScores = new LinkedList<>(this.scores);
     }
 
-    public void evaluate(List<Node> order, int min, int max) {
+    public double evaluate(List<Node> order, int min, int max) {
         this.order = new LinkedList<>(order);
         lastOrder = new LinkedList<>(order);
         initializeScores(min, max);
         this.bookmarkedOrder = new LinkedList<>(this.order);
         this.bookmarkedScores = new LinkedList<>(this.scores);
+        return score();
     }
 
     private void nodesHash(Map<Node, Integer> nodesHash, List<Node> variables) {
@@ -145,6 +147,10 @@ public class TeyssierScorer {
     }
 
     private boolean lastMoveSame(int i1, int i2) {
+//        for (int i = 0; i <= max(i1, i2); i++) {
+//            if (!order.get(i).equals(lastOrder.get(i))) return false;
+//        }
+//
         if (i1 <= i2) {
             for (int i = i1; i <= i2; i++) {
                 if (!getPrefix(i).equals(prefixes.get(i))) return false;
@@ -176,7 +182,7 @@ public class TeyssierScorer {
 //        return nodes1.equals(nodes2);
     }
 
-    @NotNull
+//    @NotNull
 //    private List<Node> interveningNodes(List<Node> pi, int i1, int i2) {
 //        List<Node> nodes = new ArrayList<>();
 //
@@ -602,6 +608,7 @@ public class TeyssierScorer {
             if (!(order.get(i).equals(bookmarkedOrder.get(i)))) {
 //                    && scores.get(i).equals(bookmarkedScores.get(i)))) {
                 order.set(i, bookmarkedOrder.get(i));
+                lastOrder.set(i, bookmarkedOrder.get(i));
                 scores.set(i, bookmarkedScores.get(i));
                 orderHash.put(order.get(i), i);
             }
@@ -635,7 +642,7 @@ public class TeyssierScorer {
         order = new LinkedList<>(order);
         shuffle(order);
         evaluate(order);
-        lastOrder = new LinkedList<>(order);
+//        lastOrder = new LinkedList<>(order);
     }
 
     public void setScoreType(ScoreType scoreType) {

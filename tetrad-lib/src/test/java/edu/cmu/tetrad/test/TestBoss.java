@@ -935,7 +935,7 @@ public final class TestBoss {
         Parameters parameters = new Parameters();
 
         parameters.set(Params.NUM_MEASURES, 10);
-        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5);//, 5, 6, 7, 8, 9);
 
         parameters.set(Params.VERBOSE, true);
         parameters.set(Params.RANDOMIZE_COLUMNS, false);
@@ -962,7 +962,7 @@ public final class TestBoss {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+//        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
@@ -1569,7 +1569,7 @@ public final class TestBoss {
                 Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                 search.setUseDataOrder(true);
                 search.setDepth(-1);
-                search.setMethod(GASP);
+                search.setMethod(Boss.Method.BOSS);
                 List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());
 

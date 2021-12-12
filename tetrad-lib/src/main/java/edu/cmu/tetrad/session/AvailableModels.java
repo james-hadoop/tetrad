@@ -18,12 +18,10 @@ public class AvailableModels {
     public void add(Object model) {
         if (model == null) return;
         set.add(model);
-        System.out.println("Added " + set);
     }
 
     public void remove(Object model) {
         if (model == null) return;
         set.remove(model);
-        System.out.println("Removed " + set);
     }
 }
