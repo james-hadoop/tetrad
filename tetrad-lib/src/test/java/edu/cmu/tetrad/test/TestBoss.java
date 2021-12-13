@@ -63,7 +63,6 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.search.Boss.Method.GASP;
-import static edu.cmu.tetrad.search.Boss.Method.QUICK_GASP;
 import static java.lang.Math.sqrt;
 import static java.util.Collections.shuffle;
 import static java.util.Collections.sort;
@@ -334,7 +333,7 @@ public final class TestBoss {
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
 
-        params.set(Params.GSP_DEPTH, 30);
+        params.set(Params.GASP_NUM_ROUNDS, 30);
 
         params.set(Params.PENALTY_DISCOUNT, 2);
 //
@@ -943,8 +942,8 @@ public final class TestBoss {
         parameters.set(Params.BOSS_SCORE_TYPE, false);
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.TRIANGLE_DEPTH, 4);
-        parameters.set(Params.GSP_DEPTH, 6);
+        parameters.set(Params.TRIANGLE_DEPTH, 5);
+        parameters.set(Params.GASP_NUM_ROUNDS, 6);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
@@ -961,8 +960,8 @@ public final class TestBoss {
 //        simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-//        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+//        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
@@ -1081,7 +1080,7 @@ public final class TestBoss {
 
         sort(nodes);
         TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts));
-        scorer.evaluate(nodes);
+        scorer.score(nodes);
         assert (scorer.score() == 7);
     }
 
@@ -1455,7 +1454,7 @@ public final class TestBoss {
         TeyssierScorer scorer = new TeyssierScorer(score);
 
         List<Node> order = scorer.getOrder();
-        scorer.evaluate(order);
+        scorer.score(order);
 
         Node v = order.get(5);
 
@@ -1534,12 +1533,12 @@ public final class TestBoss {
     public void testWayne() {
         List<Ret> allFacts = new ArrayList<>();
         allFacts.add(getFactsSimple());
-        allFacts.add(getFactsSimpleCanceling());
-        allFacts.add(getFactsRaskutti());
-        allFacts.add(getFigure6());
-        allFacts.add(getFigure7());
-        allFacts.add(getFigure8());
-        allFacts.add(getFigure12());
+//        allFacts.add(getFactsSimpleCanceling());
+//        allFacts.add(getFactsRaskutti());
+//        allFacts.add(getFigure6());
+//        allFacts.add(getFigure7());
+//        allFacts.add(getFigure8());
+//        allFacts.add(getFigure12());
 
         int count = 0;
 
@@ -1572,7 +1571,6 @@ public final class TestBoss {
                 search.setMethod(Boss.Method.BOSS);
                 List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());
-
 
 //                Pc search = new Pc(new IndTestDSep(facts.getFacts()));
 //                System.out.println(p + " " + search.search().getNumEdges());
@@ -1792,7 +1790,7 @@ public final class TestBoss {
 
                         TeyssierScorer scorer1 = new TeyssierScorer(dsep);
                         scorer1.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
-                        scorer1.evaluate(_perm0);
+                        scorer1.score(_perm0);
                         Graph g1 = scorer1.getGraph(true);
 
                         IndependenceTest test = new IndTestFisherZ(dataSet, 0.05);
@@ -1800,7 +1798,7 @@ public final class TestBoss {
 
                         TeyssierScorer scorer2 = new TeyssierScorer(score);
                         scorer2.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
-                        scorer2.evaluate(_perm);
+                        scorer2.score(_perm);
 
                         Graph g2 = scorer2.getGraph(true);
                         g2 = GraphUtils.replaceNodes(g2, g1.getNodes());
@@ -1815,7 +1813,7 @@ public final class TestBoss {
 
                             TeyssierScorer scorer3 = new TeyssierScorer(test);
                             scorer3.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
-                            scorer3.evaluate(_perm);
+                            scorer3.score(_perm);
                             Graph g3 = scorer3.getGraph(true);
 
                             g3 = GraphUtils.replaceNodes(g3, g1.getNodes());

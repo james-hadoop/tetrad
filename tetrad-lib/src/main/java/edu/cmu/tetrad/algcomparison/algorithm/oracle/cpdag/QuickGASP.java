@@ -72,7 +72,7 @@ public class QuickGASP implements Algorithm, UsesScoreWrapper, TakesIndependence
             gsp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             gsp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             gsp.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            gsp.setDepth(parameters.getInt(Params.GSP_DEPTH));
+            gsp.setDepth(parameters.getInt(Params.GASP_NUM_ROUNDS));
             gsp.setKnowledge(dataSet.getKnowledge());
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
@@ -135,7 +135,7 @@ public class QuickGASP implements Algorithm, UsesScoreWrapper, TakesIndependence
         params.add(Params.OUTPUT_CPDAG);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.USE_SCORE);
-        params.add(Params.GSP_DEPTH);
+        params.add(Params.GASP_NUM_ROUNDS);
         params.add(Params.VERBOSE);
         return params;
     }

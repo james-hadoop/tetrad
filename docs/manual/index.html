@@ -3635,27 +3635,27 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="depth_value_type">Integer</span></li>
         </ul>
 
-        <h3 id="gspDepth" class="parameter_description">gspDepth</h3>
+        <h3 id="gaspNumRounds" class="parameter_description">gaspNumRounds</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="gspDepth_short_desc">GSP recursion depth (unlimited = -1)</span>
+            <li>Short Description: <span id="gaspNumRounds_short_desc">Number of Rounds</span>
             </li>
-            <li>Long Description: <span id="gspDepth_long_desc">Depth of recursion for the GSP algorithm.
-                In order to express that no limit should be imposed, use the value -1.</span>
+            <li>Long Description: <span id="gaspNumRounds_long_desc">Number of rounds
+                for GASP; the default is 4.</span>
             </li>
-            <li>Default Value: <span id="gspDepth_default_value">-1</span></li>
-            <li>Lower Bound: <span id="gspDepth_lower_bound">-1</span></li>
-            <li>Upper Bound: <span id="gspDepth_upper_bound">2147483647</span></li>
-            <li>Value Type: <span id="gspDepth_value_type">Integer</span></li>
+            <li>Default Value: <span id="gaspNumRounds_default_value">4</span></li>
+            <li>Lower Bound: <span id="gaspNumRounds_lower_bound">0</span></li>
+            <li>Upper Bound: <span id="gaspNumRounds_upper_bound">2147483647</span></li>
+            <li>Value Type: <span id="gaspNumRounds_value_type">Integer</span></li>
         </ul>
 
         <h3 id="triangleDepth" class="parameter_description">triangleDepth</h3>
         <h3 id="triangleDepth" class="parameter_description">triangleDepth</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="triangleDepth_short_desc">Triangle depth (default = 0)</span>
+            <li>Short Description: <span id="triangleDepth_short_desc">Triangle depth (default = -1 = unlimited)</span>
             </li>
             <li>Long Description: <span id="triangleDepth_long_desc">Depth of recursion for the BOSS triangle loop step. (Default = 0. Good value = 2, Unlimited = -1.)</span>
             </li>
-            <li>Default Value: <span id="triangleDepth_default_value">0</span></li>
+            <li>Default Value: <span id="triangleDepth_default_value">-1</span></li>
             <li>Lower Bound: <span id="triangleDepth_lower_bound">-1</span></li>
             <li>Upper Bound: <span id="triangleDepth_upper_bound">2147483647</span></li>
             <li>Value Type: <span id="triangleDepth_value_type">Integer</span></li>

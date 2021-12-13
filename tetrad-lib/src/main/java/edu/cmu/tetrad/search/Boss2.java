@@ -1,6 +1,5 @@
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.AndersonDarlingTest;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
@@ -115,7 +114,7 @@ public class Boss2 {
 //        makeValidKnowledgeOrder(order);
 //        }
 
-        scorer.evaluate(order);
+        scorer.score(order);
 
         for (int r = 0; r < numStarts; r++) {
 //            if (r > 0)
@@ -128,7 +127,7 @@ public class Boss2 {
 //                throw new IllegalStateException("Cannot satisfy knowledge.");
 //            }
 
-            scorer.evaluate(_order);
+            scorer.score(_order);
 
             List<Node> perm;
 
@@ -376,7 +375,7 @@ public class Boss2 {
 
         while ((perm = gen.next()) != null) {
             List<Node> p = GraphUtils.asList(perm, variables);
-            scorer.evaluate(p);
+            scorer.score(p);
 
             if (scorer.score() > minScore) {
                 minScore = scorer.score();
@@ -399,7 +398,7 @@ public class Boss2 {
 
         scorer.setScoreType(scoreType);
 
-        scorer.evaluate(order);
+        scorer.score(order);
         return scorer.getGraph(cpdag);
     }
 

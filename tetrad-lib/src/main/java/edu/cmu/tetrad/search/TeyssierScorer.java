@@ -84,15 +84,15 @@ public class TeyssierScorer {
         this.knowledge = knowledge;
     }
 
-    public double evaluate(List<Node> order) {
-        return evaluate(order, 0, order.size() - 1);
+    public double score(List<Node> order) {
+        return score(order, 0, order.size() - 1);
 //        this.order = new LinkedList<>(order);
 //        initializeScores();
 //        this.bookmarkedOrder = new LinkedList<>(this.order);
 //        this.bookmarkedScores = new LinkedList<>(this.scores);
     }
 
-    public double evaluate(List<Node> order, int min, int max) {
+    public double score(List<Node> order, int min, int max) {
         this.order = new LinkedList<>(order);
         lastOrder = new LinkedList<>(order);
         initializeScores(min, max);
@@ -641,7 +641,7 @@ public class TeyssierScorer {
     public void shuffleVariables() {
         order = new LinkedList<>(order);
         shuffle(order);
-        evaluate(order);
+        score(order);
 //        lastOrder = new LinkedList<>(order);
     }
 

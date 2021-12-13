@@ -69,7 +69,7 @@ public class Boss3 {
         scorer.setCachingScores(cachingScores);
 
         List<Node> bestPerm = new ArrayList<>(order);
-        scorer.evaluate(bestPerm);
+        scorer.score(bestPerm);
         double best = scorer.score();
 
         for (int r = 0; r < numStarts; r++) {
@@ -82,7 +82,7 @@ public class Boss3 {
 
             List<Node> _order = scorer.getOrder();
             makeValidKnowledgeOrder(_order);
-            scorer.evaluate(_order);
+            scorer.score(_order);
 
             List<Node> perm;
 
@@ -96,7 +96,7 @@ public class Boss3 {
                 throw new IllegalArgumentException("Unrecognized method: " + method);
             }
 
-            scorer.evaluate(perm);
+            scorer.score(perm);
             double _score = scorer.score();
 
             if (_score > best) {
@@ -318,7 +318,7 @@ public class Boss3 {
 
         while ((perm = gen.next()) != null) {
             List<Node> p = GraphUtils.asList(perm, variables);
-            scorer.evaluate(p);
+            scorer.score(p);
             double score = scorer.score();
 
             if (score > minScore) {
@@ -347,7 +347,7 @@ public class Boss3 {
 
         scorer.setScoreType(scoreType);
 
-        scorer.evaluate(order);
+        scorer.score(order);
 
         Graph graph1 = scorer.getGraph(cpdag);
 
