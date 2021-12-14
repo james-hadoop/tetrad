@@ -362,7 +362,8 @@ public class TeyssierScorer {
     }
 
     public Set<Node> getParents(Node v) {
-        return new HashSet<>(scores.get(index(v)).getParents());
+        return getParents(index(v));
+//        return new HashSet<>(scores.get(index(v)).getParents());
     }
 
     public Set<Node> getAdjacentNodes(Node v) {
@@ -398,15 +399,26 @@ public class TeyssierScorer {
 
     public List<NodePair> getAdjacencies() {
         List<Node> order = getOrder();
-        List<NodePair> pairs = new ArrayList<>();
+        Set<NodePair> pairs = new HashSet<>();
 
-        for (int p = 0; p < order.size(); p++) {
-            for (Node z : getParents(p)) {
-                pairs.add(new NodePair(z, order.get(p)));
+        for (int i = 0; i < order.size(); i++) {
+            for (int j = 0; j < i; j++) {
+                Node x = order.get(i);
+                Node y = order.get(j);
+
+                if (adjacent(x, y)) {
+                    pairs.add(new NodePair(x, y));
+                }
             }
         }
 
-        return pairs;
+//        for (int p = 0; p < order.size(); p++) {
+//            for (Node z : getParents(p)) {
+//                pairs.add(new NodePair(z, order.get(p)));
+//            }
+//        }
+
+        return new ArrayList<>(pairs);
     }
 
     private Pair getParentsInternal(int p) {
@@ -654,6 +666,7 @@ public class TeyssierScorer {
     }
 
     public boolean adjacent(Node a, Node c) {
+        if (a == c) return false;
         return getParents(a).contains(c) || getParents(c).contains(a);
     }
 

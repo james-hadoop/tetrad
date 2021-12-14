@@ -942,7 +942,7 @@ public final class TestBoss {
         parameters.set(Params.BOSS_SCORE_TYPE, false);
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.TRIANGLE_DEPTH, 5);
+        parameters.set(Params.TRIANGLE_DEPTH, -1);
         parameters.set(Params.GASP_NUM_ROUNDS, 6);
 
         Statistics statistics = new Statistics();
@@ -960,8 +960,54 @@ public final class TestBoss {
 //        simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-//        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+//        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setTabDelimitedTables(false);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/soluscomparison",
+                simulations, algorithms, statistics, parameters);
+    }
+
+    @Test
+    public void testFromDsepSolus2() {
+        Parameters parameters = new Parameters();
+
+        parameters.set(Params.NUM_MEASURES, 10);
+        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5);//, 6, 7, 8, 9);
+
+        parameters.set(Params.VERBOSE, true);
+        parameters.set(Params.RANDOMIZE_COLUMNS, false);
+
+        parameters.set(Params.BOSS_SCORE_TYPE, false);
+        parameters.set(Params.USE_SCORE, false);
+        parameters.set(Params.OUTPUT_CPDAG, true);
+        parameters.set(Params.TRIANGLE_DEPTH, 2);
+//        parameters.set(Params.GASP_NUM_ROUNDS, 6);
+
+        parameters.set(Params.SAMPLE_SIZE, 1000000);
+
+        Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
+        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecisionCommonEdges());
+        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new SHD_CPDAG());
+        statistics.add(new ElapsedTime());
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LinearSemSimulation(new RandomForward()));
+//        simulations.add(new SemSimulationTrueModel(new RandomForward()));
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+//        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
@@ -1112,6 +1158,23 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x4, list())); // unfaithful.
 
         return new Ret("Simple 4-node path canceling model", facts);
+    }
+
+    public Ret wayneNotoriousExample() {
+        Node x1 = new GraphNode("1");
+        Node x2 = new GraphNode("2");
+        Node x3 = new GraphNode("3");
+        Node x4 = new GraphNode("4");
+
+        IndependenceFacts facts = new IndependenceFacts();
+
+        facts.add(new IndependenceFact(x1, x2, list()));
+        facts.add(new IndependenceFact(x1, x2, list(x3)));
+        facts.add(new IndependenceFact(x1, x3, list()));
+        facts.add(new IndependenceFact(x1, x3, list(x2)));
+        facts.add(new IndependenceFact(x2, x3, list(x4)));
+
+        return new Ret("Wayne notorious example", facts);
     }
 
     public Ret getFigure8() {
@@ -1533,12 +1596,14 @@ public final class TestBoss {
     public void testWayne() {
         List<Ret> allFacts = new ArrayList<>();
         allFacts.add(getFactsSimple());
-//        allFacts.add(getFactsSimpleCanceling());
-//        allFacts.add(getFactsRaskutti());
-//        allFacts.add(getFigure6());
-//        allFacts.add(getFigure7());
-//        allFacts.add(getFigure8());
-//        allFacts.add(getFigure12());
+        allFacts.add(getFactsSimpleCanceling());
+        allFacts.add(getFactsRaskutti());
+        allFacts.add(getFigure6());
+        allFacts.add(getFigure7());
+        allFacts.add(getFigure8());
+        allFacts.add(getFigure12());
+
+        allFacts.add(wayneNotoriousExample());
 
         int count = 0;
 

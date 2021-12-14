@@ -85,7 +85,7 @@ public class Boss {
             List<Node> perm;
 
             if (method == Method.BOSS) {
-                perm = esp(scorer);//, start);
+                perm = boss(scorer, start);
             } else if (method == Method.GASP) {
                 perm = gasp(scorer);
             } else if (method == Method.QUICK_GASP) {
@@ -181,7 +181,7 @@ public class Boss {
                 for (int i = scorer.size() - 1; i >= 0; i--) {
                     scorer.moveTo(x, i);
 
-                    if (scorer.score() > sp) {
+                    if (scorer.score() >= sp) {
                         if (satisfiesKnowledge(scorer.getOrder())) {
                             sp = scorer.score();
                             scorer.bookmark();
@@ -249,7 +249,7 @@ public class Boss {
         WW.add(x);
         WW.add(y);
 
-        depth = min(depth, WW.size());
+        depth = min(depth + 2, WW.size());
 
         List<Node> pipp = pi;
 
@@ -263,6 +263,9 @@ public class Boss {
             while ((perm = permGen.next()) != null) {
                 List<Node> delta = new ArrayList<>();
                 for (int j : perm) delta.add(WW.get(choice[perm[j]]));
+
+                if (!delta.contains(x)) continue;
+                if (!delta.contains(y)) continue;
 
                 List<Node> pip = subMutation(pi, delta);
 
@@ -279,7 +282,6 @@ public class Boss {
         List<Node> pi2 = new ArrayList<>(pi);
         int i = -1;
         for (int j = 0; j < pi.size(); j++) {
-
             if (delta.contains(pi.get(j))) {
                 ++i;
                 pi2.set(j, delta.get(i));
