@@ -24,7 +24,6 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
@@ -934,7 +933,7 @@ public final class TestBoss {
         Parameters parameters = new Parameters();
 
         parameters.set(Params.NUM_MEASURES, 10);
-        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5);//, 5, 6, 7, 8, 9);
+        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
         parameters.set(Params.VERBOSE, true);
         parameters.set(Params.RANDOMIZE_COLUMNS, false);
@@ -1160,7 +1159,7 @@ public final class TestBoss {
         return new Ret("Simple 4-node path canceling model", facts);
     }
 
-    public Ret wayneNotoriousExample() {
+    public Ret wayneTriangleFaithfulnessFailExample() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
         Node x3 = new GraphNode("3");
@@ -1174,7 +1173,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x3, list(x2)));
         facts.add(new IndependenceFact(x2, x3, list(x4)));
 
-        return new Ret("Wayne notorious example", facts);
+        return new Ret("Wayne triangle faithfulness fail example", facts);
     }
 
     public Ret getFigure8() {
@@ -1597,13 +1596,13 @@ public final class TestBoss {
         List<Ret> allFacts = new ArrayList<>();
         allFacts.add(getFactsSimple());
         allFacts.add(getFactsSimpleCanceling());
+        allFacts.add(wayneTriangleFaithfulnessFailExample());
         allFacts.add(getFactsRaskutti());
         allFacts.add(getFigure6());
         allFacts.add(getFigure7());
         allFacts.add(getFigure8());
         allFacts.add(getFigure12());
 
-        allFacts.add(wayneNotoriousExample());
 
         int count = 0;
 

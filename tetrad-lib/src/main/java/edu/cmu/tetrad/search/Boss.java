@@ -4,8 +4,10 @@ import edu.cmu.tetrad.algcomparison.statistic.BicEst;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.util.ChoiceGenerator;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.NodePair;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,7 +17,6 @@ import java.util.List;
 import java.util.Set;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
-import static java.lang.Math.min;
 import static java.util.Collections.shuffle;
 
 
@@ -153,18 +154,19 @@ public class Boss {
     }
 
     public List<Node> boss(@NotNull TeyssierScorer scorer, long start) {
-        int depth = this.depth == -1 ? 100 : this.depth;
-
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Initial)");
         }
 
-        List<Node> pi = scorer.getOrder();
-        pi = betterMutation(scorer, pi, start);
-        pi = betterTriMutation(scorer, pi, depth, start);
-        pi = betterMutation(scorer, pi, start);
+        List<Node> pi1 = scorer.getOrder();
+        List<Node> pi2;
 
-        return pi;
+        do {
+            pi1 = betterMutation(scorer, pi1, start);
+            pi2 = betterTriMutation2(scorer, pi1, start);
+        } while (scorer.score(pi2) > scorer.score(pi1));
+
+        return pi1;
     }
 
     private List<Node> betterMutation(@NotNull TeyssierScorer scorer, List<Node> pi, long start) {
@@ -181,7 +183,7 @@ public class Boss {
                 for (int i = scorer.size() - 1; i >= 0; i--) {
                     scorer.moveTo(x, i);
 
-                    if (scorer.score() >= sp) {
+                    if (scorer.score() > sp) {
                         if (satisfiesKnowledge(scorer.getOrder())) {
                             sp = scorer.score();
                             scorer.bookmark();
@@ -196,35 +198,80 @@ public class Boss {
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
-                    + " (Single Moves)"
+                    + " (betterMutation)"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " sp"));
         }
 
         return scorer.getOrder();
     }
 
-    private List<Node> betterTriMutation(@NotNull TeyssierScorer scorer, List<Node> pi, int depth, long start) {
-        List<NodePair> pairs = scorer.getAdjacencies();
-        List<Node> pip = pi;
+//    private List<Node> betterTriMutation(@NotNull TeyssierScorer scorer, List<Node> pi, int depth, long start) {
+//        List<NodePair> pairs = scorer.getAdjacencies();
+//        List<Node> pip = pi;
+//
+//        for (NodePair pair : pairs) {
+//            Node x = pair.getFirst();
+//            Node y = pair.getSecond();
+//
+//            double score = scorer.score(pip);
+//
+//            Set<Node> W = new HashSet<>();
+//
+//            for (Node z : pip) {
+//                if (scorer.triangle(x, y, z)) {
+//                    W.add(z);
+//                }
+//            }
+//
+//            List<Node> pipp = multiSwap(scorer, pi, x, y, W, depth);
+//
+//            if (scorer.score(pipp) > score) {
+//                pip = pipp;
+//            }
+//        }
+//
+//        if (verbose) {
+//            System.out.println("# Edges = " + scorer.getNumEdges()
+//                    + " Score = "
+//                    + scorer.score()
+//                    + " (Triangle)"
+//                    + " Elapsed = " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+//        }
+//
+//        return pip;
+//    }
 
-        for (NodePair pair : pairs) {
-            Node x = pair.getFirst();
-            Node y = pair.getSecond();
+    private List<Node> betterTriMutation2(@NotNull TeyssierScorer scorer, List<Node> pi, long start) {
+        double score_pi = scorer.score(pi);
 
-            double score = scorer.score(pip);
+        for (int i = 0; i < pi.size(); i++) {
+            for (int j = i + 1; j < pi.size(); j++) {
+                for (int k = j + 1; k < pi.size(); k++) {
+                    Node x = pi.get(i);
+                    Node y = pi.get(j);
+                    Node z = pi.get(k);
 
-            Set<Node> W = new HashSet<>();
+                    if (scorer.triangle(x, y, z)) {
+                        List<Node> W = new ArrayList<>();
+                        W.add(x);
+                        W.add(y);
+                        W.add(z);
 
-            for (Node z : pip) {
-                if (scorer.triangle(x, y, z)) {
-                    W.add(z);
+                        PermutationGenerator permGen = new PermutationGenerator(3);
+                        int[] perm;
+
+                        while ((perm = permGen.next()) != null) {
+                            List<Node> delta = new ArrayList<>();
+                            for (int l : perm) delta.add(W.get(perm[l]));
+
+                            List<Node> pip = subMutation(pi, delta);
+
+                            if (scorer.score(pip) > score_pi) {
+                                return pip;
+                            }
+                        }
+                    }
                 }
-            }
-
-            List<Node> pipp = multiSwap(scorer, pi, x, y, W, depth);
-
-            if (scorer.score(pipp) > score) {
-                pip = pipp;
             }
         }
 
@@ -232,11 +279,11 @@ public class Boss {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = "
                     + scorer.score()
-                    + " (Triangle)"
+                    + " (betterTriMutation)"
                     + " Elapsed = " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
-        return pip;
+        return pi;
     }
 
     @Override
@@ -244,39 +291,39 @@ public class Boss {
         return super.hashCode();
     }
 
-    private List<Node> multiSwap(TeyssierScorer scorer, List<Node> pi, Node x, Node y, Set<Node> W, int depth) {
-        List<Node> WW = new ArrayList<>(W);
-        WW.add(x);
-        WW.add(y);
-
-        depth = min(depth + 2, WW.size());
-
-        List<Node> pipp = pi;
-
-        ChoiceGenerator choiceGenerator = new ChoiceGenerator(WW.size(), depth);
-        int[] choice;
-
-        while ((choice = choiceGenerator.next()) != null) {
-            PermutationGenerator permGen = new PermutationGenerator(depth);
-            int[] perm;
-
-            while ((perm = permGen.next()) != null) {
-                List<Node> delta = new ArrayList<>();
-                for (int j : perm) delta.add(WW.get(choice[perm[j]]));
-
-                if (!delta.contains(x)) continue;
-                if (!delta.contains(y)) continue;
-
-                List<Node> pip = subMutation(pi, delta);
-
-                if (scorer.score(pip) > scorer.score(pipp)) {
-                    pipp = pip;
-                }
-            }
-        }
-
-        return pipp;
-    }
+//    private List<Node> multiSwap(TeyssierScorer scorer, List<Node> pi, Node x, Node y, Set<Node> W, int depth) {
+//        List<Node> WW = new ArrayList<>(W);
+//        WW.add(x);
+//        WW.add(y);
+//
+//        depth = min(depth + 2, WW.size());
+//
+//        List<Node> pipp = pi;
+//
+//        ChoiceGenerator choiceGenerator = new ChoiceGenerator(WW.size(), depth);
+//        int[] choice;
+//
+//        while ((choice = choiceGenerator.next()) != null) {
+//            PermutationGenerator permGen = new PermutationGenerator(depth);
+//            int[] perm;
+//
+//            while ((perm = permGen.next()) != null) {
+//                List<Node> delta = new ArrayList<>();
+//                for (int j : perm) delta.add(WW.get(choice[perm[j]]));
+//
+//                if (!delta.contains(x)) continue;
+//                if (!delta.contains(y)) continue;
+//
+//                List<Node> pip = subMutation(pi, delta);
+//
+//                if (scorer.score(pip) > scorer.score(pipp)) {
+//                    pipp = pip;
+//                }
+//            }
+//        }
+//
+//        return pipp;
+//    }
 
     private List<Node> subMutation(List<Node> pi, List<Node> delta) {
         List<Node> pi2 = new ArrayList<>(pi);
@@ -395,21 +442,18 @@ public class Boss {
     }
 
     public List<Node> esp(@NotNull TeyssierScorer scorer) {
-        List<Node> pi1, pi2 = scorer.getOrder(), pi3;
+        List<Node> pi1, pi2 = scorer.getOrder();
 
         Set<NodePair> path = new HashSet<>();
 
-//        for (int k = 0; k < 5; k++) {
-//            pi1 = pi2;
         pi1 = espVisit1(scorer, pi2, null, path);
         pi2 = espVisit2(scorer, pi1, path);
-//        }
-//        while (scorer.score(pi2) > scorer.score(pi1));
 
         return pi2;
     }
 
-    public List<Node> espVisit1(@NotNull TeyssierScorer scorer, List<Node> pi, NodePair pair, Set<NodePair> path) {
+    public List<Node> espVisit1(@NotNull TeyssierScorer scorer, List<Node> pi, NodePair
+            pair, Set<NodePair> path) {
         if (pair != null && path.contains(pair)) return pi;
         if (pair != null) path.add(pair);
 
@@ -451,11 +495,13 @@ public class Boss {
         return pi;
     }
 
+
     public List<Node> tsp(@NotNull TeyssierScorer scorer) {
         return tspVisit(scorer, scorer.getOrder(), null, new HashSet<>());
     }
 
-    public List<Node> tspVisit(@NotNull TeyssierScorer scorer, List<Node> pi, NodePair pair, Set<NodePair> path) {
+    public List<Node> tspVisit(@NotNull TeyssierScorer scorer, List<Node> pi, NodePair
+            pair, Set<NodePair> path) {
         if (pair != null && path.contains(pair)) return pi;
         if (pair != null) path.add(pair);
 
