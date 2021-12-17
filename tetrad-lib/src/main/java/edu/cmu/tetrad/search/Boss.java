@@ -41,11 +41,13 @@ public class Boss {
     public Boss(@NotNull Score score) {
         this.score = score;
         this.variables = new ArrayList<>(score.getVariables());
+        this.useScore = true;
     }
 
     public Boss(@NotNull IndependenceTest test) {
         this.test = test;
         this.variables = new ArrayList<>(test.getVariables());
+        this.useScore = false;
     }
 
     public Boss(@NotNull IndependenceTest test, Score score) {
@@ -60,7 +62,7 @@ public class Boss {
 
         if (useScore && !(score instanceof GraphScore)) {
             scorer = new TeyssierScorer(test, score);
-            scorer.setUseScore(useScore);
+            scorer.setUseScore(true);
             scorer.setParentCalculation(parentCalculation);
 
             if (doFgesFirst) {
@@ -74,7 +76,7 @@ public class Boss {
         } else {
             scorer = new TeyssierScorer(test, score);
             scorer.setParentCalculation(parentCalculation);
-            scorer.setUseScore(useScore);
+            scorer.setUseScore(false);
 
             if (score != null && doFgesFirst) {
                 Fges fges = new Fges(score);
@@ -248,6 +250,7 @@ public class Boss {
 
                     if (scorer.score(pip) > scorer.score(pi)) {
                         pi = pip;
+                        break;
                     }
                 }
             }

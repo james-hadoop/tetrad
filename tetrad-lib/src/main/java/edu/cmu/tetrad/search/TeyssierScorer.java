@@ -40,12 +40,20 @@ public class TeyssierScorer {
     public TeyssierScorer(IndependenceTest test, Score score) {
         this.score = score;
         this.test = test;
-        this.order = new LinkedList<>(score.getVariables());
+
+        if (score != null) {
+            this.variables = score.getVariables();
+            this.order = new LinkedList<>(this.variables);
+        } else if (test != null) {
+            this.variables = test.getVariables();
+            this.order = new LinkedList<>(this.variables);
+        } else {
+            throw new IllegalArgumentException("Need both a score and a test,");
+        }
 
         this.orderHash = new HashMap<>();
         nodesHash(orderHash, order);
 
-        this.variables = score.getVariables();
         this.variablesHash = new HashMap<>();
         nodesHash(variablesHash, variables);
 

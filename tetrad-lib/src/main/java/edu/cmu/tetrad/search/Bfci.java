@@ -44,14 +44,14 @@ public final class Bfci implements GraphSearch {
     private final Score score;
     // The logger to use.
     private final TetradLogger logger = TetradLogger.getInstance();
-    // The covariance matrix beign searched over. Assumes continuous data.
+    // The covariance matrix being searched over. Assumes continuous data.
     ICovarianceMatrix covarianceMatrix;
     // The sample size.
     int sampleSize;
     // The background knowledge.
     private IKnowledge knowledge = new Knowledge2();
     private IndependenceTest test;
-    // Flag for complete rule set, true if should use complete rule set, false otherwise.
+    // Flag for complete rule set, true if you should use complete rule set, false otherwise.
     private boolean completeRuleSetUsed = false;
     // The maximum length for any discriminating path. -1 if unlimited; otherwise, a positive integer.
     private int maxPathLength = -1;
@@ -109,7 +109,7 @@ public final class Bfci implements GraphSearch {
         Graph bossGraph = new EdgeListGraph(graph);
 
         graph.reorientAllWith(Endpoint.CIRCLE);
-        fciOrientbk(knowledge, graph, graph.getNodes());
+        fciOrientBk(knowledge, graph, graph.getNodes());
 
         for (Node b : perm) {
             List<Node> adj = graph.getAdjacentNodes(b);
@@ -340,7 +340,7 @@ public final class Bfci implements GraphSearch {
     /**
      * Orients according to background knowledge
      */
-    private void fciOrientbk(IKnowledge knowledge, Graph graph, List<Node> variables) {
+    private void fciOrientBk(IKnowledge knowledge, Graph graph, List<Node> variables) {
         logger.log("info", "Starting BK Orientation.");
 
         for (Iterator<KnowledgeEdge> it = knowledge.forbiddenEdgesIterator(); it.hasNext(); ) {

@@ -1633,7 +1633,6 @@ public final class TestBoss {
                 List<Node> p = GraphUtils.asList(perm, variables);
 
                 Boss search = new Boss(new IndTestDSep(facts.getFacts()));
-                search.setUseDataOrder(true);
                 search.setMaxPermSize(30);
                 search.setGspDepth(-1);
                 search.setMethod(Boss.Method.BOSS);
