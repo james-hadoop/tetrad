@@ -45,7 +45,7 @@ public class GraphScore implements Score {
     private IndependenceFacts facts;
 
     // The variables of the covariance matrix.
-    private List<Node> variables;
+    private final List<Node> variables;
 
     // True if verbose output should be sent to out.
     private boolean verbose = false;
@@ -81,14 +81,13 @@ public class GraphScore implements Score {
      * Calculates the sample likelihood and BIC score for y given its z in a simple SEM model
      */
     public double localScore(int y, int[] z) {
-        return  getPearlParentsTest(y).size();
-//        return localScoreVisit(y, z) - z.length * 0.01;
+        return  getPearlParentsTest().size();
     }
 
     private Node n = null;
     private List<Node> prefix = null;
 
-    private Set<Node> getPearlParentsTest(int p) {
+    private Set<Node> getPearlParentsTest() {
         Set<Node> mb = new HashSet<>();
 
         for (Node z0 : prefix) {
@@ -101,22 +100,6 @@ public class GraphScore implements Score {
         }
 
         return mb;
-    }
-
-    private double localScoreVisit(int y, int[] z) {
-        if (z.length == 0) {
-            return 0;
-        }
-
-        int zn = z[z.length - 1];
-        int[] sub1 = new int[z.length - 1];
-        System.arraycopy(z, 0, sub1, 0, z.length - 1);
-
-        int[] sub2 = new int[z.length - 1];
-        System.arraycopy(sub1, 0, sub2, 0, z.length - 1);
-        if (sub2.length > 0) sub2[sub2.length - 1] = zn;
-
-        return (localScoreDiff(zn, y, sub1)) + localScoreVisit(y, sub2);
     }
 
     private List<Node> getVariableList(int[] indices) {
@@ -225,10 +208,6 @@ public class GraphScore implements Score {
 
     public boolean getAlternativePenalty() {
         return false;
-    }
-
-    public void setAlternativePenalty(double alpha) {
-        throw new UnsupportedOperationException("No alpha can be set when searching usign d-separation.");
     }
 
     public Graph getDag() {

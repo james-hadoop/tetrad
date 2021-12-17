@@ -79,14 +79,12 @@ public class Boss {
             scorer.setUseScore(useScore);
 
             if (score != null && doFgesFirst) {
-                if (doFgesFirst) {
-                    Fges fges = new Fges(score);
-                    fges.setKnowledge(knowledge);
-                    fges.setTurning(true);
-                    fges.setVerbose(verbose);
-                    Graph g = fges.search();
-                    _order = g.getCausalOrdering();
-                }
+                Fges fges = new Fges(score);
+                fges.setKnowledge(knowledge);
+                fges.setTurning(true);
+                fges.setVerbose(verbose);
+                Graph g = fges.search();
+                _order = g.getCausalOrdering();
             }
         }
 

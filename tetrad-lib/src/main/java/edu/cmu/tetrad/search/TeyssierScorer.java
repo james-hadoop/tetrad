@@ -218,7 +218,6 @@ public class TeyssierScorer {
             double score1 = scores.get(i).getScore();
 
             score += (Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
-//            score += score1;
         }
 
         return score;
@@ -300,7 +299,6 @@ public class TeyssierScorer {
 
     public Set<Node> getParents(Node v) {
         return getParents(index(v));
-//        return new HashSet<>(scores.get(index(v)).getParents());
     }
 
     public Set<Node> getAdjacentNodes(Node v) {
@@ -446,8 +444,6 @@ public class TeyssierScorer {
                 }
             }
         }
-//
-////        System.out.println("MB(" + n + ", " + prefix + ") = " + parents + " order = " + order);
 
         return new Pair(parents, -parents.size());
     }
@@ -461,7 +457,6 @@ public class TeyssierScorer {
 
         double sMax = score(n, new HashSet<>());
         List<Node> prefix = new ArrayList<>(getPrefix(p));
-//        sort(prefix);
 
         // Grow-shrink
         while (changed) {
@@ -531,7 +526,6 @@ public class TeyssierScorer {
     public void bookmark() {
         for (int i = 0; i < order.size(); i++) {
             if (!(order.get(i).equals(bookmarkedOrder.get(i)))) {
-//                    && scores.get(i).equals(bookmarkedScores.get(i)))) {
                 bookmarkedOrder.set(i, order.get(i));
                 bookmarkedScores.set(i, scores.get(i));
             }
@@ -570,7 +564,6 @@ public class TeyssierScorer {
         order = new LinkedList<>(order);
         shuffle(order);
         score(order);
-//        lastOrder = new LinkedList<>(order);
     }
 
     public void setScoreType(ScoreType scoreType) {
