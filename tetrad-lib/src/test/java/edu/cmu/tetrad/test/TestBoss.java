@@ -1124,7 +1124,8 @@ public final class TestBoss {
         List<Node> nodes = facts.getVariables();
 
         sort(nodes);
-        TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts));
+        TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts),
+                new GraphScore(facts));
         scorer.score(nodes);
         assert (scorer.score() == 7);
     }
@@ -1512,8 +1513,9 @@ public final class TestBoss {
         LinearSemPm pm = new LinearSemPm(graph);
         LinearSemIm im = new LinearSemIm(pm);
         DataSet dataSet = im.simulateData(1000, false);
+        edu.cmu.tetrad.search.IndependenceTest test = new edu.cmu.tetrad.search.IndTestFisherZ(dataSet, 0.01);
         edu.cmu.tetrad.search.LinearGaussianBicScore score = new edu.cmu.tetrad.search.LinearGaussianBicScore(dataSet);
-        TeyssierScorer scorer = new TeyssierScorer(score);
+        TeyssierScorer scorer = new TeyssierScorer(test, score);
 
         List<Node> order = scorer.getOrder();
         scorer.score(order);
@@ -1611,7 +1613,8 @@ public final class TestBoss {
         for (Ret facts : allFacts) {
             count++;
 
-            TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()));
+            TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
+                    new GraphScore(facts.getFacts()));
 
             OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
             OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
@@ -1660,7 +1663,9 @@ public final class TestBoss {
 
         count++;
 
-        TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()));
+        TeyssierScorer scorer = new TeyssierScorer(
+                new IndTestDSep(facts.getFacts()),
+                new GraphScore(facts.getFacts()));
 
         OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
         OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
@@ -1853,7 +1858,8 @@ public final class TestBoss {
 
                         List<Node> _perm0 = GraphUtils.asList(perm, dsep.getVariables());
 
-                        TeyssierScorer scorer1 = new TeyssierScorer(dsep);
+                        TeyssierScorer scorer1 = new TeyssierScorer(dsep,
+                                new GraphScore(graph));
                         scorer1.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
                         scorer1.score(_perm0);
                         Graph g1 = scorer1.getGraph(true);
@@ -1861,7 +1867,7 @@ public final class TestBoss {
                         IndependenceTest test = new IndTestFisherZ(dataSet, 0.05);
                         List<Node> _perm = GraphUtils.asList(perm, test.getVariables());
 
-                        TeyssierScorer scorer2 = new TeyssierScorer(score);
+                        TeyssierScorer scorer2 = new TeyssierScorer(test, score);
                         scorer2.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
                         scorer2.score(_perm);
 
@@ -1876,7 +1882,7 @@ public final class TestBoss {
 //                            test.setAlpha(alpha[i]);
                             test = new IndTestFisherZ(dataSet, alpha[i]);
 
-                            TeyssierScorer scorer3 = new TeyssierScorer(test);
+                            TeyssierScorer scorer3 = new TeyssierScorer(test, score);
                             scorer3.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
                             scorer3.score(_perm);
                             Graph g3 = scorer3.getGraph(true);

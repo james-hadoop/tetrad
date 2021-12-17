@@ -55,13 +55,13 @@ public class Boss3 {
 
         TeyssierScorer scorer;
 
-        if (score != null && !(score instanceof GraphScore)) {
-            scorer = new TeyssierScorer(score);
-        } else if (test != null) {
-            scorer = new TeyssierScorer(test);
-        } else {
-            throw new IllegalArgumentException("Need a score (not GraphScore) or a test.");
-        }
+//        if (score != null && !(score instanceof GraphScore)) {
+            scorer = new TeyssierScorer(test, score);
+//        } else if (test != null) {
+//            scorer = new TeyssierScorer(test);
+//        } else {
+//            throw new IllegalArgumentException("Need a score (not GraphScore) or a test.");
+//        }
 
         scorer.setKnowledge(knowledge);
         scorer.setScoreType(scoreType);
@@ -335,15 +335,15 @@ public class Boss3 {
         TeyssierScorer scorer;
         DataModel dataModel;
 
-        if (score != null) {
-            scorer = new TeyssierScorer(score);
+//        if (score != null) {
+            scorer = new TeyssierScorer(test, score);
             scorer.setKnowledge(knowledge);
             dataModel = score.getData();
-        } else {
-            scorer = new TeyssierScorer(test);
-            scorer.setKnowledge(knowledge);
-            dataModel = test.getData();
-        }
+//        } else {
+//            scorer = new TeyssierScorer(test);
+//            scorer.setKnowledge(knowledge);
+//            dataModel = test.getData();
+//        }
 
         scorer.setScoreType(scoreType);
 

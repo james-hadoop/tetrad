@@ -7,16 +7,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static java.lang.Math.max;
 import static java.util.Collections.shuffle;
 
 
 /**
  * Implements a scorer as in Teyssier, M., & Koller, D. (2012). Ordering-based search: A simple and effective
  * algorithm for learning Bayesian networks. arXiv preprint arXiv:1207.1429. You give it a score function
- * and a variable ordering, and it computes the score. You can move any variable left or right and it will
- * keep track of the score using the Teyssier and Kohler method. You can move a vairable to a new position,
- * and you can bookmark a state and come baqck to it.
+ * and a variable ordering, and it computes the score. You can move any variable left or right, and it will
+ * keep track of the score using the Teyssier and Kohler method. You can move a variable to a new position,
+ * and you can bookmark a state and come back to it.
  *
  * @author josephramsey
  */
@@ -27,21 +26,20 @@ public class TeyssierScorer {
     private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
     private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
     private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
-    //    private final HashMap<Node, Integer> bookmarkedNodesHash = new HashMap<>();
-    private Score score;
-    private IndependenceTest test;
+    private final Score score;
+    private final IndependenceTest test;
     private LinkedList<Node> order;
     private LinkedList<Pair> scores;
     private boolean cachingScores = true;
     private IKnowledge knowledge = new Knowledge2();
     private LinkedList<Set<Node>> prefixes;
     private ScoreType scoreType = ScoreType.Edge;
-    private Map<Node, Integer> orderHash = new HashMap<>();
-    private Map<NodePair, Set<Node>> lastMoveHash = new HashMap<>();
-    private List<Node> lastOrder;
+    private final Map<Node, Integer> orderHash;
+    private boolean useScore = true;
 
-    public TeyssierScorer(Score score) {
+    public TeyssierScorer(IndependenceTest test, Score score) {
         this.score = score;
+        this.test = test;
         this.order = new LinkedList<>(score.getVariables());
 
         this.orderHash = new HashMap<>();
@@ -50,13 +48,10 @@ public class TeyssierScorer {
         this.variables = score.getVariables();
         this.variablesHash = new HashMap<>();
         nodesHash(variablesHash, variables);
-    }
 
-    public TeyssierScorer(IndependenceTest test) {
-        this.test = test;
-        this.variables = test.getVariables();
-        this.variablesHash = new HashMap<>();
-        nodesHash(variablesHash, variables);
+        if (score instanceof GraphScore) {
+            useScore = false;
+        }
     }
 
     public void tuck(Node x, Node y) {
@@ -86,15 +81,10 @@ public class TeyssierScorer {
 
     public double score(List<Node> order) {
         return score(order, 0, order.size() - 1);
-//        this.order = new LinkedList<>(order);
-//        initializeScores();
-//        this.bookmarkedOrder = new LinkedList<>(this.order);
-//        this.bookmarkedScores = new LinkedList<>(this.scores);
     }
 
     public double score(List<Node> order, int min, int max) {
         this.order = new LinkedList<>(order);
-        lastOrder = new LinkedList<>(order);
         initializeScores(min, max);
         this.bookmarkedOrder = new LinkedList<>(this.order);
         this.bookmarkedScores = new LinkedList<>(this.scores);
@@ -130,27 +120,23 @@ public class TeyssierScorer {
     public void moveTo(Node v, int toIndex) {
         if (!order.contains(v)) return;
 
-        int vindex = index(v);
+        int vIndex = index(v);
 
-        if (vindex == toIndex) return;
+        if (vIndex == toIndex) return;
 
-        if (lastMoveSame(vindex, toIndex)) return;
+        if (lastMoveSame(vIndex, toIndex)) return;
 
         order.remove(v);
         order.add(toIndex, v);
 
-        if (toIndex < vindex) {
-            updateScores(toIndex, vindex);
+        if (toIndex < vIndex) {
+            updateScores(toIndex, vIndex);
         } else {
-            updateScores(vindex, toIndex);
+            updateScores(vIndex, toIndex);
         }
     }
 
     private boolean lastMoveSame(int i1, int i2) {
-//        for (int i = 0; i <= max(i1, i2); i++) {
-//            if (!order.get(i).equals(lastOrder.get(i))) return false;
-//        }
-//
         if (i1 <= i2) {
             for (int i = i1; i <= i2; i++) {
                 if (!getPrefix(i).equals(prefixes.get(i))) return false;
@@ -161,43 +147,8 @@ public class TeyssierScorer {
             }
         }
 
-
-//        if (i1 <= i2) {
-//            for (int i = i1; i <= i2; i++) {
-//                if (!getPrefix(i).equals(prefixes.get(i))) return false;
-//            }
-//        } else {
-//            for (int i = i2; i <= i1; i++) {
-//                if (!getPrefix(i).equals(prefixes.get(i))) return false;
-//            }
-//        }
-//
         return true;
-//
-//        return false;
-
-
-//        List<Node> nodes1 = interveningNodes(order, i1, 2);
-//        List<Node> nodes2 = interveningNodes(lastOrder, i2, i1);
-//        return nodes1.equals(nodes2);
     }
-
-//    @NotNull
-//    private List<Node> interveningNodes(List<Node> pi, int i1, int i2) {
-//        List<Node> nodes = new ArrayList<>();
-//
-//        if (i1 <= i2) {
-//            for (int i = i1; i <= i2; i++) {
-//                nodes.add(pi.get(i));
-//            }
-//        } else {
-//            for (int i = i2; i <= i1; i++) {
-//                nodes.add(pi.get(i));
-//            }
-//        }
-//
-//        return nodes;
-//    }
 
     private boolean validKnowledgeOrder(List<Node> order) {
         for (int i = 0; i < order.size(); i++) {
@@ -212,12 +163,12 @@ public class TeyssierScorer {
     }
 
     public void moveToLast(Node v) {
-        int vindex = index(v);
+        int vIndex = index(v);
 
         order.remove(v);
         order.addLast(v);
 
-        updateScores(vindex, order.size() - 1);
+        updateScores(vIndex, order.size() - 1);
     }
 
     public boolean swap(Node m, Node n) {
@@ -254,7 +205,7 @@ public class TeyssierScorer {
         Integer integer = orderHash.get(v);
 
         if (integer == null)
-            throw new IllegalArgumentException("First 'evaluate' a permutation containing variablle "
+            throw new IllegalArgumentException("First 'evaluate' a permutation containing variable "
                     + v + ".");
 
         return integer;
@@ -271,10 +222,6 @@ public class TeyssierScorer {
         }
 
         return score;
-    }
-
-    private void initializeScores() {
-        initializeScores(0, order.size() - 1);
     }
 
     private void initializeScores(int min, int max) {
@@ -297,20 +244,10 @@ public class TeyssierScorer {
     }
 
     private void updateScores(int i1, int i2) {
-//        if (lastOrder == null) {
-//            lastOrder = order;
-//        }
-
-        for (int i = i1; i <= i2; i++) {
-            lastOrder.set(i, order.get(i));
-        }
-
         for (int i = i1; i <= i2; i++) {
             recalculate(i);
             orderHash.put(order.get(i), i);
         }
-
-//        lastOrder = new ArrayList<>(order);
     }
 
     private double score(Node n, Set<Node> pi) {
@@ -378,7 +315,7 @@ public class TeyssierScorer {
         return adj;
     }
 
-    public Graph getGraph(boolean cpdag) {
+    public Graph getGraph(boolean cpDag) {
         List<Node> order = getOrder();
         Graph G1 = new EdgeListGraph(variables);
 
@@ -390,7 +327,7 @@ public class TeyssierScorer {
 
         GraphUtils.replaceNodes(G1, variables);
 
-        if (cpdag) {
+        if (cpDag) {
             return SearchGraphUtils.cpdagForDag(G1);
         } else {
             return G1;
@@ -412,24 +349,18 @@ public class TeyssierScorer {
             }
         }
 
-//        for (int p = 0; p < order.size(); p++) {
-//            for (Node z : getParents(p)) {
-//                pairs.add(new NodePair(z, order.get(p)));
-//            }
-//        }
-
         return new ArrayList<>(pairs);
     }
 
     private Pair getParentsInternal(int p) {
         if (parentCalculation == ParentCalculation.GrowShrinkMb) {
-            if (test != null) {
-                return getGrowShrinkIndep(p);
+            if (!useScore) {
+                return getGrowShrinkIndependent(p);
             } else {
                 return getGrowShrinkScore(p);
             }
         } else if (parentCalculation == ParentCalculation.Pearl) {
-            if (test != null) {
+            if (!useScore) {
                 return pearlParents(p);
             } else {
                 return pearlScore(p);
@@ -477,14 +408,12 @@ public class TeyssierScorer {
         return new Pair(parents, parents.size());
     }
 
-    private Pair getGrowShrinkIndep(int p) {
+    private Pair getGrowShrinkIndependent(int p) {
         Node n = order.get(p);
 
         Set<Node> parents = new HashSet<>();
 
         Set<Node> prefix = getPrefix(p);
-
-//        System.out.println("GS Indep target = " + n + " prefix = " + prefix + " order = " + order);
 
         boolean changed1 = true;
 
@@ -605,31 +534,18 @@ public class TeyssierScorer {
 //                    && scores.get(i).equals(bookmarkedScores.get(i)))) {
                 bookmarkedOrder.set(i, order.get(i));
                 bookmarkedScores.set(i, scores.get(i));
-//                bookmarkedNodesHash.put(order.get(i), i);
             }
         }
-
-
-//        this.bookmarkedOrder = new LinkedList<>(order);
-//        this.bookmarkedScores = new LinkedList<>(scores);
-//        this.bookmarkedNodesHash = new HashMap<>(orderHash);
     }
 
     public void goToBookmark() {
         for (int i = 0; i < order.size(); i++) {
             if (!(order.get(i).equals(bookmarkedOrder.get(i)))) {
-//                    && scores.get(i).equals(bookmarkedScores.get(i)))) {
                 order.set(i, bookmarkedOrder.get(i));
-                lastOrder.set(i, bookmarkedOrder.get(i));
                 scores.set(i, bookmarkedScores.get(i));
                 orderHash.put(order.get(i), i);
             }
         }
-
-
-//        this.order = new LinkedList<>(bookmarkedOrder);
-//        this.scores = new LinkedList<>(bookmarkedScores);
-//        this.orderHash = new HashMap<>(bookmarkedNodesHash);
     }
 
     public void setCachingScores(boolean cachingScores) {
@@ -681,6 +597,12 @@ public class TeyssierScorer {
 
     public boolean triangle(Node x, Node y, Node z) {
         return adjacent(x, y) && adjacent(y, z) && adjacent(x, z);
+    }
+
+    public void setUseScore(boolean useScore) {
+        if (!(this.score instanceof GraphScore)) {
+            this.useScore = useScore;
+        }
     }
 
     public enum ScoreType {Edge, SCORE}

@@ -38,6 +38,7 @@ public class Boss {
     private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.GrowShrinkMb;
     private TeyssierScorer scorer;
     private boolean doFgesFirst = false;
+    private boolean useScore = true;
 
     public Boss(@NotNull Score score) {
         this.score = score;
@@ -59,23 +60,9 @@ public class Boss {
         long start = System.currentTimeMillis();
         List<Node> _order = null;
 
-        if (score != null && !(score instanceof GraphScore) && test == null) {
-            scorer = new TeyssierScorer(score);
-            scorer.setParentCalculation(parentCalculation);
-
-            if (doFgesFirst) {
-                Fges fges = new Fges(score);
-                fges.setKnowledge(knowledge);
-                fges.setTurning(true);
-                fges.setVerbose(verbose);
-                Graph g = fges.search();
-                _order = g.getCausalOrdering();
-            }
-        } else if (score == null && test != null) {
-            scorer = new TeyssierScorer(test);
-            scorer.setParentCalculation(parentCalculation);
-        } else if (score != null && test != null) {
-            scorer = new TeyssierScorer(test);
+        if (useScore && !(score instanceof GraphScore)) {
+            scorer = new TeyssierScorer(test, score);
+            scorer.setUseScore(useScore);
             scorer.setParentCalculation(parentCalculation);
 
             if (doFgesFirst) {
@@ -87,7 +74,20 @@ public class Boss {
                 _order = g.getCausalOrdering();
             }
         } else {
-            throw new IllegalArgumentException("Need a score (not GraphScore) or a test.");
+            scorer = new TeyssierScorer(test, score);
+            scorer.setParentCalculation(parentCalculation);
+            scorer.setUseScore(useScore);
+
+            if (score != null && doFgesFirst) {
+                if (doFgesFirst) {
+                    Fges fges = new Fges(score);
+                    fges.setKnowledge(knowledge);
+                    fges.setTurning(true);
+                    fges.setVerbose(verbose);
+                    Graph g = fges.search();
+                    _order = g.getCausalOrdering();
+                }
+            }
         }
 
         scorer.setKnowledge(knowledge);
@@ -589,6 +589,10 @@ public class Boss {
 
     public void setDoFgesFirst(boolean doFgesFirst) {
         this.doFgesFirst = doFgesFirst;
+    }
+
+    public void setUseScore(boolean useScore) {
+        this.useScore = useScore;
     }
 
     public enum Method {BOSS, SP, GASP, QUICK_GASP, ESP, TSP}

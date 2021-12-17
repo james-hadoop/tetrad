@@ -129,11 +129,11 @@ public final class Bfci implements GraphSearch {
 
         TeyssierScorer scorer;
 
-        if (!(score instanceof GraphScore)) {
-            scorer = new TeyssierScorer(score);
-        } else {
-            scorer = new TeyssierScorer(test);
-        }
+//        if (!(score instanceof GraphScore)) {
+            scorer = new TeyssierScorer(test, score);
+//        } else {
+//            scorer = new TeyssierScorer(test);
+//        }
 
         scorer.score(perm);
 

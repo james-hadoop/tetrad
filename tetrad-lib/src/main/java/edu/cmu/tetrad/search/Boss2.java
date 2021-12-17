@@ -93,13 +93,13 @@ public class Boss2 {
 
         TeyssierScorer scorer;
 
-        if (score != null && !(score instanceof GraphScore)) {
-            scorer = new TeyssierScorer(score);
-        } else if (test != null) {
-            scorer = new TeyssierScorer(test);
-        } else {
-            throw new IllegalArgumentException("Need a score (not GraphScore) or a test.");
-        }
+//        if (score != null && !(score instanceof GraphScore)) {
+            scorer = new TeyssierScorer(test, score);
+//        } else if (test != null) {
+//            scorer = new TeyssierScorer(test);
+//        } else {
+//            throw new IllegalArgumentException("Need a score (not GraphScore) or a test.");
+//        }
 
 
         scorer.setKnowledge(knowledge);
@@ -390,11 +390,11 @@ public class Boss2 {
     public Graph getGraph(List<Node> order, boolean cpdag) {
         TeyssierScorer scorer;
 
-        if (score != null) {
-            scorer = new TeyssierScorer(score);
-        } else {
-            scorer = new TeyssierScorer(test);
-        }
+//        if (score != null) {
+            scorer = new TeyssierScorer(test, score);
+//        } else {
+//            scorer = new TeyssierScorer(test);
+//        }
 
         scorer.setScoreType(scoreType);
 

@@ -12,7 +12,10 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.Boss;
+import edu.cmu.tetrad.search.IndependenceTest;
+import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -61,13 +64,10 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
             Boss boss;
 
-            if (parameters.getBoolean(Params.USE_SCORE) && !(score instanceof GraphScore)) {
-                boss = new Boss(score);
-            } else {
-                boss = new Boss(test, score);
-            }
+            boss = new Boss(test, score);
 
             boss.setMethod(Boss.Method.BOSS);
+            boss.setUseScore(parameters.getBoolean(Params.USE_SCORE));
 
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
