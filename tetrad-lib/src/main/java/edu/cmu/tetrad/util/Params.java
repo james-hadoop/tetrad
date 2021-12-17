@@ -60,11 +60,12 @@ public final class Params {
     public static final String DATA_TYPE = "dataType";
     public static final String DEPTH = "depth";
     public static final String GASP_NUM_ROUNDS = "gaspNumRounds";
-    public static final String TRIANGLE_DEPTH = "triangleDepth";
+    public static final String MAX_PERM_SIZE = "maxPermSize";
     public static final String DETERMINISM_THRESHOLD = "determinismThreshold";
     public static final String DIFFERENT_GRAPHS = "differentGraphs";
     public static final String DISCRETIZE = "discretize";
     public static final String DO_COLLIDER_ORIENTATION = "doColliderOrientation";
+    public static final String DO_FGES_FIRST = "doFgesFirst";
     public static final String ERRORS_NORMAL = "errorsNormal";
     public static final String SKEW_EDGE_THRESHOLD = "skewEdgeThreshold";
     public static final String TWO_CYCLE_SCREENING_THRESHOLD = "twoCycleScreeningThreshold";

@@ -55,7 +55,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             search.setKnowledge(dataSet.getKnowledge());
             search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
             search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
-            search.setTriangleDepth(parameters.getInt(Params.TRIANGLE_DEPTH));
+            search.setTriangleDepth(parameters.getInt(Params.MAX_PERM_SIZE));
 
             search.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
@@ -128,7 +128,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.USE_SCORE);
-        params.add(Params.TRIANGLE_DEPTH);
+        params.add(Params.MAX_PERM_SIZE);
         params.add(Params.VERBOSE);
 
         params.add(Params.VERBOSE);

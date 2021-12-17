@@ -216,7 +216,7 @@ public class GraphScore implements Score {
 
     @Override
     public DataModel getData() {
-        throw new UnsupportedOperationException();
+        return null;
     }
 
     public int getSampleSize() {

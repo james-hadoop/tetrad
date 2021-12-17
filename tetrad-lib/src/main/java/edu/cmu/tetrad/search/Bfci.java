@@ -100,7 +100,7 @@ public final class Bfci implements GraphSearch {
         boss.setNumStarts(numStarts);
         boss.setCacheScores(cacheScores);
         boss.setScoreType(scoreType);
-        boss.setDepth(triangleDepth);
+        boss.setMaxPermSize(triangleDepth);
         boss.setVerbose(verbose);
         boss.setKnowledge(knowledge);
 

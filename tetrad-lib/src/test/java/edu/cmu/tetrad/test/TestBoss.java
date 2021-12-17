@@ -436,7 +436,7 @@ public final class TestBoss {
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.COEF_LOW, 0);
         params.set(Params.COEF_HIGH, 1);
-        params.set(Params.TRIANGLE_DEPTH, 2);
+        params.set(Params.MAX_PERM_SIZE, 2);
         params.set(Params.VERBOSE, true);
 
         params.set(Params.NUM_RUNS, 1);
@@ -485,7 +485,7 @@ public final class TestBoss {
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.COEF_LOW, 0);
         params.set(Params.COEF_HIGH, 1);
-        params.set(Params.TRIANGLE_DEPTH, 2);
+        params.set(Params.MAX_PERM_SIZE, 2);
         params.set(Params.VERBOSE, true);
 
         params.set(Params.NUM_RUNS, 5);
@@ -941,7 +941,7 @@ public final class TestBoss {
         parameters.set(Params.BOSS_SCORE_TYPE, false);
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.TRIANGLE_DEPTH, -1);
+        parameters.set(Params.MAX_PERM_SIZE, 5);
         parameters.set(Params.GASP_NUM_ROUNDS, 6);
 
         Statistics statistics = new Statistics();
@@ -985,7 +985,7 @@ public final class TestBoss {
         parameters.set(Params.BOSS_SCORE_TYPE, false);
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.TRIANGLE_DEPTH, 2);
+        parameters.set(Params.MAX_PERM_SIZE, 2);
 //        parameters.set(Params.GASP_NUM_ROUNDS, 6);
 
         parameters.set(Params.SAMPLE_SIZE, 1000000);
@@ -1240,7 +1240,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x4, list(x2, x3, x5)));
         facts.add(new IndependenceFact(x1, x4, list(x2, x3)));
 
-        return new Ret("Solus Theorem 11, TSP !==> Faithfulness counterexample (Figure 6)", facts);
+        return new Ret("Solus Theorem 11, TSP !==> Faithfulness (Figure 6)", facts);
     }
 
     public Ret getFacts6() {
@@ -1270,7 +1270,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
         facts.add(new IndependenceFact(x1, x2, list(x4)));
 
-        return new Ret("Raskutti Theorem 2.4 SMR !==> Restricted Faithfulness", facts);
+        return new Ret("Raskutti Theorem 2.4 SMR !==> Adjacency Faithfulness", facts);
     }
 
     public Ret getWayneExample1() {
@@ -1598,7 +1598,7 @@ public final class TestBoss {
         allFacts.add(getFactsSimpleCanceling());
         allFacts.add(wayneTriangleFaithfulnessFailExample());
         allFacts.add(getFactsRaskutti());
-        allFacts.add(getFigure6());
+//        allFacts.add(getFigure6());
         allFacts.add(getFigure7());
         allFacts.add(getFigure8());
         allFacts.add(getFigure12());
@@ -1631,7 +1631,8 @@ public final class TestBoss {
 
                 Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                 search.setUseDataOrder(true);
-                search.setDepth(-1);
+                search.setMaxPermSize(30);
+                search.setGspDepth(-1);
                 search.setMethod(Boss.Method.BOSS);
                 List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());

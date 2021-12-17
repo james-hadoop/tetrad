@@ -64,7 +64,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             if (parameters.getBoolean(Params.USE_SCORE) && !(score instanceof GraphScore)) {
                 boss = new Boss(score);
             } else {
-                boss = new Boss(test);
+                boss = new Boss(test, score);
             }
 
             boss.setMethod(Boss.Method.BOSS);
@@ -73,8 +73,10 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
             boss.setKnowledge(dataSet.getKnowledge());
-            boss.setDepth(parameters.getInt(Params.TRIANGLE_DEPTH));
+            boss.setMaxPermSize(parameters.getInt(Params.MAX_PERM_SIZE));
             boss.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
+            boss.setGspDepth(parameters.getInt(Params.GASP_NUM_ROUNDS));
+            boss.setDoFgesFirst(parameters.getBoolean(Params.DO_FGES_FIRST));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 boss.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -133,7 +135,8 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.USE_SCORE);
         params.add(Params.OUTPUT_CPDAG);
-        params.add(Params.TRIANGLE_DEPTH);
+        params.add(Params.MAX_PERM_SIZE);
+        params.add(Params.DO_FGES_FIRST);
         params.add(Params.VERBOSE);
         return params;
     }

@@ -72,7 +72,7 @@ public class QuickGASP implements Algorithm, UsesScoreWrapper, TakesIndependence
             gsp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             gsp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             gsp.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            gsp.setDepth(parameters.getInt(Params.GASP_NUM_ROUNDS));
+            gsp.setGspDepth(parameters.getInt(Params.GASP_NUM_ROUNDS));
             gsp.setKnowledge(dataSet.getKnowledge());
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
