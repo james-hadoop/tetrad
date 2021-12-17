@@ -16,9 +16,7 @@ import static java.util.Collections.shuffle;
 
 
 /**
- * Searches for a DAG by adding or removing directed edges starting
- * with an empty graph, using a score (default FML BIC). Implements
- * the Global Score Search (GSS) algorithm.
+ * Implements various permutation algorithms, including BOSS and GASP.
  *
  * @author josephramsey
  */
@@ -510,7 +508,7 @@ public class Boss {
     }
 
     @NotNull
-    public Graph getGraph(boolean cpdag) {
+    public Graph getGraph(boolean cpDag) {
         DataModel dataModel;
 
         if (score != null) {
@@ -519,7 +517,7 @@ public class Boss {
             dataModel = test.getData();
         }
 
-        Graph graph1 = scorer.getGraph(cpdag);
+        Graph graph1 = scorer.getGraph(cpDag);
 
         if (dataModel != null) {
             double bic = new BicEst(score).getValue(null, graph1, dataModel);
