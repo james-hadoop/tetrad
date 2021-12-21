@@ -21,8 +21,12 @@
 
 package edu.cmu.tetrad.data;
 
+import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.search.IndTestDSep;
+import edu.cmu.tetrad.util.DepthChoiceGenerator;
+import edu.cmu.tetrad.util.PermutationGenerator;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -43,12 +47,52 @@ public class IndependenceFacts implements DataModel {
     private List<Node> order;
 
     public IndependenceFacts() {
-        // blank
+        // blank, used in reflection so don't delete.
+    }
+
+    public IndependenceFacts(Graph graph) {
+        this();
+
+        IndTestDSep dsep = new IndTestDSep(graph);
+
+        Set<IndependenceFact> facts = new HashSet<>();
+
+        List<Node> nodes = graph.getNodes();
+
+        DepthChoiceGenerator gen = new DepthChoiceGenerator(nodes.size(), nodes.size());
+        int[] choice;
+
+        while ((choice = gen.next()) != null) {
+            if (choice.length < 2) continue;
+
+            PermutationGenerator permGen = new PermutationGenerator(choice.length);
+            int[] perm;
+
+            while (((perm = permGen.next()) != null)) {
+                Node x = nodes.get(choice[perm[0]]);
+                Node y = nodes.get(choice[perm[1]]);
+
+                List<Node> z = new ArrayList<>();
+
+                for (int i = 2; i < perm.length; i++) {
+                    z.add(nodes.get(choice[perm[i]]));
+                }
+
+                if (dsep.isIndependent(x, y, z)) {
+                    facts.add(new IndependenceFact(x, y, z));
+                }
+            }
+
+            this.unsortedFacts = facts;
+        }
     }
 
     public IndependenceFacts(IndependenceFacts facts) {
         this();
         this.unsortedFacts = new HashSet<>(facts.unsortedFacts);
+        this.name = facts.name;
+        this.knowledge = facts.knowledge.copy();
+        this.order = new ArrayList<>(facts.order);
     }
 
     /**
@@ -117,11 +161,7 @@ public class IndependenceFacts implements DataModel {
 
     public boolean isIndependent(Node x, Node y, List<Node> z) {
         IndependenceFact fact = new IndependenceFact(x, y, z);
-        boolean contains = unsortedFacts.contains(fact);
-//        if (contains) {
-//            System.out.println("Looking up " + fact + (contains ? " Independence fact holds" : ""));
-//        }
-        return contains;
+        return unsortedFacts.contains(fact);
     }
 
     public IKnowledge getKnowledge() {

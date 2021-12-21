@@ -23,18 +23,18 @@ public class TeyssierScorer {
     private final Map<ScoreKey, Pair> cache = new HashMap<>();
     private final List<Node> variables;
     private final Map<Node, Integer> variablesHash;
+    private final Score score;
+    private final IndependenceTest test;
+    private final Map<Node, Integer> orderHash;
     private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
     private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
     private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
-    private final Score score;
-    private final IndependenceTest test;
     private LinkedList<Node> order;
     private LinkedList<Pair> scores;
     private boolean cachingScores = true;
     private IKnowledge knowledge = new Knowledge2();
     private LinkedList<Set<Node>> prefixes;
     private ScoreType scoreType = ScoreType.Edge;
-    private final Map<Node, Integer> orderHash;
     private boolean useScore = true;
 
     public TeyssierScorer(IndependenceTest test, Score score) {
@@ -66,20 +66,12 @@ public class TeyssierScorer {
 
         // x->y
         if (getParents(y).contains(x)) {
-            if (index(x) < index(y)) {
-                moveTo(y, index(x));
-            } else if (index(x) > index(y)) {
-                moveTo(y, index(x));
-            }
+            moveTo(y, index(x));
         }
 
         // y -> x
         else if (getParents(x).contains(y)) {
-            if (index(y) < index(x)) {
-                moveTo(x, index(y));
-            } else if (index(y) > index(x)) {
-                moveTo(x, index(y));
-            }
+            moveTo(x, index(y));
         }
     }
 
@@ -199,6 +191,15 @@ public class TeyssierScorer {
         }
 
         return true;
+    }
+
+    public boolean coveredEdge(Node x, Node y) {
+        if (!adjacent(x, y)) return false;
+        Set<Node> px = getParents(x);
+        Set<Node> py = getParents(y);
+        px.remove(y);
+        py.remove(x);
+        return px.equals(py);
     }
 
     public List<Node> getOrder() {
@@ -604,6 +605,18 @@ public class TeyssierScorer {
         if (!(this.score instanceof GraphScore)) {
             this.useScore = useScore;
         }
+    }
+
+    public boolean clique(List<Node> W) {
+        for (int i = 0; i < W.size(); i++) {
+            for (int j = i + 1; j < W.size(); j++) {
+                if (!adjacent(W.get(i), W.get(j))) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public enum ScoreType {Edge, SCORE}

@@ -3574,7 +3574,7 @@ there is a single latent for each output cluster. For MimBuild, a CPDAG over the
             </li>
             <li>Long Description: <span id="covSymmetric_long_desc">
 Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; this is called the “symmetric” model (symmetric about zero). If only positive values should be considered, this parameter should be set to false (“No” selected)
-</span></li>
+</span>
             <li>Default Value: <span id="covSymmetric_default_value">true</span></li>
             <li>Lower Bound: <span id="covSymmetric_lower_bound"></span></li>
             <li>Upper Bound: <span id="covSymmetric_upper_bound"></span></li>
@@ -3635,20 +3635,18 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="depth_value_type">Integer</span></li>
         </ul>
 
-        <h3 id="gaspNumRounds" class="parameter_description">gaspNumRounds</h3>
+        <h3 id="gspDepth" class="parameter_description">gspDepth</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="gaspNumRounds_short_desc">Number of Rounds</span>
+            <li>Short Description: <span id="gspDepth_short_desc">GSP Depth (default = 4, depth >= 0)</span>
             </li>
-            <li>Long Description: <span id="gaspNumRounds_long_desc">Number of rounds
-                for GASP; the default is 4.</span>
+            <li>Long Description: <span id="gspDepth_long_desc">Depth (default = 4, depth >= 0).</span>
             </li>
-            <li>Default Value: <span id="gaspNumRounds_default_value">4</span></li>
-            <li>Lower Bound: <span id="gaspNumRounds_lower_bound">0</span></li>
-            <li>Upper Bound: <span id="gaspNumRounds_upper_bound">2147483647</span></li>
-            <li>Value Type: <span id="gaspNumRounds_value_type">Integer</span></li>
+            <li>Default Value: <span id="gspDepth_default_value">4</span></li>
+            <li>Lower Bound: <span id="gspDepth_lower_bound">0</span></li>
+            <li>Upper Bound: <span id="gspDepth_upper_bound">2147483647</span></li>
+            <li>Value Type: <span id="gspDepth_value_type">Integer</span></li>
         </ul>
 
-        <h3 id="maxPermSize" class="parameter_description">maxPermSize</h3>
         <h3 id="maxPermSize" class="parameter_description">maxPermSize</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="maxPermSize_short_desc">Maximum permutation size (>= -1 = unlimited)</span>
@@ -4703,7 +4701,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
         <h3 id="bossMethod" class="parameter_description">bossMethod</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="bossMethod_short_desc">
-                1 = BOSS, 2 = SP</span>
+                1 = BOSS, 2 = GASP, 3 = QUICK_GASP, 4 = ESP_LOOP, 5 = TSP, 6 = SP</span>
             </li>
             <li>Long Description: <span id="bossMethod_long_desc">
                  "All indices" places each variable in all positions in the list and picks the best
@@ -4714,7 +4712,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             </li>
             <li>Default Value: <span id="bossMethod_default_value">1</span></li>
             <li>Lower Bound: <span id="bossMethod_lower_bound">1</span></li>
-            <li>Upper Bound: <span id="bossMethod_upper_bound">2</span></li>
+            <li>Upper Bound: <span id="bossMethod_upper_bound">6</span></li>
             <li>Value Type: <span id="bossMethod_value_type">Integer</span></li>
         </ul>
 

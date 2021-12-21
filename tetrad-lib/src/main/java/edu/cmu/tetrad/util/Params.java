@@ -59,7 +59,7 @@ public final class Params {
     public static final String CUTOFF_IND_TEST = "cutoffIndTest";
     public static final String DATA_TYPE = "dataType";
     public static final String DEPTH = "depth";
-    public static final String GASP_NUM_ROUNDS = "gaspNumRounds";
+    public static final String GSP_DEPTH = "gspDepth";
     public static final String MAX_PERM_SIZE = "maxPermSize";
     public static final String DETERMINISM_THRESHOLD = "determinismThreshold";
     public static final String DIFFERENT_GRAPHS = "differentGraphs";

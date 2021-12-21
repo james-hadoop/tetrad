@@ -24,6 +24,7 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSSALL;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
@@ -61,7 +62,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static edu.cmu.tetrad.search.Boss.Method.GASP;
+import static edu.cmu.tetrad.search.Boss.Method.*;
 import static java.lang.Math.sqrt;
 import static java.util.Collections.shuffle;
 import static java.util.Collections.sort;
@@ -332,7 +333,7 @@ public final class TestBoss {
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
 
-        params.set(Params.GASP_NUM_ROUNDS, 30);
+        params.set(Params.GSP_DEPTH, 30);
 
         params.set(Params.PENALTY_DISCOUNT, 2);
 //
@@ -796,7 +797,7 @@ public final class TestBoss {
         allFacts.add(getFigure6());
         allFacts.add(getFigure7());
         allFacts.add(getFigure8());
-        allFacts.add(getFigure12());
+        allFacts.add(getFigure11());
 
         int count = 0;
 
@@ -941,10 +942,13 @@ public final class TestBoss {
         parameters.set(Params.BOSS_SCORE_TYPE, false);
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.MAX_PERM_SIZE, 5);
-        parameters.set(Params.GASP_NUM_ROUNDS, 6);
+        parameters.set(Params.MAX_PERM_SIZE, 3);
+        parameters.set(Params.GSP_DEPTH, 4);
+
+        parameters.set(Params.BOSS_METHOD, 1, 2, 3, 4, 5);
 
         Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new AdjacencyPrecision());
@@ -959,7 +963,8 @@ public final class TestBoss {
 //        simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new BOSSALL(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+//        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 //        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
         Comparison comparison = new Comparison();
@@ -1142,7 +1147,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
 //        facts.add(new IndependenceFact(x1, x4, list())); // unfaithful.
 
-        return new Ret("Simple 4-node 2-path model", facts);
+        return new Ret("Simple 4-node 2-path model", facts, 4);
     }
 
     public Ret getFactsSimpleCanceling() {
@@ -1157,7 +1162,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
         facts.add(new IndependenceFact(x1, x4, list())); // unfaithful.
 
-        return new Ret("Simple 4-node path canceling model", facts);
+        return new Ret("Simple 4-node path canceling model", facts, 4);
     }
 
     public Ret wayneTriangleFaithfulnessFailExample() {
@@ -1174,7 +1179,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x3, list(x2)));
         facts.add(new IndependenceFact(x2, x3, list(x4)));
 
-        return new Ret("Wayne triangle faithfulness fail example", facts);
+        return new Ret("Wayne triangle faithfulness fail example", facts, 4);
     }
 
     public Ret getFigure8() {
@@ -1190,10 +1195,10 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
         facts.add(new IndependenceFact(x4, x5, list()));
 
-        return new Ret("Solus Theorem 11, SMR !==> ESP (Figure 8)", facts);
+        return new Ret("Solus Theorem 11, SMR !==> ESP (Figure 8)", facts, 8);
     }
 
-    public Ret getFigure12() {
+    public Ret getFigure11() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
         Node x3 = new GraphNode("3");
@@ -1208,7 +1213,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x4, x6, list(x1, x2, x3, x5)));
         facts.add(new IndependenceFact(x1, x3, list(x2, x4, x5, x6)));
 
-        return new Ret("Solus Theorem 12, TSP !==> Orientation Faithfulness (Figure 11)", facts);
+        return new Ret("Solus Theorem 12, TSP !==> Orientation Faithfulness (Figure 11)", facts, 12);
     }
 
     public Ret getFigure7() {
@@ -1223,7 +1228,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x3, list(x2)));
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
 
-        return new Ret("Solus Theorem 12, ESP !==> TSP (Figure 7)", facts);
+        return new Ret("Solus Theorem 12, ESP !==> TSP (Figure 7)", facts, 4);
     }
 
     public Ret getFigure6() {
@@ -1241,7 +1246,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x4, list(x2, x3, x5)));
         facts.add(new IndependenceFact(x1, x4, list(x2, x3)));
 
-        return new Ret("Solus Theorem 11, TSP !==> Faithfulness (Figure 6)", facts);
+        return new Ret("Solus Theorem 11, TSP !==> Faithfulness (Figure 6)", facts, 7);
     }
 
     public Ret getFacts6() {
@@ -1256,7 +1261,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x3, list(x2)));
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
 
-        return new Ret("", facts);
+        return new Ret("", facts, 4);
     }
 
     public Ret getFactsRaskutti() {
@@ -1271,7 +1276,7 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
         facts.add(new IndependenceFact(x1, x2, list(x4)));
 
-        return new Ret("Raskutti Theorem 2.4 SMR !==> Adjacency Faithfulness", facts);
+        return new Ret("Raskutti Theorem 2.4 SMR !==> Adjacency Faithfulness", facts, 4);
     }
 
     public Ret getWayneExample1() {
@@ -1305,7 +1310,7 @@ public final class TestBoss {
 
         facts.add(new IndependenceFact(x0, x4, list()));
 
-        return new Ret("Wayne example 1", facts);
+        return new Ret("Wayne example 1", facts, 8);
     }
 
     //@Test
@@ -1596,48 +1601,70 @@ public final class TestBoss {
     @Test
     public void testWayne() {
         List<Ret> allFacts = new ArrayList<>();
+
         allFacts.add(getFactsSimple());
         allFacts.add(getFactsSimpleCanceling());
         allFacts.add(wayneTriangleFaithfulnessFailExample());
+        allFacts.add(wayneTriMutationFailsFoFaithfulGraphExample());
         allFacts.add(getFactsRaskutti());
-//        allFacts.add(getFigure6());
+////        allFacts.add(getFigure6());
         allFacts.add(getFigure7());
         allFacts.add(getFigure8());
-        allFacts.add(getFigure12());
-
+        allFacts.add(getFigure11());
 
         int count = 0;
 
         boolean printCpdag = false;
 
-        for (Ret facts : allFacts) {
-            count++;
+        for (Boss.Method method : new Boss.Method[]{
+                Boss.Method.BOSS,
+                GASP,
+                Boss.Method.QUICK_GASP,
+                Boss.Method.ESP,
+                Boss.Method.TSP
+        }) {
+            System.out.println("\n\n" + method);
 
-            TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
-                    new GraphScore(facts.getFacts()));
+            for (int i = 0; i < allFacts.size(); i++) {
+                boolean passed = true;
 
-            OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
-            OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
+                Ret facts = allFacts.get(i);
+                count++;
 
-            System.out.println();
-            System.out.println(facts.getLabel());
-            System.out.println(facts.getFacts());
+                TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
+                        new GraphScore(facts.getFacts()));
 
-            List<Node> variables = facts.facts.getVariables();
-            Collections.sort(variables);
+                OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
+                OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
 
-            PermutationGenerator gen = new PermutationGenerator(variables.size());
-            int[] perm;
+//                System.out.println();
+//                System.out.println("Test #" + (i + 1));
+//                System.out.println(facts.getLabel());
+//                System.out.println(facts.getFacts());
+//
+//                if (true) continue;
 
-            while ((perm = gen.next()) != null) {
-                List<Node> p = GraphUtils.asList(perm, variables);
 
-                Boss search = new Boss(new IndTestDSep(facts.getFacts()));
-                search.setMaxPermSize(30);
-                search.setGspDepth(-1);
-                search.setMethod(Boss.Method.BOSS);
-                List<Node> order = search.bestOrder(p);
-                System.out.println(p + " " + order + " " + search.getNumEdges());
+                List<Node> variables = facts.facts.getVariables();
+                Collections.sort(variables);
+
+                PermutationGenerator gen = new PermutationGenerator(variables.size());
+                int[] perm;
+
+                while ((perm = gen.next()) != null) {
+                    List<Node> p = GraphUtils.asList(perm, variables);
+
+                    Boss search = new Boss(new IndTestDSep(facts.getFacts()));
+                    search.setMaxPermSize(100);
+                    search.setDepth((method == Boss.Method.BOSS || method == GASP || method == QUICK_GASP) ? 20 : 5);
+                    search.setMethod(method);
+                    List<Node> order = search.bestOrder(p);
+//                System.out.println(p + " " + order + " " + search.getNumEdges());
+
+                    if (search.getNumEdges() != facts.getTruth()) {
+                        passed = false;
+                        break;
+                    }
 
 //                Pc search = new Pc(new IndTestDSep(facts.getFacts()));
 //                System.out.println(p + " " + search.search().getNumEdges());
@@ -1645,9 +1672,42 @@ public final class TestBoss {
 //                Fges search = new Fges(new GraphScore(facts.getFacts()));
 //                System.out.println(p + " " + search.search().getNumEdges());
 
-            }
+                }
 
+                System.out.println((i + 1) + " " + (passed ? "P " : "F"));
+            }
         }
+    }
+
+    private Ret wayneTriMutationFailsFoFaithfulGraphExample() {
+
+
+        Node x0 = new GraphNode("0");
+        Node x1 = new GraphNode("1");
+        Node x2 = new GraphNode("2");
+        Node x3 = new GraphNode("3");
+        Node x4 = new GraphNode("4");
+
+        List<Node> nodes = new ArrayList<>();
+        nodes.add(x0);
+        nodes.add(x1);
+        nodes.add(x2);
+        nodes.add(x3);
+        nodes.add(x4);
+
+        Graph graph = new EdgeListGraph(nodes);
+
+        graph.addDirectedEdge(x0, x2);
+        graph.addDirectedEdge(x1, x2);
+        graph.addDirectedEdge(x1, x3);
+        graph.addDirectedEdge(x2, x3);
+        graph.addDirectedEdge(x3, x4);
+
+
+        IndependenceFacts facts = new IndependenceFacts(graph);
+
+        return new Ret("Wayne correct triMutation fail example", facts, 5);
+
     }
 
     @Test
@@ -1916,10 +1976,12 @@ public final class TestBoss {
     private static class Ret {
         private final String label;
         private final IndependenceFacts facts;
+        private int truth;
 
-        public Ret(String label, IndependenceFacts facts) {
+        public Ret(String label, IndependenceFacts facts, int truth) {
             this.label = label;
             this.facts = facts;
+            this.truth = truth;
         }
 
         public String getLabel() {
@@ -1929,7 +1991,17 @@ public final class TestBoss {
         public IndependenceFacts getFacts() {
             return facts;
         }
+
+        public int getTruth() {
+            return truth;
+        }
     }
+
+//    private List<IndependenceFact> getFaithfulIndependenceFacts(Graph graph) {
+//        IndTestDSep dsep = new IndTestDSep(graph);
+//
+//
+//    }
 }
 
 

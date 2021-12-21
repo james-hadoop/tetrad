@@ -4,12 +4,17 @@ import edu.cmu.tetrad.algcomparison.statistic.BicEst;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.NodePair;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.util.Collections.shuffle;
@@ -31,12 +36,11 @@ public class Boss {
     private TeyssierScorer.ScoreType scoreType = TeyssierScorer.ScoreType.Edge;
     private IKnowledge knowledge = new Knowledge2();
     private boolean useDataOrder = false;
-    private int maxPermSize = 4;
-    private int gspDepth = -1;
+    private int depth = 4;
     private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.GrowShrinkMb;
     private TeyssierScorer scorer;
-    private boolean doFgesFirst = false;
     private boolean useScore = true;
+    private int maxPermSize = 4;
 
     public Boss(@NotNull Score score) {
         this.score = score;
@@ -58,34 +62,15 @@ public class Boss {
 
     public List<Node> bestOrder(@NotNull List<Node> order) {
         long start = System.currentTimeMillis();
-        List<Node> _order = null;
 
         if (useScore && !(score instanceof GraphScore)) {
             scorer = new TeyssierScorer(test, score);
             scorer.setUseScore(true);
             scorer.setParentCalculation(parentCalculation);
-
-            if (doFgesFirst) {
-                Fges fges = new Fges(score);
-                fges.setKnowledge(knowledge);
-                fges.setTurning(true);
-                fges.setVerbose(verbose);
-                Graph g = fges.search();
-                _order = g.getCausalOrdering();
-            }
         } else {
             scorer = new TeyssierScorer(test, score);
             scorer.setParentCalculation(parentCalculation);
             scorer.setUseScore(false);
-
-            if (score != null && doFgesFirst) {
-                Fges fges = new Fges(score);
-                fges.setKnowledge(knowledge);
-                fges.setTurning(true);
-                fges.setVerbose(verbose);
-                Graph g = fges.search();
-                _order = g.getCausalOrdering();
-            }
         }
 
         scorer.setKnowledge(knowledge);
@@ -96,16 +81,14 @@ public class Boss {
         List<Node> bestPerm = new ArrayList<>(order);
         double best = NEGATIVE_INFINITY;
 
+        useDataOrder = true;
+
         for (int r = 0; r < (useDataOrder ? 1 : numStarts); r++) {
-            if (_order == null) {
-                order = new ArrayList<>(order);
-
-                if (!useDataOrder) {
-                    shuffle(order);
-                }
-
-                makeValidKnowledgeOrder(order);
+            if (!useDataOrder) {
+                shuffle(order);
             }
+
+            makeValidKnowledgeOrder(order);
 
             scorer.score(order);
 
@@ -169,18 +152,18 @@ public class Boss {
         }
     }
 
-    private boolean satisfiesKnowledge(List<Node> order) {
+    private boolean violatesKnowledge(List<Node> order) {
         if (!knowledge.isEmpty()) {
             for (int i = 0; i < order.size(); i++) {
                 for (int j = i + 1; j < order.size(); j++) {
                     if (knowledge.isForbidden(order.get(i).getName(), order.get(j).getName())) {
-                        return false;
+                        return true;
                     }
                 }
             }
         }
 
-        return true;
+        return false;
     }
 
     public List<Node> boss(@NotNull TeyssierScorer scorer, long start) {
@@ -188,58 +171,71 @@ public class Boss {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Initial)");
         }
 
-        int _maxPermSize = maxPermSize < 0 ? Integer.MAX_VALUE : maxPermSize;
+        List<Node> pi;
 
-        List<Node> pi = scorer.getOrder();
-
-        pi = betterMutation(scorer, pi, start);
-        pi = correctTriMutation(scorer, pi, _maxPermSize, start);
+        pi = gasp(scorer);
+        pi = correctTriMutation(scorer, pi, maxPermSize, start);
 
         return pi;
     }
 
-    private List<Node> betterMutation(@NotNull TeyssierScorer scorer, List<Node> pi, long start) {
-        double s;
-        double sp = scorer.score(pi);
-        scorer.bookmark();
-
-        do {
-            s = sp;
-
-            for (Node x : scorer.getOrder()) {
-                sp = NEGATIVE_INFINITY;
-
-                for (int i = scorer.size() - 1; i >= 0; i--) {
-                    scorer.moveTo(x, i);
-
-                    if (scorer.score() > sp) {
-                        if (satisfiesKnowledge(scorer.getOrder())) {
-                            sp = scorer.score();
-                            scorer.bookmark();
-                        }
-                    }
-                }
-
-                scorer.goToBookmark();
-            }
-        } while (sp > s);
-
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " Score = " + scorer.score()
-                    + " (betterMutation)"
-                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " sp"));
-        }
-
-        return scorer.getOrder();
-    }
+//    private List<Node> betterMutation(@NotNull TeyssierScorer scorer, long start) {
+//        List<Node> pi = scorer.getOrder();
+//        double s;
+//        double sp = scorer.score(pi);
+//        scorer.bookmark();
+//
+//        do {
+//            s = sp;
+//
+//            for (Node x : scorer.getOrder()) {
+//                sp = NEGATIVE_INFINITY;
+//                int index = scorer.index(x);
+//
+//                for (int i = index; i >= 0; i--) {
+//                    scorer.moveTo(x, i);
+//
+//                    if (scorer.score() > sp) {
+//                        if (satisfiesKnowledge(scorer.getOrder())) {
+//                            sp = scorer.score();
+//                            scorer.bookmark();
+//                        }
+//                    }
+//                }
+//
+//                scorer.goToBookmark();
+//
+//                for (int i = index; i < scorer.size(); i++) {
+//                    scorer.moveTo(x, i);
+//
+//                    if (scorer.score() > sp) {
+//                        if (satisfiesKnowledge(scorer.getOrder())) {
+//                            sp = scorer.score();
+//                            scorer.bookmark();
+//                        }
+//                    }
+//                }
+//
+//                scorer.goToBookmark();
+//            }
+//        } while (sp > s);
+//
+//        if (verbose) {
+//            System.out.println("# Edges = " + scorer.getNumEdges()
+//                    + " Score = " + scorer.score()
+//                    + " (betterMutation)"
+//                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " sp"));
+//        }
+//
+//        return scorer.getOrder();
+//    }
 
     private List<Node> correctTriMutation(@NotNull TeyssierScorer scorer, List<Node> pi, int depth, long start) {
         DepthChoiceGenerator choiceGenerator = new DepthChoiceGenerator(pi.size(), depth);
         int[] choice;
 
         while ((choice = choiceGenerator.next()) != null) {
-            if (choice.length < 3) continue;
+            if (choice.length < 2) continue;
 
             if (triangleCondition(scorer, choice)) {
                 PermutationGenerator permGen = new PermutationGenerator(choice.length);
@@ -309,26 +305,17 @@ public class Boss {
         return pi2;
     }
 
-    public List<Node> tuck(List<Node> pi, Node x, Node y) {
-        List<Node> pip = new ArrayList<>(pi);
-        pip.remove(y);
-        pip.add(pi.indexOf(x), y);
-        return pip;
-    }
-
     private List<Node> gasp(@NotNull TeyssierScorer scorer) {
-        Graph newGraph = scorer.getGraph(true);
-        Graph oldGraph;
+        double newScore = scorer.score();
+        double oldScore;
 
-        int _depth = gspDepth == -1 ? 100 : gspDepth;
-
-        for (int k = 0; k < _depth; k++) {
+        for (int k = 0; k < depth; k++) {
             if (verbose) {
                 System.out.println("Round " + (k + 1));
             }
 
             do {
-                oldGraph = newGraph;
+                oldScore = newScore;
                 List<NodePair> pairs = scorer.getAdjacencies();
                 shuffle(pairs);
 
@@ -337,6 +324,12 @@ public class Boss {
 
                     double sOld = scorer.score();
                     scorer.tuck(pair.getFirst(), pair.getSecond());
+
+                    if (violatesKnowledge(scorer.getOrder())) {
+                        scorer.goToBookmark();
+                        continue;
+                    }
+
                     double sNew = scorer.score();
 
                     if (sNew < sOld) {
@@ -344,19 +337,18 @@ public class Boss {
                     }
                 }
 
-                newGraph = scorer.getGraph(true);
-            } while (!newGraph.equals(oldGraph));
+                newScore = scorer.score();
+            } while (newScore > oldScore);
         }
 
         return scorer.getOrder();
     }
 
-
     private List<Node> quickGasp(@NotNull TeyssierScorer scorer) {
-        int _depth = gspDepth == -1 ? 100 : gspDepth;
-
-        for (int k = 0; k < _depth; k++) {
-            System.out.println("Round " + (k + 1));
+        for (int k = 0; k < depth; k++) {
+            if (verbose) {
+                System.out.println("Round " + (k + 1));
+            }
 
             List<NodePair> pairs = scorer.getAdjacencies();
             shuffle(pairs);
@@ -366,6 +358,12 @@ public class Boss {
 
                 double sOld = scorer.score();
                 scorer.tuck(pair.getFirst(), pair.getSecond());
+
+                if (violatesKnowledge(scorer.getOrder())) {
+                    scorer.goToBookmark();
+                    continue;
+                }
+
                 double sNew = scorer.score();
 
                 if (sNew < sOld) {
@@ -408,106 +406,80 @@ public class Boss {
         return pip;
     }
 
-    public List<Node> esp(@NotNull TeyssierScorer scorer) {
-        List<Node> pi = scorer.getOrder();
+    private List<Node> esp(@NotNull TeyssierScorer scorer) {
+        double sOld;
+        double sNew = scorer.score();
 
-        Set<OrderedPair<Node>> path = new HashSet<>();
+        do {
+            sOld = sNew;
+            espDfs(scorer, sOld, depth, 0);
+            sNew = scorer.score();
+        } while (sOld < sNew);
 
-        for (int i = 0; i < 5; i++) {
-            pi = espVisit1(scorer, pi, null, path);
-//            pi = espVisit2(scorer, pi, null, path);
-        }
-
-        return pi;
+        return scorer.getOrder();
     }
 
-    public List<Node> espVisit1(@NotNull TeyssierScorer scorer,
-                                List<Node> pi, OrderedPair<Node> pair,
-                                Set<OrderedPair<Node>> path) {
-        if (pair != null && path.contains(pair)) return pi;
-        if (pair != null) path.add(pair);
+    private void espDfs(@NotNull TeyssierScorer scorer, double sOld, int maxDepth, int currentDepth) {
+        for (int i = 0; i < scorer.size() - 1; i++) {
+            scorer.swap(scorer.get(i), scorer.get(i + 1));
 
-        for (int i = 0; i < pi.size() - 1; i++) {
-            if (pair != null) scorer.swap(pi.get(i), pi.get(i + 1));
-            OrderedPair<Node> pathPair = new OrderedPair<>(pi.get(i), pi.get(i + 1));
-            List<Node> pip = espVisit1(scorer, pi, pathPair, path);
-
-            if (scorer.score(pip) >= scorer.score(pi)) {
-                pi = pip;
+            if (violatesKnowledge(scorer.getOrder())) {
+                scorer.swap(scorer.get(i), scorer.get(i + 1));
+                continue;
             }
 
-            if (pair != null) scorer.swap(pi.get(i), pi.get(i + 1));
-        }
+            double sNew = scorer.score();
 
-        if (pair != null) path.remove(pair);
-        return pi;
-    }
+            if (sNew == sOld && currentDepth != maxDepth) {
+                espDfs(scorer, sNew, maxDepth, currentDepth + 1);
+                sNew = scorer.score();
+            }
 
-//    public List<Node> espVisit2(@NotNull TeyssierScorer scorer, List<Node> pi, NodePair
-//            pair, Set<NodePair> path) {
-//        if (pair != null && path.contains(pair)) return pi;
-//        if (pair != null) path.add(pair);
-//
-//        for (int i = 0; i < pi.size() - 1; i++) {
-//            List<Node> pip = swap(pi, pi.get(i), pi.get(i + 1));
-//
-//            if (scorer.score(pip) > scorer.score(pi)) {
-//                pi = pip;
-//                OrderedPair<Node> pathPair = new OrderedPair<>(pi.get(i), pi.get(i + 1));
-//                List<Node> pipp = espVisit1(scorer, pip, pathPair, path);
-//
-//                if (scorer.score(pipp) == scorer.score(pip)) {
-//                    pi = pipp;
-//                } else if (scorer.score(pipp) > scorer.score(pip)) {
-//                    return pi;
-//                }
-//            }
-//        }
-//
-//        if (pair != null) path.remove(pair);
-//        return pi;
-//    }
-
-
-    public List<Node> tsp(@NotNull TeyssierScorer scorer) {
-        return tspVisit(scorer, scorer.getOrder(), null, new HashSet<>());
-    }
-
-    public List<Node> tspVisit(@NotNull TeyssierScorer scorer, List<Node> pi, NodePair
-            pair, Set<NodePair> path) {
-        if (pair != null && path.contains(pair)) return pi;
-        if (pair != null) path.add(pair);
-
-        List<Node> pip = new ArrayList<>(pi);
-
-        for (Node Y : pi) {
-            scorer.score(pip);
-            for (Node X : scorer.getParents(Y)) {
-                if (covered(scorer, X, Y)) {
-                    List<Node> pipp = tuck(pip, X, Y);
-
-                    if (scorer.score(pipp) >= scorer.score(pip)) {
-                        pip = pipp;
-
-                        List<Node> pippp = tspVisit(scorer, pipp, new NodePair(X, Y), path);
-
-                        if (scorer.score(pippp) >= scorer.score(pip)) {
-                            pip = pippp;
-                        }
-                    }
-                }
+            if (sNew <= sOld) {
+                scorer.swap(scorer.get(i), scorer.get(i + 1));
+            } else {
+                break;
             }
         }
-
-        if (pair != null) path.remove(pair);
-        return pip;
     }
 
-    private boolean covered(TeyssierScorer scorer, Node x, Node y) {
-        Set<Node> px = scorer.getParents(x);
-        Set<Node> py = scorer.getParents(y);
-        px.remove(y);
-        return px.equals(py);
+    private List<Node> tsp(@NotNull TeyssierScorer scorer) {
+        double sOld;
+        double sNew = scorer.score();
+
+        do {
+            sOld = sNew;
+            tspDfs(scorer, sOld, depth, 0);
+            sNew = scorer.score();
+        } while (sOld < sNew);
+
+        return scorer.getOrder();
+    }
+
+    private void tspDfs(@NotNull TeyssierScorer scorer, double sOld, int maxDepth, int currentDepth) {
+        for (NodePair adj : scorer.getAdjacencies()) {
+            if (!scorer.coveredEdge(adj.getFirst(), adj.getSecond())) continue;
+            scorer.bookmark();
+            scorer.tuck(adj.getFirst(), adj.getSecond());
+
+            if (violatesKnowledge(scorer.getOrder())) {
+                scorer.goToBookmark();
+                continue;
+            }
+
+            double sNew = scorer.score();
+
+            if (sNew == sOld && currentDepth != maxDepth) {
+                tspDfs(scorer, sNew, maxDepth, currentDepth + 1);
+                sNew = scorer.score();
+            }
+
+            if (sNew <= sOld) {
+                scorer.goToBookmark();
+            } else {
+                break;
+            }
+        }
     }
 
     @NotNull
@@ -575,19 +547,15 @@ public class Boss {
     }
 
     public void setMaxPermSize(int maxPermSize) {
-        if (maxPermSize < -1) throw new IllegalArgumentException(
-                "Max perm size should be >= 2. This the maximum number of variables that will be " +
+        if (maxPermSize < 0) throw new IllegalArgumentException(
+                "Max perm size should be >= 0. This the maximum number of variables that will be " +
                         "permuted in place. If 2, the permutation step will be ignored.");
         this.maxPermSize = maxPermSize;
     }
 
-    public void setGspDepth(int gspDepth) {
-        if (gspDepth < -1) throw new IllegalArgumentException("Depth should be >= -1.");
-        this.gspDepth = gspDepth;
-    }
-
-    public void setDoFgesFirst(boolean doFgesFirst) {
-        this.doFgesFirst = doFgesFirst;
+    public void setDepth(int depth) {
+        if (depth < -1) throw new IllegalArgumentException("Depth should be >= -1.");
+        this.depth = depth;
     }
 
     public void setUseScore(boolean useScore) {
