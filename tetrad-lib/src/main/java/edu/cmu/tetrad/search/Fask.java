@@ -222,7 +222,7 @@ public final class Fask implements GraphSearch {
         } else if (adjacencyMethod == AdjacencyMethod.FAS_STABLE_CONCURRENT) {
             Boss boss = new Boss(new LinearGaussianBicScore(dataSet));
             boss.setScoreType(TeyssierScorer.ScoreType.Edge);
-            boss.setMethod(Boss.Method.BOSS);
+            boss.setMethod(Boss.Method.BOSS1);
             boss.setKnowledge(knowledge);
             List<Node> order = boss.bestOrder(variables);
             G = boss.getGraph(false);

@@ -41,7 +41,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
     private IndependenceWrapper test;
 
     public BOSS() {
-
+        // Used in reflection; do not delete.
     }
 
     public BOSS(ScoreWrapper score, IndependenceWrapper test) {
@@ -66,7 +66,38 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
             boss = new Boss(test, score);
 
-            boss.setMethod(Boss.Method.BOSS);
+            Boss.Method method;
+
+            switch (parameters.getInt(Params.BOSS_METHOD)) {
+                case 1:
+                    method = Boss.Method.BOSS1;
+                    break;
+                case 2:
+                    method = Boss.Method.BOSS2;
+                    break;
+                case 3:
+                    method = Boss.Method.GRaSP;
+                    break;
+                case 4:
+                    method = Boss.Method.quickGRaSP;
+                    break;
+                case 5:
+                    method = Boss.Method.ESP;
+                    break;
+                case 6:
+                    method = Boss.Method.GSP;
+                    break;
+                case 7:
+                    method = Boss.Method.SP;
+                    break;
+                default:
+                    throw new IllegalStateException("Pick a number from 1 to 7: " +
+                            "1 = BOSS1, 2 = BOSS2, 3 = GRaSP, 4 = quickGRaSP, 5 = ESP_LOOP, 6 = TSP, 7 = SP");
+            }
+
+            System.out.println("Picked " + method);
+
+            boss.setMethod(method);
             boss.setUseScore(parameters.getBoolean(Params.USE_SCORE));
 
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
@@ -76,6 +107,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             boss.setMaxPermSize(parameters.getInt(Params.MAX_PERM_SIZE));
             boss.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
             boss.setDepth(parameters.getInt(Params.GSP_DEPTH));
+            boss.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 boss.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -134,6 +166,9 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.USE_SCORE);
         params.add(Params.OUTPUT_CPDAG);
         params.add(Params.MAX_PERM_SIZE);
+        params.add(Params.GSP_DEPTH);
+        params.add(Params.BOSS_METHOD);
+        params.add(Params.NUM_ROUNDS);
         params.add(Params.VERBOSE);
         return params;
     }

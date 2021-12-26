@@ -24,7 +24,6 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSSALL;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
@@ -52,7 +51,9 @@ import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
-import edu.cmu.tetrad.util.*;
+import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.Params;
+import edu.cmu.tetrad.util.PermutationGenerator;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.jetbrains.annotations.NotNull;
@@ -63,10 +64,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.search.Boss.Method.*;
-import static java.lang.Math.sqrt;
 import static java.util.Collections.shuffle;
-import static java.util.Collections.sort;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests to make sure the DelimiterType enumeration hasn't been tampered with.
@@ -111,7 +109,7 @@ public final class TestBoss {
         g = new EdgeListGraph(g);
         order = new ArrayList<>(order);
 
-        Boss.Method[] methods = {Boss.Method.BOSS, Boss.Method.SP};
+        Boss.Method[] methods = {Boss.Method.BOSS1, Boss.Method.SP};
 
         for (Boss.Method method : methods) {
             Boss boss = getBoss(score, test);
@@ -235,6 +233,8 @@ public final class TestBoss {
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
         params.set(Params.CACHE_SCORES, false);
+        params.set(Params.BOSS_METHOD, 4);
+        params.set(Params.NUM_ROUNDS, 50);
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new ZhangShenBoundScore(), new FisherZ()));
@@ -794,7 +794,7 @@ public final class TestBoss {
         List<Ret> allFacts = new ArrayList<>();
         allFacts.add(getFactsSimpleCanceling());
         allFacts.add(getFactsRaskutti());
-        allFacts.add(getFigure6());
+//        allFacts.add(getFigure6());
         allFacts.add(getFigure7());
         allFacts.add(getFigure8());
         allFacts.add(getFigure11());
@@ -804,7 +804,7 @@ public final class TestBoss {
         boolean printCpdag = false;
 
 
-        Boss.Method[] methods = {Boss.Method.SP, Boss.Method.BOSS};
+        Boss.Method[] methods = {Boss.Method.SP, Boss.Method.BOSS1};
 //        Boss.Method[] methods = {Boss.Method.GSP, Boss.Method.BOSS, Boss.Method.SP};
 
         for (Ret facts : allFacts) {
@@ -864,7 +864,7 @@ public final class TestBoss {
 
         Boss boss = new Boss(test);
         boss.setCacheScores(true);
-        boss.setMethod(Boss.Method.BOSS);
+        boss.setMethod(Boss.Method.BOSS1);
         boss.setNumStarts(1);
 
         List<Node> variables = test.getVariables();
@@ -930,11 +930,11 @@ public final class TestBoss {
     }
 
     @Test
-    public void testFromDsepSolus() {
+    public void testManyVarManyDegreeTest() {
         Parameters parameters = new Parameters();
 
-        parameters.set(Params.NUM_MEASURES, 10);
-        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+        parameters.set(Params.NUM_MEASURES, 5, 6, 7);
+        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5);
 
         parameters.set(Params.VERBOSE, true);
         parameters.set(Params.RANDOMIZE_COLUMNS, false);
@@ -945,16 +945,16 @@ public final class TestBoss {
         parameters.set(Params.MAX_PERM_SIZE, 3);
         parameters.set(Params.GSP_DEPTH, 4);
 
-        parameters.set(Params.BOSS_METHOD, 1, 2, 3, 4, 5);
+        parameters.set(Params.NUM_RUNS, 100);
+
+        parameters.set(Params.BOSS_METHOD, 1, 2);//, 3, 4, 5, 6);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.BOSS_METHOD));
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecisionCommonEdges());
-        statistics.add(new ArrowheadRecallCommonEdges());
+        statistics.add(new NumberOfEdgesTrue());
+        statistics.add(new NumberOfEdgesEst());
         statistics.add(new SHD_CPDAG());
         statistics.add(new ElapsedTime());
 
@@ -963,7 +963,7 @@ public final class TestBoss {
 //        simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSSALL(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 //        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 //        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
@@ -1123,18 +1123,6 @@ public final class TestBoss {
         }
     }
 
-    //@Test
-    public void test12345() {
-        IndependenceFacts facts = getFigure6().facts;
-        List<Node> nodes = facts.getVariables();
-
-        sort(nodes);
-        TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts),
-                new GraphScore(facts));
-        scorer.score(nodes);
-        assert (scorer.score() == 7);
-    }
-
     public Ret getFactsSimple() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
@@ -1216,6 +1204,49 @@ public final class TestBoss {
         return new Ret("Solus Theorem 12, TSP !==> Orientation Faithfulness (Figure 11)", facts, 12);
     }
 
+    public Ret getBryanWorseCase() {
+        Node x1 = new GraphNode("1");
+        Node x2 = new GraphNode("2");
+        Node x3 = new GraphNode("3");
+        Node x4 = new GraphNode("4");
+        Node x5 = new GraphNode("5");
+        Node x6 = new GraphNode("6");
+
+        List<Node> nodes = new ArrayList<>();
+        nodes.add(x1);
+        nodes.add(x2);
+        nodes.add(x3);
+        nodes.add(x4);
+        nodes.add(x5);
+        nodes.add(x6);
+
+        Graph graph = new EdgeListGraph(nodes);
+
+        graph.addDirectedEdge(x1, x2);
+
+        graph.addDirectedEdge(x1, x3);
+        graph.addDirectedEdge(x1, x4);
+        graph.addDirectedEdge(x2, x3);
+        graph.addDirectedEdge(x2, x4);
+
+        graph.addDirectedEdge(x1, x5);
+        graph.addDirectedEdge(x1, x6);
+        graph.addDirectedEdge(x2, x5);
+        graph.addDirectedEdge(x2, x6);
+
+        graph.addDirectedEdge(x3, x5);
+        graph.addDirectedEdge(x3, x6);
+        graph.addDirectedEdge(x4, x5);
+        graph.addDirectedEdge(x4, x6);
+
+        graph.addDirectedEdge(x5, x6);
+
+
+        IndependenceFacts facts = new IndependenceFacts(graph);
+
+        return new Ret("Bryan's 6-variable worst case", facts, 14);
+    }
+
     public Ret getFigure7() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
@@ -1247,21 +1278,6 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x4, list(x2, x3)));
 
         return new Ret("Solus Theorem 11, TSP !==> Faithfulness (Figure 6)", facts, 7);
-    }
-
-    public Ret getFacts6() {
-        Node x1 = new GraphNode("1");
-        Node x2 = new GraphNode("2");
-        Node x3 = new GraphNode("3");
-        Node x4 = new GraphNode("4");
-
-        IndependenceFacts facts = new IndependenceFacts();
-
-        facts.add(new IndependenceFact(x1, x2, list(x4)));
-        facts.add(new IndependenceFact(x1, x3, list(x2)));
-        facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
-
-        return new Ret("", facts, 4);
     }
 
     public Ret getFactsRaskutti() {
@@ -1313,124 +1329,35 @@ public final class TestBoss {
         return new Ret("Wayne example 1", facts, 8);
     }
 
-    //@Test
-    public void testFromIndependgetenceFactsa() {
+    private Ret wayneTriMutationFailsForFaithfulGraphExample() {
+        Node x0 = new GraphNode("0");
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
         Node x3 = new GraphNode("3");
         Node x4 = new GraphNode("4");
 
         List<Node> nodes = new ArrayList<>();
+        nodes.add(x0);
         nodes.add(x1);
         nodes.add(x2);
         nodes.add(x3);
         nodes.add(x4);
 
         Graph graph = new EdgeListGraph(nodes);
+
+        graph.addDirectedEdge(x0, x2);
         graph.addDirectedEdge(x1, x2);
+        graph.addDirectedEdge(x1, x3);
         graph.addDirectedEdge(x2, x3);
         graph.addDirectedEdge(x3, x4);
-        graph.addDirectedEdge(x1, x4);
 
-        GraphScore score = new GraphScore(graph);
 
-        Boss boss = new Boss(score);
-        boss.setCacheScores(false);
-        System.out.println(boss.bestOrder(nodes));
+        IndependenceFacts facts = new IndependenceFacts(graph);
+
+        return new Ret("Wayne correct triMutation fail example", facts, 5);
+
     }
 
-    //@Test
-    public void testFromIndependenceFacts3() {
-        Node x1 = new GraphNode("1");
-        Node x2 = new GraphNode("2");
-        Node x3 = new GraphNode("3");
-        Node x4 = new GraphNode("4");
-
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(x1);
-        nodes.add(x2);
-        nodes.add(x3);
-        nodes.add(x4);
-
-        Graph graph = new EdgeListGraph(nodes);
-        graph.addDirectedEdge(x1, x2);
-        graph.addDirectedEdge(x2, x3);
-        graph.addDirectedEdge(x3, x4);
-        graph.addDirectedEdge(x1, x4);
-
-        LinearSemPm pm = new LinearSemPm(graph);
-        LinearSemIm im = new LinearSemIm(pm);
-        StandardizedLinearSemIm imsd = new StandardizedLinearSemIm(im, new Parameters());
-
-        List<List<Node>> existingPaths = new ArrayList<>();
-
-        boolean canceled = setPathsCanceling(x1, x4, imsd, existingPaths);
-
-        if (!canceled) {
-            System.out.println("Can't cancel those paths; either there's just one path or the paths overlap.");
-        } else {
-            System.out.println("Canceled paths from " + x1 + " to " + x4);
-        }
-
-        if (MatrixUtils.isPositiveDefinite(imsd.getImplCovar())) {
-            System.out.println("Positive definite");
-        }
-
-        System.out.println(imsd.getImplCovar());
-
-        DataSet data = imsd.simulateData(1000, false);
-
-        Pc pc = new Pc(new IndTestFisherZ(data, 0.01));
-        pc.setVerbose(true);
-        System.out.println("PC " + pc.search());
-
-        edu.cmu.tetrad.search.Fges fges = new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search.LinearGaussianBicScore(data));
-        fges.setVerbose(true);
-        System.out.println("FGES " + fges.search());
-
-        Boss boss = new Boss(new edu.cmu.tetrad.search.LinearGaussianBicScore(data));
-        boss.setCacheScores(false);
-        System.out.println("BOSS " + boss.bestOrder(data.getVariables()));
-    }
-
-    //@Test
-    public void testFromIndependenceFacts4() {
-        Graph graph = GraphUtils.randomGraph(10, 0, 20, 100, 100, 100, false);
-        List<Node> nodes = graph.getNodes();
-
-        LinearSemPm pm = new LinearSemPm(graph);
-        LinearSemIm im = new LinearSemIm(pm);
-        StandardizedLinearSemIm imsd = new StandardizedLinearSemIm(im, new Parameters());
-
-        List<List<Node>> existingPaths = new ArrayList<>();
-
-        for (int i = 0; i < nodes.size(); i++) {
-            for (int j = 0; j < nodes.size(); j++) {
-                if (i == j) continue;
-                boolean canceled = setPathsCanceling(nodes.get(i), nodes.get(j), imsd, existingPaths);
-
-                if (canceled) {
-                    System.out.println("Canceled " + nodes.get(i) + " -----> " + nodes.get(j));
-                }
-            }
-        }
-
-        System.out.println(imsd.getImplCovar());
-
-        DataSet data = imsd.simulateData(1000, false);
-
-        Pc pc = new Pc(new IndTestFisherZ(data, 0.01));
-        pc.setVerbose(true);
-        System.out.println("PC " + pc.search());
-
-        edu.cmu.tetrad.search.Fges fges = new edu.cmu.tetrad.search.Fges(new edu.cmu.tetrad.search.LinearGaussianBicScore(data));
-        fges.setVerbose(true);
-        System.out.println("FGES " + fges.search());
-
-        Boss boss = new Boss(new edu.cmu.tetrad.search.LinearGaussianBicScore(data));
-        boss.setCacheScores(false);
-        System.out.println("BOSS " + boss.bestOrder(data.getVariables()));
-    }
 
     private boolean setPathsCanceling(Node x1, Node x4, StandardizedLinearSemIm imsd, List<List<Node>> existingPaths) {
         SemGraph graph = imsd.getSemPm().getGraph();
@@ -1512,30 +1439,6 @@ public final class TestBoss {
         return list;
     }
 
-    //@Test
-    public void testTeyssierIndices() {
-        Graph graph = GraphUtils.randomGraph(10, 0, 10, 100, 100, 100, false);
-        LinearSemPm pm = new LinearSemPm(graph);
-        LinearSemIm im = new LinearSemIm(pm);
-        DataSet dataSet = im.simulateData(1000, false);
-        edu.cmu.tetrad.search.IndependenceTest test = new edu.cmu.tetrad.search.IndTestFisherZ(dataSet, 0.01);
-        edu.cmu.tetrad.search.LinearGaussianBicScore score = new edu.cmu.tetrad.search.LinearGaussianBicScore(dataSet);
-        TeyssierScorer scorer = new TeyssierScorer(test, score);
-
-        List<Node> order = scorer.getOrder();
-        scorer.score(order);
-
-        Node v = order.get(5);
-
-        for (int i = 0; i < 10; i++) {
-            int r = RandomUtil.getInstance().nextInt(order.size());
-            scorer.moveTo(v, r);
-//            System.out.println(r + " " + scorer.indexOf(v));
-
-            assertEquals(r, scorer.index(v));
-        }
-    }
-
     @Test
     public void testBfci() {
         Parameters params = new Parameters();
@@ -1599,29 +1502,41 @@ public final class TestBoss {
     }
 
     @Test
-    public void testWayne() {
+    public void test6Examples() {
         List<Ret> allFacts = new ArrayList<>();
 
         allFacts.add(getFactsSimple());
         allFacts.add(getFactsSimpleCanceling());
         allFacts.add(wayneTriangleFaithfulnessFailExample());
-        allFacts.add(wayneTriMutationFailsFoFaithfulGraphExample());
-        allFacts.add(getFactsRaskutti());
-////        allFacts.add(getFigure6());
+        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
         allFacts.add(getFigure7());
-        allFacts.add(getFigure8());
         allFacts.add(getFigure11());
+
+        allFacts.add(getBryanWorseCase());
+
+
 
         int count = 0;
 
         boolean printCpdag = false;
 
+        for (int i = 0; i < allFacts.size(); i++) {
+            Ret facts = allFacts.get(i);
+            count++;
+
+            System.out.println();
+            System.out.println("Test #" + (i + 1));
+            System.out.println(facts.getLabel());
+            System.out.println(facts.getFacts());
+        }
+
         for (Boss.Method method : new Boss.Method[]{
-                Boss.Method.BOSS,
-                GASP,
-                Boss.Method.QUICK_GASP,
-                Boss.Method.ESP,
-                Boss.Method.TSP
+                BOSS1,
+                BOSS2,
+//                GRaSP,
+//                quickGRaSP,
+//                ESP,
+//                GSP
         }) {
             System.out.println("\n\n" + method);
 
@@ -1637,13 +1552,6 @@ public final class TestBoss {
                 OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
                 OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
 
-//                System.out.println();
-//                System.out.println("Test #" + (i + 1));
-//                System.out.println(facts.getLabel());
-//                System.out.println(facts.getFacts());
-//
-//                if (true) continue;
-
 
                 List<Node> variables = facts.facts.getVariables();
                 Collections.sort(variables);
@@ -1655,11 +1563,13 @@ public final class TestBoss {
                     List<Node> p = GraphUtils.asList(perm, variables);
 
                     Boss search = new Boss(new IndTestDSep(facts.getFacts()));
-                    search.setMaxPermSize(100);
-                    search.setDepth((method == Boss.Method.BOSS || method == GASP || method == QUICK_GASP) ? 20 : 5);
+                    search.setMaxPermSize(6);
+                    search.setDepth(7);
+//                    search.setDepth((method == BOSS1 || method == BOSS2 || method == GRaSP || method == quickGRaSP) ? 20 : 5);
                     search.setMethod(method);
+                    search.setNumRounds(100);
                     List<Node> order = search.bestOrder(p);
-//                System.out.println(p + " " + order + " " + search.getNumEdges());
+//                System.out.println(p + " " + order + " " + search.getNumEdges() + " " + search.getGraph(false));
 
                     if (search.getNumEdges() != facts.getTruth()) {
                         passed = false;
@@ -1679,173 +1589,93 @@ public final class TestBoss {
         }
     }
 
-    private Ret wayneTriMutationFailsFoFaithfulGraphExample() {
-
-
-        Node x0 = new GraphNode("0");
-        Node x1 = new GraphNode("1");
-        Node x2 = new GraphNode("2");
-        Node x3 = new GraphNode("3");
-        Node x4 = new GraphNode("4");
-
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(x0);
-        nodes.add(x1);
-        nodes.add(x2);
-        nodes.add(x3);
-        nodes.add(x4);
-
-        Graph graph = new EdgeListGraph(nodes);
-
-        graph.addDirectedEdge(x0, x2);
-        graph.addDirectedEdge(x1, x2);
-        graph.addDirectedEdge(x1, x3);
-        graph.addDirectedEdge(x2, x3);
-        graph.addDirectedEdge(x3, x4);
-
-
-        IndependenceFacts facts = new IndependenceFacts(graph);
-
-        return new Ret("Wayne correct triMutation fail example", facts, 5);
-
-    }
-
     @Test
-    public void testWayne2() {
-//        Ret facts = getFactsSimpleCanceling();
-        Ret facts = getWayneExample1();
+    public void test7Examples() {
+        List<Ret> allFacts = new ArrayList<>();
+
+        allFacts.add(getFactsSimple());
+        allFacts.add(getFactsSimpleCanceling());
+        allFacts.add(wayneTriangleFaithfulnessFailExample());
+        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
+        allFacts.add(getFigure7());
+        allFacts.add(getFigure8());
+        allFacts.add(getFigure11());
 
         int count = 0;
+
         boolean printCpdag = false;
 
-        Boss.Method[] methods = {GASP};//, Boss.Method.BOSS};//, Boss.Method.SP};
+        for (int i = 0; i < allFacts.size(); i++) {
+            Ret facts = allFacts.get(i);
+            count++;
 
-        count++;
-
-        TeyssierScorer scorer = new TeyssierScorer(
-                new IndTestDSep(facts.getFacts()),
-                new GraphScore(facts.getFacts()));
-
-        OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
-        OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
-
-        System.out.println();
-
-        List<Node> variables = facts.facts.getVariables();
-        Collections.sort(variables);
-
-        List<Node> p = new ArrayList<>();
-        p.add(variables.get(0));
-        p.add(variables.get(1));
-        p.add(variables.get(3));
-        p.add(variables.get(2));
-        p.add(variables.get(4));
-
-        Boss boss = new Boss(new IndTestDSep(facts.getFacts()));
-        boss.setUseDataOrder(true);
-        boss.setMethod(Boss.Method.BOSS);
-
-        List<Node> order = boss.bestOrder(p);
-        Graph graph = boss.getGraph(true);
-        System.out.println(graph);
-
-        PermutationGenerator gen = new PermutationGenerator(5);
-        int[] perm;
-
-        while ((perm = gen.next()) != null) {
-            List<Node> _perm = GraphUtils.asList(perm, variables);
-
-//            Boss _boss = new Boss(new IndTestDSep(facts.getFacts()));
-//            Pc pc = new Pc(new IndTestDSep(facts.getFacts()));
-//            boss.setFirstRunUseDataOrder(true);
-
-            List<Node> _order = boss.bestOrder(_perm);
-            System.out.println(boss.getGraph(true).equals(graph));
+            System.out.println();
+            System.out.println("Test #" + (i + 1));
+            System.out.println(facts.getLabel());
+            System.out.println(facts.getFacts());
         }
-    }
 
-    @Test
-    public void testWayne3() {
-        for (int i = 0; i < 500; i++) {
-            Node x0 = new ContinuousVariable("X0");
-            Node x1 = new ContinuousVariable("X1");
-            Node x2 = new ContinuousVariable("X2");
-            Node x3 = new ContinuousVariable("X3");
-            Node x4 = new ContinuousVariable("X4");
+        for (Boss.Method method : new Boss.Method[]{
+                BOSS1,
+                BOSS2,
+                GRaSP,
+                quickGRaSP,
+                ESP,
+                GSP
+        }) {
+            System.out.println("\n\n" + method);
 
-            List<Node> nodes = new ArrayList<>();
-            nodes.add(x0);
-            nodes.add(x1);
-            nodes.add(x2);
-            nodes.add(x3);
-            nodes.add(x4);
+            for (int i = 0; i < allFacts.size(); i++) {
+                boolean passed = true;
 
-            Graph graph = new EdgeListGraph(nodes);
-            graph.addDirectedEdge(x0, x1);
-            graph.addDirectedEdge(x1, x2);
-            graph.addDirectedEdge(x2, x4);
-            graph.addDirectedEdge(x0, x3);
-            graph.addDirectedEdge(x3, x4);
+                Ret facts = allFacts.get(i);
+                count++;
 
-            LinearSemPm pm = new LinearSemPm(graph);
-            LinearSemIm im0 = new LinearSemIm(pm);
+                TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
+                        new GraphScore(facts.getFacts()));
 
-            StandardizedLinearSemIm im = new StandardizedLinearSemIm(im0, new Parameters());
+                OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
+                OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
 
-            double a = .1;
-            double b = .9;
-            double c = .1;
-            double path1 = a * b * c;
-            double d = sqrt(path1);
-            double e = -sqrt(path1);
 
-            im.setEdgeCoefficientUnchecked(x0, x1, a);
-            im.setEdgeCoefficientUnchecked(x1, x2, b);
-            im.setEdgeCoefficientUnchecked(x2, x4, c);
-            im.setEdgeCoefficientUnchecked(x1, x3, d);
-            im.setEdgeCoefficientUnchecked(x3, x4, e);
+                List<Node> variables = facts.facts.getVariables();
+                Collections.sort(variables);
 
-            DataSet data = im.simulateData(100000, false);
+                PermutationGenerator gen = new PermutationGenerator(variables.size());
+                int[] perm;
 
-            LinearGaussianBicScore score = new LinearGaussianBicScore(data);
-            score.setPenaltyDiscount(2);
+                while ((perm = gen.next()) != null) {
+                    List<Node> p = GraphUtils.asList(perm, variables);
 
-            Fges fges = new Fges(score);
-            Boss boss = new Boss(score);
-            boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
+                    Boss search = new Boss(new IndTestDSep(facts.getFacts()));
+                    search.setMaxPermSize(7);
+                    search.setDepth(7);
+//                    search.setDepth((method == BOSS1 || method == BOSS2 || method == GRaSP || method == quickGRaSP) ? 20 : 5);
+                    search.setMethod(method);
+                    search.setNumRounds(100);
+                    List<Node> order = search.bestOrder(p);
+//                System.out.println(p + " " + order + " " + search.getNumEdges() + " " + search.getGraph(false));
 
-            Graph fgesGraph = fges.search();
+                    if (search.getNumEdges() != facts.getTruth()) {
+                        passed = false;
+                        break;
+                    }
 
-            List<Node> best = boss.bestOrder(data.getVariables());
-            Graph bossGraph = boss.getGraph(true);
-            boolean equals = fgesGraph.equals(bossGraph);
+//                Pc search = new Pc(new IndTestDSep(facts.getFacts()));
+//                System.out.println(p + " " + search.search().getNumEdges());
 
-            if (!equals && bossGraph.getNumEdges() == 5) {
-                System.out.println(equals);
-                System.out.println("FGES: " + fgesGraph);
-                System.out.println("BOSS: " + bossGraph);
+//                Fges search = new Fges(new GraphScore(facts.getFacts()));
+//                System.out.println(p + " " + search.search().getNumEdges());
 
-                System.out.println(im);
+                }
+
+                System.out.println((i + 1) + " " + (passed ? "P " : "F"));
             }
         }
     }
 
     @Test
-    public void randomString() {
-        String all = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()_+";
-
-        String pass = "";
-
-        for (int i = 0; i < 8; i++) {
-            int c = RandomUtil.getInstance().nextInt(all.length());
-            pass += all.substring(c, c + 1);
-        }
-
-        System.out.println(pass);
-    }
-
-    @Test
-    public void testWayne4() {
+    public void testWayne2() {
 //        int[] numNodes = new int[]{30};//4, 5, 6, 7};
 //        int[] avgDegree = new int[]{8};//1, 2, 3, 4};
 //        int[] size = new int[]{1000};//100, 1000, 10000, 100000};
@@ -1996,12 +1826,6 @@ public final class TestBoss {
             return truth;
         }
     }
-
-//    private List<IndependenceFact> getFaithfulIndependenceFacts(Graph graph) {
-//        IndTestDSep dsep = new IndTestDSep(graph);
-//
-//
-//    }
 }
 
 

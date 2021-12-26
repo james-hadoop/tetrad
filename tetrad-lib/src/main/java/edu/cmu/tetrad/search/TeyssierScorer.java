@@ -62,19 +62,6 @@ public class TeyssierScorer {
         }
     }
 
-    public void tuck(Node x, Node y) {
-
-        // x->y
-        if (getParents(y).contains(x)) {
-            moveTo(y, index(x));
-        }
-
-        // y -> x
-        else if (getParents(x).contains(y)) {
-            moveTo(x, index(y));
-        }
-    }
-
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
     }
@@ -91,31 +78,23 @@ public class TeyssierScorer {
         return score();
     }
 
-    private void nodesHash(Map<Node, Integer> nodesHash, List<Node> variables) {
-        for (int i = 0; i < variables.size(); i++) {
-            nodesHash.put(variables.get(i), i);
-        }
-    }
 
     public double score() {
         return sum();
     }
 
-    public boolean promote(Node v) {
-        int index = orderHash.get(v);
-        if (index == 0) return false;
+    public void tuck(Node x, Node y) {
 
-        Node v1 = order.get(index - 1);
-        Node v2 = order.get(index);
+        // x->y
+        if (getParents(y).contains(x)) {
+            moveTo(y, index(x));
+        }
 
-        order.set(index - 1, v2);
-        order.set(index, v1);
-
-        updateScores(index - 1, index);
-
-        return true;
+        // y -> x
+        else if (getParents(x).contains(y)) {
+            moveTo(x, index(y));
+        }
     }
-
 
     public void moveTo(Node v, int toIndex) {
         if (!order.contains(v)) return;
@@ -134,41 +113,6 @@ public class TeyssierScorer {
         } else {
             updateScores(vIndex, toIndex);
         }
-    }
-
-    private boolean lastMoveSame(int i1, int i2) {
-        if (i1 <= i2) {
-            for (int i = i1; i <= i2; i++) {
-                if (!getPrefix(i).equals(prefixes.get(i))) return false;
-            }
-        } else {
-            for (int i = i2; i <= i1; i++) {
-                if (!getPrefix(i).equals(prefixes.get(i))) return false;
-            }
-        }
-
-        return true;
-    }
-
-    private boolean validKnowledgeOrder(List<Node> order) {
-        for (int i = 0; i < order.size(); i++) {
-            for (int j = i + 1; j < order.size(); j++) {
-                if (knowledge.isForbidden(order.get(i).getName(), order.get(j).getName())) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    public void moveToLast(Node v) {
-        int vIndex = index(v);
-
-        order.remove(v);
-        order.addLast(v);
-
-        updateScores(vIndex, order.size() - 1);
     }
 
     public boolean swap(Node m, Node n) {
@@ -218,88 +162,6 @@ public class TeyssierScorer {
                     + v + ".");
 
         return integer;
-    }
-
-    private double sum() {
-        double score = 0;
-
-        for (int i = 0; i < order.size(); i++) {
-            double score1 = scores.get(i).getScore();
-
-            score += (Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
-        }
-
-        return score;
-    }
-
-    private void initializeScores(int min, int max) {
-
-        if (max == size() - 1 && min == 0) {
-            this.scores = new LinkedList<>();
-            for (int i1 = 0; i1 < order.size(); i1++) this.scores.add(null);
-        } else {
-            for (int i1 = min; i1 <= max; i1++) this.scores.set(i1, null);
-        }
-
-        if (max == size() - 1 && min == 0) {
-            this.prefixes = new LinkedList<>();
-            for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
-        } else {
-            for (int i1 = min; i1 <= max; i1++) this.prefixes.set(i1, null);
-        }
-
-        updateScores(min, max);
-    }
-
-    private void updateScores(int i1, int i2) {
-        for (int i = i1; i <= i2; i++) {
-            recalculate(i);
-            orderHash.put(order.get(i), i);
-        }
-    }
-
-    private double score(Node n, Set<Node> pi) {
-        if (cachingScores) {
-            ScoreKey key = new ScoreKey(n, pi);
-            Pair pair = cache.get(key);
-
-            if (pair != null) {
-                return pair.getScore();
-            }
-        }
-
-        int[] parentIndices = new int[pi.size()];
-
-        int k = 0;
-
-        for (Node p : pi) {
-            parentIndices[k++] = variablesHash.get(p);
-        }
-
-        double v = this.score.localScore(variablesHash.get(n), parentIndices);
-
-        if (cachingScores) {
-            ScoreKey key = new ScoreKey(n, pi);
-            cache.put(key, new Pair(pi, v));
-        }
-
-        return v;
-    }
-
-    private Set<Node> getPrefix(int i) {
-        Set<Node> prefix = new HashSet<>();
-
-        for (int j = 0; j < i; j++) {
-            prefix.add(order.get(j));
-        }
-
-        return prefix;
-    }
-
-    private void recalculate(int p) {
-        if (prefixes.get(p) == null || !prefixes.get(p).containsAll(getPrefix(p))) {
-            scores.set(p, getParentsInternal(p));
-        }
     }
 
     public Set<Node> getParents(int p) {
@@ -359,24 +221,6 @@ public class TeyssierScorer {
         return new ArrayList<>(pairs);
     }
 
-    private Pair getParentsInternal(int p) {
-        if (parentCalculation == ParentCalculation.GrowShrinkMb) {
-            if (!useScore) {
-                return getGrowShrinkIndependent(p);
-            } else {
-                return getGrowShrinkScore(p);
-            }
-        } else if (parentCalculation == ParentCalculation.Pearl) {
-            if (!useScore) {
-                return pearlParents(p);
-            } else {
-                return pearlScore(p);
-            }
-        } else {
-            throw new IllegalStateException("Unrecognized parent calculation: " + parentCalculation);
-        }
-    }
-
     public Pair pearlParents(int p) {
         Node x = order.get(p);
         Set<Node> parents = new HashSet<>();
@@ -413,123 +257,6 @@ public class TeyssierScorer {
         }
 
         return new Pair(parents, parents.size());
-    }
-
-    private Pair getGrowShrinkIndependent(int p) {
-        Node n = order.get(p);
-
-        Set<Node> parents = new HashSet<>();
-
-        Set<Node> prefix = getPrefix(p);
-
-        boolean changed1 = true;
-
-        while (changed1) {
-            changed1 = false;
-
-            for (Node z0 : prefix) {
-                if (parents.contains(z0)) continue;
-                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
-
-                if (test.isDependent(n, z0, new ArrayList<>(parents))) {
-                    parents.add(z0);
-                    changed1 = true;
-                }
-            }
-        }
-
-        boolean changed2 = true;
-
-        while (changed2) {
-            changed2 = false;
-
-            for (Node z1 : new HashSet<>(parents)) {
-                Set<Node> _p = new HashSet<>(parents);
-                _p.remove(z1);
-
-                if (test.isIndependent(n, z1, new ArrayList<>(_p))) {
-                    parents.remove(z1);
-                    changed2 = true;
-                }
-            }
-        }
-
-        return new Pair(parents, -parents.size());
-    }
-
-    @NotNull
-    private Pair getGrowShrinkScore(int p) {
-        Node n = order.get(p);
-
-        Set<Node> parents = new HashSet<>();
-        boolean changed = true;
-
-        double sMax = score(n, new HashSet<>());
-        List<Node> prefix = new ArrayList<>(getPrefix(p));
-
-        // Grow-shrink
-        while (changed) {
-            changed = false;
-
-            // Let z be the node that maximizes the score...
-            Node z = null;
-
-            for (Node z0 : prefix) {
-                if (parents.contains(z0)) continue;
-
-                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
-                parents.add(z0);
-
-                double s2 = score(n, parents);
-
-                if (s2 > sMax) {
-                    sMax = s2;
-                    z = z0;
-                }
-
-                parents.remove(z0);
-            }
-
-            if (z != null) {
-                parents.add(z);
-                changed = true;
-            }
-
-        }
-
-        boolean changed2 = true;
-
-        while (changed2) {
-            changed2 = false;
-
-            Node w = null;
-
-            for (Node z0 : new HashSet<>(parents)) {
-                parents.remove(z0);
-
-                double s2 = score(n, parents);
-
-                if (s2 > sMax) {
-                    sMax = s2;
-                    w = z0;
-                }
-
-                parents.add(z0);
-            }
-
-            if (w != null) {
-                parents.remove(w);
-                changed2 = true;
-            }
-        }
-
-        if (scoreType == ScoreType.Edge) {
-            return new Pair(parents, -parents.size());
-        } else if (scoreType == ScoreType.SCORE) {
-            return new Pair(parents, Double.isNaN(sMax) ? Double.POSITIVE_INFINITY : sMax);
-        } else {
-            throw new IllegalStateException("Unexpected score type: " + scoreType);
-        }
     }
 
     public void bookmark() {
@@ -680,6 +407,255 @@ public class TeyssierScorer {
 
         public Set<Node> getPi() {
             return pi;
+        }
+    }
+
+    private boolean validKnowledgeOrder(List<Node> order) {
+        for (int i = 0; i < order.size(); i++) {
+            for (int j = i + 1; j < order.size(); j++) {
+                if (knowledge.isForbidden(order.get(i).getName(), order.get(j).getName())) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private double sum() {
+        double score = 0;
+
+        for (int i = 0; i < order.size(); i++) {
+            double score1 = scores.get(i).getScore();
+
+            score += (Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
+        }
+
+        return score;
+    }
+
+    private void initializeScores(int min, int max) {
+
+        if (max == size() - 1 && min == 0) {
+            this.scores = new LinkedList<>();
+            for (int i1 = 0; i1 < order.size(); i1++) this.scores.add(null);
+        } else {
+            for (int i1 = min; i1 <= max; i1++) this.scores.set(i1, null);
+        }
+
+        if (max == size() - 1 && min == 0) {
+            this.prefixes = new LinkedList<>();
+            for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
+        } else {
+            for (int i1 = min; i1 <= max; i1++) this.prefixes.set(i1, null);
+        }
+
+        updateScores(min, max);
+    }
+
+    private void updateScores(int i1, int i2) {
+        for (int i = i1; i <= i2; i++) {
+            recalculate(i);
+            orderHash.put(order.get(i), i);
+        }
+    }
+
+    private double score(Node n, Set<Node> pi) {
+        if (cachingScores) {
+            ScoreKey key = new ScoreKey(n, pi);
+            Pair pair = cache.get(key);
+
+            if (pair != null) {
+                return pair.getScore();
+            }
+        }
+
+        int[] parentIndices = new int[pi.size()];
+
+        int k = 0;
+
+        for (Node p : pi) {
+            parentIndices[k++] = variablesHash.get(p);
+        }
+
+        double v = this.score.localScore(variablesHash.get(n), parentIndices);
+
+        if (cachingScores) {
+            ScoreKey key = new ScoreKey(n, pi);
+            cache.put(key, new Pair(pi, v));
+        }
+
+        return v;
+    }
+
+    private Set<Node> getPrefix(int i) {
+        Set<Node> prefix = new HashSet<>();
+
+        for (int j = 0; j < i; j++) {
+            prefix.add(order.get(j));
+        }
+
+        return prefix;
+    }
+
+    private void recalculate(int p) {
+        if (prefixes.get(p) == null || !prefixes.get(p).containsAll(getPrefix(p))) {
+            scores.set(p, getParentsInternal(p));
+        }
+    }
+
+    private void nodesHash(Map<Node, Integer> nodesHash, List<Node> variables) {
+        for (int i = 0; i < variables.size(); i++) {
+            nodesHash.put(variables.get(i), i);
+        }
+    }
+
+    private boolean lastMoveSame(int i1, int i2) {
+        if (i1 <= i2) {
+            for (int i = i1; i <= i2; i++) {
+                if (!getPrefix(i).equals(prefixes.get(i))) return false;
+            }
+        } else {
+            for (int i = i2; i <= i1; i++) {
+                if (!getPrefix(i).equals(prefixes.get(i))) return false;
+            }
+        }
+
+        return true;
+    }
+
+    @NotNull
+    private Pair getGrowShrinkScore(int p) {
+        Node n = order.get(p);
+
+        Set<Node> parents = new HashSet<>();
+        boolean changed = true;
+
+        double sMax = score(n, new HashSet<>());
+        List<Node> prefix = new ArrayList<>(getPrefix(p));
+
+        // Grow-shrink
+        while (changed) {
+            changed = false;
+
+            // Let z be the node that maximizes the score...
+            Node z = null;
+
+            for (Node z0 : prefix) {
+                if (parents.contains(z0)) continue;
+
+                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+                parents.add(z0);
+
+                double s2 = score(n, parents);
+
+                if (s2 > sMax) {
+                    sMax = s2;
+                    z = z0;
+                }
+
+                parents.remove(z0);
+            }
+
+            if (z != null) {
+                parents.add(z);
+                changed = true;
+            }
+
+        }
+
+        boolean changed2 = true;
+
+        while (changed2) {
+            changed2 = false;
+
+            Node w = null;
+
+            for (Node z0 : new HashSet<>(parents)) {
+                parents.remove(z0);
+
+                double s2 = score(n, parents);
+
+                if (s2 > sMax) {
+                    sMax = s2;
+                    w = z0;
+                }
+
+                parents.add(z0);
+            }
+
+            if (w != null) {
+                parents.remove(w);
+                changed2 = true;
+            }
+        }
+
+        if (scoreType == ScoreType.Edge) {
+            return new Pair(parents, -parents.size());
+        } else if (scoreType == ScoreType.SCORE) {
+            return new Pair(parents, Double.isNaN(sMax) ? Double.POSITIVE_INFINITY : sMax);
+        } else {
+            throw new IllegalStateException("Unexpected score type: " + scoreType);
+        }
+    }
+
+    private Pair getGrowShrinkIndependent(int p) {
+        Node n = order.get(p);
+
+        Set<Node> parents = new HashSet<>();
+
+        Set<Node> prefix = getPrefix(p);
+
+        boolean changed1 = true;
+
+        while (changed1) {
+            changed1 = false;
+
+            for (Node z0 : prefix) {
+                if (parents.contains(z0)) continue;
+                if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
+
+                if (test.isDependent(n, z0, new ArrayList<>(parents))) {
+                    parents.add(z0);
+                    changed1 = true;
+                }
+            }
+        }
+
+        boolean changed2 = true;
+
+        while (changed2) {
+            changed2 = false;
+
+            for (Node z1 : new HashSet<>(parents)) {
+                Set<Node> _p = new HashSet<>(parents);
+                _p.remove(z1);
+
+                if (test.isIndependent(n, z1, new ArrayList<>(_p))) {
+                    parents.remove(z1);
+                    changed2 = true;
+                }
+            }
+        }
+
+        return new Pair(parents, -parents.size());
+    }
+
+    private Pair getParentsInternal(int p) {
+        if (parentCalculation == ParentCalculation.GrowShrinkMb) {
+            if (!useScore) {
+                return getGrowShrinkIndependent(p);
+            } else {
+                return getGrowShrinkScore(p);
+            }
+        } else if (parentCalculation == ParentCalculation.Pearl) {
+            if (!useScore) {
+                return pearlParents(p);
+            } else {
+                return pearlScore(p);
+            }
+        } else {
+            throw new IllegalStateException("Unrecognized parent calculation: " + parentCalculation);
         }
     }
 }

@@ -40,6 +40,7 @@ import java.util.Set;
  */
 public class IndependenceFacts implements DataModel {
     static final long serialVersionUID = 23L;
+    private List<Node> nodes;
 
     private Set<IndependenceFact> unsortedFacts = new HashSet<>();
     private String name = "";
@@ -57,7 +58,7 @@ public class IndependenceFacts implements DataModel {
 
         Set<IndependenceFact> facts = new HashSet<>();
 
-        List<Node> nodes = graph.getNodes();
+        nodes = graph.getNodes();
 
         DepthChoiceGenerator gen = new DepthChoiceGenerator(nodes.size(), nodes.size());
         int[] choice;
@@ -174,6 +175,10 @@ public class IndependenceFacts implements DataModel {
     }
 
     public List<Node> getVariables() {
+        if (nodes != null) {
+            return nodes;
+        }
+
         Set<Node> variables = new HashSet<>();
 
         for (IndependenceFact fact : unsortedFacts) {

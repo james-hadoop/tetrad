@@ -1595,7 +1595,8 @@ public class Comparison {
                     double stat = statTables[u][newOrder[t]][statIndex];
 
                     if (stat == 0.0) {
-                        table.setToken(t + 1, initialColumn + statIndex, "-");
+//                        table.setToken(t + 1, initialColumn + statIndex, "-");
+                        table.setToken(t + 1, initialColumn + statIndex, nf.format(0));
                     } else if (stat == Double.POSITIVE_INFINITY) {
                         table.setToken(t + 1, initialColumn + statIndex, "Yes");
                     } else if (stat == Double.NEGATIVE_INFINITY) {

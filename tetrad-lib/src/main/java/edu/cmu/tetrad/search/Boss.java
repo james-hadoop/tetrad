@@ -1,14 +1,12 @@
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.algcomparison.statistic.BicEst;
-import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodePair;
-import edu.cmu.tetrad.util.DepthChoiceGenerator;
+import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.lang.Math.min;
 import static java.util.Collections.shuffle;
 
 
@@ -27,20 +26,22 @@ import static java.util.Collections.shuffle;
  */
 public class Boss {
     private final List<Node> variables;
+    private long start;
     private Score score;
     private IndependenceTest test;
     private boolean cachingScores = true;
     private int numStarts = 1;
-    private Method method = Method.BOSS;
+    private Method method = Method.BOSS1;
     private boolean verbose = false;
     private TeyssierScorer.ScoreType scoreType = TeyssierScorer.ScoreType.Edge;
     private IKnowledge knowledge = new Knowledge2();
     private boolean useDataOrder = false;
     private int depth = 4;
-    private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.GrowShrinkMb;
+    private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.Pearl;
     private TeyssierScorer scorer;
     private boolean useScore = true;
     private int maxPermSize = 4;
+    private int numRounds = 50;
 
     public Boss(@NotNull Score score) {
         this.score = score;
@@ -88,24 +89,32 @@ public class Boss {
                 shuffle(order);
             }
 
+            this.start = System.currentTimeMillis();
+
             makeValidKnowledgeOrder(order);
 
             scorer.score(order);
 
+            if (verbose) {
+                System.out.println("Using " + method + " depth = " + depth + " maxPermSize = " + maxPermSize);
+            }
+
             List<Node> perm;
 
-            if (method == Method.BOSS) {
-                perm = boss(scorer, start);
-            } else if (method == Method.GASP) {
-                perm = gasp(scorer);
-            } else if (method == Method.QUICK_GASP) {
-                perm = quickGasp(scorer);
-            } else if (method == Method.SP) {
-                perm = sp(scorer);
+            if (method == Method.BOSS1) {
+                perm = boss1(scorer);
+            } else if (method == Method.BOSS2) {
+                perm = boss2(scorer);
+            } else if (method == Method.GRaSP) {
+                perm = grasp(scorer);
+            } else if (method == Method.quickGRaSP) {
+                perm = quickGrasp(scorer);
             } else if (method == Method.ESP) {
                 perm = esp(scorer);
-            } else if (method == Method.TSP) {
-                perm = tsp(scorer);
+            } else if (method == Method.GSP) {
+                perm = gsp(scorer);
+            } else if (method == Method.SP) {
+                perm = sp(scorer);
             } else {
                 throw new IllegalArgumentException("Unrecognized method: " + method);
             }
@@ -152,200 +161,68 @@ public class Boss {
         }
     }
 
-    private boolean violatesKnowledge(List<Node> order) {
-        if (!knowledge.isEmpty()) {
-            for (int i = 0; i < order.size(); i++) {
-                for (int j = i + 1; j < order.size(); j++) {
-                    if (knowledge.isForbidden(order.get(i).getName(), order.get(j).getName())) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    public List<Node> boss(@NotNull TeyssierScorer scorer, long start) {
+    public List<Node> boss1(@NotNull TeyssierScorer scorer) {
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Initial)");
         }
 
-        List<Node> pi;
-
-        pi = gasp(scorer);
-        pi = correctTriMutation(scorer, pi, maxPermSize, start);
-
-        return pi;
-    }
-
-//    private List<Node> betterMutation(@NotNull TeyssierScorer scorer, long start) {
-//        List<Node> pi = scorer.getOrder();
-//        double s;
-//        double sp = scorer.score(pi);
-//        scorer.bookmark();
-//
-//        do {
-//            s = sp;
-//
-//            for (Node x : scorer.getOrder()) {
-//                sp = NEGATIVE_INFINITY;
-//                int index = scorer.index(x);
-//
-//                for (int i = index; i >= 0; i--) {
-//                    scorer.moveTo(x, i);
-//
-//                    if (scorer.score() > sp) {
-//                        if (satisfiesKnowledge(scorer.getOrder())) {
-//                            sp = scorer.score();
-//                            scorer.bookmark();
-//                        }
-//                    }
-//                }
-//
-//                scorer.goToBookmark();
-//
-//                for (int i = index; i < scorer.size(); i++) {
-//                    scorer.moveTo(x, i);
-//
-//                    if (scorer.score() > sp) {
-//                        if (satisfiesKnowledge(scorer.getOrder())) {
-//                            sp = scorer.score();
-//                            scorer.bookmark();
-//                        }
-//                    }
-//                }
-//
-//                scorer.goToBookmark();
-//            }
-//        } while (sp > s);
-//
-//        if (verbose) {
-//            System.out.println("# Edges = " + scorer.getNumEdges()
-//                    + " Score = " + scorer.score()
-//                    + " (betterMutation)"
-//                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " sp"));
-//        }
-//
-//        return scorer.getOrder();
-//    }
-
-    private List<Node> correctTriMutation(@NotNull TeyssierScorer scorer, List<Node> pi, int depth, long start) {
-        DepthChoiceGenerator choiceGenerator = new DepthChoiceGenerator(pi.size(), depth);
-        int[] choice;
-
-        while ((choice = choiceGenerator.next()) != null) {
-            if (choice.length < 2) continue;
-
-            if (triangleCondition(scorer, choice)) {
-                PermutationGenerator permGen = new PermutationGenerator(choice.length);
-                int[] perm;
-
-                while ((perm = permGen.next()) != null) {
-                    List<Node> pip = subMutation(pi, choice, perm);
-
-                    if (scorer.score(pip) > scorer.score(pi)) {
-                        pi = pip;
-                        break;
-                    }
-                }
-            }
-        }
+        betterMutation(scorer);
+        betterTriMutation(scorer, (maxPermSize < 0 ? Integer.MAX_VALUE : maxPermSize));
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " Score = "
-                    + scorer.score()
-                    + " (correctTriMutation)"
-                    + " Elapsed = " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-        }
-
-        return pi;
-    }
-
-    private boolean triangleCondition(TeyssierScorer scorer, int[] choice) {
-        for (int i = 0; i < choice.length; i++) {
-
-            J:
-            for (int j = i + 1; j < choice.length; j++) {
-                Node x = scorer.get(choice[i]);
-                Node y = scorer.get(choice[j]);
-                if (!scorer.adjacent(x, y)) continue;
-
-                for (int k = 0; k < choice.length; k++) {
-                    if (k == i || k == j) continue;
-                    Node z = scorer.get(choice[k]);
-
-                    if (!(scorer.adjacent(z, x) && scorer.adjacent(z, y)))
-                        continue J;
-                }
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    private List<Node> subMutation(List<Node> pi, int[] choice, int[] perm) {
-        List<Node> pi2 = new ArrayList<>(pi);
-
-        int[] choice2 = Arrays.copyOf(choice, choice.length);
-        Arrays.sort(choice2);
-
-        for (int i = 0; i < choice.length; i++) {
-            pi2.set(choice2[i], pi.get(choice[perm[i]]));
-        }
-
-        return pi2;
-    }
-
-    private List<Node> gasp(@NotNull TeyssierScorer scorer) {
-        double newScore = scorer.score();
-        double oldScore;
-
-        for (int k = 0; k < depth; k++) {
-            if (verbose) {
-                System.out.println("Round " + (k + 1));
-            }
-
-            do {
-                oldScore = newScore;
-                List<NodePair> pairs = scorer.getAdjacencies();
-                shuffle(pairs);
-
-                for (NodePair pair : pairs) {
-                    scorer.bookmark();
-
-                    double sOld = scorer.score();
-                    scorer.tuck(pair.getFirst(), pair.getSecond());
-
-                    if (violatesKnowledge(scorer.getOrder())) {
-                        scorer.goToBookmark();
-                        continue;
-                    }
-
-                    double sNew = scorer.score();
-
-                    if (sNew < sOld) {
-                        scorer.goToBookmark();
-                    }
-                }
-
-                newScore = scorer.score();
-            } while (newScore > oldScore);
+                    + " Score = " + scorer.score()
+                    + " (boss1)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
         return scorer.getOrder();
     }
 
-    private List<Node> quickGasp(@NotNull TeyssierScorer scorer) {
-        for (int k = 0; k < depth; k++) {
+    public List<Node> boss2(@NotNull TeyssierScorer scorer) {
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Initial)");
+        }
+
+        grasp(scorer);
+        betterTriMutation(scorer, (maxPermSize < 0 ? Integer.MAX_VALUE : maxPermSize));
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (boss2)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        return scorer.getOrder();
+    }
+
+    public List<Node> grasp(@NotNull TeyssierScorer scorer) {
+        if (depth <= 0) throw new IllegalArgumentException("Form GRaSP, max depth should be > 0");
+
+        double sOld;
+        double sNew = scorer.score();
+
+        do {
+            sOld = sNew;
+            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, false);
+            sNew = scorer.score();
+        } while (sOld < sNew);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (GRaSP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        return scorer.getOrder();
+    }
+
+    public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
+        if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
+
+        for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
             if (verbose) {
                 System.out.println("Round " + (k + 1));
             }
@@ -372,6 +249,57 @@ public class Boss {
             }
         }
 
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (quickGRaSP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        return scorer.getOrder();
+    }
+
+    public List<Node> esp(@NotNull TeyssierScorer scorer) {
+        if (depth <= 0) throw new IllegalArgumentException("Form ESP, max depth should be > 0");
+
+        double sOld;
+        double sNew = scorer.score();
+
+        do {
+            sOld = sNew;
+            espDfs(scorer, sOld, (depth < 0 ? 100 : depth), 0);
+            sNew = scorer.score();
+        } while (sNew > sOld);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (ESP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        return scorer.getOrder();
+    }
+
+    public List<Node> gsp(@NotNull TeyssierScorer scorer) {
+        if (depth <= 0) throw new IllegalArgumentException("Form GSP, max depth should be > 0");
+
+        double sOld;
+        double sNew = scorer.score();
+
+        do {
+            sOld = sNew;
+            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true);
+            sNew = scorer.score();
+        } while (sOld < sNew);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (GSP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
         return scorer.getOrder();
     }
 
@@ -391,115 +319,198 @@ public class Boss {
             }
         }
 
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (SP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " sp"));
+        }
+
         return maxP;
     }
 
-    public List<Node> swap(List<Node> pi, Node m, Node n) {
-        List<Node> pip = new ArrayList<>(pi);
-
-        int i = pip.indexOf(n);
-        int j = pip.indexOf(m);
-
-        pip.set(i, m);
-        pip.set(j, n);
-
-        return pip;
-    }
-
-    private List<Node> esp(@NotNull TeyssierScorer scorer) {
-        double sOld;
-        double sNew = scorer.score();
+    public void betterMutation(@NotNull TeyssierScorer scorer) {
+        List<Node> pi = scorer.getOrder();
+        double s;
+        double sp = scorer.score(pi);
+        scorer.bookmark();
 
         do {
-            sOld = sNew;
-            espDfs(scorer, sOld, depth, 0);
-            sNew = scorer.score();
-        } while (sOld < sNew);
+            s = sp;
 
-        return scorer.getOrder();
-    }
+            for (Node x : scorer.getOrder()) {
+                sp = NEGATIVE_INFINITY;
+                int index = scorer.index(x);
 
-    private void espDfs(@NotNull TeyssierScorer scorer, double sOld, int maxDepth, int currentDepth) {
-        for (int i = 0; i < scorer.size() - 1; i++) {
-            scorer.swap(scorer.get(i), scorer.get(i + 1));
+                for (int i = index; i >= 0; i--) {
+                    scorer.moveTo(x, i);
 
-            if (violatesKnowledge(scorer.getOrder())) {
-                scorer.swap(scorer.get(i), scorer.get(i + 1));
-                continue;
+                    if (scorer.score() > sp) {
+                        if (!violatesKnowledge(scorer.getOrder())) {
+                            sp = scorer.score();
+                            scorer.bookmark();
+                        }
+                    }
+                }
+
+                scorer.goToBookmark();
+
+                for (int i = index; i < scorer.size(); i++) {
+                    scorer.moveTo(x, i);
+
+                    if (scorer.score() > sp) {
+                        if (!violatesKnowledge(scorer.getOrder())) {
+                            sp = scorer.score();
+                            scorer.bookmark();
+                        }
+                    }
+                }
+
+                scorer.goToBookmark();
             }
+        } while (sp > s);
 
-            double sNew = scorer.score();
-
-            if (sNew == sOld && currentDepth != maxDepth) {
-                espDfs(scorer, sNew, maxDepth, currentDepth + 1);
-                sNew = scorer.score();
-            }
-
-            if (sNew <= sOld) {
-                scorer.swap(scorer.get(i), scorer.get(i + 1));
-            } else {
-                break;
-            }
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (betterMutation)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " sp"));
         }
     }
 
-    private List<Node> tsp(@NotNull TeyssierScorer scorer) {
-        double sOld;
-        double sNew = scorer.score();
+    private void betterTriMutationa(@NotNull TeyssierScorer scorer, int maxPermSize) {
+        if (maxPermSize < 0) throw new IllegalArgumentException("maxPermSize should be >= 0");
 
-        do {
-            sOld = sNew;
-            tspDfs(scorer, sOld, depth, 0);
-            sNew = scorer.score();
-        } while (sOld < sNew);
+        List<Node> pi = scorer.getOrder();
 
-        return scorer.getOrder();
+        W:
+        while (true) {
+            for (int length = 2; length <= maxPermSize; length++) {
+                boolean triangleConditionNeverTrue = true;
+
+                ChoiceGenerator choiceGenerator = new ChoiceGenerator(pi.size(), min(length, pi.size()));
+                int[] choice;
+
+                while ((choice = choiceGenerator.next()) != null) {
+                    if (triangleCondition(scorer, choice)) {
+                        triangleConditionNeverTrue = false;
+                        PermutationGenerator permGen = new PermutationGenerator(choice.length);
+                        int[] perm;
+
+                        while ((perm = permGen.next()) != null) {
+                            List<Node> pip = subMutation(pi, choice, perm);
+
+                            if (scorer.score(pip) > scorer.score(pi)) {
+                                pi = pip;
+                                continue W;
+                            }
+                        }
+                    }
+                }
+
+                if (triangleConditionNeverTrue) {
+                    if (verbose) System.out.println("Breaking at " + length);
+                    break;
+                }
+            }
+
+            break;
+        }
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " max perm size = " + maxPermSize
+                    + " Score = "
+                    + scorer.score()
+                    + " (betterTriMutationA)"
+                    + " Elapsed = " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
     }
 
-    private void tspDfs(@NotNull TeyssierScorer scorer, double sOld, int maxDepth, int currentDepth) {
-        for (NodePair adj : scorer.getAdjacencies()) {
-            if (!scorer.coveredEdge(adj.getFirst(), adj.getSecond())) continue;
-            scorer.bookmark();
-            scorer.tuck(adj.getFirst(), adj.getSecond());
+    private void betterTriMutation(@NotNull TeyssierScorer scorer, int maxPermSize) {
+        if (maxPermSize < 0) throw new IllegalArgumentException("maxPermSize should be >= 0");
 
-            if (violatesKnowledge(scorer.getOrder())) {
-                scorer.goToBookmark();
-                continue;
-            }
+        List<Node> pi = scorer.getOrder();
 
-            double sNew = scorer.score();
+        W:
+        while (true) {
 
-            if (sNew == sOld && currentDepth != maxDepth) {
-                tspDfs(scorer, sNew, maxDepth, currentDepth + 1);
-                sNew = scorer.score();
-            }
+            for (NodePair pair : scorer.getAdjacencies()) {
+                Node x = pair.getFirst();
+                Node y = pair.getSecond();
 
-            if (sNew <= sOld) {
-                scorer.goToBookmark();
-            } else {
+                List<Node> Z = triangleVars(scorer, x, y);
+
+                for (int length = 2; length <= maxPermSize; length++) {
+                    boolean triangleConditionNeverTrue = true;
+
+                    ChoiceGenerator choiceGenerator = new ChoiceGenerator(Z.size(), min(length - 2, Z.size()));
+                    int[] choice;
+
+                    while ((choice = choiceGenerator.next()) != null) {
+                        List<Node> Zp = GraphUtils.asList(choice, Z);
+                        Zp.add(x);
+                        Zp.add(y);
+
+                        int[] choice2 = new int[Zp.size()];
+                        for (int i = 0; i < Zp.size(); i++) choice2[i] = scorer.index(Zp.get(i));
+
+                        if (triangleCondition(scorer, choice2)) {
+                            triangleConditionNeverTrue = false;
+                            PermutationGenerator permGen = new PermutationGenerator(choice2.length);
+                            int[] perm;
+
+                            while ((perm = permGen.next()) != null) {
+                                List<Node> pip = subMutation(scorer.getOrder(), choice2, perm);
+
+                                if (scorer.score(pip) > scorer.score(pi)) {
+                                    pi = pip;
+                                    continue W;
+                                }
+                            }
+                        }
+                    }
+
+                    if (triangleConditionNeverTrue) {
+                        if (verbose) System.out.println("Breaking at " + length);
+                        break;
+                    }
+                }
+
                 break;
             }
+
+            break;
         }
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " max perm size = " + maxPermSize
+                    + " Score = "
+                    + scorer.score()
+                    + " (betterTriMutationB)"
+                    + " Elapsed = " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+    }
+
+    private List<Node> triangleVars(TeyssierScorer scorer, Node x, Node y) {
+        List<Node> Z = new ArrayList<>();
+
+        for (Node z : scorer.getOrder()) {
+            if (z == x || z == y) continue;
+
+            if (scorer.adjacent(x, z) && scorer.adjacent(y, z)) {
+                Z.add(z);
+            }
+        }
+
+        return Z;
     }
 
     @NotNull
     public Graph getGraph(boolean cpDag) {
-        DataModel dataModel;
-
-        if (score != null) {
-            dataModel = score.getData();
-        } else {
-            dataModel = test.getData();
-        }
-
-        Graph graph1 = scorer.getGraph(cpDag);
-
-        if (dataModel != null) {
-            double bic = new BicEst(score).getValue(null, graph1, dataModel);
-            graph1.addAttribute("BIC", bic);
-        }
-
-        return graph1;
+        if (scorer == null) throw new IllegalArgumentException("Please run algorithm first.");
+        return scorer.getGraph(cpDag);
     }
 
     public void setCacheScores(boolean cachingScores) {
@@ -547,9 +558,9 @@ public class Boss {
     }
 
     public void setMaxPermSize(int maxPermSize) {
-        if (maxPermSize < 0) throw new IllegalArgumentException(
-                "Max perm size should be >= 0. This the maximum number of variables that will be " +
-                        "permuted in place. If 2, the permutation step will be ignored.");
+        if (maxPermSize < -1) throw new IllegalArgumentException(
+                "Max perm size should be >= -1. This the maximum number of variables that will be " +
+                        "permuted in place. If 2, the permutation step will be ignored. -1 = unlimited.");
         this.maxPermSize = maxPermSize;
     }
 
@@ -562,5 +573,111 @@ public class Boss {
         this.useScore = useScore;
     }
 
-    public enum Method {BOSS, SP, GASP, QUICK_GASP, ESP, TSP}
+    private boolean violatesKnowledge(List<Node> order) {
+        if (!knowledge.isEmpty()) {
+            for (int i = 0; i < order.size(); i++) {
+                for (int j = i + 1; j < order.size(); j++) {
+                    if (knowledge.isForbidden(order.get(i).getName(), order.get(j).getName())) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private void espDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth) {
+        for (int i = 0; i < scorer.size() - 1; i++) {
+            scorer.swap(scorer.get(i), scorer.get(i + 1));
+
+            if (violatesKnowledge(scorer.getOrder())) {
+                scorer.swap(scorer.get(i), scorer.get(i + 1));
+                continue;
+            }
+
+            double sNew = scorer.score();
+
+            if (sNew == sOld && currentDepth != depth) {
+                espDfs(scorer, sNew, depth, currentDepth + 1);
+                sNew = scorer.score();
+            }
+
+            if (sNew <= sOld) {
+                scorer.swap(scorer.get(i), scorer.get(i + 1));
+            } else {
+                break;
+            }
+        }
+    }
+
+    private void gspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+                        boolean checkCovering) {
+        for (NodePair adj : scorer.getAdjacencies()) {
+            if (checkCovering && !scorer.coveredEdge(adj.getFirst(), adj.getSecond())) continue;
+            scorer.bookmark();
+            scorer.tuck(adj.getFirst(), adj.getSecond());
+
+            if (violatesKnowledge(scorer.getOrder())) {
+                scorer.goToBookmark();
+                continue;
+            }
+
+            double sNew = scorer.score();
+
+            if (sNew == sOld && currentDepth != depth) {
+                gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering);
+                sNew = scorer.score();
+            }
+
+            if (sNew <= sOld) {
+                scorer.goToBookmark();
+            } else {
+                break;
+            }
+        }
+    }
+
+    private boolean triangleCondition(TeyssierScorer scorer, int[] choice) {
+        for (int i = 0; i < choice.length; i++) {
+
+            J:
+            for (int j = i + 1; j < choice.length; j++) {
+                Node x = scorer.get(choice[i]);
+                Node y = scorer.get(choice[j]);
+                if (!scorer.adjacent(x, y)) continue;
+
+                for (int k = 0; k < choice.length; k++) {
+                    if (k == i || k == j) continue;
+                    Node z = scorer.get(choice[k]);
+
+                    if (!(scorer.adjacent(z, x) && scorer.adjacent(z, y)))
+                        continue J;
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private List<Node> subMutation(List<Node> pi, int[] choice, int[] perm) {
+        List<Node> pi2 = new ArrayList<>(pi);
+
+        int[] choice2 = Arrays.copyOf(choice, choice.length);
+        Arrays.sort(choice2);
+
+        for (int i = 0; i < choice.length; i++) {
+            pi2.set(choice2[i], pi.get(choice[perm[i]]));
+        }
+
+        return pi2;
+    }
+
+    public void setNumRounds(int numRounds) {
+        this.numRounds = numRounds;
+    }
+
+    public enum Method {GSP, ESP, GRaSP, quickGRaSP, BOSS1, BOSS2, SP}
 }
