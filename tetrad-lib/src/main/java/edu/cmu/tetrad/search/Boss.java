@@ -8,10 +8,11 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.graph.NodePair;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.PermutationGenerator;
-import org.apache.commons.collections4.bag.SynchronizedSortedBag;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.Math.min;
@@ -197,14 +198,14 @@ public class Boss {
     }
 
     public List<Node> grasp(@NotNull TeyssierScorer scorer) {
-        if (depth < 0) throw new IllegalArgumentException("Form GRaSP, max depth should be > 0");
+        if (depth <= 0) throw new IllegalArgumentException("Form GRaSP, max depth should be > 0");
 
         double sOld;
         double sNew = scorer.score();
 
         do {
             sOld = sNew;
-            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 1, false);
+            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, false);
             sNew = scorer.score();
         } while (sOld < sNew);
 
@@ -218,7 +219,7 @@ public class Boss {
         return scorer.getOrder();
     }
 
-    public List<Node> quickGrasp1(@NotNull TeyssierScorer scorer) {
+    public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
         if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
 
         for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
@@ -227,7 +228,7 @@ public class Boss {
             }
 
             List<NodePair> pairs = scorer.getAdjacencies();
-//            shuffle(pairs);
+            shuffle(pairs);
 
             for (NodePair pair : pairs) {
                 scorer.bookmark();
@@ -251,105 +252,6 @@ public class Boss {
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
-                    + " #round = " + numRounds
-                    + " (quickGRaSP)"
-                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-        }
-
-        return scorer.getOrder();
-    }
-
-    public List<Node> quickGrasp2(@NotNull TeyssierScorer scorer) {
-        if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
-
-//        List<Integer> order = new ArrayList<>();
-//        for (int i = 0; i < scorer.size(); i++) order.add(i);
-
-
-        for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
-//            if (verbose) {
-//                System.out.println("Round " + (k + 1));
-//            }
-
-//            shuffle(order);
-
-            List<Node> order = scorer.getOrder();
-
-
-            for (int i = 0; i < scorer.size(); i++) {
-                for (int j = 0; j < i; j++) {
-                    if (scorer.adjacent(order.get(i), order.get(j))) {
-                        double sOld = scorer.score();
-                        scorer.tuck(order.get(i), order.get(j));
-                        double sNew = scorer.score();
-
-                        if (sNew < sOld) {
-                            scorer.goToBookmark();
-                        }
-                    }
-                }
-            }
-        }
-
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " Score = " + scorer.score()
-                    + " #round = " + numRounds
-                    + " (quickGRaSP)"
-                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-        }
-
-        return scorer.getOrder();
-    }
-
-    public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
-        if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
-
-        List<Node> V = scorer.getOrder();
-
-        for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
-            if (verbose) {
-                System.out.println("Round " + (k + 1));
-            }
-
-            List<Node> order = scorer.getOrder();
-            List<NodePair> pairs = new ArrayList<>();
-
-            for (int i = 0; i < order.size(); i++) {
-                for (int j = 0; j < i; j++) {
-                    Node x = V.get(i);
-                    Node y = V.get(j);
-
-                    if (scorer.adjacent(x, y)) {
-                        pairs.add(new NodePair(x, y));
-                    }
-                }
-            }
-
-            for (int h = 0; h < pairs.size(); h++) {
-                NodePair pair = pairs.get(h);
-                scorer.bookmark();
-
-                double sOld = scorer.score();
-                scorer.tuck(pair.getFirst(), pair.getSecond());
-
-                if (violatesKnowledge(scorer.getOrder())) {
-                    scorer.goToBookmark();
-                    continue;
-                }
-
-                double sNew = scorer.score();
-
-                if (sNew < sOld) {
-                    scorer.goToBookmark();
-                }
-            }
-        }
-
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " Score = " + scorer.score()
-                    + " #round = " + numRounds
                     + " (quickGRaSP)"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
@@ -476,7 +378,7 @@ public class Boss {
         }
     }
 
-    private void betterTriMutation(@NotNull TeyssierScorer scorer, int maxPermSize) {
+    private void betterTriMutationa(@NotNull TeyssierScorer scorer, int maxPermSize) {
         if (maxPermSize < 0) throw new IllegalArgumentException("maxPermSize should be >= 0");
 
         List<Node> pi = scorer.getOrder();
@@ -525,7 +427,7 @@ public class Boss {
         }
     }
 
-    private void betterTriMutationb(@NotNull TeyssierScorer scorer, int maxPermSize) {
+    private void betterTriMutation(@NotNull TeyssierScorer scorer, int maxPermSize) {
         if (maxPermSize < 0) throw new IllegalArgumentException("maxPermSize should be >= 0");
 
         List<Node> pi = scorer.getOrder();
@@ -711,28 +613,26 @@ public class Boss {
 
     private void gspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
                         boolean checkCovering) {
-//        if (verbose) System.out.println("current depth = " + currentDepth);
-
         for (NodePair adj : scorer.getAdjacencies()) {
             if (checkCovering && !scorer.coveredEdge(adj.getFirst(), adj.getSecond())) continue;
             scorer.bookmark();
             scorer.tuck(adj.getFirst(), adj.getSecond());
 
-//            if (violatesKnowledge(scorer.getOrder())) {
-//                scorer.goToBookmark();
-//                continue;
-//            }
+            if (violatesKnowledge(scorer.getOrder())) {
+                scorer.goToBookmark();
+                continue;
+            }
 
             double sNew = scorer.score();
 
-            if (sNew == sOld && currentDepth < depth) {
+            if (sNew == sOld && currentDepth != depth) {
                 gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering);
                 sNew = scorer.score();
             }
 
             if (sNew <= sOld) {
                 scorer.goToBookmark();
-            } else if (!violatesKnowledge(scorer.getOrder())) {
+            } else {
                 break;
             }
         }
