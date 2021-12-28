@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static java.lang.Math.abs;
 import static java.util.Collections.shuffle;
 
 
@@ -36,6 +37,7 @@ public class TeyssierScorer {
     private LinkedList<Set<Node>> prefixes;
     private ScoreType scoreType = ScoreType.Edge;
     private boolean useScore = true;
+    private double runningScore = 0.0;
 
     public TeyssierScorer(IndependenceTest test, Score score) {
         this.score = score;
@@ -80,6 +82,12 @@ public class TeyssierScorer {
 
 
     public double score() {
+//        return runningScore;
+
+//        if (abs(runningScore - sum()) > .001) {
+//            System.out.println("boo " + runningScore + " " + sum());
+//        }
+
         return sum();
     }
 
@@ -272,7 +280,11 @@ public class TeyssierScorer {
         for (int i = 0; i < order.size(); i++) {
             if (!(order.get(i).equals(bookmarkedOrder.get(i)))) {
                 order.set(i, bookmarkedOrder.get(i));
+
+                runningScore -= scores.get(i).getScore();
                 scores.set(i, bookmarkedScores.get(i));
+                runningScore += scores.get(i).getScore();
+
                 orderHash.put(order.get(i), i);
             }
         }
@@ -423,13 +435,15 @@ public class TeyssierScorer {
     }
 
     private double sum() {
-        double score = 0;
+        double score = 0.0;
 
         for (int i = 0; i < order.size(); i++) {
             double score1 = scores.get(i).getScore();
 
-            score += (Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
+            score += score1;//(Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
         }
+
+        this.runningScore = score;
 
         return score;
     }
@@ -437,10 +451,14 @@ public class TeyssierScorer {
     private void initializeScores(int min, int max) {
 
         if (max == size() - 1 && min == 0) {
+            runningScore = 0.0;
             this.scores = new LinkedList<>();
             for (int i1 = 0; i1 < order.size(); i1++) this.scores.add(null);
         } else {
-            for (int i1 = min; i1 <= max; i1++) this.scores.set(i1, null);
+            for (int i1 = min; i1 <= max; i1++) {
+                if (this.scores.get(i1) != null) runningScore -= this.scores.get(i1).getScore();
+                this.scores.set(i1, null);
+            }
         }
 
         if (max == size() - 1 && min == 0) {
@@ -450,6 +468,8 @@ public class TeyssierScorer {
             for (int i1 = min; i1 <= max; i1++) this.prefixes.set(i1, null);
         }
 
+
+
         updateScores(min, max);
     }
 
@@ -458,6 +478,8 @@ public class TeyssierScorer {
             recalculate(i);
             orderHash.put(order.get(i), i);
         }
+
+        score();
     }
 
     private double score(Node n, Set<Node> pi) {
@@ -500,7 +522,14 @@ public class TeyssierScorer {
 
     private void recalculate(int p) {
         if (prefixes.get(p) == null || !prefixes.get(p).containsAll(getPrefix(p))) {
-            scores.set(p, getParentsInternal(p));
+            if (scores.get(p) == null) {
+                scores.set(p, getParentsInternal(p));
+                runningScore += scores.get(p).getScore();
+            } else {
+                runningScore -= scores.get(p).getScore();
+                scores.set(p, getParentsInternal(p));
+                runningScore += scores.get(p).getScore();
+            }
         }
     }
 
