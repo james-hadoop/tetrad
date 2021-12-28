@@ -591,6 +591,8 @@ public class Boss {
     }
 
     private boolean violatesKnowledge(List<Node> order) {
+        if (true) return false;
+
         if (!knowledge.isEmpty()) {
             for (int i = 0; i < order.size(); i++) {
                 for (int j = i + 1; j < order.size(); j++) {
@@ -642,7 +644,7 @@ public class Boss {
 
             double sNew = scorer.score();
 
-            if (sNew == sOld && currentDepth != depth && equalBefore <= 1) {
+            if (sNew == sOld && currentDepth < depth && equalBefore <= 1) {
                 int e = equalBefore;
                 if (sNew == sOld) e++;
                 gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering, e);

@@ -69,25 +69,28 @@ public class TeyssierScorer {
     }
 
     public double score(List<Node> order) {
-        return score(order, 0, order.size() - 1);
-    }
-
-    public double score(List<Node> order, int min, int max) {
+        runningScore = 0.0;
         this.order = new LinkedList<>(order);
-        initializeScores(min, max);
+        this.scores = new LinkedList<>();
+        for (int i1 = 0; i1 < order.size(); i1++) this.scores.add(null);
+        this.prefixes = new LinkedList<>();
+        for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
+        initializeScores();
         this.bookmarkedOrder = new LinkedList<>(this.order);
         this.bookmarkedScores = new LinkedList<>(this.scores);
         return score();
     }
 
+//    public double score(List<Node> order) {
+//        this.order = new LinkedList<>(order);
+//        initializeScores();
+//        this.bookmarkedOrder = new LinkedList<>(this.order);
+//        this.bookmarkedScores = new LinkedList<>(this.scores);
+//        return score();
+//    }
+
 
     public double score() {
-//        return runningScore;
-
-//        if (abs(runningScore - sum()) > .001) {
-//            System.out.println("boo " + runningScore + " " + sum());
-//        }
-
         return sum();
     }
 
@@ -280,10 +283,11 @@ public class TeyssierScorer {
         for (int i = 0; i < order.size(); i++) {
             if (!(order.get(i).equals(bookmarkedOrder.get(i)))) {
                 order.set(i, bookmarkedOrder.get(i));
-
-                runningScore -= scores.get(i).getScore();
+                Pair p1 = scores.get(i);
                 scores.set(i, bookmarkedScores.get(i));
-                runningScore += scores.get(i).getScore();
+                Pair p2 = scores.get(i);
+
+                updateRunningScores(p1, p2);
 
                 orderHash.put(order.get(i), i);
             }
@@ -358,70 +362,6 @@ public class TeyssierScorer {
         return true;
     }
 
-    public enum ScoreType {Edge, SCORE}
-
-    public enum ParentCalculation {GrowShrinkMb, Pearl}
-
-    private static class Pair {
-        private final Set<Node> parents;
-        private final double score;
-
-        private Pair(Set<Node> parents, double score) {
-            this.parents = parents;
-            this.score = score;
-        }
-
-        public Set<Node> getParents() {
-            return parents;
-        }
-
-        public double getScore() {
-            return score;
-        }
-
-        public int hashCode() {
-            return parents.hashCode() + new Double(score).hashCode();
-        }
-
-        public boolean equals(Object o) {
-            if (o == null) return false;
-            if (!(o instanceof Pair)) return false;
-            Pair thatPair = (Pair) o;
-            return this.parents.equals(thatPair.parents) && this.score == thatPair.score;
-        }
-    }
-
-    public static class ScoreKey {
-        private final Node y;
-        private final Set<Node> pi;
-
-        public ScoreKey(Node y, Set<Node> pi) {
-            this.y = y;
-            this.pi = new HashSet<>(pi);
-        }
-
-        public int hashCode() {
-            return 3 * y.hashCode() + 7 * pi.hashCode();
-        }
-
-        public boolean equals(Object o) {
-            if (!(o instanceof ScoreKey)) {
-                return false;
-            }
-
-            ScoreKey spec = (ScoreKey) o;
-            return y.equals(spec.y) && this.pi.equals(spec.pi);
-        }
-
-        public Node getY() {
-            return y;
-        }
-
-        public Set<Node> getPi() {
-            return pi;
-        }
-    }
-
     private boolean validKnowledgeOrder(List<Node> order) {
         for (int i = 0; i < order.size(); i++) {
             for (int j = i + 1; j < order.size(); j++) {
@@ -435,42 +375,34 @@ public class TeyssierScorer {
     }
 
     private double sum() {
+//        if (true) {
+//            return runningScore;
+//        }
+
         double score = 0.0;
 
         for (int i = 0; i < order.size(); i++) {
             double score1 = scores.get(i).getScore();
-
             score += score1;//(Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
         }
 
-        this.runningScore = score;
+//        double diff = abs(score - runningScore);
+//        if (diff > 0) {
+//            System.out.println("boo " + diff + " running = " + runningScore);
+//        }
 
         return score;
     }
 
-    private void initializeScores(int min, int max) {
+    private void initializeScores() {
+        for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.set(i1, null);
 
-        if (max == size() - 1 && min == 0) {
-            runningScore = 0.0;
-            this.scores = new LinkedList<>();
-            for (int i1 = 0; i1 < order.size(); i1++) this.scores.add(null);
-        } else {
-            for (int i1 = min; i1 <= max; i1++) {
-                if (this.scores.get(i1) != null) runningScore -= this.scores.get(i1).getScore();
-                this.scores.set(i1, null);
-            }
+        for (int i = 0; i < order.size(); i++) {
+            recalculate(i);
+            orderHash.put(order.get(i), i);
         }
 
-        if (max == size() - 1 && min == 0) {
-            this.prefixes = new LinkedList<>();
-            for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
-        } else {
-            for (int i1 = min; i1 <= max; i1++) this.prefixes.set(i1, null);
-        }
-
-
-
-        updateScores(min, max);
+        updateScores(0, order.size() - 1);
     }
 
     private void updateScores(int i1, int i2) {
@@ -524,11 +456,29 @@ public class TeyssierScorer {
         if (prefixes.get(p) == null || !prefixes.get(p).containsAll(getPrefix(p))) {
             if (scores.get(p) == null) {
                 scores.set(p, getParentsInternal(p));
-                runningScore += scores.get(p).getScore();
+                updateRunningScores(null, scores.get(p));
             } else {
-                runningScore -= scores.get(p).getScore();
-                scores.set(p, getParentsInternal(p));
-                runningScore += scores.get(p).getScore();
+                Pair p1 = scores.get(p);
+                Pair p2 = getParentsInternal(p);
+                scores.set(p, p2);
+                updateRunningScores(p1, p2);
+            }
+        }
+    }
+
+    double TOLERANCE = .1;
+
+    private void updateRunningScores(Pair p1, Pair p2) {
+        if (p1 == null) {
+            double s2 = p2.getScore();
+            if (abs(s2) > TOLERANCE) runningScore += s2;
+        } else {
+            double s1 = p1.getScore();
+            double s2 = p2.getScore();
+
+            if (abs(s1 - s2) > TOLERANCE) {
+                runningScore -= s1;
+                runningScore += s2;
             }
         }
     }
@@ -685,6 +635,70 @@ public class TeyssierScorer {
             }
         } else {
             throw new IllegalStateException("Unrecognized parent calculation: " + parentCalculation);
+        }
+    }
+
+    public enum ScoreType {Edge, SCORE}
+
+    public enum ParentCalculation {GrowShrinkMb, Pearl}
+
+    private static class Pair {
+        private final Set<Node> parents;
+        private final double score;
+
+        private Pair(Set<Node> parents, double score) {
+            this.parents = parents;
+            this.score = score;
+        }
+
+        public Set<Node> getParents() {
+            return parents;
+        }
+
+        public double getScore() {
+            return score;
+        }
+
+        public int hashCode() {
+            return parents.hashCode() + new Double(score).hashCode();
+        }
+
+        public boolean equals(Object o) {
+            if (o == null) return false;
+            if (!(o instanceof Pair)) return false;
+            Pair thatPair = (Pair) o;
+            return this.parents.equals(thatPair.parents) && this.score == thatPair.score;
+        }
+    }
+
+    public static class ScoreKey {
+        private final Node y;
+        private final Set<Node> pi;
+
+        public ScoreKey(Node y, Set<Node> pi) {
+            this.y = y;
+            this.pi = new HashSet<>(pi);
+        }
+
+        public int hashCode() {
+            return 3 * y.hashCode() + 7 * pi.hashCode();
+        }
+
+        public boolean equals(Object o) {
+            if (!(o instanceof ScoreKey)) {
+                return false;
+            }
+
+            ScoreKey spec = (ScoreKey) o;
+            return y.equals(spec.y) && this.pi.equals(spec.pi);
+        }
+
+        public Node getY() {
+            return y;
+        }
+
+        public Set<Node> getPi() {
+            return pi;
         }
     }
 }
