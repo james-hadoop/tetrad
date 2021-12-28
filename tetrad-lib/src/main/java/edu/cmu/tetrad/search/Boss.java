@@ -198,14 +198,14 @@ public class Boss {
     }
 
     public List<Node> grasp(@NotNull TeyssierScorer scorer) {
-        if (depth <= 0) throw new IllegalArgumentException("Form GRaSP, max depth should be > 0");
+        if (depth < 0) throw new IllegalArgumentException("Form GRaSP, max depth should be >= 0");
 
         double sOld;
         double sNew = scorer.score();
 
         do {
             sOld = sNew;
-            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, false);
+            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, false, 0);
             sNew = scorer.score();
         } while (sNew > sOld);
 
@@ -241,6 +241,8 @@ public class Boss {
                     }
                 }
             }
+
+            shuffle(pairs);
 
             for (NodePair pair : pairs) {
                 scorer.bookmark();
@@ -304,7 +306,7 @@ public class Boss {
 
         do {
             sOld = sNew;
-            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true);
+            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true, 0);
             sNew = scorer.score();
         } while (sOld < sNew);
 
@@ -627,7 +629,7 @@ public class Boss {
     }
 
     private void gspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
-                        boolean checkCovering) {
+                        boolean checkCovering, int equalBefore) {
         for (NodePair adj : scorer.getAdjacencies()) {
             if (checkCovering && !scorer.coveredEdge(adj.getFirst(), adj.getSecond())) continue;
             scorer.bookmark();
@@ -640,8 +642,10 @@ public class Boss {
 
             double sNew = scorer.score();
 
-            if (sNew == sOld && currentDepth != depth) {
-                gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering);
+            if (sNew == sOld && currentDepth != depth && equalBefore <= 1) {
+                int e = equalBefore;
+                if (sNew == sOld) e++;
+                gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering, e);
                 sNew = scorer.score();
             }
 

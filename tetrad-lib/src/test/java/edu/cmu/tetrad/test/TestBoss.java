@@ -943,7 +943,7 @@ public final class TestBoss {
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
         parameters.set(Params.MAX_PERM_SIZE, 3);
-        parameters.set(Params.GSP_DEPTH, 3);
+        parameters.set(Params.GSP_DEPTH, Integer.MAX_VALUE);
         parameters.set(Params.NUM_ROUNDS, 10);
 
         parameters.set(Params.NUM_RUNS, 100);
@@ -1619,8 +1619,7 @@ public final class TestBoss {
 
                     Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                     search.setMaxPermSize(6);
-                    search.setDepth(3);
-//                    search.setDepth((method == BOSS1 || method == BOSS2 || method == GRaSP || method == quickGRaSP) ? 20 : 5);
+                    search.setDepth(10);
                     search.setMethod(method);
                     search.setNumRounds(100);
                     List<Node> order = search.bestOrder(p);
@@ -1697,10 +1696,10 @@ public final class TestBoss {
 
                     Boss search = new Boss(new IndTestDSep(facts.getFacts()));
 //                    search.setMaxPermSize(6);
-                    search.setDepth(3);
+                    search.setDepth(Integer.MAX_VALUE);
 //                    search.setDepth((method == BOSS1 || method == BOSS2 || method == GRaSP || method == quickGRaSP) ? 20 : 5);
                     search.setMethod(method);
-                    search.setNumRounds(5);
+                    search.setNumRounds(20);
 //                    search.setVerbose(true);
                     List<Node> order = search.bestOrder(p);
                 System.out.println(p + " " + order + " " + search.getNumEdges());// + " " + search.getGraph(false));
@@ -1750,12 +1749,12 @@ public final class TestBoss {
         }
 
         for (Boss.Method method : new Boss.Method[]{
-                BOSS1,
-                BOSS2,
+//                BOSS1,
+//                BOSS2,
                 GRaSP,
-                quickGRaSP,
-                ESP,
-                GSP
+//                quickGRaSP,
+//                ESP,
+//                GSP
         }) {
             System.out.println("\n\n" + method);
 
@@ -1783,7 +1782,7 @@ public final class TestBoss {
 
                     Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                     search.setMaxPermSize(7);
-                    search.setDepth(7);
+                    search.setDepth(Integer.MAX_VALUE);
 //                    search.setDepth((method == BOSS1 || method == BOSS2 || method == GRaSP || method == quickGRaSP) ? 20 : 5);
                     search.setMethod(method);
                     search.setNumRounds(100);
