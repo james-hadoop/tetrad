@@ -944,11 +944,11 @@ public final class TestBoss {
         parameters.set(Params.OUTPUT_CPDAG, true);
         parameters.set(Params.MAX_PERM_SIZE, 3);
         parameters.set(Params.GSP_DEPTH, 3);
-        parameters.set(Params.NUM_ROUNDS, 3);
+        parameters.set(Params.NUM_ROUNDS, 10);
 
         parameters.set(Params.NUM_RUNS, 100);
 
-        parameters.set(Params.BOSS_METHOD, 1, 2);//, 3, 4, 5, 6);
+        parameters.set(Params.BOSS_METHOD, 4);//1, 2);//, 3, 4, 5, 6);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.BOSS_METHOD));
@@ -992,7 +992,7 @@ public final class TestBoss {
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
         parameters.set(Params.MAX_PERM_SIZE, 2);
-//        parameters.set(Params.GASP_NUM_ROUNDS, 6);
+        parameters.set(Params.NUM_ROUNDS, 6);
 
         parameters.set(Params.SAMPLE_SIZE, 1000000);
 
@@ -1586,10 +1586,10 @@ public final class TestBoss {
         }
 
         for (Boss.Method method : new Boss.Method[]{
-                BOSS1,
-                BOSS2,
+//                BOSS1,
+//                BOSS2,
 //                GRaSP,
-//                quickGRaSP,
+                quickGRaSP,
 //                ESP,
 //                GSP
         }) {
@@ -1667,8 +1667,8 @@ public final class TestBoss {
         for (Boss.Method method : new Boss.Method[]{
 //                BOSS1,
 //                BOSS2,
-                GRaSP,
-//                quickGRaSP,
+//                GRaSP,
+                quickGRaSP,
 //                ESP,
 //                GSP
         }) {

@@ -207,7 +207,7 @@ public class Boss {
             sOld = sNew;
             gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, false);
             sNew = scorer.score();
-        } while (sOld < sNew);
+        } while (sNew > sOld);
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
@@ -218,46 +218,6 @@ public class Boss {
 
         return scorer.getOrder();
     }
-
-//    public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
-//        if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
-//
-//        for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
-//            if (verbose) {
-//                System.out.println("Round " + (k + 1));
-//            }
-//
-//            List<NodePair> pairs = scorer.getAdjacencies();
-//            shuffle(pairs);
-//
-//            for (NodePair pair : pairs) {
-//                scorer.bookmark();
-//
-//                double sOld = scorer.score();
-//                scorer.tuck(pair.getFirst(), pair.getSecond());
-//
-//                if (violatesKnowledge(scorer.getOrder())) {
-//                    scorer.goToBookmark();
-//                    continue;
-//                }
-//
-//                double sNew = scorer.score();
-//
-//                if (sNew < sOld) {
-//                    scorer.goToBookmark();
-//                }
-//            }
-//        }
-//
-//        if (verbose) {
-//            System.out.println("# Edges = " + scorer.getNumEdges()
-//                    + " Score = " + scorer.score()
-//                    + " (quickGRaSP)"
-//                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-//        }
-//
-//        return scorer.getOrder();
-//    }
 
     public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
         if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
@@ -286,6 +246,8 @@ public class Boss {
                 scorer.bookmark();
 
                 double sOld = scorer.score();
+
+                if (!scorer.adjacent(pair.getFirst(), pair.getSecond())) continue;
                 scorer.tuck(pair.getFirst(), pair.getSecond());
 
                 if (violatesKnowledge(scorer.getOrder())) {
@@ -431,7 +393,7 @@ public class Boss {
         }
     }
 
-    private void betterTriMutationa(@NotNull TeyssierScorer scorer, int maxPermSize) {
+    private void betterTriMutation(@NotNull TeyssierScorer scorer, int maxPermSize) {
         if (maxPermSize < 0) throw new IllegalArgumentException("maxPermSize should be >= 0");
 
         List<Node> pi = scorer.getOrder();
@@ -480,7 +442,7 @@ public class Boss {
         }
     }
 
-    private void betterTriMutation(@NotNull TeyssierScorer scorer, int maxPermSize) {
+    private void betterTriMutationb(@NotNull TeyssierScorer scorer, int maxPermSize) {
         if (maxPermSize < 0) throw new IllegalArgumentException("maxPermSize should be >= 0");
 
         List<Node> pi = scorer.getOrder();
