@@ -943,7 +943,8 @@ public final class TestBoss {
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
         parameters.set(Params.MAX_PERM_SIZE, 3);
-        parameters.set(Params.GSP_DEPTH, 4);
+        parameters.set(Params.GSP_DEPTH, 3);
+        parameters.set(Params.NUM_ROUNDS, 3);
 
         parameters.set(Params.NUM_RUNS, 100);
 
@@ -954,7 +955,6 @@ public final class TestBoss {
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new NumberOfEdgesTrue());
-        statistics.add(new NumberOfEdgesEst());
         statistics.add(new SHD_CPDAG());
         statistics.add(new ElapsedTime());
 
@@ -972,6 +972,7 @@ public final class TestBoss {
         comparison.setShowAlgorithmIndices(true);
         comparison.setTabDelimitedTables(false);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+        comparison.setSaveData(false);
 
         comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/soluscomparison",
                 simulations, algorithms, statistics, parameters);
@@ -1204,7 +1205,7 @@ public final class TestBoss {
         return new Ret("Solus Theorem 12, TSP !==> Orientation Faithfulness (Figure 11)", facts, 12);
     }
 
-    public Ret getBryanWorseCase() {
+    public Ret getBryanWorseCase2Parents2Children() {
         Node x1 = new GraphNode("1");
         Node x2 = new GraphNode("2");
         Node x3 = new GraphNode("3");
@@ -1245,6 +1246,61 @@ public final class TestBoss {
         IndependenceFacts facts = new IndependenceFacts(graph);
 
         return new Ret("Bryan's 6-variable worst case", facts, 14);
+    }
+
+    public Ret getBryanWorseCaseMParentsNChildren(int m, int n) {
+        int newCount = 1;
+        int layerCount = 0;
+        List<List<Node>> layers = new ArrayList<>();
+        List<Node> nodes = new ArrayList<>();
+
+        for (int l = 0; l < 3; l++) {
+            layers.add(new ArrayList<>());
+        }
+
+        for (int i = 0; i < m; i++) {
+            GraphNode node = new GraphNode("" + (newCount++));
+            layers.get(0).add(node);
+            nodes.add(node);
+        }
+
+        for (int i = 0; i < 2; i++) {
+            GraphNode node = new GraphNode("" + (newCount++));
+            layers.get(1).add(node);
+            nodes.add(node);
+        }
+
+        for (int i = 0; i < n; i++) {
+            GraphNode node = new GraphNode("" + (newCount++));
+            layers.get(2).add(node);
+            nodes.add(node);
+        }
+
+        Graph graph = new EdgeListGraph(nodes);
+
+        for (int l1 = 0; l1 < layers.size(); l1++) {
+            for (int l2 = l1; l2 < layers.size(); l2++) {
+                for (int i = 0; i < layers.get(l1).size(); i++) {
+                    for (int j = 0; j < layers.get(l2).size(); j++) {
+
+                        if (l1 == 1 && l2 == 1) continue;
+                        Node node1 = layers.get(l1).get(i);
+                        Node node2 = layers.get(l2).get(j);
+
+                        if (node1 == node2) continue;
+                        if (graph.isAdjacentTo(node1, node2)) continue;
+
+                        graph.addDirectedEdge(node1, node2);
+                    }
+                }
+            }
+        }
+
+        System.out.println(graph);
+
+        IndependenceFacts facts = new IndependenceFacts(graph);
+
+        return new Ret("Bryan's worst case, m = " + m + " n = " + n, facts, graph.getNumEdges());
     }
 
     public Ret getFigure7() {
@@ -1512,8 +1568,7 @@ public final class TestBoss {
         allFacts.add(getFigure7());
         allFacts.add(getFigure11());
 
-        allFacts.add(getBryanWorseCase());
-
+        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
 
 
         int count = 0;
@@ -1564,7 +1619,7 @@ public final class TestBoss {
 
                     Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                     search.setMaxPermSize(6);
-                    search.setDepth(7);
+                    search.setDepth(3);
 //                    search.setDepth((method == BOSS1 || method == BOSS2 || method == GRaSP || method == quickGRaSP) ? 20 : 5);
                     search.setMethod(method);
                     search.setNumRounds(100);
@@ -1574,6 +1629,85 @@ public final class TestBoss {
                     if (search.getNumEdges() != facts.getTruth()) {
                         passed = false;
                         break;
+                    }
+
+//                Pc search = new Pc(new IndTestDSep(facts.getFacts()));
+//                System.out.println(p + " " + search.search().getNumEdges());
+
+//                Fges search = new Fges(new GraphScore(facts.getFacts()));
+//                System.out.println(p + " " + search.search().getNumEdges());
+
+                }
+
+                System.out.println((i + 1) + " " + (passed ? "P " : "F"));
+            }
+        }
+    }
+
+    @Test
+    public void testWorstCaseExamples() {
+        List<Ret> allFacts = new ArrayList<>();
+
+        allFacts.add(getBryanWorseCaseMParentsNChildren(3, 2));
+
+        int count = 0;
+
+        boolean printCpdag = false;
+
+        for (int i = 0; i < allFacts.size(); i++) {
+            Ret facts = allFacts.get(i);
+            count++;
+
+            System.out.println();
+            System.out.println("Test #" + (i + 1));
+            System.out.println(facts.getLabel());
+            System.out.println(facts.getFacts());
+        }
+
+        for (Boss.Method method : new Boss.Method[]{
+//                BOSS1,
+//                BOSS2,
+                GRaSP,
+//                quickGRaSP,
+//                ESP,
+//                GSP
+        }) {
+            System.out.println("\n\n" + method);
+
+            for (int i = 0; i < allFacts.size(); i++) {
+                boolean passed = true;
+
+                Ret facts = allFacts.get(i);
+                count++;
+
+                TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
+                        new GraphScore(facts.getFacts()));
+
+                OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
+                OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
+
+                List<Node> variables = facts.facts.getVariables();
+                Collections.sort(variables);
+
+                PermutationGenerator gen = new PermutationGenerator(variables.size());
+                int[] perm;
+
+                while ((perm = gen.next()) != null) {
+                    List<Node> p = GraphUtils.asList(perm, variables);
+
+                    Boss search = new Boss(new IndTestDSep(facts.getFacts()));
+//                    search.setMaxPermSize(6);
+                    search.setDepth(3);
+//                    search.setDepth((method == BOSS1 || method == BOSS2 || method == GRaSP || method == quickGRaSP) ? 20 : 5);
+                    search.setMethod(method);
+                    search.setNumRounds(5);
+//                    search.setVerbose(true);
+                    List<Node> order = search.bestOrder(p);
+                System.out.println(p + " " + order + " " + search.getNumEdges());// + " " + search.getGraph(false));
+
+                    if (search.getNumEdges() != facts.getTruth()) {
+                        passed = false;
+//                        break;
                     }
 
 //                Pc search = new Pc(new IndTestDSep(facts.getFacts()));

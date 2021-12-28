@@ -219,16 +219,68 @@ public class Boss {
         return scorer.getOrder();
     }
 
+//    public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
+//        if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
+//
+//        for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
+//            if (verbose) {
+//                System.out.println("Round " + (k + 1));
+//            }
+//
+//            List<NodePair> pairs = scorer.getAdjacencies();
+//            shuffle(pairs);
+//
+//            for (NodePair pair : pairs) {
+//                scorer.bookmark();
+//
+//                double sOld = scorer.score();
+//                scorer.tuck(pair.getFirst(), pair.getSecond());
+//
+//                if (violatesKnowledge(scorer.getOrder())) {
+//                    scorer.goToBookmark();
+//                    continue;
+//                }
+//
+//                double sNew = scorer.score();
+//
+//                if (sNew < sOld) {
+//                    scorer.goToBookmark();
+//                }
+//            }
+//        }
+//
+//        if (verbose) {
+//            System.out.println("# Edges = " + scorer.getNumEdges()
+//                    + " Score = " + scorer.score()
+//                    + " (quickGRaSP)"
+//                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+//        }
+//
+//        return scorer.getOrder();
+//    }
+
     public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
         if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
+
+        List<Node> V = scorer.getOrder();
 
         for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
             if (verbose) {
                 System.out.println("Round " + (k + 1));
             }
 
-            List<NodePair> pairs = scorer.getAdjacencies();
-            shuffle(pairs);
+            List<NodePair> pairs = new ArrayList<>();
+
+            for (int i = 0; i < V.size(); i++) {
+                for (int j = 0; j < i; j++) {
+                    Node x = V.get(i);
+                    Node y = V.get(j);
+
+                    if (scorer.adjacent(x, y)) {
+                        pairs.add(new NodePair(x, y));
+                    }
+                }
+            }
 
             for (NodePair pair : pairs) {
                 scorer.bookmark();
@@ -252,6 +304,7 @@ public class Boss {
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
+                    + " #round = " + numRounds
                     + " (quickGRaSP)"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
