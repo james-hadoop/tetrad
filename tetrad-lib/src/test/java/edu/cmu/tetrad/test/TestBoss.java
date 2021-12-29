@@ -943,12 +943,12 @@ public final class TestBoss {
         parameters.set(Params.USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
         parameters.set(Params.MAX_PERM_SIZE, 3);
-        parameters.set(Params.GSP_DEPTH, Integer.MAX_VALUE);
+        parameters.set(Params.GSP_DEPTH, 3);
         parameters.set(Params.NUM_ROUNDS, 10);
 
         parameters.set(Params.NUM_RUNS, 100);
 
-        parameters.set(Params.BOSS_METHOD, 4);//1, 2);//, 3, 4, 5, 6);
+        parameters.set(Params.BOSS_METHOD, 5);//1, 2);//, 3, 4, 5, 6);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.BOSS_METHOD));

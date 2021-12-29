@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.floor;
 import static java.util.Collections.shuffle;
 
 
@@ -27,6 +28,7 @@ public class TeyssierScorer {
     private final Score score;
     private final IndependenceTest test;
     private final Map<Node, Integer> orderHash;
+    private final double tolerance = -1;
     private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
     private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
     private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
@@ -37,7 +39,8 @@ public class TeyssierScorer {
     private LinkedList<Set<Node>> prefixes;
     private ScoreType scoreType = ScoreType.Edge;
     private boolean useScore = true;
-    private double runningScore = 0.0;
+    private double runningScore = 0D;
+    private boolean useRunningScore = false;
 
     public TeyssierScorer(IndependenceTest test, Score score) {
         this.score = score;
@@ -68,19 +71,6 @@ public class TeyssierScorer {
         this.knowledge = knowledge;
     }
 
-    public double score(List<Node> order) {
-        runningScore = 0.0;
-        this.order = new LinkedList<>(order);
-        this.scores = new LinkedList<>();
-        for (int i1 = 0; i1 < order.size(); i1++) this.scores.add(null);
-        this.prefixes = new LinkedList<>();
-        for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
-        initializeScores();
-        this.bookmarkedOrder = new LinkedList<>(this.order);
-        this.bookmarkedScores = new LinkedList<>(this.scores);
-        return score();
-    }
-
 //    public double score(List<Node> order) {
 //        this.order = new LinkedList<>(order);
 //        initializeScores();
@@ -89,6 +79,22 @@ public class TeyssierScorer {
 //        return score();
 //    }
 
+    public double score(List<Node> order) {
+        runningScore = 0D;
+        this.order = new LinkedList<>(order);
+        this.scores = new LinkedList<>();
+
+        for (int i1 = 0; i1 < order.size(); i1++) {
+            this.scores.add(null);
+        }
+
+        this.prefixes = new LinkedList<>();
+        for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
+        initializeScores();
+        this.bookmarkedOrder = new LinkedList<>(this.order);
+        this.bookmarkedScores = new LinkedList<>(this.scores);
+        return score();
+    }
 
     public double score() {
         return sum();
@@ -339,7 +345,6 @@ public class TeyssierScorer {
         this.parentCalculation = parentCalculation;
     }
 
-
     public boolean triangle(Node x, Node y, Node z) {
         return adjacent(x, y) && adjacent(y, z) && adjacent(x, z);
     }
@@ -375,23 +380,18 @@ public class TeyssierScorer {
     }
 
     private double sum() {
-//        if (true) {
-//            return runningScore;
-//        }
+        if (useRunningScore) {
+            return runningScore;
+        }
 
-        double score = 0.0;
+        double sum = 0.0;
 
         for (int i = 0; i < order.size(); i++) {
             double score1 = scores.get(i).getScore();
-            score += score1;//(Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
+            sum += score1;//(Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
         }
 
-//        double diff = abs(score - runningScore);
-//        if (diff > 0) {
-//            System.out.println("boo " + diff + " running = " + runningScore);
-//        }
-
-        return score;
+        return sum;
     }
 
     private void initializeScores() {
@@ -454,31 +454,30 @@ public class TeyssierScorer {
 
     private void recalculate(int p) {
         if (prefixes.get(p) == null || !prefixes.get(p).containsAll(getPrefix(p))) {
-            if (scores.get(p) == null) {
-                scores.set(p, getParentsInternal(p));
-                updateRunningScores(null, scores.get(p));
-            } else {
-                Pair p1 = scores.get(p);
-                Pair p2 = getParentsInternal(p);
-                scores.set(p, p2);
-                updateRunningScores(p1, p2);
-            }
+            Pair p1 = scores.get(p);
+            Pair p2 = getParentsInternal(p);
+            updateRunningScores(p1, p2);
+            scores.set(p, p2);
         }
     }
 
-    double TOLERANCE = .1;
-
     private void updateRunningScores(Pair p1, Pair p2) {
-        if (p1 == null) {
-            double s2 = p2.getScore();
-            if (abs(s2) > TOLERANCE) runningScore += s2;
-        } else {
-            double s1 = p1.getScore();
-            double s2 = p2.getScore();
+        if (p1 != null || p2 != null) {
+            if (p1 == null) {
+                double s2 = p2.getScore();
+                runningScore += s2;
+                runningScore = floor(1.e10 * runningScore) / 1.e10;
+            } else if (p2 == null) {
+                double s1 = p1.getScore();
+                runningScore -= s1;
+                runningScore = floor(1.e10 * runningScore) / 1.e10;
+            } else {
+                double s1 = p1.getScore();
+                double s2 = p2.getScore();
 
-            if (abs(s1 - s2) > TOLERANCE) {
                 runningScore -= s1;
                 runningScore += s2;
+                runningScore = floor(1.e10 * runningScore) / 1.e10;
             }
         }
     }
@@ -528,7 +527,7 @@ public class TeyssierScorer {
 
                 double s2 = score(n, parents);
 
-                if (s2 > sMax) {
+                if (s2 >= sMax) {
                     sMax = s2;
                     z = z0;
                 }
@@ -555,7 +554,7 @@ public class TeyssierScorer {
 
                 double s2 = score(n, parents);
 
-                if (s2 > sMax) {
+                if (s2 >= sMax) {
                     sMax = s2;
                     w = z0;
                 }
@@ -636,6 +635,10 @@ public class TeyssierScorer {
         } else {
             throw new IllegalStateException("Unrecognized parent calculation: " + parentCalculation);
         }
+    }
+
+    public void setUseRunningScore(boolean useRunningScore) {
+        this.useRunningScore = useRunningScore;
     }
 
     public enum ScoreType {Edge, SCORE}

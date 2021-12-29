@@ -1267,8 +1267,6 @@ public final class Fges implements GraphSearch, GraphScorer {
         if (score instanceof GraphScore) return 0.0;
         dag = GraphUtils.replaceNodes(dag, getVariables());
 
-        if (dag == null) throw new NullPointerException("DAG not specified.");
-
         Score score;
 
         DataModel data = this.score.getData();

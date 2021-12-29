@@ -199,13 +199,14 @@ public class Boss {
 
     public List<Node> grasp(@NotNull TeyssierScorer scorer) {
         if (depth < 0) throw new IllegalArgumentException("Form GRaSP, max depth should be >= 0");
+        scorer.setUseRunningScore(true);
 
         double sOld;
         double sNew = scorer.score();
 
         do {
             sOld = sNew;
-            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, false, 0);
+            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, false);
             sNew = scorer.score();
         } while (sNew > sOld);
 
@@ -221,12 +222,17 @@ public class Boss {
 
     public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
         if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
+        scorer.setUseRunningScore(true);
+
+        if (verbose) {
+            System.out.println("Initial # edges = " + scorer.getNumEdges());
+        }
 
         List<Node> V = scorer.getOrder();
 
         for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
             if (verbose) {
-                System.out.println("Round " + (k + 1));
+                System.out.print("Round " + (k + 1));
             }
 
             List<NodePair> pairs = new ArrayList<>();
@@ -243,6 +249,9 @@ public class Boss {
             }
 
             shuffle(pairs);
+
+            int numImprovements = 0;
+            int numEquals = 0;
 
             for (NodePair pair : pairs) {
                 scorer.bookmark();
@@ -262,6 +271,24 @@ public class Boss {
                 if (sNew < sOld) {
                     scorer.goToBookmark();
                 }
+
+                if (sNew > sOld) {
+                    numImprovements++;
+                }
+
+                if (sNew == sOld) {
+                    numEquals++;
+                }
+            }
+
+            if (verbose) {
+                System.out.println(" # improvements = " + numImprovements
+                    + " # equals = " + numEquals
+                    + " # edges = " + scorer.getNumEdges());
+            }
+
+            if (numImprovements == 0) {
+                break;
             }
         }
 
@@ -284,7 +311,7 @@ public class Boss {
 
         do {
             sOld = sNew;
-            espDfs(scorer, sOld, (depth < 0 ? 100 : depth), 0);
+            espDfs(scorer, sOld, (depth < 0 ? 100 : depth), 1);
             sNew = scorer.score();
         } while (sNew > sOld);
 
@@ -306,7 +333,7 @@ public class Boss {
 
         do {
             sOld = sNew;
-            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true, 0);
+            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true);
             sNew = scorer.score();
         } while (sOld < sNew);
 
@@ -591,8 +618,6 @@ public class Boss {
     }
 
     private boolean violatesKnowledge(List<Node> order) {
-        if (true) return false;
-
         if (!knowledge.isEmpty()) {
             for (int i = 0; i < order.size(); i++) {
                 for (int j = i + 1; j < order.size(); j++) {
@@ -631,7 +656,7 @@ public class Boss {
     }
 
     private void gspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
-                        boolean checkCovering, int equalBefore) {
+                        boolean checkCovering) {
         for (NodePair adj : scorer.getAdjacencies()) {
             if (checkCovering && !scorer.coveredEdge(adj.getFirst(), adj.getSecond())) continue;
             scorer.bookmark();
@@ -644,10 +669,8 @@ public class Boss {
 
             double sNew = scorer.score();
 
-            if (sNew == sOld && currentDepth < depth && equalBefore <= 1) {
-                int e = equalBefore;
-                if (sNew == sOld) e++;
-                gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering, e);
+            if (sNew == sOld && currentDepth < depth) {
+                gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering);
                 sNew = scorer.score();
             }
 

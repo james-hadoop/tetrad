@@ -261,7 +261,7 @@ public class ZhangShenBoundScore implements Score {
 
     @Override
     public List<Node> getVariables() {
-        return variables;
+        return new ArrayList<>(variables);
     }
 
     @Override

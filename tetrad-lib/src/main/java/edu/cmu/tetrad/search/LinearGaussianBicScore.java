@@ -331,7 +331,7 @@ public class LinearGaussianBicScore implements Score {
 
     @Override
     public List<Node> getVariables() {
-        return variables;
+        return new ArrayList<>(variables);
     }
 
     public void setVariables(List<Node> variables) {

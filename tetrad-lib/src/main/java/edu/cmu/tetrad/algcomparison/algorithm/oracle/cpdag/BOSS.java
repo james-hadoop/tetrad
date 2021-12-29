@@ -104,9 +104,9 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
             boss.setKnowledge(dataSet.getKnowledge());
-            boss.setMaxPermSize(parameters.getInt(Params.MAX_PERM_SIZE));
             boss.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
             boss.setDepth(parameters.getInt(Params.GSP_DEPTH));
+            boss.setMaxPermSize(parameters.getInt(Params.MAX_PERM_SIZE));
             boss.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
