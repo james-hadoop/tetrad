@@ -10,11 +10,10 @@ import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.Collections.shuffle;
 
@@ -222,25 +221,26 @@ public class Boss {
 
     public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
         if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
-        scorer.setUseRunningScore(true);
 
         if (verbose) {
-            System.out.println("Initial # edges = " + scorer.getNumEdges());
+            System.out.println("\nInitial # edges = " + scorer.getNumEdges());
         }
 
-        List<Node> V = scorer.getOrder();
+//        List<Node> V = scorer.getOrder();
+        List<Node> maxPi = scorer.getOrder();
+        double maxScore = scorer.score();
 
-        for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
-            if (verbose) {
-                System.out.print("Round " + (k + 1));
-            }
+        for (int k = 0; k <= (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
+//            if (verbose) {
+//                System.out.print("Round " + (k + 1));
+//            }
 
             List<NodePair> pairs = new ArrayList<>();
 
-            for (int i = 0; i < V.size(); i++) {
+            for (int i = 0; i < maxPi.size(); i++) {
                 for (int j = 0; j < i; j++) {
-                    Node x = V.get(i);
-                    Node y = V.get(j);
+                    Node x = maxPi.get(i);
+                    Node y = maxPi.get(j);
 
                     if (scorer.adjacent(x, y)) {
                         pairs.add(new NodePair(x, y));
@@ -252,6 +252,8 @@ public class Boss {
 
             int numImprovements = 0;
             int numEquals = 0;
+
+            Set<NodePair> equals = new HashSet<>();
 
             for (NodePair pair : pairs) {
                 scorer.bookmark();
@@ -278,29 +280,38 @@ public class Boss {
 
                 if (sNew == sOld) {
                     numEquals++;
+                    equals.add(pair);
                 }
             }
 
-            if (verbose) {
-                System.out.println(" # improvements = " + numImprovements
-                    + " # equals = " + numEquals
-                    + " # edges = " + scorer.getNumEdges());
-            }
+//            if (numImprovements == 0) {
+//                break;
+//            }
 
-            if (numImprovements == 0) {
-                break;
+            if (scorer.score() > maxScore) {
+                maxPi = scorer.getOrder();
+                maxScore = scorer.score();
+
+                if (verbose) {
+                    System.out.println("Round " + (k + 1) + " # improvements = " + numImprovements
+                            + " # equals = " + numEquals
+                            + " # edges = " + scorer.getNumEdges());
+//                    System.out.println("\t\t^^ Equals pairs = " + equals);
+                }
             }
         }
 
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " Score = " + scorer.score()
-                    + " #round = " + numRounds
-                    + " (quickGRaSP)"
-                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-        }
+        scorer.score(maxPi);
 
-        return scorer.getOrder();
+//        if (verbose) {
+//            System.out.println("# Edges = " + scorer.getNumEdges()
+//                    + " Score = " + scorer.score()
+//                    + " #round = " + numRounds
+//                    + " (quickGRaSP)"
+//                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+//        }
+
+        return maxPi;
     }
 
     public List<Node> esp(@NotNull TeyssierScorer scorer) {
@@ -642,7 +653,7 @@ public class Boss {
 
             double sNew = scorer.score();
 
-            if (sNew == sOld && currentDepth != depth) {
+            if (sNew == sOld && currentDepth < depth) {
                 espDfs(scorer, sNew, depth, currentDepth + 1);
                 sNew = scorer.score();
             }
@@ -705,6 +716,7 @@ public class Boss {
 
         return false;
     }
+
 
     private List<Node> subMutation(List<Node> pi, int[] choice, int[] perm) {
         List<Node> pi2 = new ArrayList<>(pi);

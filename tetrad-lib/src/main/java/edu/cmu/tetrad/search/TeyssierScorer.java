@@ -380,9 +380,9 @@ public class TeyssierScorer {
     }
 
     private double sum() {
-        if (useRunningScore) {
-            return runningScore;
-        }
+//        if (useRunningScore) {
+//            return runningScore;
+//        }
 
         double sum = 0.0;
 

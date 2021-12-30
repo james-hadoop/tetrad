@@ -1567,11 +1567,14 @@ public final class TestBoss {
         allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
         allFacts.add(getFigure7());
         allFacts.add(getFigure11());
-
-        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
+//
+//        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
 
 
         int count = 0;
+
+        boolean verbose = false;
+        int numRounds = 20;
 
         boolean printCpdag = false;
 
@@ -1607,7 +1610,6 @@ public final class TestBoss {
                 OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
                 OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
 
-
                 List<Node> variables = facts.facts.getVariables();
                 Collections.sort(variables);
 
@@ -1621,9 +1623,10 @@ public final class TestBoss {
                     search.setMaxPermSize(6);
                     search.setDepth(10);
                     search.setMethod(method);
-                    search.setNumRounds(100);
+                    search.setNumRounds(numRounds);
+                    search.setVerbose(verbose);
                     List<Node> order = search.bestOrder(p);
-//                System.out.println(p + " " + order + " " + search.getNumEdges() + " " + search.getGraph(false));
+//                    System.out.println(p + " " + order + " " + search.getNumEdges());// + " " + search.getGraph(false));
 
                     if (search.getNumEdges() != facts.getTruth()) {
                         passed = false;
@@ -1702,7 +1705,7 @@ public final class TestBoss {
                     search.setNumRounds(20);
 //                    search.setVerbose(true);
                     List<Node> order = search.bestOrder(p);
-                System.out.println(p + " " + order + " " + search.getNumEdges());// + " " + search.getGraph(false));
+                    System.out.println(p + " " + order + " " + search.getNumEdges());// + " " + search.getGraph(false));
 
                     if (search.getNumEdges() != facts.getTruth()) {
                         passed = false;
