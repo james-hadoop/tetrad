@@ -15,7 +15,6 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
-import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.Collections.shuffle;
 
@@ -236,7 +235,10 @@ public class Boss {
         List<Node> pi = scorer.getOrder();
         double s0 = scorer.score();
 
-        for (int k = 0; k <= (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
+        for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
+            System.out.println("### Round " + (k + 1));
+            scorer.restartCache();
+
             List<NodePair> pairs = new ArrayList<>();
 
             for (int i = 0; i < pi.size(); i++) {
@@ -259,8 +261,6 @@ public class Boss {
 
             for (int w = 0; w < pairs.size(); w++) {
                 NodePair pair = pairs.get(w);
-//            }
-//            for (NodePair pair : pairs) {
                 scorer.bookmark();
 
                 if (!scorer.adjacent(pair.getFirst(), pair.getSecond())) continue;
@@ -284,9 +284,9 @@ public class Boss {
                     s0 = scorer.score();
 
                     if (verbose) {
-                        System.out.println("Round " + (w + 1) + " # improvements = " + numImprovements
+                        System.out.println("Round " + (k + 1) + " # improvements = " + numImprovements
                                 + " # equals = " + numEquals
-                                + " # edges = " + scorer.getNumEdges() + " progress this round = " + nf.format(100D * (w / (double) pairs.size())) + "%");
+                                + " # edges = " + scorer.getNumEdges() + " progress this round = " + nf.format(100D * ((w + 1) / (double) pairs.size())) + "%");
 //                        System.out.println("\t\t^^ Equals pairs = " + equals);
                     }
                 }
