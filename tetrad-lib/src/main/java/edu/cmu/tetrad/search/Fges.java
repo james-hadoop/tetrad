@@ -488,16 +488,25 @@ public final class Fges implements GraphSearch, GraphScorer {
         for (int i = 0; i < nodes.size() && !Thread.currentThread().isInterrupted(); i += chunkSize) {
             NodeTaskEmptyGraph task = new NodeTaskEmptyGraph(i, min(nodes.size(), i + chunkSize),
                     nodes, emptySet);
-            tasks.add(task);
+
+            if (maxThreads == 1) {
+                task.call();
+            } else {
+                tasks.add(task);
+            }
         }
 
-        if (tasks.size() == 1) {
-            try {
-                tasks.get(0).call();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else {
+//        if (tasks.size() == 1) {
+//            try {
+//                tasks.get(0).call();
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
+//        } else {
+//            pool.invokeAll(tasks);
+//        }
+
+        if (maxThreads > 1) {
             pool.invokeAll(tasks);
         }
 
@@ -713,10 +722,17 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         for (int i = 0; i < nodes.size() && !Thread.currentThread().isInterrupted(); i += chunkSize) {
             AdjTask task = new AdjTask(new ArrayList<>(nodes), i, min(nodes.size(), i + chunkSize));
-            tasks.add(task);
+
+            if (maxThreads == 1) {
+                task.call();
+            } else {
+                tasks.add(task);
+            }
         }
 
-        pool.invokeAll(tasks);
+        if (maxThreads > 1) {
+            pool.invokeAll(tasks);
+        }
     }
 
     // Calculates the new arrows for an a->b edge.
@@ -830,10 +846,15 @@ public final class Fges implements GraphSearch, GraphScorer {
 
                     List<BackwardTask> tasks = new ArrayList<>();
 
-                    tasks.add(new BackwardTask(r, adj, chunk, from, from + mid, hashIndices));
-                    tasks.add(new BackwardTask(r, adj, chunk, from + mid, to, hashIndices));
+                    BackwardTask t1 = new BackwardTask(r, adj, chunk, from, from + mid, hashIndices);
+                    tasks.add(t1);
+                    BackwardTask t2 = new BackwardTask(r, adj, chunk, from + mid, to, hashIndices);
+                    tasks.add(t2);
 
-                    invokeAll(tasks);
+                    t1.compute();
+                    t2.compute();
+
+//                    invokeAll(tasks);
                 }
 
                 return true;
@@ -843,8 +864,10 @@ public final class Fges implements GraphSearch, GraphScorer {
         for (Node r : toProcess) {
             List<Node> adjacentNodes = graph.getAdjacentNodes(r);
             adjacentNodes.retainAll(toProcess);
-            pool.invoke(new BackwardTask(r, adjacentNodes, getChunkSize(adjacentNodes.size()), 0,
-                    adjacentNodes.size(), hashIndices));
+            BackwardTask task = new BackwardTask(r, adjacentNodes, getChunkSize(adjacentNodes.size()), 0,
+                    adjacentNodes.size(), hashIndices);
+            task.compute();
+//            pool.invoke(task);
         }
     }
 
@@ -876,8 +899,8 @@ public final class Fges implements GraphSearch, GraphScorer {
         while ((choice = gen.next()) != null) {
             Set<Node> complement = GraphUtils.asSet(choice, _naYX);
 
-            Set<Node> h = new HashSet<>(naYX);
-            h.removeAll(complement);
+//            Set<Node> h = new HashSet<>(naYX);
+//            h.removeAll(complement);
 
             double _bump = deleteEval(a, b, complement, parents, hashIndices, false);
 
@@ -1270,6 +1293,10 @@ public final class Fges implements GraphSearch, GraphScorer {
         Score score;
 
         DataModel data = this.score.getData();
+
+        if (data == null) {
+            throw new IllegalArgumentException();
+        }
 
         if (data instanceof ICovarianceMatrix) {
             score = new LinearGaussianBicScore((ICovarianceMatrix) data);

@@ -1,21 +1,12 @@
-import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
-import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.Params;
+import edu.cmu.tetrad.search.Fges;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,249 +14,111 @@ public class TestAnneAnalysis3 {
 
 
     public static void main(String... args) {
-        new TestAnneAnalysis3().run2();
+        new TestAnneAnalysis3().run1();
     }
 
     private void run1() {
-        System.out.println("V PD N AFP AFN AP AR SHD");//AHP AHR SHD");
+        double penalty = 2.0;
 
-        for (int v : new int[]{5, 10, 20}) {
+        for (int p : new int[]{5, 10, 20}) {
+            for (int n : new int[]{50, 50, 100, 500, 1000, 5000, 10000, 50000}) {
 
-            File fileadj = new File("/Users/josephramsey/Downloads/dataforjoe/dataforjoe/adjmats_p"
-                    + v + "_b1K.txt");
+                String nString;
 
-            File filecor = new File("/Users/josephramsey/Downloads/dataforjoe/dataforjoe/cormats_p"
-                    + v + "_b1K.txt");
+                switch (n) {
+                    case 50:
+                        nString = "50";
+                        break;
+                    case 100:
+                        nString = "100";
+                        break;
+                    case 500:
+                        nString = "500";
+                        break;
+                    case 1000:
+                        nString = "1K";
+                        break;
+                    case 5000:
+                        nString = "5K";
+                        break;
+                    case 10000:
+                        nString = "10K";
+                        break;
+                    case 50000:
+                        nString = "50K";
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Don't have that sample size.");
+                }
 
-
-//            for (double pd : new double[]{1}) {//, 2, 3, 4, 5}) {
-            for (double alpha : new double[]{1e-8, 1e-4, 0.001, 0.01, 0.05, 0.1, 0.2, 0.5, 0.8}) {
                 try {
-                    BufferedReader inadj = new BufferedReader(new FileReader(fileadj));
+                    File filecor = new File("/Users/josephramsey/Downloads/sldisco_cormats_b5K/" +
+                            "cormats_p" + p + "_n" + nString + "_b5K.txt");
+                    File adjout = new File("/Users/josephramsey/Downloads/sldisco_adjout_b5K/" +
+                            "adjmatsout_p" + p + "_n" + nString + "_b5K.txt");
+
                     BufferedReader incor = new BufferedReader(new FileReader(filecor));
+                    incor.readLine();
 
-                    String lineadj, linecor;
+                    PrintStream out = new PrintStream(adjout);
 
-                    List<Node> vars = new ArrayList<>();
-                    for (int i = 0; i < v; i++) vars.add(new ContinuousVariable("x" + (i + 1)));
+                    int d = 1;
 
-                    for (int n : new int[]{50, 100, 500, 1000, 5000, 10000, 50000}) {
-                        double sumFp = 0;
-                        double sumFn = 0;
-                        double sumAp = 0;
-                        double sumAr = 0;
-                        double sumAhp = 0;
-                        double sumAhr = 0;
-                        double sumShd = 0;
+                    for (int j = 0; j < p; j++) {
+                        for (int i = 0; i < p; i++) {
+                            out.print("X" + d++);
 
-                        double countFp = 0;
-                        double countFn = 0;
-                        double countAp = 0;
-                        double countAr = 0;
-                        double countAhp = 0;
-                        double countAhr = 0;
-                        double countShd = 0;
-
-                        for (int i = 0; i < 1000; i++) {
-                            Graph trueAdj;
-                            CovarianceMatrix cov;
-
-                            {
-                                lineadj = inadj.readLine();
-                                linecor = incor.readLine();
-
-                                trueAdj = getTrueG1(lineadj, vars);
-                                cov = getCov1(linecor, vars, n);
+                            if (!(i == p - 1 && j == p - 1)) {
+                                out.print(" ");
                             }
+                        }
+                    }
 
-                            Graph estCpdag;
+                    out.println();
 
-                            {
-                                {
-                                    edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc pc
-                                            = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ());
-                                    Parameters parameters = new Parameters();
-                                    parameters.set(Params.STABLE_FAS, true);
-                                    parameters.set(Params.ALPHA, alpha);
-                                    parameters.set(Params.VERBOSE, false);
-                                    estCpdag = pc.search(cov, parameters, trueAdj);
+                    for (int k = 0; k < 5000; k++) {
+                        System.out.println("k = " + (k + 1));
+                        String linecor = incor.readLine();
+
+                        List<Node> vars = new ArrayList<>();
+                        for (int i = 0; i < p; i++) vars.add(new ContinuousVariable("x" + (i + 1)));
+                        CovarianceMatrix cov = getCov1(linecor, vars, n);
+
+                        edu.cmu.tetrad.search.LinearGaussianBicScore score = new edu.cmu.tetrad.search.LinearGaussianBicScore(cov);
+                        score.setPenaltyDiscount(penalty);
+
+                        Fges fges = new Fges(score, 1);
+
+//                            System.out.println(cov);
+
+                        Graph estCpdag = fges.search();
+
+//                        System.out.println(estCpdag);
+
+
+                        for (int j = 0; j < vars.size(); j++) {
+                            for (int i = 0; i < vars.size(); i++) {
+                                if (estCpdag.isAdjacentTo(vars.get(j), vars.get(i))) {
+                                    out.print("1");
+                                } else {
+                                    out.print("0");
                                 }
 
-                                estCpdag = GraphUtils.replaceNodes(estCpdag, trueAdj.getNodes());
-
-                                double afp = new AdjacencyFP().getValue(trueAdj, estCpdag, null);
-                                double afn = new AdjacencyFN().getValue(trueAdj, estCpdag, null);
-                                double ap = new AdjacencyPrecision().getValue(trueAdj, estCpdag, null);
-                                double ar = new AdjacencyRecall().getValue(trueAdj, estCpdag, null);
-                                double ahp = new ArrowheadPrecision().getValue(trueAdj, estCpdag, null);
-                                double ahr = new ArrowheadRecall().getValue(trueAdj, estCpdag, null);
-                                double shd = new SHD().getValue(trueAdj, estCpdag, null);
-
-                                if (!Double.isNaN(afp)) {
-                                    sumFp += afp;
-                                    countFp += 1;
-                                }
-
-                                if (!Double.isNaN(afn)) {
-                                    sumFn += afn;
-                                    countFn += 1;
-                                }
-
-                                if (!Double.isNaN(ap)) {
-                                    sumAp += ap;
-                                    countAp += 1;
-                                }
-
-                                if (!Double.isNaN(ar)) {
-                                    sumAr += ar;
-                                    countAr += 1;
-                                }
-
-                                if (!Double.isNaN(ahp)) {
-                                    sumAhp += ahp;
-                                    countAhp += 1;
-                                }
-
-                                if (!Double.isNaN(ahr)) {
-                                    sumAhr += ahr;
-                                    countAhr += 1;
-                                }
-
-                                if (!Double.isNaN(shd)) {
-                                    sumShd += shd;
-                                    countShd += 1;
+                                if (!(i == vars.size() - 1 && j == vars.size() - 1)) {
+                                    out.print(" ");
                                 }
                             }
                         }
 
-                        double eFp = sumFp / countFp;
-                        double eFn = sumFn / countFn;
-                        double eAp = sumAp / countAp;
-                        double eAr = sumAr / countAr;
-                        double eAhp = sumAhp / countAhp;
-                        double eAhr = sumAhr / countAhr;
-                        double eShd = sumShd / countShd;
-
-                        NumberFormat nf = new DecimalFormat("0.00");
-
-                        System.out.println(v + " " + nf.format(alpha) + " " + n + " " + nf.format(eFp) + " " + nf.format(eFn)
-                                + " " + nf.format(eAp) + " " + nf.format(eAr) + " " + nf.format(eAhp) + " " + nf.format(eAhr)
-                                + " " + nf.format(eShd));
-
+                        out.println();
                     }
 
-                    inadj.close();
                     incor.close();
-                } catch (Exception e) {
+                    out.close();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-        }
-    }
-
-    private void run2() {
-        System.out.println("V\tPD\tN\tAFP\tAFN\tAP\tAR\tSHD\tElapsed");
-
-        File fileadj = new File("/Users/josephramsey/Downloads/dataforjoe/data50000/adjmats_p20_b10.txt");
-        File filecor = new File("/Users/josephramsey/Downloads/dataforjoe/data50000/cormats_p20_b10.txt");
-
-        try {
-            BufferedReader inadj = new BufferedReader(new FileReader(fileadj));
-            BufferedReader incor = new BufferedReader(new FileReader(filecor));
-
-            List<Node> vars = new ArrayList<>();
-            for (int i = 0; i < 20; i++) vars.add(new ContinuousVariable("x" + (i + 1)));
-
-            double sumFp = 0;
-            double sumFn = 0;
-            double sumAp = 0;
-            double sumAr = 0;
-            double sumShd = 0;
-            long sumElapsed = 0;
-
-            double countFp = 0;
-            double countFn = 0;
-            double countAp = 0;
-            double countAr = 0;
-            double countShd = 0;
-            long countElapsed = 0;
-
-            for (int i = 0; i < 10; i++) {
-                CovarianceMatrix cov = getCov1(incor.readLine(), vars, 50000);
-                Graph trueAdj = getTrueG1(inadj.readLine(), vars);
-
-                {
-                    double elapsed = -System.currentTimeMillis();
-//                    edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges pc
-//                            = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore());
-                    edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS pc
-                            = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new LinearGaussianBicScore(),
-                            new FisherZ());
-                    Parameters parameters = new Parameters();
-                    parameters.set(Params.PENALTY_DISCOUNT, 1);
-                    parameters.set(Params.DEPTH, 1);
-                    parameters.set(Params.VERBOSE, false);
-                    Graph estAdj = pc.search(cov, parameters, trueAdj);
-                    estAdj = GraphUtils.replaceNodes(estAdj, trueAdj.getNodes());
-                    estAdj = GraphUtils.undirectedGraph(estAdj);
-
-                    elapsed += System.currentTimeMillis();
-
-                    double afp = new AdjacencyFP().getValue(trueAdj, estAdj, null);
-                    double afn = new AdjacencyFN().getValue(trueAdj, estAdj, null);
-                    double ap = new AdjacencyPrecision().getValue(trueAdj, estAdj, null);
-                    double ar = new AdjacencyRecall().getValue(trueAdj, estAdj, null);
-                    double shd = new SHD().getValue(trueAdj, estAdj, null);
-
-                    if (!Double.isNaN(afp)) {
-                        sumFp += afp;
-                        countFp += 1;
-                    }
-
-                    if (!Double.isNaN(afn)) {
-                        sumFn += afn;
-                        countFn += 1;
-                    }
-
-                    if (!Double.isNaN(ap)) {
-                        sumAp += ap;
-                        countAp += 1;
-                    }
-
-                    if (!Double.isNaN(ar)) {
-                        sumAr += ar;
-                        countAr += 1;
-                    }
-
-                    if (!Double.isNaN(shd)) {
-                        sumShd += shd;
-                        countShd += 1;
-                    }
-
-                    if (!Double.isNaN(elapsed)) {
-                        sumElapsed += elapsed;
-                        countElapsed += 1;
-                    }
-                }
-
-                double eFp = sumFp / countFp;
-                double eFn = sumFn / countFn;
-                double eAp = sumAp / countAp;
-                double eAr = sumAr / countAr;
-                double eShd = sumShd / countShd;
-                long eElapsed = sumElapsed / countElapsed;
-
-                NumberFormat nf = new DecimalFormat("0.00");
-
-                System.out.println(20 + "\t" + nf.format(1) + "\t" + 50000 + "\t" + nf.format(eFp) + "\t" + nf.format(eFn)
-                        + "\t" + nf.format(eAp) + "\t" + nf.format(eAr)
-                        + "\t" + nf.format(eShd) + "\t" + eElapsed);
-            }
-
-            inadj.close();
-            incor.close();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

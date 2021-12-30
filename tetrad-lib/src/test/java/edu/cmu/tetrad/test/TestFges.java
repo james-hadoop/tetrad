@@ -710,10 +710,11 @@ public class TestFges {
         int numNodes = 20;
         int aveDegree = 4;
         int numIterations = 1;
+        int parallelism = 1;
 
         for (int i = 0; i < numIterations; i++) {
             Graph dag = GraphUtils.randomDag(numNodes, 0, aveDegree * numNodes / 2, 10, 10, 10, false);
-            Fges fges = new Fges(new GraphScore(dag));
+            Fges fges = new Fges(new GraphScore(dag), parallelism);
             fges.setFaithfulnessAssumed(true);
             fges.setVerbose(true);
             Graph cpdag1 = fges.search();

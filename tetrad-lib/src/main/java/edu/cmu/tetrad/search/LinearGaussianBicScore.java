@@ -382,6 +382,8 @@ public class LinearGaussianBicScore implements Score {
         this.covariances = covariances;
         this.matrix = this.covariances.getMatrix();
 
+        this.dataModel = covariances;
+
 //        double n = covariances.getSampleSize();
 //        double ess = DataUtils.getEss(covariances);
 //
