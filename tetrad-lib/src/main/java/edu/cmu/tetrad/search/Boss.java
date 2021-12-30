@@ -10,6 +10,8 @@ import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
@@ -216,31 +218,31 @@ public class Boss {
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
+        scorer.setUseRunningScore(false);
+
         return scorer.getOrder();
     }
 
     public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
         if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
+        scorer.setUseRunningScore(true);
+
+        NumberFormat nf = new DecimalFormat("0.00");
 
         if (verbose) {
             System.out.println("\nInitial # edges = " + scorer.getNumEdges());
         }
 
-//        List<Node> V = scorer.getOrder();
-        List<Node> maxPi = scorer.getOrder();
-        double maxScore = scorer.score();
+        List<Node> pi = scorer.getOrder();
+        double s0 = scorer.score();
 
         for (int k = 0; k <= (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
-//            if (verbose) {
-//                System.out.print("Round " + (k + 1));
-//            }
-
             List<NodePair> pairs = new ArrayList<>();
 
-            for (int i = 0; i < maxPi.size(); i++) {
+            for (int i = 0; i < pi.size(); i++) {
                 for (int j = 0; j < i; j++) {
-                    Node x = maxPi.get(i);
-                    Node y = maxPi.get(j);
+                    Node x = pi.get(i);
+                    Node y = pi.get(j);
 
                     if (scorer.adjacent(x, y)) {
                         pairs.add(new NodePair(x, y));
@@ -255,10 +257,11 @@ public class Boss {
 
             Set<NodePair> equals = new HashSet<>();
 
-            for (NodePair pair : pairs) {
+            for (int w = 0; w < pairs.size(); w++) {
+                NodePair pair = pairs.get(w);
+//            }
+//            for (NodePair pair : pairs) {
                 scorer.bookmark();
-
-                double sOld = scorer.score();
 
                 if (!scorer.adjacent(pair.getFirst(), pair.getSecond())) continue;
                 scorer.tuck(pair.getFirst(), pair.getSecond());
@@ -270,15 +273,25 @@ public class Boss {
 
                 double sNew = scorer.score();
 
-                if (sNew < sOld) {
+                if (sNew < s0) {
                     scorer.goToBookmark();
                 }
 
-                if (sNew > sOld) {
+                if (sNew > s0) {
                     numImprovements++;
+
+                    pi = scorer.getOrder();
+                    s0 = scorer.score();
+
+                    if (verbose) {
+                        System.out.println("Round " + (w + 1) + " # improvements = " + numImprovements
+                                + " # equals = " + numEquals
+                                + " # edges = " + scorer.getNumEdges() + " progress this round = " + nf.format(100D * (w / (double) pairs.size())) + "%");
+//                        System.out.println("\t\t^^ Equals pairs = " + equals);
+                    }
                 }
 
-                if (sNew == sOld) {
+                if (sNew == s0) {
                     numEquals++;
                     equals.add(pair);
                 }
@@ -287,31 +300,21 @@ public class Boss {
 //            if (numImprovements == 0) {
 //                break;
 //            }
-
-            if (scorer.score() > maxScore) {
-                maxPi = scorer.getOrder();
-                maxScore = scorer.score();
-
-                if (verbose) {
-                    System.out.println("Round " + (k + 1) + " # improvements = " + numImprovements
-                            + " # equals = " + numEquals
-                            + " # edges = " + scorer.getNumEdges());
-//                    System.out.println("\t\t^^ Equals pairs = " + equals);
-                }
-            }
         }
 
-        scorer.score(maxPi);
+        scorer.score(pi);
 
-//        if (verbose) {
-//            System.out.println("# Edges = " + scorer.getNumEdges()
-//                    + " Score = " + scorer.score()
-//                    + " #round = " + numRounds
-//                    + " (quickGRaSP)"
-//                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-//        }
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " #round = " + numRounds
+                    + " (quickGRaSP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
 
-        return maxPi;
+        scorer.setUseRunningScore(false);
+
+        return pi;
     }
 
     public List<Node> esp(@NotNull TeyssierScorer scorer) {

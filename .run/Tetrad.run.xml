@@ -2,7 +2,7 @@
   <configuration default="false" name="Tetrad" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="edu.cmu.tetradapp.Tetrad" />
     <module name="tetrad-gui" />
-    <option name="PROGRAM_PARAMETERS" value="-Xms1G -Xmx10G" />
+    <option name="PROGRAM_PARAMETERS" value="-Xms4G -Xmx6G" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

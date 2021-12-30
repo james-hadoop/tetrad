@@ -1567,14 +1567,16 @@ public final class TestBoss {
         allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
         allFacts.add(getFigure7());
         allFacts.add(getFigure11());
-//
-//        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
+
+        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
 
 
         int count = 0;
 
         boolean verbose = false;
         int numRounds = 20;
+        int depth = 4;
+        int maxPermSize = 5;
 
         boolean printCpdag = false;
 
@@ -1589,12 +1591,12 @@ public final class TestBoss {
         }
 
         for (Boss.Method method : new Boss.Method[]{
-//                BOSS1,
-//                BOSS2,
-//                GRaSP,
+                BOSS1,
+                BOSS2,
+                GRaSP,
                 quickGRaSP,
-//                ESP,
-//                GSP
+                ESP,
+                GSP
         }) {
             System.out.println("\n\n" + method);
 
@@ -1620,8 +1622,8 @@ public final class TestBoss {
                     List<Node> p = GraphUtils.asList(perm, variables);
 
                     Boss search = new Boss(new IndTestDSep(facts.getFacts()));
-                    search.setMaxPermSize(6);
-                    search.setDepth(10);
+                    search.setMaxPermSize(maxPermSize);
+                    search.setDepth(depth);
                     search.setMethod(method);
                     search.setNumRounds(numRounds);
                     search.setVerbose(verbose);
@@ -1632,13 +1634,6 @@ public final class TestBoss {
                         passed = false;
                         break;
                     }
-
-//                Pc search = new Pc(new IndTestDSep(facts.getFacts()));
-//                System.out.println(p + " " + search.search().getNumEdges());
-
-//                Fges search = new Fges(new GraphScore(facts.getFacts()));
-//                System.out.println(p + " " + search.search().getNumEdges());
-
                 }
 
                 System.out.println((i + 1) + " " + (passed ? "P " : "F"));

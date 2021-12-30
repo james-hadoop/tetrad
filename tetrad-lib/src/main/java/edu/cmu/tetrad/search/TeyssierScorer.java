@@ -380,15 +380,15 @@ public class TeyssierScorer {
     }
 
     private double sum() {
-//        if (useRunningScore) {
-//            return runningScore;
-//        }
+        if (useRunningScore) {
+            return runningScore;
+        }
 
         double sum = 0.0;
 
         for (int i = 0; i < order.size(); i++) {
             double score1 = scores.get(i).getScore();
-            sum += score1;//(Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
+            sum += (Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
         }
 
         return sum;
@@ -465,7 +465,7 @@ public class TeyssierScorer {
         if (p1 != null || p2 != null) {
             if (p1 == null) {
                 double s2 = p2.getScore();
-                runningScore += s2;
+                runningScore += (Double.isNaN(s2) || Double.isInfinite(s2)) ? 0 : s2;
                 runningScore = floor(1.e10 * runningScore) / 1.e10;
             } else if (p2 == null) {
                 double s1 = p1.getScore();
@@ -476,7 +476,7 @@ public class TeyssierScorer {
                 double s2 = p2.getScore();
 
                 runningScore -= s1;
-                runningScore += s2;
+                runningScore += (Double.isNaN(s2) || Double.isInfinite(s2)) ? 0 : s2;
                 runningScore = floor(1.e10 * runningScore) / 1.e10;
             }
         }
