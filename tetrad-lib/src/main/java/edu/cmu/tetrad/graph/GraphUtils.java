@@ -4081,7 +4081,7 @@ public final class GraphUtils {
         Set<EdgeNode> V = new HashSet<>();
 
         for (Edge edge : graph.getEdges(x)) {
-            if (!Edges.isDirectedEdge(edge)) continue;
+//            if (!Edges.isDirectedEdge(edge)) continue;
             EdgeNode edgeNode = new EdgeNode(edge, x);
 
             if (edgeNode.edge.getNode2() == y) {
@@ -4095,12 +4095,12 @@ public final class GraphUtils {
         while (!Q.isEmpty()) {
             EdgeNode t = Q.poll();
             Edge edge1 = t.getEdge();
-            if (!Edges.isDirectedEdge(edge1)) continue;
+//            if (!Edges.isDirectedEdge(edge1)) continue;
             Node a = edge1.getNode1();
             Node b = edge1.getNode2();
 
             for (Edge edge2 : graph.getEdges(b)) {
-                if (!Edges.isDirectedEdge(edge2)) continue;
+//                if (!Edges.isDirectedEdge(edge2)) continue;
                 EdgeNode t2 = new EdgeNode(edge2, b);
 
                 Node c = reachable(t, t2, a, z, graph);

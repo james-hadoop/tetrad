@@ -24,7 +24,6 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Rfci;
@@ -637,30 +636,33 @@ public final class TestBoss {
 
     @Test
     public void testClark() {
+
+        // Special graph that fans from one node to 5 then back to one.
+
         Parameters params = new Parameters();
         params.set(Params.SAMPLE_SIZE, 500);
-//        params.set(Params.NUM_MEASURES, 20);
-//        params.set(Params.AVG_DEGREE, 2, 4, 6, 8);//, 10, 12);//, 14);//, 1 6, 18, 20);
         params.set(Params.RANDOMIZE_COLUMNS, true);
-        params.set(Params.COEF_LOW, .2);
+        params.set(Params.COEF_LOW, 0);
         params.set(Params.COEF_HIGH, 1);
         params.set(Params.VERBOSE, true);
 
-        params.set(Params.NUM_RUNS, 100);
+        params.set(Params.NUM_RUNS, 10);
 
-        params.set(Params.BOSS_METHOD, 1);
+        params.set(Params.BOSS_METHOD, 1, 2, 3, 4, 5, 6, 7);
         params.set(Params.BOSS_SCORE_TYPE, false);
-        params.set(Params.BREAK_TIES, true);
-        params.set(Params.CACHE_SCORES, false);
+        params.set(Params.NUM_ROUNDS, 10);
+        params.set(Params.GSP_DEPTH, 6);
+        params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
         params.set(Params.USE_SCORE, true);
 
         params.set(Params.COLLIDER_DISCOVERY_RULE, 2);
-        params.set(Params.PENALTY_DISCOUNT, 1.0);
+        params.set(Params.PENALTY_DISCOUNT, 2.0);
         params.set(Params.ALPHA, 0.001);
-//
+
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.FmlBicScore(), new FisherZ()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.
+                EbicScore(), new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison
                 .algorithm.oracle.cpdag.PcAll(new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison
@@ -704,10 +706,7 @@ public final class TestBoss {
         simulations.add(new LinearSemSimulation(new SingleGraph(graph)));
 
         Statistics statistics = new Statistics();
-//        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
-//        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
-//        statistics.add(new ParameterColumn(Params.BOSS_SCORE_TYPE));
-        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
@@ -721,63 +720,6 @@ public final class TestBoss {
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
         comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/clark", simulations,
-                algorithms, statistics, params);
-    }
-
-
-    @Test
-    public void testBoss8() {
-        Parameters params = new Parameters();
-        params.set(Params.SAMPLE_SIZE, 10000);
-        params.set(Params.NUM_MEASURES, 5);
-        params.set(Params.AVG_DEGREE, 1, 2, 3, 4);
-        params.set(Params.RANDOMIZE_COLUMNS, true);
-        params.set(Params.COEF_LOW, 0.1);
-        params.set(Params.COEF_HIGH, 1.5);
-        params.set(Params.VERBOSE, true);
-
-        params.set(Params.NUM_RUNS, 100);
-
-        params.set(Params.BOSS_METHOD, 1);
-        params.set(Params.BOSS_SCORE_TYPE, true);
-        params.set(Params.BREAK_TIES, false);
-        params.set(Params.CACHE_SCORES, false);
-        params.set(Params.NUM_STARTS, 1);
-
-        params.set(Params.PENALTY_DISCOUNT, 1);//.5, 1, 2, 3, 4, 5);
-        params.set(Params.ALPHA, 0.001);
-
-        Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new FisherZ()));
-        algorithms.add(new PcMax(new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new ZhangShenBoundScore()));
-
-        Simulations simulations = new Simulations();
-        simulations.add(new LinearSemSimulation(new RandomForward()));
-
-        Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
-        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
-//        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
-//        statistics.add(new ParameterColumn(Params.BOSS_SCORE_TYPE));
-        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
-        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
-//        statistics.add(new CorrectCPDAG());
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
-        statistics.add(new SHD_CPDAG());
-        statistics.add(new ElapsedTime());
-
-        Comparison comparison = new Comparison();
-        comparison.setSaveData(true);
-        comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-
-        comparison.compareFromSimulations("/Users/josephramsey/tetrad/Documents/testBoss8", simulations,
                 algorithms, statistics, params);
     }
 
@@ -906,7 +848,7 @@ public final class TestBoss {
         }
     }
 
-    //@Test
+    @Test
     public void testFromDsep() {
         for (int i = 0; i < 10; i++) {
             System.out.println("\nRun " + (i + 1));
@@ -976,132 +918,6 @@ public final class TestBoss {
 
         comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/soluscomparison",
                 simulations, algorithms, statistics, parameters);
-    }
-
-    @Test
-    public void testFromDsepSolus2() {
-        Parameters parameters = new Parameters();
-
-        parameters.set(Params.NUM_MEASURES, 10);
-        parameters.set(Params.AVG_DEGREE, 1, 2, 3, 4, 5);//, 6, 7, 8, 9);
-
-        parameters.set(Params.VERBOSE, true);
-        parameters.set(Params.RANDOMIZE_COLUMNS, false);
-
-        parameters.set(Params.BOSS_SCORE_TYPE, false);
-        parameters.set(Params.USE_SCORE, false);
-        parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.MAX_PERM_SIZE, 2);
-        parameters.set(Params.NUM_ROUNDS, 6);
-
-        parameters.set(Params.SAMPLE_SIZE, 1000000);
-
-        Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
-        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecisionCommonEdges());
-        statistics.add(new ArrowheadRecallCommonEdges());
-        statistics.add(new SHD_CPDAG());
-        statistics.add(new ElapsedTime());
-
-        Simulations simulations = new Simulations();
-        simulations.add(new LinearSemSimulation(new RandomForward()));
-//        simulations.add(new SemSimulationTrueModel(new RandomForward()));
-
-        Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-//        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-
-        Comparison comparison = new Comparison();
-        comparison.setSaveData(true);
-        comparison.setShowAlgorithmIndices(true);
-        comparison.setTabDelimitedTables(false);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/soluscomparison",
-                simulations, algorithms, statistics, parameters);
-    }
-
-    //@Test
-    public void testFromDsep1() {
-
-        List<Node> nodes = new ArrayList<>();
-
-        Node x1 = new GraphNode("X1");
-        Node x2 = new GraphNode("X2");
-        Node x3 = new GraphNode("X3");
-        Node x4 = new GraphNode("X4");
-
-        nodes.add(x1);
-        nodes.add(x2);
-        nodes.add(x3);
-        nodes.add(x4);
-
-        List<Edge> edges = new ArrayList<>();
-        edges.add(Edges.directedEdge(x1, x2));
-        edges.add(Edges.directedEdge(x1, x3));
-        edges.add(Edges.directedEdge(x2, x4));
-        edges.add(Edges.directedEdge(x3, x4));
-
-        Graph g = new EdgeListGraph(nodes);
-        for (Edge e : edges) g.addEdge(e);
-
-        List<Node> order = new ArrayList<>();
-
-        order.add(x4);
-        order.add(x2);
-        order.add(x3);
-        order.add(x1);
-
-        IndependenceTest test = new IndTestDSep(g);
-
-        runTestLoop(g, order, null, test, true);
-    }
-
-    //@Test
-    public void testFromDsep2() {
-        List<Node> nodes = new ArrayList<>();
-
-        Node x1 = new GraphNode("X1");
-        Node x2 = new GraphNode("X2");
-        Node x3 = new GraphNode("X3");
-        Node x4 = new GraphNode("X4");
-
-        nodes.add(x1);
-        nodes.add(x2);
-        nodes.add(x3);
-        nodes.add(x4);
-
-        List<Edge> edges = new ArrayList<>();
-        edges.add(Edges.directedEdge(x1, x2));
-        edges.add(Edges.directedEdge(x1, x3));
-        edges.add(Edges.directedEdge(x2, x4));
-        edges.add(Edges.directedEdge(x3, x4));
-
-        for (int i = 0; i < 100; i++) {
-            Graph g = new EdgeListGraph(nodes);
-
-            shuffle(edges);
-
-            for (Edge e : edges) {
-                g.addEdge(e);
-            }
-
-            IndependenceTest test = new IndTestDSep(g);
-
-            List<Node> order = new ArrayList<>();
-
-            order.add(x1);
-            order.add(x2);
-            order.add(x3);
-            order.add(x4);
-
-            Collections.shuffle(order);
-            runTestLoop(g, order, null, test, true);
-//            runTestLoop2(g, order, null, test, true);
-        }
     }
 
     private boolean isCpdagForDag(Graph cpdag, Graph dag) {
@@ -1203,49 +1019,6 @@ public final class TestBoss {
         facts.add(new IndependenceFact(x1, x3, list(x2, x4, x5, x6)));
 
         return new Ret("Solus Theorem 12, TSP !==> Orientation Faithfulness (Figure 11)", facts, 12);
-    }
-
-    public Ret getBryanWorseCase2Parents2Children() {
-        Node x1 = new GraphNode("1");
-        Node x2 = new GraphNode("2");
-        Node x3 = new GraphNode("3");
-        Node x4 = new GraphNode("4");
-        Node x5 = new GraphNode("5");
-        Node x6 = new GraphNode("6");
-
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(x1);
-        nodes.add(x2);
-        nodes.add(x3);
-        nodes.add(x4);
-        nodes.add(x5);
-        nodes.add(x6);
-
-        Graph graph = new EdgeListGraph(nodes);
-
-        graph.addDirectedEdge(x1, x2);
-
-        graph.addDirectedEdge(x1, x3);
-        graph.addDirectedEdge(x1, x4);
-        graph.addDirectedEdge(x2, x3);
-        graph.addDirectedEdge(x2, x4);
-
-        graph.addDirectedEdge(x1, x5);
-        graph.addDirectedEdge(x1, x6);
-        graph.addDirectedEdge(x2, x5);
-        graph.addDirectedEdge(x2, x6);
-
-        graph.addDirectedEdge(x3, x5);
-        graph.addDirectedEdge(x3, x6);
-        graph.addDirectedEdge(x4, x5);
-        graph.addDirectedEdge(x4, x6);
-
-        graph.addDirectedEdge(x5, x6);
-
-
-        IndependenceFacts facts = new IndependenceFacts(graph);
-
-        return new Ret("Bryan's 6-variable worst case", facts, 14);
     }
 
     public Ret getBryanWorseCaseMParentsNChildren(int m, int n) {
@@ -1570,12 +1343,11 @@ public final class TestBoss {
 
         allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
 
-
         int count = 0;
 
         boolean verbose = false;
-        int numRounds = 20;
-        int depth = 4;
+        int numRounds = 30;
+        int depth = 5;
         int maxPermSize = 5;
 
         boolean printCpdag = false;
@@ -1591,8 +1363,8 @@ public final class TestBoss {
         }
 
         for (Boss.Method method : new Boss.Method[]{
-                BOSS1,
-                BOSS2,
+//                BOSS1,
+//                BOSS2,
                 GRaSP,
                 quickGRaSP,
                 ESP,
@@ -1931,6 +1703,73 @@ public final class TestBoss {
                     System.out.println();
                 }
             }
+        }
+    }
+
+    @Test
+    public void testFgesCondition1() {
+
+        // This just checks to make sure the causalOrdering method is behaving correctly.
+
+        for (int k = 0; k < 100; k++) {
+            Graph g = GraphUtils.randomGraph(10, 0, 15, 100,
+                    100, 100, false);
+            IndTestDSep test = new IndTestDSep(g);
+            GraphScore score = new GraphScore(g);
+
+            Fges fges = new Fges(score, 1);
+            Graph cpdag1 = fges.search();
+
+            List<Node> pi = GraphUtils.getCausalOrdering(cpdag1);
+
+            TeyssierScorer scorer = new TeyssierScorer(test, score);
+            scorer.setUseScore(false);
+            scorer.score(pi);
+            Graph cpdag2 = scorer.getGraph(true);
+
+            System.out.println("Cpdag1 # edges = " + cpdag1.getNumEdges());
+            System.out.println("Cpdag2 # edges = " + cpdag2.getNumEdges());
+
+            assert cpdag1.getNumEdges() == cpdag2.getNumEdges();
+        }
+    }
+
+    @Test
+    public void testFgesCondition2() {
+
+        // This just checks to make sure the causalOrdering method is behaving correctly.
+
+        for (int k = 0; k < 100; k++) {
+            Graph g = GraphUtils.randomGraph(10, 0, 20, 100,
+                    100, 100, false);
+            LinearSemPm pm = new LinearSemPm(g);
+            LinearSemIm im = new LinearSemIm(pm);
+            DataSet d = im.simulateData(1000, false);
+
+            IndTestFisherZ test = new IndTestFisherZ(d, 0.001);
+            LinearGaussianBicScore score = new LinearGaussianBicScore(d);
+            score.setPenaltyDiscount(2);
+
+            Fges fges = new Fges(score);
+            Graph cpdag = fges.search();
+
+            List<Node> pi1 = GraphUtils.getCausalOrdering(cpdag);
+
+            List<Node> pi2 = new ArrayList<>(pi1);
+            shuffle(pi2);
+
+            TeyssierScorer scorer = new TeyssierScorer(test, score);
+            scorer.setUseScore(true);
+            scorer.score(pi1);
+            Graph cpdag1 = scorer.getGraph(false);
+
+            scorer.score(pi2);
+            Graph cpdag2 = scorer.getGraph(false);
+
+            System.out.println("Cpdag1 # edges = " + cpdag1.getNumEdges());
+            System.out.println("Cpdag2 # edges = " + cpdag2.getNumEdges());
+
+            assert cpdag1.getNumEdges() <= cpdag2.getNumEdges();
         }
     }
 

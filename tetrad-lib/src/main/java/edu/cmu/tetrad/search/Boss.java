@@ -12,7 +12,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.Math.min;
@@ -236,8 +238,9 @@ public class Boss {
         double s0 = scorer.score();
 
         for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
-            System.out.println("### Round " + (k + 1));
-            scorer.restartCache();
+            if (verbose) {
+                System.out.println("### Round " + (k + 1));
+            }
 
             List<NodePair> pairs = new ArrayList<>();
 
@@ -257,14 +260,14 @@ public class Boss {
             int numImprovements = 0;
             int numEquals = 0;
 
-            Set<NodePair> equals = new HashSet<>();
-
             for (int w = 0; w < pairs.size(); w++) {
                 NodePair pair = pairs.get(w);
                 scorer.bookmark();
 
                 if (!scorer.adjacent(pair.getFirst(), pair.getSecond())) continue;
                 scorer.tuck(pair.getFirst(), pair.getSecond());
+
+                scorer.restartCacheIfTooBig(100000);
 
                 if (violatesKnowledge(scorer.getOrder())) {
                     scorer.goToBookmark();
@@ -277,29 +280,23 @@ public class Boss {
                     scorer.goToBookmark();
                 }
 
-                if (sNew > s0) {
-                    numImprovements++;
+                if (verbose) {
+                    if (sNew > s0) {
+                        numImprovements++;
 
-                    pi = scorer.getOrder();
-                    s0 = scorer.score();
-
-                    if (verbose) {
                         System.out.println("Round " + (k + 1) + " # improvements = " + numImprovements
                                 + " # equals = " + numEquals
                                 + " # edges = " + scorer.getNumEdges() + " progress this round = " + nf.format(100D * ((w + 1) / (double) pairs.size())) + "%");
-//                        System.out.println("\t\t^^ Equals pairs = " + equals);
+                    }
+
+                    if (sNew == s0) {
+                        numEquals++;
                     }
                 }
 
-                if (sNew == s0) {
-                    numEquals++;
-                    equals.add(pair);
-                }
+                pi = scorer.getOrder();
+                s0 = scorer.score();
             }
-
-//            if (numImprovements == 0) {
-//                break;
-//            }
         }
 
         scorer.score(pi);

@@ -707,7 +707,7 @@ public class TestFges {
 
     @Test
     public void testFromGraph() {
-        int numNodes = 20;
+        int numNodes = 15;
         int aveDegree = 4;
         int numIterations = 1;
         int parallelism = 1;

@@ -7,8 +7,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static java.lang.Math.abs;
 import static java.lang.Math.floor;
+import static java.lang.Math.max;
 import static java.util.Collections.shuffle;
 
 
@@ -22,13 +22,12 @@ import static java.util.Collections.shuffle;
  * @author josephramsey
  */
 public class TeyssierScorer {
-    private Map<ScoreKey, Pair> cache = new HashMap<>();
     private final List<Node> variables;
     private final Map<Node, Integer> variablesHash;
     private final Score score;
     private final IndependenceTest test;
+    private final Map<ScoreKey, Pair> cache = new HashMap<>();
     private Map<Node, Integer> orderHash;
-    private final double tolerance = -1;
     private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
     private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
     private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
@@ -72,14 +71,6 @@ public class TeyssierScorer {
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
     }
-
-//    public double score(List<Node> order) {
-//        this.order = new LinkedList<>(order);
-//        initializeScores();
-//        this.bookmarkedOrder = new LinkedList<>(this.order);
-//        this.bookmarkedScores = new LinkedList<>(this.scores);
-//        return score();
-//    }
 
     public double score(List<Node> order) {
         runningScore = 0D;
@@ -283,16 +274,6 @@ public class TeyssierScorer {
         bookmarkedScores = new LinkedList<>(scores);
         bookmarkedRunningScore = runningScore;
         bookmarkedOrderHash = new HashMap<>(orderHash);
-
-//
-//        for (int i = 0; i < order.size(); i++) {
-//            if (!(order.get(i).equals(bookmarkedOrder.get(i)))) {
-//                bookmarkedOrder.set(i, order.get(i));
-//                bookmarkedScores.set(i, scores.get(i));
-//                bookmarkedRunningScore = runningScore;
-//                bookmarkedOrderHash = new HashMap<>(orderHash);
-//            }
-//        }
     }
 
     public void goToBookmark() {
@@ -300,19 +281,6 @@ public class TeyssierScorer {
         scores = new LinkedList<>(bookmarkedScores);
         runningScore = bookmarkedRunningScore;
         orderHash = new HashMap<>(bookmarkedOrderHash);
-
-//        for (int i = 0; i < order.size(); i++) {
-//            if (!(order.get(i).equals(bookmarkedOrder.get(i)))) {
-//                order.set(i, bookmarkedOrder.get(i));
-//                Pair p1 = scores.get(i);
-//                scores.set(i, bookmarkedScores.get(i));
-//                Pair p2 = scores.get(i);
-//
-//                updateRunningScores(p1, p2);
-//
-//                orderHash.put(order.get(i), i);
-//            }
-//        }
     }
 
     public void setCachingScores(boolean cachingScores) {
@@ -382,8 +350,10 @@ public class TeyssierScorer {
         return true;
     }
 
-    public void restartCache() {
-        cache.clear();
+    public void restartCacheIfTooBig(int maxSize) {
+        if (cache.size() > maxSize) {
+            cache.clear();
+        }
     }
 
     private boolean validKnowledgeOrder(List<Node> order) {
@@ -682,7 +652,7 @@ public class TeyssierScorer {
         }
 
         public int hashCode() {
-            return parents.hashCode() + new Double(score).hashCode();
+            return parents.hashCode() + (int) floor(10000D * score);
         }
 
         public boolean equals(Object o) {
