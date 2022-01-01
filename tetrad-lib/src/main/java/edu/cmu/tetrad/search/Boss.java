@@ -98,7 +98,7 @@ public class Boss {
             scorer.score(order);
 
             if (verbose) {
-                System.out.println("Using " + method + " depth = " + depth + " maxPermSize = " + maxPermSize);
+                System.out.println("Using " + method);
             }
 
             List<Node> perm;
@@ -300,6 +300,8 @@ public class Boss {
         }
 
         scorer.score(pi);
+
+        pi = grasp(scorer);
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()

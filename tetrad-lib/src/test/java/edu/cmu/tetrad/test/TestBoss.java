@@ -50,6 +50,7 @@ import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
+import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.PermutationGenerator;
@@ -1739,8 +1740,11 @@ public final class TestBoss {
 
         // This just checks to make sure the causalOrdering method is behaving correctly.
 
+        int count = 0;
+        int all = 0;
+
         for (int k = 0; k < 100; k++) {
-            Graph g = GraphUtils.randomGraph(10, 0, 20, 100,
+            Graph g = GraphUtils.randomGraph(20, 0, 30, 100,
                     100, 100, false);
             LinearSemPm pm = new LinearSemPm(g);
             LinearSemIm im = new LinearSemIm(pm);
@@ -1769,7 +1773,80 @@ public final class TestBoss {
             System.out.println("Cpdag1 # edges = " + cpdag1.getNumEdges());
             System.out.println("Cpdag2 # edges = " + cpdag2.getNumEdges());
 
-            assert cpdag1.getNumEdges() <= cpdag2.getNumEdges();
+
+            if (cpdag1.getNumEdges() <= cpdag2.getNumEdges()) {
+                count++;
+            }
+
+            all++;
+        }
+
+        System.out.println(count / (float) all);
+    }
+
+    @Test
+    public void testAddUnfaithfulIndependencies() {
+        Graph graph = GraphUtils.randomGraph(5, 0, 5, 100, 100,
+                100, false);
+
+        System.out.println("Source = " + graph);//SearchGraphUtils.cpdagForDag(graph));
+
+        IndTestDSep dsep = new IndTestDSep(graph);
+        IndependenceFacts facts = new IndependenceFacts(graph);
+
+        List<Node> nodes = graph.getNodes();
+
+        for (int i = 0; i < 8; i++) {
+            shuffle(nodes);
+
+            for (int h = 0; h < 2; h++) {
+                boolean added = false;
+
+                Node x = nodes.get(0);
+                Node y = nodes.get(1);
+
+                List<List<Node>> treks = GraphUtils.treks(graph, x, y, 3);
+
+                Set<Node> all = new HashSet<>();
+
+                for (List<Node> trek : treks) {
+                    all.addAll(trek);
+                }
+
+                all.remove(x);
+                all.remove(y);
+
+                List<Node> allList = new ArrayList<>(all);
+
+                DepthChoiceGenerator gen = new DepthChoiceGenerator(allList.size(), allList.size());
+                int[] choice;
+
+                List<Node> Z = null;
+
+                while ((choice = gen.next()) != null) {
+                    List<Node> cond = GraphUtils.asList(choice, allList);
+
+                    if (dsep.isDependent(x, y, cond)) {
+                        Z = cond;
+
+                        IndependenceFact fact = new IndependenceFact(x, y, Z);
+                        facts.add(fact);
+                        System.out.println("Added " + fact);
+
+                        added = true;
+                    }
+                }
+
+                if (added) {
+                    IndependenceTest test = new IndTestDSep(facts);
+
+                    Boss boss = new Boss(test);
+                    boss.setUseScore(false);
+                    boss.setMethod(GRaSP);
+                    boss.bestOrder(test.getVariables());
+                    System.out.println("Est = " + boss.getGraph(false));
+                }
+            }
         }
     }
 
