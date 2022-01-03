@@ -44,6 +44,7 @@ import java.util.List;
 public class IndTestDSep implements IndependenceTest {
 
     private IndependenceFacts independenceFacts;
+
     /**
      * The graph for which this is a variable map.
      */

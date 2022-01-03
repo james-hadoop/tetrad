@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static java.lang.Math.floor;
-import static java.lang.Math.max;
 import static java.util.Collections.shuffle;
 
 
@@ -29,10 +28,10 @@ public class TeyssierScorer {
     private final Map<ScoreKey, Pair> cache = new HashMap<>();
     private Map<Node, Integer> orderHash;
     private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
-    private LinkedList<Node> bookmarkedOrder = new LinkedList<>();
-    private LinkedList<Pair> bookmarkedScores = new LinkedList<>();
-    private Map<Node, Integer> bookmarkedOrderHash = new HashMap<>();
-    private double bookmarkedRunningScore = 0D;
+    private final Map<Integer, LinkedList<Node>> bookmarkedOrders = new HashMap<>();
+    private final Map<Integer, LinkedList<Pair>> bookmarkedScores = new HashMap<>();
+    private final Map<Integer, Map<Node, Integer>> bookmarkedOrderHashes = new HashMap<>();
+    private final Map<Integer, Double> bookmarkedRunningScores = new HashMap<>();
     private LinkedList<Node> order;
     private LinkedList<Pair> scores;
     private boolean cachingScores = true;
@@ -41,7 +40,7 @@ public class TeyssierScorer {
     private ScoreType scoreType = ScoreType.Edge;
     private boolean useScore = true;
     private double runningScore = 0D;
-    private boolean useRunningScore = false;
+    private boolean useRunningScore = true;
 
     public TeyssierScorer(IndependenceTest test, Score score) {
         this.score = score;
@@ -84,8 +83,6 @@ public class TeyssierScorer {
         this.prefixes = new LinkedList<>();
         for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.add(null);
         initializeScores();
-        this.bookmarkedOrder = new LinkedList<>(this.order);
-        this.bookmarkedScores = new LinkedList<>(this.scores);
         return score();
     }
 
@@ -231,6 +228,19 @@ public class TeyssierScorer {
         return new ArrayList<>(pairs);
     }
 
+    public List<OrderedPair<Node>> getEdges() {
+        List<Node> order = getOrder();
+        List<OrderedPair<Node>> edges = new ArrayList<>();
+
+        for (Node y : order) {
+            for (Node x : getParents(y)) {
+                edges.add(new OrderedPair<>(x, y));
+            }
+        }
+
+        return edges;
+    }
+
     public Pair pearlParents(int p) {
         Node x = order.get(p);
         Set<Node> parents = new HashSet<>();
@@ -269,18 +279,42 @@ public class TeyssierScorer {
         return new Pair(parents, parents.size());
     }
 
+    public void bookmarkKey(int key) {
+        bookmarkedOrders.put(key, new LinkedList<>(order));
+        bookmarkedScores.put(key, new LinkedList<>(scores));
+        bookmarkedRunningScores.put(key, runningScore);
+        bookmarkedOrderHashes.put(key, new HashMap<>(orderHash));
+    }
+
     public void bookmark() {
-        bookmarkedOrder = new LinkedList<>(order);
-        bookmarkedScores = new LinkedList<>(scores);
-        bookmarkedRunningScore = runningScore;
-        bookmarkedOrderHash = new HashMap<>(orderHash);
+        bookmarkKey(Integer.MIN_VALUE);
+    }
+
+    public void goToBookmarkKey(int key) {
+        if (!bookmarkedOrders.containsKey(key)) {
+            throw new IllegalArgumentException("That key was not bookmarked recently.");
+        }
+
+        order = bookmarkedOrders.get(key);
+        scores = bookmarkedScores.get(key);
+        runningScore = bookmarkedRunningScores.get(key);
+        orderHash = bookmarkedOrderHashes.get(key);
+
+        bookmarkedOrders.remove(key);
+        bookmarkedScores.remove(key);
+        bookmarkedRunningScores.remove(key);
+        bookmarkedOrderHashes.remove(key);
+    }
+
+    public void clearBookmarks() {
+        bookmarkedOrders.clear();
+        bookmarkedScores.clear();
+        bookmarkedRunningScores.clear();
+        bookmarkedOrderHashes.clear();
     }
 
     public void goToBookmark() {
-        order = new LinkedList<>(bookmarkedOrder);
-        scores = new LinkedList<>(bookmarkedScores);
-        runningScore = bookmarkedRunningScore;
-        orderHash = new HashMap<>(bookmarkedOrderHash);
+        goToBookmarkKey(Integer.MIN_VALUE);
     }
 
     public void setCachingScores(boolean cachingScores) {
@@ -454,19 +488,19 @@ public class TeyssierScorer {
         if (p1 != null || p2 != null) {
             if (p1 == null) {
                 double s2 = p2.getScore();
-                runningScore += (Double.isNaN(s2) || Double.isInfinite(s2)) ? 0 : s2;
-                runningScore = floor(1.e10 * runningScore) / 1.e10;
+                runningScore += s2;
+                runningScore = runningScore;// floor(1.e10 * runningScore) / 1.e10;
             } else if (p2 == null) {
                 double s1 = p1.getScore();
                 runningScore -= s1;
-                runningScore = floor(1.e10 * runningScore) / 1.e10;
+                runningScore = runningScore;// floor(1.e10 * runningScore) / 1.e10;
             } else {
                 double s1 = p1.getScore();
                 double s2 = p2.getScore();
 
                 runningScore -= s1;
-                runningScore += (Double.isNaN(s2) || Double.isInfinite(s2)) ? 0 : s2;
-                runningScore = floor(1.e10 * runningScore) / 1.e10;
+                runningScore += s2;
+                runningScore = runningScore;// floor(1.e10 * runningScore) / 1.e10;
             }
         }
     }
@@ -627,7 +661,8 @@ public class TeyssierScorer {
     }
 
     public void setUseRunningScore(boolean useRunningScore) {
-        this.useRunningScore = useRunningScore;
+//        this.useRunningScore = useRunningScore;
+//        System.out.println("Use running score = " + useRunningScore);
     }
 
     public enum ScoreType {Edge, SCORE}

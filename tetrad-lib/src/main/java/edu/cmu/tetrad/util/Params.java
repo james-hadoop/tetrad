@@ -214,6 +214,7 @@ public final class Params {
     public static final String OUTPUT_CPDAG = "outputCpdag";
     public static final String ZS_RISK_BOUND = "zSRiskBound";
     public static final String NUM_ROUNDS = "numRounds";
+    public static final String QUICKGRASP_DO_FINAL_GRAPH = "quickGraphDoFinalGrasp";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(

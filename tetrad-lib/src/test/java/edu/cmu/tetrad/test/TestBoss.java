@@ -57,6 +57,7 @@ import edu.cmu.tetrad.util.PermutationGenerator;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.jetbrains.annotations.NotNull;
+import org.junit.AfterClass;
 import org.junit.Test;
 
 import java.text.DecimalFormat;
@@ -125,34 +126,45 @@ public final class TestBoss {
         }
     }
 
+    @AfterClass
+    public static void afterClass() throws Exception {
+
+    }
+
     @Test
     public void testBoss() {
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 100);
-        params.set(Params.AVG_DEGREE, 2, 4, 6);
-        params.set(Params.SAMPLE_SIZE, 10000);
-        params.set(Params.NUM_RUNS, 30);
-        params.set(Params.RANDOMIZE_COLUMNS, false);
+        params.set(Params.NUM_MEASURES, 50);
+        params.set(Params.AVG_DEGREE, 6);
+        params.set(Params.SAMPLE_SIZE, 1000);
+        params.set(Params.NUM_RUNS, 2);
+        params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.PENALTY_DISCOUNT, 2);
-        params.set(Params.COEF_LOW, 0.1);
+        params.set(Params.COEF_LOW, 0);
         params.set(Params.COEF_HIGH, 1);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
-        params.set(Params.BOSS_METHOD, 1);
-        params.set(Params.BREAK_TIES, true);
+        params.set(Params.ALPHA, 0.001);
 
+        params.set(Params.GSP_DEPTH, 3);
+        params.set(Params.BOSS_METHOD, 4);//3, 4, 6);
+        params.set(Params.NUM_ROUNDS, 10);
+        params.set(Params.USE_SCORE, true);
+        params.set(Params.QUICKGRASP_DO_FINAL_GRAPH, true, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new ZhangShenBoundScore(), new FisherZ()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.DEPTH));
+        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
+        statistics.add(new ParameterColumn(Params.QUICKGRASP_DO_FINAL_GRAPH));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
-        statistics.add(new CorrectSkeleton());
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
@@ -891,7 +903,7 @@ public final class TestBoss {
 
         parameters.set(Params.NUM_RUNS, 100);
 
-        parameters.set(Params.BOSS_METHOD, 5);//1, 2);//, 3, 4, 5, 6);
+        parameters.set(Params.BOSS_METHOD, 1, 2, 3, 4, 5, 6);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.BOSS_METHOD));
@@ -1364,8 +1376,8 @@ public final class TestBoss {
         }
 
         for (Boss.Method method : new Boss.Method[]{
-//                BOSS1,
-//                BOSS2,
+                BOSS1,
+                BOSS2,
                 GRaSP,
                 quickGRaSP,
                 ESP,
@@ -1399,7 +1411,7 @@ public final class TestBoss {
                     search.setDepth(depth);
                     search.setMethod(method);
                     search.setNumRounds(numRounds);
-                    search.setVerbose(verbose);
+//                    search.setVerbose(verbose);
                     List<Node> order = search.bestOrder(p);
 //                    System.out.println(p + " " + order + " " + search.getNumEdges());// + " " + search.getGraph(false));
 
@@ -1786,7 +1798,7 @@ public final class TestBoss {
 
     @Test
     public void testAddUnfaithfulIndependencies() {
-        Graph graph = GraphUtils.randomGraph(5, 0, 5, 100, 100,
+        Graph graph = GraphUtils.randomGraph( 7, 0, 15, 100, 100,
                 100, false);
 
         System.out.println("Source = " + graph);//SearchGraphUtils.cpdagForDag(graph));
@@ -1796,57 +1808,80 @@ public final class TestBoss {
 
         List<Node> nodes = graph.getNodes();
 
-        for (int i = 0; i < 8; i++) {
-            shuffle(nodes);
+        int count = 0;
 
-            for (int h = 0; h < 2; h++) {
-                boolean added = false;
+        for (int i = 0; i < nodes.size(); i++) {
+            for (int j = 1; j < i; j++) {
+                Node x = nodes.get(i);
+                Node y = nodes.get(j);
 
-                Node x = nodes.get(0);
-                Node y = nodes.get(1);
+                System.out.println("<x, y> = <" + x + ", " + y + ">");
 
-                List<List<Node>> treks = GraphUtils.treks(graph, x, y, 3);
+                List<List<Node>> treks = GraphUtils.treks(graph, x, y, 4);
 
-                Set<Node> all = new HashSet<>();
+                if (treks.size() >= 2) {
+                    IndependenceFact fact = new IndependenceFact(x, y, new ArrayList<>());
+                    facts.add(fact);
+                    System.out.println("Added " + fact);
 
-                for (List<Node> trek : treks) {
-                    all.addAll(trek);
-                }
+                    count++;
+                } else {
+                    List<List<Node>> paths = GraphUtils.allPathsFromTo(graph, x, y, 4);
 
-                all.remove(x);
-                all.remove(y);
+                    if (paths.size() >= 1) {
+                        List<List<Node>> nonTrekPaths = new ArrayList<>();
 
-                List<Node> allList = new ArrayList<>(all);
+                        for (List<Node> path : paths) {
+                            if (!treks.containsAll(path)) {
+                                nonTrekPaths.add(path);
+                            }
+                        }
 
-                DepthChoiceGenerator gen = new DepthChoiceGenerator(allList.size(), allList.size());
-                int[] choice;
+                        Set<Node> pathColliders = new HashSet<>();
 
-                List<Node> Z = null;
+                        for (List<Node> path : nonTrekPaths) {
+                            for (int w = 1; w < path.size() - 1; w++) {
+                                if (!graph.isDefCollider(path.get(w - 1), path.get(w), path.get(w + 1))) {
+                                    pathColliders.add(path.get(w));
+                                }
+                            }
+                        }
 
-                while ((choice = gen.next()) != null) {
-                    List<Node> cond = GraphUtils.asList(choice, allList);
-
-                    if (dsep.isDependent(x, y, cond)) {
-                        Z = cond;
-
-                        IndependenceFact fact = new IndependenceFact(x, y, Z);
-                        facts.add(fact);
-                        System.out.println("Added " + fact);
-
-                        added = true;
+                        if (dsep.isIndependent(x, y, new ArrayList<>(pathColliders))) {
+                            IndependenceFact fact = new IndependenceFact(x, y, new ArrayList<>(pathColliders));
+                            facts.add(fact);
+                            System.out.println("Added " + fact);
+                            count++;
+                        }
                     }
                 }
 
-                if (added) {
-                    IndependenceTest test = new IndTestDSep(facts);
-
-                    Boss boss = new Boss(test);
-                    boss.setUseScore(false);
-                    boss.setMethod(GRaSP);
-                    boss.bestOrder(test.getVariables());
-                    System.out.println("Est = " + boss.getGraph(false));
-                }
+                if (count >= 2) break;
             }
+        }
+
+        if (count >= 2) {
+            IndependenceTest test = new IndTestDSep(facts);
+
+            Boss boss = new Boss(test);
+            boss.setUseScore(false);
+
+            Boss.Method method = GRaSP;
+
+            boss.setMethod(method);
+            boss.bestOrder(test.getVariables());
+            Graph other = boss.getGraph(false);
+            System.out.println(method + " " + other);
+
+            boss.setMethod(SP);
+            boss.bestOrder(test.getVariables());
+            Graph frugal = other;
+            System.out.println("SP " + frugal);
+
+
+            System.out.println("\n-----\n");
+
+            assert(frugal.getNumEdges() == other.getNumEdges());
         }
     }
 

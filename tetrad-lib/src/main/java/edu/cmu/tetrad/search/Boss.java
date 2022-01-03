@@ -2,10 +2,7 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.graph.NodePair;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +41,7 @@ public class Boss {
     private boolean useScore = true;
     private int maxPermSize = 4;
     private int numRounds = 50;
+    private boolean quickGraphDoFinalGrasp = true;
 
     public Boss(@NotNull Score score) {
         this.score = score;
@@ -199,9 +197,60 @@ public class Boss {
         return scorer.getOrder();
     }
 
+
+    public List<Node> esp(@NotNull TeyssierScorer scorer) {
+        if (depth <= 0) throw new IllegalArgumentException("Form ESP, max depth should be > 0");
+
+        double sOld;
+        double sNew = scorer.score();
+
+        do {
+            sOld = sNew;
+            espDfs(scorer, sOld, (depth < 0 ? 100 : depth), 1);
+            sNew = scorer.score();
+        } while (sNew > sOld);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (ESP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        return scorer.getOrder();
+    }
+
+    public List<Node> gsp(@NotNull TeyssierScorer scorer) {
+        if (depth < 0) throw new IllegalArgumentException("Form GRaSP, max depth should be >= 0");
+        scorer.setUseRunningScore(true);
+        scorer.clearBookmarks();
+
+        double sOld;
+        double sNew = scorer.score();
+
+        do {
+            sOld = sNew;
+            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true);
+            sNew = scorer.score();
+        } while (sNew > sOld);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (GSP))"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        scorer.setUseRunningScore(false);
+
+        return scorer.getOrder();
+
+    }
+
     public List<Node> grasp(@NotNull TeyssierScorer scorer) {
         if (depth < 0) throw new IllegalArgumentException("Form GRaSP, max depth should be >= 0");
         scorer.setUseRunningScore(true);
+        scorer.clearBookmarks();
 
         double sOld;
         double sNew = scorer.score();
@@ -227,6 +276,7 @@ public class Boss {
     public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
         if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
         scorer.setUseRunningScore(true);
+        scorer.clearBookmarks();
 
         NumberFormat nf = new DecimalFormat("0.00");
 
@@ -234,27 +284,19 @@ public class Boss {
             System.out.println("\nInitial # edges = " + scorer.getNumEdges());
         }
 
-        List<Node> pi = scorer.getOrder();
+        scorer.bookmarkKey(0);
         double s0 = scorer.score();
 
-        for (int k = 0; k < (numRounds < 0 ? Integer.MAX_VALUE : numRounds); k++) {
+        int unimproved = 0;
+        int rounds = 0;
+        int maxRounds = numRounds < 0 ? Integer.MAX_VALUE : numRounds;
+
+        while (unimproved < depth && ++rounds < maxRounds) {
             if (verbose) {
-                System.out.println("### Round " + (k + 1));
+                System.out.println("### Round " + (rounds));
             }
 
-            List<NodePair> pairs = new ArrayList<>();
-
-            for (int i = 0; i < pi.size(); i++) {
-                for (int j = 0; j < i; j++) {
-                    Node x = pi.get(i);
-                    Node y = pi.get(j);
-
-                    if (scorer.adjacent(x, y)) {
-                        pairs.add(new NodePair(x, y));
-                    }
-                }
-            }
-
+            List<NodePair> pairs = scorer.getAdjacencies();
             shuffle(pairs);
 
             int numImprovements = 0;
@@ -262,7 +304,7 @@ public class Boss {
 
             for (int w = 0; w < pairs.size(); w++) {
                 NodePair pair = pairs.get(w);
-                scorer.bookmark();
+                scorer.bookmarkKey(1);
 
                 if (!scorer.adjacent(pair.getFirst(), pair.getSecond())) continue;
                 scorer.tuck(pair.getFirst(), pair.getSecond());
@@ -270,38 +312,48 @@ public class Boss {
                 scorer.restartCacheIfTooBig(100000);
 
                 if (violatesKnowledge(scorer.getOrder())) {
-                    scorer.goToBookmark();
+                    scorer.goToBookmarkKey(1);
                     continue;
                 }
 
                 double sNew = scorer.score();
 
                 if (sNew < s0) {
-                    scorer.goToBookmark();
+                    scorer.goToBookmarkKey(1);
                 }
 
                 if (verbose) {
                     if (sNew > s0) {
                         numImprovements++;
-
-                        System.out.println("Round " + (k + 1) + " # improvements = " + numImprovements
-                                + " # equals = " + numEquals
-                                + " # edges = " + scorer.getNumEdges() + " progress this round = " + nf.format(100D * ((w + 1) / (double) pairs.size())) + "%");
                     }
 
                     if (sNew == s0) {
                         numEquals++;
                     }
+
+                    if (sNew > s0) {
+                        System.out.println("Round " + (rounds) + " # improvements = " + numImprovements
+                                + " # unimproved = " + numEquals
+                                + " # edges = " + scorer.getNumEdges() + " progress this round = " + nf.format(100D * ((w + 1) / (double) pairs.size())) + "%");
+                    }
                 }
 
-                pi = scorer.getOrder();
+                scorer.bookmarkKey(0);
                 s0 = scorer.score();
+            }
+
+            if (numImprovements == 0) {
+                unimproved++;
+            } else {
+                unimproved = 0;
             }
         }
 
-        scorer.score(pi);
+        scorer.goToBookmarkKey(0);
 
-        pi = grasp(scorer);
+        if (quickGraphDoFinalGrasp) {
+            grasp(scorer);
+        }
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
@@ -312,50 +364,6 @@ public class Boss {
         }
 
         scorer.setUseRunningScore(false);
-
-        return pi;
-    }
-
-    public List<Node> esp(@NotNull TeyssierScorer scorer) {
-        if (depth <= 0) throw new IllegalArgumentException("Form ESP, max depth should be > 0");
-
-        double sOld;
-        double sNew = scorer.score();
-
-        do {
-            sOld = sNew;
-            espDfs(scorer, sOld, (depth < 0 ? 100 : depth), 1);
-            sNew = scorer.score();
-        } while (sNew > sOld);
-
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " Score = " + scorer.score()
-                    + " (ESP)"
-                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-        }
-
-        return scorer.getOrder();
-    }
-
-    public List<Node> gsp(@NotNull TeyssierScorer scorer) {
-        if (depth <= 0) throw new IllegalArgumentException("Form GSP, max depth should be > 0");
-
-        double sOld;
-        double sNew = scorer.score();
-
-        do {
-            sOld = sNew;
-            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true);
-            sNew = scorer.score();
-        } while (sOld < sNew);
-
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " Score = " + scorer.score()
-                    + " (GSP)"
-                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-        }
 
         return scorer.getOrder();
     }
@@ -411,6 +419,7 @@ public class Boss {
                 }
 
                 scorer.goToBookmark();
+                scorer.bookmark();
 
                 for (int i = index; i < scorer.size(); i++) {
                     scorer.moveTo(x, i);
@@ -484,85 +493,85 @@ public class Boss {
         }
     }
 
-    private void betterTriMutationb(@NotNull TeyssierScorer scorer, int maxPermSize) {
-        if (maxPermSize < 0) throw new IllegalArgumentException("maxPermSize should be >= 0");
+//    private void betterTriMutationb(@NotNull TeyssierScorer scorer, int maxPermSize) {
+//        if (maxPermSize < 0) throw new IllegalArgumentException("maxPermSize should be >= 0");
+//
+//        List<Node> pi = scorer.getOrder();
+//
+//        W:
+//        while (true) {
+//
+//            for (NodePair pair : scorer.getAdjacencies()) {
+//                Node x = pair.getFirst();
+//                Node y = pair.getSecond();
+//
+//                List<Node> Z = triangleVars(scorer, x, y);
+//
+//                for (int length = 2; length <= maxPermSize; length++) {
+//                    boolean triangleConditionNeverTrue = true;
+//
+//                    ChoiceGenerator choiceGenerator = new ChoiceGenerator(Z.size(), min(length - 2, Z.size()));
+//                    int[] choice;
+//
+//                    while ((choice = choiceGenerator.next()) != null) {
+//                        List<Node> Zp = GraphUtils.asList(choice, Z);
+//                        Zp.add(x);
+//                        Zp.add(y);
+//
+//                        int[] choice2 = new int[Zp.size()];
+//                        for (int i = 0; i < Zp.size(); i++) choice2[i] = scorer.index(Zp.get(i));
+//
+//                        if (triangleCondition(scorer, choice2)) {
+//                            triangleConditionNeverTrue = false;
+//                            PermutationGenerator permGen = new PermutationGenerator(choice2.length);
+//                            int[] perm;
+//
+//                            while ((perm = permGen.next()) != null) {
+//                                List<Node> pip = subMutation(scorer.getOrder(), choice2, perm);
+//
+//                                if (scorer.score(pip) > scorer.score(pi)) {
+//                                    pi = pip;
+//                                    continue W;
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    if (triangleConditionNeverTrue) {
+//                        if (verbose) System.out.println("Breaking at " + length);
+//                        break;
+//                    }
+//                }
+//
+//                break;
+//            }
+//
+//            break;
+//        }
+//
+//        if (verbose) {
+//            System.out.println("# Edges = " + scorer.getNumEdges()
+//                    + " max perm size = " + maxPermSize
+//                    + " Score = "
+//                    + scorer.score()
+//                    + " (betterTriMutationB)"
+//                    + " Elapsed = " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+//        }
+//    }
 
-        List<Node> pi = scorer.getOrder();
-
-        W:
-        while (true) {
-
-            for (NodePair pair : scorer.getAdjacencies()) {
-                Node x = pair.getFirst();
-                Node y = pair.getSecond();
-
-                List<Node> Z = triangleVars(scorer, x, y);
-
-                for (int length = 2; length <= maxPermSize; length++) {
-                    boolean triangleConditionNeverTrue = true;
-
-                    ChoiceGenerator choiceGenerator = new ChoiceGenerator(Z.size(), min(length - 2, Z.size()));
-                    int[] choice;
-
-                    while ((choice = choiceGenerator.next()) != null) {
-                        List<Node> Zp = GraphUtils.asList(choice, Z);
-                        Zp.add(x);
-                        Zp.add(y);
-
-                        int[] choice2 = new int[Zp.size()];
-                        for (int i = 0; i < Zp.size(); i++) choice2[i] = scorer.index(Zp.get(i));
-
-                        if (triangleCondition(scorer, choice2)) {
-                            triangleConditionNeverTrue = false;
-                            PermutationGenerator permGen = new PermutationGenerator(choice2.length);
-                            int[] perm;
-
-                            while ((perm = permGen.next()) != null) {
-                                List<Node> pip = subMutation(scorer.getOrder(), choice2, perm);
-
-                                if (scorer.score(pip) > scorer.score(pi)) {
-                                    pi = pip;
-                                    continue W;
-                                }
-                            }
-                        }
-                    }
-
-                    if (triangleConditionNeverTrue) {
-                        if (verbose) System.out.println("Breaking at " + length);
-                        break;
-                    }
-                }
-
-                break;
-            }
-
-            break;
-        }
-
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " max perm size = " + maxPermSize
-                    + " Score = "
-                    + scorer.score()
-                    + " (betterTriMutationB)"
-                    + " Elapsed = " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-        }
-    }
-
-    private List<Node> triangleVars(TeyssierScorer scorer, Node x, Node y) {
-        List<Node> Z = new ArrayList<>();
-
-        for (Node z : scorer.getOrder()) {
-            if (z == x || z == y) continue;
-
-            if (scorer.adjacent(x, z) && scorer.adjacent(y, z)) {
-                Z.add(z);
-            }
-        }
-
-        return Z;
-    }
+//    private List<Node> triangleVars(TeyssierScorer scorer, Node x, Node y) {
+//        List<Node> Z = new ArrayList<>();
+//
+//        for (Node z : scorer.getOrder()) {
+//            if (z == x || z == y) continue;
+//
+//            if (scorer.adjacent(x, z) && scorer.adjacent(y, z)) {
+//                Z.add(z);
+//            }
+//        }
+//
+//        return Z;
+//    }
 
     @NotNull
     public Graph getGraph(boolean cpDag) {
@@ -646,10 +655,11 @@ public class Boss {
 
     private void espDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth) {
         for (int i = 0; i < scorer.size() - 1; i++) {
+            List<Node> pi = scorer.getOrder();
             scorer.swap(scorer.get(i), scorer.get(i + 1));
 
             if (violatesKnowledge(scorer.getOrder())) {
-                scorer.swap(scorer.get(i), scorer.get(i + 1));
+                scorer.score(pi);
                 continue;
             }
 
@@ -661,7 +671,7 @@ public class Boss {
             }
 
             if (sNew <= sOld) {
-                scorer.swap(scorer.get(i), scorer.get(i + 1));
+                scorer.score(pi);
             } else {
                 break;
             }
@@ -670,13 +680,15 @@ public class Boss {
 
     private void gspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
                         boolean checkCovering) {
-        for (NodePair adj : scorer.getAdjacencies()) {
-            if (checkCovering && !scorer.coveredEdge(adj.getFirst(), adj.getSecond())) continue;
-            scorer.bookmark();
-            scorer.tuck(adj.getFirst(), adj.getSecond());
+        for (OrderedPair<Node> adj : scorer.getEdges()) {
+            Node x = adj.getFirst();
+            Node y = adj.getSecond();
+            if (checkCovering && !scorer.coveredEdge(x, y)) continue;
+            scorer.bookmarkKey(currentDepth);
+            scorer.moveTo(y, scorer.index(x));
 
             if (violatesKnowledge(scorer.getOrder())) {
-                scorer.goToBookmark();
+                scorer.goToBookmarkKey(currentDepth);
                 continue;
             }
 
@@ -688,7 +700,7 @@ public class Boss {
             }
 
             if (sNew <= sOld) {
-                scorer.goToBookmark();
+                scorer.goToBookmarkKey(currentDepth);
             } else {
                 break;
             }
@@ -735,6 +747,10 @@ public class Boss {
 
     public void setNumRounds(int numRounds) {
         this.numRounds = numRounds;
+    }
+
+    public void setQuickGraphDoFinalGrasp(boolean quickGraphDoFinalGrasp) {
+        this.quickGraphDoFinalGrasp = quickGraphDoFinalGrasp;
     }
 
     public enum Method {GSP, ESP, GRaSP, quickGRaSP, BOSS1, BOSS2, SP}

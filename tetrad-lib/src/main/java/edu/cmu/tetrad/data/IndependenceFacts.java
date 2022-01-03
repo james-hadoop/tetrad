@@ -52,8 +52,6 @@ public class IndependenceFacts implements DataModel {
     }
 
     public IndependenceFacts(Graph graph) {
-        this();
-
         IndTestDSep dsep = new IndTestDSep(graph);
 
         Set<IndependenceFact> facts = new HashSet<>();
@@ -73,14 +71,14 @@ public class IndependenceFacts implements DataModel {
                 Node x = nodes.get(choice[perm[0]]);
                 Node y = nodes.get(choice[perm[1]]);
 
-                List<Node> z = new ArrayList<>();
+                List<Node> Z = new ArrayList<>();
 
                 for (int i = 2; i < perm.length; i++) {
-                    z.add(nodes.get(choice[perm[i]]));
+                    Z.add(nodes.get(choice[perm[i]]));
                 }
 
-                if (dsep.isIndependent(x, y, z)) {
-                    facts.add(new IndependenceFact(x, y, z));
+                if (dsep.isIndependent(x, y, Z)) {
+                    facts.add(new IndependenceFact(x, y, Z));
                 }
             }
 
@@ -94,6 +92,7 @@ public class IndependenceFacts implements DataModel {
         this.name = facts.name;
         this.knowledge = facts.knowledge.copy();
         this.order = new ArrayList<>(facts.order);
+        this.nodes = new ArrayList<>(facts.nodes);
     }
 
     /**
