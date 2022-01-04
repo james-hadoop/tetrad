@@ -270,7 +270,7 @@ public class TeyssierScorer {
 
             double s2 = score(x, new HashSet<>(minus));
 
-            if (s2 < s1) {
+            if (s2 > s1) {
                 parents.add(y);
             }
         }
