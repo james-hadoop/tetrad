@@ -69,6 +69,10 @@ public final class Bfci implements GraphSearch {
     private TeyssierScorer.ScoreType scoreType;
     private boolean useScore = true;
     private int triangleDepth = 0;
+    private int numRounds = 10;
+    private int gspDepth = 5;
+    private int maxPermSize = 4;
+    private boolean quickGraphDoFinalGrasp;
 
     //============================CONSTRUCTORS============================//
     public Bfci(IndependenceTest test, Score score) {
@@ -97,12 +101,17 @@ public final class Bfci implements GraphSearch {
             variables = test.getVariables();
         }
 
-        boss.setNumStarts(numStarts);
-        boss.setCacheScores(cacheScores);
+        boss.setMethod(Boss.Method.quickGRaSP);
         boss.setScoreType(scoreType);
+        boss.setCacheScores(cacheScores);
+        boss.setDepth(gspDepth);
+        boss.setNumRounds(numRounds);
         boss.setMaxPermSize(triangleDepth);
+        boss.setNumStarts(numStarts);
         boss.setVerbose(verbose);
         boss.setKnowledge(knowledge);
+        boss.setMaxPermSize(maxPermSize);
+        boss.setQuickGraphDoFinalGrasp(quickGraphDoFinalGrasp);
 
         List<Node> perm = boss.bestOrder(variables);
         graph = boss.getGraph(true);
@@ -129,15 +138,12 @@ public final class Bfci implements GraphSearch {
 
         TeyssierScorer scorer;
 
-//        if (!(score instanceof GraphScore)) {
-            scorer = new TeyssierScorer(test, score);
-//        } else {
-//            scorer = new TeyssierScorer(test);
-//        }
+        scorer = new TeyssierScorer(test, score);
 
         scorer.score(perm);
 
         List<Triple> triples = new ArrayList<>();
+        scorer.clearBookmarks();
 
         for (Node b : perm) {
             Set<Node> into = scorer.getParents(b);
@@ -184,6 +190,7 @@ public final class Bfci implements GraphSearch {
         FciOrient fciOrient = new FciOrient(sepsets);
         fciOrient.setVerbose(verbose);
         fciOrient.setOut(out);
+        fciOrient.setMaxPathLength(maxPathLength);
         fciOrient.skipDiscriminatingPathRule(false);
         fciOrient.setKnowledge(getKnowledge());
         fciOrient.setCompleteRuleSetUsed(completeRuleSetUsed);
@@ -417,5 +424,22 @@ public final class Bfci implements GraphSearch {
 
     public void setTriangleDepth(int triangleDepth) {
         this.triangleDepth = triangleDepth;
+    }
+
+    public void setGspDepth(int depth) {
+        this.gspDepth = depth;
+    }
+
+
+    public void setNumRounds(int numRounds) {
+        this.numRounds = numRounds;
+    }
+
+    public void setMaxPermSize(int maxPermSize) {
+        this.maxPermSize = maxPermSize;
+    }
+
+    public void setQuickGraphDoFinalGrasp(boolean quickGraphDoFinalGrasp) {
+        this.quickGraphDoFinalGrasp = quickGraphDoFinalGrasp;
     }
 }

@@ -36,7 +36,7 @@ public class Boss {
     private IKnowledge knowledge = new Knowledge2();
     private boolean useDataOrder = false;
     private int depth = 4;
-    private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.Pearl;
+    private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.GrowShrinkMb;
     private TeyssierScorer scorer;
     private boolean useScore = true;
     private int maxPermSize = 4;
@@ -76,6 +76,7 @@ public class Boss {
 
         scorer.setKnowledge(knowledge);
         scorer.setScoreType(scoreType);
+        scorer.clearBookmarks();
 
         scorer.setCachingScores(cachingScores);
 

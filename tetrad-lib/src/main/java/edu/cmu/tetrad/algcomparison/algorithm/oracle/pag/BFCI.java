@@ -12,6 +12,7 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Bfci;
+import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -41,6 +42,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
     private ScoreWrapper score;
 
     public BFCI() {
+        // Used for reflection; do not delete.
     }
 
     public BFCI(ScoreWrapper score, IndependenceWrapper test) {
@@ -57,17 +59,57 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
             search.setTriangleDepth(parameters.getInt(Params.MAX_PERM_SIZE));
 
+            Boss.Method method;
+
+            switch (parameters.getInt(Params.BOSS_METHOD)) {
+                case 1:
+                    method = Boss.Method.BOSS1;
+                    break;
+                case 2:
+                    method = Boss.Method.BOSS2;
+                    break;
+                case 3:
+                    method = Boss.Method.GRaSP;
+                    break;
+                case 4:
+                    method = Boss.Method.quickGRaSP;
+                    break;
+                case 5:
+                    method = Boss.Method.ESP;
+                    break;
+                case 6:
+                    method = Boss.Method.GSP;
+                    break;
+                case 7:
+                    method = Boss.Method.SP;
+                    break;
+                default:
+                    throw new IllegalStateException("Pick a number from 1 to 7: " +
+                            "1 = search1, 2 = search2, 3 = GRaSP, 4 = quickGRaSP, 5 = ESP_LOOP, 6 = TSP, 7 = SP");
+            }
+
+            System.out.println("Picked " + method);
+
+            search.setMethod(method);
+            search.setUseScore(parameters.getBoolean(Params.USE_SCORE));
+
             search.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            search.setUseScore(parameters.getBoolean(Params.USE_SCORE));
             search.setKnowledge(dataSet.getKnowledge());
+            search.setGspDepth(parameters.getInt(Params.GSP_DEPTH));
+            search.setMaxPermSize(parameters.getInt(Params.MAX_PERM_SIZE));
+            search.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
+            search.setQuickGraphDoFinalGrasp(parameters.getBoolean(Params.QUICKGRASP_DO_FINAL_GRAPH));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 search.setScoreType(TeyssierScorer.ScoreType.Edge);
             } else {
                 search.setScoreType(TeyssierScorer.ScoreType.SCORE);
             }
+
+            search.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
+            search.setTriangleDepth(parameters.getInt(Params.MAX_PERM_SIZE));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
 
@@ -85,7 +127,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             search.setPercentResampleSize(parameters.getDouble(Params.PERCENT_RESAMPLE_SIZE));
             search.setResamplingWithReplacement(parameters.getBoolean(Params.RESAMPLING_WITH_REPLACEMENT));
 
-            ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+            ResamplingEdgeEnsemble edgeEnsemble;
 
             switch (parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1)) {
                 case 0:
@@ -96,6 +138,9 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                     break;
                 case 2:
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + parameters.getInt(Params.RESAMPLING_ENSEMBLE, 1));
             }
             search.setEdgeEnsemble(edgeEnsemble);
             search.setAddOriginalDataset(parameters.getBoolean(Params.ADD_ORIGINAL_DATASET));
@@ -108,7 +153,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
     @Override
     public String getDescription() {
-        return "BFCI (BOSS-FCI) using " + test.getDescription()
+        return "BFCI (search-FCI) using " + test.getDescription()
                 + " or " + score.getDescription();
     }
 
@@ -123,15 +168,20 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
         params.add(Params.MAX_PATH_LENGTH);
         params.add(Params.COMPLETE_RULE_SET_USED);
+        params.add(Params.MAX_PATH_LENGTH);
 
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.USE_SCORE);
+        params.add(Params.OUTPUT_CPDAG);
         params.add(Params.MAX_PERM_SIZE);
+        params.add(Params.GSP_DEPTH);
+        params.add(Params.BOSS_METHOD);
+        params.add(Params.NUM_ROUNDS);
+        params.add(Params.QUICKGRASP_DO_FINAL_GRAPH);
         params.add(Params.VERBOSE);
 
-        params.add(Params.VERBOSE);
         return params;
     }
 
