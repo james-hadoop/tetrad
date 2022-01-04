@@ -40,7 +40,6 @@ public class TeyssierScorer {
     private ScoreType scoreType = ScoreType.Edge;
     private boolean useScore = true;
     private double runningScore = 0D;
-    private boolean useRunningScore = true;
 
     public TeyssierScorer(IndependenceTest test, Score score) {
         this.score = score;
@@ -403,18 +402,16 @@ public class TeyssierScorer {
     }
 
     private double sum() {
-        if (useRunningScore) {
-            return runningScore;
-        }
+        return runningScore;
 
-        double sum = 0D;
-
-        for (int i = 0; i < order.size(); i++) {
-            double score1 = scores.get(i).getScore();
-            sum += (Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
-        }
-
-        return sum;
+//        double sum = 0D;
+//
+//        for (int i = 0; i < order.size(); i++) {
+//            double score1 = scores.get(i).getScore();
+//            sum += (Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
+//        }
+//
+//        return sum;
     }
 
     private void initializeScores() {
@@ -489,18 +486,15 @@ public class TeyssierScorer {
             if (p1 == null) {
                 double s2 = p2.getScore();
                 runningScore += s2;
-                runningScore = runningScore;// floor(1.e10 * runningScore) / 1.e10;
             } else if (p2 == null) {
                 double s1 = p1.getScore();
                 runningScore -= s1;
-                runningScore = runningScore;// floor(1.e10 * runningScore) / 1.e10;
             } else {
                 double s1 = p1.getScore();
                 double s2 = p2.getScore();
 
                 runningScore -= s1;
                 runningScore += s2;
-                runningScore = runningScore;// floor(1.e10 * runningScore) / 1.e10;
             }
         }
     }
@@ -658,11 +652,6 @@ public class TeyssierScorer {
         } else {
             throw new IllegalStateException("Unrecognized parent calculation: " + parentCalculation);
         }
-    }
-
-    public void setUseRunningScore(boolean useRunningScore) {
-//        this.useRunningScore = useRunningScore;
-//        System.out.println("Use running score = " + useRunningScore);
     }
 
     public enum ScoreType {Edge, SCORE}

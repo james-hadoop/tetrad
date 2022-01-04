@@ -222,7 +222,6 @@ public class Boss {
 
     public List<Node> gsp(@NotNull TeyssierScorer scorer) {
         if (depth < 0) throw new IllegalArgumentException("Form GRaSP, max depth should be >= 0");
-        scorer.setUseRunningScore(true);
         scorer.clearBookmarks();
 
         double sOld;
@@ -241,15 +240,12 @@ public class Boss {
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
-        scorer.setUseRunningScore(false);
-
         return scorer.getOrder();
 
     }
 
     public List<Node> grasp(@NotNull TeyssierScorer scorer) {
         if (depth < 0) throw new IllegalArgumentException("Form GRaSP, max depth should be >= 0");
-        scorer.setUseRunningScore(true);
         scorer.clearBookmarks();
 
         double sOld;
@@ -268,14 +264,11 @@ public class Boss {
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
-        scorer.setUseRunningScore(false);
-
         return scorer.getOrder();
     }
 
     public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
-        if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, num rounds should be > 0");
-        scorer.setUseRunningScore(true);
+        if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, #rounds should be > 0");
         scorer.clearBookmarks();
 
         NumberFormat nf = new DecimalFormat("0.00");
@@ -362,8 +355,6 @@ public class Boss {
                     + " (quickGRaSP)"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
-
-        scorer.setUseRunningScore(false);
 
         return scorer.getOrder();
     }

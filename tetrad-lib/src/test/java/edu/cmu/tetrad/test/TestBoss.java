@@ -50,7 +50,6 @@ import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
-import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.PermutationGenerator;
