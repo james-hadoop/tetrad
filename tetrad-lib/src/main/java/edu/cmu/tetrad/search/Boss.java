@@ -2,7 +2,10 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
-import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.OrderedPair;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
@@ -290,18 +293,25 @@ public class Boss {
                 System.out.println("### Round " + (rounds));
             }
 
-            List<NodePair> pairs = scorer.getAdjacencies();
-            shuffle(pairs);
+            List<OrderedPair<Node>> edges = scorer.getEdges();
 
             int numImprovements = 0;
             int numEquals = 0;
 
-            for (int w = 0; w < pairs.size(); w++) {
-                NodePair pair = pairs.get(w);
+            for (int w = 0; w < edges.size(); w++) {
+                OrderedPair<Node> pair = edges.get(w);
+                Node x = pair.getFirst();
+                Node y = pair.getSecond();
+
                 scorer.bookmarkKey(1);
 
-                if (!scorer.adjacent(pair.getFirst(), pair.getSecond())) continue;
-                scorer.tuck(pair.getFirst(), pair.getSecond());
+                if (!scorer.getParents(y).contains(x)) {
+                    scorer.goToBookmarkKey(1);
+                    continue;
+                }
+
+                // 'tuck' operation.
+                scorer.moveTo(y, scorer.index(x));
 
                 scorer.restartCacheIfTooBig(100000);
 
@@ -328,7 +338,7 @@ public class Boss {
                     if (sNew > s0) {
                         System.out.println("Round " + (rounds) + " # improvements = " + numImprovements
                                 + " # unimproved = " + numEquals
-                                + " # edges = " + scorer.getNumEdges() + " progress this round = " + nf.format(100D * ((w + 1) / (double) pairs.size())) + "%");
+                                + " # edges = " + scorer.getNumEdges() + " progress this round = " + nf.format(100D * ((w + 1) / (double) edges.size())) + "%");
                     }
                 }
 
