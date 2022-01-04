@@ -86,7 +86,7 @@ public class TeyssierScorer {
     }
 
     public double score() {
-        return sum();
+        return runningScore;
     }
 
     public void tuck(Node x, Node y) {
@@ -294,15 +294,10 @@ public class TeyssierScorer {
             throw new IllegalArgumentException("That key was not bookmarked recently.");
         }
 
-        order = bookmarkedOrders.get(key);
-        scores = bookmarkedScores.get(key);
-        runningScore = bookmarkedRunningScores.get(key);
-        orderHash = bookmarkedOrderHashes.get(key);
-
-        bookmarkedOrders.remove(key);
-        bookmarkedScores.remove(key);
-        bookmarkedRunningScores.remove(key);
-        bookmarkedOrderHashes.remove(key);
+        order = bookmarkedOrders.remove(key);
+        scores = bookmarkedScores.remove(key);
+        runningScore = bookmarkedRunningScores.remove(key);
+        orderHash = bookmarkedOrderHashes.remove(key);
     }
 
     public void clearBookmarks() {
@@ -401,19 +396,6 @@ public class TeyssierScorer {
         return true;
     }
 
-    private double sum() {
-        return runningScore;
-
-//        double sum = 0D;
-//
-//        for (int i = 0; i < order.size(); i++) {
-//            double score1 = scores.get(i).getScore();
-//            sum += (Double.isNaN(score1) || Double.isInfinite(score1)) ? 0 : score1;
-//        }
-//
-//        return sum;
-    }
-
     private void initializeScores() {
         for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.set(i1, null);
 
@@ -430,8 +412,6 @@ public class TeyssierScorer {
             recalculate(i);
             orderHash.put(order.get(i), i);
         }
-
-        score();
     }
 
     private double score(Node n, Set<Node> pi) {
@@ -476,27 +456,16 @@ public class TeyssierScorer {
         if (prefixes.get(p) == null || !prefixes.get(p).containsAll(getPrefix(p))) {
             Pair p1 = scores.get(p);
             Pair p2 = getParentsInternal(p);
-            updateRunningScores(p1, p2);
+            updateRunningScore(p1, p2);
             scores.set(p, p2);
         }
     }
 
-    private void updateRunningScores(Pair p1, Pair p2) {
-        if (p1 != null || p2 != null) {
-            if (p1 == null) {
-                double s2 = p2.getScore();
-                runningScore += s2;
-            } else if (p2 == null) {
-                double s1 = p1.getScore();
-                runningScore -= s1;
-            } else {
-                double s1 = p1.getScore();
-                double s2 = p2.getScore();
-
-                runningScore -= s1;
-                runningScore += s2;
-            }
-        }
+    private void updateRunningScore(Pair p1, Pair p2) {
+        double s1 = p1 == null ? 0D : p1.getScore();
+        double s2 = p2 == null ? 0D : p2.getScore();
+        runningScore -= s1;
+        runningScore += s2;
     }
 
     private void nodesHash(Map<Node, Integer> nodesHash, List<Node> variables) {
