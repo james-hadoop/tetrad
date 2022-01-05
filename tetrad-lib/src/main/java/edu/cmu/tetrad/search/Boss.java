@@ -44,7 +44,6 @@ public class Boss {
     private boolean useScore = true;
     private int maxPermSize = 4;
     private int numRounds = 50;
-    private boolean quickGraphDoFinalGrasp = true;
 
     public Boss(@NotNull Score score) {
         this.score = score;
@@ -111,8 +110,8 @@ public class Boss {
                 perm = boss2(scorer);
             } else if (method == Method.GRaSP) {
                 perm = grasp(scorer);
-            } else if (method == Method.quickGRaSP) {
-                perm = quickGrasp(scorer);
+            } else if (method == Method.RCG) {
+                perm = rcg(scorer);
             } else if (method == Method.ESP) {
                 perm = esp(scorer);
             } else if (method == Method.GSP) {
@@ -271,75 +270,92 @@ public class Boss {
         return scorer.getOrder();
     }
 
-    public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
-        if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, #rounds should be > 0");
+    // "Random Carnival Game"
+    public List<Node> rcg(@NotNull TeyssierScorer scorer) {
+        if (numRounds <= 0) throw new IllegalArgumentException("For RCG, #rounds should be > 0");
         scorer.clearBookmarks();
-
-        NumberFormat nf = new DecimalFormat("0.00");
+        NumberFormat nf = new DecimalFormat("0.0");
 
         if (verbose) {
             System.out.println("\nInitial # edges = " + scorer.getNumEdges());
         }
 
-        scorer.bookmarkKey(0);
-        double s0 = scorer.score();
+        scorer.bookmark(1);
 
-        int unimproved = 0;
         int maxRounds = numRounds < 0 ? Integer.MAX_VALUE : numRounds;
-        int numImprovements = 0;
+        int unimproved = 0;
 
         for (int r = 1; r <= maxRounds; r++) {
             if (verbose) {
                 System.out.println("### Round " + (r));
             }
 
-            scorer.restartCacheIfTooBig(100000);
+            List<Node> nodes = scorer.getOrder();
+            shuffle(nodes);
 
-            numImprovements = 0;
-            int numEquals = 0;
+            List<OrderedPair<Node>> pairs = new ArrayList<>();
 
             for (Node y : scorer.getOrder()) {
                 for (Node x : scorer.getParents(y)) {
-                    scorer.bookmark();
+                    pairs.add(new OrderedPair<>(x, y));
+                }
+            }
 
-                    // 'tuck' operation.
-                    scorer.moveTo(y, scorer.index(x));
+            shuffle(pairs);
 
-                    if (violatesKnowledge(scorer.getOrder())) {
-                        scorer.goToBookmark();
-                        continue;
+            int numImprovements = 0;
+            int numEquals = 0;
+
+            int visited = 0;
+            int numPairs = pairs.size();
+
+            for (OrderedPair<Node> pair : pairs) {
+//                scorer.resetCacheIfTooBig(1000000);
+                visited++;
+
+                Node x = pair.getFirst();
+                Node y = pair.getSecond();
+                double s0 = scorer.score();
+
+                scorer.bookmark(0);
+
+                // 'tuck' operation.
+                scorer.moveTo(y, scorer.index(x));
+
+                if (violatesKnowledge(scorer.getOrder())) {
+                    scorer.goToBookmark(0);
+                    continue;
+                }
+
+                double sNew = scorer.score();
+
+                if (sNew < s0) {
+                    scorer.goToBookmark(0);
+                    continue;
+                }
+
+                scorer.bookmark(1);
+
+                if (sNew > s0) {
+                    numImprovements++;
+                }
+
+                if (verbose) {
+                    if (sNew == s0) {
+                        numEquals++;
                     }
 
-                    double sNew = scorer.score();
-
-                    if (sNew < s0) {
-                        scorer.goToBookmark();
+                    if (sNew > s0) {
+                        System.out.println("Round " + (r) + " # improvements = " + numImprovements
+                                + " # unimproved = " + numEquals
+                                + " # edges = " + scorer.getNumEdges() + " progress this round = "
+                                + nf.format(100 * visited / (double) numPairs) + "%");
                     }
-
-                    if (verbose) {
-                        if (sNew > s0) {
-                            numImprovements++;
-                        }
-
-                        if (sNew == s0) {
-                            numEquals++;
-                        }
-
-                        if (sNew > s0) {
-                            System.out.println("Round " + (r) + " # improvements = " + numImprovements
-                                    + " # unimproved = " + numEquals
-                                    + " # edges = " + scorer.getNumEdges() + " progress this round = " + scorer.index(y));
-                        }
-                    }
-
-                    s0 = scorer.score();
                 }
             }
 
             if (numImprovements == 0) {
                 unimproved++;
-            } else {
-                unimproved = 0;
             }
 
             if (unimproved > depth) {
@@ -347,18 +363,15 @@ public class Boss {
             }
         }
 
-        if (quickGraphDoFinalGrasp) {
-            grasp(scorer);
-        }
-
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
                     + " #round = " + numRounds
-                    + " (quickGRaSP)"
+                    + " (RCG)"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
+        scorer.goToBookmark(1);
         return scorer.getOrder();
     }
 
@@ -598,11 +611,11 @@ public class Boss {
             Node x = adj.getFirst();
             Node y = adj.getSecond();
             if (checkCovering && !scorer.coveredEdge(x, y)) continue;
-            scorer.bookmarkKey(currentDepth);
+            scorer.bookmark(currentDepth);
             scorer.moveTo(y, scorer.index(x));
 
             if (violatesKnowledge(scorer.getOrder())) {
-                scorer.goToBookmarkKey(currentDepth);
+                scorer.goToBookmark(currentDepth);
                 continue;
             }
 
@@ -614,7 +627,7 @@ public class Boss {
             }
 
             if (sNew <= sOld) {
-                scorer.goToBookmarkKey(currentDepth);
+                scorer.goToBookmark(currentDepth);
             } else {
                 break;
             }
@@ -663,9 +676,5 @@ public class Boss {
         this.numRounds = numRounds;
     }
 
-    public void setQuickGraphDoFinalGrasp(boolean quickGraphDoFinalGrasp) {
-        this.quickGraphDoFinalGrasp = quickGraphDoFinalGrasp;
-    }
-
-    public enum Method {GSP, ESP, GRaSP, quickGRaSP, BOSS1, BOSS2, SP}
+    public enum Method {GSP, ESP, GRaSP, RCG, BOSS1, BOSS2, SP}
 }

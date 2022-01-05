@@ -133,9 +133,10 @@ public final class TestBoss {
     @Test
     public void testBoss() {
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 50);
-        params.set(Params.AVG_DEGREE, 6);
-        params.set(Params.NUM_RUNS, 2);
+        params.set(Params.NUM_MEASURES, 100);
+        params.set(Params.AVG_DEGREE, 4);
+        params.set(Params.SAMPLE_SIZE, 1000);
+        params.set(Params.NUM_RUNS, 1);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.PENALTY_DISCOUNT, 2);
         params.set(Params.COEF_LOW, 0);
@@ -144,11 +145,11 @@ public final class TestBoss {
         params.set(Params.NUM_STARTS, 1);
         params.set(Params.ALPHA, 0.001);
 
-        params.set(Params.GSP_DEPTH, 3);
+        params.set(Params.GSP_DEPTH, 4);
         params.set(Params.BOSS_METHOD, 4);
-        params.set(Params.NUM_ROUNDS, 10);
+        params.set(Params.NUM_ROUNDS, 5);
         params.set(Params.USE_SCORE, true);
-        params.set(Params.QUICKGRASP_DO_FINAL_GRAPH, true, false);
+        params.set(Params.QUICKGRASP_DO_FINAL_GRAPH, /*true,*/ false);
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
@@ -1345,21 +1346,21 @@ public final class TestBoss {
     public void test6Examples() {
         List<Ret> allFacts = new ArrayList<>();
 
-        allFacts.add(getFactsSimple());
-        allFacts.add(getFactsSimpleCanceling());
-        allFacts.add(wayneTriangleFaithfulnessFailExample());
-        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
-        allFacts.add(getFigure7());
+//        allFacts.add(getFactsSimple());
+//        allFacts.add(getFactsSimpleCanceling());
+//        allFacts.add(wayneTriangleFaithfulnessFailExample());
+//        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
+//        allFacts.add(getFigure7());
         allFacts.add(getFigure11());
 
-        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
+//        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
 
         int count = 0;
 
         boolean verbose = false;
-        int numRounds = 30;
-        int depth = 5;
-        int maxPermSize = 5;
+        int numRounds = 50;
+        int depth = 100;
+        int maxPermSize = 4;
 
         boolean printCpdag = false;
 
@@ -1367,19 +1368,19 @@ public final class TestBoss {
             Ret facts = allFacts.get(i);
             count++;
 
-            System.out.println();
-            System.out.println("Test #" + (i + 1));
-            System.out.println(facts.getLabel());
-            System.out.println(facts.getFacts());
+//            System.out.println();
+//            System.out.println("Test #" + (i + 1));
+//            System.out.println(facts.getLabel());
+//            System.out.println(facts.getFacts());
         }
 
         for (Boss.Method method : new Boss.Method[]{
-                BOSS1,
-                BOSS2,
-                GRaSP,
-                quickGRaSP,
-                ESP,
-                GSP
+//                BOSS1,
+//                BOSS2,
+//                GRaSP,
+                RCG,
+//                ESP,
+//                GSP
         }) {
             System.out.println("\n\n" + method);
 
@@ -1448,7 +1449,7 @@ public final class TestBoss {
 //                BOSS1,
 //                BOSS2,
 //                GRaSP,
-                quickGRaSP,
+                RCG,
 //                ESP,
 //                GSP
         }) {

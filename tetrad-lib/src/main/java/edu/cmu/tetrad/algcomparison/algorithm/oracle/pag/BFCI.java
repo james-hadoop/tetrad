@@ -72,7 +72,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                     method = Boss.Method.GRaSP;
                     break;
                 case 4:
-                    method = Boss.Method.quickGRaSP;
+                    method = Boss.Method.RCG;
                     break;
                 case 5:
                     method = Boss.Method.ESP;

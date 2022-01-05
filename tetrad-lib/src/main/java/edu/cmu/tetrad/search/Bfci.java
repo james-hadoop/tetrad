@@ -101,7 +101,7 @@ public final class Bfci implements GraphSearch {
             variables = test.getVariables();
         }
 
-        boss.setMethod(Boss.Method.quickGRaSP);
+        boss.setMethod(Boss.Method.RCG);
         boss.setScoreType(scoreType);
         boss.setCacheScores(cacheScores);
         boss.setDepth(gspDepth);
@@ -111,7 +111,6 @@ public final class Bfci implements GraphSearch {
         boss.setVerbose(verbose);
         boss.setKnowledge(knowledge);
         boss.setMaxPermSize(maxPermSize);
-        boss.setQuickGraphDoFinalGrasp(quickGraphDoFinalGrasp);
 
         List<Node> perm = boss.bestOrder(variables);
         graph = boss.getGraph(true);

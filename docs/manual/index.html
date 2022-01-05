@@ -4713,13 +4713,15 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
         <h3 id="bossMethod" class="parameter_description">bossMethod</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="bossMethod_short_desc">
-                1 = BOSS1, 2 = BOSS2, 3 = GRaSP, 4 = quickGRaSP, 5 = ESP, 6 = GSP, 7 = SP</span>
+                1 = BOSS1, 2 = BOSS2, 3 = GRaSP, 4 = RCG, 5 = ESP, 6 = GSP, 7 = SP</span>
             </li>
             <li>Long Description: <span id="bossMethod_long_desc">
-                 "All indices" places each variable in all positions in the list and picks the best
-                position. "SP" is the sparsest permutation algorithm, for comparison, for very small
-                models. (See Raskulti and Uhler, "Learning directed acyclic graph models based on
-                sparsest permutations.)
+                 BOSS (Best Order Score Search); version 1 is betterMutation followed by
+                 betterTriMutation; version 2 is GRaSP followed by betterTrimutation.
+                 GRaSP ("Greedy Relaxed SP") relaxes the covered edge check in GSP.
+                 RCG ("Random Carnival Game") adds a random element to GRaSP.
+                 ESP ("Edge SP") is from Solus et al.
+                 TSP ("Triangle SP") is from Solus et al.; we implement this a permutation
             </span>
             </li>
             <li>Default Value: <span id="bossMethod_default_value">2</span></li>

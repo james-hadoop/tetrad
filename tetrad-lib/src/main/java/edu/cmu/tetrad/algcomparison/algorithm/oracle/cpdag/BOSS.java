@@ -79,7 +79,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                     method = Boss.Method.GRaSP;
                     break;
                 case 4:
-                    method = Boss.Method.quickGRaSP;
+                    method = Boss.Method.RCG;
                     break;
                 case 5:
                     method = Boss.Method.ESP;
@@ -108,7 +108,6 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             boss.setDepth(parameters.getInt(Params.GSP_DEPTH));
             boss.setMaxPermSize(parameters.getInt(Params.MAX_PERM_SIZE));
             boss.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
-            boss.setQuickGraphDoFinalGrasp(parameters.getBoolean(Params.QUICKGRASP_DO_FINAL_GRAPH));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 boss.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -170,7 +169,6 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.GSP_DEPTH);
         params.add(Params.BOSS_METHOD);
         params.add(Params.NUM_ROUNDS);
-        params.add(Params.QUICKGRASP_DO_FINAL_GRAPH);
         params.add(Params.VERBOSE);
         return params;
     }

@@ -25,7 +25,7 @@ public class TeyssierScorer {
     private final Map<Node, Integer> variablesHash;
     private final Score score;
     private final IndependenceTest test;
-    private final Map<ScoreKey, Pair> cache = new HashMap<>();
+    private Map<ScoreKey, Pair> cache = new HashMap<>();
     private Map<Node, Integer> orderHash;
     private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
     private final Map<Integer, LinkedList<Node>> bookmarkedOrders = new HashMap<>();
@@ -278,7 +278,7 @@ public class TeyssierScorer {
         return new Pair(parents, parents.size());
     }
 
-    public void bookmarkKey(int key) {
+    public void bookmark(int key) {
         bookmarkedOrders.put(key, new LinkedList<>(order));
         bookmarkedScores.put(key, new LinkedList<>(scores));
         bookmarkedRunningScores.put(key, runningScore);
@@ -286,10 +286,10 @@ public class TeyssierScorer {
     }
 
     public void bookmark() {
-        bookmarkKey(Integer.MIN_VALUE);
+        bookmark(Integer.MIN_VALUE);
     }
 
-    public void goToBookmarkKey(int key) {
+    public void goToBookmark(int key) {
         if (!bookmarkedOrders.containsKey(key)) {
             throw new IllegalArgumentException("That key was not bookmarked recently.");
         }
@@ -308,7 +308,7 @@ public class TeyssierScorer {
     }
 
     public void goToBookmark() {
-        goToBookmarkKey(Integer.MIN_VALUE);
+        goToBookmark(Integer.MIN_VALUE);
     }
 
     public void setCachingScores(boolean cachingScores) {
@@ -378,9 +378,11 @@ public class TeyssierScorer {
         return true;
     }
 
-    public void restartCacheIfTooBig(int maxSize) {
+    public void resetCacheIfTooBig(int maxSize) {
         if (cache.size() > maxSize) {
-            cache.clear();
+            cache = new HashMap<>();
+            System.out.println("Clearing cacche...");
+            System.gc();
         }
     }
 
