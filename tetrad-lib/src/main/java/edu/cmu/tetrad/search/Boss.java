@@ -285,65 +285,55 @@ public class Boss {
         double s0 = scorer.score();
 
         int unimproved = 0;
-        int rounds = 0;
         int maxRounds = numRounds < 0 ? Integer.MAX_VALUE : numRounds;
+        int numImprovements = 0;
 
-        while (unimproved < depth && ++rounds < maxRounds) {
+        for (int r = 1; r <= maxRounds; r++) {
             if (verbose) {
-                System.out.println("### Round " + (rounds));
+                System.out.println("### Round " + (r));
             }
 
-            List<OrderedPair<Node>> edges = scorer.getEdges();
+            scorer.restartCacheIfTooBig(100000);
 
-            int numImprovements = 0;
+            numImprovements = 0;
             int numEquals = 0;
 
-            for (int w = 0; w < edges.size(); w++) {
-                OrderedPair<Node> pair = edges.get(w);
-                Node x = pair.getFirst();
-                Node y = pair.getSecond();
+            for (Node y : scorer.getOrder()) {
+                for (Node x : scorer.getParents(y)) {
+                    scorer.bookmark();
 
-                scorer.bookmarkKey(1);
+                    // 'tuck' operation.
+                    scorer.moveTo(y, scorer.index(x));
 
-                if (!scorer.getParents(y).contains(x)) {
-                    scorer.goToBookmarkKey(1);
-                    continue;
-                }
-
-                // 'tuck' operation.
-                scorer.moveTo(y, scorer.index(x));
-
-                scorer.restartCacheIfTooBig(100000);
-
-                if (violatesKnowledge(scorer.getOrder())) {
-                    scorer.goToBookmarkKey(1);
-                    continue;
-                }
-
-                double sNew = scorer.score();
-
-                if (sNew < s0) {
-                    scorer.goToBookmarkKey(1);
-                }
-
-                if (verbose) {
-                    if (sNew > s0) {
-                        numImprovements++;
+                    if (violatesKnowledge(scorer.getOrder())) {
+                        scorer.goToBookmark();
+                        continue;
                     }
 
-                    if (sNew == s0) {
-                        numEquals++;
+                    double sNew = scorer.score();
+
+                    if (sNew < s0) {
+                        scorer.goToBookmark();
                     }
 
-                    if (sNew > s0) {
-                        System.out.println("Round " + (rounds) + " # improvements = " + numImprovements
-                                + " # unimproved = " + numEquals
-                                + " # edges = " + scorer.getNumEdges() + " progress this round = " + nf.format(100D * ((w + 1) / (double) edges.size())) + "%");
+                    if (verbose) {
+                        if (sNew > s0) {
+                            numImprovements++;
+                        }
+
+                        if (sNew == s0) {
+                            numEquals++;
+                        }
+
+                        if (sNew > s0) {
+                            System.out.println("Round " + (r) + " # improvements = " + numImprovements
+                                    + " # unimproved = " + numEquals
+                                    + " # edges = " + scorer.getNumEdges() + " progress this round = " + scorer.index(y));
+                        }
                     }
+
+                    s0 = scorer.score();
                 }
-
-                scorer.bookmarkKey(0);
-                s0 = scorer.score();
             }
 
             if (numImprovements == 0) {
@@ -351,9 +341,11 @@ public class Boss {
             } else {
                 unimproved = 0;
             }
-        }
 
-        scorer.goToBookmarkKey(0);
+            if (unimproved > depth) {
+                break;
+            }
+        }
 
         if (quickGraphDoFinalGrasp) {
             grasp(scorer);

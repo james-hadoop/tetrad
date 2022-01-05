@@ -135,7 +135,6 @@ public final class TestBoss {
         Parameters params = new Parameters();
         params.set(Params.NUM_MEASURES, 50);
         params.set(Params.AVG_DEGREE, 6);
-        params.set(Params.SAMPLE_SIZE, 1000);
         params.set(Params.NUM_RUNS, 2);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.PENALTY_DISCOUNT, 2);
@@ -146,7 +145,7 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 
         params.set(Params.GSP_DEPTH, 3);
-        params.set(Params.BOSS_METHOD, 4);//3, 4, 6);
+        params.set(Params.BOSS_METHOD, 4);
         params.set(Params.NUM_ROUNDS, 10);
         params.set(Params.USE_SCORE, true);
         params.set(Params.QUICKGRASP_DO_FINAL_GRAPH, true, false);
