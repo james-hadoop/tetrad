@@ -310,7 +310,6 @@ public class Boss {
             int numPairs = pairs.size();
 
             for (OrderedPair<Node> pair : pairs) {
-//                scorer.resetCacheIfTooBig(1000000);
                 visited++;
 
                 Node x = pair.getFirst();
@@ -320,7 +319,8 @@ public class Boss {
                 scorer.bookmark(0);
 
                 // 'tuck' operation.
-                scorer.moveTo(y, scorer.index(x));
+                scorer.tuck(x, y);
+//                scorer.moveTo(y, scorer.index(x));
 
                 if (violatesKnowledge(scorer.getOrder())) {
                     scorer.goToBookmark(0);

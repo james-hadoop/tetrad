@@ -133,10 +133,10 @@ public final class TestBoss {
     @Test
     public void testBoss() {
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 50);
-        params.set(Params.AVG_DEGREE, 6);
+        params.set(Params.NUM_MEASURES, 100);
+        params.set(Params.AVG_DEGREE, 10);
         params.set(Params.SAMPLE_SIZE, 1000);
-        params.set(Params.NUM_RUNS, 10);
+        params.set(Params.NUM_RUNS, 1);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.PENALTY_DISCOUNT, 2);
         params.set(Params.COEF_LOW, 0);
@@ -145,14 +145,16 @@ public final class TestBoss {
         params.set(Params.NUM_STARTS, 1);
         params.set(Params.ALPHA, 0.001);
 
+        params.set(Params.ZS_RISK_BOUND, 0.01, 0.1, 0.2, 0.3);
+
+
         params.set(Params.GSP_DEPTH, 4);
         params.set(Params.BOSS_METHOD, 4);
         params.set(Params.NUM_ROUNDS, 5);
         params.set(Params.USE_SCORE, true);
-        params.set(Params.QUICKGRASP_DO_FINAL_GRAPH, /*true,*/ false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore(), new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
 
@@ -161,7 +163,7 @@ public final class TestBoss {
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.BOSS_METHOD));
-        statistics.add(new ParameterColumn(Params.QUICKGRASP_DO_FINAL_GRAPH));
+        statistics.add(new ParameterColumn(Params.ZS_RISK_BOUND));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new AdjacencyPrecision());
