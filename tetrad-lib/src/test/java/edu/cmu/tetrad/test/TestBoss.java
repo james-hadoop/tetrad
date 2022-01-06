@@ -1348,20 +1348,22 @@ public final class TestBoss {
     public void test6Examples() {
         List<Ret> allFacts = new ArrayList<>();
 
-//        allFacts.add(getFactsSimple());
-//        allFacts.add(getFactsSimpleCanceling());
-//        allFacts.add(wayneTriangleFaithfulnessFailExample());
-//        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
-//        allFacts.add(getFigure7());
+        allFacts.add(getFactsSimple());
+        allFacts.add(getFactsSimpleCanceling());
+        allFacts.add(wayneTriangleFaithfulnessFailExample());
+        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
+        allFacts.add(getFigure7());
         allFacts.add(getFigure11());
 
 //        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
+
+        allFacts.add(getFigure8());
 
         int count = 0;
 
         boolean verbose = false;
         int numRounds = 50;
-        int depth = 100;
+        int depth = 6;
         int maxPermSize = 4;
 
         boolean printCpdag = false;
@@ -1370,10 +1372,97 @@ public final class TestBoss {
             Ret facts = allFacts.get(i);
             count++;
 
-//            System.out.println();
-//            System.out.println("Test #" + (i + 1));
-//            System.out.println(facts.getLabel());
-//            System.out.println(facts.getFacts());
+            System.out.println();
+            System.out.println("Test #" + (i + 1));
+            System.out.println(facts.getLabel());
+            System.out.println(facts.getFacts());
+        }
+
+        for (Boss.Method method : new Boss.Method[]{
+//                BOSS1,
+//                BOSS2,
+                GRaSP,
+//                RCG,
+//                ESP,
+//                GSP
+        }) {
+            System.out.println("\n\n" + method);
+
+            for (int i = 0; i < allFacts.size(); i++) {
+                boolean passed = true;
+
+                Ret facts = allFacts.get(i);
+                count++;
+
+                TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
+                        new GraphScore(facts.getFacts()));
+
+                OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
+                OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
+
+                List<Node> variables = facts.facts.getVariables();
+                Collections.sort(variables);
+
+                PermutationGenerator gen = new PermutationGenerator(variables.size());
+                int[] perm;
+
+                while ((perm = gen.next()) != null) {
+                    List<Node> p = GraphUtils.asList(perm, variables);
+
+                    Boss search = new Boss(new IndTestDSep(facts.getFacts()));
+                    search.setMaxPermSize(maxPermSize);
+                    search.setDepth(depth);
+                    search.setMethod(method);
+                    search.setNumRounds(numRounds);
+//                    search.setVerbose(verbose);
+                    List<Node> order = search.bestOrder(p);
+//                    System.out.println(p + " " + order + " found = " + search.getNumEdges() + " truth = " + facts.getTruth());// + " " + search.getGraph(false));
+
+                    if (search.getNumEdges() != facts.getTruth()) {
+                        passed = false;
+//                        break;
+                    }
+                }
+
+                System.out.println((i + 1) + " " + (passed ? "P " : "F"));
+            }
+        }
+    }
+
+    @Test
+    public void test7Examples() {
+        List<Ret> allFacts = new ArrayList<>();
+
+//        allFacts.add(getFactsSimple());
+//        allFacts.add(getFactsSimpleCanceling());
+//        allFacts.add(wayneTriangleFaithfulnessFailExample());
+//        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
+//        allFacts.add(getFigure6());
+//        allFacts.add(getFigure7());
+        allFacts.add(getFigure8());
+//        allFacts.add(getFigure11());
+
+//        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
+
+//        allFacts.add(getFigure8());
+
+        int count = 0;
+
+        boolean verbose = false;
+        int numRounds = 200;
+        int depth = 200;
+        int maxPermSize = 6;
+
+        boolean printCpdag = false;
+
+        for (int i = 0; i < allFacts.size(); i++) {
+            Ret facts = allFacts.get(i);
+            count++;
+
+            System.out.println();
+            System.out.println("Test #" + (i + 1));
+            System.out.println(facts.getLabel());
+            System.out.println(facts.getFacts());
         }
 
         for (Boss.Method method : new Boss.Method[]{
@@ -1414,11 +1503,11 @@ public final class TestBoss {
                     search.setNumRounds(numRounds);
 //                    search.setVerbose(verbose);
                     List<Node> order = search.bestOrder(p);
-//                    System.out.println(p + " " + order + " " + search.getNumEdges());// + " " + search.getGraph(false));
+                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
 
                     if (search.getNumEdges() != facts.getTruth()) {
                         passed = false;
-                        break;
+//                        break;
                     }
                 }
 
@@ -1491,91 +1580,6 @@ public final class TestBoss {
                     if (search.getNumEdges() != facts.getTruth()) {
                         passed = false;
 //                        break;
-                    }
-
-//                Pc search = new Pc(new IndTestDSep(facts.getFacts()));
-//                System.out.println(p + " " + search.search().getNumEdges());
-
-//                Fges search = new Fges(new GraphScore(facts.getFacts()));
-//                System.out.println(p + " " + search.search().getNumEdges());
-
-                }
-
-                System.out.println((i + 1) + " " + (passed ? "P " : "F"));
-            }
-        }
-    }
-
-    @Test
-    public void test7Examples() {
-        List<Ret> allFacts = new ArrayList<>();
-
-        allFacts.add(getFactsSimple());
-        allFacts.add(getFactsSimpleCanceling());
-        allFacts.add(wayneTriangleFaithfulnessFailExample());
-        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
-        allFacts.add(getFigure7());
-        allFacts.add(getFigure8());
-        allFacts.add(getFigure11());
-
-        int count = 0;
-
-        boolean printCpdag = false;
-
-        for (int i = 0; i < allFacts.size(); i++) {
-            Ret facts = allFacts.get(i);
-            count++;
-
-            System.out.println();
-            System.out.println("Test #" + (i + 1));
-            System.out.println(facts.getLabel());
-            System.out.println(facts.getFacts());
-        }
-
-        for (Boss.Method method : new Boss.Method[]{
-//                BOSS1,
-//                BOSS2,
-                GRaSP,
-//                quickGRaSP,
-//                ESP,
-//                GSP
-        }) {
-            System.out.println("\n\n" + method);
-
-            for (int i = 0; i < allFacts.size(); i++) {
-                boolean passed = true;
-
-                Ret facts = allFacts.get(i);
-                count++;
-
-                TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
-                        new GraphScore(facts.getFacts()));
-
-                OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
-                OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
-
-
-                List<Node> variables = facts.facts.getVariables();
-                Collections.sort(variables);
-
-                PermutationGenerator gen = new PermutationGenerator(variables.size());
-                int[] perm;
-
-                while ((perm = gen.next()) != null) {
-                    List<Node> p = GraphUtils.asList(perm, variables);
-
-                    Boss search = new Boss(new IndTestDSep(facts.getFacts()));
-                    search.setMaxPermSize(7);
-                    search.setDepth(Integer.MAX_VALUE);
-//                    search.setDepth((method == BOSS1 || method == BOSS2 || method == GRaSP || method == quickGRaSP) ? 20 : 5);
-                    search.setMethod(method);
-                    search.setNumRounds(100);
-                    List<Node> order = search.bestOrder(p);
-//                System.out.println(p + " " + order + " " + search.getNumEdges() + " " + search.getGraph(false));
-
-                    if (search.getNumEdges() != facts.getTruth()) {
-                        passed = false;
-                        break;
                     }
 
 //                Pc search = new Pc(new IndTestDSep(facts.getFacts()));
