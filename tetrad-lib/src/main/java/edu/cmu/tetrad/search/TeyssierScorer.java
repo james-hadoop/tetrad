@@ -25,21 +25,21 @@ public class TeyssierScorer {
     private final Map<Node, Integer> variablesHash;
     private final Score score;
     private final IndependenceTest test;
-    private Map<ScoreKey, Pair> cache = new HashMap<>();
-    private Map<Node, Integer> orderHash;
-    private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
     private final Map<Integer, LinkedList<Node>> bookmarkedOrders = new HashMap<>();
     private final Map<Integer, LinkedList<Pair>> bookmarkedScores = new HashMap<>();
     private final Map<Integer, Map<Node, Integer>> bookmarkedOrderHashes = new HashMap<>();
-    private final Map<Integer, Double> bookmarkedRunningScores = new HashMap<>();
+    private final Map<Integer, Float> bookmarkedRunningScores = new HashMap<>();
+    private Map<Node, Map<Set<Node>, Float>> cache = new HashMap<>();
+    private Map<Node, Integer> orderHash;
+    private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
     private LinkedList<Node> order;
     private LinkedList<Pair> scores;
     private boolean cachingScores = true;
     private IKnowledge knowledge = new Knowledge2();
     private LinkedList<Set<Node>> prefixes;
-    private ScoreType scoreType = ScoreType.Edge;
+    private ScoreType scoreType = ScoreType.SCORE;
     private boolean useScore = true;
-    private double runningScore = 0D;
+    private float runningScore = 0F;
 
     public TeyssierScorer(IndependenceTest test, Score score) {
         this.score = score;
@@ -70,8 +70,8 @@ public class TeyssierScorer {
         this.knowledge = knowledge;
     }
 
-    public double score(List<Node> order) {
-        runningScore = 0D;
+    public float score(List<Node> order) {
+        runningScore = 0F;
         this.order = new LinkedList<>(order);
         this.scores = new LinkedList<>();
 
@@ -85,7 +85,7 @@ public class TeyssierScorer {
         return score();
     }
 
-    public double score() {
+    public float score() {
         return runningScore;
     }
 
@@ -418,11 +418,12 @@ public class TeyssierScorer {
 
     private double score(Node n, Set<Node> pi) {
         if (cachingScores) {
-            ScoreKey key = new ScoreKey(n, pi);
-            Pair pair = cache.get(key);
+            cache.computeIfAbsent(n, w -> new HashMap<>());
+//            ScoreKey key = new ScoreKey(pi);
+            Float score = cache.get(n).get(pi);
 
-            if (pair != null) {
-                return pair.getScore();
+            if (score != null) {
+                return score;
             }
         }
 
@@ -434,11 +435,11 @@ public class TeyssierScorer {
             parentIndices[k++] = variablesHash.get(p);
         }
 
-        double v = this.score.localScore(variablesHash.get(n), parentIndices);
+        float v = (float) this.score.localScore(variablesHash.get(n), parentIndices);
 
         if (cachingScores) {
-            ScoreKey key = new ScoreKey(n, pi);
-            cache.put(key, new Pair(pi, v));
+            cache.computeIfAbsent(n, w -> new HashMap<>());
+            cache.get(n).put(new HashSet<>(pi), v);
         }
 
         return v;
@@ -658,34 +659,28 @@ public class TeyssierScorer {
         }
     }
 
-    public static class ScoreKey {
-        private final Node y;
-        private final Set<Node> pi;
-
-        public ScoreKey(Node y, Set<Node> pi) {
-            this.y = y;
-            this.pi = new HashSet<>(pi);
-        }
-
-        public int hashCode() {
-            return 3 * y.hashCode() + 7 * pi.hashCode();
-        }
-
-        public boolean equals(Object o) {
-            if (!(o instanceof ScoreKey)) {
-                return false;
-            }
-
-            ScoreKey spec = (ScoreKey) o;
-            return y.equals(spec.y) && this.pi.equals(spec.pi);
-        }
-
-        public Node getY() {
-            return y;
-        }
-
-        public Set<Node> getPi() {
-            return pi;
-        }
-    }
+//    public static class ScoreKey {
+//        private final Set<Node> pi;
+//
+//        public ScoreKey(Set<Node> pi) {
+//            this.pi = new HashSet<>(pi);
+//        }
+//
+//        public int hashCode() {
+//            return 11 * pi.hashCode();
+//        }
+//
+//        public boolean equals(Object o) {
+//            if (!(o instanceof ScoreKey)) {
+//                return false;
+//            }
+//
+//            ScoreKey spec = (ScoreKey) o;
+//            return this.pi.equals(spec.pi);
+//        }
+//
+//        public Set<Node> getPi() {
+//            return pi;
+//        }
+//    }
 }

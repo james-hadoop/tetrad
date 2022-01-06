@@ -133,10 +133,10 @@ public final class TestBoss {
     @Test
     public void testBoss() {
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 100);
-        params.set(Params.AVG_DEGREE, 4);
+        params.set(Params.NUM_MEASURES, 50);
+        params.set(Params.AVG_DEGREE, 6);
         params.set(Params.SAMPLE_SIZE, 1000);
-        params.set(Params.NUM_RUNS, 1);
+        params.set(Params.NUM_RUNS, 10);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.PENALTY_DISCOUNT, 2);
         params.set(Params.COEF_LOW, 0);
