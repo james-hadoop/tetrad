@@ -187,7 +187,7 @@ public class Boss {
             System.out.println("# Edges = " + scorer.getNumEdges() + " Score = " + scorer.score() + " (Initial)");
         }
 
-        grasp(scorer);
+        rcg(scorer);
         betterTriMutation(scorer, (maxPermSize < 0 ? Integer.MAX_VALUE : maxPermSize));
 
         if (verbose) {
@@ -613,6 +613,7 @@ public class Boss {
             if (checkCovering && !scorer.coveredEdge(x, y)) continue;
             scorer.bookmark(currentDepth);
             scorer.moveTo(y, scorer.index(x));
+            System.out.println(scorer.getOrder() + " score = " + scorer.getNumEdges());
 
             if (violatesKnowledge(scorer.getOrder())) {
                 scorer.goToBookmark(currentDepth);
@@ -622,6 +623,7 @@ public class Boss {
             double sNew = scorer.score();
 
             if (sNew == sOld && currentDepth < depth) {
+                System.out.println("equals " + scorer.getOrder() + " sNew = " + sNew);
                 gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering);
                 sNew = scorer.score();
             }

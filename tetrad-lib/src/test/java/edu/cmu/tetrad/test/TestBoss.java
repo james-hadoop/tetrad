@@ -1450,7 +1450,7 @@ public final class TestBoss {
 
         boolean verbose = false;
         int numRounds = 200;
-        int depth = 200;
+        int depth = 8;
         int maxPermSize = 6;
 
         boolean printCpdag = false;
@@ -1467,9 +1467,9 @@ public final class TestBoss {
 
         for (Boss.Method method : new Boss.Method[]{
 //                BOSS1,
-//                BOSS2,
+                BOSS2,
 //                GRaSP,
-                RCG,
+//                RCG,
 //                ESP,
 //                GSP
         }) {
@@ -1489,12 +1489,14 @@ public final class TestBoss {
 
                 List<Node> variables = facts.facts.getVariables();
                 Collections.sort(variables);
+                Collections.reverse(variables);
+                List<Node> p = variables;
 
-                PermutationGenerator gen = new PermutationGenerator(variables.size());
-                int[] perm;
-
-                while ((perm = gen.next()) != null) {
-                    List<Node> p = GraphUtils.asList(perm, variables);
+//                PermutationGenerator gen = new PermutationGenerator(variables.size());
+//                int[] perm;
+//
+//                while ((perm = gen.next()) != null) {
+//                    List<Node> p = GraphUtils.asList(perm, variables);
 
                     Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                     search.setMaxPermSize(maxPermSize);
@@ -1504,12 +1506,13 @@ public final class TestBoss {
 //                    search.setVerbose(verbose);
                     List<Node> order = search.bestOrder(p);
                     System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
+                    System.out.println(search.getGraph(false));
 
                     if (search.getNumEdges() != facts.getTruth()) {
                         passed = false;
 //                        break;
                     }
-                }
+//                }
 
                 System.out.println((i + 1) + " " + (passed ? "P " : "F"));
             }

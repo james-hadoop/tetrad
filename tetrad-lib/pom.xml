@@ -141,9 +141,6 @@
             <artifactId>jsoup</artifactId>
             <version>1.13.1</version>
         </dependency>
-
-
-
         <dependency>
             <groupId>edu.pitt.dbmi</groupId>
             <artifactId>data-reader</artifactId>
@@ -155,6 +152,13 @@
             <version>RELEASE</version>
             <scope>compile</scope>
         </dependency>
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.hdfgroup/hdf-java &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.hdfgroup</groupId>-->
+<!--            <artifactId>hdf-java</artifactId>-->
+<!--            <version>2.6.1</version>-->
+<!--        </dependency>-->
+
     </dependencies>
 
 
