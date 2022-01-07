@@ -1437,11 +1437,10 @@ public final class TestBoss {
 //        allFacts.add(getFactsSimpleCanceling());
 //        allFacts.add(wayneTriangleFaithfulnessFailExample());
 //        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
-//        allFacts.add(getFigure6());
+////        allFacts.add(getFigure6());
 //        allFacts.add(getFigure7());
         allFacts.add(getFigure8());
 //        allFacts.add(getFigure11());
-
 //        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
 
 //        allFacts.add(getFigure8());
@@ -1449,9 +1448,9 @@ public final class TestBoss {
         int count = 0;
 
         boolean verbose = false;
-        int numRounds = 200;
-        int depth = 8;
-        int maxPermSize = 6;
+        int numRounds = 20;
+        int depth = 20;
+        int maxPermSize = 5;
 
         boolean printCpdag = false;
 
@@ -1489,14 +1488,14 @@ public final class TestBoss {
 
                 List<Node> variables = facts.facts.getVariables();
                 Collections.sort(variables);
-                Collections.reverse(variables);
-                List<Node> p = variables;
+//                Collections.reverse(variables);
+//                List<Node> p = variables;
 
-//                PermutationGenerator gen = new PermutationGenerator(variables.size());
-//                int[] perm;
-//
-//                while ((perm = gen.next()) != null) {
-//                    List<Node> p = GraphUtils.asList(perm, variables);
+                PermutationGenerator gen = new PermutationGenerator(variables.size());
+                int[] perm;
+
+                while ((perm = gen.next()) != null) {
+                    List<Node> p = GraphUtils.asList(perm, variables);
 
                     Boss search = new Boss(new IndTestDSep(facts.getFacts()));
                     search.setMaxPermSize(maxPermSize);
@@ -1505,14 +1504,14 @@ public final class TestBoss {
                     search.setNumRounds(numRounds);
 //                    search.setVerbose(verbose);
                     List<Node> order = search.bestOrder(p);
-                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
-                    System.out.println(search.getGraph(false));
+//                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
+//                    System.out.println(search.getGraph(false));
 
                     if (search.getNumEdges() != facts.getTruth()) {
                         passed = false;
 //                        break;
                     }
-//                }
+                }
 
                 System.out.println((i + 1) + " " + (passed ? "P " : "F"));
             }
@@ -1806,7 +1805,7 @@ public final class TestBoss {
 
     @Test
     public void testAddUnfaithfulIndependencies() {
-        Graph graph = GraphUtils.randomGraph( 7, 0, 15, 100, 100,
+        Graph graph = GraphUtils.randomGraph(7, 0, 15, 100, 100,
                 100, false);
 
         System.out.println("Source = " + graph);//SearchGraphUtils.cpdagForDag(graph));
@@ -1889,7 +1888,7 @@ public final class TestBoss {
 
             System.out.println("\n-----\n");
 
-            assert(frugal.getNumEdges() == other.getNumEdges());
+            assert (frugal.getNumEdges() == other.getNumEdges());
         }
     }
 

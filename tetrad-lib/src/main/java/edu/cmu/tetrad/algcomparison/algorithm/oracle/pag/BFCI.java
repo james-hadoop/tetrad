@@ -85,7 +85,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                     break;
                 default:
                     throw new IllegalStateException("Pick a number from 1 to 7: " +
-                            "1 = search1, 2 = search2, 3 = GRaSP, 4 = quickGRaSP, 5 = ESP_LOOP, 6 = TSP, 7 = SP");
+                            "1 = BOSS1, 2 = BOSS2, 3 = GRaSP, 4 = RCG, 5 = ESP, 6 = TSP, 7 = SP\"");
             }
 
             System.out.println("Picked " + method);

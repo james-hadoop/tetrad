@@ -314,13 +314,14 @@ public class Boss {
 
                 Node x = pair.getFirst();
                 Node y = pair.getSecond();
-                double s0 = scorer.score();
+                if (!scorer.adjacent(x, y)) continue;
 
+                double s0 = scorer.score();
                 scorer.bookmark(0);
 
                 // 'tuck' operation.
-                scorer.tuck(x, y);
-//                scorer.moveTo(y, scorer.index(x));
+//                scorer.tuck(x, y);
+                scorer.moveTo(y, scorer.index(x));
 
                 if (violatesKnowledge(scorer.getOrder())) {
                     scorer.goToBookmark(0);
@@ -613,7 +614,7 @@ public class Boss {
             if (checkCovering && !scorer.coveredEdge(x, y)) continue;
             scorer.bookmark(currentDepth);
             scorer.moveTo(y, scorer.index(x));
-            System.out.println(scorer.getOrder() + " score = " + scorer.getNumEdges());
+//            System.out.println(scorer.getOrder() + " score = " + scorer.getNumEdges());
 
             if (violatesKnowledge(scorer.getOrder())) {
                 scorer.goToBookmark(currentDepth);
@@ -623,7 +624,7 @@ public class Boss {
             double sNew = scorer.score();
 
             if (sNew == sOld && currentDepth < depth) {
-                System.out.println("equals " + scorer.getOrder() + " sNew = " + sNew);
+//                System.out.println("equals " + scorer.getOrder() + " sNew = " + sNew);
                 gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering);
                 sNew = scorer.score();
             }
