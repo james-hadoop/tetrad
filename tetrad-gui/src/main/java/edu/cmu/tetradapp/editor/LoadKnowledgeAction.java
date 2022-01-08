@@ -114,6 +114,7 @@ final class LoadKnowledgeAction extends AbstractAction {
             // Import...
             if (ret == JOptionPane.OK_OPTION) {
                 try {
+
                     DataReader reader = new DataReader();
                     IKnowledge knowledge = DataUtils.parseKnowledge(file, DelimiterType.TAB, "//");
                     this.knowledgeEditable.setKnowledge(knowledge);

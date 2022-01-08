@@ -25,11 +25,15 @@ import cern.colt.list.DoubleArrayList;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.Vector;
 import edu.cmu.tetrad.util.*;
+import edu.pitt.dbmi.data.reader.ContinuousData;
+import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.exception.OutOfRangeException;
 import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.correlation.Covariance;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileReader;
@@ -2381,6 +2385,18 @@ public final class DataUtils {
         }
 
         return data2;
+    }
+
+    @NotNull
+    public static DataSet loadContinuousData(File file, String commentMarker, char quoteCharacter, String missingValueMarker, boolean hasHeader) throws IOException {
+        ContinuousTabularDatasetFileReader dataReader = new ContinuousTabularDatasetFileReader(file.toPath(), Delimiter.COMMA);
+        dataReader.setCommentMarker(commentMarker);
+        dataReader.setQuoteCharacter(quoteCharacter);
+        dataReader.setMissingDataMarker(missingValueMarker);
+        dataReader.setHasHeader(hasHeader);
+        ContinuousData data = (ContinuousData) dataReader.readInData();
+        DataSet dataSet = (DataSet) DataConvertUtils.toContinuousDataModel(data);
+        return dataSet;
     }
 }
 

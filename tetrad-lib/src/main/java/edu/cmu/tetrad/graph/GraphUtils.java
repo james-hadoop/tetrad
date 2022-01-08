@@ -21,6 +21,7 @@
 package edu.cmu.tetrad.graph;
 
 import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.Edge.Property;
 import edu.cmu.tetrad.graph.EdgeTypeProbability.EdgeType;
 import edu.cmu.tetrad.search.DagToPag2;
@@ -29,14 +30,13 @@ import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.reader.Data;
 import edu.pitt.dbmi.data.reader.Delimiter;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDatasetFileReader;
+import edu.pitt.dbmi.data.reader.tabular.*;
 import nu.xom.*;
 
 import java.io.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RecursiveTask;
@@ -2413,11 +2413,39 @@ public final class GraphUtils {
         }
     }
 
+    public static Graph loadGraphRuben(File file) {
+        try {
+            String commentMarker = "//";
+            char quoteCharacter = '"';
+            String missingValueMarker = "*";
+            boolean hasHeader = false;
+
+            DataSet dataSet = DataUtils.loadContinuousData(file, commentMarker, quoteCharacter,
+                    missingValueMarker, hasHeader);
+
+            List<Node> nodes = dataSet.getVariables();
+            Graph graph = new EdgeListGraph(nodes);
+
+            for (int i = 0; i < nodes.size(); i++) {
+                for (int j = i + 1; j < nodes.size(); j++) {
+                    if (dataSet.getDouble(i, j) != 0D) {
+                        graph.addDirectedEdge(nodes.get(i), nodes.get(j));
+                    }
+                }
+            }
+
+            return graph;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IllegalStateException();
+        }
+    }
+
     public static Graph loadGraphJson(File file) {
         try {
             Reader in1 = new FileReader(file);
             return readerToGraphJson(in1);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -2430,6 +2458,25 @@ public final class GraphUtils {
     }
 
     public static Graph readerToGraphTxt(Reader reader) throws IOException {
+        Graph graph = new EdgeListGraph();
+        try (BufferedReader in = new BufferedReader(reader)) {
+            for (String line = in.readLine(); line != null; line = in.readLine()) {
+                line = line.trim();
+                switch (line) {
+                    case "Graph Nodes:":
+                        extractGraphNodes(graph, in);
+                        break;
+                    case "Graph Edges:":
+                        extractGraphEdges(graph, in);
+                        break;
+                }
+            }
+        }
+
+        return graph;
+    }
+
+    public static Graph readerToGraphRuben(Reader reader) throws IOException {
         Graph graph = new EdgeListGraph();
         try (BufferedReader in = new BufferedReader(reader)) {
             for (String line = in.readLine(); line != null; line = in.readLine()) {

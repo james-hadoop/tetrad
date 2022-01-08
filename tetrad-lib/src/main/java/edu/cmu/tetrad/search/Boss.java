@@ -290,9 +290,6 @@ public class Boss {
                 System.out.println("### Round " + (r));
             }
 
-            List<Node> nodes = scorer.getOrder();
-            shuffle(nodes);
-
             List<OrderedPair<Node>> pairs = new ArrayList<>();
 
             for (Node y : scorer.getOrder()) {
@@ -359,7 +356,7 @@ public class Boss {
                 unimproved++;
             }
 
-            if (unimproved > depth) {
+            if (unimproved >= depth) {
                 break;
             }
         }

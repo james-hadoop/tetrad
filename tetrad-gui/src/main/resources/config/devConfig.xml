@@ -475,6 +475,17 @@
                 </model-class>
                 <editor-class>edu.cmu.tetradapp.editor.DataEditor</editor-class>
             </model>
+            <model name="Transpose Dataset" acronym="Transpose" help="transpose"
+                   category="Conversion of Data">
+                <logger>
+                    <event id="info" description="Information" default="on"/>
+                    <event id="data" description="Data"/>
+                </logger>
+                <model-class>
+                    edu.cmu.tetradapp.model.datamanip.TransposeMatrixWrapper
+                </model-class>
+                <editor-class>edu.cmu.tetradapp.editor.DataEditor</editor-class>
+            </model>
             <model name="Inverse Matrix" acronym="Cov Matrix"
                    help="covariances" category="Conversion of Data">
                 <logger>
