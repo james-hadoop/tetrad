@@ -90,9 +90,15 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                 case 7:
                     method = Boss.Method.SP;
                     break;
+                case 8:
+                    method = Boss.Method.SES;
+                    break;
+                case 9:
+                    method = Boss.Method.ShuffledGRaSP;
+                    break;
                 default:
-                    throw new IllegalStateException("Pick a number from 1 to 7: " +
-                            "1 = BOSS1, 2 = BOSS2, 3 = GRaSP, 4 = RCG, 5 = ESP, 6 = TSP, 7 = SP");
+                    throw new IllegalStateException("Pick a number from 1 to 8: " +
+                            "1 = BOSS1, 2 = BOSS2, 3 = GRaSP, 4 = RCG, 5 = ESP, 6 = TSP, 7 = SP, 8 = SES, 9 = SHG");
             }
 
             System.out.println("Picked " + method);

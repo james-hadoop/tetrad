@@ -2028,7 +2028,7 @@ public final class DataUtils {
     public static IKnowledge parseKnowledge(File file, DelimiterType delimiterType, String commentMarker) throws IOException {
         FileReader reader = new FileReader(file);
         Lineizer lineizer = new Lineizer(reader, commentMarker);
-        IKnowledge knowledge = parseKnowledge(lineizer, delimiterType.getPattern());
+        IKnowledge knowledge = parseKnowledge(lineizer, DelimiterType.WHITESPACE.getPattern());
         TetradLogger.getInstance().reset();
         return knowledge;
     }

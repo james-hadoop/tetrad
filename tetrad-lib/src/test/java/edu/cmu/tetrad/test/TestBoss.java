@@ -541,6 +541,63 @@ public final class TestBoss {
 
 
     @Test
+    public void testSquires() {
+
+        // Squires et al. simulation case with density = 0.5, p variables in 10, 20, ..., 100, N = 20 * p
+
+        for (int p : new int[]{20}) {
+            double density = 0.5;
+            double avgDegree = p / 2.0;
+
+
+            Parameters params = new Parameters();
+            params.set(Params.SAMPLE_SIZE, 10000);
+            params.set(Params.NUM_MEASURES, p);
+            params.set(Params.AVG_DEGREE, avgDegree);
+            params.set(Params.RANDOMIZE_COLUMNS, true);
+            params.set(Params.COEF_LOW, 0);
+            params.set(Params.COEF_HIGH, .8);
+
+            params.set(Params.GSP_DEPTH, 10);
+
+            params.set(Params.VERBOSE, true);
+
+            params.set(Params.NUM_RUNS, 1);
+
+            params.set(Params.BOSS_METHOD, 8);
+            params.set(Params.BOSS_SCORE_TYPE, false);
+            params.set(Params.CACHE_SCORES, true);
+            params.set(Params.NUM_STARTS, 1);
+
+            params.set(Params.PENALTY_DISCOUNT, 3);
+
+            Algorithms algorithms = new Algorithms();
+            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(
+                    new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+
+            Simulations simulations = new Simulations();
+            simulations.add(new LinearSemSimulation(new RandomForward()));
+
+            Statistics statistics = new Statistics();
+            statistics.add(new AdjacencyPrecision());
+            statistics.add(new AdjacencyRecall());
+            statistics.add(new ArrowheadPrecisionCommonEdges());
+            statistics.add(new ArrowheadRecallCommonEdges());
+            statistics.add(new AdjacencyTPR());
+            statistics.add(new AdjacencyFPR());
+            statistics.add(new SHD_CPDAG());
+            statistics.add(new ElapsedTime());
+
+            Comparison comparison = new Comparison();
+            comparison.setSaveData(false);
+            comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+            comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/squires", simulations, algorithms, statistics, params);
+        }
+    }
+
+
+    @Test
     public void testLuFigure3() {
         Parameters params = new Parameters();
         params.set(Params.SAMPLE_SIZE, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000);
@@ -904,7 +961,7 @@ public final class TestBoss {
 
         parameters.set(Params.NUM_RUNS, 100);
 
-        parameters.set(Params.BOSS_METHOD, 1, 2, 3, 4, 5, 6);
+        parameters.set(Params.BOSS_METHOD, 3, 4, 8, 9);
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.BOSS_METHOD));
@@ -1348,12 +1405,13 @@ public final class TestBoss {
     public void test6Examples() {
         List<Ret> allFacts = new ArrayList<>();
 
-        allFacts.add(getFactsSimple());
-        allFacts.add(getFactsSimpleCanceling());
-        allFacts.add(wayneTriangleFaithfulnessFailExample());
-        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
-        allFacts.add(getFigure7());
-        allFacts.add(getFigure11());
+//        allFacts.add(getFactsSimple());
+//        allFacts.add(getFactsSimpleCanceling());
+//        allFacts.add(wayneTriangleFaithfulnessFailExample());
+//        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
+//        allFacts.add(getFigure7());
+        allFacts.add(getFigure8());
+//        allFacts.add(getFigure11());
 
 //        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
 
@@ -1363,7 +1421,7 @@ public final class TestBoss {
 
         boolean verbose = false;
         int numRounds = 50;
-        int depth = 6;
+        int depth = 50;
         int maxPermSize = 4;
 
         boolean printCpdag = false;
@@ -1382,9 +1440,13 @@ public final class TestBoss {
 //                BOSS1,
 //                BOSS2,
                 GRaSP,
-//                RCG,
+                RCG,
 //                ESP,
-//                GSP
+//                GSP,
+
+//                SES,
+                ShuffledGRaSP
+
         }) {
             System.out.println("\n\n" + method);
 
@@ -1414,9 +1476,10 @@ public final class TestBoss {
                     search.setDepth(depth);
                     search.setMethod(method);
                     search.setNumRounds(numRounds);
+                    search.setUseDataOrder(true);
 //                    search.setVerbose(verbose);
                     List<Node> order = search.bestOrder(p);
-//                    System.out.println(p + " " + order + " found = " + search.getNumEdges() + " truth = " + facts.getTruth());// + " " + search.getGraph(false));
+                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());// + " " + search.getGraph(false));
 
                     if (search.getNumEdges() != facts.getTruth()) {
                         passed = false;
@@ -1433,14 +1496,14 @@ public final class TestBoss {
     public void test7Examples() {
         List<Ret> allFacts = new ArrayList<>();
 
-//        allFacts.add(getFactsSimple());
-//        allFacts.add(getFactsSimpleCanceling());
-//        allFacts.add(wayneTriangleFaithfulnessFailExample());
-//        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
-////        allFacts.add(getFigure6());
-//        allFacts.add(getFigure7());
+        allFacts.add(getFactsSimple());
+        allFacts.add(getFactsSimpleCanceling());
+        allFacts.add(wayneTriangleFaithfulnessFailExample());
+        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
+        allFacts.add(getFigure6());
+        allFacts.add(getFigure7());
         allFacts.add(getFigure8());
-//        allFacts.add(getFigure11());
+        allFacts.add(getFigure11());
 //        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
 
 //        allFacts.add(getFigure8());
@@ -1448,9 +1511,9 @@ public final class TestBoss {
         int count = 0;
 
         boolean verbose = false;
-        int numRounds = 20;
+        int numRounds = 50;
         int depth = 20;
-        int maxPermSize = 5;
+        int maxPermSize = 6;
 
         boolean printCpdag = false;
 
@@ -1466,11 +1529,16 @@ public final class TestBoss {
 
         for (Boss.Method method : new Boss.Method[]{
 //                BOSS1,
-                BOSS2,
+//                BOSS2,
 //                GRaSP,
 //                RCG,
 //                ESP,
 //                GSP
+
+                GRaSP,
+                RCG,
+//                SES,
+//                ShuffledGRaSP
         }) {
             System.out.println("\n\n" + method);
 
@@ -1488,8 +1556,6 @@ public final class TestBoss {
 
                 List<Node> variables = facts.facts.getVariables();
                 Collections.sort(variables);
-//                Collections.reverse(variables);
-//                List<Node> p = variables;
 
                 PermutationGenerator gen = new PermutationGenerator(variables.size());
                 int[] perm;
@@ -1503,10 +1569,11 @@ public final class TestBoss {
                     search.setMethod(method);
                     search.setNumRounds(numRounds);
 //                    search.setVerbose(verbose);
+                    search.setUseDataOrder(true);
                     List<Node> order = search.bestOrder(p);
 //                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
 //                    System.out.println(search.getGraph(false));
-
+//
                     if (search.getNumEdges() != facts.getTruth()) {
                         passed = false;
 //                        break;

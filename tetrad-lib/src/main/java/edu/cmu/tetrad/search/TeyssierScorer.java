@@ -31,7 +31,7 @@ public class TeyssierScorer {
     private final Map<Integer, Float> bookmarkedRunningScores = new HashMap<>();
     private Map<Node, Map<Set<Node>, Float>> cache = new HashMap<>();
     private Map<Node, Integer> orderHash;
-    private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
+    private ParentCalculation parentCalculation = ParentCalculation.Pearl;
     private LinkedList<Node> order;
     private LinkedList<Pair> scores;
     private boolean cachingScores = true;
@@ -419,7 +419,6 @@ public class TeyssierScorer {
     private double score(Node n, Set<Node> pi) {
         if (cachingScores) {
             cache.computeIfAbsent(n, w -> new HashMap<>());
-//            ScoreKey key = new ScoreKey(pi);
             Float score = cache.get(n).get(pi);
 
             if (score != null) {

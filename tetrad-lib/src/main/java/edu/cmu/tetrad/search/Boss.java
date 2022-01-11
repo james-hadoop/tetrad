@@ -14,6 +14,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
@@ -118,6 +119,10 @@ public class Boss {
                 perm = gsp(scorer);
             } else if (method == Method.SP) {
                 perm = sp(scorer);
+            } else if (method == Method.SES) {
+                perm = ses(scorer);
+            } else if (method == Method.ShuffledGRaSP) {
+                perm = shuffledGrasp(scorer);
             } else {
                 throw new IllegalArgumentException("Unrecognized method: " + method);
             }
@@ -232,7 +237,8 @@ public class Boss {
 
         do {
             sOld = sNew;
-            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true);
+//            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true);
+            graspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, scorer.getEdges(), 0);
             sNew = scorer.score();
         } while (sNew > sOld);
 
@@ -256,7 +262,8 @@ public class Boss {
 
         do {
             sOld = sNew;
-            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, false);
+//            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, false);
+            graspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, scorer.getEdges(), 0);
             sNew = scorer.score();
         } while (sNew > sOld);
 
@@ -290,13 +297,7 @@ public class Boss {
                 System.out.println("### Round " + (r));
             }
 
-            List<OrderedPair<Node>> pairs = new ArrayList<>();
-
-            for (Node y : scorer.getOrder()) {
-                for (Node x : scorer.getParents(y)) {
-                    pairs.add(new OrderedPair<>(x, y));
-                }
-            }
+            List<OrderedPair<Node>> pairs = scorer.getEdges();
 
             shuffle(pairs);
 
@@ -311,14 +312,14 @@ public class Boss {
 
                 Node x = pair.getFirst();
                 Node y = pair.getSecond();
-                if (!scorer.adjacent(x, y)) continue;
+//                if (!scorer.adjacent(x, y)) continue;
 
                 double s0 = scorer.score();
                 scorer.bookmark(0);
 
                 // 'tuck' operation.
-//                scorer.tuck(x, y);
-                scorer.moveTo(y, scorer.index(x));
+                scorer.tuck(x, y);
+//                scorer.moveTo(y, scorer.index(x));
 
                 if (violatesKnowledge(scorer.getOrder())) {
                     scorer.goToBookmark(0);
@@ -350,6 +351,8 @@ public class Boss {
                                 + nf.format(100 * visited / (double) numPairs) + "%");
                     }
                 }
+
+
             }
 
             if (numImprovements == 0) {
@@ -603,36 +606,89 @@ public class Boss {
         }
     }
 
-    private void gspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
-                        boolean checkCovering) {
-        for (OrderedPair<Node> adj : scorer.getEdges()) {
+    private void graspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+                          List<OrderedPair<Node>> adjacencies, int index) {
+        int i = index;
+        double sNew = sOld;
+
+        while (i < adjacencies.size() && sNew <= sOld) {
+            OrderedPair<Node> adj = adjacencies.get(i++);
             Node x = adj.getFirst();
             Node y = adj.getSecond();
-            if (checkCovering && !scorer.coveredEdge(x, y)) continue;
             scorer.bookmark(currentDepth);
-            scorer.moveTo(y, scorer.index(x));
-//            System.out.println(scorer.getOrder() + " score = " + scorer.getNumEdges());
+            scorer.tuck(x, y);
 
             if (violatesKnowledge(scorer.getOrder())) {
                 scorer.goToBookmark(currentDepth);
-                continue;
-            }
-
-            double sNew = scorer.score();
-
-            if (sNew == sOld && currentDepth < depth) {
-//                System.out.println("equals " + scorer.getOrder() + " sNew = " + sNew);
-                gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering);
-                sNew = scorer.score();
-            }
-
-            if (sNew <= sOld) {
-                scorer.goToBookmark(currentDepth);
             } else {
-                break;
+                sNew = scorer.score();
+                if (sNew == sOld && currentDepth < depth) {
+                    graspDfs(scorer, sNew, depth, currentDepth + 1, adjacencies, i);
+                    sNew = scorer.score();
+                }
+
+                if (sNew <= sOld) {
+                    scorer.goToBookmark(currentDepth);
+                }
             }
         }
     }
+
+    public List<Node> shuffledGrasp(@NotNull TeyssierScorer scorer) {
+        if (depth < 0) throw new IllegalArgumentException("Form GRaSP, max depth should be >= 0");
+        scorer.clearBookmarks();
+
+        double sOld;
+        double sNew = scorer.score();
+
+        do {
+            sOld = sNew;
+            List<OrderedPair<Node>> edges = scorer.getEdges();
+            shuffle(edges);
+            graspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, edges, 0);
+            sNew = scorer.score();
+        } while (sNew > sOld);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (GRaSP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        return scorer.getOrder();
+    }
+
+//    private void gspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+//                        boolean checkCovering) {
+//        for (OrderedPair<Node> adj : scorer.getEdges()) {
+//            Node x = adj.getFirst();
+//            Node y = adj.getSecond();
+//            if (checkCovering && !scorer.coveredEdge(x, y)) continue;
+//            scorer.bookmark(currentDepth);
+//            scorer.moveTo(y, scorer.index(x));
+////            System.out.println(scorer.getOrder() + " score = " + scorer.getNumEdges());
+//
+//            if (violatesKnowledge(scorer.getOrder())) {
+//                scorer.goToBookmark(currentDepth);
+//                continue;
+//            }
+//
+//            double sNew = scorer.score();
+//
+//            if (sNew == sOld && currentDepth < depth) {
+////                System.out.println("equals " + scorer.getOrder() + " sNew = " + sNew);
+//                gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering);
+//                sNew = scorer.score();
+//            }
+//
+//            if (sNew <= sOld) {
+//                scorer.goToBookmark(currentDepth);
+//            } else {
+//                break;
+//            }
+//        }
+//    }
 
     private boolean triangleCondition(TeyssierScorer scorer, int[] choice) {
         for (int i = 0; i < choice.length; i++) {
@@ -659,6 +715,93 @@ public class Boss {
     }
 
 
+    public List<Node> ses(@NotNull TeyssierScorer scorer) {
+        if (depth < 0) throw new IllegalArgumentException("Form GRaSP, max depth should be >= 0");
+        scorer.clearBookmarks();
+
+        double sOld;
+        double sNew = scorer.score();
+
+        List<OrderedPair<Node>> covered = new ArrayList<>();
+        List<OrderedPair<Node>> exposed = new ArrayList<>();
+
+        do {
+
+            covered.clear();
+            exposed.clear();
+
+            for (OrderedPair<Node> adj : scorer.getEdges()) {
+                Node x = adj.getFirst();
+                Node y = adj.getSecond();
+                if (scorer.coveredEdge(x, y)) {
+                    covered.add(adj);
+                } else {
+                    exposed.add(adj);
+                }
+            }
+
+            sOld = sNew;
+            sesDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, covered, exposed, 0);
+            sNew = scorer.score();
+
+        } while (sNew > sOld);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (SES)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        return scorer.getOrder();
+    }
+
+    private void sesDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+                        List<OrderedPair<Node>> covered, List<OrderedPair<Node>> exposed, int index) {
+        double sNew = scorer.score();
+
+        Iterator<OrderedPair<Node>> eItr = exposed.iterator();
+
+        while (eItr.hasNext() && sNew <= sOld) {
+            OrderedPair<Node> adj = eItr.next();
+            Node x = adj.getFirst();
+            Node y = adj.getSecond();
+            scorer.bookmark(currentDepth);
+            scorer.tuck(x, y);
+
+            if (violatesKnowledge(scorer.getOrder())) {
+                scorer.goToBookmark(currentDepth);
+            } else {
+                sNew = scorer.score();
+                if (sNew <= sOld) {
+                    scorer.goToBookmark(currentDepth);
+                }
+            }
+        }
+
+        int i = index;
+
+        while (i < covered.size() && sNew <= sOld) {
+            OrderedPair<Node> adj = covered.get(i++);
+            Node x = adj.getFirst();
+            Node y = adj.getSecond();
+            scorer.bookmark(currentDepth);
+            scorer.tuck(x, y);
+
+            if (violatesKnowledge(scorer.getOrder())) {
+                scorer.goToBookmark(currentDepth);
+            } else {
+                sNew = scorer.score();
+                if (sNew == sOld && currentDepth < depth) {
+                    sesDfs(scorer, sNew, depth, currentDepth + 1, covered, exposed, i + 1);
+                    sNew = scorer.score();
+                } else if (sNew <= sOld) {
+                    scorer.goToBookmark(currentDepth);
+                }
+            }
+        }
+    }
+
     private List<Node> subMutation(List<Node> pi, int[] choice, int[] perm) {
         List<Node> pi2 = new ArrayList<>(pi);
 
@@ -676,5 +819,5 @@ public class Boss {
         this.numRounds = numRounds;
     }
 
-    public enum Method {GSP, ESP, GRaSP, RCG, BOSS1, BOSS2, SP}
+    public enum Method {GSP, ESP, GRaSP, RCG, BOSS1, BOSS2, SP, SES, ShuffledGRaSP}
 }

@@ -45,9 +45,9 @@ public class ZhangShenBoundScore implements Score {
     // The running maximum score, for estimating the true minimal model.
     double[] maxScores;
     // The running estimate of the number of parents in the true minimal model.
-    int[] estMinParents;
+    int[] estMaxParents;
     // The running estimate of the residual variance of the true minimal model.
-    double[] estVarRys;
+    double[] estMaxVarRys;
     // The covariance matrix.
     private ICovarianceMatrix covariances;
     // The sample size of the covariance matrix.
@@ -74,9 +74,10 @@ public class ZhangShenBoundScore implements Score {
         setCovariances(covariances);
         this.variables = covariances.getVariables();
         this.sampleSize = covariances.getSampleSize();
-        this.estMinParents = new int[variables.size()];
+        this.estMaxParents = new int[variables.size()];
+        Arrays.fill(this.estMaxParents, 0);
         this.maxScores = new double[variables.size()];
-        this.estVarRys = new double[variables.size()];
+        this.estMaxVarRys = new double[variables.size()];
 
         this.riskBound = 3.0 / covariances.getDimension();
     }
@@ -110,9 +111,9 @@ public class ZhangShenBoundScore implements Score {
     }
 
     public static double zhangShenLambda(int m0, int pn, double riskBound) {
-        if (pn == m0) throw new IllegalArgumentException("m0 should not equal pn");
-        int sn = min(pn, 12);
-        sn = max(sn, 0);
+//        if (pn == m0) throw new IllegalArgumentException("m0 should not equal pn");
+//        int sn = min(pn, 12);
+        int sn = pn;//max(sn, 0);
 
         double high = 10000;
         double low = 0.0;
@@ -161,24 +162,32 @@ public class ZhangShenBoundScore implements Score {
     public double localScore(int i, int... parents) throws RuntimeException {
         int pn = variables.size() - 1;
 
-        if (this.estMinParents == null) {
-            this.estMinParents = new int[variables.size()];
+        if (this.estMaxParents == null) {
+            this.estMaxParents = new int[variables.size()];
             this.maxScores = new double[variables.size()];
-            this.estVarRys = new double[variables.size()];
+            this.estMaxVarRys = new double[variables.size()];
 
             for (int j = 0; j < variables.size(); j++) {
-                this.estMinParents[j] = 0;
+                this.estMaxParents[j] = 0;
                 this.maxScores[j] = localScore(j, new int[0]);
-                this.estVarRys[j] = LinearGaussianBicScore.getVarRy(j, new int[0], data, covariances, calculateRowSubsets);
+                this.estMaxVarRys[j] = LinearGaussianBicScore.getVarRy(j, new int[0], data, covariances, calculateRowSubsets);
             }
         }
 
         final int pi = parents.length;
         double varRy = LinearGaussianBicScore.getVarRy(i, parents, data, covariances, calculateRowSubsets);
 
-        int m0 = estMinParents[i];
+        int m0 = estMaxParents[i];
 
-        return -(sampleSize * log(varRy) + getLambda(m0, pn) * pi * 2);
+        double score = -(sampleSize * log(varRy) + getLambda(m0, pn) * pi * 2);
+
+        if (score > maxScores[i]) {
+            maxScores[i] = score;
+            estMaxParents[i] = parents.length;
+            estMaxVarRys[i] = varRy;
+        }
+
+        return score;
     }
 
     private double getLambda(int m0, int pn) {
