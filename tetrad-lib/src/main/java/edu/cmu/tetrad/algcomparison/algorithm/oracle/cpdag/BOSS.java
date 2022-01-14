@@ -94,11 +94,14 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                     method = Boss.Method.SES;
                     break;
                 case 9:
-                    method = Boss.Method.ShuffledGRaSP;
+                    method = Boss.Method.SHG;
+                    break;
+                case 10:
+                    method = Boss.Method.slowSES;
                     break;
                 default:
                     throw new IllegalStateException("Pick a number from 1 to 8: " +
-                            "1 = BOSS1, 2 = BOSS2, 3 = GRaSP, 4 = RCG, 5 = ESP, 6 = TSP, 7 = SP, 8 = SES, 9 = SHG");
+                            "1 = BOSS1, 2 = BOSS2, 3 = GRaSP, 4 = RCG, 5 = ESP, 6 = GSP, 7 = SP, 8 = SES, 9 = SHG");
             }
 
             System.out.println("Picked " + method);
@@ -114,6 +117,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             boss.setDepth(parameters.getInt(Params.GSP_DEPTH));
             boss.setMaxPermSize(parameters.getInt(Params.MAX_PERM_SIZE));
             boss.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
+            boss.setUseTuck(parameters.getBoolean(Params.USE_TUCK));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 boss.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -175,6 +179,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.GSP_DEPTH);
         params.add(Params.BOSS_METHOD);
         params.add(Params.NUM_ROUNDS);
+//        params.add(Params.USE_TUCK);
         params.add(Params.VERBOSE);
         return params;
     }

@@ -24,6 +24,7 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Grasp;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Rfci;
@@ -133,7 +134,7 @@ public final class TestBoss {
     @Test
     public void testBoss() {
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 100);
+        params.set(Params.NUM_MEASURES, 20);
         params.set(Params.AVG_DEGREE, 10);
         params.set(Params.SAMPLE_SIZE, 1000);
         params.set(Params.NUM_RUNS, 1);
@@ -145,16 +146,17 @@ public final class TestBoss {
         params.set(Params.NUM_STARTS, 1);
         params.set(Params.ALPHA, 0.001);
 
-        params.set(Params.ZS_RISK_BOUND, 0.01, 0.1, 0.2, 0.3);
+        params.set(Params.ZS_RISK_BOUND, 0.001); //, 0.01, 0.1);
 
+        params.set(Params.EBIC_GAMMA, 0.1);
 
-        params.set(Params.GSP_DEPTH, 4);
+        params.set(Params.GSP_DEPTH, 50);
         params.set(Params.BOSS_METHOD, 4);
-        params.set(Params.NUM_ROUNDS, 5);
+        params.set(Params.NUM_ROUNDS, 50);
         params.set(Params.USE_SCORE, true);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.ZhangShenBoundScore(), new FisherZ()));
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.EbicScore(), new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
 
@@ -163,25 +165,97 @@ public final class TestBoss {
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.BOSS_METHOD));
-        statistics.add(new ParameterColumn(Params.ZS_RISK_BOUND));
-        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new ParameterColumn(Params.GSP_DEPTH));
+        statistics.add(new ParameterColumn(Params.NUM_ROUNDS));
+        statistics.add(new ParameterColumn(Params.EBIC_GAMMA));
+        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new NumberOfEdgesTrue());
+        statistics.add(new NumberOfEdgesEst());
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new SHD_CPDAG());
-        statistics.add(new F1All());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
-        comparison.setSaveData(true);
+        comparison.setSaveData(false);
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
         comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/testBoss",
                 simulations, algorithms, statistics, params);
     }
+
+    @Test
+    public void testBossDiscrete() {
+        Parameters params = new Parameters();
+        params.set(Params.NUM_MEASURES, 7);
+        params.set(Params.AVG_DEGREE, 3);
+        params.set(Params.SAMPLE_SIZE, 1000);
+        params.set(Params.NUM_RUNS, 10);
+        params.set(Params.RANDOMIZE_COLUMNS, true);
+        params.set(Params.PENALTY_DISCOUNT, 2);
+        params.set(Params.COEF_LOW, 0);
+        params.set(Params.COEF_HIGH, 1);
+        params.set(Params.CACHE_SCORES, true);
+        params.set(Params.NUM_STARTS, 1);
+        params.set(Params.ALPHA, 0.001);
+        params.set(Params.USE_TUCK, true, false);
+
+        params.set(Params.ZS_RISK_BOUND, 0.001); //, 0.01, 0.1);
+
+        params.set(Params.EBIC_GAMMA, 0.1);
+
+        params.set(Params.GSP_DEPTH, 3);
+        params.set(Params.BOSS_METHOD, 2, 5, 7);
+        params.set(Params.BOSS_SCORE_TYPE, false);
+        params.set(Params.NUM_ROUNDS, 50);
+        params.set(Params.USE_SCORE, true);
+
+
+
+        // use defaults.
+        params.set(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE, 10);
+//        params.set(Params.STRUCTURE_PRIOR);
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new ChiSquare()));
+        algorithms.add(new Grasp(new edu.cmu.tetrad.algcomparison.score.BdeuScore()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new BayesNetSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
+        statistics.add(new ParameterColumn(Params.GSP_DEPTH));
+        statistics.add(new ParameterColumn(Params.NUM_ROUNDS));
+        statistics.add(new ParameterColumn(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE));
+        statistics.add(new ParameterColumn(Params.STRUCTURE_PRIOR));
+        statistics.add(new ParameterColumn(Params.USE_TUCK));
+//        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
+//        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new NumberOfEdgesTrue());
+        statistics.add(new NumberOfEdgesEst());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(false);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/boss/testBossDiscrete",
+                simulations, algorithms, statistics, params);
+    }
+
 
     @Test
     public void testBoss2() {
@@ -197,6 +271,7 @@ public final class TestBoss {
         params.set(Params.COEF_HIGH, 0.8);
         params.set(Params.VERBOSE, false);
         params.set(Params.BREAK_TIES, true);
+        params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.USE_SCORE, true);
 
 
@@ -1405,11 +1480,11 @@ public final class TestBoss {
     public void test6Examples() {
         List<Ret> allFacts = new ArrayList<>();
 
-//        allFacts.add(getFactsSimple());
-//        allFacts.add(getFactsSimpleCanceling());
-//        allFacts.add(wayneTriangleFaithfulnessFailExample());
-//        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
-//        allFacts.add(getFigure7());
+        allFacts.add(getFactsSimple());
+        allFacts.add(getFactsSimpleCanceling());
+        allFacts.add(wayneTriangleFaithfulnessFailExample());
+        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
+        allFacts.add(getFigure7());
         allFacts.add(getFigure8());
 //        allFacts.add(getFigure11());
 
@@ -1439,13 +1514,13 @@ public final class TestBoss {
         for (Boss.Method method : new Boss.Method[]{
 //                BOSS1,
 //                BOSS2,
-                GRaSP,
+//                GRaSP,
                 RCG,
 //                ESP,
 //                GSP,
 
 //                SES,
-                ShuffledGRaSP
+//                SHG
 
         }) {
             System.out.println("\n\n" + method);
@@ -1479,7 +1554,7 @@ public final class TestBoss {
                     search.setUseDataOrder(true);
 //                    search.setVerbose(verbose);
                     List<Node> order = search.bestOrder(p);
-                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());// + " " + search.getGraph(false));
+//                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());// + " " + search.getGraph(false));
 
                     if (search.getNumEdges() != facts.getTruth()) {
                         passed = false;
@@ -1500,7 +1575,6 @@ public final class TestBoss {
         allFacts.add(getFactsSimpleCanceling());
         allFacts.add(wayneTriangleFaithfulnessFailExample());
         allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
-        allFacts.add(getFigure6());
         allFacts.add(getFigure7());
         allFacts.add(getFigure8());
         allFacts.add(getFigure11());
@@ -1512,7 +1586,7 @@ public final class TestBoss {
 
         boolean verbose = false;
         int numRounds = 50;
-        int depth = 20;
+        int depth = 50;
         int maxPermSize = 6;
 
         boolean printCpdag = false;
@@ -1535,7 +1609,9 @@ public final class TestBoss {
 //                ESP,
 //                GSP
 
-                GRaSP,
+//                SP,
+
+//                GRaSP,
                 RCG,
 //                SES,
 //                ShuffledGRaSP
@@ -1570,6 +1646,7 @@ public final class TestBoss {
                     search.setNumRounds(numRounds);
 //                    search.setVerbose(verbose);
                     search.setUseDataOrder(true);
+                    search.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
                     List<Node> order = search.bestOrder(p);
 //                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
 //                    System.out.println(search.getGraph(false));
