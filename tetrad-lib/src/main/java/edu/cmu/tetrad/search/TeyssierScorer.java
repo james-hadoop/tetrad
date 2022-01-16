@@ -453,7 +453,7 @@ public class TeyssierScorer {
             parentIndices[k++] = variablesHash.get(p);
         }
 
-        float v = (float) this.score.localScore(variablesHash.get(n), parentIndices);
+        float v = (float) Math.nextDown((float) this.score.localScore(variablesHash.get(n), parentIndices));
 
         if (cachingScores) {
             cache.computeIfAbsent(n, w -> new HashMap<>());

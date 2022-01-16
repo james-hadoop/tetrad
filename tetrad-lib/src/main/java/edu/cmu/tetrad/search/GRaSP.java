@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.lang.Float.NEGATIVE_INFINITY;
 import static java.util.Collections.shuffle;
 
 
@@ -31,7 +31,7 @@ public class GRaSP {
     private IKnowledge knowledge = new Knowledge2();
     private boolean useDataOrder = false;
     private int depth = 4;
-    private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.GrowShrinkMb;
+    private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.Pearl;
     private TeyssierScorer scorer;
     private boolean useTuck = true;
 
@@ -54,9 +54,7 @@ public class GRaSP {
         scorer.setCachingScores(cachingScores);
 
         List<Node> bestPerm = new ArrayList<>(order);
-        double best = NEGATIVE_INFINITY;
-
-        useDataOrder = true;
+        float best = NEGATIVE_INFINITY;
 
         for (int r = 0; r < (useDataOrder ? 1 : numStarts); r++) {
             if (!useDataOrder) {
@@ -117,8 +115,8 @@ public class GRaSP {
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
 
-        double sNew = scorer.score();
-        double sOld;
+        float sNew = scorer.score();
+        float sOld;
 
         List<int[]> ops = new ArrayList<>();
         for (int i = 0; i < scorer.size(); i++) {
@@ -144,7 +142,9 @@ public class GRaSP {
         return scorer.getOrder();
     }
 
-    private void sesDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+    private static final float machineEpsilon = 0;
+
+    private void sesDfs(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth,
                         List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory) {
         for (int[] op : ops) {
             Node x = scorer.get(op[0]);
@@ -174,7 +174,7 @@ public class GRaSP {
             if (violatesKnowledge(scorer.getOrder())) {
                 scorer.goToBookmark(currentDepth);
             } else {
-                double sNew = scorer.score();
+                float sNew = scorer.score();
 
                 if (sNew == sOld && currentDepth < depth) {
                     sesDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
@@ -197,7 +197,10 @@ public class GRaSP {
     @NotNull
     public Graph getGraph(boolean cpDag) {
         if (scorer == null) throw new IllegalArgumentException("Please run algorithm first.");
-        return scorer.getGraph(cpDag);
+
+        Graph graph = scorer.getGraph(cpDag);
+        graph.addAttribute("# edges", graph.getNumEdges());
+        return graph;
     }
 
     public void setCacheScores(boolean cachingScores) {

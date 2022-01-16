@@ -91,7 +91,7 @@ public class Lofs2 {
         }
 
         if (cpdag == null) {
-            throw new IllegalArgumentException("Cpdag must be specified.");
+            throw new IllegalArgumentException("cpdag must be specified.");
         }
 
 //        for (DataSet dataSet : dataSets) {
