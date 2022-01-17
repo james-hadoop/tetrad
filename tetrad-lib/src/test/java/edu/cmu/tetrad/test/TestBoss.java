@@ -277,7 +277,7 @@ public final class TestBoss {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
-//        algorithms.add(new GSP(new LinearGaussianBicScore()));
+//        algorithms.add(new GASP(new LinearGaussianBicScore()));
 //        algorithms.add(new Fges(new LinearGaussianBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
 
@@ -432,14 +432,14 @@ public final class TestBoss {
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GSP(new LinearGaussianBicScore(), new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP(new LinearGaussianBicScore(), new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 //
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new ConditionalGaussianLRT()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new ConditionalGaussianLRT()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new ConditionalGaussianLRT()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new ConditionalGaussianBicScore()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GSP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
 
         Simulations simulations = new Simulations();
@@ -493,7 +493,7 @@ public final class TestBoss {
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new ConditionalGaussianLRT()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new ConditionalGaussianLRT()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new ConditionalGaussianBicScore()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GSP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
 
         Simulations simulations = new Simulations();
@@ -893,7 +893,7 @@ public final class TestBoss {
 
 
         Boss.Method[] methods = {Boss.Method.SP, Boss.Method.BOSS1};
-//        Boss.Method[] methods = {Boss.Method.GSP, Boss.Method.BOSS, Boss.Method.SP};
+//        Boss.Method[] methods = {Boss.Method.GASP, Boss.Method.BOSS, Boss.Method.SP};
 
         for (Ret facts : allFacts) {
             count++;
@@ -1304,6 +1304,39 @@ public final class TestBoss {
         return new Ret("Wayne example 1", facts, 8);
     }
 
+    private Ret wayneExample2() {
+        Node x = new GraphNode("x");
+        Node y = new GraphNode("y");
+        Node z1 = new GraphNode("z1");
+        Node z2 = new GraphNode("z2");
+        Node z3 = new GraphNode("z3");
+        Node z4 = new GraphNode("z4");
+
+        List<Node> nodes = new ArrayList<>();
+        nodes.add(x);
+        nodes.add(y);
+        nodes.add(z1);
+        nodes.add(z2);
+        nodes.add(z3);
+        nodes.add(z4);
+
+        Graph graph = new EdgeListGraph(nodes);
+
+        graph.addDirectedEdge(x, z1);
+        graph.addDirectedEdge(z1, z2);
+        graph.addDirectedEdge(z2, y);
+        graph.addDirectedEdge(x, z3);
+        graph.addDirectedEdge(z3, z4);
+        graph.addDirectedEdge(z4, y);
+
+        IndependenceFacts facts = new IndependenceFacts(graph);
+
+        facts.add(new IndependenceFact(x, y));
+
+        return new Ret("Wayne example #2", facts, 6);
+
+    }
+
     private Ret wayneTriMutationFailsForFaithfulGraphExample() {
         Node x0 = new GraphNode("0");
         Node x1 = new GraphNode("1");
@@ -1514,12 +1547,12 @@ public final class TestBoss {
         for (Boss.Method method : new Boss.Method[]{
 //                BOSS1,
 //                BOSS2,
-//                GRaSP,
-                RCG,
+//                GRASP,
+//                RCG,
 //                ESP,
-//                GSP,
+//                GASP,
 
-//                SES,
+                SES,
 //                SHG
 
         }) {
@@ -1578,6 +1611,7 @@ public final class TestBoss {
         allFacts.add(getFigure7());
         allFacts.add(getFigure8());
         allFacts.add(getFigure11());
+        allFacts.add(wayneExample2());
 //        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
 
 //        allFacts.add(getFigure8());
@@ -1586,7 +1620,7 @@ public final class TestBoss {
 
         boolean verbose = false;
         int numRounds = 50;
-        int depth = 3;
+        int depth = 5;
         int maxPermSize = 6;
 
         boolean printCpdag = false;
@@ -1602,22 +1636,13 @@ public final class TestBoss {
         }
 
         for (Boss.Method method : new Boss.Method[]{
-//                BOSS1,
-//                BOSS2,
-//                GRaSP,
-//                RCG,
-//                ESP,
-//                GSP
-
-//                SP,
-
-//                GRaSP,
-                GSP,
-                GRaSP,
+                BOSS1,
+                BOSS2,
+                GRASP,
+                ESP,
+                GASP,
                 SES,
-//                RCG,
-//                SES,
-//                ShuffledGRaSP
+                RCG,
         }) {
             System.out.println("\n\n" + method);
 
@@ -1650,6 +1675,7 @@ public final class TestBoss {
 //                    search.setVerbose(verbose);
                     search.setUseDataOrder(true);
                     search.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
+                    search.setUseTuck(false);
                     List<Node> order = search.bestOrder(p);
 //                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
 //                    System.out.println(search.getGraph(false));
@@ -1688,10 +1714,10 @@ public final class TestBoss {
         for (Boss.Method method : new Boss.Method[]{
 //                BOSS1,
 //                BOSS2,
-//                GRaSP,
+//                GRASP,
                 RCG,
 //                ESP,
-//                GSP
+//                GASP
         }) {
             System.out.println("\n\n" + method);
 
@@ -1719,7 +1745,7 @@ public final class TestBoss {
                     Boss search = new Boss(new IndTestDSep(facts.getFacts()));
 //                    search.setMaxPermSize(6);
                     search.setDepth(Integer.MAX_VALUE);
-//                    search.setDepth((method == BOSS1 || method == BOSS2 || method == GRaSP || method == quickGRaSP) ? 20 : 5);
+//                    search.setDepth((method == BOSS1 || method == BOSS2 || method == GRASP || method == RCG) ? 20 : 5);
                     search.setMethod(method);
                     search.setNumRounds(20);
 //                    search.setVerbose(true);
@@ -2020,7 +2046,7 @@ public final class TestBoss {
             Boss boss = new Boss(test);
             boss.setUseScore(false);
 
-            Boss.Method method = GRaSP;
+            Boss.Method method = GRASP;
 
             boss.setMethod(method);
             boss.bestOrder(test.getVariables());

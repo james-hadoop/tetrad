@@ -16,11 +16,11 @@ import static java.util.Collections.shuffle;
 
 
 /**
- * Implements the GRaSP permutation algorithms.
+ * Implements the GRASP permutation algorithms.
  *
  * @author josephramsey
  */
-public class GRaSP {
+public class GRASP {
     private final List<Node> variables;
     private final Score score;
     private long start;
@@ -35,7 +35,7 @@ public class GRaSP {
     private TeyssierScorer scorer;
     private boolean useTuck = false;
 
-    public GRaSP(@NotNull Score score) {
+    public GRASP(@NotNull Score score) {
         this.score = score;
         this.variables = new ArrayList<>(score.getVariables());
     }
@@ -135,7 +135,7 @@ public class GRaSP {
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
-                    + " (GRaSP)"
+                    + " (GRASP)"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 

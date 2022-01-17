@@ -69,7 +69,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                     method = Boss.Method.BOSS2;
                     break;
                 case 3:
-                    method = Boss.Method.GRaSP;
+                    method = Boss.Method.GRASP;
                     break;
                 case 4:
                     method = Boss.Method.RCG;
@@ -78,7 +78,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                     method = Boss.Method.ESP;
                     break;
                 case 6:
-                    method = Boss.Method.GSP;
+                    method = Boss.Method.GASP;
                     break;
                 case 7:
                     method = Boss.Method.SP;
@@ -91,7 +91,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                     break;
                 default:
                     throw new IllegalStateException("Pick a number from 1 to 8: " +
-                            "1 = BOSS1, 2 = BOSS2, 3 = GRaSP, 4 = RCG, 5 = ESP, 6 = GSP, 7 = SP, 8 = SES, 9 = SHG");
+                            "1 = BOSS1, 2 = BOSS2, 3 = GRASP, 4 = RCG, 5 = ESP, 6 = GASP, 7 = SP, 8 = SES, 9 = SHG");
             }
 
             System.out.println("Picked " + method);
@@ -106,7 +106,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             search.setGspDepth(parameters.getInt(Params.GSP_DEPTH));
             search.setMaxPermSize(parameters.getInt(Params.MAX_PERM_SIZE));
             search.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
-            search.setQuickGraphDoFinalGrasp(parameters.getBoolean(Params.QUICKGRASP_DO_FINAL_GRAPH));
+            search.setQuickGraphDoFinalGrasp(parameters.getBoolean(Params.RCG_DO_FINAL_GRAPH));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 search.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -185,7 +185,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.GSP_DEPTH);
         params.add(Params.BOSS_METHOD);
         params.add(Params.NUM_ROUNDS);
-        params.add(Params.QUICKGRASP_DO_FINAL_GRAPH);
+        params.add(Params.RCG_DO_FINAL_GRAPH);
         params.add(Params.VERBOSE);
 
         return params;

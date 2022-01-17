@@ -105,15 +105,21 @@ public class TeyssierScorer {
 
     public void tuck(Node x, Node y) {
 
-        // x->y
-        if (getParents(y).contains(x)) {
+        if (index(x) < index(y)) {
             moveTo(y, index(x));
-        }
-
-        // y -> x
-        else if (getParents(x).contains(y)) {
+        } else if (index(x) > index(y)) {
             moveTo(x, index(y));
         }
+
+//        // x->y
+//        if (getParents(y).contains(x)) {
+//            moveTo(y, index(x));
+//        }
+//
+//        // y -> x
+//        else if (getParents(x).contains(y)) {
+//            moveTo(x, index(y));
+//        }
     }
 
     public void moveTo(Node v, int toIndex) {
@@ -452,7 +458,9 @@ public class TeyssierScorer {
 
         double precision = 1.0e10;
 
-        double v = Math.floor(1.e10 * this.score.localScore(variablesHash.get(n), parentIndices)) * 1.e-10;
+        double v = this.score.localScore(variablesHash.get(n), parentIndices);
+//        v = Math.floor(1.e10 * v) * 1.e-10;
+        v = Math.nextDown(v);
 
         if (cachingScores) {
             cache.computeIfAbsent(n, w -> new HashMap<>());

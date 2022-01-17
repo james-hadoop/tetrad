@@ -104,7 +104,7 @@ public final class TestGsp {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new LinearGaussianBicScore(), new FisherZ()));
-//        algorithms.add(new GSP(new LinearGaussianBicScore()));
+//        algorithms.add(new GASP(new LinearGaussianBicScore()));
         algorithms.add(new Fges(new LinearGaussianBicScore()));
         algorithms.add(new PcAll(new FisherZ()));
 

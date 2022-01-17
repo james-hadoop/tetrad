@@ -105,14 +105,14 @@ public class Boss {
                 perm = boss1(scorer);
             } else if (method == Method.BOSS2) {
                 perm = boss2(scorer);
-            } else if (method == Method.GRaSP) {
+            } else if (method == Method.GRASP) {
                 perm = grasp(scorer);
             } else if (method == Method.RCG) {
                 perm = rcg2(scorer);
             } else if (method == Method.ESP) {
                 perm = esp(scorer);
-            } else if (method == Method.GSP) {
-                perm = gsp(scorer);
+            } else if (method == Method.GASP) {
+                perm = gasp(scorer);
             } else if (method == Method.SP) {
                 perm = sp(scorer);
             } else if (method == Method.SES) {
@@ -225,8 +225,8 @@ public class Boss {
         return scorer.getOrder();
     }
 
-    public List<Node> gsp(@NotNull TeyssierScorer scorer) {
-        if (depth < 0) throw new IllegalArgumentException("Form GRaSP, max depth should be >= 0");
+    public List<Node> gasp(@NotNull TeyssierScorer scorer) {
+        if (depth < 0) throw new IllegalArgumentException("Form GRASP, max depth should be >= 0");
         scorer.clearBookmarks();
 
         double sOld;
@@ -234,14 +234,14 @@ public class Boss {
 
         do {
             sOld = sNew;
-            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true);
+            graspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true);
             sNew = scorer.score();
         } while (sNew > sOld);
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
-                    + " (GSP))"
+                    + " (GASP))"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
@@ -250,7 +250,7 @@ public class Boss {
     }
 
     public List<Node> grasp(@NotNull TeyssierScorer scorer) {
-        if (depth < 0) throw new IllegalArgumentException("Form GRaSP, max depth should be >= 0");
+        if (depth < 0) throw new IllegalArgumentException("Form GRASP, max depth should be >= 0");
         scorer.clearBookmarks();
 
         double sOld;
@@ -258,14 +258,14 @@ public class Boss {
 
         do {
             sOld = sNew;
-            gspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, false);
+            graspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, false);
             sNew = scorer.score();
         } while (sNew > sOld);
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
-                    + " (GRaSP)"
+                    + " (GRASP)"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
@@ -290,6 +290,39 @@ public class Boss {
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
+                    + " (GRASP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        return scorer.getOrder();
+    }
+
+    public List<Node> ses(@NotNull TeyssierScorer scorer) {
+        int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
+        scorer.clearBookmarks();
+
+        double sNew = scorer.score();
+        double sOld;
+
+        List<int[]> ops = new ArrayList<>();
+        for (int i = 0; i < scorer.size(); i++) {
+            for (int j = (useTuck ? i + 1 : 0); j < scorer.size(); j++) {
+                if (i != j) {
+                    ops.add(new int[]{i, j});
+                }
+            }
+        }
+
+        do {
+            sOld = sNew;
+            shuffle(ops);
+            sesDfs(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>());
+            sNew = scorer.score();
+        } while (sNew > sOld);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
                     + " (GRaSP)"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
@@ -297,30 +330,54 @@ public class Boss {
         return scorer.getOrder();
     }
 
-    public List<Node> ses(@NotNull TeyssierScorer scorer, boolean runSlowSes) {
-        int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
-        scorer.clearBookmarks();
+    private void sesDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+                        List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory) {
+        for (int[] op : ops) {
+            Node x = scorer.get(op[0]);
+            Node y = scorer.get(op[1]);
 
-        double sOld;
-        double sNew = scorer.score();
+            if (!scorer.adjacent(x, y)) continue;
 
-        do {
-            sOld = sNew;
-            List<OrderedPair<Node>> edges = scorer.getEdges();
-            shuffle(edges);
-            sesDfs(scorer, sOld, depth, 1, edges, new HashSet<>(), new HashSet<>(), runSlowSes);
-//            sesDfs2(scorer, sOld, depth, 1, edges, new HashSet<>(), new ArrayList<>(), runSlowSes);
-            sNew = scorer.score();
-        } while (sNew > sOld);
+            if (currentDepth > 1 && !scorer.coveredEdge(x, y)) continue;
 
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " Score = " + scorer.score()
-                    + " (SES)"
-                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+            Set<Set<Node>> current = new HashSet<>(branchHistory);
+            Set<Node> adj = new HashSet<>();
+            adj.add(x);
+            adj.add(y);
+
+            if (current.contains(adj)) continue;
+            current.add(adj);
+
+            if (op[0] < op[1] && scorer.coveredEdge(x, y)) {
+                if (dfsHistory.contains(current)) continue;
+                dfsHistory.add(current);
+            }
+
+            scorer.bookmark(currentDepth);
+            scorer.moveTo(y, op[0]);
+
+            if (violatesKnowledge(scorer.getOrder())) {
+                scorer.goToBookmark(currentDepth);
+            } else {
+                double sNew = scorer.score();
+
+                if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) {
+//                if (sNew == sOld && currentDepth < depth && op[0] < op[1]) {
+//                if (sNew == sOld && currentDepth < depth) {
+                    sesDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
+                    sNew = scorer.score();
+                }
+
+                if (sNew <= sOld) {
+                    scorer.goToBookmark(currentDepth);
+                } else {
+                    if (verbose) {
+                        System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
+                    }
+                    break;
+                }
+            }
         }
-
-        return scorer.getOrder();
     }
 
     // "Random Carnival Game"
@@ -810,8 +867,8 @@ public class Boss {
         }
     }
 
-    private void gspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
-                        boolean checkCovering) {
+    private void graspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+                          boolean checkCovering) {
         for (OrderedPair<Node> adj : scorer.getEdges()) {
             Node x = adj.getFirst();
             Node y = adj.getSecond();
@@ -829,7 +886,7 @@ public class Boss {
 
             if (sNew == sOld && currentDepth < depth) {
 //                System.out.println("equals " + scorer.getOrder() + " sNew = " + sNew);
-                gspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering);
+                graspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering);
                 sNew = scorer.score();
             }
 
@@ -837,54 +894,6 @@ public class Boss {
                 scorer.goToBookmark(currentDepth);
             } else {
                 break;
-            }
-        }
-    }
-
-    private void sesDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
-                        List<OrderedPair<Node>> edges, Set<Set<OrderedPair<Node>>> blackList, Set<OrderedPair<Node>> history,
-                        boolean runSlowSes) {
-        double sNew = sOld;
-        int i = 0;
-
-        while (i < edges.size() && (runSlowSes || sNew <= sOld)) {
-            OrderedPair<Node> edge = edges.get(i++);
-            Node x = edge.getFirst();
-            Node y = edge.getSecond();
-
-            if (scorer.coveredEdge(x, y)) {
-                Set<OrderedPair<Node>> current = new HashSet<>(history);
-                current.add(edge);
-
-                if (!blackList.contains(current)) {
-                    blackList.add(current);
-                    scorer.bookmark(currentDepth);
-                    scorer.tuck(x, y);
-
-                    if (violatesKnowledge(scorer.getOrder())) {
-                        scorer.goToBookmark(currentDepth);
-                    } else {
-                        sNew = scorer.score();
-                        if (sNew >= sOld && currentDepth < depth) {
-                            sesDfs(scorer, sNew, depth, currentDepth + 1, edges, blackList, current, runSlowSes);
-                            sNew = scorer.score();
-                        }
-                        if (sNew <= sOld) {
-                            scorer.goToBookmark(currentDepth);
-                        }
-                    }
-                }
-            } else {
-                scorer.bookmark(currentDepth);
-                scorer.tuck(x, y);
-                if (violatesKnowledge(scorer.getOrder())) {
-                    scorer.goToBookmark(currentDepth);
-                } else {
-                    sNew = scorer.score();
-                    if (sNew <= sOld) {
-                        scorer.goToBookmark(currentDepth);
-                    }
-                }
             }
         }
     }
@@ -959,96 +968,11 @@ public class Boss {
         this.numRounds = numRounds;
     }
 
-    public List<Node> ses(@NotNull TeyssierScorer scorer) {
-        int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
-        scorer.clearBookmarks();
 
-        double sNew = scorer.score();
-        double sOld;
-
-        List<int[]> ops = new ArrayList<>();
-        for (int i = 0; i < scorer.size(); i++) {
-            for (int j = (useTuck ? i + 1 : 0); j < scorer.size(); j++) {
-                ops.add(new int[]{i, j});
-            }
-        }
-
-        do {
-            sOld = sNew;
-            shuffle(ops);
-            sesDfs(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>());
-            sNew = scorer.score();
-        } while (sNew > sOld);
-
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " Score = " + scorer.score()
-                    + " (GRaSP)"
-                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-        }
-
-        return scorer.getOrder();
-    }
-
-    private void sesDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
-                        List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory) {
-        int i = 0;
-        for (int[] op : ops) {
-            Node x = scorer.get(op[0]);
-            Node y = scorer.get(op[1]);
-
-//            if (++i % 100 == 0) System.out.println(i / 100);
-//            if (dfsHistory.size() > 0 && dfsHistory.size() % 100 == 0) System.out.println(dfsHistory.size());
-
-            if (!scorer.adjacent(x, y)) continue;
-
-            if (currentDepth > 1 && !scorer.coveredEdge(x, y)) continue;
-
-            Set<Set<Node>> current = new HashSet<>(branchHistory);
-            Set<Node> adj = new HashSet<>();
-            adj.add(x);
-            adj.add(y);
-
-            if (current.contains(adj)) continue;
-            current.add(adj);
-
-            if (op[0] < op[1] && scorer.coveredEdge(x, y)) {
-                if (dfsHistory.contains(current)) continue;
-                dfsHistory.add(current);
-            }
-
-            scorer.bookmark(currentDepth);
-            scorer.moveTo(y, op[0]);
-
-            if (violatesKnowledge(scorer.getOrder())) {
-                scorer.goToBookmark(currentDepth);
-            } else {
-                double sNew = scorer.score();
-
-                if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) {
-//                if (sNew == sOld && currentDepth < depth && op[0] < op[1]) {
-//                if (sNew == sOld && currentDepth < depth) {
-                    sesDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
-                    sNew = scorer.score();
-                }
-
-                if (sNew <= sOld) {
-                    scorer.goToBookmark(currentDepth);
-                } else {
-//                    System.out.println(i);
-                    if (verbose) {
-                        System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
-                    }
-
-                    break;
-                }
-            }
-        }
-    }
 
     public void setUseTuck(boolean useTuck) {
         this.useTuck = useTuck;
     }
 
-    public enum Method {GSP, ESP, GRaSP, RCG, BOSS1, BOSS2, SP, SES, SHG, slowSES}
+    public enum Method {GASP, ESP, GRASP, RCG, BOSS1, BOSS2, SP, SES, SHG, slowSES}
 }

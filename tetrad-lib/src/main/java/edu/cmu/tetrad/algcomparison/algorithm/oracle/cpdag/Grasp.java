@@ -9,7 +9,9 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.search.GRASP;
+import edu.cmu.tetrad.search.Score;
+import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -19,12 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * GRaSP.
+ * GRASP.
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GRaSP",
+        name = "GRASP",
         command = "grasp",
         algoType = AlgType.forbid_latent_common_causes
 )
@@ -47,7 +49,7 @@ public class Grasp implements Algorithm, UsesScoreWrapper {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
 
-            GRaSP grasp = new GRaSP(score);
+            GRASP grasp = new GRASP(score);
 
             grasp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             grasp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
@@ -96,7 +98,7 @@ public class Grasp implements Algorithm, UsesScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "GRaSP using " + score.getDescription();
+        return "GRASP using " + score.getDescription();
     }
 
     @Override

@@ -200,7 +200,7 @@ public final class Params {
     public static final String OUTPUT_CPDAG = "outputCpdag";
     public static final String ZS_RISK_BOUND = "zSRiskBound";
     public static final String NUM_ROUNDS = "numRounds";
-    public static final String QUICKGRASP_DO_FINAL_GRAPH = "quickGraphDoFinalGrasp";
+    public static final String RCG_DO_FINAL_GRAPH = "quickGraphDoFinalGrasp";
     public static final String USE_TUCK = "useTuck";
 
     // All parameters that are found in HTML manual documentation

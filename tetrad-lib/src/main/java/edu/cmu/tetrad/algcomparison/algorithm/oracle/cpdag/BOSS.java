@@ -76,7 +76,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                     method = Boss.Method.BOSS2;
                     break;
                 case 3:
-                    method = Boss.Method.GRaSP;
+                    method = Boss.Method.GRASP;
                     break;
                 case 4:
                     method = Boss.Method.RCG;
@@ -85,7 +85,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                     method = Boss.Method.ESP;
                     break;
                 case 6:
-                    method = Boss.Method.GSP;
+                    method = Boss.Method.GASP;
                     break;
                 case 7:
                     method = Boss.Method.SP;
@@ -101,7 +101,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
                     break;
                 default:
                     throw new IllegalStateException("Pick a number from 1 to 8: " +
-                            "1 = BOSS1, 2 = BOSS2, 3 = GRaSP, 4 = RCG, 5 = ESP, 6 = GSP, 7 = SP, 8 = SES, 9 = SHG");
+                            "1 = BOSS1, 2 = BOSS2, 3 = GRASP, 4 = RCG, 5 = ESP, 6 = GASP, 7 = SP, 8 = SES, 9 = SHG");
             }
 
             System.out.println("Picked " + method);
