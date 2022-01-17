@@ -28,8 +28,8 @@ public class TeyssierScorer {
     private final Map<Integer, LinkedList<Node>> bookmarkedOrders = new HashMap<>();
     private final Map<Integer, LinkedList<Pair>> bookmarkedScores = new HashMap<>();
     private final Map<Integer, Map<Node, Integer>> bookmarkedOrderHashes = new HashMap<>();
-    private final Map<Integer, Float> bookmarkedRunningScores = new HashMap<>();
-    private Map<Node, Map<Set<Node>, Float>> cache = new HashMap<>();
+    private final Map<Integer, Double> bookmarkedRunningScores = new HashMap<>();
+    private Map<Node, Map<Set<Node>, Double>> cache = new HashMap<>();
     private Map<Node, Integer> orderHash;
     private ParentCalculation parentCalculation = ParentCalculation.GrowShrinkMb;
     private LinkedList<Node> order;
@@ -39,7 +39,7 @@ public class TeyssierScorer {
     private LinkedList<Set<Node>> prefixes;
     private ScoreType scoreType = ScoreType.SCORE;
     private boolean useScore = true;
-    private float runningScore = 0F;
+    private double runningScore = 0F;
 
     public TeyssierScorer(IndependenceTest test, Score score) {
         this.score = score;
@@ -70,7 +70,7 @@ public class TeyssierScorer {
         this.knowledge = knowledge;
     }
 
-    public float score(List<Node> order) {
+    public double score(List<Node> order) {
         runningScore = 0F;
         this.order = new LinkedList<>(order);
         this.scores = new LinkedList<>();
@@ -85,21 +85,18 @@ public class TeyssierScorer {
         return score();
     }
 
-//    public float score() {
-//        return runningScore;
-//    }
-
-    public float score() {
-        return sum();
+    public double score() {
+        return runningScore;
+//        return sum();
     }
 
-    private float sum() {
-        float score = 0;
+    private double sum() {
+        double score = 0;
 
         for (int i = 0; i < order.size(); i++) {
-            float score1 = scores.get(i).getScore();
+            double score1 = scores.get(i).getScore();
 
-//            score += (Float.isNaN(score1) || Float.isInfinite(score1)) ? 0F : score1;
+//            score += (Double.isNaN(score1) || Double.isInfinite(score1)) ? 0F : score1;
             score += score1;
         }
 
@@ -281,13 +278,13 @@ public class TeyssierScorer {
         Set<Node> parents = new HashSet<>();
         Set<Node> prefix = getPrefix(p);
 
-        float s1 = score(x, new HashSet<>(prefix));
+        double s1 = score(x, new HashSet<>(prefix));
 
         for (Node y : prefix) {
             List<Node> minus = new ArrayList<>(prefix);
             minus.remove(y);
 
-            float s2 = score(x, new HashSet<>(minus));
+            double s2 = score(x, new HashSet<>(minus));
 
             if (s2 > s1) {
                 parents.add(y);
@@ -435,10 +432,10 @@ public class TeyssierScorer {
         }
     }
 
-    private float score(Node n, Set<Node> pi) {
+    private double score(Node n, Set<Node> pi) {
         if (cachingScores) {
             cache.computeIfAbsent(n, w -> new HashMap<>());
-            Float score = cache.get(n).get(pi);
+            Double score = cache.get(n).get(pi);
 
             if (score != null) {
                 return score;
@@ -453,7 +450,9 @@ public class TeyssierScorer {
             parentIndices[k++] = variablesHash.get(p);
         }
 
-        float v = (float) Math.nextDown((float) this.score.localScore(variablesHash.get(n), parentIndices));
+        double precision = 1.0e10;
+
+        double v = Math.floor(1.e10 * this.score.localScore(variablesHash.get(n), parentIndices)) * 1.e-10;
 
         if (cachingScores) {
             cache.computeIfAbsent(n, w -> new HashMap<>());
@@ -483,8 +482,8 @@ public class TeyssierScorer {
     }
 
     private void updateRunningScore(Pair p1, Pair p2) {
-        float s1 = p1 == null ? 0F : p1.getScore();
-        float s2 = p2 == null ? 0F : p2.getScore();
+        double s1 = p1 == null ? 0F : p1.getScore();
+        double s2 = p2 == null ? 0F : p2.getScore();
         runningScore -= s1;
         runningScore += s2;
     }
@@ -516,7 +515,7 @@ public class TeyssierScorer {
         Set<Node> parents = new HashSet<>();
         boolean changed = true;
 
-        float sMax = score(n, new HashSet<>());
+        double sMax = score(n, new HashSet<>());
         List<Node> prefix = new ArrayList<>(getPrefix(p));
 
         // Grow-shrink
@@ -532,7 +531,7 @@ public class TeyssierScorer {
                 if (knowledge.isForbidden(z0.getName(), n.getName())) continue;
                 parents.add(z0);
 
-                float s2 = score(n, parents);
+                double s2 = score(n, parents);
 
                 if (s2 >= sMax) {
                     sMax = s2;
@@ -559,7 +558,7 @@ public class TeyssierScorer {
             for (Node z0 : new HashSet<>(parents)) {
                 parents.remove(z0);
 
-                float s2 = score(n, parents);
+                double s2 = score(n, parents);
 
                 if (s2 >= sMax) {
                     sMax = s2;
@@ -578,7 +577,7 @@ public class TeyssierScorer {
         if (scoreType == ScoreType.Edge) {
             return new Pair(parents, -parents.size());
         } else if (scoreType == ScoreType.SCORE) {
-            return new Pair(parents, Float.isNaN(sMax) ? Float.POSITIVE_INFINITY : sMax);
+            return new Pair(parents, Double.isNaN(sMax) ? Double.POSITIVE_INFINITY : sMax);
         } else {
             throw new IllegalStateException("Unexpected score type: " + scoreType);
         }
@@ -650,9 +649,9 @@ public class TeyssierScorer {
 
     private static class Pair {
         private final Set<Node> parents;
-        private final float score;
+        private final double score;
 
-        private Pair(Set<Node> parents, float score) {
+        private Pair(Set<Node> parents, double score) {
             this.parents = parents;
             this.score = score;
         }
@@ -661,7 +660,7 @@ public class TeyssierScorer {
             return parents;
         }
 
-        public float getScore() {
+        public double getScore() {
             return score;
         }
 

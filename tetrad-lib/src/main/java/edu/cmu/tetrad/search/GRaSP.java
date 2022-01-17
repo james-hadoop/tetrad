@@ -33,7 +33,7 @@ public class GRaSP {
     private int depth = 4;
     private TeyssierScorer.ParentCalculation parentCalculation = TeyssierScorer.ParentCalculation.Pearl;
     private TeyssierScorer scorer;
-    private boolean useTuck = true;
+    private boolean useTuck = false;
 
     public GRaSP(@NotNull Score score) {
         this.score = score;
@@ -54,7 +54,7 @@ public class GRaSP {
         scorer.setCachingScores(cachingScores);
 
         List<Node> bestPerm = new ArrayList<>(order);
-        float best = NEGATIVE_INFINITY;
+        double best = NEGATIVE_INFINITY;
 
         for (int r = 0; r < (useDataOrder ? 1 : numStarts); r++) {
             if (!useDataOrder) {
@@ -115,8 +115,8 @@ public class GRaSP {
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
 
-        float sNew = scorer.score();
-        float sOld;
+        double sNew = scorer.score();
+        double sOld;
 
         List<int[]> ops = new ArrayList<>();
         for (int i = 0; i < scorer.size(); i++) {
@@ -142,9 +142,7 @@ public class GRaSP {
         return scorer.getOrder();
     }
 
-    private static final float machineEpsilon = 0;
-
-    private void sesDfs(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth,
+    private void sesDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
                         List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory) {
         for (int[] op : ops) {
             Node x = scorer.get(op[0]);
@@ -174,7 +172,7 @@ public class GRaSP {
             if (violatesKnowledge(scorer.getOrder())) {
                 scorer.goToBookmark(currentDepth);
             } else {
-                float sNew = scorer.score();
+                double sNew = scorer.score();
 
                 if (sNew == sOld && currentDepth < depth) {
                     sesDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
@@ -259,6 +257,6 @@ public class GRaSP {
     }
 
     public void setUseTuck(boolean useTuck) {
-        this.useTuck = useTuck;
+//        this.useTuck = useTuck;
     }
 }

@@ -1586,7 +1586,7 @@ public final class TestBoss {
 
         boolean verbose = false;
         int numRounds = 50;
-        int depth = 50;
+        int depth = 3;
         int maxPermSize = 6;
 
         boolean printCpdag = false;
@@ -1612,7 +1612,10 @@ public final class TestBoss {
 //                SP,
 
 //                GRaSP,
-                RCG,
+                GSP,
+                GRaSP,
+                SES,
+//                RCG,
 //                SES,
 //                ShuffledGRaSP
         }) {
