@@ -179,7 +179,7 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.GSP_DEPTH);
         params.add(Params.BOSS_METHOD);
         params.add(Params.NUM_ROUNDS);
-//        params.add(Params.USE_TUCK);
+        params.add(Params.USE_TUCK);
         params.add(Params.VERBOSE);
         return params;
     }

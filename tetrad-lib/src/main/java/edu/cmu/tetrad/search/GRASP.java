@@ -68,7 +68,7 @@ public class GRASP {
             scorer.score(order);
 
             List<Node> perm;
-            perm = grasp(scorer);
+            perm = ses(scorer);
             scorer.score(perm);
 
             if (scorer.score() > best) {
@@ -111,7 +111,7 @@ public class GRASP {
         }
     }
 
-    public List<Node> grasp(@NotNull TeyssierScorer scorer) {
+    public List<Node> ses(@NotNull TeyssierScorer scorer) {
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
 
@@ -121,7 +121,9 @@ public class GRASP {
         List<int[]> ops = new ArrayList<>();
         for (int i = 0; i < scorer.size(); i++) {
             for (int j = (useTuck ? i + 1 : 0); j < scorer.size(); j++) {
-                ops.add(new int[]{i, j});
+                if (i != j) {
+                    ops.add(new int[]{i, j});
+                }
             }
         }
 
@@ -135,7 +137,7 @@ public class GRASP {
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
-                    + " (GRASP)"
+                    + " (GRaSP)"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
@@ -150,21 +152,20 @@ public class GRASP {
 
             if (!scorer.adjacent(x, y)) continue;
 
+            if (currentDepth > 1 && !scorer.coveredEdge(x, y)) continue;
+
             Set<Set<Node>> current = new HashSet<>(branchHistory);
             Set<Node> adj = new HashSet<>();
             adj.add(x);
             adj.add(y);
+
             if (current.contains(adj)) continue;
             current.add(adj);
 
-            if (op[0] < op[1]) {
+            if (op[0] < op[1] && scorer.coveredEdge(x, y)) {
                 if (dfsHistory.contains(current)) continue;
                 dfsHistory.add(current);
             }
-
-//            if (dfsHistory.size() % 100 == 0 && dfsHistory.size() > 0) {
-//                System.out.println(dfsHistory.size());
-//            }
 
             scorer.bookmark(currentDepth);
             scorer.moveTo(y, op[0]);
@@ -174,7 +175,9 @@ public class GRASP {
             } else {
                 double sNew = scorer.score();
 
-                if (sNew == sOld && currentDepth < depth) {
+                if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) {
+//                if (sNew == sOld && currentDepth < depth && op[0] < op[1]) {
+//                if (sNew == sOld && currentDepth < depth) {
                     sesDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
                     sNew = scorer.score();
                 }
@@ -183,9 +186,8 @@ public class GRASP {
                     scorer.goToBookmark(currentDepth);
                 } else {
                     if (verbose) {
-                        System.out.printf("Mutation Performed: %s | Edges: %d | Score: %f\n", adj, scorer.getNumEdges(), sNew);
+                        System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
                     }
-
                     break;
                 }
             }

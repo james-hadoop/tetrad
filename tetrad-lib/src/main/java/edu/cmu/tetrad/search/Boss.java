@@ -338,7 +338,7 @@ public class Boss {
 
             if (!scorer.adjacent(x, y)) continue;
 
-            if (currentDepth > 1 && !scorer.coveredEdge(x, y)) continue;
+//            if (currentDepth > 1 && !scorer.coveredEdge(x, y)) continue;
 
             Set<Set<Node>> current = new HashSet<>(branchHistory);
             Set<Node> adj = new HashSet<>();
@@ -361,9 +361,9 @@ public class Boss {
             } else {
                 double sNew = scorer.score();
 
-                if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) {
+//                if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) {
 //                if (sNew == sOld && currentDepth < depth && op[0] < op[1]) {
-//                if (sNew == sOld && currentDepth < depth) {
+                if (sNew == sOld && currentDepth < depth) {
                     sesDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
                     sNew = scorer.score();
                 }
