@@ -134,7 +134,7 @@ public final class TestBoss {
     @Test
     public void testBoss() {
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 20);
+        params.set(Params.NUM_MEASURES, 200);
         params.set(Params.AVG_DEGREE, 10);
         params.set(Params.SAMPLE_SIZE, 1000);
         params.set(Params.NUM_RUNS, 1);
@@ -148,12 +148,15 @@ public final class TestBoss {
 
         params.set(Params.ZS_RISK_BOUND, 0.001); //, 0.01, 0.1);
 
-        params.set(Params.EBIC_GAMMA, 0.1);
+        params.set(Params.EBIC_GAMMA, 0.8);
 
-        params.set(Params.GSP_DEPTH, 50);
+        params.set(Params.GSP_DEPTH, 2);
         params.set(Params.BOSS_METHOD, 4);
         params.set(Params.NUM_ROUNDS, 50);
         params.set(Params.USE_SCORE, true);
+
+        params.set(Params.BOSS_SCORE_TYPE, false);
+
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.EbicScore(), new FisherZ()));

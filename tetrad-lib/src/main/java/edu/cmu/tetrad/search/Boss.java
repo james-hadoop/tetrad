@@ -331,14 +331,21 @@ public class Boss {
     }
 
     private void sesDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
-                        List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory) {
+                        List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory){
+        sOld = sesDfsVisit(scorer, sOld, depth, currentDepth, ops, branchHistory, dfsHistory, true);
+        sesDfsVisit(scorer, sOld, depth, currentDepth, ops, branchHistory, dfsHistory, false);
+    }
+
+    private double sesDfsVisit(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth, List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory, boolean doCovered) {
         for (int[] op : ops) {
             Node x = scorer.get(op[0]);
             Node y = scorer.get(op[1]);
 
             if (!scorer.adjacent(x, y)) continue;
 
-//            if (currentDepth > 1 && !scorer.coveredEdge(x, y)) continue;
+//            if (currentDepth > 1 && !scorer.coveredEdge(x, y)) continue; // Uncomment to only tuck on covered edges within DFS
+            if (doCovered && !scorer.coveredEdge(x, y)) continue; // Uncomment to only tuck covered edges
+            else if (!doCovered && scorer.coveredEdge(x, y)) continue; // Uncomment to only tuck covered edges
 
             Set<Set<Node>> current = new HashSet<>(branchHistory);
             Set<Node> adj = new HashSet<>();
@@ -361,12 +368,13 @@ public class Boss {
             } else {
                 double sNew = scorer.score();
 
-//                if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) {
-//                if (sNew == sOld && currentDepth < depth && op[0] < op[1]) {
-                if (sNew == sOld && currentDepth < depth) {
+//                if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) { // Uncomment to only DFS on covered edges
+//                if (sNew == sOld && currentDepth < depth && op[0] < op[1]) { // Uncomment to only DFS on forward tucks
+                if (sNew == sOld && currentDepth < depth) { // Uncomment to DFS on anything
                     sesDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
                     sNew = scorer.score();
                 }
+
 
                 if (sNew <= sOld) {
                     scorer.goToBookmark(currentDepth);
@@ -374,10 +382,21 @@ public class Boss {
                     if (verbose) {
                         System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
                     }
-                    break;
+//                    break; // Uncomment this to break after first improvement
+                    sOld = sNew; // Uncomment this to run rounds to completion
+                    dfsHistory.clear(); // Uncomment this to run rounds to completion
+                    current.clear(); // Uncomment this to run rounds to completion
                 }
+//
+//                if (sNew <= sOld) {
+//                    scorer.goToBookmark(currentDepth);
+//                } else {
+//                    System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
+//                    break; // Comment this out to run rounds to completion
+//                }
             }
         }
+        return sOld;
     }
 
     // "Random Carnival Game"
@@ -497,8 +516,10 @@ public class Boss {
 
         int maxRounds = numRounds < 0 ? Integer.MAX_VALUE : numRounds;
         int unimproved = 0;
-
+//
         for (int r = 1; r <= maxRounds; r++) {
+//            scorer.resetCacheIfTooBig(100000);
+
             if (verbose) {
                 System.out.println("### Round " + (r));
             }
@@ -520,6 +541,7 @@ public class Boss {
             int numPairs = pairs.size();
 
             for (OrderedPair<Node> pair : pairs) {
+                scorer.resetCacheIfTooBig(100000);
                 visited++;
 
                 Node x = pair.getFirst();
@@ -565,8 +587,10 @@ public class Boss {
                 }
             }
 
+//            scorer.resetCacheIfTooBig(100000);
 
             for (OrderedPair<Node> pair : pairs) {
+                scorer.resetCacheIfTooBig(100000);
                 visited++;
 
                 Node x = pair.getFirst();
