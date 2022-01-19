@@ -20,7 +20,7 @@ import static java.util.Collections.shuffle;
  *
  * @author josephramsey
  */
-public class GRASP {
+public class GRASPOld {
     private final List<Node> variables;
     private final Score score;
     private long start;
@@ -35,7 +35,7 @@ public class GRASP {
     private TeyssierScorer scorer;
     private boolean useTuck = false;
 
-    public GRASP(@NotNull Score score) {
+    public GRASPOld(@NotNull Score score) {
         this.score = score;
         this.variables = new ArrayList<>(score.getVariables());
     }

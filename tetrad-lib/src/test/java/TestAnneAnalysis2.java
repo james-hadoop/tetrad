@@ -1,4 +1,5 @@
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GRASP;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.OTHER_PERM_ALGS;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.EbicScore;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -9,6 +10,7 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.search.Grasp;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.sem.LinearSemPm;
@@ -66,17 +68,16 @@ public class TestAnneAnalysis2 {
 
                             {
                                 {
-                                    BOSS boss = new BOSS(new EbicScore(), new FisherZ());
+                                    GRASP boss = new GRASP(new EbicScore(), new FisherZ());
                                     Parameters parameters = new Parameters();
                                     parameters.set(Params.ALPHA, 0.001);
                                     parameters.set(Params.PENALTY_DISCOUNT, pd);
                                     parameters.set(Params.ZS_RISK_BOUND, 1);
                                     parameters.set(Params.VERBOSE, false);
                                     parameters.set(Params.BOSS_SCORE_TYPE, false);
-                                    parameters.set(Params.BOSS_METHOD, 1);
                                     parameters.set(Params.BREAK_TIES, true);
                                     parameters.set(Params.OUTPUT_CPDAG, true);
-                                    parameters.set(Params.USE_SCORE, true);
+                                    parameters.set(Params.GRASP_USE_SCORE, true);
                                     estCpdag = boss.search(cov, parameters, dag);
                                 }
 
@@ -159,10 +160,7 @@ public class TestAnneAnalysis2 {
 
         LinearSemIm im = new LinearSemIm(pm, parameters);
         DataSet dataSet = im.simulateData(n, false);
-//        dataSet = DataUtils.shuffleColumns(dataSet);
-        ICovarianceMatrix covarianceMatrix = new CovarianceMatrix(dataSet);
-//        covarianceMatrix = DataUtils.shuffleColumnsCov(covarianceMatrix);
-        return covarianceMatrix;
+        return new CovarianceMatrix(dataSet);
     }
 
     private Graph getTrueG2(List<Node> vars, double from, double to) {

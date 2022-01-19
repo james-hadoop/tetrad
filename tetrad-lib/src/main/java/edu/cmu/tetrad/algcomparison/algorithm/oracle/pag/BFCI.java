@@ -12,7 +12,7 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Bfci;
-import edu.cmu.tetrad.search.Boss;
+import edu.cmu.tetrad.search.OtherPermAlgs;
 import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -57,54 +57,14 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             search.setKnowledge(dataSet.getKnowledge());
             search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
             search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
-            search.setTriangleDepth(parameters.getInt(Params.MAX_PERM_SIZE));
 
-            Boss.Method method;
-
-            switch (parameters.getInt(Params.BOSS_METHOD)) {
-                case 1:
-                    method = Boss.Method.BOSS1;
-                    break;
-                case 2:
-                    method = Boss.Method.BOSS2;
-                    break;
-                case 3:
-                    method = Boss.Method.GRASP;
-                    break;
-                case 4:
-                    method = Boss.Method.RCG;
-                    break;
-                case 5:
-                    method = Boss.Method.ESP;
-                    break;
-                case 6:
-                    method = Boss.Method.GASP;
-                    break;
-                case 7:
-                    method = Boss.Method.SP;
-                    break;
-                case 8:
-                    method = Boss.Method.SES;
-                    break;
-                case 9:
-                    method = Boss.Method.SHG;
-                    break;
-                default:
-                    throw new IllegalStateException("Pick a number from 1 to 8: " +
-                            "1 = BOSS1, 2 = BOSS2, 3 = GRASP, 4 = RCG, 5 = ESP, 6 = GASP, 7 = SP, 8 = SES, 9 = SHG");
-            }
-
-            System.out.println("Picked " + method);
-
-            search.setMethod(method);
-            search.setUseScore(parameters.getBoolean(Params.USE_SCORE));
+            search.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
 
             search.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setKnowledge(dataSet.getKnowledge());
-            search.setGspDepth(parameters.getInt(Params.GSP_DEPTH));
-            search.setMaxPermSize(parameters.getInt(Params.MAX_PERM_SIZE));
+            search.setGspDepth(parameters.getInt(Params.GRASP_DEPTH));
             search.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
             search.setQuickGraphDoFinalGrasp(parameters.getBoolean(Params.RCG_DO_FINAL_GRAPH));
 
@@ -115,7 +75,6 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             }
 
             search.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
-            search.setTriangleDepth(parameters.getInt(Params.MAX_PERM_SIZE));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
 
@@ -179,11 +138,9 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_SCORE_TYPE);
-        params.add(Params.USE_SCORE);
+        params.add(Params.GRASP_USE_SCORE);
         params.add(Params.OUTPUT_CPDAG);
-        params.add(Params.MAX_PERM_SIZE);
-        params.add(Params.GSP_DEPTH);
-        params.add(Params.BOSS_METHOD);
+        params.add(Params.GRASP_DEPTH);
         params.add(Params.NUM_ROUNDS);
         params.add(Params.RCG_DO_FINAL_GRAPH);
         params.add(Params.VERBOSE);

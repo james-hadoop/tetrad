@@ -59,8 +59,6 @@ public final class Params {
     public static final String CUTOFF_IND_TEST = "cutoffIndTest";
     public static final String DATA_TYPE = "dataType";
     public static final String DEPTH = "depth";
-    public static final String GSP_DEPTH = "gspDepth";
-    public static final String MAX_PERM_SIZE = "maxPermSize";
     public static final String DETERMINISM_THRESHOLD = "determinismThreshold";
     public static final String DIFFERENT_GRAPHS = "differentGraphs";
     public static final String DISCRETIZE = "discretize";
@@ -193,15 +191,23 @@ public final class Params {
     public static final String SEM_BIC_STRUCTURE_PRIOR = "semBicStructurePrior";
     public static final String NUM_STARTS = "numStarts";
     public static final String CACHE_SCORES = "cacheScores";
-    public static final String BOSS_METHOD = "bossMethod";
+    public static final String OTHER_PERM_METHOD = "otherPermMethod";
     public static final String BOSS_SCORE_TYPE = "bossScoreType";
     public static final String BREAK_TIES = "breakTies";
-    public static final String USE_SCORE = "useScore";
     public static final String OUTPUT_CPDAG = "outputCpdag";
     public static final String ZS_RISK_BOUND = "zSRiskBound";
     public static final String NUM_ROUNDS = "numRounds";
     public static final String RCG_DO_FINAL_GRAPH = "quickGraphDoFinalGrasp";
-    public static final String USE_TUCK = "useTuck";
+
+    // GRASP parameters and flags.
+    public static final String GRASP_CHECK_COVERING = "graspCheckCovering";
+    public static final String GRASP_USE_TUCK = "graspUseTuck";
+    public static final String GRASP_BREAK_AFTER_IMPROVEMENT = "graspBreakAFterImprovement";
+    public static final String GRASP_ORDERED_ALG = "graspOrderedAlg";
+    public static final String GRASP_USE_SCORE = "graspUseScore";
+    public static final String GRASP_USE_PEARL = "graspUsePearl";
+    public static final String GRASP_USE_DATA_ORDER = "graspUseDataOrder";
+    public static final String GRASP_DEPTH = "graspDepth";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(

@@ -3635,18 +3635,6 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="depth_value_type">Integer</span></li>
         </ul>
 
-        <h3 id="gspDepth" class="parameter_description">gspDepth</h3>
-        <ul class="parameter_description_list">
-            <li>Short Description: <span id="gspDepth_short_desc">GASP Depth (default = 4, depth >= 0) [BOSS2, ESP, GASP, GRASP, RCG]</span>
-            </li>
-            <li>Long Description: <span id="gspDepth_long_desc">Depth (default = 4, depth >= 0).</span>
-            </li>
-            <li>Default Value: <span id="gspDepth_default_value">4</span></li>
-            <li>Lower Bound: <span id="gspDepth_lower_bound">0</span></li>
-            <li>Upper Bound: <span id="gspDepth_upper_bound">2147483647</span></li>
-            <li>Value Type: <span id="gspDepth_value_type">Integer</span></li>
-        </ul>
-
         <h3 id="maxPermSize" class="parameter_description">maxPermSize</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="maxPermSize_short_desc">Maximum permutation size (>= -1 = unlimited) [BOSS1, BOSS2]</span>
@@ -4711,24 +4699,22 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="numStarts_value_type">Integer</span></li>
         </ul>
 
-        <h3 id="bossMethod" class="parameter_description">bossMethod</h3>
+        <h3 id="otherPermMethod" class="parameter_description">otherPermMethod</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="bossMethod_short_desc">
-                1 = BOSS1, 2 = BOSS2, 3 = GRASP, 4 = RCG, 5 = ESP, 6 = GASP, 7 = SP, 8 = SES, 9 = SHG</span>
+            <li>Short Description: <span id="otherPermMethod_short_desc">
+                1 = RCG, 2 = GSP, 3 = ESP, 4 = SP</span>
             </li>
-            <li>Long Description: <span id="bossMethod_long_desc">
-                 BOSS (Best Order Score Search); version 1 is betterMutation followed by
-                 betterTriMutation; version 2 is GRASP followed by betterTrimutation.
-                 GRASP ("Greedy Relaxed SP") relaxes the covered edge check in GASP.
-                 RCG ("Random Carnival Game") adds a random element to GRASP.
+            <li>Long Description: <span id="otherPermMethod_long_desc">
+                 RCG (Random Carnival Game);
+                 GSP ("Greedy SP") GSP using tucking
                  ESP ("Edge SP") is from Solus et al.
-                 TSP ("Triangle SP") is from Solus et al.; we implement this a permutation
+                 SP ("Sparsest Permutation") Raskutti and Uhler
             </span>
             </li>
-            <li>Default Value: <span id="bossMethod_default_value">2</span></li>
-            <li>Lower Bound: <span id="bossMethod_lower_bound">1</span></li>
-            <li>Upper Bound: <span id="bossMethod_upper_bound">10</span></li>
-            <li>Value Type: <span id="bossMethod_value_type">Integer</span></li>
+            <li>Default Value: <span id="otherPermMethod_default_value">1</span></li>
+            <li>Lower Bound: <span id="otherPermMethod_lower_bound">1</span></li>
+            <li>Upper Bound: <span id="otherPermMethod_upper_bound">5</span></li>
+            <li>Value Type: <span id="otherPermMethod_value_type">Integer</span></li>
         </ul>
 
         <h3 id="bossScoreType" class="parameter_description">bossScoreType</h3>
@@ -4749,23 +4735,156 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="bossScoreType_value_type">Boolean</span></li>
         </ul>
 
-        <h3 id="useTuck" class="parameter_description">useTuck</h3>
+<!--        public static final String GRASP_CHECK_COVERING = "graspCheckCovering";-->
+<!--        public static final String GRASP_USE_TUCK = "graspUseTuck";-->
+<!--        public static final String GRASP_RCG_CONFIG = "graspRcgConfig";-->
+<!--        public static final String GRASP_ORDERED_ALG = "graspOrderedAlg";-->
+<!--        public static final String GRASP_USE_SCORE = "graspUseScore";-->
+<!--        public static final String GRASP_USE_PEARL = "graspUsePearl";-->
+<!--        public static final String GRASP_USE_DATA_ORDER = "graspUseDataOrder";-->
+<!--        public static final String GRASP_DEPTH = "graspDepth";-->
+
+
+        <h3 id="graspCheckCovering" class="parameter_description">graspCheckCovering</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="useTuck_short_desc">
-                Yes if tucks should be used in the SES procedure, no if the "moveTo" operation should be used.</span>
-            </li>
-            <li>Long Description: <span id="useTuck_long_desc">
-                For tucks, we all for X->Y for Y to be moved to the position of X if adjacent.
-                For 'moveTo', we also allos for X to to be moved to the position of X if covered.
+            <li>Short Description: <span id="graspCheckCovering_short_desc">
+                Yes if covering of edges should be checked (GASP), no if not (GRASP)
             </span>
             </li>
-            <li>Default Value: <span id="useTuck_default_value">true</span></li>
-            <li>Lower Bound: <span id="useTuck_lower_bound"></span></li>
-            <li>Upper Bound: <span id="useTuck_upper_bound"></span></li>
-            <li>Value Type: <span id="useTuck_value_type">Boolean</span></li>
+            <li>Long Description: <span id="graspCheckCovering_long_desc">
+				An edge X is covered if Parents(X) = Parents(Y) \ {X}. Not checking
+				covering expands the search space.
+            </span>
+            </li>
+            <li>Default Value: <span id="graspCheckCovering_default_value">false</span></li>
+            <li>Lower Bound: <span id="graspCheckCovering_lower_bound"></span></li>
+            <li>Upper Bound: <span id="graspCheckCovering_upper_bound"></span></li>
+            <li>Value Type: <span id="graspCheckCovering_value_type">Boolean</span></li>
         </ul>
 
-        <h3 id="breakTies" class="parameter_description">breakTies</h3>
+        <h3 id="graspUseTuck" class="parameter_description">graspUseTuck</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="graspUseTuck_short_desc">
+                Yes if only forward tucks should be checked, no if also reverse tucks
+                should be checked.</span>
+            </li>
+            <li>Long Description: <span id="graspUseTuck_long_desc">
+				A forward tuck for X->Y moves Y to the before position of X in the permutation.
+				A reverse tuck moves Y to after the position of X in the permutation.
+				Including reverse tucks expands the search space.
+            </span>
+            </li>
+            <li>Default Value: <span id="graspUseTuck_default_value">false</span></li>
+            <li>Lower Bound: <span id="graspUseTuck_lower_bound"></span></li>
+            <li>Upper Bound: <span id="graspUseTuck_upper_bound"></span></li>
+            <li>Value Type: <span id="graspUseTuck_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="graspBreakAFterImprovement" class="parameter_description">graspBreakAFterImprovement</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="graspBreakAFterImprovement_short_desc">
+                Yes the depth first search (returning after improvment), No for depth first traversal.
+            </span>
+            </li>
+            <li>Long Description: <span id="graspBreakAFterImprovement_long_desc">
+				Exploring the full list in every DFS call is equivalent to what we've been
+				calling the Random Carnival Game procedure (RCG).
+            </span>
+            </li>
+            <li>Default Value: <span id="graspBreakAFterImprovement_default_value">true</span></li>
+            <li>Lower Bound: <span id="graspBreakAFterImprovement_lower_bound"></span></li>
+            <li>Upper Bound: <span id="graspBreakAFterImprovement_upper_bound"></span></li>
+            <li>Value Type: <span id="graspBreakAFterImprovement_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="graspOrderedAlg" class="parameter_description">graspOrderedAlg</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="graspOrderedAlg_short_desc">
+                Yes if all covered edges should be explored before uncovered edges at each depth
+            </span>
+            </li>
+            <li>Long Description: <span id="graspOrderedAlg_long_desc">
+				Exploring all covered edges first ensures that when exploring the
+				uncovered edges a graph with few edges will be obtained.
+                Note this option forces a depth first search with the breaking option.
+            </span>
+            </li>
+            <li>Default Value: <span id="graspOrderedAlg_default_value">true</span></li>
+            <li>Lower Bound: <span id="graspOrderedAlg_lower_bound"></span></li>
+            <li>Upper Bound: <span id="graspOrderedAlg_upper_bound"></span></li>
+            <li>Value Type: <span id="graspOrderedAlg_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="graspUseScore" class="parameter_description">graspUseScore</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="graspUseScore_short_desc">
+                Yes if the score should be used for MB calculations, no if the test
+                should be used instead.
+            </span>
+            </li>
+            <li>Long Description: <span id="graspUseScore_long_desc">
+				In either case, compositional graphoid axioms are assumed by the
+				Grow-Shrink algorithm.
+            </span>
+            </li>
+            <li>Default Value: <span id="graspUseScore_default_value">true</span></li>
+            <li>Lower Bound: <span id="graspUseScore_lower_bound"></span></li>
+            <li>Upper Bound: <span id="graspUseScore_upper_bound"></span></li>
+            <li>Value Type: <span id="graspUseScore_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="graspUsePearl" class="parameter_description">graspUsePearl</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="graspUsePearl_short_desc">
+                Yes Pearl's DAG-building method should be used, No if Grow-Shrink MB should be used.</span>
+            </li>
+            <li>Long Description: <span id="graspUsePearl_long_desc">
+				Pearl's method adds and edge X->Y if Y ~_||_ X | Prefix(Y, pi) \ {X}. Grow-Shink
+				adds an edge X->Y if X is in the Markov blanket of Y where the variable
+				set is restricted to Prefix(Y, pi).
+            </span>
+            </li>
+            <li>Default Value: <span id="graspUsePearl_default_value">false</span></li>
+            <li>Lower Bound: <span id="graspUsePearl_lower_bound"></span></li>
+            <li>Upper Bound: <span id="graspUsePearl_upper_bound"></span></li>
+            <li>Value Type: <span id="graspUsePearl_value_type">Boolean</span></li>
+        </ul>
+
+        <h3 id="graspUseDataOrder" class="parameter_description">graspUseDataOrder</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="graspUseDataOrder_short_desc">
+                Yes just in case the supplied variable order should be used for the first initial
+                permutation.
+            </span>
+            </li>
+            <li>Long Description: <span id="graspUseDataOrder_long_desc">
+				In either case, if multiple starting points are used, taking the best
+				scoring model from among these, subsequent starting points will all be
+				random shuffles.
+            </span>
+            </li>
+            <li>Default Value: <span id="graspUseDataOrder_default_value">false</span></li>
+            <li>Lower Bound: <span id="graspUseDataOrder_lower_bound"></span></li>
+            <li>Upper Bound: <span id="graspUseDataOrder_upper_bound"></span></li>
+            <li>Value Type: <span id="graspUseDataOrder_value_type">Boolean</span></li>
+        </ul>
+
+
+        <h3 id="graspDepth" class="parameter_description">graspDepth</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="graspDepth_short_desc">GRASP Depth (default = 4,
+            depth >= 0)</span>
+            </li>
+            <li>Long Description: <span id="graspDepth_long_desc">
+            	This is the depth of recursion for the depth first search.
+            </span>
+            </li>
+            <li>Default Value: <span id="graspDepth_default_value">4</span></li>
+            <li>Lower Bound: <span id="graspDepth_lower_bound">0</span></li>
+            <li>Upper Bound: <span id="graspDepth_upper_bound">2147483647</span></li>
+            <li>Value Type: <span id="graspDepth_value_type">Integer</span></li>
+        </ul>
+
         <ul class="parameter_description_list">
             <li>Short Description: <span id="breakTies_short_desc">Yes if the algorithm should try moving variables pairwise</span>
             </li>
@@ -5531,7 +5650,7 @@ The “Max P” method for orienting an unshielded triple X—Y—Z records p-va
         <h3 id="outputCpdag" class="parameter_description">outputCpdag</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span
-                    id="outputCpdag_short_desc">Yes CPDAG should be ouput, no if a DAG.</span>
+                    id="outputCpdag_short_desc">Yes if CPDAG should be ouput, no if a DAG.</span>
             </li>
             <li>Long Description: <span id="outputCpdag_long_desc">BOSS can output a DAG or the CPDAG of the DAG.</span>
             </li>

@@ -23,7 +23,7 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.OTHER_PERM_ALGS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcAll;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
@@ -59,7 +59,7 @@ public final class TestGsp {
         params.set(Params.COEF_HIGH, 1.0);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new OTHER_PERM_ALGS(new LinearGaussianBicScore(), new FisherZ()));
 //        algorithms.add(new Fges(new LinearGaussianBicScore()));
 
         Simulations simulations = new Simulations();
@@ -103,7 +103,7 @@ public final class TestGsp {
         params.set(Params.VERBOSE, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new OTHER_PERM_ALGS(new LinearGaussianBicScore(), new FisherZ()));
 //        algorithms.add(new GASP(new LinearGaussianBicScore()));
         algorithms.add(new Fges(new LinearGaussianBicScore()));
         algorithms.add(new PcAll(new FisherZ()));

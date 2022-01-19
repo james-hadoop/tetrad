@@ -1,6 +1,7 @@
 package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.algorithm.mixed.Mgm;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.OTHER_PERM_ALGS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
@@ -30,6 +31,8 @@ public class TestIrvine {
 
         File[] files = dir.listFiles();
 
+        assert files != null;
+
         for (File dataDir : files) {
 
 
@@ -38,7 +41,6 @@ public class TestIrvine {
             if (dataDir.getName().startsWith(".")) continue;
 
             if (!dataDir.getName().contains("auto-mpg")) continue;
-            ;
 
             File dataDir2 = new File(dataDir, "tetrad.formatted.data");
 
@@ -139,7 +141,7 @@ public class TestIrvine {
                         } else if (algorithm == Algorithm.FGES) {
                             search = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(score);
                         } else if (algorithm == Algorithm.BOSS) {
-                            search = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(score, test);
+                            search = new OTHER_PERM_ALGS(score, test);
                         } else if (algorithm == Algorithm.FCI) {
                             search = new Fci(test);
                         } else if (algorithm == Algorithm.FCIMAX) {
@@ -178,6 +180,8 @@ public class TestIrvine {
         File dir = new File("/Users/josephramsey/Downloads/GitHub/tetrad-example-analyses");
 
         File[] files = dir.listFiles();
+
+        assert files != null;
 
         for (File dataDir : files) {
             if (dataDir.getName().startsWith("README")) continue;

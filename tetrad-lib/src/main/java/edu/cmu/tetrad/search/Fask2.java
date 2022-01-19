@@ -215,16 +215,16 @@ public final class Fask2 implements GraphSearch {
         TetradLogger.getInstance().forceLogMessage("2-cycle threshold = " + twoCycleScreeningCutoff);
         TetradLogger.getInstance().forceLogMessage("");
 
-        Boss boss = new Boss(score);
-        boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
-        boss.setMethod(Boss.Method.RCG);
-        boss.setNumRounds(numRounds);
-        boss.setDepth(depth);
-        boss.setKnowledge(knowledge);
-        boss.setVerbose(verbose);
+        OtherPermAlgs otherPermAlgs = new OtherPermAlgs(score);
+        otherPermAlgs.setScoreType(TeyssierScorer.ScoreType.SCORE);
+        otherPermAlgs.setMethod(OtherPermAlgs.Method.RCG);
+        otherPermAlgs.setNumRounds(numRounds);
+        otherPermAlgs.setDepth(depth);
+        otherPermAlgs.setKnowledge(knowledge);
+        otherPermAlgs.setVerbose(verbose);
 
-        boss.bestOrder(dataSet.getVariables());
-        Graph G = boss.getGraph(false);
+        otherPermAlgs.bestOrder(dataSet.getVariables());
+        Graph G = otherPermAlgs.getGraph(false);
         G = GraphUtils.replaceNodes(G, dataSet.getVariables());
 
         TetradLogger.getInstance().forceLogMessage("");

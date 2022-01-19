@@ -9,7 +9,7 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.GRASP;
+import edu.cmu.tetrad.search.GRASPOld;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
@@ -26,20 +26,20 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GRASP",
-        command = "grasp",
+        name = "GRASPOld",
+        command = "graspold",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class Grasp implements Algorithm, UsesScoreWrapper {
+public class GraspOld implements Algorithm, UsesScoreWrapper {
     static final long serialVersionUID = 23L;
     private ScoreWrapper score = null;
 
-    public Grasp() {
+    public GraspOld() {
         // Used in reflection; do not delete.
     }
 
-    public Grasp(ScoreWrapper score) {
+    public GraspOld(ScoreWrapper score) {
         this.score = score;
     }
 
@@ -49,15 +49,15 @@ public class Grasp implements Algorithm, UsesScoreWrapper {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
             Score score = this.score.getScore(dataSet, parameters);
 
-            GRASP grasp = new GRASP(score);
+            GRASPOld grasp = new GRASPOld(score);
 
             grasp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             grasp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             grasp.setVerbose(parameters.getBoolean(Params.VERBOSE));
             grasp.setKnowledge(dataSet.getKnowledge());
             grasp.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
-            grasp.setDepth(parameters.getInt(Params.GSP_DEPTH));
-            grasp.setUseTuck(parameters.getBoolean(Params.USE_TUCK));
+            grasp.setDepth(parameters.getInt(Params.GRASP_DEPTH));
+            grasp.setUseTuck(parameters.getBoolean(Params.GRASP_USE_TUCK));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 grasp.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -68,7 +68,7 @@ public class Grasp implements Algorithm, UsesScoreWrapper {
             grasp.bestOrder(score.getVariables());
             return grasp.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
-            Grasp algorithm = new Grasp(score);
+            GraspOld algorithm = new GraspOld(score);
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -98,7 +98,7 @@ public class Grasp implements Algorithm, UsesScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "GRASP using " + score.getDescription();
+        return "GRASPOld using " + score.getDescription();
     }
 
     @Override
@@ -113,8 +113,8 @@ public class Grasp implements Algorithm, UsesScoreWrapper {
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.OUTPUT_CPDAG);
-        params.add(Params.GSP_DEPTH);
-        params.add(Params.USE_TUCK);
+        params.add(Params.GRASP_DEPTH);
+        params.add(Params.GRASP_USE_TUCK);
         params.add(Params.VERBOSE);
         return params;
     }

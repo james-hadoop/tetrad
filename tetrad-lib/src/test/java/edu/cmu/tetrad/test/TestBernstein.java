@@ -59,9 +59,8 @@ public final class TestBernstein {
         params.set(Params.VAR_HIGH, 1);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
-        params.set(Params.BOSS_METHOD, 1);
         params.set(Params.BREAK_TIES, true);
-        params.set(Params.USE_SCORE, true);
+        params.set(Params.GRASP_USE_SCORE, true);
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new Fci(new FisherZ()));
@@ -76,7 +75,7 @@ public final class TestBernstein {
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.ALPHA));
         statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
-        statistics.add(new ParameterColumn(Params.USE_SCORE));
+        statistics.add(new ParameterColumn(Params.GRASP_USE_SCORE));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new AdjacencyTPR());

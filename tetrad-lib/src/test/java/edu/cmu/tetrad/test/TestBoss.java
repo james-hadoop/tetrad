@@ -23,8 +23,9 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Grasp;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GRASP;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.OTHER_PERM_ALGS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GraspOld;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Rfci;
@@ -64,7 +65,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static edu.cmu.tetrad.search.Boss.Method.*;
+import static edu.cmu.tetrad.search.OtherPermAlgs.Method.*;
 import static java.util.Collections.shuffle;
 
 /**
@@ -76,16 +77,16 @@ import static java.util.Collections.shuffle;
 public final class TestBoss {
 
     @NotNull
-    private static Boss getBoss(Score score, IndependenceTest test) {
-        Boss boss;
+    private static OtherPermAlgs getBoss(Score score, IndependenceTest test) {
+        OtherPermAlgs otherPermAlgs;
 
         if (true) {
-            boss = new Boss(test);
+            otherPermAlgs = new OtherPermAlgs(test);
         } else {
-            boss = new Boss(score);
+            otherPermAlgs = new OtherPermAlgs(score);
         }
 
-        return boss;
+        return otherPermAlgs;
     }
 
     private static boolean printFailed(Graph g, Graph dag, String alg) {
@@ -106,25 +107,25 @@ public final class TestBoss {
         return false;
     }
 
-    private static void runTestLoop(Graph g, List<Node> order, Score score, IndependenceTest test, boolean useTest) {
-        g = new EdgeListGraph(g);
-        order = new ArrayList<>(order);
-
-        Boss.Method[] methods = {Boss.Method.BOSS1, Boss.Method.SP};
-
-        for (Boss.Method method : methods) {
-            Boss boss = getBoss(score, test);
-
-            boss.setCacheScores(true);
-            boss.setMethod(method);
-            boss.setNumStarts(1);
-            boss.setVerbose(true);
-            List<Node> perm = boss.bestOrder(order);
-            Graph dag = boss.getGraph(false);
-
-            printFailed(g, dag, method + " " + order + " \n" + dag);
-        }
-    }
+//    private static void runTestLoop(Graph g, List<Node> order, Score score, IndependenceTest test, boolean useTest) {
+//        g = new EdgeListGraph(g);
+//        order = new ArrayList<>(order);
+//
+//        OtherPermAlgs.Method[] methods = {OtherPermAlgs.Method.BOSS1, OtherPermAlgs.Method.SP};
+//
+//        for (OtherPermAlgs.Method method : methods) {
+//            OtherPermAlgs otherPermAlgs = getBoss(score, test);
+//
+//            otherPermAlgs.setCacheScores(true);
+//            otherPermAlgs.setMethod(method);
+//            otherPermAlgs.setNumStarts(1);
+//            otherPermAlgs.setVerbose(true);
+//            List<Node> perm = otherPermAlgs.bestOrder(order);
+//            Graph dag = otherPermAlgs.getGraph(false);
+//
+//            printFailed(g, dag, method + " " + order + " \n" + dag);
+//        }
+//    }
 
     @AfterClass
     public static void afterClass() throws Exception {
@@ -134,10 +135,10 @@ public final class TestBoss {
     @Test
     public void testBoss() {
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 200);
-        params.set(Params.AVG_DEGREE, 10);
+        params.set(Params.NUM_MEASURES, 50);
+        params.set(Params.AVG_DEGREE, 6);
         params.set(Params.SAMPLE_SIZE, 1000);
-        params.set(Params.NUM_RUNS, 1);
+        params.set(Params.NUM_RUNS, 10);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.PENALTY_DISCOUNT, 2);
         params.set(Params.COEF_LOW, 0);
@@ -150,16 +151,16 @@ public final class TestBoss {
 
         params.set(Params.EBIC_GAMMA, 0.8);
 
-        params.set(Params.GSP_DEPTH, 2);
-        params.set(Params.BOSS_METHOD, 4);
+        params.set(Params.GRASP_DEPTH, 2);
+//        params.set(Params.BOSS_METHOD, 4);
         params.set(Params.NUM_ROUNDS, 50);
-        params.set(Params.USE_SCORE, true);
+        params.set(Params.GRASP_USE_SCORE, true);
 
         params.set(Params.BOSS_SCORE_TYPE, false);
 
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.EbicScore(), new FisherZ()));
+        algorithms.add(new OTHER_PERM_ALGS(new edu.cmu.tetrad.algcomparison.score.EbicScore(), new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
 
@@ -167,8 +168,8 @@ public final class TestBoss {
         simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
-        statistics.add(new ParameterColumn(Params.GSP_DEPTH));
+//        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
+        statistics.add(new ParameterColumn(Params.GRASP_DEPTH));
         statistics.add(new ParameterColumn(Params.NUM_ROUNDS));
         statistics.add(new ParameterColumn(Params.EBIC_GAMMA));
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
@@ -192,6 +193,40 @@ public final class TestBoss {
     }
 
     @Test
+    public void wayneCheckDensityClaim() {
+        Graph g = GraphUtils.randomGraph(20, 0, 40,
+                100, 100, 100, false);
+        LinearSemPm pm = new LinearSemPm(g);
+        LinearSemIm im = new LinearSemIm(pm);
+        DataSet d = im.simulateData(1000, false);
+
+        EbicScore score = new EbicScore(d);
+        score.setGamma(0.8);
+
+        List<Node> pi = new ArrayList<>(score.getVariables());
+
+        OtherPermAlgs gasp = new OtherPermAlgs(score);
+
+        gasp.setUsePearl(true);
+        gasp.setUseScore(true);
+        gasp.setUseDataOrder(true);
+        gasp.setVerbose(false);
+
+        gasp.setMethod(GSP);
+        gasp.setDepth(2);
+        gasp.bestOrder(pi);
+        Graph estCpdagGasp = gasp.getGraph(true);
+
+        gasp.bestOrder(pi);
+        Graph estCpdagGrasp = gasp.getGraph(true);
+
+        if (estCpdagGasp.getNumEdges() < estCpdagGrasp.getNumEdges()) {
+            System.out.println("TRUE");
+        }
+
+    }
+
+    @Test
     public void testBossDiscrete() {
         Parameters params = new Parameters();
         params.set(Params.NUM_MEASURES, 7);
@@ -205,18 +240,17 @@ public final class TestBoss {
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
         params.set(Params.ALPHA, 0.001);
-        params.set(Params.USE_TUCK, true, false);
+        params.set(Params.GRASP_USE_TUCK, true, false);
 
         params.set(Params.ZS_RISK_BOUND, 0.001); //, 0.01, 0.1);
 
         params.set(Params.EBIC_GAMMA, 0.1);
 
-        params.set(Params.GSP_DEPTH, 3);
-        params.set(Params.BOSS_METHOD, 2, 5, 7);
+        params.set(Params.GRASP_DEPTH, 3);
+        params.set(Params.OTHER_PERM_METHOD, 1);
         params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.NUM_ROUNDS, 50);
-        params.set(Params.USE_SCORE, true);
-
+        params.set(Params.GRASP_USE_SCORE, true);
 
 
         // use defaults.
@@ -224,21 +258,17 @@ public final class TestBoss {
 //        params.set(Params.STRUCTURE_PRIOR);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new ChiSquare()));
-        algorithms.add(new Grasp(new edu.cmu.tetrad.algcomparison.score.BdeuScore()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
+        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new BayesNetSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
-        statistics.add(new ParameterColumn(Params.GSP_DEPTH));
+        statistics.add(new ParameterColumn(Params.GRASP_DEPTH));
         statistics.add(new ParameterColumn(Params.NUM_ROUNDS));
         statistics.add(new ParameterColumn(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE));
         statistics.add(new ParameterColumn(Params.STRUCTURE_PRIOR));
-        statistics.add(new ParameterColumn(Params.USE_TUCK));
+        statistics.add(new ParameterColumn(Params.GRASP_USE_TUCK));
 //        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
 //        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
@@ -275,11 +305,11 @@ public final class TestBoss {
         params.set(Params.VERBOSE, false);
         params.set(Params.BREAK_TIES, true);
         params.set(Params.BOSS_SCORE_TYPE, false);
-        params.set(Params.USE_SCORE, true);
+        params.set(Params.GRASP_USE_SCORE, true);
 
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new OTHER_PERM_ALGS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 //        algorithms.add(new GASP(new LinearGaussianBicScore()));
 //        algorithms.add(new Fges(new LinearGaussianBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
@@ -324,13 +354,10 @@ public final class TestBoss {
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
         params.set(Params.CACHE_SCORES, false);
-        params.set(Params.BOSS_METHOD, 4);
         params.set(Params.NUM_ROUNDS, 50);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new ZhangShenBoundScore(), new FisherZ()));
-//        algorithms.add(new Fges(new LinearGaussianBicScore()));
-//        algorithms.add(new PcAll(new FisherZ()));
+        algorithms.add(new GRASP(new ZhangShenBoundScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -369,7 +396,6 @@ public final class TestBoss {
 
         params.set(Params.NUM_RUNS, 1);
 
-        params.set(Params.BOSS_METHOD, 1);
         params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.BREAK_TIES, false);
         params.set(Params.CACHE_SCORES, true);
@@ -380,7 +406,7 @@ public final class TestBoss {
         params.set(Params.EBIC_GAMMA, 0.5);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.FmlBicScore(), new FisherZ()));
+        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.FmlBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -419,12 +445,11 @@ public final class TestBoss {
 
         params.set(Params.NUM_RUNS, 1);
 
-        params.set(Params.BOSS_METHOD, 1);
         params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
 
-        params.set(Params.GSP_DEPTH, 30);
+        params.set(Params.GRASP_DEPTH, 30);
 
         params.set(Params.PENALTY_DISCOUNT, 2);
 //
@@ -436,7 +461,7 @@ public final class TestBoss {
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP(new LinearGaussianBicScore(), new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new OTHER_PERM_ALGS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 //
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new ConditionalGaussianLRT()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new ConditionalGaussianLRT()));
@@ -482,7 +507,6 @@ public final class TestBoss {
 
         params.set(Params.NUM_RUNS, 1);
 
-        params.set(Params.BOSS_METHOD, 1);
         params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
@@ -497,7 +521,7 @@ public final class TestBoss {
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new ConditionalGaussianLRT()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new ConditionalGaussianBicScore()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
+        algorithms.add(new OTHER_PERM_ALGS(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LeeHastieSimulation(new RandomForward()));
@@ -528,7 +552,6 @@ public final class TestBoss {
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.COEF_LOW, 0);
         params.set(Params.COEF_HIGH, 1);
-        params.set(Params.MAX_PERM_SIZE, 2);
         params.set(Params.VERBOSE, true);
 
         params.set(Params.NUM_RUNS, 1);
@@ -542,7 +565,7 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new OTHER_PERM_ALGS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
 
         Simulations simulations = new Simulations();
@@ -577,7 +600,6 @@ public final class TestBoss {
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.COEF_LOW, 0);
         params.set(Params.COEF_HIGH, 1);
-        params.set(Params.MAX_PERM_SIZE, 2);
         params.set(Params.VERBOSE, true);
 
         params.set(Params.NUM_RUNS, 5);
@@ -591,7 +613,7 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new ChiSquare()));
+        algorithms.add(new OTHER_PERM_ALGS(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new ChiSquare()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.BdeuScore()));
 
         Simulations simulations = new Simulations();
@@ -636,13 +658,12 @@ public final class TestBoss {
             params.set(Params.COEF_LOW, 0);
             params.set(Params.COEF_HIGH, .8);
 
-            params.set(Params.GSP_DEPTH, 10);
+            params.set(Params.GRASP_DEPTH, 10);
 
             params.set(Params.VERBOSE, true);
 
             params.set(Params.NUM_RUNS, 1);
 
-            params.set(Params.BOSS_METHOD, 8);
             params.set(Params.BOSS_SCORE_TYPE, false);
             params.set(Params.CACHE_SCORES, true);
             params.set(Params.NUM_STARTS, 1);
@@ -650,7 +671,7 @@ public final class TestBoss {
             params.set(Params.PENALTY_DISCOUNT, 3);
 
             Algorithms algorithms = new Algorithms();
-            algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(
+            algorithms.add(new OTHER_PERM_ALGS(
                     new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 
             Simulations simulations = new Simulations();
@@ -701,7 +722,7 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 //
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new OTHER_PERM_ALGS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -752,7 +773,7 @@ public final class TestBoss {
         params.set(Params.ALPHA, 0.001);
 //
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new OTHER_PERM_ALGS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new FisherZ()));
@@ -797,20 +818,19 @@ public final class TestBoss {
 
         params.set(Params.NUM_RUNS, 10);
 
-        params.set(Params.BOSS_METHOD, 1, 2, 3, 4, 5, 6, 7);
         params.set(Params.BOSS_SCORE_TYPE, false);
         params.set(Params.NUM_ROUNDS, 10);
-        params.set(Params.GSP_DEPTH, 6);
+        params.set(Params.GRASP_DEPTH, 6);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
-        params.set(Params.USE_SCORE, true);
+        params.set(Params.GRASP_USE_SCORE, true);
 
         params.set(Params.COLLIDER_DISCOVERY_RULE, 2);
         params.set(Params.PENALTY_DISCOUNT, 2.0);
         params.set(Params.ALPHA, 0.001);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.
+        algorithms.add(new OTHER_PERM_ALGS(new edu.cmu.tetrad.algcomparison.score.
                 EbicScore(), new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison
                 .algorithm.oracle.cpdag.PcAll(new FisherZ()));
@@ -855,7 +875,6 @@ public final class TestBoss {
         simulations.add(new LinearSemSimulation(new SingleGraph(graph)));
 
         Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
@@ -895,7 +914,7 @@ public final class TestBoss {
         boolean printCpdag = false;
 
 
-        Boss.Method[] methods = {Boss.Method.SP, Boss.Method.BOSS1};
+        OtherPermAlgs.Method[] methods = {OtherPermAlgs.Method.SP};
 //        Boss.Method[] methods = {Boss.Method.GASP, Boss.Method.BOSS, Boss.Method.SP};
 
         for (Ret facts : allFacts) {
@@ -916,16 +935,16 @@ public final class TestBoss {
                 shuffle(order);
                 IndTestDSep test = new IndTestDSep(facts.getFacts());
 
-                for (Boss.Method method : methods) {
-                    Boss boss = new Boss(test);
-                    boss.setCacheScores(true);
-                    boss.setMethod(method);
-                    boss.setScoreType(TeyssierScorer.ScoreType.Edge);
-                    boss.setNumStarts(1);
-                    boss.setUseDataOrder(true);
+                for (OtherPermAlgs.Method method : methods) {
+                    OtherPermAlgs otherPermAlgs = new OtherPermAlgs(test);
+                    otherPermAlgs.setCacheScores(true);
+                    otherPermAlgs.setMethod(method);
+                    otherPermAlgs.setScoreType(TeyssierScorer.ScoreType.Edge);
+                    otherPermAlgs.setNumStarts(1);
+                    otherPermAlgs.setUseDataOrder(true);
 
-                    List<Node> perm = boss.bestOrder(test.getVariables());
-                    Graph cpdag = boss.getGraph(true);
+                    List<Node> perm = otherPermAlgs.bestOrder(test.getVariables());
+                    Graph cpdag = otherPermAlgs.getGraph(true);
 
                     if (graphs.get(method.toString()) == null) {
                         graphs.put(method.toString(), new HashSet<>());
@@ -953,10 +972,10 @@ public final class TestBoss {
 
         IndTestDSep test = new IndTestDSep(facts.getFacts());
 
-        Boss boss = new Boss(test);
-        boss.setCacheScores(true);
-        boss.setMethod(Boss.Method.BOSS1);
-        boss.setNumStarts(1);
+        OtherPermAlgs otherPermAlgs = new OtherPermAlgs(test);
+        otherPermAlgs.setCacheScores(true);
+        otherPermAlgs.setMethod(SP);
+        otherPermAlgs.setNumStarts(1);
 
         List<Node> variables = test.getVariables();
         PermutationGenerator gen = new PermutationGenerator(variables.size());
@@ -965,60 +984,60 @@ public final class TestBoss {
         while ((perm = gen.next()) != null) {
             List<Node> p = GraphUtils.asList(perm, variables);
 
-            List<Node> p2 = boss.bestOrder(test.getVariables());
-            Graph cpdag = boss.getGraph(true);
+            List<Node> p2 = otherPermAlgs.bestOrder(test.getVariables());
+            Graph cpdag = otherPermAlgs.getGraph(true);
 
             System.out.println(p + " " + cpdag.getNumEdges());
         }
     }
 
-    //@Test
-    public void testFromData() {
-        for (int i = 0; i < 10; i++) {
-            System.out.println("\nRun " + (i + 1));
+//    //@Test
+//    public void testFromData() {
+//        for (int i = 0; i < 10; i++) {
+//            System.out.println("\nRun " + (i + 1));
+//
+//            Graph g = GraphUtils.randomGraph(15, 0, 30, 100,
+//                    100, 100, false);
+//            LinearSemPm pm = new LinearSemPm(g);
+//            Parameters params = new Parameters();
+//            params.set(Params.COEF_LOW, 0.1);
+//            params.set(Params.COEF_HIGH, 1);
+//            LinearSemIm im = new LinearSemIm(pm, params);
+//            DataSet data = im.simulateData(100000, false);
+//
+//            data = DataUtils.shuffleColumns(data);
+//            List<Node> order = data.getVariables();
+//
+//            edu.cmu.tetrad.search.EbicScore score = new edu.cmu.tetrad.search.EbicScore(data);
+////            score.setPenaltyDiscount(2);
+//            edu.cmu.tetrad.search.IndependenceTest test = new edu.cmu.tetrad.search.IndTestFisherZ(data, 0.01);
+//
+//            runTestLoop(g, order, score, test, false);
+//        }
+//    }
 
-            Graph g = GraphUtils.randomGraph(15, 0, 30, 100,
-                    100, 100, false);
-            LinearSemPm pm = new LinearSemPm(g);
-            Parameters params = new Parameters();
-            params.set(Params.COEF_LOW, 0.1);
-            params.set(Params.COEF_HIGH, 1);
-            LinearSemIm im = new LinearSemIm(pm, params);
-            DataSet data = im.simulateData(100000, false);
-
-            data = DataUtils.shuffleColumns(data);
-            List<Node> order = data.getVariables();
-
-            edu.cmu.tetrad.search.EbicScore score = new edu.cmu.tetrad.search.EbicScore(data);
-//            score.setPenaltyDiscount(2);
-            edu.cmu.tetrad.search.IndependenceTest test = new edu.cmu.tetrad.search.IndTestFisherZ(data, 0.01);
-
-            runTestLoop(g, order, score, test, false);
-        }
-    }
-
-    @Test
-    public void testFromDsep() {
-        for (int i = 0; i < 10; i++) {
-            System.out.println("\nRun " + (i + 1));
-
-            List<Node> nodes = new ArrayList<>();
-            for (int t = 0; t < 4; t++) {
-                nodes.add(new GraphNode("X" + (t + 1)));
-            }
-
-            Graph g = GraphUtils.randomGraph(nodes, 0, 4, 100,
-                    100, 100, false);
-            g = new EdgeListGraph(g);
-
-            List<Node> order = g.getNodes();
-            shuffle(order);
-
-            IndependenceTest test = new IndTestDSep(g);
-
-            runTestLoop(g, order, null, test, true);
-        }
-    }
+//    @Test
+//    public void testFromDsep() {
+//        for (int i = 0; i < 10; i++) {
+//            System.out.println("\nRun " + (i + 1));
+//
+//            List<Node> nodes = new ArrayList<>();
+//            for (int t = 0; t < 4; t++) {
+//                nodes.add(new GraphNode("X" + (t + 1)));
+//            }
+//
+//            Graph g = GraphUtils.randomGraph(nodes, 0, 4, 100,
+//                    100, 100, false);
+//            g = new EdgeListGraph(g);
+//
+//            List<Node> order = g.getNodes();
+//            shuffle(order);
+//
+//            IndependenceTest test = new IndTestDSep(g);
+//
+//            runTestLoop(g, order, null, test, true);
+//        }
+//    }
 
     @Test
     public void testManyVarManyDegreeTest() {
@@ -1031,18 +1050,16 @@ public final class TestBoss {
         parameters.set(Params.RANDOMIZE_COLUMNS, false);
 
         parameters.set(Params.BOSS_SCORE_TYPE, false);
-        parameters.set(Params.USE_SCORE, false);
+        parameters.set(Params.GRASP_USE_SCORE, false);
         parameters.set(Params.OUTPUT_CPDAG, true);
-        parameters.set(Params.MAX_PERM_SIZE, 3);
-        parameters.set(Params.GSP_DEPTH, 3);
+        parameters.set(Params.GRASP_DEPTH, 3);
         parameters.set(Params.NUM_ROUNDS, 10);
 
         parameters.set(Params.NUM_RUNS, 100);
 
-        parameters.set(Params.BOSS_METHOD, 3, 4, 8, 9);
+        parameters.set(Params.OTHER_PERM_METHOD, 3, 4, 8, 9);
 
         Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new NumberOfEdgesTrue());
@@ -1054,9 +1071,7 @@ public final class TestBoss {
 //        simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-//        algorithms.add(new BOSS(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
-//        algorithms.add(new GASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
@@ -1470,7 +1485,7 @@ public final class TestBoss {
         params.set(Params.BREAK_TIES, true);
         params.set(Params.CACHE_SCORES, true);
         params.set(Params.NUM_STARTS, 1);
-        params.set(Params.USE_SCORE, true);
+        params.set(Params.GRASP_USE_SCORE, true);
 
         params.set(Params.MAX_PATH_LENGTH, -1);
         params.set(Params.COMPLETE_RULE_SET_USED, true);
@@ -1512,187 +1527,177 @@ public final class TestBoss {
                 algorithms, statistics, params);
     }
 
-    @Test
-    public void test6Examples() {
-        List<Ret> allFacts = new ArrayList<>();
-
-        allFacts.add(getFactsSimple());
-        allFacts.add(getFactsSimpleCanceling());
-        allFacts.add(wayneTriangleFaithfulnessFailExample());
-        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
-        allFacts.add(getFigure7());
-        allFacts.add(getFigure8());
-//        allFacts.add(getFigure11());
-
-//        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
-
-        allFacts.add(getFigure8());
-
-        int count = 0;
-
-        boolean verbose = false;
-        int numRounds = 50;
-        int depth = 50;
-        int maxPermSize = 4;
-
-        boolean printCpdag = false;
-
-        for (int i = 0; i < allFacts.size(); i++) {
-            Ret facts = allFacts.get(i);
-            count++;
-
-            System.out.println();
-            System.out.println("Test #" + (i + 1));
-            System.out.println(facts.getLabel());
-            System.out.println(facts.getFacts());
-        }
-
-        for (Boss.Method method : new Boss.Method[]{
-//                BOSS1,
-//                BOSS2,
-//                GRASP,
-//                RCG,
-//                ESP,
-//                GASP,
-
-                SES,
-//                SHG
-
-        }) {
-            System.out.println("\n\n" + method);
-
-            for (int i = 0; i < allFacts.size(); i++) {
-                boolean passed = true;
-
-                Ret facts = allFacts.get(i);
-                count++;
-
-                TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
-                        new GraphScore(facts.getFacts()));
-
-                OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
-                OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
-
-                List<Node> variables = facts.facts.getVariables();
-                Collections.sort(variables);
-
-                PermutationGenerator gen = new PermutationGenerator(variables.size());
-                int[] perm;
-
-                while ((perm = gen.next()) != null) {
-                    List<Node> p = GraphUtils.asList(perm, variables);
-
-                    Boss search = new Boss(new IndTestDSep(facts.getFacts()));
-                    search.setMaxPermSize(maxPermSize);
-                    search.setDepth(depth);
-                    search.setMethod(method);
-                    search.setNumRounds(numRounds);
-                    search.setUseDataOrder(true);
-//                    search.setVerbose(verbose);
-                    List<Node> order = search.bestOrder(p);
-//                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());// + " " + search.getGraph(false));
-
-                    if (search.getNumEdges() != facts.getTruth()) {
-                        passed = false;
-//                        break;
-                    }
-                }
-
-                System.out.println((i + 1) + " " + (passed ? "P " : "F"));
-            }
-        }
-    }
-
-    @Test
-    public void test7Examples() {
-        List<Ret> allFacts = new ArrayList<>();
-
-        allFacts.add(getFactsSimple());
-        allFacts.add(getFactsSimpleCanceling());
-        allFacts.add(wayneTriangleFaithfulnessFailExample());
-        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
-        allFacts.add(getFigure7());
-        allFacts.add(getFigure8());
-        allFacts.add(getFigure11());
-        allFacts.add(wayneExample2());
-//        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
-
-//        allFacts.add(getFigure8());
-
-        int count = 0;
-
-        boolean verbose = false;
-        int numRounds = 50;
-        int depth = 5;
-        int maxPermSize = 6;
-
-        boolean printCpdag = false;
-
-        for (int i = 0; i < allFacts.size(); i++) {
-            Ret facts = allFacts.get(i);
-            count++;
-
-            System.out.println();
-            System.out.println("Test #" + (i + 1));
-            System.out.println(facts.getLabel());
-            System.out.println(facts.getFacts());
-        }
-
-        for (Boss.Method method : new Boss.Method[]{
-//                BOSS1,
-//                BOSS2,
-//                GRASP,
-//                ESP,
-//                GASP,
-                SES,
-//                RCG,
-        }) {
-            System.out.println("\n\n" + method);
-
-            for (int i = 0; i < allFacts.size(); i++) {
-                boolean passed = true;
-
-                Ret facts = allFacts.get(i);
-                count++;
-
-                TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
-                        new GraphScore(facts.getFacts()));
-
-                OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
-                OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
-
-                List<Node> variables = facts.facts.getVariables();
-                Collections.sort(variables);
-
-                PermutationGenerator gen = new PermutationGenerator(variables.size());
-                int[] perm;
-
-                while ((perm = gen.next()) != null) {
-                    List<Node> p = GraphUtils.asList(perm, variables);
-
-                    Boss search = new Boss(new IndTestDSep(facts.getFacts()));
-                    search.setMaxPermSize(maxPermSize);
-                    search.setDepth(depth);
-                    search.setMethod(method);
-                    search.setNumRounds(numRounds);
-//                    search.setVerbose(verbose);
-                    search.setUseDataOrder(true);
-                    search.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
-                    search.setUseTuck(false);
-                    List<Node> order = search.bestOrder(p);
-//                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
-//                    System.out.println(search.getGraph(false));
+//    @Test
+//    public void test6Examples() {
+//        List<Ret> allFacts = new ArrayList<>();
 //
-                    if (search.getNumEdges() != facts.getTruth()) {
-                        passed = false;
-//                        break;
-                    }
-                }
+//        allFacts.add(getFactsSimple());
+//        allFacts.add(getFactsSimpleCanceling());
+//        allFacts.add(wayneTriangleFaithfulnessFailExample());
+//        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
+//        allFacts.add(getFigure7());
+//        allFacts.add(getFigure8());
+////        allFacts.add(getFigure11());
+//
+////        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
+//
+//        allFacts.add(getFigure8());
+//
+//        int count = 0;
+//
+//        boolean verbose = false;
+//        int numRounds = 50;
+//        int depth = 50;
+//        int maxPermSize = 4;
+//
+//        boolean printCpdag = false;
+//
+//        for (int i = 0; i < allFacts.size(); i++) {
+//            Ret facts = allFacts.get(i);
+//            count++;
+//
+//            System.out.println();
+//            System.out.println("Test #" + (i + 1));
+//            System.out.println(facts.getLabel());
+//            System.out.println(facts.getFacts());
+//        }
+//
+//        for (OtherPermAlgs.Method method : new OtherPermAlgs.Method[]{
+//                GRASP,
+////                RCG,
+////                ESP,
+////                GASP,
+//
+//        }) {
+//            System.out.println("\n\n" + method);
+//
+//            for (int i = 0; i < allFacts.size(); i++) {
+//                boolean passed = true;
+//
+//                Ret facts = allFacts.get(i);
+//                count++;
+//
+//                TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
+//                        new GraphScore(facts.getFacts()));
+//
+//                OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
+//                OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
+//
+//                List<Node> variables = facts.facts.getVariables();
+//                Collections.sort(variables);
+//
+//                PermutationGenerator gen = new PermutationGenerator(variables.size());
+//                int[] perm;
+//
+//                while ((perm = gen.next()) != null) {
+//                    List<Node> p = GraphUtils.asList(perm, variables);
+//
+//                    OtherPermAlgs search = new OtherPermAlgs(new IndTestDSep(facts.getFacts()));
+//                    search.setDepth(depth);
+//                    search.setMethod(method);
+//                    search.setNumRounds(numRounds);
+//                    search.setUseDataOrder(true);
+////                    search.setVerbose(verbose);
+//                    List<Node> order = search.bestOrder(p);
+////                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());// + " " + search.getGraph(false));
+//
+//                    if (search.getNumEdges() != facts.getTruth()) {
+//                        passed = false;
+////                        break;
+//                    }
+//                }
+//
+//                System.out.println((i + 1) + " " + (passed ? "P " : "F"));
+//            }
+//        }
+//    }
 
-                System.out.println((i + 1) + " " + (passed ? "P " : "F"));
-            }
-        }
-    }
+//    @Test
+//    public void test7Examples() {
+//        List<Ret> allFacts = new ArrayList<>();
+//
+//        allFacts.add(getFactsSimple());
+//        allFacts.add(getFactsSimpleCanceling());
+//        allFacts.add(wayneTriangleFaithfulnessFailExample());
+//        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
+//        allFacts.add(getFigure7());
+//        allFacts.add(getFigure8());
+//        allFacts.add(getFigure11());
+//        allFacts.add(wayneExample2());
+////        allFacts.add(getBryanWorseCaseMParentsNChildren(2, 2));
+//
+////        allFacts.add(getFigure8());
+//
+//        int count = 0;
+//
+//        boolean verbose = false;
+//        int numRounds = 50;
+//        int depth = 5;
+//        int maxPermSize = 6;
+//
+//        boolean printCpdag = false;
+//
+//        for (int i = 0; i < allFacts.size(); i++) {
+//            Ret facts = allFacts.get(i);
+//            count++;
+//
+//            System.out.println();
+//            System.out.println("Test #" + (i + 1));
+//            System.out.println(facts.getLabel());
+//            System.out.println(facts.getFacts());
+//        }
+//
+//        for (OtherPermAlgs.Method method : new OtherPermAlgs.Method[]{
+//                GRASP,
+////                RCG,
+////                ESP,
+////                GASP,
+//        }) {
+//            System.out.println("\n\n" + method);
+//
+//            for (int i = 0; i < allFacts.size(); i++) {
+//                boolean passed = true;
+//
+//                Ret facts = allFacts.get(i);
+//                count++;
+//
+//                TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
+//                        new GraphScore(facts.getFacts()));
+//
+//                OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
+//                OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
+//
+//                List<Node> variables = facts.facts.getVariables();
+//                Collections.sort(variables);
+//
+//                PermutationGenerator gen = new PermutationGenerator(variables.size());
+//                int[] perm;
+//
+//                while ((perm = gen.next()) != null) {
+//                    List<Node> p = GraphUtils.asList(perm, variables);
+//
+//                    OtherPermAlgs search = new OtherPermAlgs(new IndTestDSep(facts.getFacts()));
+//                    search.setDepth(depth);
+//                    search.setMethod(method);
+//                    search.setNumRounds(numRounds);
+////                    search.setVerbose(verbose);
+//                    search.setUseDataOrder(true);
+//                    search.setUsePearl(false);
+//                    search.setUseTuck(false);
+//                    List<Node> order = search.bestOrder(p);
+////                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
+////                    System.out.println(search.getGraph(false));
+////
+//                    if (search.getNumEdges() != facts.getTruth()) {
+//                        passed = false;
+////                        break;
+//                    }
+//                }
+//
+//                System.out.println((i + 1) + " " + (passed ? "P " : "F"));
+//            }
+//        }
+//    }
 
     @Test
     public void testWorstCaseExamples() {
@@ -1714,7 +1719,7 @@ public final class TestBoss {
             System.out.println(facts.getFacts());
         }
 
-        for (Boss.Method method : new Boss.Method[]{
+        for (OtherPermAlgs.Method method : new OtherPermAlgs.Method[]{
 //                BOSS1,
 //                BOSS2,
 //                GRASP,
@@ -1745,7 +1750,7 @@ public final class TestBoss {
                 while ((perm = gen.next()) != null) {
                     List<Node> p = GraphUtils.asList(perm, variables);
 
-                    Boss search = new Boss(new IndTestDSep(facts.getFacts()));
+                    OtherPermAlgs search = new OtherPermAlgs(new IndTestDSep(facts.getFacts()));
 //                    search.setMaxPermSize(6);
                     search.setDepth(Integer.MAX_VALUE);
 //                    search.setDepth((method == BOSS1 || method == BOSS2 || method == GRASP || method == RCG) ? 20 : 5);
@@ -1848,7 +1853,7 @@ public final class TestBoss {
 
                         TeyssierScorer scorer1 = new TeyssierScorer(dsep,
                                 new GraphScore(graph));
-                        scorer1.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
+                        scorer1.setUsePearl(true);
                         scorer1.score(_perm0);
                         Graph g1 = scorer1.getGraph(true);
 
@@ -1856,7 +1861,7 @@ public final class TestBoss {
                         List<Node> _perm = GraphUtils.asList(perm, test.getVariables());
 
                         TeyssierScorer scorer2 = new TeyssierScorer(test, score);
-                        scorer2.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
+                        scorer2.setUsePearl(true);
                         scorer2.score(_perm);
 
                         Graph g2 = scorer2.getGraph(true);
@@ -1871,7 +1876,7 @@ public final class TestBoss {
                             test = new IndTestFisherZ(dataSet, alpha[i]);
 
                             TeyssierScorer scorer3 = new TeyssierScorer(test, score);
-                            scorer3.setParentCalculation(TeyssierScorer.ParentCalculation.Pearl);
+                            scorer3.setUsePearl(true);
                             scorer3.score(_perm);
                             Graph g3 = scorer3.getGraph(true);
 
@@ -2044,20 +2049,14 @@ public final class TestBoss {
         }
 
         if (count >= 2) {
+
             IndependenceTest test = new IndTestDSep(facts);
 
-            Boss boss = new Boss(test);
-            boss.setUseScore(false);
+            Grasp grasp = new Grasp(test);
+            grasp.bestOrder(test.getVariables());
+            Graph other = grasp.getGraph(false);
 
-            Boss.Method method = GRASP;
-
-            boss.setMethod(method);
-            boss.bestOrder(test.getVariables());
-            Graph other = boss.getGraph(false);
-            System.out.println(method + " " + other);
-
-            boss.setMethod(SP);
-            boss.bestOrder(test.getVariables());
+            grasp.bestOrder(test.getVariables());
             Graph frugal = other;
             System.out.println("SP " + frugal);
 

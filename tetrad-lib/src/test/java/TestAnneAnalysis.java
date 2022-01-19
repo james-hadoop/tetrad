@@ -1,3 +1,4 @@
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.OTHER_PERM_ALGS;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -198,8 +199,8 @@ public class TestAnneAnalysis {
                     double elapsed = -System.currentTimeMillis();
 //                    edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges pc
 //                            = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore());
-                    edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS pc
-                            = new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new LinearGaussianBicScore(),
+                    OTHER_PERM_ALGS pc
+                            = new OTHER_PERM_ALGS(new LinearGaussianBicScore(),
                             new FisherZ());
                     Parameters parameters = new Parameters();
                     parameters.set(Params.PENALTY_DISCOUNT, 1);

@@ -65,7 +65,7 @@ public final class Bfci implements GraphSearch {
 
     private boolean cacheScores;
     private int numStarts;
-    private Boss.Method method;
+    private OtherPermAlgs.Method method;
     private TeyssierScorer.ScoreType scoreType;
     private boolean useScore = true;
     private int triangleDepth = 0;
@@ -90,30 +90,28 @@ public final class Bfci implements GraphSearch {
         // The PAG being constructed.
         Graph graph;
 
-        Boss boss;
+        OtherPermAlgs otherPermAlgs;
         List<Node> variables;
 
         if (useScore && !(score instanceof GraphScore)) {
-            boss = new Boss(score);
+            otherPermAlgs = new OtherPermAlgs(score);
             variables = score.getVariables();
         } else {
-            boss = new Boss(test);
+            otherPermAlgs = new OtherPermAlgs(test);
             variables = test.getVariables();
         }
 
-        boss.setMethod(Boss.Method.RCG);
-        boss.setScoreType(scoreType);
-        boss.setCacheScores(cacheScores);
-        boss.setDepth(gspDepth);
-        boss.setNumRounds(numRounds);
-        boss.setMaxPermSize(triangleDepth);
-        boss.setNumStarts(numStarts);
-        boss.setVerbose(verbose);
-        boss.setKnowledge(knowledge);
-        boss.setMaxPermSize(maxPermSize);
+        otherPermAlgs.setMethod(OtherPermAlgs.Method.RCG);
+        otherPermAlgs.setScoreType(scoreType);
+        otherPermAlgs.setCacheScores(cacheScores);
+        otherPermAlgs.setDepth(gspDepth);
+        otherPermAlgs.setNumRounds(numRounds);
+        otherPermAlgs.setNumStarts(numStarts);
+        otherPermAlgs.setVerbose(verbose);
+        otherPermAlgs.setKnowledge(knowledge);
 
-        List<Node> perm = boss.bestOrder(variables);
-        graph = boss.getGraph(true);
+        List<Node> perm = otherPermAlgs.bestOrder(variables);
+        graph = otherPermAlgs.getGraph(true);
         Graph bossGraph = new EdgeListGraph(graph);
 
         graph.reorientAllWith(Endpoint.CIRCLE);
@@ -401,11 +399,11 @@ public final class Bfci implements GraphSearch {
         this.numStarts = numStarts;
     }
 
-    public Boss.Method getMethod() {
+    public OtherPermAlgs.Method getMethod() {
         return method;
     }
 
-    public void setMethod(Boss.Method method) {
+    public void setMethod(OtherPermAlgs.Method method) {
         this.method = method;
     }
 

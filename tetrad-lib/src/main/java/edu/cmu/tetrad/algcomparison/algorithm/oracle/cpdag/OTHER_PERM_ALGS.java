@@ -12,8 +12,8 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.search.Boss;
 import edu.cmu.tetrad.search.IndependenceTest;
+import edu.cmu.tetrad.search.OtherPermAlgs;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
@@ -30,21 +30,21 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "BOSS",
-        command = "boss",
+        name = "OTHER_PERM_ALGS",
+        command = "other_perm_algs",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
+public class OTHER_PERM_ALGS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
     static final long serialVersionUID = 23L;
     private ScoreWrapper score = null;
     private IndependenceWrapper test;
 
-    public BOSS() {
+    public OTHER_PERM_ALGS() {
         // Used in reflection; do not delete.
     }
 
-    public BOSS(ScoreWrapper score, IndependenceWrapper test) {
+    public OTHER_PERM_ALGS(ScoreWrapper score, IndependenceWrapper test) {
         this.score = score;
         this.test = test;
     }
@@ -62,57 +62,53 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
             test.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
-            Boss boss;
+            OtherPermAlgs otherPermAlgs;
 
-            boss = new Boss(test, score);
+            otherPermAlgs = new OtherPermAlgs(test, score);
 
-            Boss.Method method;
+            OtherPermAlgs.Method method;
 
-            switch (parameters.getInt(Params.BOSS_METHOD)) {
+            switch (parameters.getInt(Params.OTHER_PERM_METHOD)) {
                 case 1:
-                    method = Boss.Method.GRASP;
+                    method = OtherPermAlgs.Method.RCG;
                     break;
                 case 2:
-                    method = Boss.Method.RCG;
+                    method = OtherPermAlgs.Method.GSP;
                     break;
                 case 3:
-                    method = Boss.Method.ESP;
+                    method = OtherPermAlgs.Method.ESP;
                     break;
                 case 4:
-                    method = Boss.Method.GASP;
-                    break;
-                case 5:
-                    method = Boss.Method.SP;
+                    method = OtherPermAlgs.Method.SP;
                     break;
                 default:
-                    throw new IllegalStateException("Pick a number from 1 to 5: " +
-                            "1 = GRASP, 2 = RCG, 3 = ESP, 4 = GASP, 5 = SP");
+                    throw new IllegalStateException("Pick a number from 1 to 4: " +
+                            "1 = RCG, 2 = GSP, 3 = ESP, 4 = SP");
             }
 
             System.out.println("Picked " + method);
 
-            boss.setMethod(method);
-            boss.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
+            otherPermAlgs.setMethod(method);
+            otherPermAlgs.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
 
-            boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
-            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            boss.setKnowledge(dataSet.getKnowledge());
-            boss.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
-            boss.setDepth(parameters.getInt(Params.GRASP_DEPTH));
-            boss.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
-            boss.setUseTuck(parameters.getBoolean(Params.GRASP_USE_TUCK));
+            otherPermAlgs.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
+            otherPermAlgs.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            otherPermAlgs.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            otherPermAlgs.setKnowledge(dataSet.getKnowledge());
+            otherPermAlgs.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
+            otherPermAlgs.setDepth(parameters.getInt(Params.GRASP_DEPTH));
+            otherPermAlgs.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
-                boss.setScoreType(TeyssierScorer.ScoreType.Edge);
+                otherPermAlgs.setScoreType(TeyssierScorer.ScoreType.Edge);
             } else {
-                boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
+                otherPermAlgs.setScoreType(TeyssierScorer.ScoreType.SCORE);
             }
 
-            boss.bestOrder(score.getVariables());
-            return boss.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
+            otherPermAlgs.bestOrder(score.getVariables());
+            return otherPermAlgs.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
-            BOSS algorithm = new BOSS(score, test);
+            OTHER_PERM_ALGS algorithm = new OTHER_PERM_ALGS(score, test);
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -158,12 +154,10 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.GRASP_USE_SCORE);
-        params.add(Params.OUTPUT_CPDAG);
+//        params.add(Params.OUTPUT_CPDAG);
         params.add(Params.GRASP_DEPTH);
-        params.add(Params.BOSS_METHOD);
+        params.add(Params.OTHER_PERM_METHOD);
         params.add(Params.NUM_ROUNDS);
-        params.add(Params.GRASP_USE_TUCK);
-        params.add(Params.GRASP_USE_PEARL);
         params.add(Params.VERBOSE);
         return params;
     }

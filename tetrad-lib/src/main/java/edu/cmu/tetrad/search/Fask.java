@@ -21,6 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GRASP;
 import edu.cmu.tetrad.algcomparison.statistic.BicEst;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
@@ -220,12 +221,11 @@ public final class Fask implements GraphSearch {
             fas.setKnowledge(knowledge);
             G = fas.search();
         } else if (adjacencyMethod == AdjacencyMethod.FAS_STABLE_CONCURRENT) {
-            Boss boss = new Boss(new LinearGaussianBicScore(dataSet));
-            boss.setScoreType(TeyssierScorer.ScoreType.Edge);
-            boss.setMethod(Boss.Method.BOSS1);
-            boss.setKnowledge(knowledge);
-            List<Node> order = boss.bestOrder(variables);
-            G = boss.getGraph(false);
+            Grasp otherPermAlgs = new Grasp(new LinearGaussianBicScore(dataSet));
+            otherPermAlgs.setScoreType(TeyssierScorer.ScoreType.Edge);
+            otherPermAlgs.setKnowledge(knowledge);
+            List<Node> order = otherPermAlgs.bestOrder(variables);
+            G = otherPermAlgs.getGraph(false);
 
 //            FasConcurrent fas = new FasConcurrent(test);
 //            fas.setStable(true);
@@ -260,7 +260,6 @@ public final class Fask implements GraphSearch {
 
         TetradLogger.getInstance().forceLogMessage("");
 
-        assert G != null;
         SearchGraphUtils.pcOrientbk(knowledge, G, G.getNodes());
 
         Graph graph = new EdgeListGraph(G.getNodes());

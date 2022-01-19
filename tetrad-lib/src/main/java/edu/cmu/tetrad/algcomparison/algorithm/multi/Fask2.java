@@ -64,7 +64,7 @@ public class Fask2 implements Algorithm, UsesScoreWrapper {
 
             search = new edu.cmu.tetrad.search.Fask2(score.getScore(dataSet, parameters), (DataSet) dataSet);
 
-            search.setDepth(parameters.getInt(GSP_DEPTH));
+            search.setDepth(parameters.getInt(GRASP_DEPTH));
             search.setNumRounds(parameters.getInt(NUM_ROUNDS));
             search.setSkewEdgeThreshold(parameters.getDouble(SKEW_EDGE_THRESHOLD));
             search.setOrientationAlpha(parameters.getDouble(ORIENTATION_ALPHA));
@@ -107,7 +107,7 @@ public class Fask2 implements Algorithm, UsesScoreWrapper {
                     edgeEnsemble = ResamplingEdgeEnsemble.Preserved;
                     break;
                 case 1:
-                    edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+//                    edgeEnsemble = ResamplingEdgeEnsemble.Highest;
                     break;
                 case 2:
                     edgeEnsemble = ResamplingEdgeEnsemble.Majority;
@@ -145,7 +145,7 @@ public class Fask2 implements Algorithm, UsesScoreWrapper {
             parameters.addAll(score.getParameters());
         }
 
-        parameters.add(GSP_DEPTH);
+        parameters.add(GRASP_DEPTH);
         parameters.add(NUM_ROUNDS);
         parameters.add(SKEW_EDGE_THRESHOLD);
         parameters.add(TWO_CYCLE_SCREENING_THRESHOLD);

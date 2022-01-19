@@ -12,9 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Collections.shuffle;
 
@@ -24,7 +22,7 @@ import static java.util.Collections.shuffle;
  *
  * @author josephramsey
  */
-public class Boss {
+public class OtherPermAlgs {
     private final List<Node> variables;
     private long start;
     private Score score;
@@ -38,29 +36,25 @@ public class Boss {
     private int numRounds = 50;
 
     // flags
-    private boolean checkCovering = false;
-    private boolean useTuck = false;
-    private boolean rcgConfig = true;
-    private boolean ordered = true;
     private boolean useScore = true;
-    private boolean usePearl = true;
+    private boolean usePearl = false;
     private boolean verbose = false;
     private boolean cachingScores = true;
     private boolean useDataOrder = false;
 
-    public Boss(@NotNull Score score) {
+    public OtherPermAlgs(@NotNull Score score) {
         this.score = score;
         this.variables = new ArrayList<>(score.getVariables());
         this.useScore = true;
     }
 
-    public Boss(@NotNull IndependenceTest test) {
+    public OtherPermAlgs(@NotNull IndependenceTest test) {
         this.test = test;
         this.variables = new ArrayList<>(test.getVariables());
         this.useScore = false;
     }
 
-    public Boss(@NotNull IndependenceTest test, Score score) {
+    public OtherPermAlgs(@NotNull IndependenceTest test, Score score) {
         this.test = test;
         this.score = score;
         this.variables = new ArrayList<>(test.getVariables());
@@ -111,7 +105,7 @@ public class Boss {
             List<Node> perm;
 
             if (method == Method.RCG) {
-                perm = rcg2(scorer);
+                perm = rcg(scorer);
             } else if (method == Method.GSP) {
                 perm = gasp(scorer);
             } else if (method == Method.ESP) {
@@ -186,216 +180,31 @@ public class Boss {
         return scorer.getOrder();
     }
 
-    public List<Node> grasp(@NotNull TeyssierScorer scorer) {
-        int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
+    public List<Node> gasp(@NotNull TeyssierScorer scorer) {
+        if (depth < 0) throw new IllegalArgumentException("Form GRASP, max depth should be >= 0");
         scorer.clearBookmarks();
 
-        float sNew = scorer.score();
-        float sOld;
-
-        List<int[]> ops = new ArrayList<>();
-        for (int i = 0; i < scorer.size(); i++) {
-            for (int j = (useTuck ? i + 1 : 0); j < scorer.size(); j++) {
-                if (i != j) {
-                    ops.add(new int[]{i, j});
-                }
-            }
-        }
+        double sOld;
+        double sNew = scorer.score();
 
         do {
             sOld = sNew;
-            shuffle(ops);
-
-            if (ordered) {
-                graspDfsOrdered(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>(), checkCovering);
-            } else {
-                graspDfsUnordered(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>(), checkCovering);
-            }
+            graspDfs(scorer, sOld, (depth < 0 ? Integer.MAX_VALUE : depth), 0, true);
             sNew = scorer.score();
         } while (sNew > sOld);
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
-                    + " (GRaSP)"
+                    + " (GASP))"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
         return scorer.getOrder();
+
     }
 
-    private void graspDfsUnordered(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth, List<int[]> ops, Set<Set<Node>> branchHistory,
-                                   Set<Set<Set<Node>>> dfsHistory, boolean checkCovering) {
-        for (int[] op : ops) {
-            Node x = scorer.get(op[0]);
-            Node y = scorer.get(op[1]);
-
-            if (!scorer.adjacent(x, y)) continue;
-
-            if (checkCovering && !scorer.coveredEdge(x, y)) continue;
-
-//            if (currentDepth > 1 && !scorer.coveredEdge(x, y)) continue; // Uncomment to only tuck on covered edges within DFS
-//            if (doCovered && !scorer.coveredEdge(x, y)) continue; // Uncomment to only tuck covered edges
-//            else if (!doCovered && scorer.coveredEdge(x, y)) continue; // Uncomment to only tuck covered edges
-
-            Set<Set<Node>> current = new HashSet<>(branchHistory);
-            Set<Node> adj = new HashSet<>();
-            adj.add(x);
-            adj.add(y);
-
-            if (current.contains(adj)) continue;
-            current.add(adj);
-
-            if (op[0] < op[1] && scorer.coveredEdge(x, y)) {
-                if (dfsHistory.contains(current)) continue;
-                dfsHistory.add(current);
-            }
-
-            scorer.bookmark(currentDepth);
-            scorer.moveTo(y, op[0]);
-
-            if (violatesKnowledge(scorer.getOrder())) {
-                scorer.goToBookmark(currentDepth);
-            } else {
-                float sNew = scorer.score();
-
-                if (rcgConfig) {
-//                    if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) { // Uncomment to only DFS on covered edges
-//                    if (sNew == sOld && currentDepth < depth && op[0] < op[1]) { // Uncomment to only DFS on forward tucks
-                    if (sNew == sOld && currentDepth < depth) { // Uncomment to DFS on anything
-                        graspDfsUnordered(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory,
-                                checkCovering);
-                        sNew = scorer.score();
-                    }
-                } else {
-
-                    if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) { // Uncomment to only DFS on covered edges
-//                    if (sNew == sOld && currentDepth < depth && op[0] < op[1]) { // Uncomment to only DFS on forward tucks
-//                    if (sNew == sOld && currentDepth < depth) { // Uncomment to DFS on anything
-                        graspDfsOrdered(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory,
-                                checkCovering);
-                        sNew = scorer.score();
-                    }
-                }
-
-
-                if (sNew <= sOld) {
-                    scorer.goToBookmark(currentDepth);
-                } else {
-                    if (verbose) {
-                        System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
-                    }
-
-                    if (rcgConfig) {
-                        sOld = sNew; // Uncomment this to run rounds to completion
-                        dfsHistory.clear(); // Uncomment this to run rounds to completion
-                        current.clear(); // Uncomment this to run rounds to completion
-                    } else {
-                        break; // Uncomment this to break after first improvement
-                    }
-                }
-//
-//                if (sNew <= sOld) {
-//                    scorer.goToBookmark(currentDepth);
-//                } else {
-//                    System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
-//                    break; // Comment this out to run rounds to completion
-//                }
-            }
-        }
-    }
-
-    private void graspDfsOrdered(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth,
-                                 List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory,
-                                 boolean checkCovering) {
-        sOld = graspDfsVisit(scorer, sOld, depth, currentDepth, ops, branchHistory, dfsHistory,
-                true, checkCovering);
-        graspDfsVisit(scorer, sOld, depth, currentDepth, ops, branchHistory, dfsHistory,
-                false, checkCovering);
-    }
-
-    private float graspDfsVisit(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth, List<int[]> ops, Set<Set<Node>> branchHistory,
-                                Set<Set<Set<Node>>> dfsHistory, boolean doCovered, boolean checkCovered) {
-        for (int[] op : ops) {
-            Node x = scorer.get(op[0]);
-            Node y = scorer.get(op[1]);
-
-            if (!scorer.adjacent(x, y)) continue;
-
-            if (checkCovered && !scorer.coveredEdge(x, y)) continue;
-
-//            if (currentDepth > 1 && !scorer.coveredEdge(x, y)) continue; // Uncomment to only tuck on covered edges within DFS
-            if (doCovered == !scorer.coveredEdge(x, y)) continue;
-
-            Set<Set<Node>> current = new HashSet<>(branchHistory);
-            Set<Node> adj = new HashSet<>();
-            adj.add(x);
-            adj.add(y);
-
-            if (current.contains(adj)) continue;
-            current.add(adj);
-
-            if (op[0] < op[1] && scorer.coveredEdge(x, y)) {
-                if (dfsHistory.contains(current)) continue;
-                dfsHistory.add(current);
-            }
-
-            scorer.bookmark(currentDepth);
-            scorer.moveTo(y, op[0]);
-
-            if (violatesKnowledge(scorer.getOrder())) {
-                scorer.goToBookmark(currentDepth);
-            } else {
-                float sNew = scorer.score();
-
-                if (rcgConfig) {
-//                    if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) { // Uncomment to only DFS on covered edges
-//                    if (sNew == sOld && currentDepth < depth && op[0] < op[1]) { // Uncomment to only DFS on forward tucks
-                    if (sNew == sOld && currentDepth < depth) { // Uncomment to DFS on anything
-                        graspDfsOrdered(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory,
-                                checkCovered);
-                        sNew = scorer.score();
-                    }
-                } else {
-
-                    if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) { // Uncomment to only DFS on covered edges
-//                    if (sNew == sOld && currentDepth < depth && op[0] < op[1]) { // Uncomment to only DFS on forward tucks
-//                    if (sNew == sOld && currentDepth < depth) { // Uncomment to DFS on anything
-                        graspDfsOrdered(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory,
-                                checkCovered);
-                        sNew = scorer.score();
-                        sOld = sNew;
-                    }
-                }
-
-                if (sNew <= sOld) {
-                    scorer.goToBookmark(currentDepth);
-                } else {
-                    if (verbose) {
-                        System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
-                    }
-
-                    if (rcgConfig) {
-                        sOld = sNew; // Uncomment this to run rounds to completion
-                        dfsHistory.clear(); // Uncomment this to run rounds to completion
-                        current.clear(); // Uncomment this to run rounds to completion
-                    } else {
-                        break; // Uncomment this to break after first improvement
-                    }
-                }
-//
-//                if (sNew <= sOld) {
-//                    scorer.goToBookmark(currentDepth);
-//                } else {
-//                    System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
-//                    break; // Comment this out to run rounds to completion
-//                }
-            }
-        }
-        return sOld;
-    }
-
-    public List<Node> rcg2(@NotNull TeyssierScorer scorer) {
+    public List<Node> rcg(@NotNull TeyssierScorer scorer) {
         if (numRounds <= 0) throw new IllegalArgumentException("For RCG, #rounds should be > 0");
         scorer.clearBookmarks();
         NumberFormat nf = new DecimalFormat("0.0");
@@ -669,28 +478,43 @@ public class Boss {
         }
     }
 
+    private void graspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+                          boolean checkCovering) {
+        for (OrderedPair<Node> adj : scorer.getEdges()) {
+            Node x = adj.getFirst();
+            Node y = adj.getSecond();
+            if (checkCovering && !scorer.coveredEdge(x, y)) continue;
+            scorer.bookmark(currentDepth);
+            scorer.tuck(x, y);
+//            System.out.println(scorer.getOrder() + " score = " + scorer.getNumEdges());
+
+            if (violatesKnowledge(scorer.getOrder())) {
+                scorer.goToBookmark(currentDepth);
+                continue;
+            }
+
+            double sNew = scorer.score();
+
+            if (sNew == sOld && currentDepth < depth) {
+//                System.out.println("equals " + scorer.getOrder() + " sNew = " + sNew);
+                graspDfs(scorer, sNew, depth, currentDepth + 1, checkCovering);
+                sNew = scorer.score();
+            }
+
+            if (sNew <= sOld) {
+                scorer.goToBookmark(currentDepth);
+            } else {
+                break;
+            }
+        }
+    }
+
     public void setNumRounds(int numRounds) {
         this.numRounds = numRounds;
     }
 
-    public void setUseTuck(boolean useTuck) {
-        this.useTuck = useTuck;
-    }
-
-    public void setRcgConfig(boolean rcgConfig) {
-        this.rcgConfig = rcgConfig;
-    }
-
-    public void setOrdered(boolean ordered) {
-        this.ordered = ordered;
-    }
-
     public void setUsePearl(boolean usePearl) {
         this.usePearl = usePearl;
-    }
-
-    public void setCheckCovering(boolean checkCovering) {
-        this.checkCovering = checkCovering;
     }
 
     public enum Method {RCG, GSP, ESP, SP}
