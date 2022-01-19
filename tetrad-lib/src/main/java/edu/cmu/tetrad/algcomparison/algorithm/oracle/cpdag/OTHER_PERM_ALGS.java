@@ -70,54 +70,38 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
             switch (parameters.getInt(Params.BOSS_METHOD)) {
                 case 1:
-                    method = Boss.Method.BOSS1;
-                    break;
-                case 2:
-                    method = Boss.Method.BOSS2;
-                    break;
-                case 3:
                     method = Boss.Method.GRASP;
                     break;
-                case 4:
+                case 2:
                     method = Boss.Method.RCG;
                     break;
-                case 5:
+                case 3:
                     method = Boss.Method.ESP;
                     break;
-                case 6:
+                case 4:
                     method = Boss.Method.GASP;
                     break;
-                case 7:
+                case 5:
                     method = Boss.Method.SP;
                     break;
-                case 8:
-                    method = Boss.Method.SES;
-                    break;
-                case 9:
-                    method = Boss.Method.SHG;
-                    break;
-                case 10:
-                    method = Boss.Method.slowSES;
-                    break;
                 default:
-                    throw new IllegalStateException("Pick a number from 1 to 8: " +
-                            "1 = BOSS1, 2 = BOSS2, 3 = GRASP, 4 = RCG, 5 = ESP, 6 = GASP, 7 = SP, 8 = SES, 9 = SHG");
+                    throw new IllegalStateException("Pick a number from 1 to 5: " +
+                            "1 = GRASP, 2 = RCG, 3 = ESP, 4 = GASP, 5 = SP");
             }
 
             System.out.println("Picked " + method);
 
             boss.setMethod(method);
-            boss.setUseScore(parameters.getBoolean(Params.USE_SCORE));
+            boss.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
 
             boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
             boss.setKnowledge(dataSet.getKnowledge());
-            boss.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
-            boss.setDepth(parameters.getInt(Params.GSP_DEPTH));
-            boss.setMaxPermSize(parameters.getInt(Params.MAX_PERM_SIZE));
+            boss.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
+            boss.setDepth(parameters.getInt(Params.GRASP_DEPTH));
             boss.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
-            boss.setUseTuck(parameters.getBoolean(Params.USE_TUCK));
+            boss.setUseTuck(parameters.getBoolean(Params.GRASP_USE_TUCK));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
                 boss.setScoreType(TeyssierScorer.ScoreType.Edge);
@@ -173,13 +157,13 @@ public class BOSS implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.CACHE_SCORES);
         params.add(Params.NUM_STARTS);
         params.add(Params.BOSS_SCORE_TYPE);
-        params.add(Params.USE_SCORE);
+        params.add(Params.GRASP_USE_SCORE);
         params.add(Params.OUTPUT_CPDAG);
-        params.add(Params.MAX_PERM_SIZE);
-        params.add(Params.GSP_DEPTH);
+        params.add(Params.GRASP_DEPTH);
         params.add(Params.BOSS_METHOD);
         params.add(Params.NUM_ROUNDS);
-        params.add(Params.USE_TUCK);
+        params.add(Params.GRASP_USE_TUCK);
+        params.add(Params.GRASP_USE_PEARL);
         params.add(Params.VERBOSE);
         return params;
     }

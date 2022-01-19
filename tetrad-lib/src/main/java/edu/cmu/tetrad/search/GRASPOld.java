@@ -45,7 +45,7 @@ public class GRASP {
 
         scorer = new TeyssierScorer(null, score);
         scorer.setUseScore(true);
-        scorer.setParentCalculation(parentCalculation);
+        scorer.setUsePearl(false);
 
         scorer.setKnowledge(knowledge);
         scorer.setScoreType(scoreType);
@@ -143,6 +143,8 @@ public class GRASP {
 
         return scorer.getOrder();
     }
+
+
 
     private void sesDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
                         List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory) {
