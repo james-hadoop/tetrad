@@ -128,7 +128,7 @@ public final class TestGrasp {
     }
 
     @Test
-    public void testGrasp() {
+    public void testGrasp1() {
         Parameters params = new Parameters();
         params.set(Params.NUM_MEASURES, 50);
         params.set(Params.AVG_DEGREE, 6);
@@ -182,12 +182,12 @@ public final class TestGrasp {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp",
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp1",
                 simulations, algorithms, statistics, params);
     }
     
     @Test
-    public void testGraspDiscrete() {
+    public void testGrasp2() {
         Parameters params = new Parameters();
         params.set(Params.NUM_MEASURES, 7);
         params.set(Params.AVG_DEGREE, 3);
@@ -241,7 +241,7 @@ public final class TestGrasp {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGraspDiscrete",
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp2",
                 simulations, algorithms, statistics, params);
     }
 
@@ -568,7 +568,7 @@ public final class TestGrasp {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp6", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp7", simulations, algorithms, statistics, params);
     }
 
     @Test
@@ -619,7 +619,7 @@ public final class TestGrasp {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGraspForGregDiscrete", simulations, algorithms, statistics, params);
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp7a", simulations, algorithms, statistics, params);
     }
 
     @Test
