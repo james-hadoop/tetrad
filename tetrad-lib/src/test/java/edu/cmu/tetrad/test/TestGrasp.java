@@ -200,13 +200,11 @@ public final class TestGrasp {
         params.set(Params.ALPHA, 0.001);
 
         params.set(Params.GRASP_DEPTH, 3);
-
-        params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.GRASP_CHECK_COVERING, true, false);
         params.set(Params.GRASP_USE_TUCK, true, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true, false);
-        params.set(Params.GRASP_ORDERED_ALG, true, true);
-        params.set(Params.GRASP_USE_SCORE, true, true);
+        params.set(Params.GRASP_ORDERED_ALG, true, false);
+        params.set(Params.GRASP_USE_SCORE, true, false);
         params.set(Params.GRASP_USE_PEARL, true, false);
         params.set(Params.GRASP_USE_DATA_ORDER, false);
 
