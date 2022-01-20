@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Set;
 
 import static java.util.Collections.shuffle;
-import static java.util.Collections.sort;
 
 
 /**
