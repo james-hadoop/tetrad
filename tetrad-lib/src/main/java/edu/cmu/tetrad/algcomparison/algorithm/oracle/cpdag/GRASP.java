@@ -64,12 +64,11 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
             grasp.setUseTuck(parameters.getBoolean(Params.GRASP_USE_TUCK));
             grasp.setBreakAfterImprovement(!parameters.getBoolean(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
             grasp.setOrdered(parameters.getBoolean(Params.GRASP_ORDERED_ALG));
-            grasp.setUseDataOrder(parameters.getBoolean(Params.GRASP_USE_SCORE));
+            grasp.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
+            grasp.setUseDataOrder(parameters.getBoolean(Params.GRASP_USE_DATA_ORDER));
             grasp.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
             grasp.setVerbose(parameters.getBoolean(Params.VERBOSE));
             grasp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
-            grasp.setUseDataOrder(parameters.getBoolean(Params.GRASP_USE_DATA_ORDER));
-            grasp.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
 
             grasp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             grasp.setKnowledge(dataSet.getKnowledge());
