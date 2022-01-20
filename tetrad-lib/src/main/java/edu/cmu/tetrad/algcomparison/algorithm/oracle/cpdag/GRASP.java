@@ -56,31 +56,32 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
             Score score = this.score.getScore(dataSet, parameters);
 
             IndependenceTest test = this.test.getTest(dataSet, parameters, trueGraph);
-
             test.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            Grasp grasp = new Grasp(test, score);
 
-            Grasp boss;
+            grasp.setCheckCovering(parameters.getBoolean(Params.GRASP_CHECK_COVERING));
+            grasp.setUseTuck(parameters.getBoolean(Params.GRASP_USE_TUCK));
+            grasp.setBreakAfterImprovement(!parameters.getBoolean(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
+            grasp.setOrdered(parameters.getBoolean(Params.GRASP_ORDERED_ALG));
+            grasp.setUseDataOrder(parameters.getBoolean(Params.GRASP_USE_SCORE));
+            grasp.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
+            grasp.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            grasp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
+            grasp.setUseDataOrder(parameters.getBoolean(Params.GRASP_USE_DATA_ORDER));
+            grasp.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
 
-            boss = new Grasp(test, score);
-
-            boss.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
-
-            boss.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
-            boss.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            boss.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            boss.setKnowledge(dataSet.getKnowledge());
-            boss.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
-            boss.setDepth(parameters.getInt(Params.GRASP_DEPTH));
-            boss.setUseTuck(parameters.getBoolean(Params.GRASP_USE_TUCK));
+            grasp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            grasp.setKnowledge(dataSet.getKnowledge());
+            grasp.setDepth(parameters.getInt(Params.GRASP_DEPTH));
 
             if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
-                boss.setScoreType(TeyssierScorer.ScoreType.Edge);
+                grasp.setScoreType(TeyssierScorer.ScoreType.Edge);
             } else {
-                boss.setScoreType(TeyssierScorer.ScoreType.SCORE);
+                grasp.setScoreType(TeyssierScorer.ScoreType.SCORE);
             }
 
-            boss.bestOrder(score.getVariables());
-            return boss.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
+            grasp.bestOrder(score.getVariables());
+            return grasp.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
             GRASP algorithm = new GRASP(score, test);
 
@@ -124,16 +125,6 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
 
     @Override
     public List<String> getParameters() {
-//        private boolean checkCovering = false;
-//        private boolean useTuck = false;
-//        private boolean rcgConfig = true;
-//        private boolean ordered = true;
-//        private boolean useScore = true;
-//        private boolean usePearl = true;
-//        private boolean verbose = false;
-//        private boolean cachingScores = true;
-//        private boolean useDataOrder = false;
-
         ArrayList<String> params = new ArrayList<>();
 
         // Flags

@@ -34,7 +34,7 @@ public class Grasp {
     // flags
     private boolean checkCovering = false;
     private boolean useTuck = false;
-    private boolean rcgConfig = true;
+    private boolean breakAfterImprovement = true;
     private boolean ordered = true;
     private boolean useScore = true;
     private boolean usePearl = true;
@@ -98,7 +98,7 @@ public class Grasp {
 
             scorer.score(order);
 
-            List<Node> perm = grasp(scorer);
+            List<Node> perm = ses(scorer);
             scorer.score(perm);
 
             if (scorer.score() > best) {
@@ -141,7 +141,7 @@ public class Grasp {
         }
     }
 
-    public List<Node> grasp(@NotNull TeyssierScorer scorer) {
+    public List<Node> ses(@NotNull TeyssierScorer scorer) {
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
 
@@ -162,9 +162,9 @@ public class Grasp {
             shuffle(ops);
 
             if (ordered) {
-                graspDfsOrdered(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>(), checkCovering);
+                sesDfsOrdered(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>());
             } else {
-                graspDfsUnordered(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>(), checkCovering);
+                sdsDfs(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>());
             }
             sNew = scorer.score();
         } while (sNew > sOld);
@@ -179,8 +179,68 @@ public class Grasp {
         return scorer.getOrder();
     }
 
-    private void graspDfsUnordered(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth, List<int[]> ops, Set<Set<Node>> branchHistory,
-                                   Set<Set<Set<Node>>> dfsHistory, boolean checkCovering) {
+//    private void sesDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+//                        List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory){
+//        for (int[] op : ops) {
+//            Node x = scorer.get(op[0]);
+//            Node y = scorer.get(op[1]);
+//
+//            if (!scorer.adjacent(x, y)) continue;
+//
+//            if (currentDepth > 1 && !scorer.coveredEdge(x, y)) continue; // Uncomment to only tuck on covered edges within DFS
+////            if (!scorer.coveredEdge(x, y)) continue; // Uncomment to only tuck covered edges
+//
+//            Set<Set<Node>> current = new HashSet<>(branchHistory);
+//            Set<Node> adj = new HashSet<>();
+//            adj.add(x);
+//            adj.add(y);
+//
+//            if (current.contains(adj)) continue;
+//            current.add(adj);
+//
+//            if (op[0] < op[1] && scorer.coveredEdge(x, y)) {
+//                if (dfsHistory.contains(current)) continue;
+//                dfsHistory.add(current);
+//            }
+//
+//            scorer.bookmark(currentDepth);
+//            scorer.moveTo(y, op[0]);
+//
+//            if (violatesKnowledge(scorer.getOrder())) {
+//                scorer.goToBookmark(currentDepth);
+//            } else {
+//                double sNew = scorer.score();
+//
+//                if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) { // Uncomment to only DFS on covered edges
+////                if (sNew == sOld && currentDepth < depth && op[0] < op[1]) { // Uncomment to only DFS on forward tucks
+////                if (sNew == sOld && currentDepth < depth) { // Uncomment to DFS on anything
+//                    sesDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
+//                    sNew = scorer.score();
+//                }
+//
+//
+//                if (sNew <= sOld) {
+//                    scorer.goToBookmark(currentDepth);
+//                } else {
+//                    System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
+//                    break; // Uncomment this to break after first improvement
+////                    sOld = sNew; // Uncomment this to run rounds to completion
+////                    dfsHistory.clear(); // Uncomment this to run rounds to completion
+////                    current.clear(); // Uncomment this to run rounds to completion
+//                }
+////
+////                if (sNew <= sOld) {
+////                    scorer.goToBookmark(currentDepth);
+////                } else {
+////                    System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
+////                    break; // Comment this out to run rounds to completion
+////                }
+//            }
+//        }
+//    }
+
+    private void sdsDfs(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth, List<int[]> ops, Set<Set<Node>> branchHistory,
+                        Set<Set<Set<Node>>> dfsHistory) {
         for (int[] op : ops) {
             Node x = scorer.get(op[0]);
             Node y = scorer.get(op[1]);
@@ -214,12 +274,11 @@ public class Grasp {
             } else {
                 float sNew = scorer.score();
 
-                if (rcgConfig) {
+                if (!breakAfterImprovement) {
 //                    if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) { // Uncomment to only DFS on covered edges
 //                    if (sNew == sOld && currentDepth < depth && op[0] < op[1]) { // Uncomment to only DFS on forward tucks
                     if (sNew == sOld && currentDepth < depth) { // Uncomment to DFS on anything
-                        graspDfsUnordered(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory,
-                                checkCovering);
+                        sdsDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
                         sNew = scorer.score();
                     }
                 } else {
@@ -227,8 +286,7 @@ public class Grasp {
                     if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) { // Uncomment to only DFS on covered edges
 //                    if (sNew == sOld && currentDepth < depth && op[0] < op[1]) { // Uncomment to only DFS on forward tucks
 //                    if (sNew == sOld && currentDepth < depth) { // Uncomment to DFS on anything
-                        graspDfsOrdered(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory,
-                                checkCovering);
+                        sesDfsOrdered(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
                         sNew = scorer.score();
                     }
                 }
@@ -241,7 +299,7 @@ public class Grasp {
                         System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
                     }
 
-                    if (rcgConfig) {
+                    if (!breakAfterImprovement) {
                         sOld = sNew; // Uncomment this to run rounds to completion
                         dfsHistory.clear(); // Uncomment this to run rounds to completion
                         current.clear(); // Uncomment this to run rounds to completion
@@ -260,17 +318,16 @@ public class Grasp {
         }
     }
 
-    private void graspDfsOrdered(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth,
-                                 List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory,
-                                 boolean checkCovering) {
-        sOld = graspDfsVisit(scorer, sOld, depth, currentDepth, ops, branchHistory, dfsHistory,
+    private void sesDfsOrdered(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth,
+                               List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory) {
+        sOld = sdsDfsOrderedVisit(scorer, sOld, depth, currentDepth, ops, branchHistory, dfsHistory,
                 true, checkCovering);
-        graspDfsVisit(scorer, sOld, depth, currentDepth, ops, branchHistory, dfsHistory,
+        sdsDfsOrderedVisit(scorer, sOld, depth, currentDepth, ops, branchHistory, dfsHistory,
                 false, checkCovering);
     }
 
-    private float graspDfsVisit(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth, List<int[]> ops, Set<Set<Node>> branchHistory,
-                                Set<Set<Set<Node>>> dfsHistory, boolean doCovered, boolean checkCovered) {
+    private float sdsDfsOrderedVisit(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth, List<int[]> ops, Set<Set<Node>> branchHistory,
+                                     Set<Set<Set<Node>>> dfsHistory, boolean doCovered, boolean checkCovered) {
         for (int[] op : ops) {
             Node x = scorer.get(op[0]);
             Node y = scorer.get(op[1]);
@@ -316,8 +373,7 @@ public class Grasp {
                 if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) { // Uncomment to only DFS on covered edges
 //                    if (sNew == sOld && currentDepth < depth && op[0] < op[1]) { // Uncomment to only DFS on forward tucks
 //                    if (sNew == sOld && currentDepth < depth) { // Uncomment to DFS on anything
-                    graspDfsOrdered(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory,
-                            checkCovered);
+                    sesDfsOrdered(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
                     sNew = scorer.score();
                     sOld = sNew;
                 }
@@ -330,7 +386,7 @@ public class Grasp {
                         System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
                     }
 
-                    if (rcgConfig) {
+                    if (!breakAfterImprovement) {
                         sOld = sNew; // Uncomment this to run rounds to completion
                         dfsHistory.clear(); // Uncomment this to run rounds to completion
                         current.clear(); // Uncomment this to run rounds to completion
@@ -417,8 +473,8 @@ public class Grasp {
         this.useTuck = useTuck;
     }
 
-    public void setRcgConfig(boolean rcgConfig) {
-        this.rcgConfig = rcgConfig;
+    public void setBreakAfterImprovement(boolean breakAfterImprovement) {
+        this.breakAfterImprovement = breakAfterImprovement;
     }
 
     public void setOrdered(boolean ordered) {
@@ -432,6 +488,4 @@ public class Grasp {
     public void setCheckCovering(boolean checkCovering) {
         this.checkCovering = checkCovering;
     }
-
-    public enum Method {GASP, ESP, GRASP, RCG, BOSS1, BOSS2, SP}
 }
