@@ -199,7 +199,7 @@ public final class TestGrasp {
         params.set(Params.EBIC_GAMMA, 1);
         params.set(Params.ALPHA, 0.1, 0.01, 0.001, 0.0001, 0.00001);
 
-        params.set(Params.GRASP_DEPTH, 1, 2, 3);
+//        params.set(Params.GRASP_DEPTH, 1, 2, 3);
 //        params.set(Params.GRASP_CHECK_COVERING, true, false);
 //        params.set(Params.GRASP_USE_TUCK, true, false);
 //        params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true, false);
@@ -216,13 +216,14 @@ public final class TestGrasp {
         simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.ALPHA));
         statistics.add(new ParameterColumn(Params.GRASP_DEPTH));
 //        statistics.add(new ParameterColumn(Params.GRASP_CHECK_COVERING));
 //        statistics.add(new ParameterColumn(Params.GRASP_USE_TUCK));
-        statistics.add(new ParameterColumn(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
+//        statistics.add(new ParameterColumn(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
 //        statistics.add(new ParameterColumn(Params.GRASP_ORDERED_ALG));
 //        statistics.add(new ParameterColumn(Params.GRASP_USE_SCORE));
-//        statistics.add(new ParameterColumn(Params.GRASP_USE_PEARL));
+        statistics.add(new ParameterColumn(Params.GRASP_USE_PEARL));
         statistics.add(new NumberOfEdgesTrue());
         statistics.add(new NumberOfEdgesEst());
         statistics.add(new AdjacencyPrecision());
