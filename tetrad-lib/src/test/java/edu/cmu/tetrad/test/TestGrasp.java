@@ -128,8 +128,8 @@ public final class TestGrasp {
     @Test
     public void testGrasp1() {
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 50);
-        params.set(Params.AVG_DEGREE, 6);
+        params.set(Params.NUM_MEASURES, 20);
+        params.set(Params.AVG_DEGREE, 4);
         params.set(Params.SAMPLE_SIZE, 1000);
         params.set(Params.NUM_RUNS, 10);
         params.set(Params.COEF_LOW, 0);
@@ -141,10 +141,9 @@ public final class TestGrasp {
         params.set(Params.EBIC_GAMMA, 0.8);
         params.set(Params.ALPHA, 0.001);
 
-        params.set(Params.GRASP_DEPTH, 2);
+        params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.NUM_ROUNDS, 50);
 
-        params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.GRASP_CHECK_COVERING, false);
         params.set(Params.GRASP_USE_TUCK, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, false);
@@ -181,6 +180,64 @@ public final class TestGrasp {
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
         comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp1",
+                simulations, algorithms, statistics, params);
+    }
+
+    @Test
+    public void testGraspFlagCombinations() {
+        Parameters params = new Parameters();
+        params.set(Params.NUM_MEASURES, 20);
+        params.set(Params.AVG_DEGREE, 4);
+        params.set(Params.SAMPLE_SIZE, 1000);
+        params.set(Params.NUM_RUNS, 10);
+        params.set(Params.COEF_LOW, 0);
+        params.set(Params.COEF_HIGH, 1);
+        params.set(Params.NUM_STARTS, 1);
+
+        params.set(Params.PENALTY_DISCOUNT, 2);
+        params.set(Params.ZS_RISK_BOUND, 0.001); //, 0.01, 0.1);
+        params.set(Params.EBIC_GAMMA, 1);
+        params.set(Params.ALPHA, 0.001);
+
+        params.set(Params.GRASP_DEPTH, 3);
+
+        params.set(Params.GRASP_DEPTH, 3);
+        params.set(Params.GRASP_CHECK_COVERING, true, false);
+        params.set(Params.GRASP_USE_TUCK, true, false);
+        params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true, false);
+        params.set(Params.GRASP_ORDERED_ALG, true, true);
+        params.set(Params.GRASP_USE_SCORE, true, true);
+        params.set(Params.GRASP_USE_PEARL, true, false);
+        params.set(Params.GRASP_USE_DATA_ORDER, false);
+
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.EbicScore(), new FisherZ()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LinearSemSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.GRASP_CHECK_COVERING));
+        statistics.add(new ParameterColumn(Params.GRASP_USE_TUCK));
+        statistics.add(new ParameterColumn(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
+        statistics.add(new ParameterColumn(Params.GRASP_ORDERED_ALG));
+        statistics.add(new ParameterColumn(Params.GRASP_USE_SCORE));
+        statistics.add(new ParameterColumn(Params.GRASP_USE_PEARL));
+        statistics.add(new NumberOfEdgesTrue());
+        statistics.add(new NumberOfEdgesEst());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(false);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGraspFlagCombinations",
                 simulations, algorithms, statistics, params);
     }
 
