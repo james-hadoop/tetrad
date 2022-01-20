@@ -35,7 +35,6 @@ public class TeyssierScorer {
     private LinkedList<Pair> scores;
     private IKnowledge knowledge = new Knowledge2();
     private LinkedList<Set<Node>> prefixes;
-    private ScoreType scoreType = ScoreType.SCORE;
     private float runningScore = 0F;
 
     private boolean useScore = true;
@@ -67,8 +66,22 @@ public class TeyssierScorer {
         }
     }
 
+    public void setUseScore(boolean useScore) {
+        if (!(this.score instanceof GraphScore)) {
+            this.useScore = useScore;
+        }
+    }
+
+    public void setCachingScores(boolean cachingScores) {
+        this.cachingScores = cachingScores;
+    }
+
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
+    }
+
+    public void setUsePearl(boolean usePearl) {
+        this.usePearl = usePearl;
     }
 
     public float score(List<Node> order) {
@@ -91,36 +104,25 @@ public class TeyssierScorer {
 //        return sum();
     }
 
-    private float sum() {
-        float score = 0;
-
-        for (int i = 0; i < order.size(); i++) {
-            float score1 = scores.get(i).getScore();
-
-//            score += (Float.isNaN(score1) || Float.isInfinite(score1)) ? 0F : score1;
-            score += score1;
-        }
-
-        return score;
-    }
+//    private float sum() {
+//        float score = 0;
+//
+//        for (int i = 0; i < order.size(); i++) {
+//            float score1 = scores.get(i).getScore();
+//
+////            score += (Float.isNaN(score1) || Float.isInfinite(score1)) ? 0F : score1;
+//            score += score1;
+//        }
+//
+//        return score;
+//    }
 
     public void tuck(Node x, Node y) {
-
         if (index(x) < index(y)) {
             moveTo(y, index(x));
         } else if (index(x) > index(y)) {
             moveTo(x, index(y));
         }
-
-//        // x->y
-//        if (getParents(y).contains(x)) {
-//            moveTo(y, index(x));
-//        }
-//
-//        // y -> x
-//        else if (getParents(x).contains(y)) {
-//            moveTo(x, index(y));
-//        }
     }
 
     public void moveTo(Node v, int toIndex) {
@@ -265,7 +267,18 @@ public class TeyssierScorer {
         return edges;
     }
 
-    public Pair pearlParents(int p) {
+    public int getNumEdges() {
+        int numEdges = 0;
+
+        for (int p = 0; p < order.size(); p++) {
+            numEdges += getParents(p).size();
+        }
+
+        return numEdges;
+    }
+
+
+    public Pair getPearlParents(int p) {
         Node x = order.get(p);
         Set<Node> parents = new HashSet<>();
         Set<Node> prefix = getPrefix(p);
@@ -282,25 +295,8 @@ public class TeyssierScorer {
         return new Pair(parents, -parents.size());
     }
 
-    private Pair pearlScore(int p) {
-        Node x = order.get(p);
-        Set<Node> parents = new HashSet<>();
-        Set<Node> prefix = getPrefix(p);
-
-        float s1 = score(x, new HashSet<>(prefix));
-
-        for (Node y : prefix) {
-            List<Node> minus = new ArrayList<>(prefix);
-            minus.remove(y);
-
-            float s2 = score(x, new HashSet<>(minus));
-
-            if (s2 > s1) {
-                parents.add(y);
-            }
-        }
-
-        return new Pair(parents, parents.size());
+    public Node get(int j) {
+        return order.get(j);
     }
 
     public void bookmark(int key) {
@@ -336,32 +332,14 @@ public class TeyssierScorer {
         goToBookmark(Integer.MIN_VALUE);
     }
 
-    public void setCachingScores(boolean cachingScores) {
-        this.cachingScores = cachingScores;
-    }
-
     public int size() {
         return order.size();
-    }
-
-    public int getNumEdges() {
-        int numEdges = 0;
-
-        for (int p = 0; p < order.size(); p++) {
-            numEdges += getParents(p).size();
-        }
-
-        return numEdges;
     }
 
     public void shuffleVariables() {
         order = new LinkedList<>(order);
         shuffle(order);
         score(order);
-    }
-
-    public Node get(int j) {
-        return order.get(j);
     }
 
     public boolean adjacent(Node a, Node c) {
@@ -375,12 +353,6 @@ public class TeyssierScorer {
 
     public boolean triangle(Node x, Node y, Node z) {
         return adjacent(x, y) && adjacent(y, z) && adjacent(x, z);
-    }
-
-    public void setUseScore(boolean useScore) {
-        if (!(this.score instanceof GraphScore)) {
-            this.useScore = useScore;
-        }
     }
 
     public boolean clique(List<Node> W) {
@@ -452,7 +424,6 @@ public class TeyssierScorer {
         }
 
         float v = (float) this.score.localScore(variablesHash.get(n), parentIndices);
-//        v = Math.floor(1.e10 * v) * 1.e-10;
         v = Math.nextDown(v);
 
         if (cachingScores) {
@@ -626,12 +597,7 @@ public class TeyssierScorer {
 
     private Pair getParentsInternal(int p) {
         if (usePearl) {
-//            if (!useScore) {
-            return pearlParents(p);
-//            }
-//            else {
-//                return pearlScore(p);
-//            }
+            return getPearlParents(p);
         } else {
             if (useScore) {
                 return getGrowShrinkScore(p);
@@ -640,14 +606,6 @@ public class TeyssierScorer {
             }
         }
     }
-
-    public void setUsePearl(boolean usePearl) {
-        this.usePearl = usePearl;
-    }
-
-    public enum ScoreType {Edge, SCORE}
-
-    public enum ParentCalculation {GrowShrinkMb, Pearl}
 
     private static class Pair {
         private final Set<Node> parents;
@@ -678,28 +636,5 @@ public class TeyssierScorer {
         }
     }
 
-//    public static class ScoreKey {
-//        private final Set<Node> pi;
-//
-//        public ScoreKey(Set<Node> pi) {
-//            this.pi = new HashSet<>(pi);
-//        }
-//
-//        public int hashCode() {
-//            return 11 * pi.hashCode();
-//        }
-//
-//        public boolean equals(Object o) {
-//            if (!(o instanceof ScoreKey)) {
-//                return false;
-//            }
-//
-//            ScoreKey spec = (ScoreKey) o;
-//            return this.pi.equals(spec.pi);
-//        }
-//
-//        public Set<Node> getPi() {
-//            return pi;
-//        }
-//    }
+    public enum ParentCalculation {GrowShrinkMb, Pearl}
 }
