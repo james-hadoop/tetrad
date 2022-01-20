@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 import static java.util.Collections.shuffle;
+import static java.util.Collections.sort;
 
 
 /**
@@ -238,7 +239,9 @@ public class Grasp {
                 if (sNew <= sOld) {
                     scorer.goToBookmark(currentDepth);
                 } else {
-                    System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
+                    if (verbose) {
+                        System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
+                    }
 
                     if (breakAfterImprovement) {
                         break; // Uncomment this to break after first improvement

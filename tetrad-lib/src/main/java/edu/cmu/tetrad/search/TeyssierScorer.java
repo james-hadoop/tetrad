@@ -122,20 +122,20 @@ public class TeyssierScorer {
      * @return The score of the current permutation.
      */
     public float score() {
-        return runningScore;
-//        return sum();
+//        return runningScore;
+        return sum();
     }
 
-//    private float sum() {
-//        float score = 0;
-//
-//        for (int i = 0; i < order.size(); i++) {
-//            float score1 = scores.get(i).getScore();
-//            score += score1;
-//        }
-//
-//        return score;
-//    }
+    private float sum() {
+        float score = 0;
+
+        for (int i = 0; i < pi.size(); i++) {
+            float score1 = scores.get(i).getScore();
+            score += score1;
+        }
+
+        return score;
+    }
 
     /**
      * Performs a tuck operation. If pi[x] < pi[y], moves y to index of x; otherwise moves x to index of y.
