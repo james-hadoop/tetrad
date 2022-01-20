@@ -31,7 +31,7 @@ public class TeyssierScorer {
     private final Map<Integer, Float> bookmarkedRunningScores = new HashMap<>();
     private Map<Node, Map<Set<Node>, Float>> cache = new HashMap<>();
     private Map<Node, Integer> orderHash;
-    private LinkedList<Node> order;
+    private LinkedList<Node> pi; // The current permutation.
     private LinkedList<Pair> scores;
     private IKnowledge knowledge = new Knowledge2();
     private LinkedList<Set<Node>> prefixes;
@@ -47,16 +47,16 @@ public class TeyssierScorer {
 
         if (score != null) {
             this.variables = score.getVariables();
-            this.order = new LinkedList<>(this.variables);
+            this.pi = new LinkedList<>(this.variables);
         } else if (test != null) {
             this.variables = test.getVariables();
-            this.order = new LinkedList<>(this.variables);
+            this.pi = new LinkedList<>(this.variables);
         } else {
             throw new IllegalArgumentException("Need both a score and a test,");
         }
 
         this.orderHash = new HashMap<>();
-        nodesHash(orderHash, order);
+        nodesHash(orderHash, pi);
 
         this.variablesHash = new HashMap<>();
         nodesHash(variablesHash, variables);
@@ -66,27 +66,46 @@ public class TeyssierScorer {
         }
     }
 
+    /**
+     * @param useScore True if the score should be used; false if the test should be used.
+     */
     public void setUseScore(boolean useScore) {
         if (!(this.score instanceof GraphScore)) {
             this.useScore = useScore;
         }
     }
 
+    /**
+     * @param cachingScores True if scores should be cached (potentially expensive for memory);
+     *                      false if not (potentially expensive for time).
+     */
     public void setCachingScores(boolean cachingScores) {
         this.cachingScores = cachingScores;
     }
 
+    /**
+     * @param knowledge Knowledge of forbidden edges.
+     */
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
     }
 
+    /**
+     * @param usePearl True if Pearl's method for building a DAG should be used.
+     */
     public void setUsePearl(boolean usePearl) {
         this.usePearl = usePearl;
     }
 
+    /**
+     * Scores the given permutation. This needs to be done initially before any move or tuck
+     * operations are performed.
+     * @param order The permutation to score.
+     * @return The score of it.
+     */
     public float score(List<Node> order) {
         runningScore = 0F;
-        this.order = new LinkedList<>(order);
+        this.pi = new LinkedList<>(order);
         this.scores = new LinkedList<>();
 
         for (int i1 = 0; i1 < order.size(); i1++) {
@@ -99,6 +118,9 @@ public class TeyssierScorer {
         return score();
     }
 
+    /**
+     * @return The score of the current permutation.
+     */
     public float score() {
         return runningScore;
 //        return sum();
@@ -115,6 +137,11 @@ public class TeyssierScorer {
 //        return score;
 //    }
 
+    /**
+     * Performs a tuck operation. If pi[x] < pi[y], moves y to index of x; otherwise moves x to index of y.
+     * @param x The first variable.
+     * @param y The second variable.
+     */
     public void tuck(Node x, Node y) {
         if (index(x) < index(y)) {
             moveTo(y, index(x));
@@ -123,8 +150,13 @@ public class TeyssierScorer {
         }
     }
 
+    /**
+     * Moves v to a new index.
+     * @param v The variable to move.
+     * @param toIndex The index to move v to.
+     */
     public void moveTo(Node v, int toIndex) {
-        if (!order.contains(v)) return;
+        if (!pi.contains(v)) return;
 
         int vIndex = index(v);
 
@@ -132,8 +164,8 @@ public class TeyssierScorer {
 
         if (lastMoveSame(vIndex, toIndex)) return;
 
-        order.remove(v);
-        order.add(toIndex, v);
+        pi.remove(v);
+        pi.add(toIndex, v);
 
         if (toIndex < vIndex) {
             updateScores(toIndex, vIndex);
@@ -142,16 +174,22 @@ public class TeyssierScorer {
         }
     }
 
+    /**
+     * Swaps m and n in the permutation.
+     * @param m The first variable.
+     * @param n The second variable.
+     * @return True iff the swap was done.
+     */
     public boolean swap(Node m, Node n) {
         int i = orderHash.get(m);
         int j = orderHash.get(n);
 
-        order.set(i, n);
-        order.set(j, m);
+        pi.set(i, n);
+        pi.set(j, m);
 
-        if (!validKnowledgeOrder(order)) {
-            order.set(i, m);
-            order.set(j, n);
+        if (!validKnowledgeOrder(pi)) {
+            pi.set(i, m);
+            pi.set(j, n);
             return false;
         }
 
@@ -164,6 +202,13 @@ public class TeyssierScorer {
         return true;
     }
 
+    /**
+     * Returns true iff x->y or y->x is a covered edge. x->y is a covered edge if
+     * parents(x) = parents(y) \ {x}
+     * @param x The first variable.
+     * @param y The second variable.
+     * @return True iff x->y or y->x is a covered edge.
+     */
     public boolean coveredEdge(Node x, Node y) {
         if (!adjacent(x, y)) return false;
         Set<Node> px = getParents(x);
@@ -173,14 +218,26 @@ public class TeyssierScorer {
         return px.equals(py);
     }
 
-    public List<Node> getOrder() {
-        return new ArrayList<>(order);
+    /**
+     * @return A copy of the current permutation.
+     */
+    public List<Node> getPi() {
+        return new ArrayList<>(pi);
     }
 
+    /**
+     * Returns the current permutation without making a copy. Could be dangerous!
+     * @return the current permutation.
+     */
     public List<Node> getOrderShallow() {
-        return order;
+        return pi;
     }
 
+    /**
+     * Return the index of v in the current permutation.
+     * @param v The variable.
+     * @return Its index.
+     */
     public int index(Node v) {
         if (!orderHash.containsKey(v)) {
             System.out.println();
@@ -195,18 +252,33 @@ public class TeyssierScorer {
         return integer;
     }
 
+    /**
+     * Returns the parents of the node at index p.
+     * @param p The index of the node.
+     * @return Its parents.
+     */
     public Set<Node> getParents(int p) {
         return new HashSet<>(scores.get(p).getParents());
     }
 
+    /**
+     * Returns the parents of a node v.
+     * @param v The variable.
+     * @return Its parents.
+     */
     public Set<Node> getParents(Node v) {
         return getParents(index(v));
     }
 
+    /**
+     * Returns the nodes adjacent to v.
+     * @param v The variable.
+     * @return Its adjacent nodes.
+     */
     public Set<Node> getAdjacentNodes(Node v) {
         Set<Node> adj = new HashSet<>();
 
-        for (Node w : order) {
+        for (Node w : pi) {
             if (getParents(v).contains(w) || getParents(w).contains(v)) {
                 adj.add(w);
             }
@@ -215,8 +287,13 @@ public class TeyssierScorer {
         return adj;
     }
 
+    /**
+     * Returns the DAG build for the current permutation, or its CPDAG.
+     * @param cpDag True iff the CPDAG should be returned, False if the DAG.
+     * @return This graph.
+     */
     public Graph getGraph(boolean cpDag) {
-        List<Node> order = getOrder();
+        List<Node> order = getPi();
         Graph G1 = new EdgeListGraph(variables);
 
         for (int p = 0; p < order.size(); p++) {
@@ -234,8 +311,12 @@ public class TeyssierScorer {
         }
     }
 
+    /**
+     * Returns a list of adjacent node pairs in the current graph.
+     * @return This list.
+     */
     public List<NodePair> getAdjacencies() {
-        List<Node> order = getOrder();
+        List<Node> order = getPi();
         Set<NodePair> pairs = new HashSet<>();
 
         for (int i = 0; i < order.size(); i++) {
@@ -252,8 +333,12 @@ public class TeyssierScorer {
         return new ArrayList<>(pairs);
     }
 
+    /**
+     * Returns a list of edges for the current graph as a list of ordered pairs.
+     * @return This list.
+     */
     public List<OrderedPair<Node>> getEdges() {
-        List<Node> order = getOrder();
+        List<Node> order = getPi();
         List<OrderedPair<Node>> edges = new ArrayList<>();
 
         for (Node y : order) {
@@ -265,60 +350,72 @@ public class TeyssierScorer {
         return edges;
     }
 
+    /**
+     * @return The number of edges in the current graph.
+     */
     public int getNumEdges() {
         int numEdges = 0;
 
-        for (int p = 0; p < order.size(); p++) {
+        for (int p = 0; p < pi.size(); p++) {
             numEdges += getParents(p).size();
         }
 
         return numEdges;
     }
 
-
-    public Pair getPearlParents(int p) {
-        Node x = order.get(p);
-        Set<Node> parents = new HashSet<>();
-        Set<Node> prefix = getPrefix(p);
-
-        for (Node y : prefix) {
-            Set<Node> minus = new HashSet<>(prefix);
-            minus.remove(y);
-
-            if (test.isDependent(x, y, new ArrayList<>(minus))) {
-                parents.add(y);
-            }
-        }
-
-        return new Pair(parents, -parents.size());
-    }
-
+    /**
+     * Returns the node at index j in pi.
+     * @param j The index.
+     * @return The node at that index.
+     */
     public Node get(int j) {
-        return order.get(j);
+        return pi.get(j);
     }
 
+    /**
+     * Bookmarks the current pi as index key.
+     * @param key This bookmark may be retrieved using the index 'key', an integer.
+     *            This bookmark will be stored until it is retrieved and then removed.
+     */
     public void bookmark(int key) {
-        bookmarkedOrders.put(key, new LinkedList<>(order));
+        bookmarkedOrders.put(key, new LinkedList<>(pi));
         bookmarkedScores.put(key, new LinkedList<>(scores));
         bookmarkedRunningScores.put(key, runningScore);
         bookmarkedOrderHashes.put(key, new HashMap<>(orderHash));
     }
 
+    /**
+     * Bookmarks the current pi with index Integer.MIN_VALUE.
+     */
     public void bookmark() {
         bookmark(Integer.MIN_VALUE);
     }
 
+    /**
+     * Retrieves the bookmarked state for index 'key' and removes that bookmark.
+     * @param key The integer key for this bookmark.
+     */
     public void goToBookmark(int key) {
         if (!bookmarkedOrders.containsKey(key)) {
             throw new IllegalArgumentException("That key was not bookmarked recently.");
         }
 
-        order = bookmarkedOrders.remove(key);
+        pi = bookmarkedOrders.remove(key);
         scores = bookmarkedScores.remove(key);
         runningScore = bookmarkedRunningScores.remove(key);
         orderHash = bookmarkedOrderHashes.remove(key);
     }
 
+    /**
+     * Retries the bookmark with key = Integer.MIN_VALUE and removes the bookmark.
+     */
+    public void goToBookmark() {
+        goToBookmark(Integer.MIN_VALUE);
+    }
+
+    /**
+     * Clears all bookmarks.
+     */
     public void clearBookmarks() {
         bookmarkedOrders.clear();
         bookmarkedScores.clear();
@@ -326,33 +423,60 @@ public class TeyssierScorer {
         bookmarkedOrderHashes.clear();
     }
 
-    public void goToBookmark() {
-        goToBookmark(Integer.MIN_VALUE);
-    }
-
+    /**
+     * @return The size of pi, the current permutation.
+     */
     public int size() {
-        return order.size();
+        return pi.size();
     }
 
+    /**
+     * Shuffles the current permutation and rescores it.
+     */
     public void shuffleVariables() {
-        order = new LinkedList<>(order);
-        shuffle(order);
-        score(order);
+        pi = new LinkedList<>(pi);
+        shuffle(pi);
+        score(pi);
     }
 
-    public boolean adjacent(Node a, Node c) {
-        if (a == c) return false;
-        return getParents(a).contains(c) || getParents(c).contains(a);
+    /**
+     * Returns True iff a is adjacent to b in the current graph.
+     * @param a The first node.
+     * @param b The second node.
+     * @return True iff adj(a, b).
+     */
+    public boolean adjacent(Node a, Node b) {
+        if (a == b) return false;
+        return getParents(a).contains(b) || getParents(b).contains(a);
     }
 
+    /**
+     * Returns true iff [a, b, c] is a collider.
+     * @param a The first node.
+     * @param b The second node.
+     * @param c The third node.
+     * @return True iff a->b<-c in the current DAG.
+     */
     public boolean collider(Node a, Node b, Node c) {
         return getParents(b).contains(a) && getParents(b).contains(c);
     }
 
-    public boolean triangle(Node x, Node y, Node z) {
-        return adjacent(x, y) && adjacent(y, z) && adjacent(x, z);
+    /**
+     * Returns true iff [a, b, c] is a triangle.
+     * @param a The first node.
+     * @param b The second node.
+     * @param c The third node.
+     * @return True iff adj(a, b) & adj(b, c) & adj(a, c).
+     */
+    public boolean triangle(Node a, Node b, Node c) {
+        return adjacent(a, b) && adjacent(b, c) && adjacent(a, c);
     }
 
+    /**
+     * True iff the nodes in W form a clique in the current DAG.
+     * @param W The nodes.
+     * @return True iff these nodes form a clique.
+     */
     public boolean clique(List<Node> W) {
         for (int i = 0; i < W.size(); i++) {
             for (int j = i + 1; j < W.size(); j++) {
@@ -365,6 +489,12 @@ public class TeyssierScorer {
         return true;
     }
 
+    /**
+     * A convenience method to reset the score cache if it becomes larger than a certain
+     * size.
+     * @param maxSize The maximum size of the score cache; it the if the score cache is
+     *                larger than this it will be cleared.
+     */
     public void resetCacheIfTooBig(int maxSize) {
         if (cache.size() > maxSize) {
             cache = new HashMap<>();
@@ -386,20 +516,20 @@ public class TeyssierScorer {
     }
 
     private void initializeScores() {
-        for (int i1 = 0; i1 < order.size(); i1++) this.prefixes.set(i1, null);
+        for (int i1 = 0; i1 < pi.size(); i1++) this.prefixes.set(i1, null);
 
-        for (int i = 0; i < order.size(); i++) {
+        for (int i = 0; i < pi.size(); i++) {
             recalculate(i);
-            orderHash.put(order.get(i), i);
+            orderHash.put(pi.get(i), i);
         }
 
-        updateScores(0, order.size() - 1);
+        updateScores(0, pi.size() - 1);
     }
 
     private void updateScores(int i1, int i2) {
         for (int i = i1; i <= i2; i++) {
             recalculate(i);
-            orderHash.put(order.get(i), i);
+            orderHash.put(pi.get(i), i);
         }
     }
 
@@ -436,7 +566,7 @@ public class TeyssierScorer {
         Set<Node> prefix = new HashSet<>();
 
         for (int j = 0; j < i; j++) {
-            prefix.add(order.get(j));
+            prefix.add(pi.get(j));
         }
 
         return prefix;
@@ -480,7 +610,7 @@ public class TeyssierScorer {
 
     @NotNull
     private Pair getGrowShrinkScore(int p) {
-        Node n = order.get(p);
+        Node n = pi.get(p);
 
         Set<Node> parents = new HashSet<>();
         boolean changed = true;
@@ -552,7 +682,7 @@ public class TeyssierScorer {
     }
 
     private Pair getGrowShrinkIndependent(int p) {
-        Node n = order.get(p);
+        Node n = pi.get(p);
 
         Set<Node> parents = new HashSet<>();
 
@@ -603,6 +733,28 @@ public class TeyssierScorer {
                 return getGrowShrinkIndependent(p);
             }
         }
+    }
+
+    /**
+     * Returns the parents of the node at index p, calculated using Pearl's method.
+     * @param p The index.
+     * @return The parents, as a Pair object (parents + score).
+     */
+    private Pair getPearlParents(int p) {
+        Node x = pi.get(p);
+        Set<Node> parents = new HashSet<>();
+        Set<Node> prefix = getPrefix(p);
+
+        for (Node y : prefix) {
+            Set<Node> minus = new HashSet<>(prefix);
+            minus.remove(y);
+
+            if (test.isDependent(x, y, new ArrayList<>(minus))) {
+                parents.add(y);
+            }
+        }
+
+        return new Pair(parents, -parents.size());
     }
 
     private static class Pair {

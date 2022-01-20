@@ -129,7 +129,7 @@ public class SepsetsTeyssier implements SepsetProducer {
 
     @Override
     public List<Node> getVariables() {
-        return scorer.getOrder();
+        return scorer.getPi();
     }
 
     @Override

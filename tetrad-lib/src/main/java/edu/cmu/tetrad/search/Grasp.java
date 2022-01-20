@@ -104,7 +104,7 @@ public class Grasp {
         long stop = System.currentTimeMillis();
 
         if (verbose) {
-            System.out.println("Final order = " + scorer.getOrder());
+            System.out.println("Final order = " + scorer.getPi());
             System.out.println("Elapsed time = " + (stop - start) / 1000.0 + " s");
         }
 
@@ -182,7 +182,7 @@ public class Grasp {
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
-        return scorer.getOrder();
+        return scorer.getPi();
     }
 
     private void sesDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
@@ -214,7 +214,7 @@ public class Grasp {
             scorer.bookmark(currentDepth);
             scorer.moveTo(y, op[0]);
 
-            if (violatesKnowledge(scorer.getOrder())) {
+            if (violatesKnowledge(scorer.getPi())) {
                 scorer.goToBookmark(currentDepth);
             } else {
                 double sNew = scorer.score();

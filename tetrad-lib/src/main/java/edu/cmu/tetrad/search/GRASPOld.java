@@ -78,7 +78,7 @@ public class GRASPOld {
         long stop = System.currentTimeMillis();
 
         if (verbose) {
-            System.out.println("Final order = " + scorer.getOrder());
+            System.out.println("Final order = " + scorer.getPi());
             System.out.println("Elapsed time = " + (stop - start) / 1000.0 + " s");
         }
 
@@ -139,7 +139,7 @@ public class GRASPOld {
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
-        return scorer.getOrder();
+        return scorer.getPi();
     }
 
 
@@ -170,7 +170,7 @@ public class GRASPOld {
             scorer.bookmark(currentDepth);
             scorer.moveTo(y, op[0]);
 
-            if (violatesKnowledge(scorer.getOrder())) {
+            if (violatesKnowledge(scorer.getPi())) {
                 scorer.goToBookmark(currentDepth);
             } else {
                 double sNew = scorer.score();

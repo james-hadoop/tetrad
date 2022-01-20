@@ -125,7 +125,7 @@ public class OtherPermAlgs {
         long stop = System.currentTimeMillis();
 
         if (verbose) {
-            System.out.println("Final order = " + scorer.getOrder());
+            System.out.println("Final order = " + scorer.getPi());
             System.out.println("Elapsed time = " + (stop - start) / 1000.0 + " s");
         }
 
@@ -175,7 +175,7 @@ public class OtherPermAlgs {
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
-        return scorer.getOrder();
+        return scorer.getPi();
     }
 
     public List<Node> gasp(@NotNull TeyssierScorer scorer) {
@@ -198,7 +198,7 @@ public class OtherPermAlgs {
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
-        return scorer.getOrder();
+        return scorer.getPi();
 
     }
 
@@ -223,7 +223,7 @@ public class OtherPermAlgs {
 
             List<OrderedPair<Node>> pairs = new ArrayList<>();
 
-            for (Node y : scorer.getOrder()) {
+            for (Node y : scorer.getPi()) {
                 for (Node x : scorer.getParents(y)) {
                     pairs.add(new OrderedPair<>(x, y));
                 }
@@ -349,14 +349,14 @@ public class OtherPermAlgs {
         }
 
         scorer.goToBookmark(1);
-        return scorer.getOrder();
+        return scorer.getPi();
     }
 
     public List<Node> sp(@NotNull TeyssierScorer scorer) {
         float maxScore = Float.NEGATIVE_INFINITY;
         List<Node> maxP = null;
 
-        List<Node> variables = scorer.getOrder();
+        List<Node> variables = scorer.getPi();
         PermutationGenerator gen = new PermutationGenerator(variables.size());
         int[] perm;
 
@@ -449,10 +449,10 @@ public class OtherPermAlgs {
 
     private void espDfs(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth) {
         for (int i = 0; i < scorer.size() - 1; i++) {
-            List<Node> pi = scorer.getOrder();
+            List<Node> pi = scorer.getPi();
             scorer.swap(scorer.get(i), scorer.get(i + 1));
 
-            if (violatesKnowledge(scorer.getOrder())) {
+            if (violatesKnowledge(scorer.getPi())) {
                 scorer.score(pi);
                 continue;
             }
@@ -482,7 +482,7 @@ public class OtherPermAlgs {
             scorer.tuck(x, y);
 //            System.out.println(scorer.getOrder() + " score = " + scorer.getNumEdges());
 
-            if (violatesKnowledge(scorer.getOrder())) {
+            if (violatesKnowledge(scorer.getPi())) {
                 scorer.goToBookmark(currentDepth);
                 continue;
             }
