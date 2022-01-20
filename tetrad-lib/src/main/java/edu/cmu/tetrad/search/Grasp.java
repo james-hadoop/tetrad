@@ -172,7 +172,7 @@ public class Grasp {
                 });
             }
 
-            sesDfs(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>());
+            graspDfs(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>());
             sNew = scorer.score();
         } while (sNew > sOld);
 
@@ -186,7 +186,7 @@ public class Grasp {
         return scorer.getPi();
     }
 
-    private void sesDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+    private void graspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
                         List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory) {
         for (int[] op : ops) {
             Node x = scorer.get(op[0]);
@@ -197,18 +197,19 @@ public class Grasp {
 
             if (currentDepth > 1 && !scorer.coveredEdge(x, y))
                 continue; // Uncomment to only tuck on covered edges within DFS
-//            if (!scorer.coveredEdge(x, y)) continue; // Uncomment to only tuck covered edges
 
             Set<Set<Node>> current = new HashSet<>(branchHistory);
             Set<Node> adj = new HashSet<>();
             adj.add(x);
             adj.add(y);
 
-            if (current.contains(adj)) continue;
+            if (current.contains(adj))
+                continue; // Uncomment to prevent tucks between variables that have already been tucked
             current.add(adj);
 
             if (op[0] < op[1] && scorer.coveredEdge(x, y)) {
-                if (dfsHistory.contains(current)) continue;
+                if (dfsHistory.contains(current))
+                    continue; // Uncomment to prevent sets of tucks that have already been performed (possibly in a different order)
                 dfsHistory.add(current);
             }
 
@@ -220,20 +221,9 @@ public class Grasp {
             } else {
                 double sNew = scorer.score();
 
-                if (breakAfterImprovement) {
-                    if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) { // Uncomment to only DFS on covered edges
-//                    if (sNew == sOld && currentDepth < depth && op[0] < op[1]) { // Uncomment to only DFS on forward tucks
-//                    if (sNew == sOld && currentDepth < depth) { // Uncomment to DFS on anything
-                        sesDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
-                        sNew = scorer.score();
-                    }
-                } else {
-//                    if (sNew == sOld && currentDepth < depth && dfsHistory.contains(current)) { // Uncomment to only DFS on covered edges
-//                    if (sNew == sOld && currentDepth < depth && op[0] < op[1]) { // Uncomment to only DFS on forward tucks
-                    if (sNew == sOld && currentDepth < depth) { // Uncomment to DFS on anything
-                        sesDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
-                        sNew = scorer.score();
-                    }
+                if (sNew == sOld && currentDepth < depth) {
+                    graspDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
+                    sNew = scorer.score();
                 }
 
                 if (sNew <= sOld) {
@@ -244,20 +234,13 @@ public class Grasp {
                     }
 
                     if (breakAfterImprovement) {
-                        break; // Uncomment this to break after first improvement
+                        break;
                     } else {
-                        sOld = sNew; // Uncomment this to run rounds to completion
-                        dfsHistory.clear(); // Uncomment this to run rounds to completion
-                        current.clear(); // Uncomment this to run rounds to completion
+                        sOld = sNew;
+                        dfsHistory.clear();
+                        current.clear();
                     }
                 }
-//
-//                if (sNew <= sOld) {
-//                    scorer.goToBookmark(currentDepth);
-//                } else {
-//                    System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", scorer.getNumEdges(), sNew - sOld, current);
-//                    break; // Comment this out to run rounds to completion
-//                }
             }
         }
     }
