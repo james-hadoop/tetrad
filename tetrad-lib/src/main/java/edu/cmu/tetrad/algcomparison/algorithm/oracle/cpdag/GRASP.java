@@ -60,6 +60,7 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
             test.setVerbose(parameters.getBoolean(Params.VERBOSE));
             Grasp grasp = new Grasp(test, score);
 
+            grasp.setDepth(parameters.getInt(Params.GRASP_DEPTH));
             grasp.setCheckCovering(parameters.getBoolean(Params.GRASP_CHECK_COVERING));
             grasp.setUseTuck(parameters.getBoolean(Params.GRASP_USE_TUCK));
             grasp.setBreakAfterImprovement(!parameters.getBoolean(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
@@ -72,7 +73,6 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
 
             grasp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             grasp.setKnowledge(dataSet.getKnowledge());
-            grasp.setDepth(parameters.getInt(Params.GRASP_DEPTH));
             grasp.bestOrder(score.getVariables());
             return grasp.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
@@ -122,11 +122,11 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
 
         // Flags
         params.add(Params.GRASP_DEPTH);
-        params.add(Params.GRASP_CHECK_COVERING);
-        params.add(Params.GRASP_USE_TUCK);
-        params.add(Params.GRASP_BREAK_AFTER_IMPROVEMENT);
-        params.add(Params.GRASP_ORDERED_ALG);
-        params.add(Params.GRASP_USE_SCORE);
+//        params.add(Params.GRASP_CHECK_COVERING);
+//        params.add(Params.GRASP_USE_TUCK);
+//        params.add(Params.GRASP_BREAK_AFTER_IMPROVEMENT);
+//        params.add(Params.GRASP_ORDERED_ALG);
+//        params.add(Params.GRASP_USE_SCORE);
         params.add(Params.GRASP_USE_PEARL);
 //        params.add(Params.GRASP_USE_DATA_ORDER);
 //        params.add(Params.CACHE_SCORES);
