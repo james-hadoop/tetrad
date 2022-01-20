@@ -67,13 +67,6 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             search.setGspDepth(parameters.getInt(Params.GRASP_DEPTH));
             search.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
             search.setQuickGraphDoFinalGrasp(parameters.getBoolean(Params.RCG_DO_FINAL_GRAPH));
-
-            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
-                search.setScoreType(TeyssierScorer.ScoreType.Edge);
-            } else {
-                search.setScoreType(TeyssierScorer.ScoreType.SCORE);
-            }
-
             search.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
 
             Object obj = parameters.get(Params.PRINT_STREAM);

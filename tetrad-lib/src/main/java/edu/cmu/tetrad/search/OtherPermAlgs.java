@@ -29,7 +29,6 @@ public class OtherPermAlgs {
     private IndependenceTest test;
     private int numStarts = 1;
     private Method method = Method.GSP;
-    private TeyssierScorer.ScoreType scoreType = TeyssierScorer.ScoreType.Edge;
     private IKnowledge knowledge = new Knowledge2();
     private int depth = 4;
     private TeyssierScorer scorer;
@@ -407,10 +406,6 @@ public class OtherPermAlgs {
 
     public List<Node> getVariables() {
         return this.variables;
-    }
-
-    public void setScoreType(TeyssierScorer.ScoreType scoreType) {
-        this.scoreType = scoreType;
     }
 
     public boolean isVerbose() {

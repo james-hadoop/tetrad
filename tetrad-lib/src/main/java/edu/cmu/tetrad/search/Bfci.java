@@ -66,7 +66,6 @@ public final class Bfci implements GraphSearch {
     private boolean cacheScores;
     private int numStarts;
     private OtherPermAlgs.Method method;
-    private TeyssierScorer.ScoreType scoreType;
     private boolean useScore = true;
     private int triangleDepth = 0;
     private int numRounds = 10;
@@ -102,7 +101,6 @@ public final class Bfci implements GraphSearch {
         }
 
         otherPermAlgs.setMethod(OtherPermAlgs.Method.RCG);
-        otherPermAlgs.setScoreType(scoreType);
         otherPermAlgs.setCacheScores(cacheScores);
         otherPermAlgs.setDepth(gspDepth);
         otherPermAlgs.setNumRounds(numRounds);
@@ -405,14 +403,6 @@ public final class Bfci implements GraphSearch {
 
     public void setMethod(OtherPermAlgs.Method method) {
         this.method = method;
-    }
-
-    public TeyssierScorer.ScoreType getScoreType() {
-        return scoreType;
-    }
-
-    public void setScoreType(TeyssierScorer.ScoreType scoreType) {
-        this.scoreType = scoreType;
     }
 
     public void setUseScore(boolean useScore) {

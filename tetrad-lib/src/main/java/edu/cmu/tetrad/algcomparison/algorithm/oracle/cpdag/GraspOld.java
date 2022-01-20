@@ -59,12 +59,6 @@ public class GraspOld implements Algorithm, UsesScoreWrapper {
             grasp.setDepth(parameters.getInt(Params.GRASP_DEPTH));
             grasp.setUseTuck(parameters.getBoolean(Params.GRASP_USE_TUCK));
 
-            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
-                grasp.setScoreType(TeyssierScorer.ScoreType.Edge);
-            } else {
-                grasp.setScoreType(TeyssierScorer.ScoreType.SCORE);
-            }
-
             grasp.bestOrder(score.getVariables());
             return grasp.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {

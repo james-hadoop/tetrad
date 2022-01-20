@@ -27,7 +27,6 @@ public class GRASPOld {
     private boolean cachingScores = true;
     private int numStarts = 1;
     private boolean verbose = false;
-    private TeyssierScorer.ScoreType scoreType = TeyssierScorer.ScoreType.Edge;
     private IKnowledge knowledge = new Knowledge2();
     private boolean useDataOrder = false;
     private int depth = 4;
@@ -214,10 +213,6 @@ public class GRASPOld {
 
     public List<Node> getVariables() {
         return this.variables;
-    }
-
-    public void setScoreType(TeyssierScorer.ScoreType scoreType) {
-        this.scoreType = scoreType;
     }
 
     public boolean isVerbose() {

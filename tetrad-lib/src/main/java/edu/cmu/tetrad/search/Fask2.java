@@ -216,7 +216,6 @@ public final class Fask2 implements GraphSearch {
         TetradLogger.getInstance().forceLogMessage("");
 
         OtherPermAlgs otherPermAlgs = new OtherPermAlgs(score);
-        otherPermAlgs.setScoreType(TeyssierScorer.ScoreType.SCORE);
         otherPermAlgs.setMethod(OtherPermAlgs.Method.RCG);
         otherPermAlgs.setNumRounds(numRounds);
         otherPermAlgs.setDepth(depth);

@@ -15,7 +15,6 @@ import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.search.OtherPermAlgs;
 import edu.cmu.tetrad.search.Score;
-import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -98,12 +97,6 @@ public class OTHER_PERM_ALGS implements Algorithm, UsesScoreWrapper, TakesIndepe
             otherPermAlgs.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
             otherPermAlgs.setDepth(parameters.getInt(Params.GRASP_DEPTH));
             otherPermAlgs.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
-
-            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
-                otherPermAlgs.setScoreType(TeyssierScorer.ScoreType.Edge);
-            } else {
-                otherPermAlgs.setScoreType(TeyssierScorer.ScoreType.SCORE);
-            }
 
             otherPermAlgs.bestOrder(score.getVariables());
             return otherPermAlgs.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
