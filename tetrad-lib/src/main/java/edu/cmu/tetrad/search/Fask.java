@@ -222,7 +222,6 @@ public final class Fask implements GraphSearch {
             G = fas.search();
         } else if (adjacencyMethod == AdjacencyMethod.FAS_STABLE_CONCURRENT) {
             Grasp otherPermAlgs = new Grasp(new LinearGaussianBicScore(dataSet));
-            otherPermAlgs.setScoreType(TeyssierScorer.ScoreType.Edge);
             otherPermAlgs.setKnowledge(knowledge);
             List<Node> order = otherPermAlgs.bestOrder(variables);
             G = otherPermAlgs.getGraph(false);

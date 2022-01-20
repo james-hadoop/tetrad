@@ -6,7 +6,10 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.util.Collections.shuffle;
 
@@ -14,18 +17,15 @@ import static java.util.Collections.shuffle;
 /**
  * Implements the GRASP algorithms, with various execution flags.
  *
- * @author josephramsey
  * @author bryanandrews
+ * @author josephramsey
  */
 public class Grasp {
     private final List<Node> variables;
     private Score score;
     private IndependenceTest test;
-    private TeyssierScorer.ScoreType scoreType = TeyssierScorer.ScoreType.Edge;
     private IKnowledge knowledge = new Knowledge2();
     private TeyssierScorer scorer;
-    private int depth = 4;
-    private int numStarts = 1;
     private long start;
 
     // flags
@@ -38,6 +38,10 @@ public class Grasp {
     private boolean verbose = false;
     private boolean cachingScores = true;
     private boolean useDataOrder = false;
+
+    // other params
+    private int depth = 4;
+    private int numStarts = 1;
 
     public Grasp(@NotNull Score score) {
         this.score = score;
@@ -60,23 +64,16 @@ public class Grasp {
     public List<Node> bestOrder(@NotNull List<Node> order) {
         long start = System.currentTimeMillis();
 
-        if (useScore && !(score instanceof GraphScore)) {
-            scorer = new TeyssierScorer(test, score);
-            scorer.setUseScore(true);
-            scorer.setUsePearl(usePearl);
-        } else {
-            scorer = new TeyssierScorer(test, score);
-            scorer.setUsePearl(usePearl);
+        scorer = new TeyssierScorer(test, score);
+        scorer.setUsePearl(usePearl);
 
-            if (usePearl) {
-                scorer.setUseScore(false);
-            } else {
-                scorer.setUseScore(useScore);
-            }
+        if (usePearl) {
+            scorer.setUseScore(false);
+        } else {
+            scorer.setUseScore(useScore && !(score instanceof GraphScore));
         }
 
         scorer.setKnowledge(knowledge);
-        scorer.setScoreType(scoreType);
         scorer.clearBookmarks();
 
         scorer.setCachingScores(cachingScores);
@@ -195,6 +192,7 @@ public class Grasp {
             Node y = scorer.get(op[1]);
 
             if (!scorer.adjacent(x, y)) continue;
+            if (checkCovering && !scorer.coveredEdge(x, y)) continue;
 
             if (currentDepth > 1 && !scorer.coveredEdge(x, y))
                 continue; // Uncomment to only tuck on covered edges within DFS
@@ -279,10 +277,6 @@ public class Grasp {
 
     public List<Node> getVariables() {
         return this.variables;
-    }
-
-    public void setScoreType(TeyssierScorer.ScoreType scoreType) {
-        this.scoreType = scoreType;
     }
 
     public boolean isVerbose() {

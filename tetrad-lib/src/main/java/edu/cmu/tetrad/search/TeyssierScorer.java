@@ -360,10 +360,6 @@ public class TeyssierScorer {
         score(order);
     }
 
-    public void setScoreType(ScoreType scoreType) {
-        this.scoreType = scoreType;
-    }
-
     public Node get(int j) {
         return order.get(j);
     }
@@ -579,12 +575,10 @@ public class TeyssierScorer {
             }
         }
 
-        if (scoreType == ScoreType.Edge) {
-            return new Pair(parents, -parents.size());
-        } else if (scoreType == ScoreType.SCORE) {
+        if (useScore) {
             return new Pair(parents, Float.isNaN(sMax) ? Float.POSITIVE_INFINITY : sMax);
         } else {
-            throw new IllegalStateException("Unexpected score type: " + scoreType);
+            return new Pair(parents, -parents.size());
         }
     }
 

@@ -48,7 +48,6 @@ public class GRASPOld {
         scorer.setUsePearl(false);
 
         scorer.setKnowledge(knowledge);
-        scorer.setScoreType(scoreType);
         scorer.clearBookmarks();
 
         scorer.setCachingScores(cachingScores);

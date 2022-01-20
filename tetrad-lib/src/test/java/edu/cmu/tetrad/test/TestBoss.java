@@ -926,7 +926,6 @@ public final class TestBoss {
                 for (OtherPermAlgs.Method method : methods) {
                     Grasp grasp = new Grasp(test);
                     grasp.setCacheScores(true);
-                    grasp.setScoreType(TeyssierScorer.ScoreType.Edge);
                     grasp.setNumStarts(1);
                     grasp.setUseDataOrder(true);
 

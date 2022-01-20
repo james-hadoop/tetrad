@@ -79,7 +79,6 @@ public class OtherPermAlgs {
         }
 
         scorer.setKnowledge(knowledge);
-        scorer.setScoreType(scoreType);
         scorer.clearBookmarks();
 
         scorer.setCachingScores(cachingScores);

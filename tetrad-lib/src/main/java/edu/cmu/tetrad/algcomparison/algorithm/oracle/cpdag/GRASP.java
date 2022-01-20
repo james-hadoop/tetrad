@@ -24,7 +24,8 @@ import java.util.List;
 /**
  * BOSS (Best Order Score Search).
  *
- * @author jdramsey
+ * @author bryanandrews
+ * @author josephramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
         name = "GRASP",
@@ -73,13 +74,6 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
             grasp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             grasp.setKnowledge(dataSet.getKnowledge());
             grasp.setDepth(parameters.getInt(Params.GRASP_DEPTH));
-
-            if (parameters.getBoolean(Params.BOSS_SCORE_TYPE)) {
-                grasp.setScoreType(TeyssierScorer.ScoreType.Edge);
-            } else {
-                grasp.setScoreType(TeyssierScorer.ScoreType.SCORE);
-            }
-
             grasp.bestOrder(score.getVariables());
             return grasp.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
