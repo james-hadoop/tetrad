@@ -812,48 +812,59 @@ public final class TestGrasp {
     @Test
     public void bryanCheckDensityClaim3() {
 
-        List<Node> nodes = new ArrayList<>();
+        List<Node> _nodes = new ArrayList<>();
         Node x0 = new ContinuousVariable("0");
         Node x1 = new ContinuousVariable("1");
         Node x2 = new ContinuousVariable("2");
         Node x3 = new ContinuousVariable("3");
         Node x4 = new ContinuousVariable("4");
 
-        nodes.add(x0);
-        nodes.add(x1);
-        nodes.add(x2);
-        nodes.add(x3);
-        nodes.add(x4);
+        _nodes.add(x0);
+        _nodes.add(x1);
+        _nodes.add(x2);
+        _nodes.add(x3);
+        _nodes.add(x4);
+
+        List<Node> nodes = Collections.unmodifiableList(_nodes);
 
 
         try {
+//            File file = new File("/Users/josephramsey/Downloads/out (1).txt");
             File file = new File("/Users/josephramsey/Downloads/dsmc_5.txt");
             System.out.println(file.getAbsolutePath());
             FileReader in1 = new FileReader(file);
             BufferedReader in = new BufferedReader(in1);
             String line;
             int index = 0;
+            int indexed = 0;
+            int numFailures = 0;
 
             while ((line = in.readLine()) != null) {
-                String[] tokens = line.split(",");
                 index++;
+                System.out.println("line " + index + " " + line);
+                line = line.trim();
 
-//                if (index != 4) continue;
+//                if (index != 66) continue;
+
+                String[] tokens = line.split(",");
 
                 IndependenceFacts facts = new IndependenceFacts();
+//                System.out.println(nodes);
 
                 for (String token : tokens) {
-                    Node x = nodes.get(Integer.parseInt(token.substring(0, 1)));
-                    Node y = nodes.get(Integer.parseInt(token.substring(1, 2)));
+                    Node x = nodes.get(Integer.parseInt(token.substring(0, 1).trim()) - indexed);
+                    Node y = nodes.get(Integer.parseInt(token.substring(1, 2).trim()) - indexed);
 
                     List<Node> z = new ArrayList<>();
 
                     for (int i = 2; i < token.length(); i++) {
-                        z.add(nodes.get(Integer.parseInt(token.substring(i, i + 1))));
+                        z.add(nodes.get(Integer.parseInt(token.substring(i, i + 1)) - indexed));
                     }
 
                     IndependenceFact fact = new IndependenceFact(x, y, z);
                     facts.add(fact);
+
+//                    System.out.println("Added " + fact + " now " + facts);
                 }
 
                 facts.setNodes(nodes);
@@ -862,7 +873,8 @@ public final class TestGrasp {
                 alg.setMethod(OtherPermAlgs.Method.SP);
 
                 List<Node> p2 = alg.bestOrder(nodes);
-                int frugal = alg.getGraph(true).getNumEdges();
+                Graph frugalCpdag = alg.getGraph(true);
+                int frugal = frugalCpdag.getNumEdges();
 
                 PermutationGenerator gen = new PermutationGenerator(nodes.size());
                 int[] perm;
@@ -878,33 +890,41 @@ public final class TestGrasp {
                     grasp.setUsePearl(true);
                     grasp.setUseDataOrder(true);
                     grasp.setDepth(5);
-                    grasp.setCheckCovering(false);
-                    grasp.setUseTuck(false);
+//                    grasp.setCheckCovering(false);
+//                    grasp.setUseTuck(false);
                     grasp.setBreakAfterImprovement(false);
                     grasp.setOrdered(true);
                     grasp.setVerbose(false);
 
                     grasp.bestOrder(pi);
-                    int est = grasp.getGraph(true).getNumEdges();
+                    Graph estGraph = grasp.getGraph(false);
+                    int est = estGraph.getNumEdges();
 
                     if (est == frugal) {
                         pis.add(pi);
                         ests.put(pi, est);
                     } else {
-                        System.out.println("\t\t\tFailing permutation: " + pi + " est = " + est + " frugal = " + frugal);
+                        System.out.println("Facts = " + facts);
+                        System.out.println("Failing permutation: " + pi + " |est| = " + est + " |frugal| = " + frugal);
+                        System.out.println("Estimated DAG = " + estGraph);
+                        System.out.println("Frugal CPDAG = " + frugalCpdag);
+                        break;
                     }
                 }
 
                 if (!pis.isEmpty()) {
-                    System.out.println("Index " + index);// + ": " + facts);
-
                     for (List<Node> pi : pis) {
                         int _est = ests.get(pi);
                     }
-                } else {
-                    System.out.println("\t\tIndex " + index);
+                }
+                else {
+                    numFailures++;
                 }
             }
+
+            in.close();
+
+            System.out.println("\n\n# Failures = " + numFailures);
         } catch (Exception e) {
             e.printStackTrace();
         }

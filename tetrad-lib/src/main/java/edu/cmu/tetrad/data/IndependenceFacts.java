@@ -28,10 +28,7 @@ import edu.cmu.tetrad.search.IndTestDSep;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.PermutationGenerator;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Stores a list of independence facts.
@@ -42,10 +39,9 @@ public class IndependenceFacts implements DataModel {
     static final long serialVersionUID = 23L;
     private List<Node> nodes;
 
-    private Set<IndependenceFact> unsortedFacts = new HashSet<>();
+    private Set<IndependenceFact> unsortedFacts = new LinkedHashSet<>();
     private String name = "";
     private IKnowledge knowledge = new Knowledge2();
-    private List<Node> order;
 
     public IndependenceFacts() {
         // blank, used in reflection so don't delete.
@@ -91,7 +87,6 @@ public class IndependenceFacts implements DataModel {
         this.unsortedFacts = new HashSet<>(facts.unsortedFacts);
         this.name = facts.name;
         this.knowledge = facts.knowledge.copy();
-        this.order = new ArrayList<>(facts.order);
         this.nodes = new ArrayList<>(facts.nodes);
     }
 
@@ -186,9 +181,9 @@ public class IndependenceFacts implements DataModel {
             variables.addAll(fact.getZ());
         }
 
-        if (order != null) {
-            if (new HashSet<>(variables).equals(new HashSet<>(order))) {
-                return order;
+        if (nodes != null) {
+            if (new HashSet<>(variables).equals(new HashSet<>(nodes))) {
+                return nodes;
             } else {
                 throw new IllegalArgumentException("The supplied order is not precisely for the variables in the facts.");
             }
@@ -208,12 +203,8 @@ public class IndependenceFacts implements DataModel {
         return names;
     }
 
-    public void setOrder(List<Node> order) {
-        this.order = order;
-    }
-
     public void setNodes(List<Node> nodes) {
-        this.nodes = nodes;
+        this.nodes = Collections.unmodifiableList(nodes);
     }
 
     public int size() {

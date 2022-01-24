@@ -195,8 +195,8 @@ public class Grasp {
             if (!scorer.adjacent(x, y)) continue;
             if (checkCovering && !scorer.coveredEdge(x, y)) continue;
 
-            if (currentDepth > 1 && !scorer.coveredEdge(x, y))
-                continue; // Uncomment to only tuck on covered edges within DFS
+//            if (currentDepth > 1 && !scorer.coveredEdge(x, y))
+//                continue; // Uncomment to only tuck on covered edges within DFS
 
             Set<Set<Node>> current = new HashSet<>(branchHistory);
             Set<Node> adj = new HashSet<>();

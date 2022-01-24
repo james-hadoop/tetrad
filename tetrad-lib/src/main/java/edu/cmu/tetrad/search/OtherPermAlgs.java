@@ -59,7 +59,8 @@ public class OtherPermAlgs {
         this.variables = new ArrayList<>(test.getVariables());
     }
 
-    public List<Node> bestOrder(@NotNull List<Node> order) {
+    public List<Node> bestOrder(@NotNull List<Node> _order) {
+        List<Node> order = new ArrayList<>(_order);
         long start = System.currentTimeMillis();
 
         if (useScore && !(score instanceof GraphScore)) {
