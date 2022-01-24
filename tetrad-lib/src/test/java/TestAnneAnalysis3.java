@@ -1,10 +1,12 @@
 import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.graph.Edges;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.Fges;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -89,16 +91,13 @@ public class TestAnneAnalysis3 {
 
                         Fges fges = new Fges(score, 1);
 
-//                            System.out.println(cov);
-
                         Graph estCpdag = fges.search();
-
-//                        System.out.println(estCpdag);
-
 
                         for (int j = 0; j < vars.size(); j++) {
                             for (int i = 0; i < vars.size(); i++) {
-                                if (estCpdag.isAdjacentTo(vars.get(j), vars.get(i))) {
+                                if (estCpdag.isAdjacentTo(vars.get(j), vars.get(i)) &&
+                                        (Edges.isUndirectedEdge(estCpdag.getEdge(vars.get(j), vars.get(i)))
+                                                || estCpdag.isParentOf(vars.get(j), vars.get(i)))) {
                                     out.print("1");
                                 } else {
                                     out.print("0");
@@ -117,6 +116,53 @@ public class TestAnneAnalysis3 {
                     out.close();
                 } catch (IOException e) {
                     e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testSample() {
+        List<Node> vars = new ArrayList<>();
+        Node x1 = new ContinuousVariable("1");
+        Node x2 = new ContinuousVariable("2");
+        Node x3 = new ContinuousVariable("3");
+        Node x4 = new ContinuousVariable("4");
+        Node x5 = new ContinuousVariable("5");
+
+        vars.add(x1);
+        vars.add(x2);
+        vars.add(x3);
+        vars.add(x4);
+        vars.add(x5);
+
+        Graph estCpdag = new EdgeListGraph(vars);
+        estCpdag.addDirectedEdge(x2, x1);
+        estCpdag.addDirectedEdge(x3, x1);
+        estCpdag.addDirectedEdge(x4, x1);
+        estCpdag.addDirectedEdge(x5, x1);
+        estCpdag.addUndirectedEdge(x2, x4);
+        estCpdag.addUndirectedEdge(x3, x4);
+        estCpdag.addUndirectedEdge(x2, x3);
+        estCpdag.addUndirectedEdge(x2, x5);
+        estCpdag.addUndirectedEdge(x3, x5);
+
+        PrintStream out = System.out;
+
+        System.out.println(estCpdag);
+
+        for (int j = 0; j < vars.size(); j++) {
+            for (int i = 0; i < vars.size(); i++) {
+                if (estCpdag.isAdjacentTo(vars.get(j), vars.get(i)) &&
+                        (Edges.isUndirectedEdge(estCpdag.getEdge(vars.get(j), vars.get(i)))
+                                || estCpdag.isParentOf(vars.get(j), vars.get(i)))) {
+                    out.print("1");
+                } else {
+                    out.print("0");
+                }
+
+                if (!(i == vars.size() - 1 && j == vars.size() - 1)) {
+                    out.print(" ");
                 }
             }
         }
