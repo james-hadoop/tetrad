@@ -58,11 +58,13 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static edu.cmu.tetrad.search.OtherPermAlgs.Method.GSP;
 import static edu.cmu.tetrad.search.OtherPermAlgs.Method.SP;
 import static java.util.Collections.shuffle;
 
@@ -340,7 +342,7 @@ public final class TestGrasp {
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new SHD_CPDAG());
+        statistics.add(new SHD());
         statistics.add(new F1Adj());
         statistics.add(new ElapsedTime());
 
@@ -394,7 +396,7 @@ public final class TestGrasp {
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new SHD_CPDAG());
+        statistics.add(new SHD());
         statistics.add(new F1All());
         statistics.add(new ElapsedTime());
 
@@ -450,7 +452,7 @@ public final class TestGrasp {
         statistics.add(new ArrowheadRecall());
         statistics.add(new AdjacencyTPR());
         statistics.add(new AdjacencyFPR());
-        statistics.add(new SHD_CPDAG());
+        statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
@@ -510,7 +512,7 @@ public final class TestGrasp {
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new AdjacencyTPR());
         statistics.add(new AdjacencyFPR());
-        statistics.add(new SHD_CPDAG());
+        statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
@@ -564,7 +566,7 @@ public final class TestGrasp {
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new AdjacencyTPR());
         statistics.add(new AdjacencyFPR());
-        statistics.add(new SHD_CPDAG());
+        statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
@@ -615,7 +617,7 @@ public final class TestGrasp {
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new AdjacencyTPR());
         statistics.add(new AdjacencyFPR());
-        statistics.add(new SHD_CPDAG());
+        statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
@@ -666,7 +668,7 @@ public final class TestGrasp {
         statistics.add(new ArrowheadRecallCommonEdges());
         statistics.add(new AdjacencyTPR());
         statistics.add(new AdjacencyFPR());
-        statistics.add(new SHD_CPDAG());
+        statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
@@ -678,37 +680,234 @@ public final class TestGrasp {
     }
 
     @Test
-    public void wayneCheckDensityClaim() {
-        Graph g = GraphUtils.randomGraph(20, 0, 40,
-                100, 100, 100, false);
-        LinearSemPm pm = new LinearSemPm(g);
-        LinearSemIm im = new LinearSemIm(pm);
-        DataSet d = im.simulateData(1000, false);
+    public void wayneCheckDensityClaim1() {
+        int count1 = 0;
 
-        EbicScore score = new EbicScore(d);
-        score.setGamma(0.8);
+        for (int i = 0; i < 100; i++) {
 
-        List<Node> pi = new ArrayList<>(score.getVariables());
+            Graph g = GraphUtils.randomGraph(20, 0, 40,
+                    100, 100, 100, false);
+            LinearSemPm pm = new LinearSemPm(g);
+            LinearSemIm im = new LinearSemIm(pm);
+            DataSet d = im.simulateData(1000, false);
 
-        OtherPermAlgs gasp = new OtherPermAlgs(score);
+            IndependenceTest test = new IndTestFisherZ(d, 0.00001);
 
-        gasp.setUsePearl(true);
-        gasp.setUseScore(true);
-        gasp.setUseDataOrder(true);
-        gasp.setVerbose(false);
+            List<Node> pi = new ArrayList<>(test.getVariables());
 
-        gasp.setMethod(GSP);
-        gasp.setDepth(2);
-        gasp.bestOrder(pi);
-        Graph estCpdagGasp = gasp.getGraph(true);
+            Grasp grasp = new Grasp(test);
 
-        gasp.bestOrder(pi);
-        Graph estCpdagGrasp = gasp.getGraph(true);
+            grasp.setUsePearl(true);
+            grasp.setUseDataOrder(true);
+            grasp.setUseTuck(true);
+            grasp.setBreakAfterImprovement(true);
+            grasp.setOrdered(false);
+            grasp.setCheckCovering(true);
 
-        if (estCpdagGasp.getNumEdges() < estCpdagGrasp.getNumEdges()) {
-            System.out.println("TRUE");
+            grasp.setVerbose(false);
+
+            grasp.setDepth(3);
+            grasp.bestOrder(pi);
+            Graph estCpdagGasp = grasp.getGraph(true);
+
+            grasp.setCheckCovering(false);
+            grasp.setOrdered(true);
+            grasp.bestOrder(pi);
+            Graph estCpdagGrasp = grasp.getGraph(true);
+
+            if (estCpdagGasp.getNumEdges() < estCpdagGrasp.getNumEdges()) {
+                count1++;
+                System.out.println("TRUE");
+            } else {
+                System.out.println("False");
+            }
         }
 
+        System.out.println(count1);
+    }
+
+    @Test
+    public void wayneCheckDensityClaim2() {
+        List<Ret> allFacts = new ArrayList<>();
+
+        // Only oracle unfaithful examples.
+        allFacts.add(getFactsSimpleCanceling());
+        allFacts.add(wayneTriangleFaithfulnessFailExample());
+        allFacts.add(wayneTriMutationFailsForFaithfulGraphExample());
+        allFacts.add(getFigure7());
+        allFacts.add(getFigure8());
+        allFacts.add(getFigure11());
+        allFacts.add(wayneExample2());
+
+        int count = 0;
+
+        boolean verbose = false;
+        int numRounds = 50;
+        int depth = 5;
+        int maxPermSize = 6;
+
+        boolean printCpdag = false;
+
+        for (int i = 0; i < allFacts.size(); i++) {
+            Ret facts = allFacts.get(i);
+            count++;
+
+            System.out.println();
+            System.out.println("Test #" + (i + 1));
+            System.out.println(facts.getLabel());
+            System.out.println(facts.getFacts());
+        }
+
+        for (int i = 0; i < allFacts.size(); i++) {
+            boolean passed = true;
+
+            Ret facts = allFacts.get(i);
+            count++;
+
+            TeyssierScorer scorer = new TeyssierScorer(new IndTestDSep(facts.getFacts()),
+                    new GraphScore(facts.getFacts()));
+
+            OrderedMap<String, Set<Graph>> graphs = new ListOrderedMap<>();
+            OrderedMap<String, Set<String>> labels = new ListOrderedMap<>();
+
+            List<Node> variables = facts.facts.getVariables();
+            Collections.sort(variables);
+
+            PermutationGenerator gen = new PermutationGenerator(variables.size());
+            int[] perm;
+            int count1 = 0;
+            int total = 0;
+
+            while ((perm = gen.next()) != null) {
+                List<Node> pi = GraphUtils.asList(perm, variables);
+
+                Grasp grasp = new Grasp(new IndTestDSep(facts.getFacts()));
+
+                grasp.setUsePearl(true);
+                grasp.setUseDataOrder(true);
+                grasp.setDepth(100);
+                grasp.setCheckCovering(false);
+                grasp.setUseTuck(true);
+                grasp.setBreakAfterImprovement(true);
+                grasp.setOrdered(true);
+                grasp.setVerbose(false);
+
+                grasp.bestOrder(pi);
+                Graph estCpdagGrasp = grasp.getGraph(true);
+
+                if (estCpdagGrasp.getNumEdges() == facts.truth) {
+                    count1++;
+                } else {
+                    System.out.println("Counterexample: Test #" + (i + 1) + " Permutation = " + pi + " #Edges = "
+                            + estCpdagGrasp.getNumEdges() + " #Frugal = " + facts.truth);
+                }
+
+                total++;
+            }
+
+            System.out.println("Test #" + (i + 1) + " #Frugal = " + count1 + " Total #Permutations = " + total);
+        }
+    }
+
+    @Test
+    public void bryanCheckDensityClaim3() {
+
+        List<Node> nodes = new ArrayList<>();
+        Node x0 = new ContinuousVariable("0");
+        Node x1 = new ContinuousVariable("1");
+        Node x2 = new ContinuousVariable("2");
+        Node x3 = new ContinuousVariable("3");
+        Node x4 = new ContinuousVariable("4");
+
+        nodes.add(x0);
+        nodes.add(x1);
+        nodes.add(x2);
+        nodes.add(x3);
+        nodes.add(x4);
+
+
+        try {
+            File file = new File("/Users/josephramsey/Downloads/dsmc_5.txt");
+            System.out.println(file.getAbsolutePath());
+            FileReader in1 = new FileReader(file);
+            BufferedReader in = new BufferedReader(in1);
+            String line;
+            int index = 0;
+
+            while ((line = in.readLine()) != null) {
+                String[] tokens = line.split(",");
+                index++;
+
+//                if (index != 4) continue;
+
+                IndependenceFacts facts = new IndependenceFacts();
+
+                for (String token : tokens) {
+                    Node x = nodes.get(Integer.parseInt(token.substring(0, 1)));
+                    Node y = nodes.get(Integer.parseInt(token.substring(1, 2)));
+
+                    List<Node> z = new ArrayList<>();
+
+                    for (int i = 2; i < token.length(); i++) {
+                        z.add(nodes.get(Integer.parseInt(token.substring(i, i + 1))));
+                    }
+
+                    IndependenceFact fact = new IndependenceFact(x, y, z);
+                    facts.add(fact);
+                }
+
+                facts.setNodes(nodes);
+
+                OtherPermAlgs alg = new OtherPermAlgs(new IndTestDSep(facts));
+                alg.setMethod(OtherPermAlgs.Method.SP);
+
+                List<Node> p2 = alg.bestOrder(nodes);
+                int frugal = alg.getGraph(true).getNumEdges();
+
+                PermutationGenerator gen = new PermutationGenerator(nodes.size());
+                int[] perm;
+
+                List<List<Node>> pis = new ArrayList<>();
+                Map<List<Node>, Integer> ests = new HashMap<>();
+
+                while ((perm = gen.next()) != null) {
+                    List<Node> pi = GraphUtils.asList(perm, nodes);
+
+                    Grasp grasp = new Grasp(new IndTestDSep(facts));
+
+                    grasp.setUsePearl(true);
+                    grasp.setUseDataOrder(true);
+                    grasp.setDepth(5);
+                    grasp.setCheckCovering(false);
+                    grasp.setUseTuck(false);
+                    grasp.setBreakAfterImprovement(false);
+                    grasp.setOrdered(true);
+                    grasp.setVerbose(false);
+
+                    grasp.bestOrder(pi);
+                    int est = grasp.getGraph(true).getNumEdges();
+
+                    if (est == frugal) {
+                        pis.add(pi);
+                        ests.put(pi, est);
+                    } else {
+                        System.out.println("\t\t\tFailing permutation: " + pi + " est = " + est + " frugal = " + frugal);
+                    }
+                }
+
+                if (!pis.isEmpty()) {
+                    System.out.println("Index " + index);// + ": " + facts);
+
+                    for (List<Node> pi : pis) {
+                        int _est = ests.get(pi);
+                    }
+                } else {
+                    System.out.println("\t\tIndex " + index);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -756,7 +955,7 @@ public final class TestGrasp {
             statistics.add(new ArrowheadRecallCommonEdges());
             statistics.add(new AdjacencyTPR());
             statistics.add(new AdjacencyFPR());
-            statistics.add(new SHD_CPDAG());
+            statistics.add(new SHD());
             statistics.add(new ElapsedTime());
 
             Comparison comparison = new Comparison();
@@ -809,7 +1008,7 @@ public final class TestGrasp {
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
         statistics.add(new F1Adj());
-        statistics.add(new SHD_CPDAG());
+        statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
@@ -867,7 +1066,7 @@ public final class TestGrasp {
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new SHD_CPDAG());
+        statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
@@ -956,7 +1155,7 @@ public final class TestGrasp {
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new SHD_CPDAG());
+        statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
@@ -1026,7 +1225,7 @@ public final class TestGrasp {
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
         statistics.add(new NumberOfEdgesTrue());
         statistics.add(new NumberOfEdgesEst());
-        statistics.add(new SHD_CPDAG());
+        statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
         Simulations simulations = new Simulations();
@@ -1978,7 +2177,6 @@ public final class TestGrasp {
             grasp.bestOrder(test.getVariables());
             Graph frugal = other;
             System.out.println("SP " + frugal);
-
 
             System.out.println("\n-----\n");
 

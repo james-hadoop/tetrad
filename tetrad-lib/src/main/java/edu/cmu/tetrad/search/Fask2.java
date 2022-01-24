@@ -94,8 +94,8 @@ public final class Fask2 implements GraphSearch {
     private final DataSet dataSet;
     // Used for calculating coefficient values.
     private final RegressionDataset regressionDataset;
-    double[][] D;
     private final Score score;
+    double[][] D;
     // An initial graph to constrain the adjacency step.
     private Graph externalGraph = null;
     // Elapsed time of the search, in milliseconds.
@@ -215,15 +215,12 @@ public final class Fask2 implements GraphSearch {
         TetradLogger.getInstance().forceLogMessage("2-cycle threshold = " + twoCycleScreeningCutoff);
         TetradLogger.getInstance().forceLogMessage("");
 
-        OtherPermAlgs otherPermAlgs = new OtherPermAlgs(score);
-        otherPermAlgs.setMethod(OtherPermAlgs.Method.RCG);
-        otherPermAlgs.setNumRounds(numRounds);
-        otherPermAlgs.setDepth(depth);
-        otherPermAlgs.setKnowledge(knowledge);
-        otherPermAlgs.setVerbose(verbose);
-
-        otherPermAlgs.bestOrder(dataSet.getVariables());
-        Graph G = otherPermAlgs.getGraph(false);
+        Grasp grasp = new Grasp(score);
+        grasp.setUsePearl(false);
+        grasp.setUseTuck(false);
+        grasp.setCheckCovering(false);
+        grasp.bestOrder(dataSet.getVariables());
+        Graph G = grasp.getGraph(false);
         G = GraphUtils.replaceNodes(G, dataSet.getVariables());
 
         TetradLogger.getInstance().forceLogMessage("");

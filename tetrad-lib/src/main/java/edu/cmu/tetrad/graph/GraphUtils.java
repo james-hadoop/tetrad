@@ -3947,7 +3947,11 @@ public final class GraphUtils {
 
                 sb.append(key);
                 sb.append(": ");
-                sb.append(String.format("%f%n", value));
+                if (value instanceof String) {
+                    sb.append(value);
+                } else if (value instanceof Number) {
+                    sb.append(String.format("%f%n", ((Number) value).doubleValue()));
+                }
             }
 
             return sb.toString();

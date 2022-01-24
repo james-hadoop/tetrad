@@ -2271,31 +2271,88 @@ public final class SearchGraphUtils {
         return cpdag;
     }
 
-    private static int structuralHammingDistanceOneEdge(Node l1, Node l2, Graph trueGraph, Graph estGraph) {
-        Edge e1 = trueGraph.getEdge(l1, l2);
-        Edge e2 = estGraph.getEdge(l1, l2);
+    /**
+     * Tsamardinos, I., Brown, L. E., & Aliferis, C. F. (2006). The max-min hill-climbing Bayesian network structure
+     * learning algorithm. Machine learning, 65(1), 31-78.
+     * <p>
+     * Converts each graph (DAG or CPDAG) into its CPDAG before scoring.
+     */
+    public static int structuralHammingDistance(Graph trueGraph, Graph estGraph) {
+        int shd = 0;
 
-        if (noEdge(e1) && undirected(e2)) {
-            return 1;
-        } else if (noEdge(e2) && undirected(e1)) {
-            return 1;
-        } else if (noEdge(e1) && directed(e2)) {
-            return 2;
-        } else if (noEdge(e2) && directed(e1)) {
-            return 2;
-        } else if (undirected(e1) && directed(e2)) {
-            return 1;
-        } else if (undirected(e2) && directed(e1)) {
-            return 1;
-        } else if (directed(e1) && directed(e2)) {
-            if (Edges.getDirectedEdgeHead(e1) == Edges.getDirectedEdgeTail(e2)) {
-                return 1;
+        try {
+            estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
+            trueGraph = SearchGraphUtils.cpdagForDag(trueGraph);
+            estGraph = SearchGraphUtils.cpdagForDag(estGraph);
+
+            // Will check mixedness later.
+            if (trueGraph.existsDirectedCycle()) {
+                TetradLogger.getInstance().forceLogMessage("SHD failed: True graph couldn't be converted to a CPDAG");
             }
-        } else if (bidirected(e1) || bidirected(e2)) {
-            return 2;
+
+            if (estGraph.existsDirectedCycle()) {
+                TetradLogger.getInstance().forceLogMessage("SHD failed: Estimated graph couldn't be converted to a CPDAG");
+                return -99;
+            }
+
+            List<Node> _allNodes = estGraph.getNodes();
+
+            for (int i1 = 0; i1 < _allNodes.size(); i1++) {
+                for (int i2 = i1 + 1; i2 < _allNodes.size(); i2++) {
+                    Node n1 = _allNodes.get(i1);
+                    Node n2 = _allNodes.get(i2);
+
+                    Edge e1 = trueGraph.getEdge(n1, n2);
+                    Edge e2 = estGraph.getEdge(n1, n2);
+
+                    if (e1 != null && !(Edges.isDirectedEdge(e1) || Edges.isUndirectedEdge(e1))) {
+                        TetradLogger.getInstance().forceLogMessage("SHD failed: True graph couldn't be converted to a CPDAG");
+                        return -99;
+                    }
+
+                    if (e2 != null && !(Edges.isDirectedEdge(e2) || Edges.isUndirectedEdge(e2))) {
+                        TetradLogger.getInstance().forceLogMessage("SHD failed: Estimated graph couldn't be converted to a CPDAG");
+                        return -99;
+                    }
+
+                    int error = structuralHammingDistanceOneEdge(e1, e2);
+                    shd += error;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        return 0;
+        return shd;
+    }
+
+    private static int structuralHammingDistanceOneEdge(Edge e1, Edge e2) {
+        int error = 0;
+
+        if (!(e1 == null && e2 == null)) {
+            if (e1 != null && e2 != null) {
+                if (!e1.equals(e2)) {
+                    System.out.println("Difference " + e1 + " " + e2);
+                    error++;
+                }
+            } else if (e2 == null) {
+                if (Edges.isUndirectedEdge(e1)) {
+                    error++;
+                } else {
+                    error++;
+                    error++;
+                }
+            } else {
+                if (Edges.isUndirectedEdge(e2)) {
+                    error++;
+                } else {
+                    error++;
+                    error++;
+                }
+            }
+        }
+
+        return error;
     }
 
     private static boolean directed(Edge e2) {
@@ -2314,24 +2371,6 @@ public final class SearchGraphUtils {
         return e1 == null;
     }
 
-    public static int structuralHammingDistance(Graph trueGraph, Graph estGraph) {
-        int error = 0;
-
-        estGraph = GraphUtils.replaceNodes(estGraph, trueGraph.getNodes());
-        List<Node> _allNodes = estGraph.getNodes();
-
-        for (int i1 = 0; i1 < _allNodes.size(); i1++) {
-            for (int i2 = i1 + 1; i2 < _allNodes.size(); i2++) {
-                Node n1 = _allNodes.get(i1);
-                Node n2 = _allNodes.get(i2);
-
-                int shd = structuralHammingDistanceOneEdge(n1, n2, trueGraph, estGraph);
-                error += shd;
-            }
-        }
-
-        return error;
-    }
 
     public static GraphUtils.GraphComparison getGraphComparison(Graph graph, Graph trueGraph) {
         graph = GraphUtils.replaceNodes(graph, trueGraph.getNodes());

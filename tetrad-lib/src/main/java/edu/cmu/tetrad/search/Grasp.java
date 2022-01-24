@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static java.util.Collections.addAll;
 import static java.util.Collections.shuffle;
 
 
@@ -93,7 +92,24 @@ public class Grasp {
 
             scorer.score(order);
 
-            List<Node> perm = ses(scorer);
+            List<Node> perm;
+
+            if (ordered) {
+                boolean _checkCovering = checkCovering;
+                boolean _useTuck = useTuck;
+                setCheckCovering(true);
+                setUseTuck(true);
+                grasp(scorer);
+                setCheckCovering(false);
+                grasp(scorer);
+                setUseTuck(false);
+                perm = grasp(scorer);
+                setUseTuck(_useTuck);
+                setCheckCovering(_checkCovering);
+            } else {
+                perm = grasp(scorer);
+            }
+
             scorer.score(perm);
 
             if (scorer.score() > best) {
@@ -136,7 +152,7 @@ public class Grasp {
         }
     }
 
-    public List<Node> ses(@NotNull TeyssierScorer scorer) {
+    public List<Node> grasp(@NotNull TeyssierScorer scorer) {
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
 
@@ -155,22 +171,6 @@ public class Grasp {
         do {
             sOld = sNew;
             shuffle(ops);
-
-            if (ordered) {
-                ops.sort((o1, o2) -> {
-                    Node x1 = scorer.get(o1[0]);
-                    Node y1 = scorer.get(o1[1]);
-                    Node x2 = scorer.get(o2[0]);
-                    Node y2 = scorer.get(o2[1]);
-
-                    boolean covered1 = scorer.coveredEdge(x1, y1);
-                    boolean covered2 = scorer.coveredEdge(x2, y2);
-
-                    if (covered1 && !covered2) return 1;
-                    else if (covered2 && !covered1) return -1;
-                    else return 0;
-                });
-            }
 
             graspDfs(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>());
             sNew = scorer.score();

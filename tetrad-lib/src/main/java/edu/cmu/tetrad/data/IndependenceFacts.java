@@ -211,6 +211,14 @@ public class IndependenceFacts implements DataModel {
     public void setOrder(List<Node> order) {
         this.order = order;
     }
+
+    public void setNodes(List<Node> nodes) {
+        this.nodes = nodes;
+    }
+
+    public int size() {
+        return unsortedFacts.size();
+    }
 }
 
 
