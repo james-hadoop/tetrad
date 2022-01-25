@@ -210,6 +210,10 @@ public class IndependenceFacts implements DataModel {
     public int size() {
         return unsortedFacts.size();
     }
+
+    public List<IndependenceFact> getFacts() {
+        return new ArrayList<>(unsortedFacts);
+    }
 }
 
 
