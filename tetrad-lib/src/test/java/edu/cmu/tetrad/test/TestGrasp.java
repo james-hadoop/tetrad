@@ -810,7 +810,7 @@ public final class TestGrasp {
     }
 
     @Test
-    public void bryanCheckDensityClaim3() {
+    public void bryanCheckDensityClaims() {
 
         List<Node> _nodes = new ArrayList<>();
         Node x0 = new ContinuousVariable("0");
@@ -837,19 +837,17 @@ public final class TestGrasp {
             String line;
             int index = 0;
             int indexed = 0;
-            int numFailures = 0;
 
             while ((line = in.readLine()) != null) {
                 index++;
-                System.out.println("line " + index + " " + line);
+//                System.out.println("line " + index + " " + line);
                 line = line.trim();
 
-//                if (index != 66) continue;
+                if (index != 18) continue;
 
                 String[] tokens = line.split(",");
 
                 IndependenceFacts facts = new IndependenceFacts();
-//                System.out.println(nodes);
 
                 for (String token : tokens) {
                     Node x = nodes.get(Integer.parseInt(token.substring(0, 1).trim()) - indexed);
@@ -863,8 +861,6 @@ public final class TestGrasp {
 
                     IndependenceFact fact = new IndependenceFact(x, y, z);
                     facts.add(fact);
-
-//                    System.out.println("Added " + fact + " now " + facts);
                 }
 
                 facts.setNodes(nodes);
@@ -887,29 +883,33 @@ public final class TestGrasp {
 
                     Grasp grasp = new Grasp(new IndTestDSep(facts));
 
-                    grasp.setUsePearl(true);
+                    grasp.setUsePearl(false);
+                    grasp.setUseScore(false);
                     grasp.setUseDataOrder(true);
                     grasp.setDepth(5);
-//                    grasp.setCheckCovering(false);
-//                    grasp.setUseTuck(false);
+                    grasp.setCheckCovering(false);
+                    grasp.setUseTuck(false);
                     grasp.setBreakAfterImprovement(false);
                     grasp.setOrdered(true);
                     grasp.setVerbose(false);
+                    grasp.setCacheScores(false);
 
-                    grasp.bestOrder(pi);
+                    List<Node> bestOrder = grasp.bestOrder(pi);
                     Graph estGraph = grasp.getGraph(false);
                     int est = estGraph.getNumEdges();
 
-                    if (est == frugal) {
-                        pis.add(pi);
-                        ests.put(pi, est);
-                    } else {
+//                    if (est == frugal) {
+//                        pis.add(pi);
+//                        ests.put(pi, est);
+//                    } else {
                         System.out.println("Facts = " + facts);
-                        System.out.println("Failing permutation: " + pi + " |est| = " + est + " |frugal| = " + frugal);
+                        System.out.println("Failing initial permutation: " + pi + " |est| = " + est + " |frugal| = " + frugal);
+                        System.out.println("Failing GRASP(false, false) 'best order' permutation: " + bestOrder);
+                        System.out.println("Frugal SP permutation = " + p2);
                         System.out.println("Estimated DAG = " + estGraph);
-                        System.out.println("Frugal CPDAG = " + frugalCpdag);
+                        System.out.println("Frugal SP CPDAG = " + frugalCpdag);
                         break;
-                    }
+//                    }
                 }
 
                 if (!pis.isEmpty()) {
@@ -917,14 +917,9 @@ public final class TestGrasp {
                         int _est = ests.get(pi);
                     }
                 }
-                else {
-                    numFailures++;
-                }
             }
 
             in.close();
-
-            System.out.println("\n\n# Failures = " + numFailures);
         } catch (Exception e) {
             e.printStackTrace();
         }

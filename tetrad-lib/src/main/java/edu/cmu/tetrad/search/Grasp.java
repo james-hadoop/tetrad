@@ -152,16 +152,24 @@ public class Grasp {
         }
     }
 
+    double sNew = Double.NaN;
+    double sOld = Double.NaN;
+
     public List<Node> grasp(@NotNull TeyssierScorer scorer) {
+//        if (true) {
+//            return grasp2(scorer);
+//        }
+
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
 
-        double sNew = scorer.score();
-        double sOld;
+        if (Double.isNaN(sNew)) {
+            sNew = scorer.score();
+        }
 
         List<int[]> ops = new ArrayList<>();
         for (int i = 0; i < scorer.size(); i++) {
-            for (int j = (useTuck ? i + 1 : 0); j < scorer.size(); j++) {
+            for (int j = (/*useTuck ? i + 1 :*/ 0); j < scorer.size(); j++) {
                 if (i != j) {
                     ops.add(new int[]{i, j});
                 }
@@ -171,7 +179,6 @@ public class Grasp {
         do {
             sOld = sNew;
             shuffle(ops);
-
             graspDfs(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>());
             sNew = scorer.score();
         } while (sNew > sOld);
@@ -219,7 +226,7 @@ public class Grasp {
             if (violatesKnowledge(scorer.getPi())) {
                 scorer.goToBookmark(currentDepth);
             } else {
-                double sNew = scorer.score();
+                sNew = scorer.score();
 
                 if (sNew == sOld && currentDepth < depth) {
                     graspDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
@@ -239,6 +246,121 @@ public class Grasp {
                         sOld = sNew;
                         dfsHistory.clear();
                         current.clear();
+                    }
+                }
+            }
+        }
+    }
+
+    public List<Node> grasp2(@NotNull TeyssierScorer scorer) {
+        int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
+        scorer.clearBookmarks();
+
+        if (Double.isNaN(sNew)) {
+            sNew = scorer.score();
+        }
+
+        int eNew = scorer.getNumEdges();
+        int eOld;
+
+        List<int[]> ops = new ArrayList<>();
+        for (int i = 0; i < scorer.size(); i++) {
+            for (int j = (useTuck ? i + 1 : 0); j < scorer.size(); j++) {
+                if (i != j) {
+                    ops.add(new int[]{i, j});
+                }
+            }
+        }
+
+        int itr_depth = 1;
+
+        do {
+//            System.out.printf("\nIterative depth: %d\n\n", itr_depth);
+            do {
+                sOld = sNew;
+                eOld = eNew;
+//                shuffle(ops);
+
+                if (ordered) {
+                    ops.sort((o1, o2) -> {
+                        Node x1 = scorer.get(o1[0]);
+                        Node y1 = scorer.get(o1[1]);
+                        Node x2 = scorer.get(o2[0]);
+                        Node y2 = scorer.get(o2[1]);
+
+                        boolean covered1 = scorer.coveredEdge(x1, y1);
+                        boolean covered2 = scorer.coveredEdge(x2, y2);
+
+                        if (covered1 && !covered2) return 1;
+                        else if (covered2 && !covered1) return -1;
+                        else return 0;
+                    });
+                }
+
+                graspDfs2(scorer, sOld, eOld, itr_depth, 1, ops, new HashSet<>());
+                sNew = scorer.score();
+            } while (sNew > sOld);
+        } while(itr_depth++ < depth);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (GRaSP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        return scorer.getPi();
+    }
+
+    boolean useEdgeRecursion = true;
+
+    private void graspDfs2(@NotNull TeyssierScorer scorer, double sOld, int eOld, int depth, int currentDepth,
+                           List<int[]> ops, Set<Set<Node>> dfsHistory) {
+        for (int[] op : ops) {
+            Node x = scorer.get(op[0]);
+            Node y = scorer.get(op[1]);
+
+            if (!scorer.adjacent(x, y)) continue;
+            if (checkCovering && !scorer.coveredEdge(x, y)) continue;
+            if (!useEdgeRecursion && currentDepth > 1 && !scorer.coveredEdge(x, y)) continue;
+
+            Set<Node> tuck = new HashSet<>();
+            tuck.add(x);
+            tuck.add(y);
+
+            if (dfsHistory.contains(tuck)) continue;
+
+            scorer.bookmark(currentDepth);
+            scorer.moveTo(y, op[0]);
+
+            if (violatesKnowledge(scorer.getPi())) {
+                scorer.goToBookmark(currentDepth);
+            } else {
+                sNew = scorer.score();
+                int eNew = scorer.getNumEdges();
+
+                if ((!useEdgeRecursion ? (sNew == sOld) : (sNew <= sOld && eNew <= eOld)) && currentDepth < depth) {
+                    dfsHistory.add(tuck);
+                    graspDfs2(scorer, sOld, eNew, depth, currentDepth + 1, ops, dfsHistory);
+                    dfsHistory.remove(tuck);
+                    sNew = scorer.score();
+                    eNew = scorer.getNumEdges();
+                }
+
+                if (sNew <= sOld) {
+                    scorer.goToBookmark(currentDepth);
+                } else {
+                    if (verbose) {
+                        dfsHistory.add(tuck);
+                        System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", eNew, sNew - sOld, dfsHistory);
+                        dfsHistory.remove(tuck);
+                    }
+
+                    if (breakAfterImprovement) {
+                        break;
+                    } else {
+                        sOld = sNew;
+                        eOld = eNew;
                     }
                 }
             }
