@@ -811,26 +811,22 @@ public final class TestGrasp {
 
     @Test
     public void bryanCheckDensityClaims() {
-
         List<Node> _nodes = new ArrayList<>();
         Node x0 = new ContinuousVariable("0");
         Node x1 = new ContinuousVariable("1");
         Node x2 = new ContinuousVariable("2");
         Node x3 = new ContinuousVariable("3");
-        Node x4 = new ContinuousVariable("4");
 
         _nodes.add(x0);
         _nodes.add(x1);
         _nodes.add(x2);
         _nodes.add(x3);
-        _nodes.add(x4);
 
         List<Node> nodes = Collections.unmodifiableList(_nodes);
 
-
         try {
-//            File file = new File("/Users/josephramsey/Downloads/out (1).txt");
-            File file = new File("/Users/josephramsey/Downloads/dsmc_5.txt");
+            File file = new File("/Users/josephramsey/Downloads/dags4.txt");
+//            File file = new File("/Users/josephramsey/Downloads/udags4.txt");
             System.out.println(file.getAbsolutePath());
             FileReader in1 = new FileReader(file);
             BufferedReader in = new BufferedReader(in1);
@@ -840,84 +836,57 @@ public final class TestGrasp {
 
             while ((line = in.readLine()) != null) {
                 index++;
-//                System.out.println("line " + index + " " + line);
+                System.out.println("\nLine " + index + " " + line);
                 line = line.trim();
 
-                if (index != 18) continue;
+                Set<GraphoidAxioms.GraphoidIndFact> facts = new LinkedHashSet<>();
 
-                String[] tokens = line.split(",");
+                if (!line.isEmpty()) {
+                    String[] split = line.split(",");
+                    for (String ic : split) {
+                        Set<Node> x = new HashSet<>();
+                        Set<Node> y = new HashSet<>();
+                        Set<Node> z = new HashSet<>();
 
-                IndependenceFacts facts = new IndependenceFacts();
+                        String[] tokens1 = ic.split("\\|");
+                        String[] tokens2 = tokens1[0].split(":");
 
-                for (String token : tokens) {
-                    Node x = nodes.get(Integer.parseInt(token.substring(0, 1).trim()) - indexed);
-                    Node y = nodes.get(Integer.parseInt(token.substring(1, 2).trim()) - indexed);
+                        for (int i = 0; i < tokens2[0].length(); i++) {
+                            x.add(nodes.get(Integer.parseInt(tokens2[0].substring(i, i + 1).trim())));
+                        }
 
-                    List<Node> z = new ArrayList<>();
+                        for (int i = 0; i < tokens2[1].length(); i++) {
+                            y.add(nodes.get(Integer.parseInt(tokens2[1].substring(i, i + 1).trim())));
+                        }
 
-                    for (int i = 2; i < token.length(); i++) {
-                        z.add(nodes.get(Integer.parseInt(token.substring(i, i + 1)) - indexed));
+                        if (tokens1.length == 2) {
+                            for (int i = 0; i < tokens1[1].length(); i++) {
+                                z.add(nodes.get(Integer.parseInt(tokens1[1].substring(i, i + 1)) - indexed));
+                            }
+                        }
+
+                        GraphoidAxioms.GraphoidIndFact fact = new GraphoidAxioms.GraphoidIndFact(x, y, z);
+                        facts.add(fact);
                     }
-
-                    IndependenceFact fact = new IndependenceFact(x, y, z);
-                    facts.add(fact);
                 }
 
-                facts.setNodes(nodes);
+                GraphoidAxioms axioms = new GraphoidAxioms(new HashSet<>(facts));
+                axioms.setTrivialtyAssumed();
+                axioms.setSymmetryAssumed();
 
-                OtherPermAlgs alg = new OtherPermAlgs(new IndTestDSep(facts));
-                alg.setMethod(OtherPermAlgs.Method.SP);
-
-                List<Node> p2 = alg.bestOrder(nodes);
-                Graph frugalCpdag = alg.getGraph(true);
-                int frugal = frugalCpdag.getNumEdges();
-
-                PermutationGenerator gen = new PermutationGenerator(nodes.size());
-                int[] perm;
-
-                List<List<Node>> pis = new ArrayList<>();
-                Map<List<Node>, Integer> ests = new HashMap<>();
-
-                while ((perm = gen.next()) != null) {
-                    List<Node> pi = GraphUtils.asList(perm, nodes);
-
-                    Grasp grasp = new Grasp(new IndTestDSep(facts));
-
-                    grasp.setUsePearl(false);
-                    grasp.setUseScore(false);
-                    grasp.setUseDataOrder(true);
-                    grasp.setDepth(5);
-                    grasp.setCheckCovering(false);
-                    grasp.setUseTuck(false);
-                    grasp.setBreakAfterImprovement(false);
-                    grasp.setOrdered(true);
-                    grasp.setVerbose(false);
-                    grasp.setCacheScores(false);
-
-                    List<Node> bestOrder = grasp.bestOrder(pi);
-                    Graph estGraph = grasp.getGraph(false);
-                    int est = estGraph.getNumEdges();
-
-//                    if (est == frugal) {
-//                        pis.add(pi);
-//                        ests.put(pi, est);
-//                    } else {
-                        System.out.println("Facts = " + facts);
-                        System.out.println("Failing initial permutation: " + pi + " |est| = " + est + " |frugal| = " + frugal);
-                        System.out.println("Failing GRASP(false, false) 'best order' permutation: " + bestOrder);
-                        System.out.println("Frugal SP permutation = " + p2);
-                        System.out.println("Estimated DAG = " + estGraph);
-                        System.out.println("Frugal SP CPDAG = " + frugalCpdag);
-                        break;
-//                    }
+                if (axioms.semigraphoid()) {
+                    System.out.println("\t* Semigraphoid");
                 }
 
-                if (!pis.isEmpty()) {
-                    for (List<Node> pi : pis) {
-                        int _est = ests.get(pi);
-                    }
+                if (axioms.graphoid()) {
+                    System.out.println("\t* Graphoid");
+                }
+
+                if (axioms.compositionalGraphoid()) {
+                    System.out.println("\t* Compositional graphoid");
                 }
             }
+
 
             in.close();
         } catch (Exception e) {
@@ -1285,7 +1254,6 @@ public final class TestGrasp {
 
         facts.add(new IndependenceFact(x1, x3, list(x2)));
         facts.add(new IndependenceFact(x2, x4, list(x1, x3)));
-//        facts.add(new IndependenceFact(x1, x4, list())); // unfaithful.
 
         return new Ret("Simple 4-node 2-path model", facts, 4);
     }

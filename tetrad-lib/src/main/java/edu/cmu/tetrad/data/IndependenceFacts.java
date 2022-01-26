@@ -103,6 +103,7 @@ public class IndependenceFacts implements DataModel {
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
+        builder.append("\n");
 
         for (IndependenceFact fact : unsortedFacts) {
             builder.append(fact).append("\n");
