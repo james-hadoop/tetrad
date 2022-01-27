@@ -61,6 +61,7 @@ import org.junit.Test;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -816,17 +817,19 @@ public final class TestGrasp {
         Node x1 = new ContinuousVariable("1");
         Node x2 = new ContinuousVariable("2");
         Node x3 = new ContinuousVariable("3");
+        Node x4 = new ContinuousVariable("4");
 
         _nodes.add(x0);
         _nodes.add(x1);
         _nodes.add(x2);
         _nodes.add(x3);
+        _nodes.add(x4);
 
         List<Node> nodes = Collections.unmodifiableList(_nodes);
 
         try {
-            File file = new File("/Users/josephramsey/Downloads/dags4.txt");
-//            File file = new File("/Users/josephramsey/Downloads/udags4.txt");
+//            File file = new File("/Users/josephramsey/Downloads/dags4.txt");
+            File file = new File("/Users/josephramsey/Downloads/udags5.txt");
             System.out.println(file.getAbsolutePath());
             FileReader in1 = new FileReader(file);
             BufferedReader in = new BufferedReader(in1);
@@ -839,38 +842,7 @@ public final class TestGrasp {
                 System.out.println("\nLine " + index + " " + line);
                 line = line.trim();
 
-                Set<GraphoidAxioms.GraphoidIndFact> facts = new LinkedHashSet<>();
-
-                if (!line.isEmpty()) {
-                    String[] split = line.split(",");
-                    for (String ic : split) {
-                        Set<Node> x = new HashSet<>();
-                        Set<Node> y = new HashSet<>();
-                        Set<Node> z = new HashSet<>();
-
-                        String[] tokens1 = ic.split("\\|");
-                        String[] tokens2 = tokens1[0].split(":");
-
-                        for (int i = 0; i < tokens2[0].length(); i++) {
-                            x.add(nodes.get(Integer.parseInt(tokens2[0].substring(i, i + 1).trim())));
-                        }
-
-                        for (int i = 0; i < tokens2[1].length(); i++) {
-                            y.add(nodes.get(Integer.parseInt(tokens2[1].substring(i, i + 1).trim())));
-                        }
-
-                        if (tokens1.length == 2) {
-                            for (int i = 0; i < tokens1[1].length(); i++) {
-                                z.add(nodes.get(Integer.parseInt(tokens1[1].substring(i, i + 1)) - indexed));
-                            }
-                        }
-
-                        GraphoidAxioms.GraphoidIndFact fact = new GraphoidAxioms.GraphoidIndFact(x, y, z);
-                        facts.add(fact);
-                    }
-                }
-
-                GraphoidAxioms axioms = new GraphoidAxioms(new HashSet<>(facts));
+                GraphoidAxioms axioms = getGraphoidAxioms(line);
                 axioms.setTrivialtyAssumed();
                 axioms.setSymmetryAssumed();
 
@@ -894,6 +866,158 @@ public final class TestGrasp {
         }
     }
 
+    @Test
+    public void bryanCheckDensityClaims2() {
+        try {
+            String path = "/Users/josephramsey/Downloads/udags5.txt";
+//            String path = "/Users/josephramsey/Downloads/udags4.txt";
+            File file = new File(path);
+            System.out.println(file.getAbsolutePath());
+            FileReader in1 = new FileReader(file);
+            BufferedReader in = new BufferedReader(in1);
+            String line;
+            int index = 0;
+            int indexed = 0;
+
+            while ((line = in.readLine()) != null) {
+                index++;
+
+                if (index != 70) continue;
+
+                System.out.println("\nLine " + index + " " + line);
+                line = line.trim();
+
+                GraphoidAxioms axioms = getGraphoidAxioms(line);
+                axioms.setTrivialtyAssumed();
+                axioms.setSymmetryAssumed();
+
+                if (axioms.semigraphoid()) {
+                    System.out.println("\t* Semigraphoid");
+                }
+
+                if (axioms.graphoid()) {
+                    System.out.println("\t* Graphoid");
+                }
+
+                if (axioms.compositionalGraphoid()) {
+                    System.out.println("\t* Compositional graphoid");
+                }
+
+                if (true) {
+                    IndependenceFacts facts = axioms.getIndependenceFacts();
+
+                    Grasp grasp = new Grasp(new IndTestDSep(facts));
+
+                    grasp.setUsePearl(true);
+                    grasp.setUseScore(false);
+                    grasp.setUseDataOrder(true);
+                    grasp.setDepth(5);
+                    grasp.setCheckCovering(false);
+                    grasp.setUseTuck(false);
+                    grasp.setCheckCovering(false);
+                    grasp.setUseTuck(false);
+                    grasp.setBreakAfterImprovement(false);
+                    grasp.setOrdered(true);
+                    grasp.setUseEdgeRecursion(false);
+                    grasp.setVerbose(false);
+                    grasp.setCacheScores(false);
+
+                    OtherPermAlgs alg = new OtherPermAlgs(new IndTestDSep(facts));
+                    alg.setMethod(OtherPermAlgs.Method.SP);
+
+                    List<Node> pi_sp = alg.bestOrder(facts.getVariables());
+                    Graph frugalCpdag = alg.getGraph(true);
+                    int frugal = frugalCpdag.getNumEdges();
+
+                    PermutationGenerator gen = new PermutationGenerator(facts.getVariables().size());
+                    int[] perm;
+
+                    List<List<Node>> pis = new ArrayList<>();
+                    Map<List<Node>, Integer> ests = new HashMap<>();
+
+                    while ((perm = gen.next()) != null) {
+                        List<Node> pi = GraphUtils.asList(perm, facts.getVariables());
+
+                        List<Node> bestOrder = grasp.bestOrder(pi);
+                        Graph estGraph = grasp.getGraph(false);
+                        int est = estGraph.getNumEdges();
+
+                        if (est != frugal) {
+                            System.out.println("Facts = " + facts);
+                            System.out.println("Failing permutation: " + pi + " |est| = " + est + " |frugal| = " + frugal);
+                            System.out.println("Failing GRASP(false, false) 'best order' permutation: " + bestOrder);
+                            System.out.println("Frugal SP permutation = " + pi_sp);
+                            System.out.println("Estimated DAG = " + estGraph);
+                            System.out.println("Frugal CPDAG = " + frugalCpdag);
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private GraphoidAxioms getGraphoidAxioms(String line) throws IOException {
+        Map<Integer, Node> nodes = new HashMap<>();
+
+        Set<GraphoidAxioms.GraphoidIndFact> facts = new LinkedHashSet<>();
+        Map<GraphoidAxioms.GraphoidIndFact, String> textSpecs = new HashMap<>();
+
+        if (!line.isEmpty()) {
+            String[] split = line.split(",");
+            for (String ic : split) {
+                Set<Node> x = new HashSet<>();
+                Set<Node> y = new HashSet<>();
+                Set<Node> z = new HashSet<>();
+
+                String[] tokens1 = ic.split("\\|");
+                String[] tokens2 = tokens1[0].split(":");
+
+                for (int i = 0; i < tokens2[0].length(); i++) {
+                    int i1 = Integer.parseInt(tokens2[0].substring(i, i + 1).trim());
+                    Node node;
+
+                    if (nodes.get(i1) == null) {
+                        nodes.put(i1, new GraphNode(i1 + ""));
+                    }
+
+                    x.add(nodes.get(i1));
+                }
+
+                for (int i = 0; i < tokens2[1].length(); i++) {
+                    int i1 = Integer.parseInt(tokens2[1].substring(i, i + 1).trim());
+                    Node node;
+
+                    if (nodes.get(i1) == null) {
+                        nodes.put(i1, new GraphNode(i1 + ""));
+                    }
+
+                    y.add(nodes.get(i1));
+                }
+
+                if (tokens1.length == 2) {
+                    for (int i = 0; i < tokens1[1].length(); i++) {
+                        int i1 = Integer.parseInt(tokens1[1].substring(i, i + 1).trim());
+                        Node node;
+
+                        if (nodes.get(i1) == null) {
+                            nodes.put(i1, new ContinuousVariable(i1 + ""));
+                        }
+
+                        z.add(nodes.get(i1));
+                    }
+                }
+
+                GraphoidAxioms.GraphoidIndFact fact = new GraphoidAxioms.GraphoidIndFact(x, y, z);
+                facts.add(fact);
+                textSpecs.put(fact, ic);
+            }
+        }
+
+        return new GraphoidAxioms(facts, textSpecs);
+    }
 
     @Test
     public void testSquires() {

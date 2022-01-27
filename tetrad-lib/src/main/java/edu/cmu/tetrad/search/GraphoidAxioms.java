@@ -1,6 +1,8 @@
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.data.IndependenceFacts;
 import edu.cmu.tetrad.graph.GraphUtils;
+import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
@@ -15,6 +17,7 @@ import java.util.*;
 public class GraphoidAxioms {
     private final Set<GraphoidIndFact> facts;
     private boolean trivialtyAssumed = false;
+    private Map<GraphoidAxioms.GraphoidIndFact, String> textSpecs = null;
 
     /**
      * Constructor.
@@ -23,6 +26,12 @@ public class GraphoidAxioms {
      */
     public GraphoidAxioms(Set<GraphoidIndFact> facts) {
         this.facts = new LinkedHashSet<>(facts);
+    }
+
+    public GraphoidAxioms(Set<GraphoidIndFact> facts,
+                          Map<GraphoidAxioms.GraphoidIndFact, String> textSpecs) {
+        this.facts = new LinkedHashSet<>(facts);
+        this.textSpecs = new HashMap<>(textSpecs);
     }
 
     public boolean semigraphoid() {
@@ -35,6 +44,37 @@ public class GraphoidAxioms {
 
     public boolean compositionalGraphoid() {
         return graphoid() && composition();
+    }
+
+    /**
+     * Assumes decompositiona nd composition.
+     */
+    public IndependenceFacts getIndependenceFacts() {
+        Set<Node> nodes = new LinkedHashSet<>();
+
+        for (GraphoidIndFact ic : facts) {
+            nodes.addAll(ic.getX());
+            nodes.addAll(ic.getY());
+            nodes.addAll(ic.getZ());
+        }
+
+        List<Node> nodesList = new ArrayList<>(nodes);
+
+        Collections.sort(nodesList);
+
+        IndependenceFacts ifFacts = new IndependenceFacts();
+
+        for (GraphoidIndFact ic : facts) {
+            for (Node x : ic.getX()) {
+                for (Node y : ic.getY()) {
+                    ifFacts.add(new IndependenceFact(x, y, ic.getZ()));
+                }
+            }
+        }
+
+        ifFacts.setNodes(nodesList);
+
+        return ifFacts;
     }
 
     /**
@@ -79,24 +119,35 @@ public class GraphoidAxioms {
                 GraphoidIndFact fact2 = new GraphoidIndFact(X, W, Z);
 
                 if (!(facts.contains(fact1))) {
-                    TetradLogger.getInstance().forceLogMessage("Decomposition fails:" +
-                            " Have " + fact +
-                            "; Missing " + fact1);
+                    if (textSpecs != null) {
+                        TetradLogger.getInstance().forceLogMessage("Decomposition fails:" +
+                                " Have " + textSpecs.get(fact) +
+                                "; Missing " + fact1);
+                    } else {
+                        TetradLogger.getInstance().forceLogMessage("Decomposition fails:" +
+                                " Have " + fact +
+                                "; Missing " + fact1);
+                    }
                     return false;
                 }
 
                 if (!(facts.contains(fact2))) {
-                    TetradLogger.getInstance().forceLogMessage("Decomposition fails:" +
-                            " Have " + fact +
-                            "; Missing " + fact2);
-                    return false;
+                    if (textSpecs != null) {
+                        TetradLogger.getInstance().forceLogMessage("Decomposition fails:" +
+                                " Have " + textSpecs.get(fact) +
+                                "; Missing " + fact2);
+                    } else {
+                        TetradLogger.getInstance().forceLogMessage("Decomposition fails:" +
+                                " Have " + fact +
+                                "; Missing " + fact2);
+                        return false;
+                    }
                 }
             }
         }
 
         return true;
     }
-
 
     /**
      * X _||_ Y U W | Z ==> X _||_ Y | Z U W
@@ -125,9 +176,15 @@ public class GraphoidAxioms {
                 GraphoidIndFact newFact = new GraphoidIndFact(X, Y, ZW);
 
                 if (!(facts.contains(newFact))) {
-                    TetradLogger.getInstance().forceLogMessage("Weak Union fails:" +
-                            " Have " + fact +
-                            "; Missing " + newFact);
+                    if (textSpecs != null) {
+                        TetradLogger.getInstance().forceLogMessage("Weak Union fails:" +
+                                " Have " + textSpecs.get(fact) +
+                                "; Missing " + newFact);
+                    } else {
+                        TetradLogger.getInstance().forceLogMessage("Weak Union fails:" +
+                                " Have " + fact +
+                                "; Missing " + newFact);
+                    }
                     return false;
                 }
             }
@@ -163,10 +220,17 @@ public class GraphoidAxioms {
                     GraphoidIndFact newFact = new GraphoidIndFact(X, YW, Z);
 
                     if (!facts.contains(newFact)) {
-                        TetradLogger.getInstance().forceLogMessage("Contraction fails:" +
-                                " Have " + fact1 + " and " + fact2 +
-                                "; Missing " + newFact);
-                        return false;
+                        if (textSpecs != null) {
+                            TetradLogger.getInstance().forceLogMessage("Contraction fails:" +
+                                    " Have " + textSpecs.get(fact1) + " and " + textSpecs.get(fact2) +
+                                    "; Missing " + newFact);
+                            return false;
+                        } else {
+                            TetradLogger.getInstance().forceLogMessage("Contraction fails:" +
+                                    " Have " + fact1 + " and " + fact2 +
+                                    "; Missing " + newFact);
+                            return false;
+                        }
                     }
                 }
             }
@@ -174,7 +238,6 @@ public class GraphoidAxioms {
 
         return true;
     }
-
 
     /**
      * (X ⊥⊥ Y | (Z ∪ W)) ∧ (X ⊥⊥ W | (Z ∪ Y)) ==> X ⊥⊥ (Y ∪ W) |Z
@@ -211,10 +274,17 @@ public class GraphoidAxioms {
                     GraphoidIndFact newFact = new GraphoidIndFact(X, YW, Z);
 
                     if (!facts.contains(newFact)) {
-                        TetradLogger.getInstance().forceLogMessage("Intersection fails:" +
-                                " Have " + fact1 + " and " + fact2 +
-                                "; Missing " + newFact);
-                        return false;
+                        if (textSpecs != null) {
+                            TetradLogger.getInstance().forceLogMessage("Intersection fails:" +
+                                    " Have " + textSpecs.get(fact1) + " and " + textSpecs.get(fact2) +
+                                    "; Missing " + newFact);
+                            return false;
+                        } else {
+                            TetradLogger.getInstance().forceLogMessage("Intersection fails:" +
+                                    " Have " + fact1 + " and " + fact2 +
+                                    "; Missing " + newFact);
+                            return false;
+                        }
                     }
                 }
             }
@@ -244,9 +314,15 @@ public class GraphoidAxioms {
                     GraphoidIndFact newFact = new GraphoidIndFact(X, YW, Z);
 
                     if (!facts.contains(newFact)) {
-                        TetradLogger.getInstance().forceLogMessage("Composition fails:" +
-                                " Have " + fact1 + " and " + fact2 +
-                                "; Missing " + newFact);
+                        if (textSpecs != null) {
+                            TetradLogger.getInstance().forceLogMessage("Composition fails:" +
+                                    " Have " + textSpecs.get(fact1) + " and " + textSpecs.get(fact2) +
+                                    "; Missing " + newFact);
+                        } else {
+                            TetradLogger.getInstance().forceLogMessage("Composition fails:" +
+                                    " Have " + fact1 + " and " + fact2 +
+                                    "; Missing " + newFact);
+                        }
                         return false;
                     }
                 }
@@ -264,11 +340,15 @@ public class GraphoidAxioms {
      * X ⊥⊥ Y | Z ==> Y ⊥⊥ X | Z
      */
     public void setSymmetryAssumed() {
-        for (GraphoidIndFact IC : new HashSet<>(facts)) {
-            Set<Node> X = IC.getX();
-            Set<Node> Y = IC.getY();
-            Set<Node> Z = IC.getZ();
-            facts.add(new GraphoidIndFact(Y, X, Z));
+        for (GraphoidIndFact fact : new HashSet<>(facts)) {
+            Set<Node> X = fact.getX();
+            Set<Node> Y = fact.getY();
+            Set<Node> Z = fact.getZ();
+            GraphoidIndFact newFact = new GraphoidIndFact(Y, X, Z);
+            facts.add(newFact);
+            if (textSpecs != null) {
+                textSpecs.put(newFact, textSpecs.get(fact));
+            }
         }
     }
 

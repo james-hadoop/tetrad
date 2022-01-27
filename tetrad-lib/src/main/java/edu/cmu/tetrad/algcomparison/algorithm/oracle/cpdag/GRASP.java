@@ -122,7 +122,7 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
 
         // Flags
         params.add(Params.GRASP_DEPTH);
-//        params.add(Params.GRASP_CHECK_COVERING);
+        params.add(Params.GRASP_CHECK_COVERING);
         params.add(Params.GRASP_USE_TUCK);
         params.add(Params.GRASP_BREAK_AFTER_IMPROVEMENT);
         params.add(Params.GRASP_ORDERED_ALG);

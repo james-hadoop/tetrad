@@ -38,6 +38,11 @@ public class Grasp {
     private boolean verbose = false;
     private boolean cachingScores = true;
     private boolean useDataOrder = false;
+    private boolean useEdgeRecursion;
+
+    {
+        useEdgeRecursion = false;
+    }
 
     // other params
     private int depth = 4;
@@ -99,15 +104,15 @@ public class Grasp {
                 boolean _useTuck = useTuck;
                 setCheckCovering(true);
                 setUseTuck(true);
-                grasp(scorer);
+                grasp2(scorer);
                 setCheckCovering(false);
-                grasp(scorer);
+                grasp2(scorer);
                 setUseTuck(false);
-                perm = grasp(scorer);
+                perm = grasp2(scorer);
                 setUseTuck(_useTuck);
                 setCheckCovering(_checkCovering);
             } else {
-                perm = grasp(scorer);
+                perm = grasp2(scorer);
             }
 
             scorer.score(perm);
@@ -156,9 +161,9 @@ public class Grasp {
     double sOld = Double.NaN;
 
     public List<Node> grasp(@NotNull TeyssierScorer scorer) {
-//        if (true) {
-//            return grasp2(scorer);
-//        }
+        if (true) {
+            return grasp2(scorer);
+        }
 
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
@@ -312,8 +317,6 @@ public class Grasp {
         return scorer.getPi();
     }
 
-    boolean useEdgeRecursion = true;
-
     private void graspDfs2(@NotNull TeyssierScorer scorer, double sOld, int eOld, int depth, int currentDepth,
                            List<int[]> ops, Set<Set<Node>> dfsHistory) {
         for (int[] op : ops) {
@@ -444,5 +447,9 @@ public class Grasp {
 
     public void setCheckCovering(boolean checkCovering) {
         this.checkCovering = checkCovering;
+    }
+
+    public void setUseEdgeRecursion(boolean useEdgeRecursion) {
+        this.useEdgeRecursion = useEdgeRecursion;
     }
 }
