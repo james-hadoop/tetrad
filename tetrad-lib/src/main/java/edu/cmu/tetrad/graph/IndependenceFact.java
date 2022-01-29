@@ -72,7 +72,6 @@ public final class IndependenceFact implements Comparable, TetradSerializable {
         this.y = y;
 
         Set<Node> cond = new HashSet<>();
-
         Collections.addAll(cond, z);
 
 

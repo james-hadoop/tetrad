@@ -81,14 +81,18 @@ public class GraphoidAxioms {
      * X ⊥⊥ Y | Z ==> Y ⊥⊥ X | Z
      */
     public boolean symmetry() {
-        for (GraphoidIndFact fact : facts) {
-            GraphoidIndFact newFact = new GraphoidIndFact(fact.getY(), fact.getX(), fact.getZ());
 
-            if (!facts.contains(newFact)) {
-                TetradLogger.getInstance().forceLogMessage("Symmetry fails: Missing "
-                        + newFact);
-                return false;
+        F:
+        for (GraphoidIndFact fact : facts) {
+            for (GraphoidIndFact fact2 : facts) {
+                if (fact == fact2) continue;
+                if (fact.getX().equals(fact2.getY()) && fact.getY().equals(fact2.getX())
+                        && fact.getZ().equals(fact2.getZ())) {
+                    continue F;
+                }
             }
+
+            return false;
         }
 
         return true;
@@ -115,10 +119,17 @@ public class GraphoidAxioms {
 
                 if (trivialtyAssumed && X.isEmpty() || Y.isEmpty() || W.isEmpty()) continue;
 
-                GraphoidIndFact fact1 = new GraphoidIndFact(X, Y, Z);
-                GraphoidIndFact fact2 = new GraphoidIndFact(X, W, Z);
+                boolean found = false;
 
-                if (!(facts.contains(fact1))) {
+                for (GraphoidIndFact _fact : facts) {
+                    if (_fact.getY().equals(Y)) {
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    GraphoidIndFact fact1 = new GraphoidIndFact(X, Y, Z);
+
                     if (textSpecs != null) {
                         TetradLogger.getInstance().forceLogMessage("Decomposition fails:" +
                                 " Have " + textSpecs.get(fact) +
@@ -128,20 +139,32 @@ public class GraphoidAxioms {
                                 " Have " + fact +
                                 "; Missing " + fact1);
                     }
+
                     return false;
                 }
 
-                if (!(facts.contains(fact2))) {
+                found = false;
+
+                for (GraphoidIndFact _fact : facts) {
+                    if (_fact.getY().equals(W)) {
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    GraphoidIndFact fact1 = new GraphoidIndFact(X, W, Z);
+
                     if (textSpecs != null) {
                         TetradLogger.getInstance().forceLogMessage("Decomposition fails:" +
                                 " Have " + textSpecs.get(fact) +
-                                "; Missing " + fact2);
+                                "; Missing " + fact1);
                     } else {
                         TetradLogger.getInstance().forceLogMessage("Decomposition fails:" +
                                 " Have " + fact +
-                                "; Missing " + fact2);
-                        return false;
+                                "; Missing " + fact1);
                     }
+
+                    return false;
                 }
             }
         }
@@ -173,9 +196,17 @@ public class GraphoidAxioms {
 
                 if (trivialtyAssumed && X.isEmpty() || Y.isEmpty() || W.isEmpty()) continue;
 
-                GraphoidIndFact newFact = new GraphoidIndFact(X, Y, ZW);
+                boolean found = false;
 
-                if (!(facts.contains(newFact))) {
+                for (GraphoidIndFact _fact : facts) {
+                    if (_fact.getX().equals(X) && _fact.getY().equals(Y) && _fact.getZ().equals(ZW)) {
+                        found = true;
+                    }
+                }
+
+                if (!found) {
+                    GraphoidIndFact newFact = new GraphoidIndFact(X, Y, ZW);
+
                     if (textSpecs != null) {
                         TetradLogger.getInstance().forceLogMessage("Weak Union fails:" +
                                 " Have " + textSpecs.get(fact) +
@@ -206,7 +237,7 @@ public class GraphoidAxioms {
             ZY.addAll(Y);
 
             for (GraphoidIndFact fact2 : new HashSet<>(facts)) {
-                if (fact1.equals(fact2)) continue;
+                if (fact1 == fact2) continue;
 
                 if (fact2.getX().equals(X) && fact2.getZ().equals(ZY)) {
                     Set<Node> W = fact2.getY();
@@ -217,9 +248,18 @@ public class GraphoidAxioms {
                     Set<Node> YW = new HashSet<>(Y);
                     YW.addAll(W);
 
-                    GraphoidIndFact newFact = new GraphoidIndFact(X, YW, Z);
+                    boolean found = false;
 
-                    if (!facts.contains(newFact)) {
+                    for (GraphoidIndFact _fact : facts) {
+                        if (_fact.getX().equals(X) && _fact.getY().equals(YW) && _fact.getZ().equals(Z)) {
+                            found = true;
+                        }
+                    }
+
+                    if (!found) {
+
+                        GraphoidIndFact newFact = new GraphoidIndFact(X, YW, Z);
+
                         if (textSpecs != null) {
                             TetradLogger.getInstance().forceLogMessage("Contraction fails:" +
                                     " Have " + textSpecs.get(fact1) + " and " + textSpecs.get(fact2) +
@@ -263,17 +303,33 @@ public class GraphoidAxioms {
                 Set<Node> ZY = new HashSet<>(Z);
                 ZY.addAll(Y);
 
-                GraphoidIndFact fact2 = new GraphoidIndFact(X, W, ZY);
+                boolean found = false;
 
-                if ((facts.contains(fact2))) {
+                for (GraphoidIndFact _fact : facts) {
+                    if (_fact.getX().equals(X) && _fact.getY().equals(W) && _fact.getZ().equals(ZY)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
                     Set<Node> YW = new HashSet<>(Y);
                     YW.addAll(W);
 
                     if (YW.isEmpty()) continue;
 
-                    GraphoidIndFact newFact = new GraphoidIndFact(X, YW, Z);
+                    boolean found2 = false;
 
-                    if (!facts.contains(newFact)) {
+                    for (GraphoidIndFact _fact : facts) {
+                        if (_fact.getX().equals(X) && _fact.getY().equals(YW) && _fact.getZ().equals(Z)) {
+                            found2 = true;
+                        }
+                    }
+
+                    if (!found2) {
+                        GraphoidIndFact fact2 = new GraphoidIndFact(X, W, ZY);
+                        GraphoidIndFact newFact = new GraphoidIndFact(X, YW, Z);
+
                         if (textSpecs != null) {
                             TetradLogger.getInstance().forceLogMessage("Intersection fails:" +
                                     " Have " + textSpecs.get(fact1) + " and " + textSpecs.get(fact2) +
@@ -297,13 +353,13 @@ public class GraphoidAxioms {
      * (X ⊥⊥ Y | Z) ∧ (X ⊥⊥ W |Z) ==> X ⊥⊥ (Y ∪ W) |Z
      */
     public boolean composition() {
-        for (GraphoidIndFact fact1 : facts) {
+        for (GraphoidIndFact fact1 : new HashSet<>(facts)) {
             Set<Node> X = fact1.getX();
             Set<Node> Y = fact1.getY();
             Set<Node> Z = fact1.getZ();
 
             for (GraphoidIndFact fact2 : new HashSet<>(facts)) {
-                if (fact1.equals(fact2)) continue;
+                if (fact1 == fact2) continue;
 
                 if (fact2.getX().equals(X) && fact2.getZ().equals(Z)) {
                     Set<Node> W = fact2.Y;
@@ -311,19 +367,28 @@ public class GraphoidAxioms {
                     Set<Node> YW = new HashSet<>(Y);
                     YW.addAll(W);
 
-                    GraphoidIndFact newFact = new GraphoidIndFact(X, YW, Z);
+                    boolean found = false;
 
-                    if (!facts.contains(newFact)) {
+                    for (GraphoidIndFact _fact : facts) {
+                        if (_fact.getX().equals(X) && _fact.getY().equals(YW) && _fact.getZ().equals(Z)) {
+                            found = true;
+                        }
+                    }
+
+                    if (!found) {
+                        GraphoidIndFact newFact = new GraphoidIndFact(X, YW, Z);
+
                         if (textSpecs != null) {
                             TetradLogger.getInstance().forceLogMessage("Composition fails:" +
                                     " Have " + textSpecs.get(fact1) + " and " + textSpecs.get(fact2) +
                                     "; Missing " + newFact);
+                            return false;
                         } else {
                             TetradLogger.getInstance().forceLogMessage("Composition fails:" +
                                     " Have " + fact1 + " and " + fact2 +
                                     "; Missing " + newFact);
+                            return false;
                         }
-                        return false;
                     }
                 }
             }

@@ -757,6 +757,22 @@ public class TeyssierScorer {
         return new Pair(parents, -parents.size());
     }
 
+    public Set<Set<Node>> getSkeleton() {
+        List<Node> order = getPi();
+        Set<Set<Node>> skeleton = new HashSet<>();
+
+        for (Node y : order) {
+            for (Node x : getParents(y)) {
+                Set<Node> adj = new HashSet<>();
+                adj.add(x);
+                adj.add(y);
+                skeleton.add(adj);
+            }
+        }
+
+        return skeleton;
+    }
+
     private static class Pair {
         private final Set<Node> parents;
         private final float score;

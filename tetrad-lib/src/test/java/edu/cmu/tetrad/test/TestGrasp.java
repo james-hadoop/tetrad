@@ -868,9 +868,12 @@ public final class TestGrasp {
 
     @Test
     public void bryanCheckDensityClaims2() {
+        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
+
         try {
-            String path = "/Users/josephramsey/Downloads/udags5.txt";
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
+//            String path = "/Users/josephramsey/Downloads/udags5.txt";
+            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
             FileReader in1 = new FileReader(file);
@@ -878,11 +881,14 @@ public final class TestGrasp {
             String line;
             int index = 0;
             int indexed = 0;
+            int failed = 0;
+            int all = 0;
 
             while ((line = in.readLine()) != null) {
                 index++;
+                all++;
 
-                if (index != 70) continue;
+                if (index < 19) continue;
 
                 System.out.println("\nLine " + index + " " + line);
                 line = line.trim();
@@ -890,7 +896,7 @@ public final class TestGrasp {
                 GraphoidAxioms axioms = getGraphoidAxioms(line);
                 axioms.setTrivialtyAssumed();
                 axioms.setSymmetryAssumed();
-
+//
                 if (axioms.semigraphoid()) {
                     System.out.println("\t* Semigraphoid");
                 }
@@ -906,40 +912,67 @@ public final class TestGrasp {
                 if (true) {
                     IndependenceFacts facts = axioms.getIndependenceFacts();
 
-                    Grasp grasp = new Grasp(new IndTestDSep(facts));
+                    Grasp alg0 = new Grasp(new IndTestDSep(facts));
 
-                    grasp.setUsePearl(true);
-                    grasp.setUseScore(false);
-                    grasp.setUseDataOrder(true);
-                    grasp.setDepth(5);
-                    grasp.setCheckCovering(false);
-                    grasp.setUseTuck(false);
-                    grasp.setCheckCovering(false);
-                    grasp.setUseTuck(false);
-                    grasp.setBreakAfterImprovement(false);
-                    grasp.setOrdered(true);
-                    grasp.setUseEdgeRecursion(false);
-                    grasp.setVerbose(false);
-                    grasp.setCacheScores(false);
+                    alg0.setUsePearl(true);
+                    alg0.setUseScore(false);
+                    alg0.setUseDataOrder(true);
+                    alg0.setDepth(5);
+////                    alg0.setUncoveredDepth(5);
+//                    alg0.setCheckCovering(false);
+//                    alg0.setUseTuck(false);
+//                    alg0.setBreakAfterImprovement(true);
+                    alg0.setOrdered(true);
+//                    alg0.setUseEdgeRecursion(false);
+                    alg0.setVerbose(false);
+                    alg0.setCacheScores(false);
+//                    alg0.setTestFlag(false);
+
+//                    OtherPermAlgs alg0 = new OtherPermAlgs(new IndTestDSep(facts));
+//                    alg0.setMethod(OtherPermAlgs.Method.ESP);
+//                    alg0.setDepth(5);
+
+//                    Graph frugalCpdag = alg0.getGraph(true);
+//                    int frugal = frugalCpdag.getNumEdges();
 
                     OtherPermAlgs alg = new OtherPermAlgs(new IndTestDSep(facts));
                     alg.setMethod(OtherPermAlgs.Method.SP);
 
-                    List<Node> pi_sp = alg.bestOrder(facts.getVariables());
+                    List<Node> variables = facts.getVariables();
+                    List<Node> pi_sp = alg.bestOrder(variables);
                     Graph frugalCpdag = alg.getGraph(true);
                     int frugal = frugalCpdag.getNumEdges();
 
-                    PermutationGenerator gen = new PermutationGenerator(facts.getVariables().size());
+                    PermutationGenerator gen = new PermutationGenerator(variables.size());
                     int[] perm;
 
                     List<List<Node>> pis = new ArrayList<>();
                     Map<List<Node>, Integer> ests = new HashMap<>();
 
-                    while ((perm = gen.next()) != null) {
-                        List<Node> pi = GraphUtils.asList(perm, facts.getVariables());
+//                    List<Node> pi0 = new ArrayList<>();
+//                    pi0.add(variables.get(3));
+//                    pi0.add(variables.get(4));
+//                    pi0.add(variables.get(0));
+//                    pi0.add(variables.get(1));
+//                    pi0.add(variables.get(2));
 
-                        List<Node> bestOrder = grasp.bestOrder(pi);
-                        Graph estGraph = grasp.getGraph(false);
+                    int count = 0;
+
+                    while ((perm = gen.next()) != null) {
+                        List<Node> pi = GraphUtils.asList(perm, variables);
+
+//                        if (!pi.equals(pi0)) continue;
+
+//                        OtherPermAlgs alg2 = new OtherPermAlgs(new IndTestDSep(facts));
+//                        alg2.setMethod(OtherPermAlgs.Method.RCG);
+//                        alg2.setNumRounds(20);
+//                        alg2.setDepth(5);
+//                        List<Node> pi_rcg = alg2.bestOrder(pi);
+//                        Graph rcgCpdag = alg2.getGraph(true);
+//                        int rcg = rcgCpdag.getNumEdges();
+
+                        List<Node> bestOrder = alg0.bestOrder(pi);
+                        Graph estGraph = alg0.getGraph(false);
                         int est = estGraph.getNumEdges();
 
                         if (est != frugal) {
@@ -949,11 +982,184 @@ public final class TestGrasp {
                             System.out.println("Frugal SP permutation = " + pi_sp);
                             System.out.println("Estimated DAG = " + estGraph);
                             System.out.println("Frugal CPDAG = " + frugalCpdag);
+                            failed++;
+                            System.out.println("Failed = " + failed + " all = " + all);
                             break;
                         }
+//
+//                        count++;
+//
+//                        if (count > 100) {
+//                            break;
+//                        }
                     }
                 }
             }
+
+            System.out.println("Failed = " + failed + " all = " + all);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Test
+    public void bryanCheckDensityClaims3() {
+        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
+
+        long start = System.currentTimeMillis();
+
+        try {
+//            String path = "/Users/josephramsey/Downloads/udags4.txt";
+//            String path = "/Users/josephramsey/Downloads/udags5.txt";
+            String path = "/Users/josephramsey/Downloads/udags6.txt";
+            File file = new File(path);
+            System.out.println(file.getAbsolutePath());
+            FileReader in1 = new FileReader(file);
+            BufferedReader in = new BufferedReader(in1);
+            String line;
+            int index = 0;
+            int indexed = 0;
+            int failed = 0;
+            int all = 0;
+
+            while ((line = in.readLine()) != null) {
+                index++;
+
+//                if (index < 1) continue;
+
+                System.out.println("\nLine " + index + " " + line);
+                line = line.trim();
+
+                GraphoidAxioms axioms = getGraphoidAxioms(line);
+                axioms.setTrivialtyAssumed();
+                axioms.setSymmetryAssumed();
+//
+//                if (axioms.semigraphoid()) {
+//                    System.out.println("\t* Semigraphoid");
+//                }
+//
+//                if (axioms.graphoid()) {
+//                    System.out.println("\t* Graphoid");
+//                }
+
+//                if (axioms.compositionalGraphoid()) {
+//                    System.out.println("\t* Compositional graphoid");
+//                }
+
+                if (true) {
+                    IndependenceFacts facts = axioms.getIndependenceFacts();
+
+                    Grasp alg0 = new Grasp(new IndTestDSep(facts));
+
+                    alg0.setUsePearl(true);
+                    alg0.setUseScore(false);
+                    alg0.setUseDataOrder(true);
+                    alg0.setDepth(5);
+////                    alg0.setUncoveredDepth(5);
+//                    alg0.setCheckCovering(false);
+//                    alg0.setUseTuck(false);
+                    alg0.setBreakAfterImprovement(false);
+                    alg0.setOrdered(true);
+//                    alg0.setUseEdgeRecursion(false);
+                    alg0.setVerbose(false);
+                    alg0.setCacheScores(false);
+//                    alg0.setTestFlag(false);
+
+//                    OtherPermAlgs alg0 = new OtherPermAlgs(new IndTestDSep(facts));
+//                    alg0.setMethod(OtherPermAlgs.Method.ESP);
+//                    alg0.setDepth(5);
+
+//                    Graph frugalCpdag = alg0.getGraph(true);
+//                    int frugal = frugalCpdag.getNumEdges();
+
+                    OtherPermAlgs alg = new OtherPermAlgs(new IndTestDSep(facts));
+                    alg.setMethod(OtherPermAlgs.Method.SP);
+                    boolean failed2 = false;
+
+                    List<Node> variables = facts.getVariables();
+                    List<Node> pi_sp = alg.bestOrder(variables);
+                    Graph frugalCpdag = alg.getGraph(true);
+                    int frugal = frugalCpdag.getNumEdges();
+
+                    for (int depth : new int[]{0, 1, 2, 3, 4, 5, 10}) {
+                        System.out.println("depth = " + depth);
+                        alg0.setUncoveredDepth(depth);
+
+                        boolean found = false;
+
+                        PermutationGenerator gen = new PermutationGenerator(variables.size());
+                        int[] perm;
+
+                        List<List<Node>> pis = new ArrayList<>();
+                        Map<List<Node>, Integer> ests = new HashMap<>();
+
+//                    List<Node> pi0 = new ArrayList<>();
+//                    pi0.add(variables.get(3));
+//                    pi0.add(variables.get(4));
+//                    pi0.add(variables.get(0));
+//                    pi0.add(variables.get(1));
+//                    pi0.add(variables.get(2));
+
+                        int count = 0;
+
+                        while ((perm = gen.next()) != null) {
+                            List<Node> pi = GraphUtils.asList(perm, variables);
+
+//                        if (!pi.equals(pi0)) continue;
+
+//                        OtherPermAlgs alg2 = new OtherPermAlgs(new IndTestDSep(facts));
+//                        alg2.setMethod(OtherPermAlgs.Method.RCG);
+//                        alg2.setNumRounds(20);
+//                        alg2.setDepth(5);
+//                        List<Node> pi_rcg = alg2.bestOrder(pi);
+//                        Graph rcgCpdag = alg2.getGraph(true);
+//                        int rcg = rcgCpdag.getNumEdges();
+
+                            List<Node> bestOrder = alg0.bestOrder(pi);
+                            Graph estGraph = alg0.getGraph(false);
+                            int est = estGraph.getNumEdges();
+
+                            if (est != frugal) {
+//                                System.out.println("Facts = " + facts);
+//                                System.out.println("Failing permutation: " + pi + " |est| = " + est + " |frugal| = " + frugal);
+//                                System.out.println("Failing GRASP(false, false) 'best order' permutation: " + bestOrder);
+//                                System.out.println("Frugal SP permutation = " + pi_sp);
+//                                System.out.println("Estimated DAG = " + estGraph);
+//                                System.out.println("Frugal CPDAG = " + frugalCpdag);
+//                                failed++;
+//                                System.out.println("Failed = " + failed + " all = " + all);
+                                found = true;
+                                break;
+                            }
+//
+//                        count++;
+//
+//                        if (count > 100) {
+//                            break;
+//                        }
+                        }
+
+                        if (!found) {
+                            failed2 = false;
+                            break;
+                        } else {
+                            System.out.println("Failed");
+                            failed2 = true;
+                        }
+                    }
+
+                    if (failed2) {
+                        failed++;
+                    }
+
+                    System.out.println("Failed = " + failed + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
+                }
+
+                all++;
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }

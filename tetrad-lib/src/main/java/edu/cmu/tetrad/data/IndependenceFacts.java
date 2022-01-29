@@ -151,13 +151,48 @@ public class IndependenceFacts implements DataModel {
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {
-        IndependenceFact fact = new IndependenceFact(x, y, z);
-        return unsortedFacts.contains(fact);
+        for (IndependenceFact fact : unsortedFacts) {
+            if ((fact.getX().equals(x) && fact.getY().equals(y)) || (fact.getX().equals(y) && fact.getY().equals(x))) {
+                Set<Node> cond = new HashSet<>();
+                Collections.addAll(cond, z);
+
+                if (cond.equals(new HashSet<>(fact.getZ()))) {
+                    return true;
+                }
+
+//                && fact.getZ().equals(z)) {
+//
+//                return true;
+            }
+        }
+
+        return false;
+
+
+//        IndependenceFact fact = new IndependenceFact(x, y, z);
+//        return unsortedFacts.contains(fact);
     }
 
     public boolean isIndependent(Node x, Node y, List<Node> z) {
-        IndependenceFact fact = new IndependenceFact(x, y, z);
-        return unsortedFacts.contains(fact);
+        boolean found = false;
+
+        for (IndependenceFact fact : unsortedFacts) {
+            if (((fact.getX().equals(x) && fact.getY().equals(y))
+                || (fact.getX().equals(y) && fact.getY().equals(x)))
+                    &&  new HashSet<>(fact.getZ()).equals(new HashSet<>(z))) {
+                found = true;
+                break;
+            }
+        }
+
+//        IndependenceFact fact = new IndependenceFact(x, y, z);
+//        boolean found2 = unsortedFacts.contains(fact);
+
+//        if (found != found2) {
+//            System.out.println("Not the same.");
+//        }
+
+        return found;
     }
 
     public IKnowledge getKnowledge() {

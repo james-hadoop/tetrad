@@ -1,18 +1,17 @@
 package edu.cmu.tetrad.search;
 
-import com.google.common.collect.Sets;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.ChoiceGenerator;
+import edu.cmu.tetrad.util.PermutationGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.lang.Math.min;
 import static java.util.Collections.shuffle;
 
 
@@ -22,7 +21,7 @@ import static java.util.Collections.shuffle;
  * @author bryanandrews
  * @author josephramsey
  */
-public class Grasp {
+public class Grasp3 {
     private final List<Node> variables;
     private Score score;
     private IndependenceTest test;
@@ -40,28 +39,29 @@ public class Grasp {
     private boolean verbose = false;
     private boolean cachingScores = true;
     private boolean useDataOrder = false;
-    private boolean useEdgeRecursion = false;
-    private boolean testFlag = true;
-    private int uncoveredDepth = 5;
+    private boolean useEdgeRecursion;
 
+    {
+        useEdgeRecursion = false;
+    }
 
     // other params
     private int depth = 4;
     private int numStarts = 1;
 
-    public Grasp(@NotNull Score score) {
+    public Grasp3(@NotNull Score score) {
         this.score = score;
         this.variables = new ArrayList<>(score.getVariables());
         this.useScore = true;
     }
 
-    public Grasp(@NotNull IndependenceTest test) {
+    public Grasp3(@NotNull IndependenceTest test) {
         this.test = test;
         this.variables = new ArrayList<>(test.getVariables());
         this.useScore = false;
     }
 
-    public Grasp(@NotNull IndependenceTest test, Score score) {
+    public Grasp3(@NotNull IndependenceTest test, Score score) {
         this.test = test;
         this.score = score;
         this.variables = new ArrayList<>(test.getVariables());
@@ -87,12 +87,6 @@ public class Grasp {
         List<Node> bestPerm = new ArrayList<>(order);
         float best = Float.NEGATIVE_INFINITY;
 
-        scorer.score(order);
-
-//        System.out.println("A " + scorer.score());
-
-
-
         for (int r = 0; r < (useDataOrder ? 1 : numStarts); r++) {
             if (!useDataOrder) {
                 shuffle(order);
@@ -111,18 +105,22 @@ public class Grasp {
                 boolean _useTuck = useTuck;
                 setCheckCovering(true);
                 setUseTuck(true);
-                grasp(scorer);
+                grasp2(scorer);
                 setCheckCovering(false);
-                grasp(scorer);
+                grasp2(scorer);
                 setUseTuck(false);
-                perm = grasp(scorer);
+                perm = grasp2(scorer);
                 setUseTuck(_useTuck);
                 setCheckCovering(_checkCovering);
             } else {
-                perm = grasp(scorer);
+                perm = grasp2(scorer);
             }
 
+//            perm = betterMutation(scorer);
+
             scorer.score(perm);
+
+//            betterTriMutation(scorer, 5);
 
             if (scorer.score() > best) {
                 best = scorer.score();
@@ -130,26 +128,12 @@ public class Grasp {
             }
         }
 
-//        System.out.println("B " + scorer.score() + " " + scorer.getPi());
-
-
-//        bestPerm = moveChunk(scorer, 1);
-//        bestPerm = moveChunk(scorer, 2);
-//        bestPerm = moveChunk(scorer, 1);
-//        bestPerm = moveChunk(scorer, 2);
-//        bestPerm = moveChunk(scorer, 1);
-//        bestPerm = moveChunk(scorer, 2);
-//        bestPerm = moveChunk(scorer, 1);
-
         long stop = System.currentTimeMillis();
 
         if (verbose) {
             System.out.println("Final order = " + scorer.getPi());
             System.out.println("Elapsed time = " + (stop - start) / 1000.0 + " s");
         }
-
-//        System.out.println("C " + scorer.score());
-
 
         return bestPerm;
     }
@@ -182,9 +166,6 @@ public class Grasp {
     double sOld = Double.NaN;
 
     public List<Node> grasp(@NotNull TeyssierScorer scorer) {
-//        if (true) {
-//            return grasp2(scorer);
-//        }
 
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
@@ -195,7 +176,7 @@ public class Grasp {
 
         List<int[]> ops = new ArrayList<>();
         for (int i = 0; i < scorer.size(); i++) {
-            for (int j = (useTuck ? i + 1 : 0); j < scorer.size(); j++) {
+            for (int j = (/*useTuck ? i + 1 :*/ 0); j < scorer.size(); j++) {
                 if (i != j) {
                     ops.add(new int[]{i, j});
                 }
@@ -279,12 +260,14 @@ public class Grasp {
     }
 
     public List<Node> grasp2(@NotNull TeyssierScorer scorer) {
+        if (true) return grasp(scorer);
+
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
-        int uncoveredDepth = this.uncoveredDepth < 0 ? Integer.MAX_VALUE : this.uncoveredDepth;
         scorer.clearBookmarks();
 
-        double sNew = scorer.score();
-        double sOld;
+        if (Double.isNaN(sNew)) {
+            sNew = scorer.score();
+        }
 
         int eNew = scorer.getNumEdges();
         int eOld;
@@ -298,96 +281,90 @@ public class Grasp {
             }
         }
 
-        int itrUncoveredDepth = this.testFlag ? 0 : uncoveredDepth ;
-        Set<Set<Node>> skeleton = scorer.getSkeleton();
+        int itr_depth = 1;
 
         do {
-//            List<Node> pi = scorer.getPi();
-
+//            System.out.printf("\nIterative depth: %d\n\n", itr_depth);
             do {
                 sOld = sNew;
                 eOld = eNew;
-
                 shuffle(ops);
-                graspDfs2(scorer, sOld, eOld, new int[] {depth, itrUncoveredDepth}, 1, ops, new HashSet<>(), skeleton, new HashSet<>());
 
-//                moveChunk(scorer, 1);
-//                moveChunk(scorer, 2);
+//                if (ordered) {
+//                    ops.sort((o1, o2) -> {
+//                        Node x1 = scorer.get(o1[0]);
+//                        Node y1 = scorer.get(o1[1]);
+//                        Node x2 = scorer.get(o2[0]);
+//                        Node y2 = scorer.get(o2[1]);
+//
+//                        boolean covered1 = scorer.coveredEdge(x1, y1);
+//                        boolean covered2 = scorer.coveredEdge(x2, y2);
+//
+//                        if (covered1 && !covered2) return 1;
+//                        else if (covered2 && !covered1) return -1;
+//                        else return 0;
+//                    });
+//                }
 
+                graspDfs2(scorer, sOld, eOld, itr_depth, 1, ops, new HashSet<>());
                 sNew = scorer.score();
             } while (sNew > sOld);
+        } while(itr_depth++ < depth);
 
-//            if (sNew <= sOld) {
-//                scorer.score(pi);
-//            }
-
-            moveChunk(scorer, 2);
-        } while(itrUncoveredDepth++ < uncoveredDepth);
+//        List<Node> pi2 = scorer.getPi();
+//        reverse(pi2);
+//        scorer.score(pi2);
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
-                    + " (GRaSP)"
+                    + " (GRASP)"
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
         }
 
         return scorer.getPi();
     }
 
-    private void graspDfs2(@NotNull TeyssierScorer scorer, double sOld, int eOld, int[] depth, int currentDepth,
-                          List<int[]> ops, Set<Set<Node>> tuckHistory, Set<Set<Node>> skeleton,
-                          Set<Set<Set<Node>>> skeletonHistory) {
-
-        boolean forbidUncoveredTucks = currentDepth > depth[1];
-        boolean allowUncoveredTuckRecursion = currentDepth < depth[1];
-        boolean allowRecursion = currentDepth < depth[0];
-
+    private void graspDfs2(@NotNull TeyssierScorer scorer, double sOld, int eOld, int depth, int currentDepth,
+                           List<int[]> ops, Set<Set<Node>> dfsHistory) {
         for (int[] op : ops) {
             Node x = scorer.get(op[0]);
             Node y = scorer.get(op[1]);
 
             if (!scorer.adjacent(x, y)) continue;
-            boolean coveredTuck = scorer.coveredEdge(x, y);
-            if (!coveredTuck && forbidUncoveredTucks) continue;
+            if (checkCovering && !scorer.coveredEdge(x, y)) continue;
+            if (!useEdgeRecursion && currentDepth > 1 && !scorer.coveredEdge(x, y)) continue;
 
             Set<Node> tuck = new HashSet<>();
             tuck.add(x);
             tuck.add(y);
 
-            if (tuckHistory.contains(tuck)) continue;
+            if (dfsHistory.contains(tuck)) continue;
 
             scorer.bookmark(currentDepth);
             scorer.moveTo(y, op[0]);
 
-            Set<Set<Node>> symmDiff = Sets.symmetricDifference(skeleton, scorer.getSkeleton());
-            if (!coveredTuck && skeletonHistory.contains(symmDiff)) {
-                scorer.goToBookmark(currentDepth);
-                continue;
-            }
-            skeletonHistory.add(symmDiff);
-
-
             if (violatesKnowledge(scorer.getPi())) {
                 scorer.goToBookmark(currentDepth);
             } else {
-                double sNew = scorer.score();
+                sNew = scorer.score();
                 int eNew = scorer.getNumEdges();
 
-                if (allowRecursion && (allowUncoveredTuckRecursion ? eNew <= eOld && sNew <= sOld : coveredTuck && sNew == sOld)) {
-                    tuckHistory.add(tuck);
-                    graspDfs2(scorer, sOld, eNew, depth, currentDepth + 1, ops, tuckHistory, skeleton, skeletonHistory);
-                    tuckHistory.remove(tuck);
+                if ((!useEdgeRecursion ? (sNew == sOld) : (sNew <= sOld && eNew <= eOld)) && currentDepth < depth) {
+                    dfsHistory.add(tuck);
+                    graspDfs2(scorer, sOld, eNew, depth, currentDepth + 1, ops, dfsHistory);
+                    dfsHistory.remove(tuck);
                     sNew = scorer.score();
                     eNew = scorer.getNumEdges();
                 }
 
-                if (sNew <= sOld) {
+                if (sNew < sOld) {
                     scorer.goToBookmark(currentDepth);
                 } else {
                     if (verbose) {
-                        tuckHistory.add(tuck);
-                        System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", eNew, sNew - sOld, tuckHistory);
-                        tuckHistory.remove(tuck);
+                        dfsHistory.add(tuck);
+                        System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s\n", eNew, sNew - sOld, dfsHistory);
+                        dfsHistory.remove(tuck);
                     }
 
                     if (breakAfterImprovement) {
@@ -484,69 +461,144 @@ public class Grasp {
         this.useEdgeRecursion = useEdgeRecursion;
     }
 
-    public void setUncoveredDepth(int uncoveredDepth) {
-        this.uncoveredDepth = uncoveredDepth;
+    private void betterTriMutation(@NotNull TeyssierScorer scorer, int maxPermSize) {
+        if (maxPermSize < 0) throw new IllegalArgumentException("maxPermSize should be >= 0");
+
+        List<Node> pi = scorer.getPi();
+
+        W:
+        while (true) {
+            for (int length = 2; length <= maxPermSize; length++) {
+                boolean triangleConditionNeverTrue = true;
+
+                ChoiceGenerator choiceGenerator = new ChoiceGenerator(pi.size(), min(length, pi.size()));
+                int[] choice;
+
+                while ((choice = choiceGenerator.next()) != null) {
+                    if (triangleCondition(scorer, choice)) {
+                        triangleConditionNeverTrue = false;
+                        PermutationGenerator permGen = new PermutationGenerator(choice.length);
+                        int[] perm;
+
+                        while ((perm = permGen.next()) != null) {
+                            List<Node> pip = subMutation(pi, choice, perm);
+
+                            if (scorer.score(pip) > scorer.score(pi)) {
+                                pi = pip;
+                                continue W;
+                            }
+                        }
+                    }
+                }
+
+                if (triangleConditionNeverTrue) {
+                    if (verbose) System.out.println("Breaking at " + length);
+                    break;
+                }
+            }
+
+            break;
+        }
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " max perm size = " + maxPermSize
+                    + " Score = "
+                    + scorer.score()
+                    + " (betterTriMutationA)"
+                    + " Elapsed = " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
     }
 
-    public void setTestFlag(boolean testFlag) {
-        this.testFlag = testFlag;
+    private List<Node> subMutation(List<Node> pi, int[] choice, int[] perm) {
+        List<Node> pi2 = new ArrayList<>(pi);
+
+        int[] choice2 = Arrays.copyOf(choice, choice.length);
+        Arrays.sort(choice2);
+
+        for (int i = 0; i < choice.length; i++) {
+            pi2.set(choice2[i], pi.get(choice[perm[i]]));
+        }
+
+        return pi2;
     }
 
-    public List<Node> moveChunk(@NotNull TeyssierScorer scorer, int chunk) {
+    private boolean triangleCondition(TeyssierScorer scorer, int[] choice) {
+        for (int i = 0; i < choice.length; i++) {
+
+            J:
+            for (int j = i + 1; j < choice.length; j++) {
+                Node x = scorer.get(choice[i]);
+                Node y = scorer.get(choice[j]);
+                if (!scorer.adjacent(x, y)) continue;
+
+                for (int k = 0; k < choice.length; k++) {
+                    if (k == i || k == j) continue;
+                    Node z = scorer.get(choice[k]);
+
+                    if (!(scorer.adjacent(z, x) && scorer.adjacent(z, y)))
+                        continue J;
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public List<Node> betterMutation(@NotNull TeyssierScorer scorer) {
         List<Node> pi = scorer.getPi();
         double s;
         double sp = scorer.score(pi);
 
-        if (chunk < 1 || chunk > scorer.size()) {
-            throw new IllegalArgumentException("Chunk must be in [1, |V|");
-        }
-
+        System.out.println("Original score = " + sp + " pi = " + pi + " graph = " + scorer.getGraph(false));
         scorer.bookmark(0);
-        List<Node> pi0 = scorer.getPi();
+        scorer.bookmark(1);
 
-        D:
-        do {
+//        do {
             s = sp;
 
-//            System.out.println("Baseline score = " + scorer.score());
+            for (Node x : scorer.getPi()) {
+                scorer.bookmark(0);
 
-            scorer.bookmark(1);
-            sp = scorer.score();
+                sp = NEGATIVE_INFINITY;
+                int index = scorer.index(x);
 
-            F:
-            for (int i = 0; i < scorer.size() - chunk + 1; i++) {
+                for (int i = index; i >= 0; i--) {
+//                    scorer.moveTo(x, i);
+                    scorer.tuck(x, scorer.get(i));
 
-                for (int j = 0; j < scorer.size() - chunk + 1; j++) {
-                    if (i == j) continue;
-
-                    scorer.goToBookmark(0);
-                    scorer.bookmark(0);
-
-                    if (i < j) {
-                        for (int k = chunk - 1; k >= 0; k--) {
-                            scorer.moveTo(pi0.get(i + k), j + k);
-                        }
-                    } else {
-                        for (int k = 0; k < chunk; k++) {
-                            scorer.moveTo(pi0.get(i + k), j + k);
-                        }
-                    }
-
-                    if (scorer.score() > sp) {
+                    if (scorer.score() >= sp) {
                         if (!violatesKnowledge(scorer.getPi())) {
                             sp = scorer.score();
-
-//                            System.out.println("Better score = " + scorer.score());
-
                             scorer.bookmark(1);
-//                            break F;
+
+                            System.out.println("Tucking " + x + " to index " + i + " score = " + sp + " " + scorer.getPi());
                         }
                     }
                 }
-            }
 
-            scorer.goToBookmark(1);
-        } while (sp > s);
+                scorer.goToBookmark(0);
+                scorer.bookmark(0);
+
+                for (int i = index; i < scorer.size(); i++) {
+//                    scorer.moveTo(x, i);
+                    scorer.tuck(x, scorer.get(i));
+
+                    if (scorer.score() >= sp) {
+                        if (!violatesKnowledge(scorer.getPi())) {
+                            sp = scorer.score();
+//                            scorer.bookmark(1);
+
+                            System.out.println("Tucking " + x + " to index " + i + " score = " + sp + " " + scorer.getPi());
+                        }
+                    }
+                }
+
+                scorer.goToBookmark(0);
+            }
+//        } while (sp >= s);
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
@@ -557,5 +609,6 @@ public class Grasp {
 
         return scorer.getPi();
     }
+
 
 }
