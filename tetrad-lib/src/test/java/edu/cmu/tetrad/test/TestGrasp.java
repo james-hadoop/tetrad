@@ -1024,12 +1024,31 @@ public final class TestGrasp {
             int failed = 0;
             int all = 1;
 
+            List<Integer> hard = new ArrayList<>();
+            hard.add(29);
+            hard.add(30);
+            hard.add(34);
+            hard.add(38);
+            hard.add(40);
+            hard.add(44);
+            hard.add(46);
+            hard.add(72);
+            hard.add(73);
+            hard.add(75);
+            hard.add(84);
+            hard.add(85);
+            hard.add(138);
+            hard.add(154);
+            hard.add(158);
+            hard.add(159);
+            hard.add(160);
+
             while ((line = in.readLine()) != null) {
                 index++;
 
-//                if (index < 1) continue;
+//                if (!hard.contains(index)) continue;
 
-//                System.out.println("\nLine " + index + " " + line);
+                System.out.println("\nLine " + index + " " + line);
                 line = line.trim();
 
                 GraphoidAxioms axioms = getGraphoidAxioms(line);
@@ -1057,37 +1076,26 @@ public final class TestGrasp {
                     alg0.setUseScore(false);
                     alg0.setUseDataOrder(true);
                     alg0.setDepth(5);
-////                    alg0.setUncoveredDepth(5);
-//                    alg0.setCheckCovering(false);
-//                    alg0.setUseTuck(false);
                     alg0.setBreakAfterImprovement(false);
                     alg0.setOrdered(true);
-//                    alg0.setUseEdgeRecursion(false);
                     alg0.setVerbose(false);
                     alg0.setCacheScores(false);
-//                    alg0.setTestFlag(false);
 
-//                    OtherPermAlgs alg0 = new OtherPermAlgs(new IndTestDSep(facts));
-//                    alg0.setMethod(OtherPermAlgs.Method.ESP);
-//                    alg0.setDepth(5);
-
-//                    Graph frugalCpdag = alg0.getGraph(true);
-//                    int frugal = frugalCpdag.getNumEdges();
-
-                    OtherPermAlgs alg = new OtherPermAlgs(new IndTestDSep(facts));
-                    alg.setMethod(OtherPermAlgs.Method.SP);
                     boolean failed2 = false;
 
                     List<Node> variables = facts.getVariables();
-                    List<Node> pi_sp = alg.bestOrder(variables);
-                    Graph frugalCpdag = alg.getGraph(true);
-                    int frugal = frugalCpdag.getNumEdges();
+                    OtherPermAlgs spAlg = new OtherPermAlgs(new IndTestDSep(facts));
+                    spAlg.setMethod(OtherPermAlgs.Method.SP);
+                    List<Node> spPi = spAlg.bestOrder(variables);
+                    Graph spGraph = spAlg.getGraph(false);
+                    int spNumEdges = spGraph.getNumEdges();
+
+                    List<Node> failingInitialPi = null;
+                    Graph failingDag = null;
+                    List<Node> failingEstPi = null;
 
                     for (int depth : new int[]{0, 1, 2, 3, 4, 5, 10}) {
-//                        System.out.println("depth = " + depth);
                         alg0.setUncoveredDepth(depth);
-
-                        boolean found = false;
 
                         PermutationGenerator gen = new PermutationGenerator(variables.size());
                         int[] perm;
@@ -1095,68 +1103,80 @@ public final class TestGrasp {
                         List<List<Node>> pis = new ArrayList<>();
                         Map<List<Node>, Integer> ests = new HashMap<>();
 
-//                    List<Node> pi0 = new ArrayList<>();
-//                    pi0.add(variables.get(3));
-//                    pi0.add(variables.get(4));
-//                    pi0.add(variables.get(0));
-//                    pi0.add(variables.get(1));
-//                    pi0.add(variables.get(2));
-
                         int count = 0;
+
+                        boolean found = false;
 
                         while ((perm = gen.next()) != null) {
                             List<Node> pi = GraphUtils.asList(perm, variables);
 
-//                        if (!pi.equals(pi0)) continue;
-
-//                        OtherPermAlgs alg2 = new OtherPermAlgs(new IndTestDSep(facts));
-//                        alg2.setMethod(OtherPermAlgs.Method.RCG);
-//                        alg2.setNumRounds(20);
-//                        alg2.setDepth(5);
-//                        List<Node> pi_rcg = alg2.bestOrder(pi);
-//                        Graph rcgCpdag = alg2.getGraph(true);
-//                        int rcg = rcgCpdag.getNumEdges();
-
-                            List<Node> bestOrder = alg0.bestOrder(pi);
+                            List<Node> estGraphPi = alg0.bestOrder(pi);
                             Graph estGraph = alg0.getGraph(false);
-                            int est = estGraph.getNumEdges();
+                            int estNumEdges = estGraph.getNumEdges();
 
-                            if (est != frugal) {
-//                                System.out.println("Facts = " + facts);
-//                                System.out.println("Failing permutation: " + pi + " |est| = " + est + " |frugal| = " + frugal);
-//                                System.out.println("Failing GRASP(false, false) 'best order' permutation: " + bestOrder);
-//                                System.out.println("Frugal SP permutation = " + pi_sp);
-//                                System.out.println("Estimated DAG = " + estGraph);
-//                                System.out.println("Frugal CPDAG = " + frugalCpdag);
-//                                failed++;
-//                                System.out.println("Failed = " + failed + " all = " + all);
-                                found = true;
-                                break;
+                            if (estNumEdges != spNumEdges) {
+                                Graph g = estGraph;
+
+                                for (int i = 0; i < variables.size(); i++) {
+                                    for (int j = i + 1; j < variables.size(); j++) {
+                                        if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
+                                            if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
+                                                facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
+                                                alg0.bestOrder(new ArrayList<>(variables));
+
+                                                if (alg0.getNumEdges() < estNumEdges) {
+                                                    g = alg0.getGraph(false);
+                                                    estGraph = alg0.getGraph(false);
+                                                    estNumEdges = estGraph.getNumEdges();
+                                                }
+
+                                                facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (estNumEdges != spNumEdges) {
+                                    System.out.println("Failed = " + estGraph);
+                                    found = true;
+                                    failingInitialPi = pi;
+                                    failingDag = estGraph;
+                                    failingEstPi = estGraphPi;
+                                    break;
+                                }
                             }
-//
-//                        count++;
-//
-//                        if (count > 100) {
-//                            break;
-//                        }
                         }
 
                         if (!found) {
                             failed2 = false;
                             break;
                         } else {
-//                            System.out.println("\nLine " + index + " " + line);
-//                            System.out.println("Failed");
                             failed2 = true;
                         }
                     }
 
                     if (failed2) {
+                        System.out.println("Failed, line " + index + " " + line);
+                        System.out.println("Elementary facts = " + facts);
+                        System.out.println("Failing initial permutation: " + failingInitialPi);
+                        System.out.println("Failing GRASP final permutation: " + failingEstPi);
+                        System.out.println("SP permutation = " + spPi);
+                        System.out.println("SP DAG = " + spGraph);
+                        System.out.println("Failing Estimated DAG = " + failingDag);
+
+                        IndTestDSep dsep = new IndTestDSep(failingDag);
+
+                        for (IndependenceFact fact : facts.getFacts()) {
+                            if (dsep.isDSeparated(fact.getX(), fact.getY(), fact.getZ())) {
+                                System.out.println("Possible unfaithful d-connection: " + fact);
+                            }
+                        }
+
+
                         failed++;
-                        System.out.println("\nLine " + index + " " + line);
-//                        System.out.println("Failed = " + failed + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
                     }
 
+//                    System.out.println("Failed = " + failed + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
                 }
 
                 all++;

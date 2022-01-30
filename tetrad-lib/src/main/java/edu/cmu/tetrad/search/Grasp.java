@@ -23,12 +23,13 @@ import static java.util.Collections.shuffle;
  */
 public class Grasp {
     private final List<Node> variables;
+    double sNew = Double.NaN;
+    double sOld = Double.NaN;
     private Score score;
     private IndependenceTest test;
     private IKnowledge knowledge = new Knowledge2();
     private TeyssierScorer scorer;
     private long start;
-
     // flags
     private boolean checkCovering = false;
     private boolean useTuck = false;
@@ -42,8 +43,6 @@ public class Grasp {
     private boolean useEdgeRecursion = false;
     private boolean testFlag = true;
     private int uncoveredDepth = 5;
-
-
     // other params
     private int depth = 4;
     private int numStarts = 1;
@@ -90,8 +89,6 @@ public class Grasp {
 
 //        System.out.println("A " + scorer.score());
 
-
-
         for (int r = 0; r < (useDataOrder ? 1 : numStarts); r++) {
             if (!useDataOrder) {
                 shuffle(order);
@@ -127,9 +124,13 @@ public class Grasp {
                 best = scorer.score();
                 bestPerm = perm;
             }
+
+
         }
 
-//        System.out.println("B " + scorer.score() + " " + scorer.getPi());
+
+
+//        System.out.println("numedges = " + scorer.getNumEdges());
 
 
 //        bestPerm = moveChunk(scorer, 1);
@@ -177,13 +178,10 @@ public class Grasp {
         }
     }
 
-    double sNew = Double.NaN;
-    double sOld = Double.NaN;
-
     public List<Node> grasp(@NotNull TeyssierScorer scorer) {
-        if (true) {
-            return grasp3(scorer);
-        }
+//        if (true) {
+//            return grasp3(scorer);
+//        }
 
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
@@ -297,7 +295,7 @@ public class Grasp {
             }
         }
 
-        int itrUncoveredDepth = this.testFlag ? 0 : uncoveredDepth ;
+        int itrUncoveredDepth = this.testFlag ? 0 : uncoveredDepth;
         Set<Set<Node>> skeleton = scorer.getSkeleton();
 
         do {
@@ -308,7 +306,7 @@ public class Grasp {
                 eOld = eNew;
 
                 shuffle(ops);
-                graspDfs2(scorer, sOld, eOld, new int[] {depth, itrUncoveredDepth}, 1, ops, new HashSet<>(), skeleton, new HashSet<>());
+                graspDfs2(scorer, sOld, eOld, new int[]{depth, itrUncoveredDepth}, 1, ops, new HashSet<>(), skeleton, new HashSet<>());
 
 //                moveChunk(scorer, 1);
 //                moveChunk(scorer, 2);
@@ -321,7 +319,7 @@ public class Grasp {
 //            }
 
             moveChunk(scorer, 2);
-        } while(itrUncoveredDepth++ < uncoveredDepth);
+        } while (itrUncoveredDepth++ < uncoveredDepth);
 
         if (verbose) {
             System.out.println("# Edges = " + scorer.getNumEdges()
@@ -334,8 +332,8 @@ public class Grasp {
     }
 
     private void graspDfs2(@NotNull TeyssierScorer scorer, double sOld, int eOld, int[] depth, int currentDepth,
-                          List<int[]> ops, Set<Set<Node>> tuckHistory, Set<Set<Node>> skeleton,
-                          Set<Set<Set<Node>>> skeletonHistory) {
+                           List<int[]> ops, Set<Set<Node>> tuckHistory, Set<Set<Node>> skeleton,
+                           Set<Set<Set<Node>>> skeletonHistory) {
 
         boolean forbidUncoveredTucks = currentDepth > depth[1];
         boolean allowUncoveredTuckRecursion = currentDepth < depth[1];
