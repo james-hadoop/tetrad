@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.util.Collections.shuffle;
 
 
@@ -182,9 +181,9 @@ public class Grasp {
     double sOld = Double.NaN;
 
     public List<Node> grasp(@NotNull TeyssierScorer scorer) {
-//        if (true) {
-//            return grasp2(scorer);
-//        }
+        if (true) {
+            return grasp3(scorer);
+        }
 
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
@@ -395,6 +394,67 @@ public class Grasp {
                     } else {
                         sOld = sNew;
                         eOld = eNew;
+                    }
+                }
+            }
+        }
+    }
+
+
+    public List<Node> grasp3(@NotNull TeyssierScorer scorer) {
+        int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
+        scorer.clearBookmarks();
+
+        double sNew = scorer.score();
+        double sOld;
+
+        do {
+            sOld = sNew;
+            graspDfs3(scorer, sOld, depth, 1);
+            sNew = scorer.score();
+        } while (sNew > sOld);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (GRaSP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        return scorer.getPi();
+    }
+
+    private void graspDfs3(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth) {
+
+        all:
+        for (Node node1 : scorer.getPi()) {
+            for (Node node2 : scorer.getParents(node1)) {
+                for (Node node3 : scorer.getParents(node1)) {
+
+                    if (scorer.index(node2) > scorer.index(node3)) continue;
+
+                    scorer.bookmark(currentDepth);
+                    if (node2 != node3) {
+                        scorer.moveTo(node2, scorer.index(node3));
+                    }
+                    scorer.moveTo(node1, scorer.index(node2));
+
+                    if (violatesKnowledge(scorer.getPi())) {
+                        scorer.goToBookmark(currentDepth);
+                    } else {
+                        double sNew = scorer.score();
+                        if (currentDepth < depth && sNew == sOld) {
+                            graspDfs3(scorer, sOld, depth, currentDepth + 1);
+                            sNew = scorer.score();
+                        }
+                        if (sNew <= sOld) {
+                            scorer.goToBookmark(currentDepth);
+                        } else {
+                            if (verbose) {
+                                System.out.printf("Edges: %d \t|\t Score Improvement: %f \n", scorer.getNumEdges(), sNew - sOld);
+                            }
+                            break all;
+                        }
                     }
                 }
             }

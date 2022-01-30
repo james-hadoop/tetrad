@@ -1012,8 +1012,8 @@ public final class TestGrasp {
 
         try {
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-//            String path = "/Users/josephramsey/Downloads/udags5.txt";
-            String path = "/Users/josephramsey/Downloads/udags6.txt";
+            String path = "/Users/josephramsey/Downloads/udags5.txt";
+//            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
             FileReader in1 = new FileReader(file);
@@ -1022,14 +1022,14 @@ public final class TestGrasp {
             int index = 0;
             int indexed = 0;
             int failed = 0;
-            int all = 0;
+            int all = 1;
 
             while ((line = in.readLine()) != null) {
                 index++;
 
 //                if (index < 1) continue;
 
-                System.out.println("\nLine " + index + " " + line);
+//                System.out.println("\nLine " + index + " " + line);
                 line = line.trim();
 
                 GraphoidAxioms axioms = getGraphoidAxioms(line);
@@ -1084,7 +1084,7 @@ public final class TestGrasp {
                     int frugal = frugalCpdag.getNumEdges();
 
                     for (int depth : new int[]{0, 1, 2, 3, 4, 5, 10}) {
-                        System.out.println("depth = " + depth);
+//                        System.out.println("depth = " + depth);
                         alg0.setUncoveredDepth(depth);
 
                         boolean found = false;
@@ -1145,16 +1145,18 @@ public final class TestGrasp {
                             failed2 = false;
                             break;
                         } else {
-                            System.out.println("Failed");
+//                            System.out.println("\nLine " + index + " " + line);
+//                            System.out.println("Failed");
                             failed2 = true;
                         }
                     }
 
                     if (failed2) {
                         failed++;
+                        System.out.println("\nLine " + index + " " + line);
+//                        System.out.println("Failed = " + failed + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
                     }
 
-                    System.out.println("Failed = " + failed + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
                 }
 
                 all++;
