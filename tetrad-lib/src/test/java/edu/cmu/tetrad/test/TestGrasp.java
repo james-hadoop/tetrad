@@ -1012,8 +1012,8 @@ public final class TestGrasp {
 
         try {
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-            String path = "/Users/josephramsey/Downloads/udags5.txt";
-//            String path = "/Users/josephramsey/Downloads/udags6.txt";
+//            String path = "/Users/josephramsey/Downloads/udags5.txt";
+            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
             FileReader in1 = new FileReader(file);
@@ -1047,8 +1047,9 @@ public final class TestGrasp {
                 index++;
 
 //                if (!hard.contains(index)) continue;
+                if (index < 224) continue;
 
-                System.out.println("\nLine " + index + " " + line);
+                System.out.println("Line " + index + " " + line);
                 line = line.trim();
 
                 GraphoidAxioms axioms = getGraphoidAxioms(line);
@@ -1094,7 +1095,7 @@ public final class TestGrasp {
                     Graph failingDag = null;
                     List<Node> failingEstPi = null;
 
-                    for (int depth : new int[]{0, 1, 2, 3, 4, 5, 10}) {
+                    for (int depth : new int[]{0, 1, 2, 3, 4, 5, 10, 100}) {
                         alg0.setUncoveredDepth(depth);
 
                         PermutationGenerator gen = new PermutationGenerator(variables.size());
@@ -1117,27 +1118,48 @@ public final class TestGrasp {
                             if (estNumEdges != spNumEdges) {
                                 Graph g = estGraph;
 
-                                for (int i = 0; i < variables.size(); i++) {
-                                    for (int j = i + 1; j < variables.size(); j++) {
-                                        if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
-                                            if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
-                                                facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
-                                                alg0.bestOrder(new ArrayList<>(variables));
+                                int current = estNumEdges;
 
-                                                if (alg0.getNumEdges() < estNumEdges) {
-                                                    g = alg0.getGraph(false);
-                                                    estGraph = alg0.getGraph(false);
-                                                    estNumEdges = estGraph.getNumEdges();
-                                                }
+                                for (IndependenceFact fact : facts.getFacts()) {
+                                    int i = variables.indexOf(fact.getX());
+                                    int j = variables.indexOf(fact.getY());
+                                    if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
+                                        facts.remove(fact);
+                                        alg0.bestOrder(estGraphPi);
 
-                                                facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
-                                            }
+                                        if (alg0.getNumEdges() < current) {
+                                            current = alg0.getNumEdges();
+                                            g = alg0.getGraph(false);
+                                            estGraph = alg0.getGraph(false);
+                                            estNumEdges = estGraph.getNumEdges();
                                         }
+
+                                        facts.add(fact);
                                     }
                                 }
 
+//                                for (int i = 0; i < variables.size(); i++) {
+//                                    for (int j = i + 1; j < variables.size(); j++) {
+//                                        if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
+//                                            if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
+//                                                facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
+//                                                alg0.bestOrder(estGraphPi);
+//
+//                                                if (alg0.getNumEdges() < estNumEdges) {
+//                                                    g = alg0.getGraph(false);
+//                                                    estGraph = alg0.getGraph(false);
+//                                                    estNumEdges = estGraph.getNumEdges();
+//                                                }
+//
+//                                                facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
+//                                            }
+//                                        }
+//                                    }
+//                                }
+
+
                                 if (estNumEdges != spNumEdges) {
-                                    System.out.println("Failed = " + estGraph);
+//                                    System.out.println("Failed = " + estGraph);
                                     found = true;
                                     failingInitialPi = pi;
                                     failingDag = estGraph;
