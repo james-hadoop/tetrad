@@ -1012,8 +1012,8 @@ public final class TestGrasp {
 
         try {
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-//            String path = "/Users/josephramsey/Downloads/udags5.txt";
-            String path = "/Users/josephramsey/Downloads/udags6.txt";
+            String path = "/Users/josephramsey/Downloads/udags5.txt";
+//            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
             FileReader in1 = new FileReader(file);
@@ -1047,7 +1047,7 @@ public final class TestGrasp {
                 index++;
 
 //                if (!hard.contains(index)) continue;
-                if (index < 224) continue;
+//                if (index < 157) continue;
 
                 System.out.println("Line " + index + " " + line);
                 line = line.trim();
@@ -1115,28 +1115,48 @@ public final class TestGrasp {
                             Graph estGraph = alg0.getGraph(false);
                             int estNumEdges = estGraph.getNumEdges();
 
-                            if (estNumEdges != spNumEdges) {
-                                Graph g = estGraph;
+//                            if (estNumEdges != spNumEdges) {
+                            Graph g = estGraph;
 
-                                int current = estNumEdges;
+                            int current = estNumEdges;
 
-                                for (IndependenceFact fact : facts.getFacts()) {
-                                    int i = variables.indexOf(fact.getX());
-                                    int j = variables.indexOf(fact.getY());
+//                                for (IndependenceFact fact : facts.getFacts()) {
+//                                    int i = variables.indexOf(fact.getX());
+//                                    int j = variables.indexOf(fact.getY());
+//
+//                                    if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
+//                                        facts.remove(fact);
+//                                        alg0.bestOrder(estGraphPi);
+//
+//                                        if (alg0.getNumEdges() < current) {
+//                                            current = alg0.getNumEdges();
+//                                            g = alg0.getGraph(false);
+//                                            estGraph = alg0.getGraph(false);
+//                                            estNumEdges = estGraph.getNumEdges();
+//                                        }
+//
+//                                        facts.add(fact);
+//                                    }
+//                                }
+
+                            for (int i = 0; i < variables.size(); i++) {
+                                for (int j = i + 1; j < variables.size(); j++) {
                                     if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
-                                        facts.remove(fact);
-                                        alg0.bestOrder(estGraphPi);
+                                        if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
+                                            facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
+                                            alg0.bestOrder(estGraphPi);
 
-                                        if (alg0.getNumEdges() < current) {
-                                            current = alg0.getNumEdges();
-                                            g = alg0.getGraph(false);
-                                            estGraph = alg0.getGraph(false);
-                                            estNumEdges = estGraph.getNumEdges();
+                                            if (alg0.getNumEdges() < estNumEdges) {
+                                                g = alg0.getGraph(false);
+                                                estGraph = alg0.getGraph(false);
+                                                estNumEdges = estGraph.getNumEdges();
+                                            }
+
+                                            facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
                                         }
-
-                                        facts.add(fact);
                                     }
                                 }
+                            }
 
 //                                for (int i = 0; i < variables.size(); i++) {
 //                                    for (int j = i + 1; j < variables.size(); j++) {
@@ -1157,21 +1177,20 @@ public final class TestGrasp {
 //                                    }
 //                                }
 
-
-                                if (estNumEdges != spNumEdges) {
+                            if (estNumEdges != spNumEdges) {
 //                                    System.out.println("Failed = " + estGraph);
-                                    found = true;
-                                    failingInitialPi = pi;
-                                    failingDag = estGraph;
-                                    failingEstPi = estGraphPi;
-                                    break;
-                                }
+                                found = true;
+                                failingInitialPi = pi;
+                                failingDag = estGraph;
+                                failingEstPi = estGraphPi;
+                                break;
                             }
                         }
+//                        }
 
                         if (!found) {
                             failed2 = false;
-                            break;
+//                            break;
                         } else {
                             failed2 = true;
                         }
@@ -1206,6 +1225,62 @@ public final class TestGrasp {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void bryanCheckDensityClaims4() {
+        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
+
+        long start = System.currentTimeMillis();
+
+        for (int p : new int[]{20}) {
+            Parameters params = new Parameters();
+            params.set(Params.SAMPLE_SIZE, 5000, 10000);
+            params.set(Params.NUM_MEASURES, /*20,*/ 60);//, 100);
+            params.set(Params.AVG_DEGREE, 4, /*6,*/ 10);
+            params.set(Params.COEF_LOW, 0);
+            params.set(Params.COEF_HIGH, 1);
+            params.set(Params.VAR_LOW, 1);
+            params.set(Params.VAR_HIGH, 1);
+            params.set(Params.NUM_RUNS, 5);
+            params.set(Params.VERBOSE, false);
+            params.set(Params.NUM_STARTS, 1);
+            params.set(Params.PENALTY_DISCOUNT, 2);
+            params.set(Params.GRASP_DEPTH, 3);
+            params.set(Params.GRASP_CHECK_COVERING, false);
+            params.set(Params.GRASP_USE_TUCK, false);
+            params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
+            params.set(Params.GRASP_ORDERED_ALG, true);
+            params.set(Params.GRASP_USE_SCORE, true);
+            params.set(Params.GRASP_USE_PEARL, false);
+            params.set(Params.GRASP_USE_DATA_ORDER, false);
+
+            Algorithms algorithms = new Algorithms();
+            algorithms.add(new GRASP(
+                    new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+
+            Simulations simulations = new Simulations();
+            simulations.add(new LinearSemSimulation(new RandomForward()));
+
+            Statistics statistics = new Statistics();
+            statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+            statistics.add(new ParameterColumn(Params.NUM_MEASURES));
+            statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+            statistics.add(new AdjacencyPrecision());
+            statistics.add(new AdjacencyRecall());
+            statistics.add(new ArrowheadPrecisionCommonEdges());
+            statistics.add(new ArrowheadRecallCommonEdges());
+            statistics.add(new AdjacencyTPR());
+            statistics.add(new AdjacencyFPR());
+            statistics.add(new SHD());
+            statistics.add(new ElapsedTime());
+
+            Comparison comparison = new Comparison();
+            comparison.setSaveData(false);
+            comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+            comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/ntest", simulations, algorithms, statistics, params);
         }
     }
 
