@@ -49,6 +49,7 @@ import edu.cmu.tetrad.search.*;
 import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.sem.LinearSemPm;
 import edu.cmu.tetrad.sem.StandardizedLinearSemIm;
+import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.PermutationGenerator;
@@ -148,7 +149,7 @@ public final class TestGrasp {
         params.set(Params.NUM_ROUNDS, 50);
 
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, false);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -262,7 +263,7 @@ public final class TestGrasp {
 
         params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, false);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -284,7 +285,7 @@ public final class TestGrasp {
         statistics.add(new ParameterColumn(Params.NUM_ROUNDS));
         statistics.add(new ParameterColumn(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE));
         statistics.add(new ParameterColumn(Params.STRUCTURE_PRIOR));
-        statistics.add(new ParameterColumn(Params.GRASP_USE_TUCK));
+        statistics.add(new ParameterColumn(Params.GRASP_FORWARD_TUCK_ONLY));
         statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
         statistics.add(new NumberOfEdgesTrue());
         statistics.add(new NumberOfEdgesEst());
@@ -318,7 +319,7 @@ public final class TestGrasp {
         params.set(Params.VERBOSE, false);
 
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, false);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -376,7 +377,7 @@ public final class TestGrasp {
         params.set(Params.COLLIDER_DISCOVERY_RULE, 2, 3);
 
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -432,7 +433,7 @@ public final class TestGrasp {
         params.set(Params.EBIC_GAMMA, 0.5);
 
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -480,7 +481,7 @@ public final class TestGrasp {
 
         params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -542,7 +543,7 @@ public final class TestGrasp {
 
         params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -595,7 +596,7 @@ public final class TestGrasp {
 
         params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -646,7 +647,7 @@ public final class TestGrasp {
 
         params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -700,7 +701,7 @@ public final class TestGrasp {
 
             grasp.setUsePearl(true);
             grasp.setUseDataOrder(true);
-            grasp.setUseTuck(true);
+            grasp.setUseForwardTuckOnly(true);
             grasp.setBreakAfterImprovement(true);
             grasp.setOrdered(false);
             grasp.setCheckCovering(true);
@@ -788,7 +789,7 @@ public final class TestGrasp {
                 grasp.setUseDataOrder(true);
                 grasp.setDepth(100);
                 grasp.setCheckCovering(false);
-                grasp.setUseTuck(true);
+                grasp.setUseForwardTuckOnly(true);
                 grasp.setBreakAfterImprovement(true);
                 grasp.setOrdered(true);
                 grasp.setVerbose(false);
@@ -1249,7 +1250,7 @@ public final class TestGrasp {
             params.set(Params.PENALTY_DISCOUNT, 2);
             params.set(Params.GRASP_DEPTH, 3);
             params.set(Params.GRASP_CHECK_COVERING, false);
-            params.set(Params.GRASP_USE_TUCK, false);
+            params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
             params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
             params.set(Params.GRASP_ORDERED_ALG, true);
             params.set(Params.GRASP_USE_SCORE, true);
@@ -1282,6 +1283,33 @@ public final class TestGrasp {
 
             comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/ntest", simulations, algorithms, statistics, params);
         }
+    }
+
+    @Test
+    public void simulateDataForPaper() {
+        NumberFormatUtil.getInstance().setNumberFormat(new DecimalFormat("0.000000"));
+
+        Parameters params = new Parameters();
+        params.set(Params.SAMPLE_SIZE, 500, 1000, 5000);
+        params.set(Params.NUM_MEASURES, 20, 60, 100);
+        params.set(Params.AVG_DEGREE, 6, 10);
+        params.set(Params.COEF_LOW, 0);
+        params.set(Params.COEF_HIGH, 1);
+        params.set(Params.VAR_LOW, 1);
+        params.set(Params.VAR_HIGH, 1);
+        params.set(Params.NUM_RUNS, 30);
+        params.set(Params.VERBOSE, false);
+
+        System.out.println(params);
+
+        LinearSemSimulation simulation = new LinearSemSimulation(new RandomForward());
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(true);
+        comparison.setSaveGraphs(true);
+        comparison.setSaveCpdags(true);
+
+        comparison.saveToFiles("/Users/josephramsey/Downloads/grasp/simulation", simulation, params);
     }
 
     private GraphoidAxioms getGraphoidAxioms(String line) throws IOException {
@@ -1367,7 +1395,7 @@ public final class TestGrasp {
 
             params.set(Params.GRASP_DEPTH, 3);
             params.set(Params.GRASP_CHECK_COVERING, false);
-            params.set(Params.GRASP_USE_TUCK, false);
+            params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
             params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
             params.set(Params.GRASP_ORDERED_ALG, true);
             params.set(Params.GRASP_USE_SCORE, true);
@@ -1418,7 +1446,7 @@ public final class TestGrasp {
 
         params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -1474,7 +1502,7 @@ public final class TestGrasp {
 
         params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -1531,7 +1559,7 @@ public final class TestGrasp {
 
         params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -1646,7 +1674,7 @@ public final class TestGrasp {
 
         params.set(Params.GRASP_DEPTH, 3);
         params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_USE_TUCK, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
         params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
         params.set(Params.GRASP_ORDERED_ALG, true);
         params.set(Params.GRASP_USE_SCORE, true);
@@ -2246,7 +2274,7 @@ public final class TestGrasp {
                 search.setDepth(depth);
                 search.setUseDataOrder(true);
                 search.setUsePearl(false);
-                search.setUseTuck(false);
+                search.setUseForwardTuckOnly(false);
                 List<Node> order = search.bestOrder(p);
 //                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
 //                    System.out.println(search.getGraph(false));

@@ -4735,16 +4735,6 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="bossScoreType_value_type">Boolean</span></li>
         </ul>
 
-<!--        public static final String GRASP_CHECK_COVERING = "graspCheckCovering";-->
-<!--        public static final String GRASP_USE_TUCK = "graspUseTuck";-->
-<!--        public static final String GRASP_RCG_CONFIG = "graspRcgConfig";-->
-<!--        public static final String GRASP_ORDERED_ALG = "graspOrderedAlg";-->
-<!--        public static final String GRASP_USE_SCORE = "graspUseScore";-->
-<!--        public static final String GRASP_USE_PEARL = "graspUsePearl";-->
-<!--        public static final String GRASP_USE_DATA_ORDER = "graspUseDataOrder";-->
-<!--        public static final String GRASP_DEPTH = "graspDepth";-->
-
-
         <h3 id="graspCheckCovering" class="parameter_description">graspCheckCovering</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="graspCheckCovering_short_desc">
@@ -4762,28 +4752,28 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Value Type: <span id="graspCheckCovering_value_type">Boolean</span></li>
         </ul>
 
-        <h3 id="graspUseTuck" class="parameter_description">graspUseTuck</h3>
+        <h3 id="graspForwardTuckOnly" class="parameter_description">graspForwardTuckOnly</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="graspUseTuck_short_desc">
+            <li>Short Description: <span id="graspForwardTuckOnly_short_desc">
                 Yes if only forward tucks should be checked, no if also reverse tucks
                 should be checked.</span>
             </li>
-            <li>Long Description: <span id="graspUseTuck_long_desc">
+            <li>Long Description: <span id="graspForwardTuckOnly_long_desc">
 				A forward tuck for X->Y moves Y to the before position of X in the permutation.
 				A reverse tuck moves Y to after the position of X in the permutation.
 				Including reverse tucks expands the search space.
             </span>
             </li>
-            <li>Default Value: <span id="graspUseTuck_default_value">false</span></li>
-            <li>Lower Bound: <span id="graspUseTuck_lower_bound"></span></li>
-            <li>Upper Bound: <span id="graspUseTuck_upper_bound"></span></li>
-            <li>Value Type: <span id="graspUseTuck_value_type">Boolean</span></li>
+            <li>Default Value: <span id="graspForwardTuckOnly_default_value">false</span></li>
+            <li>Lower Bound: <span id="graspForwardTuckOnly_lower_bound"></span></li>
+            <li>Upper Bound: <span id="graspForwardTuckOnly_upper_bound"></span></li>
+            <li>Value Type: <span id="graspForwardTuckOnly_value_type">Boolean</span></li>
         </ul>
 
         <h3 id="graspBreakAFterImprovement" class="parameter_description">graspBreakAFterImprovement</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="graspBreakAFterImprovement_short_desc">
-                Yes the depth first search (returning after improvment), No for depth first traversal.
+                Yes if depth first search returns after first improvement, No for depth first traversal.
             </span>
             </li>
             <li>Long Description: <span id="graspBreakAFterImprovement_long_desc">
@@ -4800,7 +4790,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
         <h3 id="graspOrderedAlg" class="parameter_description">graspOrderedAlg</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="graspOrderedAlg_short_desc">
-                Yes if all covered edges should be explored before uncovered edges at each depth
+                Yes if ordered search should be done, No if not
             </span>
             </li>
             <li>Long Description: <span id="graspOrderedAlg_long_desc">
@@ -4836,7 +4826,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
         <h3 id="graspUsePearl" class="parameter_description">graspUsePearl</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="graspUsePearl_short_desc">
-                Yes Pearl's DAG-building method should be used, No if Grow-Shrink MB should be used.</span>
+                Yes if Pearl's DAG-building method should be used (test), No if Grow-Shrink MB should be used (score).</span>
             </li>
             <li>Long Description: <span id="graspUsePearl_long_desc">
 				Pearl's method adds and edge X->Y if Y ~_||_ X | Prefix(Y, pi) \ {X}. Grow-Shink
@@ -4853,7 +4843,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
         <h3 id="graspUseDataOrder" class="parameter_description">graspUseDataOrder</h3>
         <ul class="parameter_description_list">
             <li>Short Description: <span id="graspUseDataOrder_short_desc">
-                Yes just in case the supplied variable order should be used for the first initial
+                Yes just in case data variable order should be used for the first initial
                 permutation.
             </span>
             </li>
@@ -4863,7 +4853,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
 				random shuffles.
             </span>
             </li>
-            <li>Default Value: <span id="graspUseDataOrder_default_value">true</span></li>
+            <li>Default Value: <span id="graspUseDataOrder_default_value">false</span></li>
             <li>Lower Bound: <span id="graspUseDataOrder_lower_bound"></span></li>
             <li>Upper Bound: <span id="graspUseDataOrder_upper_bound"></span></li>
             <li>Value Type: <span id="graspUseDataOrder_value_type">Boolean</span></li>
@@ -4872,8 +4862,7 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
 
         <h3 id="graspDepth" class="parameter_description">graspDepth</h3>
         <ul class="parameter_description_list">
-            <li>Short Description: <span id="graspDepth_short_desc">GRASP Depth (default = 4,
-            depth >= 0)</span>
+            <li>Short Description: <span id="graspDepth_short_desc">Recursion depth</span>
             </li>
             <li>Long Description: <span id="graspDepth_long_desc">
             	This is the depth of recursion for the depth first search.
@@ -4883,6 +4872,36 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Lower Bound: <span id="graspDepth_lower_bound">0</span></li>
             <li>Upper Bound: <span id="graspDepth_upper_bound">2147483647</span></li>
             <li>Value Type: <span id="graspDepth_value_type">Integer</span></li>
+        </ul>
+
+        <h3 id="graspUncoveredDepth" class="parameter_description">graspUncoveredDepth</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="graspUncoveredDepth_short_desc">Recursion depth for uncovered edges</span>
+            </li>
+            <li>Long Description: <span id="graspUncoveredDepth_long_desc">
+            	This is the depth of recursion for the uncovered edges, past the point where there
+            	are not longer any more covered edges to recurse on.
+            </span>
+            </li>
+            <li>Default Value: <span id="graspUncoveredDepth_default_value">1</span></li>
+            <li>Lower Bound: <span id="graspUncoveredDepth_lower_bound">0</span></li>
+            <li>Upper Bound: <span id="graspUncoveredDepth_upper_bound">2147483647</span></li>
+            <li>Value Type: <span id="graspUncoveredDepth_value_type">Integer</span></li>
+        </ul>
+
+        <h3 id="timeout" class="parameter_description">timeout</h3>
+        <ul class="parameter_description_list">
+            <li>Short Description: <span id="timeout_short_desc">Timeout (final graph returned, -1 = no timeout)</span>
+            </li>
+            <li>Long Description: <span id="timeout_long_desc">
+            	The algorithm will timeout at approximately this number of seconds from when it started
+            	and return the final graph found at that point.
+            </span>
+            </li>
+            <li>Default Value: <span id="timeout_default_value">-1</span></li>
+            <li>Lower Bound: <span id="timeout_lower_bound">-1</span></li>
+            <li>Upper Bound: <span id="timeout_upper_bound">2147483647</span></li>
+            <li>Value Type: <span id="timeout_value_type">Integer</span></li>
         </ul>
 
         <ul class="parameter_description_list">
@@ -4908,19 +4927,6 @@ Usually covariance values are chosen from U(-b, -a) U U(a, b) for some a, b; thi
             <li>Lower Bound: <span id="recursive_lower_bound"></span></li>
             <li>Upper Bound: <span id="recursive_upper_bound"></span></li>
             <li>Value Type: <span id="recursive_value_type">Boolean</span></li>
-        </ul>
-
-        <h3 id="quickGraphDoFinalGrasp" class="parameter_description">quickGraphDoFinalGrasp</h3>
-        <ul class="parameter_description_list">
-            <li>Short Description: <span id="quickGraphDoFinalGrasp_short_desc">Yes if RCG should do a final GRASP step for correctness.</span>
-            </li>
-            <li>Long Description: <span id="quickGraphDoFinalGrasp_long_desc">
-            Heuristically, a final GRASP step is not needed with sufficient #round, but it can be done. Yes by default</span>
-            </li>
-            <li>Default Value: <span id="quickGraphDoFinalGrasp_default_value">true</span></li>
-            <li>Lower Bound: <span id="quickGraphDoFinalGrasp_lower_bound"></span></li>
-            <li>Upper Bound: <span id="quickGraphDoFinalGrasp_upper_bound"></span></li>
-            <li>Value Type: <span id="quickGraphDoFinalGrasp_value_type">Boolean</span></li>
         </ul>
 
         <h3 id="orientTowardDConnections" class="parameter_description">orientTowardDConnections</h3>

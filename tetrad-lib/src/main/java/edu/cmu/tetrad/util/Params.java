@@ -197,17 +197,18 @@ public final class Params {
     public static final String OUTPUT_CPDAG = "outputCpdag";
     public static final String ZS_RISK_BOUND = "zSRiskBound";
     public static final String NUM_ROUNDS = "numRounds";
-    public static final String RCG_DO_FINAL_GRAPH = "quickGraphDoFinalGrasp";
 
     // GRASP parameters and flags.
     public static final String GRASP_CHECK_COVERING = "graspCheckCovering";
-    public static final String GRASP_USE_TUCK = "graspUseTuck";
+    public static final String GRASP_FORWARD_TUCK_ONLY = "graspForwardTuckOnly";
     public static final String GRASP_BREAK_AFTER_IMPROVEMENT = "graspBreakAFterImprovement";
     public static final String GRASP_ORDERED_ALG = "graspOrderedAlg";
     public static final String GRASP_USE_SCORE = "graspUseScore";
     public static final String GRASP_USE_PEARL = "graspUsePearl";
     public static final String GRASP_USE_DATA_ORDER = "graspUseDataOrder";
     public static final String GRASP_DEPTH = "graspDepth";
+    public static final String GRASP_UNCOVERED_DEPTH = "graspUncoveredDepth";
+    public static final String TIMEOUT = "timeout";
 
     // All parameters that are found in HTML manual documentation
     private static final Set<String> ALL_PARAMS_IN_HTML_MANUAL = new HashSet<>(Arrays.asList(

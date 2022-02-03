@@ -57,7 +57,7 @@ public class GraspOld implements Algorithm, UsesScoreWrapper {
             grasp.setKnowledge(dataSet.getKnowledge());
             grasp.setParentCalculation(TeyssierScorer.ParentCalculation.GrowShrinkMb);
             grasp.setDepth(parameters.getInt(Params.GRASP_DEPTH));
-            grasp.setUseTuck(parameters.getBoolean(Params.GRASP_USE_TUCK));
+            grasp.setUseTuck(parameters.getBoolean(Params.GRASP_FORWARD_TUCK_ONLY));
 
             grasp.bestOrder(score.getVariables());
             return grasp.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
@@ -108,7 +108,7 @@ public class GraspOld implements Algorithm, UsesScoreWrapper {
         params.add(Params.BOSS_SCORE_TYPE);
         params.add(Params.OUTPUT_CPDAG);
         params.add(Params.GRASP_DEPTH);
-        params.add(Params.GRASP_USE_TUCK);
+        params.add(Params.GRASP_FORWARD_TUCK_ONLY);
         params.add(Params.VERBOSE);
         return params;
     }

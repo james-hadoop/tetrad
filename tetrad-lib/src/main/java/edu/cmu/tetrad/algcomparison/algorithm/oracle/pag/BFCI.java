@@ -12,8 +12,6 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Bfci;
-import edu.cmu.tetrad.search.OtherPermAlgs;
-import edu.cmu.tetrad.search.TeyssierScorer;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -66,7 +64,6 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             search.setKnowledge(dataSet.getKnowledge());
             search.setGspDepth(parameters.getInt(Params.GRASP_DEPTH));
             search.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
-            search.setQuickGraphDoFinalGrasp(parameters.getBoolean(Params.RCG_DO_FINAL_GRAPH));
             search.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
@@ -135,7 +132,6 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.OUTPUT_CPDAG);
         params.add(Params.GRASP_DEPTH);
         params.add(Params.NUM_ROUNDS);
-        params.add(Params.RCG_DO_FINAL_GRAPH);
         params.add(Params.VERBOSE);
 
         return params;

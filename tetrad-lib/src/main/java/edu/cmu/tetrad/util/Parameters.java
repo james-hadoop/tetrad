@@ -52,9 +52,19 @@ public class Parameters implements TetradSerializable {
      */
     @Override
     public String toString() {
-        return usedParameters.stream()
-                .map(e -> String.format("%s = %s", e, parameters.get(e)[0]))
-                .collect(Collectors.joining(System.lineSeparator()));
+        StringBuilder b = new StringBuilder();
+
+        for (String param : parameters.keySet()) {
+            b.append(param).append('\t').append(Arrays.toString(parameters.get(param)));
+            b.append("\n");
+        }
+
+        return b.toString();
+
+        // This broke Comparison
+//        return usedParameters.stream()
+//                .map(e -> String.format("%s = %s", e, parameters.get(e)[0]))
+//                .collect(Collectors.joining(System.lineSeparator()));
     }
 
     /**
@@ -187,8 +197,8 @@ public class Parameters implements TetradSerializable {
 //            }
         } else {
             if (getNumValues(name) != 1) {
-                System.out.println("ERROR. Parameter '" + name + "' was not listed among the algorithm parameters "
-                        + "for this algorithm. Skipping this run.\n");
+                System.out.println("ERROR. Parameter '" + name + "' was either not listed among the algorithm " +
+                        "parameters for this algorithm or had multiple values. Skipping this run.\n");
             }
 
             return objects[0];

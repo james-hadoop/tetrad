@@ -71,7 +71,6 @@ public final class Bfci implements GraphSearch {
     private int numRounds = 10;
     private int gspDepth = 5;
     private int maxPermSize = 4;
-    private boolean quickGraphDoFinalGrasp;
 
     //============================CONSTRUCTORS============================//
     public Bfci(IndependenceTest test, Score score) {
@@ -417,16 +416,11 @@ public final class Bfci implements GraphSearch {
         this.gspDepth = depth;
     }
 
-
     public void setNumRounds(int numRounds) {
         this.numRounds = numRounds;
     }
 
     public void setMaxPermSize(int maxPermSize) {
         this.maxPermSize = maxPermSize;
-    }
-
-    public void setQuickGraphDoFinalGrasp(boolean quickGraphDoFinalGrasp) {
-        this.quickGraphDoFinalGrasp = quickGraphDoFinalGrasp;
     }
 }

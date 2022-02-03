@@ -569,8 +569,8 @@ public class Comparison {
     public void saveToFilesSingleSimulation(String dataPath, Simulation simulation, Parameters parameters) {
         File dir0 = new File(dataPath);
         File dir = new File(dir0, "save");
+        simulation.createData(parameters, true);
 
-        deleteFilesThenDirectory(dir);
         dir.mkdirs();
 
         try {

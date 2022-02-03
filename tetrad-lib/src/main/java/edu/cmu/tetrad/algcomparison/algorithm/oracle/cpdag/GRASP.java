@@ -61,8 +61,11 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
             Grasp grasp = new Grasp(test, score);
 
             grasp.setDepth(parameters.getInt(Params.GRASP_DEPTH));
+
+            // Need to set this after setting depth
+            grasp.setUncoveredDepth(parameters.getInt(Params.GRASP_UNCOVERED_DEPTH));
             grasp.setCheckCovering(parameters.getBoolean(Params.GRASP_CHECK_COVERING));
-            grasp.setUseTuck(parameters.getBoolean(Params.GRASP_USE_TUCK));
+            grasp.setUseForwardTuckOnly(parameters.getBoolean(Params.GRASP_FORWARD_TUCK_ONLY));
             grasp.setBreakAfterImprovement(!parameters.getBoolean(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
             grasp.setOrdered(parameters.getBoolean(Params.GRASP_ORDERED_ALG));
             grasp.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
@@ -70,10 +73,13 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
             grasp.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
             grasp.setVerbose(parameters.getBoolean(Params.VERBOSE));
             grasp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
+            grasp.setDoGrasp2(true);
 
             grasp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             grasp.setKnowledge(dataSet.getKnowledge());
             grasp.bestOrder(score.getVariables());
+            grasp.setTimeout(parameters.getInt(Params.TIMEOUT));
+
             return grasp.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
             GRASP algorithm = new GRASP(score, test);
@@ -122,15 +128,17 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
 
         // Flags
         params.add(Params.GRASP_DEPTH);
-        params.add(Params.GRASP_CHECK_COVERING);
-        params.add(Params.GRASP_USE_TUCK);
-        params.add(Params.GRASP_BREAK_AFTER_IMPROVEMENT);
-        params.add(Params.GRASP_ORDERED_ALG);
-        params.add(Params.GRASP_USE_SCORE);
+        params.add(Params.GRASP_UNCOVERED_DEPTH);
+//        params.add(Params.GRASP_CHECK_COVERING);
+        params.add(Params.GRASP_FORWARD_TUCK_ONLY);
+//        params.add(Params.GRASP_BREAK_AFTER_IMPROVEMENT);
+//        params.add(Params.GRASP_ORDERED_ALG);
+//        params.add(Params.GRASP_USE_SCORE);
         params.add(Params.GRASP_USE_PEARL);
-        params.add(Params.GRASP_USE_DATA_ORDER);
+//        params.add(Params.GRASP_USE_DATA_ORDER);
 //        params.add(Params.CACHE_SCORES);
 //        params.add(Params.OUTPUT_CPDAG);
+        params.add(Params.TIMEOUT);
         params.add(Params.VERBOSE);
 
         // Parameters
