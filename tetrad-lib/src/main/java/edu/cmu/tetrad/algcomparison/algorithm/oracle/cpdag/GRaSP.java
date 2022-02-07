@@ -28,21 +28,21 @@ import java.util.List;
  * @author josephramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GRASP",
+        name = "GRaSP",
         command = "grasp",
         algoType = AlgType.forbid_latent_common_causes
 )
 @Bootstrapping
-public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
+public class GRaSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
     static final long serialVersionUID = 23L;
     private ScoreWrapper score = null;
     private IndependenceWrapper test;
 
-    public GRASP() {
+    public GRaSP() {
         // Used in reflection; do not delete.
     }
 
-    public GRASP(ScoreWrapper score, IndependenceWrapper test) {
+    public GRaSP(ScoreWrapper score, IndependenceWrapper test) {
         this.score = score;
         this.test = test;
     }
@@ -73,7 +73,8 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
             grasp.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
             grasp.setVerbose(parameters.getBoolean(Params.VERBOSE));
             grasp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
-            grasp.setDoGrasp2(true);
+            grasp.setTimeout(parameters.getInt(Params.TIMEOUT));
+            grasp.setGraspAlg(parameters.getBoolean(Params.GRASP_ALG));
 
             grasp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             grasp.setKnowledge(dataSet.getKnowledge());
@@ -82,7 +83,7 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
 
             return grasp.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
-            GRASP algorithm = new GRASP(score, test);
+            GRaSP algorithm = new GRaSP(score, test);
 
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
@@ -129,21 +130,23 @@ public class GRASP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
         // Flags
         params.add(Params.GRASP_DEPTH);
         params.add(Params.GRASP_UNCOVERED_DEPTH);
-//        params.add(Params.GRASP_CHECK_COVERING);
         params.add(Params.GRASP_FORWARD_TUCK_ONLY);
-//        params.add(Params.GRASP_BREAK_AFTER_IMPROVEMENT);
-//        params.add(Params.GRASP_ORDERED_ALG);
-//        params.add(Params.GRASP_USE_SCORE);
         params.add(Params.GRASP_USE_PEARL);
-//        params.add(Params.GRASP_USE_DATA_ORDER);
-//        params.add(Params.CACHE_SCORES);
-//        params.add(Params.OUTPUT_CPDAG);
         params.add(Params.TIMEOUT);
         params.add(Params.VERBOSE);
+        params.add(Params.GRASP_ALG);
 
         // Parameters
         params.add(Params.NUM_STARTS);
-        params.add(Params.GRASP_DEPTH);
+
+//        params.add(Params.GRASP_CHECK_COVERING);
+//        params.add(Params.GRASP_BREAK_AFTER_IMPROVEMENT);
+//        params.add(Params.GRASP_ORDERED_ALG);
+//        params.add(Params.GRASP_USE_SCORE);
+//        params.add(Params.GRASP_USE_DATA_ORDER);
+//        params.add(Params.CACHE_SCORES);
+//        params.add(Params.OUTPUT_CPDAG);
+
         return params;
     }
 

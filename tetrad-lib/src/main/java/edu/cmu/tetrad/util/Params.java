@@ -208,6 +208,7 @@ public final class Params {
     public static final String GRASP_USE_DATA_ORDER = "graspUseDataOrder";
     public static final String GRASP_DEPTH = "graspDepth";
     public static final String GRASP_UNCOVERED_DEPTH = "graspUncoveredDepth";
+    public static final String GRASP_ALG = "graspAlg";
     public static final String TIMEOUT = "timeout";
 
     // All parameters that are found in HTML manual documentation

@@ -40,7 +40,7 @@ public class Grasp {
     private boolean verbose = false;
     private boolean cachingScores = true;
     private boolean useDataOrder = false;
-    private boolean doGrasp2 = true;
+    private boolean graspAlg = true;
 
     // other params
     private int depth = 4;
@@ -67,7 +67,7 @@ public class Grasp {
     }
 
     public List<Node> bestOrder(@NotNull List<Node> order) {
-        long start = System.currentTimeMillis();
+        start = System.currentTimeMillis();
 
         scorer = new TeyssierScorer(test, score);
         scorer.setUsePearl(usePearl);
@@ -89,11 +89,11 @@ public class Grasp {
         scorer.score(order);
 
         for (int r = 0; r < (useDataOrder ? 1 : numStarts); r++) {
+            if (timeOut()) break;
+
             if (!useDataOrder) {
                 shuffle(order);
             }
-
-            this.start = System.currentTimeMillis();
 
             makeValidKnowledgeOrder(order);
 
@@ -101,24 +101,24 @@ public class Grasp {
 
             List<Node> perm;
 
-            if (doGrasp2) {
-                perm = grasp2(scorer);
-            } else {
+            if (graspAlg) {
                 if (ordered) {
                     boolean _checkCovering = checkCovering;
                     boolean _useTuck = useForwardTuckOnly;
                     setCheckCovering(true);
                     setUseForwardTuckOnly(true);
-                    grasp(scorer);
+                    grasp1(scorer);
                     setCheckCovering(false);
-                    grasp(scorer);
+                    grasp1(scorer);
                     setUseForwardTuckOnly(false);
-                    perm = grasp(scorer);
+                    perm = grasp1(scorer);
                     setUseForwardTuckOnly(_useTuck);
                     setCheckCovering(_checkCovering);
                 } else {
-                    perm = grasp(scorer);
+                    perm = grasp1(scorer);
                 }
+            } else {
+                perm = grasp2(scorer);
             }
 
             scorer.score(perm);
@@ -140,7 +140,7 @@ public class Grasp {
     }
 
 
-    public List<Node> grasp(@NotNull TeyssierScorer scorer) {
+    public List<Node> grasp1(@NotNull TeyssierScorer scorer) {
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
 
@@ -160,6 +160,8 @@ public class Grasp {
         double sOld;
 
         do {
+            if (timeOut()) break;
+
             sOld = sNew;
             shuffle(ops);
             graspDfs(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>());
@@ -179,6 +181,8 @@ public class Grasp {
     private void graspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
                           List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory) {
         for (int[] op : ops) {
+            if (timeOut()) break;
+
             Node x = scorer.get(op[0]);
             Node y = scorer.get(op[1]);
 
@@ -240,8 +244,6 @@ public class Grasp {
         int uncoveredDepth = this.uncoveredDepth < 0 ? Integer.MAX_VALUE : this.uncoveredDepth;
         scorer.clearBookmarks();
 
-        long start = System.currentTimeMillis();
-
         double sNew = scorer.score();
         double sOld;
 
@@ -260,12 +262,16 @@ public class Grasp {
         int itrUncoveredDepth = 0;
 
         do {
+            if (timeOut()) break;
+
             do {
+                if (timeOut()) break;
+
                 sOld = sNew;
                 eOld = eNew;
                 shuffle(ops);
                 graspDfs2(scorer, sOld, eOld, new int[]{overallDepth, itrUncoveredDepth}, 1,
-                        ops, new HashSet<>(), scorer.getSkeleton(), new HashSet<>(), timeout, start);
+                        ops, new HashSet<>(), scorer.getSkeleton(), new HashSet<>());
                 sNew = scorer.score();
             } while (sNew > sOld);
         } while (itrUncoveredDepth++ < uncoveredDepth);
@@ -282,16 +288,15 @@ public class Grasp {
 
     private void graspDfs2(@NotNull TeyssierScorer scorer, double sOld, int eOld, int[] depth, int currentDepth,
                            List<int[]> ops, Set<Set<Node>> tuckHistory, Set<Set<Node>> skeleton,
-                           Set<Set<Set<Node>>> skeletonHistory, double timeout, long start) {
-        if (timeout > 0 && (System.currentTimeMillis() - start) / 1000.0 > timeout) {
-            return;
-        }
+                           Set<Set<Set<Node>>> skeletonHistory) {
 
         boolean forbidUncoveredTucks = currentDepth > depth[1];
         boolean allowUncoveredTuckRecursion = currentDepth < depth[1];
         boolean allowRecursion = currentDepth < depth[0];
 
         for (int[] op : ops) {
+            if (timeOut()) break;
+
             Node x = scorer.get(op[0]);
             Node y = scorer.get(op[1]);
 
@@ -322,10 +327,10 @@ public class Grasp {
                 int eNew = scorer.getNumEdges();
 
                 if (allowRecursion && (allowUncoveredTuckRecursion ? eNew <= eOld && sNew <= sOld : coveredTuck && sNew == sOld)) {
-//                if (allowRecursion && (allowUncoveredTuckRecursion ? eNew <= eOld && sNew <= sOld : coveredTuck && sNew == sOld)) {
                     tuckHistory.add(tuck);
-                    graspDfs2(scorer, sOld, eNew, depth, currentDepth + 1, ops, tuckHistory, skeleton, skeletonHistory,
-                            timeout, start);
+                    graspDfs2(scorer, sOld, eNew, depth, currentDepth + 1, ops, tuckHistory, skeleton, skeletonHistory
+                    );
+
                     tuckHistory.remove(tuck);
                     sNew = scorer.score();
                     eNew = scorer.getNumEdges();
@@ -349,6 +354,11 @@ public class Grasp {
                 }
             }
         }
+    }
+
+    private boolean timeOut() {
+        double time = (System.currentTimeMillis() - start) / 1000.0;
+        return timeout > -1 && time > timeout;
     }
 
 //    public List<Node> grasp3(@NotNull TeyssierScorer scorer) {
@@ -535,8 +545,8 @@ public class Grasp {
     }
 
 
-    public void setDoGrasp2(boolean doGrasp2) {
-        this.doGrasp2 = doGrasp2;
+    public void setGraspAlg(boolean graspAlg) {
+        this.graspAlg = graspAlg;
     }
 
     public void setTimeout(int timeout) {

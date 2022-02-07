@@ -32,8 +32,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static java.lang.Double.POSITIVE_INFINITY;
-
 /**
  * Implements the "fast adjacency search" used in several causal algorithm in this package. In the fast adjacency
  * search, at a given stage of the search, an edge X*-*Y is removed from the graph if X _||_ Y | S, where S is a subset
@@ -154,35 +152,6 @@ public class Fas implements IFas {
 
         if (heuristic == 1) {
             Collections.sort(nodes);
-
-//            TeyssierScorer scorer = new TeyssierScorer(test);
-//            scorer.score(test.getVariables());
-//
-//            List<Node> to = new ArrayList<>();
-//            List<Node> from = new ArrayList<>(test.getVariables());
-//
-//            scorer.score(to);
-//
-//            while (!from.isEmpty()) {
-//                double min = POSITIVE_INFINITY;
-//                Node minNode = null;
-//
-//                for (Node v : from) {
-//                    double s = scorer.scoreAppended(v);
-//
-//                    if (s < min) {
-//                        min = s;
-//                        minNode = v;
-//                    }
-//                }
-//
-//                to.add(minNode);
-//                from.remove(minNode);
-//            }
-//
-//            System.out.println("to = " + to);
-//
-//            nodes = to;
         }
 
         for (int i = 0; i < nodes.size(); i++) {
@@ -214,7 +183,7 @@ public class Fas implements IFas {
         }
 
         for (Edge edge : new ArrayList<>(edges)) {
-            if (scores.get(edge) < 0
+            if (scores.get(edge) != null && scores.get(edge) < 0
                     || (knowledge.isForbidden(edge.getNode1().getName(), edge.getNode2().getName())
                     && (knowledge.isForbidden(edge.getNode2().getName(), edge.getNode1().getName())))) {
                 edges.remove(edge);
@@ -224,7 +193,7 @@ public class Fas implements IFas {
             }
         }
 
-        for (int d = 0; d <= _depth; d++) {
+        for (int d = 1; d <= _depth; d++) {
             boolean more;
 
             if (stable) {
@@ -350,7 +319,7 @@ public class Fas implements IFas {
         Map<Node, Double> scores2 = new HashMap<>();
 
         for (Node node : ppx) {
-            double _score = scores.get(Edges.undirectedEdge(node, x));
+            Double _score = scores.get(Edges.undirectedEdge(node, x));
             scores2.put(node, _score);
         }
 
@@ -402,6 +371,7 @@ public class Fas implements IFas {
         String _x = x.getName();
 
         for (Node z : adjx) {
+            if (z == x) continue;
             if (z == y) continue;
             String _z = z.getName();
 

@@ -1,5 +1,4 @@
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GRASP;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.OTHER_PERM_ALGS;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GRaSP;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.score.EbicScore;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -10,7 +9,6 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.Grasp;
 import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.sem.LinearSemIm;
 import edu.cmu.tetrad.sem.LinearSemPm;
@@ -68,7 +66,7 @@ public class TestAnneAnalysis2 {
 
                             {
                                 {
-                                    GRASP boss = new GRASP(new EbicScore(), new FisherZ());
+                                    GRaSP boss = new GRaSP(new EbicScore(), new FisherZ());
                                     Parameters parameters = new Parameters();
                                     parameters.set(Params.ALPHA, 0.001);
                                     parameters.set(Params.PENALTY_DISCOUNT, pd);

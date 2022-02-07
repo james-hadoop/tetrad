@@ -23,7 +23,7 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GRASP;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GRaSP;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.OTHER_PERM_ALGS;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
@@ -158,7 +158,7 @@ public final class TestGrasp {
 
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.EbicScore(), new FisherZ()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.EbicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -188,6 +188,107 @@ public final class TestGrasp {
     }
 
     @Test
+    public void testComparePearlGrowShrink() {
+        Parameters params = new Parameters();
+        params.set(Params.NUM_MEASURES, 20);
+        params.set(Params.AVG_DEGREE, 6);
+        params.set(Params.SAMPLE_SIZE, 1000);
+        params.set(Params.NUM_RUNS, 5);
+        params.set(Params.COEF_LOW, 0);
+        params.set(Params.COEF_HIGH, 1);
+        params.set(Params.NUM_STARTS, 1);
+
+        params.set(Params.ALPHA, 0.001, 0.01);
+        params.set(Params.PENALTY_DISCOUNT, 2.0);
+        params.set(Params.GRASP_DEPTH, 5);
+        params.set(Params.GRASP_UNCOVERED_DEPTH, 2);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
+        params.set(Params.GRASP_USE_PEARL, true, false);
+        params.set(Params.TIMEOUT, -1);
+        params.set(Params.VERBOSE, true);
+
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LinearSemSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.ALPHA));
+        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
+        statistics.add(new ParameterColumn(Params.GRASP_USE_PEARL));
+        statistics.add(new NumberOfEdgesTrue());
+        statistics.add(new NumberOfEdgesEst());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(false);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testComparePearlGrowShrink",
+                simulations, algorithms, statistics, params);
+    }
+
+    @Test
+    public void testCompareGrasp1Grasp2() {
+        Parameters params = new Parameters();
+        params.set(Params.NUM_MEASURES, 10, 20, 40);
+        params.set(Params.AVG_DEGREE, 4, 6, 8);
+        params.set(Params.SAMPLE_SIZE, 200);
+        params.set(Params.NUM_RUNS, 10);
+        params.set(Params.COEF_LOW, 0);
+        params.set(Params.COEF_HIGH, 1);
+        params.set(Params.NUM_STARTS, 1);
+
+//        params.set(Params.ALPHA, 0.001, 0.01);
+        params.set(Params.PENALTY_DISCOUNT, 2.0);
+        params.set(Params.GRASP_DEPTH, 10);
+        params.set(Params.GRASP_UNCOVERED_DEPTH, 2);
+//        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
+//        params.set(Params.GRASP_USE_PEARL, false);
+        params.set(Params.GRASP_ALG, true, false);
+        params.set(Params.TIMEOUT, -1);
+        params.set(Params.VERBOSE, true);
+
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LinearSemSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+//        statistics.add(new ParameterColumn(Params.ALPHA));
+        statistics.add(new ParameterColumn(Params.GRASP_ALG));
+       statistics.add(new ParameterColumn(Params.NUM_MEASURES));
+       statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+//        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
+//        statistics.add(new ParameterColumn(Params.GRASP_USE_PEARL));
+        statistics.add(new NumberOfEdgesTrue());
+        statistics.add(new NumberOfEdgesEst());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(false);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testCompareGrasp1Grasp2",
+                simulations, algorithms, statistics, params);
+    }
+
+
+    @Test
     public void testGraspFlagCombinations() {
         Parameters params = new Parameters();
         params.set(Params.NUM_MEASURES, 30);
@@ -214,7 +315,7 @@ public final class TestGrasp {
 
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -275,7 +376,7 @@ public final class TestGrasp {
         params.set(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE, 10);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new ChiSquare()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new ChiSquare()));
 
         Simulations simulations = new Simulations();
         simulations.add(new BayesNetSimulation(new RandomForward()));
@@ -328,7 +429,7 @@ public final class TestGrasp {
 
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 //        algorithms.add(new GASP(new LinearGaussianBicScore()));
 //        algorithms.add(new Fges(new LinearGaussianBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
@@ -385,7 +486,7 @@ public final class TestGrasp {
         params.set(Params.GRASP_USE_DATA_ORDER, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.EbicScore(), new FisherZ()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.EbicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -441,7 +542,7 @@ public final class TestGrasp {
         params.set(Params.GRASP_USE_DATA_ORDER, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.FmlBicScore(), new FisherZ()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.FmlBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -495,7 +596,7 @@ public final class TestGrasp {
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new FisherZ()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP(new LinearGaussianBicScore(), new FisherZ()));
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 //
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new ConditionalGaussianLRT()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new ConditionalGaussianLRT()));
@@ -556,7 +657,7 @@ public final class TestGrasp {
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new ConditionalGaussianLRT()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new ConditionalGaussianBicScore()));
 //        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
-        algorithms.add(new GRASP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
+        algorithms.add(new GRaSP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LeeHastieSimulation(new RandomForward()));
@@ -604,7 +705,7 @@ public final class TestGrasp {
         params.set(Params.GRASP_USE_DATA_ORDER, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
 
         Simulations simulations = new Simulations();
@@ -655,7 +756,7 @@ public final class TestGrasp {
         params.set(Params.GRASP_USE_DATA_ORDER, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new ChiSquare()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new ChiSquare()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.BdeuScore()));
 
         Simulations simulations = new Simulations();
@@ -1258,7 +1359,7 @@ public final class TestGrasp {
             params.set(Params.GRASP_USE_DATA_ORDER, false);
 
             Algorithms algorithms = new Algorithms();
-            algorithms.add(new GRASP(
+            algorithms.add(new GRaSP(
                     new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 
             Simulations simulations = new Simulations();
@@ -1457,7 +1558,7 @@ public final class TestGrasp {
         params.set(Params.ALPHA, 0.001);
 //
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -1510,7 +1611,7 @@ public final class TestGrasp {
         params.set(Params.GRASP_USE_DATA_ORDER, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new FisherZ()));
@@ -1567,7 +1668,7 @@ public final class TestGrasp {
         params.set(Params.GRASP_USE_DATA_ORDER, false);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.
                 EbicScore(), new FisherZ()));
         algorithms.add(new edu.cmu.tetrad.algcomparison
                 .algorithm.oracle.cpdag.PcAll(new FisherZ()));
@@ -1694,7 +1795,7 @@ public final class TestGrasp {
 //        simulations.add(new SemSimulationTrueModel(new RandomForward()));
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRASP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new DSeparationTest()));
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);

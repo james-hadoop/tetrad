@@ -233,6 +233,7 @@ public class Comparison {
             List<String> varyingParameters = new ArrayList<>();
 
             List<String> parameters1 = new ArrayList<>(Params.getAlgorithmParameters(algorithm));
+
             parameters1.addAll(Params.getTestParameters(algorithm));
             parameters1.addAll(Params.getScoreParameters(algorithm));
 
