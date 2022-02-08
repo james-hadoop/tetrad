@@ -67,7 +67,7 @@ public final class TestBernstein {
         algorithms.add(new FciMax(new FisherZ()));
         algorithms.add(new Rfci(new FisherZ()));
         algorithms.add(new Gfci(new LinearGaussianBicScore(), new FisherZ()));
-        algorithms.add(new BFCI(new LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new PFCI(new LinearGaussianBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));

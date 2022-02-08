@@ -11,7 +11,7 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.Bfci;
+import edu.cmu.tetrad.search.Pfci;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -23,27 +23,33 @@ import java.util.List;
 
 
 /**
- * BFCI.
+ * Adjusts GFCI to use a permutation algorithm (such as GRaSP) to do the initial
+ * steps of finding adjacencies and unshielded colliders.
+ *
+ * GFCI reference is this:
+ *
+ * J.M. Ogarrio and P. Spirtes and J. Ramsey, "A Hybrid Causal Search Algorithm
+ * for Latent Variable Models," JMLR 2016.
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "BFCI",
-        command = "bfci",
+        name = "PFCI",
+        command = "pfci",
         algoType = AlgType.allow_latent_common_causes
 )
 @Bootstrapping
-public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
+public class PFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
     private ScoreWrapper score;
 
-    public BFCI() {
+    public PFCI() {
         // Used for reflection; do not delete.
     }
 
-    public BFCI(ScoreWrapper score, IndependenceWrapper test) {
+    public PFCI(ScoreWrapper score, IndependenceWrapper test) {
         this.test = test;
         this.score = score;
     }
@@ -51,20 +57,19 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
     @Override
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            Bfci search = new Bfci(test.getTest(dataSet, parameters, trueGraph), score.getScore(dataSet, parameters));
+            Pfci search = new Pfci(test.getTest(dataSet, parameters, trueGraph), score.getScore(dataSet, parameters));
             search.setKnowledge(dataSet.getKnowledge());
             search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
             search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
 
-            search.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
-
-            search.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
-            search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            search.setDepth(parameters.getInt(Params.GRASP_DEPTH));
+            search.setUncoveredDepth(parameters.getInt(Params.GRASP_UNCOVERED_DEPTH));
+            search.setUseForwardTuckOnly(parameters.getBoolean(Params.GRASP_FORWARD_TUCK_ONLY));
+            search.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
+            search.setTimeout(parameters.getInt(Params.TIMEOUT));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
-            search.setKnowledge(dataSet.getKnowledge());
-            search.setGspDepth(parameters.getInt(Params.GRASP_DEPTH));
-            search.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
-            search.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
+            search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
+            search.setGraspAlg(parameters.getBoolean(Params.GRASP_ALG));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
 
@@ -74,7 +79,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
             return search.search();
         } else {
-            BFCI algorithm = new BFCI(score, test);
+            PFCI algorithm = new PFCI(score, test);
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(data.getKnowledge());
@@ -108,7 +113,7 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
     @Override
     public String getDescription() {
-        return "BFCI (search-FCI) using " + test.getDescription()
+        return "PFCI (Permutation-step FCI) using " + test.getDescription()
                 + " or " + score.getDescription();
     }
 
@@ -125,14 +130,18 @@ public class BFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.COMPLETE_RULE_SET_USED);
         params.add(Params.MAX_PATH_LENGTH);
 
-        params.add(Params.CACHE_SCORES);
-        params.add(Params.NUM_STARTS);
-        params.add(Params.BOSS_SCORE_TYPE);
-        params.add(Params.GRASP_USE_SCORE);
-        params.add(Params.OUTPUT_CPDAG);
+        // Flags
         params.add(Params.GRASP_DEPTH);
-        params.add(Params.NUM_ROUNDS);
+        params.add(Params.GRASP_UNCOVERED_DEPTH);
+        params.add(Params.GRASP_FORWARD_TUCK_ONLY);
+        params.add(Params.GRASP_USE_PEARL);
+        params.add(Params.TIMEOUT);
         params.add(Params.VERBOSE);
+        params.add(Params.NUM_STARTS);
+        params.add(Params.GRASP_ALG);
+
+        // Parameters
+        params.add(Params.NUM_STARTS);
 
         return params;
     }

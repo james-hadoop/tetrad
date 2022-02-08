@@ -60,7 +60,7 @@ public class TestIrvine {
 //                    Algorithm[] algorithms = new Algorithm[]{Algorithm.FGES, Algorithm.BOSS};
 
 //                    Algorithm[] algorithms = new Algorithm[]{Algorithm.FCI, Algorithm.FCIMAX, Algorithm.RFCI};
-                    Algorithm[] algorithms = new Algorithm[]{Algorithm.BOSS, Algorithm.BFCI};
+                    Algorithm[] algorithms = new Algorithm[]{Algorithm.BOSS, Algorithm.PFCI};
 
                     IndependenceWrapper test;
                     ScoreWrapper score;
@@ -150,8 +150,8 @@ public class TestIrvine {
                             search = new Rfci(test);
                         } else if (algorithm == Algorithm.GFCI) {
                             search = new Gfci(score, test);
-                        } else if (algorithm == Algorithm.BFCI) {
-                            search = new BFCI(score, test);
+                        } else if (algorithm == Algorithm.PFCI) {
+                            search = new PFCI(score, test);
                         } else if (algorithm == Algorithm.MGM) {
                             search = new Mgm();
                         }
@@ -206,7 +206,7 @@ public class TestIrvine {
 //                    Algorithm[] algorithms = new Algorithm[]{Algorithm.FGES, Algorithm.BOSS};
 
 //                    Algorithm[] algorithms = new Algorithm[]{Algorithm.FCI, Algorithm.FCIMAX, Algorithm.RFCI};
-//                    Algorithm[] algorithms = new Algorithm[]{Algorithm.GFCI, Algorithm.BFCI};
+//                    Algorithm[] algorithms = new Algorithm[]{Algorithm.GFCI, Algorithm.PFCI};
 
                     Parameters params = new Parameters();
                     params.set(Params.ALPHA, 0.001);
@@ -481,6 +481,6 @@ public class TestIrvine {
         return all;
     }
 
-    private enum Algorithm {PC, CPC, PCMAX, FGES, BOSS, FCI, FCIMAX, RFCI, GFCI, BFCI, MGM}
+    private enum Algorithm {PC, CPC, PCMAX, FGES, BOSS, FCI, FCIMAX, RFCI, GFCI, PFCI, MGM}
 }
 

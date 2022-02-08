@@ -31,49 +31,61 @@ import java.io.PrintStream;
 import java.util.*;
 
 /**
+ * Adjusts GFCI to use a permutation algorithm (such as GRaSP) to do the initial
+ * steps of finding adjacencies and unshielded colliders. Adjusts the GFCI rule
+ * for finding bidirected edges to use permutation reasoning.
+ * <p>
+ * GFCI reference is this:
+ * <p>
  * J.M. Ogarrio and P. Spirtes and J. Ramsey, "A Hybrid Causal Search Algorithm
  * for Latent Variable Models," JMLR 2016.
  *
- * @author Juan Miguel Ogarrio
- * @author ps7z
  * @author jdramsey
  */
-public final class Bfci implements GraphSearch {
+public final class Pfci implements GraphSearch {
 
-    // The conditional independence test.
+    // The score used, if GS is used to build DAGs.
     private final Score score;
+
     // The logger to use.
     private final TetradLogger logger = TetradLogger.getInstance();
-    // The covariance matrix being searched over. Assumes continuous data.
+
+    // The covariance matrix being searched over, if continuous data is supplied. This is
+    // no used by the algorithm but can be retrieved by another method if desired
     ICovarianceMatrix covarianceMatrix;
+
     // The sample size.
     int sampleSize;
+
     // The background knowledge.
     private IKnowledge knowledge = new Knowledge2();
+
+    // The test used if Pearl's method is used ot build DAGs
     private IndependenceTest test;
+
     // Flag for complete rule set, true if you should use complete rule set, false otherwise.
     private boolean completeRuleSetUsed = false;
+
     // The maximum length for any discriminating path. -1 if unlimited; otherwise, a positive integer.
     private int maxPathLength = -1;
-    // The maxDegree for the fast adjacency search.
-    private int maxDegree = -1;
+
     // True iff verbose output should be printed.
     private boolean verbose = false;
 
     // The print stream that output is directed to.
     private PrintStream out = System.out;
 
-    private boolean cacheScores;
+    // GRaSP parameters
     private int numStarts;
-    private OtherPermAlgs.Method method;
-    private boolean useScore = true;
-    private int triangleDepth = 0;
-    private int numRounds = 10;
-    private int gspDepth = 5;
-    private int maxPermSize = 4;
+    private int depth = 4;
+    private int uncoveredDepth = 1;
+    private boolean useForwardTuckOnly = false;
+    private boolean usePearl = false;
+    private int timeout = -1;
+    private boolean graspAlg = true;
 
     //============================CONSTRUCTORS============================//
-    public Bfci(IndependenceTest test, Score score) {
+    public Pfci(IndependenceTest test, Score score) {
         this.test = test;
         this.score = score;
 
@@ -88,27 +100,29 @@ public final class Bfci implements GraphSearch {
         // The PAG being constructed.
         Graph graph;
 
-        OtherPermAlgs otherPermAlgs;
+        Grasp grasp;
         List<Node> variables;
 
-        if (useScore && !(score instanceof GraphScore)) {
-            otherPermAlgs = new OtherPermAlgs(score);
+        if (!usePearl && !(score instanceof GraphScore)) {
+            grasp = new Grasp(score);
             variables = score.getVariables();
         } else {
-            otherPermAlgs = new OtherPermAlgs(test);
+            grasp = new Grasp(test);
             variables = test.getVariables();
         }
 
-        otherPermAlgs.setMethod(OtherPermAlgs.Method.RCG);
-        otherPermAlgs.setCacheScores(cacheScores);
-        otherPermAlgs.setDepth(gspDepth);
-        otherPermAlgs.setNumRounds(numRounds);
-        otherPermAlgs.setNumStarts(numStarts);
-        otherPermAlgs.setVerbose(verbose);
-        otherPermAlgs.setKnowledge(knowledge);
+        grasp.setDepth(depth);
+        grasp.setUncoveredDepth(uncoveredDepth);
+        grasp.setUseForwardTuckOnly(useForwardTuckOnly);
+        grasp.setUsePearl(usePearl);
+        grasp.setTimeout(timeout);
+        grasp.setVerbose(verbose);
+        grasp.setNumStarts(numStarts);
+        grasp.setKnowledge(knowledge);
+        grasp.setGraspAlg(graspAlg);
 
-        List<Node> perm = otherPermAlgs.bestOrder(variables);
-        graph = otherPermAlgs.getGraph(true);
+        List<Node> perm = grasp.bestOrder(variables);
+        graph = grasp.getGraph(true);
         Graph bossGraph = new EdgeListGraph(graph);
 
         graph.reorientAllWith(Endpoint.CIRCLE);
@@ -179,7 +193,9 @@ public final class Bfci implements GraphSearch {
             }
         }
 
-        SepsetProducer sepsets = new SepsetsTeyssier(bossGraph, scorer, null, maxDegree);
+        // The maxDegree for the discriminating path step.
+        int sepsetsDepth = -1;
+        SepsetProducer sepsets = new SepsetsTeyssier(bossGraph, scorer, null, sepsetsDepth);
 
         FciOrient fciOrient = new FciOrient(sepsets);
         fciOrient.setVerbose(verbose);
@@ -223,25 +239,6 @@ public final class Bfci implements GraphSearch {
     @Override
     public long getElapsedTime() {
         return 0;
-    }
-
-    /**
-     * Returns The maximum indegree of the output graph.
-     */
-    public int getMaxDegree() {
-        return maxDegree;
-    }
-
-    /**
-     * @param maxDegree The maximum indegree of the output graph.
-     */
-    public void setMaxDegree(int maxDegree) {
-        if (maxDegree < -1) {
-            throw new IllegalArgumentException(
-                    "Max degree must be -1 (unlimited) or >= 0: " + maxDegree);
-        }
-
-        this.maxDegree = maxDegree;
     }
 
     public IKnowledge getKnowledge() {
@@ -388,39 +385,31 @@ public final class Bfci implements GraphSearch {
         logger.log("info", "Finishing BK Orientation.");
     }
 
-    public void setCacheScores(boolean cacheScores) {
-        this.cacheScores = cacheScores;
-    }
-
     public void setNumStarts(int numStarts) {
         this.numStarts = numStarts;
     }
 
-    public OtherPermAlgs.Method getMethod() {
-        return method;
+    public void setDepth(int depth) {
+        this.depth = depth;
     }
 
-    public void setMethod(OtherPermAlgs.Method method) {
-        this.method = method;
+    public void setUncoveredDepth(int uncoveredDepth) {
+        this.uncoveredDepth = uncoveredDepth;
     }
 
-    public void setUseScore(boolean useScore) {
-        this.useScore = useScore;
+    public void setUseForwardTuckOnly(boolean useForwardTuckOnly) {
+        this.useForwardTuckOnly = useForwardTuckOnly;
     }
 
-    public void setTriangleDepth(int triangleDepth) {
-        this.triangleDepth = triangleDepth;
+    public void setUsePearl(boolean usePearl) {
+        this.usePearl = usePearl;
     }
 
-    public void setGspDepth(int depth) {
-        this.gspDepth = depth;
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
     }
 
-    public void setNumRounds(int numRounds) {
-        this.numRounds = numRounds;
-    }
-
-    public void setMaxPermSize(int maxPermSize) {
-        this.maxPermSize = maxPermSize;
+    public void setGraspAlg(boolean graspAlg) {
+        this.graspAlg = graspAlg;
     }
 }

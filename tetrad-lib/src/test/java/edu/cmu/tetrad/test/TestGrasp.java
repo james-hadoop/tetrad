@@ -25,10 +25,10 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GRaSP;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.OTHER_PERM_ALGS;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.FciMax;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.PFCI;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Rfci;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.algcomparison.independence.ChiSquare;
@@ -266,8 +266,8 @@ public final class TestGrasp {
         Statistics statistics = new Statistics();
 //        statistics.add(new ParameterColumn(Params.ALPHA));
         statistics.add(new ParameterColumn(Params.GRASP_ALG));
-       statistics.add(new ParameterColumn(Params.NUM_MEASURES));
-       statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
+        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
 //        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
 //        statistics.add(new ParameterColumn(Params.GRASP_USE_PEARL));
         statistics.add(new NumberOfEdgesTrue());
@@ -1114,8 +1114,8 @@ public final class TestGrasp {
 
         try {
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-            String path = "/Users/josephramsey/Downloads/udags5.txt";
-//            String path = "/Users/josephramsey/Downloads/udags6.txt";
+//            String path = "/Users/josephramsey/Downloads/udags5.txt";
+            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
             FileReader in1 = new FileReader(file);
@@ -1149,7 +1149,7 @@ public final class TestGrasp {
                 index++;
 
 //                if (!hard.contains(index)) continue;
-//                if (index < 157) continue;
+                if (index < 88) continue;
 
                 System.out.println("Line " + index + " " + line);
                 line = line.trim();
@@ -1175,14 +1175,26 @@ public final class TestGrasp {
 
                     Grasp alg0 = new Grasp(new IndTestDSep(facts));
 
+
+                    alg0.setDepth(8);
+                    alg0.setUncoveredDepth(3);
+                    alg0.setUseForwardTuckOnly(false);
                     alg0.setUsePearl(true);
-                    alg0.setUseScore(false);
-                    alg0.setUseDataOrder(true);
-                    alg0.setDepth(5);
-                    alg0.setBreakAfterImprovement(false);
-                    alg0.setOrdered(true);
+                    alg0.setTimeout(30);
                     alg0.setVerbose(false);
-                    alg0.setCacheScores(false);
+                    alg0.setNumStarts(1);
+                    alg0.setGraspAlg(false);
+                    alg0.setOrdered(true);
+
+
+//                    alg0.setUsePearl(true);
+//                    alg0.setUseScore(false);
+//                    alg0.setUseDataOrder(true);
+//                    alg0.setDepth(5);
+//                    alg0.setBreakAfterImprovement(false);
+                    alg0.setOrdered(true);
+//                    alg0.setVerbose(false);
+//                    alg0.setCacheScores(false);
 
                     boolean failed2 = false;
 
@@ -1197,68 +1209,66 @@ public final class TestGrasp {
                     Graph failingDag = null;
                     List<Node> failingEstPi = null;
 
-                    for (int depth : new int[]{0, 1, 2, 3, 4, 5, 10, 100}) {
-                        alg0.setUncoveredDepth(depth);
+                    PermutationGenerator gen = new PermutationGenerator(variables.size());
+                    int[] perm;
 
-                        PermutationGenerator gen = new PermutationGenerator(variables.size());
-                        int[] perm;
+                    List<List<Node>> pis = new ArrayList<>();
+                    Map<List<Node>, Integer> ests = new HashMap<>();
 
-                        List<List<Node>> pis = new ArrayList<>();
-                        Map<List<Node>, Integer> ests = new HashMap<>();
+                    int count = 0;
 
-                        int count = 0;
+                    boolean found = false;
 
-                        boolean found = false;
+                    while ((perm = gen.next()) != null) {
+                        List<Node> pi = GraphUtils.asList(perm, variables);
 
-                        while ((perm = gen.next()) != null) {
-                            List<Node> pi = GraphUtils.asList(perm, variables);
-
-                            List<Node> estGraphPi = alg0.bestOrder(pi);
-                            Graph estGraph = alg0.getGraph(false);
-                            int estNumEdges = estGraph.getNumEdges();
+                        List<Node> estGraphPi = alg0.bestOrder(pi);
+                        Graph estGraph = alg0.getGraph(false);
+                        int estNumEdges = estGraph.getNumEdges();
 
 //                            if (estNumEdges != spNumEdges) {
-                            Graph g = estGraph;
+                        Graph g = estGraph;
 
-                            int current = estNumEdges;
+                        int current = estNumEdges;
 
-//                                for (IndependenceFact fact : facts.getFacts()) {
-//                                    int i = variables.indexOf(fact.getX());
-//                                    int j = variables.indexOf(fact.getY());
+//                        for (IndependenceFact fact : facts.getFacts()) {
+//                            int i = variables.indexOf(fact.getX());
+//                            int j = variables.indexOf(fact.getY());
 //
-//                                    if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
-//                                        facts.remove(fact);
-//                                        alg0.bestOrder(estGraphPi);
+//                            if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
+//                                facts.remove(fact);
+//                                alg0.bestOrder(estGraphPi);
 //
-//                                        if (alg0.getNumEdges() < current) {
-//                                            current = alg0.getNumEdges();
-//                                            g = alg0.getGraph(false);
-//                                            estGraph = alg0.getGraph(false);
-//                                            estNumEdges = estGraph.getNumEdges();
-//                                        }
-//
-//                                        facts.add(fact);
-//                                    }
+//                                if (alg0.getNumEdges() < current) {
+//                                    current = alg0.getNumEdges();
+//                                    g = alg0.getGraph(false);
+//                                    estGraph = alg0.getGraph(false);
+//                                    estNumEdges = estGraph.getNumEdges();
 //                                }
+//
+//                                facts.add(fact);
+//                            }
+//                        }
 
-                            for (int i = 0; i < variables.size(); i++) {
-                                for (int j = i + 1; j < variables.size(); j++) {
-                                    if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
-                                        if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
-                                            facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
-                                            alg0.bestOrder(estGraphPi);
+                        // Graph repair...
+                        for (int i = 0; i < variables.size(); i++) {
+                            for (int j = i + 1; j < variables.size(); j++) {
+                                if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
+                                    if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
+                                        facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
+                                        alg0.bestOrder(estGraphPi);
 
-                                            if (alg0.getNumEdges() < estNumEdges) {
-                                                g = alg0.getGraph(false);
-                                                estGraph = alg0.getGraph(false);
-                                                estNumEdges = estGraph.getNumEdges();
-                                            }
-
-                                            facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
+                                        if (alg0.getNumEdges() < estNumEdges) {
+                                            g = alg0.getGraph(false);
+                                            estGraph = alg0.getGraph(false);
+                                            estNumEdges = estGraph.getNumEdges();
                                         }
+
+                                        facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
                                     }
                                 }
                             }
+                        }
 
 //                                for (int i = 0; i < variables.size(); i++) {
 //                                    for (int j = i + 1; j < variables.size(); j++) {
@@ -1279,23 +1289,22 @@ public final class TestGrasp {
 //                                    }
 //                                }
 
-                            if (estNumEdges != spNumEdges) {
+                        if (estNumEdges != spNumEdges) {
 //                                    System.out.println("Failed = " + estGraph);
-                                found = true;
-                                failingInitialPi = pi;
-                                failingDag = estGraph;
-                                failingEstPi = estGraphPi;
-                                break;
-                            }
+                            found = true;
+                            failingInitialPi = pi;
+                            failingDag = estGraph;
+                            failingEstPi = estGraphPi;
+                            break;
                         }
+                    }
 //                        }
 
-                        if (!found) {
-                            failed2 = false;
+                    if (!found) {
+                        failed2 = false;
 //                            break;
-                        } else {
-                            failed2 = true;
-                        }
+                    } else {
+                        failed2 = true;
                     }
 
                     if (failed2) {
@@ -1329,6 +1338,294 @@ public final class TestGrasp {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void bryanCheckDensityClaims3a() {
+        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
+
+        long start = System.currentTimeMillis();
+
+        try {
+//            String path = "/Users/josephramsey/Downloads/udags4.txt";
+            String path = "/Users/josephramsey/Downloads/udags5.txt";
+//            String path = "/Users/josephramsey/Downloads/udags6.txt";
+            File file = new File(path);
+            System.out.println(file.getAbsolutePath());
+            FileReader in1 = new FileReader(file);
+            BufferedReader in = new BufferedReader(in1);
+            String line;
+            int index = 0;
+            int indexed = 0;
+            int failed = 0;
+            int timeout = 0;
+            int all = 1;
+
+            List<Integer> failedIndices = new ArrayList<>();
+            List<Integer> timeoutIndices = new ArrayList<>();
+
+            List<Integer> hard5 = new ArrayList<>();
+            hard5.add(29);
+            hard5.add(30);
+            hard5.add(34);
+            hard5.add(38);
+            hard5.add(40);
+            hard5.add(44);
+            hard5.add(46);
+            hard5.add(72);
+            hard5.add(73);
+            hard5.add(75);
+            hard5.add(84);
+            hard5.add(85);
+            hard5.add(138);
+            hard5.add(154);
+            hard5.add(158);
+            hard5.add(159);
+            hard5.add(160);
+
+            List<Integer> hard6 = new ArrayList<>();
+            hard6.add(675);
+            hard6.add(676);
+            hard6.add(750);
+            hard6.add(754);
+            hard6.add(768);
+
+            int[] hard6a = {28, 32, 36, 154};
+            int[] hard6b = {539, 544, 550, 560, 564, 566, 567, 568, 572, 574, 575, 591, 594, 595};
+            int[] hard6c = {574, 591};
+
+            while ((line = in.readLine()) != null) {
+                index++;
+
+//                if (!hard5.contains(index)) continue;
+//                if (index < 500) continue;
+
+//                if (Arrays.binarySearch(hard6c, index) < 0) continue;;
+
+                System.out.println("Line " + index + " " + line);
+                line = line.trim();
+
+                GraphoidAxioms axioms = getGraphoidAxioms(line);
+                axioms.setTrivialtyAssumed();
+                axioms.setSymmetryAssumed();
+//
+//                if (axioms.semigraphoid()) {
+//                    System.out.println("\t* Semigraphoid");
+//                }
+//
+//                if (axioms.graphoid()) {
+//                    System.out.println("\t* Graphoid");
+//                }
+
+//                if (axioms.compositionalGraphoid()) {
+//                    System.out.println("\t* Compositional graphoid");
+//                }
+//
+//                if (true) {
+//                    continue;
+//                }
+
+                {
+                    IndependenceFacts facts = axioms.getIndependenceFacts();
+
+                    Grasp alg0 = new Grasp(new IndTestDSep(facts));
+
+                    alg0.setUsePearl(false);
+                    alg0.setUseScore(false);
+                    alg0.setUseDataOrder(true);
+                    alg0.setDepth(8);
+                    alg0.setBreakAfterImprovement(true);
+                    alg0.setOrdered(true);
+                    alg0.setVerbose(false);
+                    alg0.setCacheScores(false);
+
+                    boolean failed2 = false;
+
+                    List<Node> variables = facts.getVariables();
+                    OtherPermAlgs spAlg = new OtherPermAlgs(new IndTestDSep(facts));
+                    spAlg.setMethod(OtherPermAlgs.Method.SP);
+                    List<Node> spPi = spAlg.bestOrder(variables);
+                    Graph spGraph = spAlg.getGraph(false);
+                    int spNumEdges = spGraph.getNumEdges();
+
+                    List<Node> failingInitialPi = null;
+                    Graph failingDag = null;
+                    List<Node> failingEstPi = null;
+
+                    long time0 = System.currentTimeMillis();
+
+                    for (int uncoveredDepth : new int[]{8}) {
+                        alg0.setUncoveredDepth(uncoveredDepth);
+
+                        PermutationGenerator gen = new PermutationGenerator(variables.size());
+                        int[] perm;
+
+                        List<List<Node>> pis = new ArrayList<>();
+                        Map<List<Node>, Integer> ests = new HashMap<>();
+
+                        int count = 0;
+
+                        boolean found = false;
+
+
+                        while ((perm = gen.next()) != null) {
+                            long time1 = System.currentTimeMillis();
+
+                            if (((time1 - time0) / 1000.0) > 30d) {
+                                System.out.println("TIMEOUT");
+                                timeout++;
+                                timeoutIndices.add(index);
+                                break;
+                            }
+
+                            List<Node> pi = GraphUtils.asList(perm, variables);
+
+                            List<Node> estGraphPi = alg0.bestOrder(pi);
+                            Graph estGraph = alg0.getGraph(false);
+                            int estNumEdges = estGraph.getNumEdges();
+
+                            if (estNumEdges != spNumEdges) {
+                                Graph g = estGraph;
+
+                                int current = estNumEdges;
+
+//                                for (Edge edge : alg0.getGraph(false).getEdges()) {
+//                                    Node x = edge.getNode1();
+//                                    Node y = edge.getNode2();
+//
+//                                    Knowledge2 knowledge2 = new Knowledge2();
+//                                    knowledge2.setForbidden(x.getName(), y.getName());
+//                                    alg0.setKnowledge(knowledge2);
+//
+//                                    List<Node> bestOrder = alg0.bestOrder(estGraphPi);
+//
+//                                    if (alg0.getNumEdges() < current) {
+//                                        current = alg0.getNumEdges();
+//                                        g = alg0.getGraph(false);
+//                                        estGraph = alg0.getGraph(false);
+//                                        estGraphPi = bestOrder;
+//                                        estNumEdges = estGraph.getNumEdges();
+//                                    }
+//                                }
+
+//                                for (IndependenceFact fact : facts.getFacts()) {
+//                                    Node x = fact.getX();
+//                                    Node y = fact.getY();
+//
+//                                    if (!g.isAdjacentTo(x, y)) {
+////                                        List<IndependenceFact> _facts = new ArrayList<>();
+////
+////                                        for (IndependenceFact fact1 : facts.getFacts()) {
+////                                            if (!fact1.getZ().isEmpty()) {
+////                                                continue;
+////                                            }
+////
+////                                            if ((fact1.getX() == x && fact1.getY() == y)
+////                                                    || (fact1.getX() == y && fact1.getY() == x)) {
+////                                                _facts.remove(fact1);
+////                                                break;
+////                                            }
+////                                        }
+////
+////                                        for (IndependenceFact fact1 : _facts) {
+////                                            facts.remove(fact);
+////                                        }
+//
+//                                        facts.remove(fact);
+//                                        List<Node> bestOrder = alg0.bestOrder(estGraphPi);
+//
+//                                        if (alg0.getNumEdges() < current) {
+//                                            current = alg0.getNumEdges();
+//                                            g = alg0.getGraph(false);
+//                                            estGraph = alg0.getGraph(false);
+//                                            estGraphPi = bestOrder;
+//                                            estNumEdges = estGraph.getNumEdges();
+//                                        }
+//
+////                                        for (IndependenceFact fact1 : _facts) {
+////                                            facts.add(fact1);
+////                                        }
+////
+//                                        facts.add(fact);
+//                                    }
+//                                }
+
+                                for (int i = 0; i < variables.size(); i++) {
+                                    for (int j = i + 1; j < variables.size(); j++) {
+                                        if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
+                                            if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
+                                                facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
+                                                alg0.bestOrder(estGraphPi);
+
+                                                if (alg0.getNumEdges() < estNumEdges) {
+                                                    g = alg0.getGraph(false);
+                                                    estGraph = alg0.getGraph(false);
+                                                    estNumEdges = estGraph.getNumEdges();
+                                                }
+
+                                                facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
+                                            }
+                                        }
+                                    }
+                                }
+
+
+                                if (estNumEdges != spNumEdges) {
+//                                    System.out.println("Failed = " + estGraph);
+                                    found = true;
+                                    failingInitialPi = pi;
+                                    failingDag = estGraph;
+                                    failingEstPi = estGraphPi;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!found) {
+                            failed2 = false;
+                            break;
+                        } else {
+                            failed2 = true;
+                        }
+                    }
+
+                    if (failed2) {
+//                        System.out.println("Failed, line " + index + " " + line);
+//                        System.out.println("Elementary facts = " + facts);
+//                        System.out.println("Failing initial permutation: " + failingInitialPi);
+//                        System.out.println("Failing GRASP final permutation: " + failingEstPi);
+//                        System.out.println("SP permutation = " + spPi);
+//                        System.out.println("SP DAG = " + spGraph);
+//                        System.out.println("Failing Estimated DAG = " + failingDag);
+//
+//                        IndTestDSep dsep = new IndTestDSep(failingDag);
+//
+//                        for (IndependenceFact fact : facts.getFacts()) {
+//                            if (dsep.isDSeparated(fact.getX(), fact.getY(), fact.getZ())) {
+//                                System.out.println("Possible unfaithful d-connection: " + fact);
+//                            }
+//                        }
+
+                        failed++;
+                        failedIndices.add(index);
+
+
+                        System.out.println("Failed indices = " + failedIndices);
+                        System.out.println("Timeout indices = " + timeoutIndices);
+                    }
+
+                    NumberFormat nf = new DecimalFormat("0.0");
+                    System.out.println("Failed = " + failed + " all = " + all + " = " + nf.format(100. * failed / (double) all)
+                            + "%,  timouts = " + timeout + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
+                }
+
+                all++;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Test
     public void bryanCheckDensityClaims4() {
@@ -2182,64 +2479,62 @@ public final class TestGrasp {
     }
 
     @Test
-    public void testBfci() {
+    public void testPfci() {
         Parameters params = new Parameters();
         params.set(Params.SAMPLE_SIZE, 1000);
-        params.set(Params.NUM_MEASURES, 50);
-        params.set(Params.NUM_LATENTS, 10);
+        params.set(Params.NUM_MEASURES, 30);
+        params.set(Params.NUM_LATENTS, 6);
         params.set(Params.AVG_DEGREE, 6);
         params.set(Params.RANDOMIZE_COLUMNS, true);
         params.set(Params.COEF_LOW, 0);
         params.set(Params.COEF_HIGH, 1);
         params.set(Params.VAR_LOW, 1);
-        params.set(Params.VAR_HIGH, 3);
+        params.set(Params.VAR_HIGH, 1);
         params.set(Params.VERBOSE, true);
 
-        params.set(Params.NUM_RUNS, 30);
-
-        params.set(Params.BOSS_SCORE_TYPE, false);
-        params.set(Params.BREAK_TIES, true);
-        params.set(Params.CACHE_SCORES, true);
-        params.set(Params.NUM_STARTS, 1);
-        params.set(Params.GRASP_USE_SCORE, true);
+        params.set(Params.NUM_RUNS, 10);
 
         params.set(Params.MAX_PATH_LENGTH, -1);
         params.set(Params.COMPLETE_RULE_SET_USED, true);
+        params.set(Params.MAX_PATH_LENGTH, -1);
+
+        // Flags
+        params.set(Params.GRASP_DEPTH, 5);
+        params.set(Params.GRASP_UNCOVERED_DEPTH, 3);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
+        params.set(Params.GRASP_USE_PEARL, false);
+        params.set(Params.TIMEOUT, 30);
+        params.set(Params.NUM_STARTS, 1);
+        params.set(Params.GRASP_ALG, true, false);
 
         params.set(Params.PENALTY_DISCOUNT, 2);
         params.set(Params.ALPHA, 0.001);
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new Fci(new FisherZ()));
+        algorithms.add(new PFCI(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
         algorithms.add(new FciMax(new FisherZ()));
         algorithms.add(new Rfci(new FisherZ()));
         algorithms.add(new Gfci(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
-        algorithms.add(new BFCI(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
-//        algorithms.add(new BOSS(new LinearGaussianBicScore(), new FisherZ()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
 
         Statistics statistics = new Statistics();
-//        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
-//        statistics.add(new ParameterColumn(Params.BOSS_METHOD));
-//        statistics.add(new ParameterColumn(Params.BOSS_SCORE_TYPE));
-//        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new ParameterColumn(Params.GRASP_ALG));
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
         statistics.add(new ArrowheadPrecisionCommonEdges());
         statistics.add(new ArrowheadRecallCommonEdges());
-//        statistics.add(new SHD_CPDAG());
-//        statistics.add(new ElapsedTime());
+        statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
         comparison.setSaveData(true);
-//        comparison.setShowAlgorithmIndices(true);
+        comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_PAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/bfci", simulations,
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testPfci", simulations,
                 algorithms, statistics, params);
     }
 

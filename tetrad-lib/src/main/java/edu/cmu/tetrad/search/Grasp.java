@@ -7,10 +7,7 @@ import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Collections.shuffle;
 
@@ -40,7 +37,7 @@ public class Grasp {
     private boolean verbose = false;
     private boolean cachingScores = true;
     private boolean useDataOrder = false;
-    private boolean graspAlg = true;
+    private boolean graspAlg = false;
 
     // other params
     private int depth = 4;
@@ -118,7 +115,7 @@ public class Grasp {
                     perm = grasp1(scorer);
                 }
             } else {
-                perm = grasp2(scorer);
+                perm = grasp4(scorer);
             }
 
             scorer.score(perm);
@@ -356,70 +353,95 @@ public class Grasp {
         }
     }
 
+    public List<Node> grasp4(@NotNull TeyssierScorer scorer) {
+        int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
+        scorer.clearBookmarks();
+
+        double sNew = scorer.score();
+        double sOld;
+
+        do {
+            sOld = sNew;
+            graspDfs4(scorer, sOld, depth, 1, new HashSet<>(), new HashSet<>());
+            sNew = scorer.score();
+        } while (sNew > sOld);
+
+        if (verbose) {
+            System.out.println("# Edges = " + scorer.getNumEdges()
+                    + " Score = " + scorer.score()
+                    + " (GRaSP)"
+                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
+        }
+
+        return scorer.getPi();
+    }
+
+    private void graspDfs4(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+                           Set<Set<Node>> tucks, Set<Set<Set<Node>>> dfsHistory) {
+        for(Node y : scorer.getShuffledVariables()) {
+            Set<Node> ancestors = scorer.getAncestors(y);
+            List<Node> parents = new ArrayList<>(scorer.getParents(y));
+            shuffle(parents);
+
+            for(Node x : parents) {
+
+                boolean covered = scorer.coveredEdge(x, y);
+                Set<Node> tuck = new HashSet<>();
+                tuck.add(x);
+                tuck.add(y);
+
+                if (covered && tucks.contains(tuck)) continue;
+
+                int i = scorer.index(x);
+                scorer.bookmark(currentDepth);
+
+                boolean first = true;
+                List<Node> Z = new ArrayList<>(scorer.getOrderShallow().subList(i + 1, scorer.index(y)));
+                Iterator<Node> zItr = Z.iterator();
+                do {
+                    if(first) {
+                        scorer.moveTo(y, i);
+                        first = false;
+                    } else {
+                        Node z = zItr.next();
+                        if (ancestors.contains(z)) {
+                            scorer.moveTo(z, i++);
+                        } else continue;
+                    }
+
+                    if (violatesKnowledge(scorer.getPi())) continue;
+
+                    sNew = scorer.score();
+                    if (sNew > sOld) {
+                        if (verbose) {
+                            System.out.printf("Edges: %d \t|\t Score Improvement: %f \t|\t Tucks Performed: %s %s \n",
+                                    scorer.getNumEdges(), sNew - sOld, tucks, tuck);
+                        }
+                        return;
+                    }
+
+                    if (covered && currentDepth < depth) {
+                        tucks.add(tuck);
+                        if (!dfsHistory.contains(tucks)) {
+                            dfsHistory.add(new HashSet<>(tucks));
+                            graspDfs4(scorer, sOld, depth, currentDepth + 1, tucks, dfsHistory);
+                        }
+                        tucks.remove(tuck);
+                    }
+
+                    if (scorer.score() > sOld) return;
+
+                } while (zItr.hasNext());
+
+                scorer.goToBookmark(currentDepth);
+            }
+        }
+    }
+
     private boolean timeOut() {
         double time = (System.currentTimeMillis() - start) / 1000.0;
         return timeout > -1 && time > timeout;
     }
-
-//    public List<Node> grasp3(@NotNull TeyssierScorer scorer) {
-//        int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
-//        scorer.clearBookmarks();
-//
-//        double sNew = scorer.score();
-//        double sOld;
-//
-//        do {
-//            sOld = sNew;
-//            graspDfs3(scorer, sOld, depth, 1);
-//            sNew = scorer.score();
-//        } while (sNew > sOld);
-//
-//        if (verbose) {
-//            System.out.println("# Edges = " + scorer.getNumEdges()
-//                    + " Score = " + scorer.score()
-//                    + " (GRaSP)"
-//                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-//        }
-//
-//        return scorer.getPi();
-//    }
-
-//    private void graspDfs3(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth) {
-//
-//        all:
-//        for (Node node1 : scorer.getPi()) {
-//            for (Node node2 : scorer.getParents(node1)) {
-//                for (Node node3 : scorer.getParents(node1)) {
-//
-//                    if (scorer.index(node2) > scorer.index(node3)) continue;
-//
-//                    scorer.bookmark(currentDepth);
-//                    if (node2 != node3) {
-//                        scorer.moveTo(node2, scorer.index(node3));
-//                    }
-//                    scorer.moveTo(node1, scorer.index(node2));
-//
-//                    if (violatesKnowledge(scorer.getPi())) {
-//                        scorer.goToBookmark(currentDepth);
-//                    } else {
-//                        double sNew = scorer.score();
-//                        if (currentDepth < depth && sNew == sOld) {
-//                            graspDfs3(scorer, sOld, depth, currentDepth + 1);
-//                            sNew = scorer.score();
-//                        }
-//                        if (sNew <= sOld) {
-//                            scorer.goToBookmark(currentDepth);
-//                        } else {
-//                            if (verbose) {
-//                                System.out.printf("Edges: %d \t|\t Score Improvement: %f \n", scorer.getNumEdges(), sNew - sOld);
-//                            }
-//                            break all;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     @NotNull
     public Graph getGraph(boolean cpDag) {

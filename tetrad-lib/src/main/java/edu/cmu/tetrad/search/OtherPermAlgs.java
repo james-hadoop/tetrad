@@ -12,7 +12,9 @@ import org.jetbrains.annotations.NotNull;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Collections.shuffle;
 
@@ -360,6 +362,7 @@ public class OtherPermAlgs {
         List<Node> variables = scorer.getPi();
         PermutationGenerator gen = new PermutationGenerator(variables.size());
         int[] perm;
+        Set<Graph> bestMecs = new HashSet<>();
 
         while ((perm = gen.next()) != null) {
             List<Node> p = GraphUtils.asList(perm, variables);
@@ -368,13 +371,19 @@ public class OtherPermAlgs {
             if (scorer.score(p) > maxScore) {
                 maxScore = scorer.score(p);
                 maxP = p;
+                bestMecs.clear();
+            }
+
+            if (scorer.score() == maxScore) {
+                bestMecs.add(SearchGraphUtils.cpdagForDag(scorer.getGraph(true)));
             }
         }
 
-        if (verbose) {
+        if (true) {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
                     + " (SP)"
+                    + " # best MECs = " + bestMecs.size()
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " sp"));
         }
 

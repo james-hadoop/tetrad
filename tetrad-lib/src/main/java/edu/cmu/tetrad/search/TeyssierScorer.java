@@ -773,6 +773,34 @@ public class TeyssierScorer {
         return skeleton;
     }
 
+    public Set<Node> getAncestors(Node node) {
+        Set<Node> ancestors = new HashSet<>();
+        collectAncestorsVisit(node, ancestors);
+
+        return ancestors;
+    }
+
+    private void collectAncestorsVisit(Node node, Set<Node> ancestors) {
+        if (ancestors.contains(node)) {
+            return;
+        }
+
+        ancestors.add(node);
+        Set<Node> parents = getParents(node);
+
+        if (!parents.isEmpty()) {
+            for (Node parent : parents) {
+                collectAncestorsVisit(parent, ancestors);
+            }
+        }
+    }
+
+    public List<Node> getShuffledVariables() {
+        List<Node> variables = getPi();
+        shuffle(variables);
+        return variables;
+    }
+
     private static class Pair {
         private final Set<Node> parents;
         private final float score;

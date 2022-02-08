@@ -37,13 +37,13 @@ public class SepsetsTeyssier implements SepsetProducer {
     private final Graph graph;
     private final TeyssierScorer scorer;
     private final SepsetMap extraSepsets;
-    private int depth;
+    private final int sepsetsDepth;
 
-    public SepsetsTeyssier(Graph graph, TeyssierScorer scorer, SepsetMap extraSepsets, int depth) {
+    public SepsetsTeyssier(Graph graph, TeyssierScorer scorer, SepsetMap extraSepsets, int sepsetsDepth) {
         this.graph = graph;
         this.scorer = scorer;
         this.extraSepsets = extraSepsets;
-        this.depth = depth;
+        this.sepsetsDepth = sepsetsDepth;
     }
 
     /**
@@ -77,7 +77,7 @@ public class SepsetsTeyssier implements SepsetProducer {
         adji.remove(k);
         adjk.remove(i);
 
-        for (int d = 0; d <= Math.min((depth == -1 ? 1000 : depth), Math.max(adji.size(), adjk.size())); d++) {
+        for (int d = 0; d <= Math.min((sepsetsDepth == -1 ? 1000 : sepsetsDepth), Math.max(adji.size(), adjk.size())); d++) {
             if (d <= adji.size()) {
                 ChoiceGenerator gen = new ChoiceGenerator(adji.size(), d);
                 int[] choice;
@@ -114,7 +114,7 @@ public class SepsetsTeyssier implements SepsetProducer {
         nodes.add(a);
         nodes.add(b);
         scorer.score(nodes);
-        return !scorer.getParents(a).contains(b) || !scorer.getParents(b).contains(a);
+        return !scorer.adjacent(a, b);
     }
 
     @Override
@@ -138,10 +138,6 @@ public class SepsetsTeyssier implements SepsetProducer {
 
     public Graph getDag() {
         return scorer.getGraph(false);
-    }
-
-    public void setDepth(int depth) {
-        this.depth = depth;
     }
 }
 
