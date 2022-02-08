@@ -789,7 +789,7 @@ public class TeyssierScorer {
         Set<Node> parents = getParents(node);
 
         if (!parents.isEmpty()) {
-            for (Node parent : parents) {
+            for (Node parent :  parents) {
                 collectAncestorsVisit(parent, ancestors);
             }
         }

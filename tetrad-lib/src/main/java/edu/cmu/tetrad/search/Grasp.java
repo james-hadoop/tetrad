@@ -355,7 +355,7 @@ public class Grasp {
 
     public List<Node> grasp4(@NotNull TeyssierScorer scorer) {
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
-        scorer.clearBookmarks();
+        scorer. clearBookmarks();
 
         double sNew = scorer.score();
         double sOld;
