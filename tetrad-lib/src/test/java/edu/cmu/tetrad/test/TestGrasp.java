@@ -32,12 +32,9 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Rfci;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.algcomparison.independence.ChiSquare;
-import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
 import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.score.ConditionalGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.BayesNetSimulation;
-import edu.cmu.tetrad.algcomparison.simulation.LeeHastieSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.LinearSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -155,6 +152,7 @@ public final class TestGrasp {
         params.set(Params.GRASP_USE_SCORE, true);
         params.set(Params.GRASP_USE_PEARL, false);
         params.set(Params.GRASP_USE_DATA_ORDER, false);
+        params.set(Params.GRASP_ALG, false);
 
 
         Algorithms algorithms = new Algorithms();
@@ -186,6 +184,72 @@ public final class TestGrasp {
         comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp1",
                 simulations, algorithms, statistics, params);
     }
+
+    @Test
+    public void testGrasp1Bryan() {
+        Parameters params = new Parameters();
+        params.set(Params.NUM_MEASURES, 50);
+        params.set(Params.AVG_DEGREE, 6, 10);
+        params.set(Params.SAMPLE_SIZE, 1000);
+        params.set(Params.NUM_RUNS, 10);
+        params.set(Params.COEF_LOW, 0);
+        params.set(Params.COEF_HIGH, 1);
+        params.set(Params.NUM_STARTS, 1);
+
+        params.set(Params.PENALTY_DISCOUNT, 2);
+        params.set(Params.ZS_RISK_BOUND, 0.001); //, 0.01, 0.1);
+        params.set(Params.EBIC_GAMMA, 0.8);
+        params.set(Params.ALPHA, 0.001);
+
+        params.set(Params.GRASP_DEPTH, 3);
+        params.set(Params.GRASP_UNCOVERED_DEPTH, 2);
+        params.set(Params.NUM_ROUNDS, 50);
+
+        params.set(Params.GRASP_CHECK_COVERING, false);
+        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
+        params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
+        params.set(Params.GRASP_ORDERED_ALG, false);
+        params.set(Params.GRASP_USE_SCORE, true);
+        params.set(Params.GRASP_USE_PEARL, false);
+        params.set(Params.GRASP_USE_VP_SCORING, false);
+        params.set(Params.GRASP_USE_DATA_ORDER, false);
+
+        params.set(Params.GRASP_ALG, false);
+
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.EbicScore(), new FisherZ()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LinearSemSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new ParameterColumn(Params.GRASP_DEPTH));
+//        statistics.add(new ParameterColumn(Params.GRASP_UNCOVERED_DEPTH));
+//        statistics.add(new ParameterColumn(Params.GRASP_USE_VP_SCORING));
+//        statistics.add(new ParameterColumn(Params.GRASP_USE_TUCK));
+//        statistics.add(new ParameterColumn(Params.GRASP_CHECK_COVERING));
+        statistics.add(new ParameterColumn(Params.EBIC_GAMMA));
+        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
+        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new NumberOfEdgesTrue());
+        statistics.add(new NumberOfEdgesEst());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(false);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp1",
+                simulations, algorithms, statistics, params);
+    }
+
 
     @Test
     public void testComparePearlGrowShrink() {
@@ -287,65 +351,6 @@ public final class TestGrasp {
                 simulations, algorithms, statistics, params);
     }
 
-
-    @Test
-    public void testGraspFlagCombinations() {
-        Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 30);
-        params.set(Params.AVG_DEGREE, 6);
-        params.set(Params.SAMPLE_SIZE, 1000);
-        params.set(Params.NUM_RUNS, 20);
-        params.set(Params.COEF_LOW, 0);
-        params.set(Params.COEF_HIGH, 1);
-        params.set(Params.NUM_STARTS, 1);
-
-        params.set(Params.PENALTY_DISCOUNT, 2);
-        params.set(Params.ZS_RISK_BOUND, 0.001); //, 0.01, 0.1);
-        params.set(Params.EBIC_GAMMA, 1);
-        params.set(Params.ALPHA, 0.1, 0.01, 0.001, 0.0001, 0.00001);
-
-//        params.set(Params.GRASP_DEPTH, 1, 2, 3);
-//        params.set(Params.GRASP_CHECK_COVERING, true, false);
-//        params.set(Params.GRASP_USE_TUCK, true, false);
-//        params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true, false);
-//        params.set(Params.GRASP_ORDERED_ALG, true, false);
-//        params.set(Params.GRASP_USE_SCORE, true, false);
-        params.set(Params.GRASP_USE_PEARL, true, false);
-//        params.set(Params.GRASP_USE_DATA_ORDER, false);
-
-
-        Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
-
-        Simulations simulations = new Simulations();
-        simulations.add(new LinearSemSimulation(new RandomForward()));
-
-        Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.ALPHA));
-        statistics.add(new ParameterColumn(Params.GRASP_DEPTH));
-//        statistics.add(new ParameterColumn(Params.GRASP_CHECK_COVERING));
-//        statistics.add(new ParameterColumn(Params.GRASP_USE_TUCK));
-//        statistics.add(new ParameterColumn(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
-//        statistics.add(new ParameterColumn(Params.GRASP_ORDERED_ALG));
-//        statistics.add(new ParameterColumn(Params.GRASP_USE_SCORE));
-        statistics.add(new ParameterColumn(Params.GRASP_USE_PEARL));
-        statistics.add(new NumberOfEdgesTrue());
-        statistics.add(new NumberOfEdgesEst());
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
-        statistics.add(new ElapsedTime());
-
-        Comparison comparison = new Comparison();
-        comparison.setSaveData(false);
-        comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGraspFlagCombinations",
-                simulations, algorithms, statistics, params);
-    }
-
     @Test
     public void testGrasp2() {
         Parameters params = new Parameters();
@@ -405,7 +410,6 @@ public final class TestGrasp {
                 simulations, algorithms, statistics, params);
     }
 
-
     @Test
     public void tesLuFigure3() {
         Parameters params = new Parameters();
@@ -456,330 +460,6 @@ public final class TestGrasp {
 
         comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testLuFigure3",
                 simulations, algorithms, statistics, params);
-    }
-
-    @Test
-    public void testGrasp3() {
-        Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 100);
-        params.set(Params.AVG_DEGREE, 10);
-        params.set(Params.SAMPLE_SIZE, 1000);
-        params.set(Params.NUM_RUNS, 1);
-        params.set(Params.COEF_LOW, 0);
-        params.set(Params.COEF_HIGH, 1);
-        params.set(Params.VERBOSE, true);
-        params.set(Params.CACHE_SCORES, true);
-        params.set(Params.NUM_STARTS, 1);
-        params.set(Params.CACHE_SCORES, false);
-        params.set(Params.NUM_ROUNDS, 1);
-
-        params.set(Params.PENALTY_DISCOUNT, 1);
-        params.set(Params.EBIC_GAMMA, 0.8);
-        params.set(Params.COLLIDER_DISCOVERY_RULE, 2, 3);
-
-        params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
-        params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
-        params.set(Params.GRASP_ORDERED_ALG, true);
-        params.set(Params.GRASP_USE_SCORE, true);
-        params.set(Params.GRASP_USE_PEARL, false);
-        params.set(Params.GRASP_USE_DATA_ORDER, false);
-
-        Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.EbicScore(), new FisherZ()));
-
-        Simulations simulations = new Simulations();
-        simulations.add(new LinearSemSimulation(new RandomForward()));
-
-        Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
-        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
-        statistics.add(new CorrectSkeleton());
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
-        statistics.add(new SHD());
-        statistics.add(new F1All());
-        statistics.add(new ElapsedTime());
-
-        Comparison comparison = new Comparison();
-        comparison.setSaveData(true);
-        comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp3",
-                simulations, algorithms, statistics, params);
-    }
-
-    @Test
-    public void testGrasp4() {
-        Parameters params = new Parameters();
-        params.set(Params.SAMPLE_SIZE, 200);
-        params.set(Params.NUM_MEASURES, 50);
-        params.set(Params.AVG_DEGREE, 2);
-        params.set(Params.RANDOMIZE_COLUMNS, true);
-        params.set(Params.COEF_LOW, 0);
-        params.set(Params.COEF_HIGH, 1);
-        params.set(Params.VERBOSE, true);
-
-        params.set(Params.NUM_RUNS, 1);
-
-        params.set(Params.BOSS_SCORE_TYPE, false);
-        params.set(Params.BREAK_TIES, false);
-        params.set(Params.CACHE_SCORES, true);
-        params.set(Params.NUM_STARTS, 1);
-
-        params.set(Params.PENALTY_DISCOUNT, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0);
-        params.set(Params.EBIC_GAMMA, 0.5);
-
-        params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
-        params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
-        params.set(Params.GRASP_ORDERED_ALG, true);
-        params.set(Params.GRASP_USE_SCORE, true);
-        params.set(Params.GRASP_USE_PEARL, false);
-        params.set(Params.GRASP_USE_DATA_ORDER, false);
-
-        Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.FmlBicScore(), new FisherZ()));
-
-        Simulations simulations = new Simulations();
-        simulations.add(new LinearSemSimulation(new RandomForward()));
-
-        Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.PENALTY_DISCOUNT));
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
-        statistics.add(new AdjacencyTPR());
-        statistics.add(new AdjacencyFPR());
-        statistics.add(new SHD());
-        statistics.add(new ElapsedTime());
-
-        Comparison comparison = new Comparison();
-        comparison.setSaveData(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp4", simulations, algorithms, statistics, params);
-    }
-
-    @Test
-    public void testGrasp5() {
-        Parameters params = new Parameters();
-        params.set(Params.SAMPLE_SIZE, 10000);
-        params.set(Params.NUM_MEASURES, 50);
-        params.set(Params.AVG_DEGREE, 6);
-        params.set(Params.COEF_LOW, 0);
-        params.set(Params.COEF_HIGH, 1);
-        params.set(Params.VERBOSE, true);
-        params.set(Params.NUM_RUNS, 1);
-        params.set(Params.NUM_STARTS, 1);
-
-        params.set(Params.PENALTY_DISCOUNT, 2);
-        params.set(Params.ALPHA, 0.001);
-
-        params.set(Params.GRASP_DEPTH, 3);
-        params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
-        params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
-        params.set(Params.GRASP_ORDERED_ALG, true);
-        params.set(Params.GRASP_USE_SCORE, true);
-        params.set(Params.GRASP_USE_PEARL, false);
-        params.set(Params.GRASP_USE_DATA_ORDER, false);
-
-
-        Algorithms algorithms = new Algorithms();
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new FisherZ()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new FisherZ()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new LinearGaussianBicScore()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP(new LinearGaussianBicScore(), new FisherZ()));
-        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
-//
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new ConditionalGaussianLRT()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new ConditionalGaussianLRT()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new ConditionalGaussianLRT()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new ConditionalGaussianBicScore()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.BOSS(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
-
-        Simulations simulations = new Simulations();
-        simulations.add(new LinearSemSimulation(new RandomForward()));
-
-        Statistics statistics = new Statistics();
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecisionCommonEdges());
-        statistics.add(new ArrowheadRecallCommonEdges());
-        statistics.add(new AdjacencyTPR());
-        statistics.add(new AdjacencyFPR());
-        statistics.add(new SHD());
-        statistics.add(new ElapsedTime());
-
-        Comparison comparison = new Comparison();
-        comparison.setSaveData(true);
-        comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp5", simulations, algorithms, statistics, params);
-    }
-
-    @Test
-    public void testGrasp6() {
-        Parameters params = new Parameters();
-        params.set(Params.SAMPLE_SIZE, 10000);
-        params.set(Params.NUM_MEASURES, 10);
-        params.set(Params.AVG_DEGREE, 6);
-        params.set(Params.COEF_LOW, 0);
-        params.set(Params.COEF_HIGH, 1);
-        params.set(Params.VERBOSE, true);
-        params.set(Params.NUM_RUNS, 1);
-        params.set(Params.NUM_STARTS, 1);
-
-        params.set(Params.PERCENT_DISCRETE, 50);
-        params.set(Params.PENALTY_DISCOUNT, 1);
-        params.set(Params.ALPHA, 0.01);
-
-        params.set(Params.GRASP_DEPTH, 3);
-        params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
-        params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
-        params.set(Params.GRASP_ORDERED_ALG, true);
-        params.set(Params.GRASP_USE_SCORE, true);
-        params.set(Params.GRASP_USE_PEARL, false);
-        params.set(Params.GRASP_USE_DATA_ORDER, false);
-
-        Algorithms algorithms = new Algorithms();
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new ConditionalGaussianLRT()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Cpc(new ConditionalGaussianLRT()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.PcMax(new ConditionalGaussianLRT()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new ConditionalGaussianBicScore()));
-//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.GASP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
-        algorithms.add(new GRaSP(new ConditionalGaussianBicScore(), new ConditionalGaussianLRT()));
-
-        Simulations simulations = new Simulations();
-        simulations.add(new LeeHastieSimulation(new RandomForward()));
-
-        Statistics statistics = new Statistics();
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecisionCommonEdges());
-        statistics.add(new ArrowheadRecallCommonEdges());
-        statistics.add(new AdjacencyTPR());
-        statistics.add(new AdjacencyFPR());
-        statistics.add(new SHD());
-        statistics.add(new ElapsedTime());
-
-        Comparison comparison = new Comparison();
-        comparison.setSaveData(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp6", simulations, algorithms, statistics, params);
-    }
-
-    // For Greg.
-    @Test
-    public void testGrasp7() {
-        Parameters params = new Parameters();
-        params.set(Params.SAMPLE_SIZE, 10000);
-        params.set(Params.NUM_MEASURES, 10, 20, 50, 100);
-        params.set(Params.AVG_DEGREE, 2, 4, 6, 8);
-        params.set(Params.COEF_LOW, 0);
-        params.set(Params.COEF_HIGH, 1);
-        params.set(Params.NUM_RUNS, 1);
-        params.set(Params.VERBOSE, true);
-        params.set(Params.NUM_STARTS, 1);
-
-        params.set(Params.PENALTY_DISCOUNT, 2);
-        params.set(Params.ALPHA, 0.001);
-
-        params.set(Params.GRASP_DEPTH, 3);
-        params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
-        params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
-        params.set(Params.GRASP_ORDERED_ALG, true);
-        params.set(Params.GRASP_USE_SCORE, true);
-        params.set(Params.GRASP_USE_PEARL, false);
-        params.set(Params.GRASP_USE_DATA_ORDER, false);
-
-        Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
-
-        Simulations simulations = new Simulations();
-        simulations.add(new LinearSemSimulation(new RandomForward()));
-
-        Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
-        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecisionCommonEdges());
-        statistics.add(new ArrowheadRecallCommonEdges());
-        statistics.add(new AdjacencyTPR());
-        statistics.add(new AdjacencyFPR());
-        statistics.add(new SHD());
-        statistics.add(new ElapsedTime());
-
-        Comparison comparison = new Comparison();
-        comparison.setSaveData(true);
-        comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp7", simulations, algorithms, statistics, params);
-    }
-
-    @Test
-    public void testGrasp7a() {
-        Parameters params = new Parameters();
-        params.set(Params.SAMPLE_SIZE, 10000);
-        params.set(Params.NUM_MEASURES, 10, 20, 50, 100);
-        params.set(Params.AVG_DEGREE, 2, 4, 6, 8);
-        params.set(Params.COEF_LOW, 0);
-        params.set(Params.COEF_HIGH, 1);
-        params.set(Params.NUM_RUNS, 5);
-        params.set(Params.VERBOSE, true);
-        params.set(Params.NUM_STARTS, 1);
-
-        params.set(Params.PENALTY_DISCOUNT, 2);
-        params.set(Params.ALPHA, 0.001);
-
-        params.set(Params.GRASP_DEPTH, 3);
-        params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
-        params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
-        params.set(Params.GRASP_ORDERED_ALG, true);
-        params.set(Params.GRASP_USE_SCORE, true);
-        params.set(Params.GRASP_USE_PEARL, false);
-        params.set(Params.GRASP_USE_DATA_ORDER, false);
-
-        Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.BdeuScore(), new ChiSquare()));
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.BdeuScore()));
-
-        Simulations simulations = new Simulations();
-        simulations.add(new BayesNetSimulation(new RandomForward()));
-
-        Statistics statistics = new Statistics();
-        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
-        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecisionCommonEdges());
-        statistics.add(new ArrowheadRecallCommonEdges());
-        statistics.add(new AdjacencyTPR());
-        statistics.add(new AdjacencyFPR());
-        statistics.add(new SHD());
-        statistics.add(new ElapsedTime());
-
-        Comparison comparison = new Comparison();
-        comparison.setSaveData(true);
-        comparison.setShowAlgorithmIndices(true);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp7a", simulations, algorithms, statistics, params);
     }
 
     @Test
@@ -914,208 +594,14 @@ public final class TestGrasp {
 
     @Test
     public void bryanCheckDensityClaims() {
-        List<Node> _nodes = new ArrayList<>();
-        Node x0 = new ContinuousVariable("0");
-        Node x1 = new ContinuousVariable("1");
-        Node x2 = new ContinuousVariable("2");
-        Node x3 = new ContinuousVariable("3");
-        Node x4 = new ContinuousVariable("4");
-
-        _nodes.add(x0);
-        _nodes.add(x1);
-        _nodes.add(x2);
-        _nodes.add(x3);
-        _nodes.add(x4);
-
-        List<Node> nodes = Collections.unmodifiableList(_nodes);
-
-        try {
-//            File file = new File("/Users/josephramsey/Downloads/dags4.txt");
-            File file = new File("/Users/josephramsey/Downloads/udags5.txt");
-            System.out.println(file.getAbsolutePath());
-            FileReader in1 = new FileReader(file);
-            BufferedReader in = new BufferedReader(in1);
-            String line;
-            int index = 0;
-            int indexed = 0;
-
-            while ((line = in.readLine()) != null) {
-                index++;
-                System.out.println("\nLine " + index + " " + line);
-                line = line.trim();
-
-                GraphoidAxioms axioms = getGraphoidAxioms(line);
-                axioms.setTrivialtyAssumed();
-                axioms.setSymmetryAssumed();
-
-                if (axioms.semigraphoid()) {
-                    System.out.println("\t* Semigraphoid");
-                }
-
-                if (axioms.graphoid()) {
-                    System.out.println("\t* Graphoid");
-                }
-
-                if (axioms.compositionalGraphoid()) {
-                    System.out.println("\t* Compositional graphoid");
-                }
-            }
-
-
-            in.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    public void bryanCheckDensityClaims2() {
-        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
-
-        try {
-//            String path = "/Users/josephramsey/Downloads/udags4.txt";
-//            String path = "/Users/josephramsey/Downloads/udags5.txt";
-            String path = "/Users/josephramsey/Downloads/udags6.txt";
-            File file = new File(path);
-            System.out.println(file.getAbsolutePath());
-            FileReader in1 = new FileReader(file);
-            BufferedReader in = new BufferedReader(in1);
-            String line;
-            int index = 0;
-            int indexed = 0;
-            int failed = 0;
-            int all = 0;
-
-            while ((line = in.readLine()) != null) {
-                index++;
-                all++;
-
-                if (index < 19) continue;
-
-                System.out.println("\nLine " + index + " " + line);
-                line = line.trim();
-
-                GraphoidAxioms axioms = getGraphoidAxioms(line);
-                axioms.setTrivialtyAssumed();
-                axioms.setSymmetryAssumed();
-//
-                if (axioms.semigraphoid()) {
-                    System.out.println("\t* Semigraphoid");
-                }
-
-                if (axioms.graphoid()) {
-                    System.out.println("\t* Graphoid");
-                }
-
-                if (axioms.compositionalGraphoid()) {
-                    System.out.println("\t* Compositional graphoid");
-                }
-
-                if (true) {
-                    IndependenceFacts facts = axioms.getIndependenceFacts();
-
-                    Grasp alg0 = new Grasp(new IndTestDSep(facts));
-
-                    alg0.setUsePearl(true);
-                    alg0.setUseScore(false);
-                    alg0.setUseDataOrder(true);
-                    alg0.setDepth(5);
-////                    alg0.setUncoveredDepth(5);
-//                    alg0.setCheckCovering(false);
-//                    alg0.setUseTuck(false);
-//                    alg0.setBreakAfterImprovement(true);
-                    alg0.setOrdered(true);
-//                    alg0.setUseEdgeRecursion(false);
-                    alg0.setVerbose(false);
-                    alg0.setCacheScores(false);
-//                    alg0.setTestFlag(false);
-
-//                    OtherPermAlgs alg0 = new OtherPermAlgs(new IndTestDSep(facts));
-//                    alg0.setMethod(OtherPermAlgs.Method.ESP);
-//                    alg0.setDepth(5);
-
-//                    Graph frugalCpdag = alg0.getGraph(true);
-//                    int frugal = frugalCpdag.getNumEdges();
-
-                    OtherPermAlgs alg = new OtherPermAlgs(new IndTestDSep(facts));
-                    alg.setMethod(OtherPermAlgs.Method.SP);
-
-                    List<Node> variables = facts.getVariables();
-                    List<Node> pi_sp = alg.bestOrder(variables);
-                    Graph frugalCpdag = alg.getGraph(true);
-                    int frugal = frugalCpdag.getNumEdges();
-
-                    PermutationGenerator gen = new PermutationGenerator(variables.size());
-                    int[] perm;
-
-                    List<List<Node>> pis = new ArrayList<>();
-                    Map<List<Node>, Integer> ests = new HashMap<>();
-
-//                    List<Node> pi0 = new ArrayList<>();
-//                    pi0.add(variables.get(3));
-//                    pi0.add(variables.get(4));
-//                    pi0.add(variables.get(0));
-//                    pi0.add(variables.get(1));
-//                    pi0.add(variables.get(2));
-
-                    int count = 0;
-
-                    while ((perm = gen.next()) != null) {
-                        List<Node> pi = GraphUtils.asList(perm, variables);
-
-//                        if (!pi.equals(pi0)) continue;
-
-//                        OtherPermAlgs alg2 = new OtherPermAlgs(new IndTestDSep(facts));
-//                        alg2.setMethod(OtherPermAlgs.Method.RCG);
-//                        alg2.setNumRounds(20);
-//                        alg2.setDepth(5);
-//                        List<Node> pi_rcg = alg2.bestOrder(pi);
-//                        Graph rcgCpdag = alg2.getGraph(true);
-//                        int rcg = rcgCpdag.getNumEdges();
-
-                        List<Node> bestOrder = alg0.bestOrder(pi);
-                        Graph estGraph = alg0.getGraph(false);
-                        int est = estGraph.getNumEdges();
-
-                        if (est != frugal) {
-                            System.out.println("Facts = " + facts);
-                            System.out.println("Failing permutation: " + pi + " |est| = " + est + " |frugal| = " + frugal);
-                            System.out.println("Failing GRASP(false, false) 'best order' permutation: " + bestOrder);
-                            System.out.println("Frugal SP permutation = " + pi_sp);
-                            System.out.println("Estimated DAG = " + estGraph);
-                            System.out.println("Frugal CPDAG = " + frugalCpdag);
-                            failed++;
-                            System.out.println("Failed = " + failed + " all = " + all);
-                            break;
-                        }
-//
-//                        count++;
-//
-//                        if (count > 100) {
-//                            break;
-//                        }
-                    }
-                }
-            }
-
-            System.out.println("Failed = " + failed + " all = " + all);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    @Test
-    public void bryanCheckDensityClaims3() {
         NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
 
         long start = System.currentTimeMillis();
 
         try {
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-//            String path = "/Users/josephramsey/Downloads/udags5.txt";
-            String path = "/Users/josephramsey/Downloads/udags6.txt";
+            String path = "/Users/josephramsey/Downloads/udags5.txt";
+//            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
             FileReader in1 = new FileReader(file);
@@ -1148,53 +634,27 @@ public final class TestGrasp {
             while ((line = in.readLine()) != null) {
                 index++;
 
-//                if (!hard.contains(index)) continue;
-                if (index < 88) continue;
-
                 System.out.println("Line " + index + " " + line);
                 line = line.trim();
 
                 GraphoidAxioms axioms = getGraphoidAxioms(line);
                 axioms.setTrivialtyAssumed();
                 axioms.setSymmetryAssumed();
-//
-//                if (axioms.semigraphoid()) {
-//                    System.out.println("\t* Semigraphoid");
-//                }
-//
-//                if (axioms.graphoid()) {
-//                    System.out.println("\t* Graphoid");
-//                }
-
-//                if (axioms.compositionalGraphoid()) {
-//                    System.out.println("\t* Compositional graphoid");
-//                }
 
                 if (true) {
                     IndependenceFacts facts = axioms.getIndependenceFacts();
 
                     Grasp alg0 = new Grasp(new IndTestDSep(facts));
 
-
-                    alg0.setDepth(8);
-                    alg0.setUncoveredDepth(3);
-                    alg0.setUseForwardTuckOnly(false);
                     alg0.setUsePearl(true);
-                    alg0.setTimeout(30);
+                    alg0.setUseScore(false);
+                    alg0.setUseDataOrder(true);
+                    alg0.setDepth(5);
+                    alg0.setBreakAfterImprovement(false);
+                    alg0.setOrdered(true);
                     alg0.setVerbose(false);
-                    alg0.setNumStarts(1);
-                    alg0.setGraspAlg(false);
-                    alg0.setOrdered(true);
-
-
-//                    alg0.setUsePearl(true);
-//                    alg0.setUseScore(false);
-//                    alg0.setUseDataOrder(true);
-//                    alg0.setDepth(5);
-//                    alg0.setBreakAfterImprovement(false);
-                    alg0.setOrdered(true);
-//                    alg0.setVerbose(false);
-//                    alg0.setCacheScores(false);
+                    alg0.setCacheScores(false);
+                    alg0.setUncoveredDepth(2);
 
                     boolean failed2 = false;
 
@@ -1226,31 +686,10 @@ public final class TestGrasp {
                         Graph estGraph = alg0.getGraph(false);
                         int estNumEdges = estGraph.getNumEdges();
 
-//                            if (estNumEdges != spNumEdges) {
                         Graph g = estGraph;
 
                         int current = estNumEdges;
 
-//                        for (IndependenceFact fact : facts.getFacts()) {
-//                            int i = variables.indexOf(fact.getX());
-//                            int j = variables.indexOf(fact.getY());
-//
-//                            if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
-//                                facts.remove(fact);
-//                                alg0.bestOrder(estGraphPi);
-//
-//                                if (alg0.getNumEdges() < current) {
-//                                    current = alg0.getNumEdges();
-//                                    g = alg0.getGraph(false);
-//                                    estGraph = alg0.getGraph(false);
-//                                    estNumEdges = estGraph.getNumEdges();
-//                                }
-//
-//                                facts.add(fact);
-//                            }
-//                        }
-
-                        // Graph repair...
                         for (int i = 0; i < variables.size(); i++) {
                             for (int j = i + 1; j < variables.size(); j++) {
                                 if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
@@ -1270,27 +709,7 @@ public final class TestGrasp {
                             }
                         }
 
-//                                for (int i = 0; i < variables.size(); i++) {
-//                                    for (int j = i + 1; j < variables.size(); j++) {
-//                                        if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
-//                                            if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
-//                                                facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
-//                                                alg0.bestOrder(estGraphPi);
-//
-//                                                if (alg0.getNumEdges() < estNumEdges) {
-//                                                    g = alg0.getGraph(false);
-//                                                    estGraph = alg0.getGraph(false);
-//                                                    estNumEdges = estGraph.getNumEdges();
-//                                                }
-//
-//                                                facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
-//                                            }
-//                                        }
-//                                    }
-//                                }
-
                         if (estNumEdges != spNumEdges) {
-//                                    System.out.println("Failed = " + estGraph);
                             found = true;
                             failingInitialPi = pi;
                             failingDag = estGraph;
@@ -1298,11 +717,9 @@ public final class TestGrasp {
                             break;
                         }
                     }
-//                        }
 
                     if (!found) {
                         failed2 = false;
-//                            break;
                     } else {
                         failed2 = true;
                     }
@@ -1328,7 +745,7 @@ public final class TestGrasp {
                         failed++;
                     }
 
-//                    System.out.println("Failed = " + failed + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
+                    System.out.println("Failed = " + failed + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
                 }
 
                 all++;
@@ -1336,350 +753,6 @@ public final class TestGrasp {
 
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    @Test
-    public void bryanCheckDensityClaims3a() {
-        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
-
-        long start = System.currentTimeMillis();
-
-        try {
-//            String path = "/Users/josephramsey/Downloads/udags4.txt";
-            String path = "/Users/josephramsey/Downloads/udags5.txt";
-//            String path = "/Users/josephramsey/Downloads/udags6.txt";
-            File file = new File(path);
-            System.out.println(file.getAbsolutePath());
-            FileReader in1 = new FileReader(file);
-            BufferedReader in = new BufferedReader(in1);
-            String line;
-            int index = 0;
-            int indexed = 0;
-            int failed = 0;
-            int timeout = 0;
-            int all = 1;
-
-            List<Integer> failedIndices = new ArrayList<>();
-            List<Integer> timeoutIndices = new ArrayList<>();
-
-            List<Integer> hard5 = new ArrayList<>();
-            hard5.add(29);
-            hard5.add(30);
-            hard5.add(34);
-            hard5.add(38);
-            hard5.add(40);
-            hard5.add(44);
-            hard5.add(46);
-            hard5.add(72);
-            hard5.add(73);
-            hard5.add(75);
-            hard5.add(84);
-            hard5.add(85);
-            hard5.add(138);
-            hard5.add(154);
-            hard5.add(158);
-            hard5.add(159);
-            hard5.add(160);
-
-            List<Integer> hard6 = new ArrayList<>();
-            hard6.add(675);
-            hard6.add(676);
-            hard6.add(750);
-            hard6.add(754);
-            hard6.add(768);
-
-            int[] hard6a = {28, 32, 36, 154};
-            int[] hard6b = {539, 544, 550, 560, 564, 566, 567, 568, 572, 574, 575, 591, 594, 595};
-            int[] hard6c = {574, 591};
-
-            while ((line = in.readLine()) != null) {
-                index++;
-
-//                if (!hard5.contains(index)) continue;
-//                if (index < 500) continue;
-
-//                if (Arrays.binarySearch(hard6c, index) < 0) continue;;
-
-                System.out.println("Line " + index + " " + line);
-                line = line.trim();
-
-                GraphoidAxioms axioms = getGraphoidAxioms(line);
-                axioms.setTrivialtyAssumed();
-                axioms.setSymmetryAssumed();
-//
-//                if (axioms.semigraphoid()) {
-//                    System.out.println("\t* Semigraphoid");
-//                }
-//
-//                if (axioms.graphoid()) {
-//                    System.out.println("\t* Graphoid");
-//                }
-
-//                if (axioms.compositionalGraphoid()) {
-//                    System.out.println("\t* Compositional graphoid");
-//                }
-//
-//                if (true) {
-//                    continue;
-//                }
-
-                {
-                    IndependenceFacts facts = axioms.getIndependenceFacts();
-
-                    Grasp alg0 = new Grasp(new IndTestDSep(facts));
-
-                    alg0.setUsePearl(false);
-                    alg0.setUseScore(false);
-                    alg0.setUseDataOrder(true);
-                    alg0.setDepth(8);
-                    alg0.setBreakAfterImprovement(true);
-                    alg0.setOrdered(true);
-                    alg0.setVerbose(false);
-                    alg0.setCacheScores(false);
-
-                    boolean failed2 = false;
-
-                    List<Node> variables = facts.getVariables();
-                    OtherPermAlgs spAlg = new OtherPermAlgs(new IndTestDSep(facts));
-                    spAlg.setMethod(OtherPermAlgs.Method.SP);
-                    List<Node> spPi = spAlg.bestOrder(variables);
-                    Graph spGraph = spAlg.getGraph(false);
-                    int spNumEdges = spGraph.getNumEdges();
-
-                    List<Node> failingInitialPi = null;
-                    Graph failingDag = null;
-                    List<Node> failingEstPi = null;
-
-                    long time0 = System.currentTimeMillis();
-
-                    for (int uncoveredDepth : new int[]{8}) {
-                        alg0.setUncoveredDepth(uncoveredDepth);
-
-                        PermutationGenerator gen = new PermutationGenerator(variables.size());
-                        int[] perm;
-
-                        List<List<Node>> pis = new ArrayList<>();
-                        Map<List<Node>, Integer> ests = new HashMap<>();
-
-                        int count = 0;
-
-                        boolean found = false;
-
-
-                        while ((perm = gen.next()) != null) {
-                            long time1 = System.currentTimeMillis();
-
-                            if (((time1 - time0) / 1000.0) > 30d) {
-                                System.out.println("TIMEOUT");
-                                timeout++;
-                                timeoutIndices.add(index);
-                                break;
-                            }
-
-                            List<Node> pi = GraphUtils.asList(perm, variables);
-
-                            List<Node> estGraphPi = alg0.bestOrder(pi);
-                            Graph estGraph = alg0.getGraph(false);
-                            int estNumEdges = estGraph.getNumEdges();
-
-                            if (estNumEdges != spNumEdges) {
-                                Graph g = estGraph;
-
-                                int current = estNumEdges;
-
-//                                for (Edge edge : alg0.getGraph(false).getEdges()) {
-//                                    Node x = edge.getNode1();
-//                                    Node y = edge.getNode2();
-//
-//                                    Knowledge2 knowledge2 = new Knowledge2();
-//                                    knowledge2.setForbidden(x.getName(), y.getName());
-//                                    alg0.setKnowledge(knowledge2);
-//
-//                                    List<Node> bestOrder = alg0.bestOrder(estGraphPi);
-//
-//                                    if (alg0.getNumEdges() < current) {
-//                                        current = alg0.getNumEdges();
-//                                        g = alg0.getGraph(false);
-//                                        estGraph = alg0.getGraph(false);
-//                                        estGraphPi = bestOrder;
-//                                        estNumEdges = estGraph.getNumEdges();
-//                                    }
-//                                }
-
-//                                for (IndependenceFact fact : facts.getFacts()) {
-//                                    Node x = fact.getX();
-//                                    Node y = fact.getY();
-//
-//                                    if (!g.isAdjacentTo(x, y)) {
-////                                        List<IndependenceFact> _facts = new ArrayList<>();
-////
-////                                        for (IndependenceFact fact1 : facts.getFacts()) {
-////                                            if (!fact1.getZ().isEmpty()) {
-////                                                continue;
-////                                            }
-////
-////                                            if ((fact1.getX() == x && fact1.getY() == y)
-////                                                    || (fact1.getX() == y && fact1.getY() == x)) {
-////                                                _facts.remove(fact1);
-////                                                break;
-////                                            }
-////                                        }
-////
-////                                        for (IndependenceFact fact1 : _facts) {
-////                                            facts.remove(fact);
-////                                        }
-//
-//                                        facts.remove(fact);
-//                                        List<Node> bestOrder = alg0.bestOrder(estGraphPi);
-//
-//                                        if (alg0.getNumEdges() < current) {
-//                                            current = alg0.getNumEdges();
-//                                            g = alg0.getGraph(false);
-//                                            estGraph = alg0.getGraph(false);
-//                                            estGraphPi = bestOrder;
-//                                            estNumEdges = estGraph.getNumEdges();
-//                                        }
-//
-////                                        for (IndependenceFact fact1 : _facts) {
-////                                            facts.add(fact1);
-////                                        }
-////
-//                                        facts.add(fact);
-//                                    }
-//                                }
-
-                                for (int i = 0; i < variables.size(); i++) {
-                                    for (int j = i + 1; j < variables.size(); j++) {
-                                        if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
-                                            if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
-                                                facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
-                                                alg0.bestOrder(estGraphPi);
-
-                                                if (alg0.getNumEdges() < estNumEdges) {
-                                                    g = alg0.getGraph(false);
-                                                    estGraph = alg0.getGraph(false);
-                                                    estNumEdges = estGraph.getNumEdges();
-                                                }
-
-                                                facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
-                                            }
-                                        }
-                                    }
-                                }
-
-
-                                if (estNumEdges != spNumEdges) {
-//                                    System.out.println("Failed = " + estGraph);
-                                    found = true;
-                                    failingInitialPi = pi;
-                                    failingDag = estGraph;
-                                    failingEstPi = estGraphPi;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (!found) {
-                            failed2 = false;
-                            break;
-                        } else {
-                            failed2 = true;
-                        }
-                    }
-
-                    if (failed2) {
-//                        System.out.println("Failed, line " + index + " " + line);
-//                        System.out.println("Elementary facts = " + facts);
-//                        System.out.println("Failing initial permutation: " + failingInitialPi);
-//                        System.out.println("Failing GRASP final permutation: " + failingEstPi);
-//                        System.out.println("SP permutation = " + spPi);
-//                        System.out.println("SP DAG = " + spGraph);
-//                        System.out.println("Failing Estimated DAG = " + failingDag);
-//
-//                        IndTestDSep dsep = new IndTestDSep(failingDag);
-//
-//                        for (IndependenceFact fact : facts.getFacts()) {
-//                            if (dsep.isDSeparated(fact.getX(), fact.getY(), fact.getZ())) {
-//                                System.out.println("Possible unfaithful d-connection: " + fact);
-//                            }
-//                        }
-
-                        failed++;
-                        failedIndices.add(index);
-
-
-                        System.out.println("Failed indices = " + failedIndices);
-                        System.out.println("Timeout indices = " + timeoutIndices);
-                    }
-
-                    NumberFormat nf = new DecimalFormat("0.0");
-                    System.out.println("Failed = " + failed + " all = " + all + " = " + nf.format(100. * failed / (double) all)
-                            + "%,  timouts = " + timeout + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
-                }
-
-                all++;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    @Test
-    public void bryanCheckDensityClaims4() {
-        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
-
-        long start = System.currentTimeMillis();
-
-        for (int p : new int[]{20}) {
-            Parameters params = new Parameters();
-            params.set(Params.SAMPLE_SIZE, 5000, 10000);
-            params.set(Params.NUM_MEASURES, /*20,*/ 60);//, 100);
-            params.set(Params.AVG_DEGREE, 4, /*6,*/ 10);
-            params.set(Params.COEF_LOW, 0);
-            params.set(Params.COEF_HIGH, 1);
-            params.set(Params.VAR_LOW, 1);
-            params.set(Params.VAR_HIGH, 1);
-            params.set(Params.NUM_RUNS, 5);
-            params.set(Params.VERBOSE, false);
-            params.set(Params.NUM_STARTS, 1);
-            params.set(Params.PENALTY_DISCOUNT, 2);
-            params.set(Params.GRASP_DEPTH, 3);
-            params.set(Params.GRASP_CHECK_COVERING, false);
-            params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
-            params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, true);
-            params.set(Params.GRASP_ORDERED_ALG, true);
-            params.set(Params.GRASP_USE_SCORE, true);
-            params.set(Params.GRASP_USE_PEARL, false);
-            params.set(Params.GRASP_USE_DATA_ORDER, false);
-
-            Algorithms algorithms = new Algorithms();
-            algorithms.add(new GRaSP(
-                    new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
-
-            Simulations simulations = new Simulations();
-            simulations.add(new LinearSemSimulation(new RandomForward()));
-
-            Statistics statistics = new Statistics();
-            statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
-            statistics.add(new ParameterColumn(Params.NUM_MEASURES));
-            statistics.add(new ParameterColumn(Params.AVG_DEGREE));
-            statistics.add(new AdjacencyPrecision());
-            statistics.add(new AdjacencyRecall());
-            statistics.add(new ArrowheadPrecisionCommonEdges());
-            statistics.add(new ArrowheadRecallCommonEdges());
-            statistics.add(new AdjacencyTPR());
-            statistics.add(new AdjacencyFPR());
-            statistics.add(new SHD());
-            statistics.add(new ElapsedTime());
-
-            Comparison comparison = new Comparison();
-            comparison.setSaveData(false);
-            comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
-
-            comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/ntest", simulations, algorithms, statistics, params);
         }
     }
 

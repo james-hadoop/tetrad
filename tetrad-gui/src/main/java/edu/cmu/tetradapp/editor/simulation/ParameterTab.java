@@ -331,7 +331,7 @@ public class ParameterTab extends JPanel {
                 };
             } else if (simulation.getSimulation() instanceof LinearSemSimulation) {
                 items = new String[]{
-                        SimulationTypes.LINEAR_STRUCTURAL_EQUATION_MODEL
+                        SimulationTypes.LINEAR_STRUCTURAL_EQUATION_MODEL,
                 };
             } else if (simulation.getSimulation() instanceof LinearFisherModel) {
                 items = new String[]{

@@ -31,7 +31,6 @@ import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Extends Erin Korber's implementation of the Fast Causal Inference algorithm
@@ -1221,7 +1220,7 @@ public final class FciOrient {
     }
 
     /**
-     * Helper method. Appears to check if an arrowpoint is permitted by
+     * Helper method. Checks if an arrowpoint is permitted by
      * background knowledge.
      *
      * @param x The possible other node.

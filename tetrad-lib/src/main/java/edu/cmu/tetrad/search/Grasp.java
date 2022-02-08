@@ -420,14 +420,24 @@ public class Grasp {
                         return;
                     }
 
-                    if (covered && currentDepth < depth) {
+                    //                    if (covered && currentDepth < depth) {
+                    if (sNew == sOld && currentDepth < depth) {
                         tucks.add(tuck);
-                        if (!dfsHistory.contains(tucks)) {
-                            dfsHistory.add(new HashSet<>(tucks));
-                            graspDfs4(scorer, sOld, depth, currentDepth + 1, tucks, dfsHistory);
-                        }
+//                        if (!dfsHistory.contains(tucks)) {
+//                            dfsHistory.add(new HashSet<>(tucks));
+                        graspDfs4(scorer, sOld, depth, currentDepth + 1, tucks, dfsHistory);
+//                        }
                         tucks.remove(tuck);
                     }
+
+//                    if (covered && currentDepth < depth) {
+//                        tucks.add(tuck);
+//                        if (!dfsHistory.contains(tucks)) {
+//                            dfsHistory.add(new HashSet<>(tucks));
+//                            graspDfs4(scorer, sOld, depth, currentDepth + 1, tucks, dfsHistory);
+//                        }
+//                        tucks.remove(tuck);
+//                    }
 
                     if (scorer.score() > sOld) return;
 
