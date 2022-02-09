@@ -74,7 +74,7 @@ public class GRaSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
             grasp.setVerbose(parameters.getBoolean(Params.VERBOSE));
             grasp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
             grasp.setTimeout(parameters.getInt(Params.TIMEOUT));
-            grasp.setGraspAlg(parameters.getBoolean(Params.GRASP_ALG));
+            grasp.setGraspAlg(parameters.getInt(Params.GRASP_ALG));
 
             grasp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             grasp.setKnowledge(dataSet.getKnowledge());

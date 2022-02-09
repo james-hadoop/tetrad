@@ -923,7 +923,7 @@ public final class FciOrient {
      * @param ucPdPaths The getModel list of uncovered p.d. undirectedPaths.
      */
     private void getUcPdPsHelper(Node curr, List<Node> soFar, Node end,
-            List<List<Node>> ucPdPaths, Graph graph) {
+                                 List<List<Node>> ucPdPaths, Graph graph) {
 
         if (soFar.contains(curr)) {
             return;
@@ -1164,7 +1164,7 @@ public final class FciOrient {
         logger.log("info", "Starting BK Orientation.");
 
         for (Iterator<KnowledgeEdge> it
-                = bk.forbiddenEdgesIterator(); it.hasNext();) {
+             = bk.forbiddenEdgesIterator(); it.hasNext();) {
             if (Thread.currentThread().isInterrupted()) {
                 break;
             }
@@ -1191,7 +1191,7 @@ public final class FciOrient {
         }
 
         for (Iterator<KnowledgeEdge> it
-                = bk.requiredEdgesIterator(); it.hasNext();) {
+             = bk.requiredEdgesIterator(); it.hasNext();) {
             if (Thread.currentThread().isInterrupted()) {
                 break;
             }
@@ -1228,27 +1228,31 @@ public final class FciOrient {
      * @return Whether the arrowpoint is allowed.
      */
     private boolean isArrowpointDisallowed(Node x, Node y, Graph graph) {
+        return !isArrowpointAllowed(x, y, graph);
+    }
+
+    private boolean isArrowpointAllowed(Node x, Node y, Graph graph) {
         if (graph.getEndpoint(x, y) == Endpoint.ARROW) {
-            return false;
+            return true;
         }
 
         if (graph.getEndpoint(x, y) == Endpoint.TAIL) {
-            return true;
+            return false;
         }
 
         if (graph.getEndpoint(y, x) == Endpoint.ARROW) {
             if (!knowledge.isForbidden(x.getName(), y.getName())) {
-                return false;
+                return true;
             }
         }
 
         if (graph.getEndpoint(y, x) == Endpoint.TAIL) {
             if (!knowledge.isForbidden(x.getName(), y.getName())) {
-                return false;
+                return true;
             }
         }
 
-        return graph.getEndpoint(y, x) != Endpoint.CIRCLE;
+        return graph.getEndpoint(x, y) == Endpoint.CIRCLE;
     }
 
     public boolean isPossibleDsepSearchDone() {

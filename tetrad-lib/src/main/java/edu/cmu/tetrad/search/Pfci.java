@@ -82,7 +82,7 @@ public final class Pfci implements GraphSearch {
     private boolean useForwardTuckOnly = false;
     private boolean usePearl = false;
     private int timeout = -1;
-    private boolean graspAlg = true;
+    private int graspAlg = 1;
 
     //============================CONSTRUCTORS============================//
     public Pfci(IndependenceTest test, Score score) {
@@ -409,7 +409,7 @@ public final class Pfci implements GraphSearch {
         this.timeout = timeout;
     }
 
-    public void setGraspAlg(boolean graspAlg) {
+    public void setGraspAlg(int graspAlg) {
         this.graspAlg = graspAlg;
     }
 }

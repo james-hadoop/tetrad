@@ -69,7 +69,7 @@ public class PFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             search.setTimeout(parameters.getInt(Params.TIMEOUT));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            search.setGraspAlg(parameters.getBoolean(Params.GRASP_ALG));
+            search.setGraspAlg(parameters.getInt(Params.GRASP_ALG));
 
             Object obj = parameters.get(Params.PRINT_STREAM);
 

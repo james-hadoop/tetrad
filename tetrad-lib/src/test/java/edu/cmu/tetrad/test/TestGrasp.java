@@ -188,10 +188,10 @@ public final class TestGrasp {
     @Test
     public void testGrasp1Bryan() {
         Parameters params = new Parameters();
-        params.set(Params.NUM_MEASURES, 50);
-        params.set(Params.AVG_DEGREE, 6, 10);
+        params.set(Params.NUM_MEASURES, 100);
+        params.set(Params.AVG_DEGREE, 10);
         params.set(Params.SAMPLE_SIZE, 1000);
-        params.set(Params.NUM_RUNS, 10);
+        params.set(Params.NUM_RUNS, 1);
         params.set(Params.COEF_LOW, 0);
         params.set(Params.COEF_HIGH, 1);
         params.set(Params.NUM_STARTS, 1);
@@ -600,8 +600,8 @@ public final class TestGrasp {
 
         try {
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-            String path = "/Users/josephramsey/Downloads/udags5.txt";
-//            String path = "/Users/josephramsey/Downloads/udags6.txt";
+//            String path = "/Users/josephramsey/Downloads/udags5.txt";
+            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
             FileReader in1 = new FileReader(file);
@@ -646,15 +646,16 @@ public final class TestGrasp {
 
                     Grasp alg0 = new Grasp(new IndTestDSep(facts));
 
-                    alg0.setUsePearl(true);
-                    alg0.setUseScore(false);
+                    alg0.setUsePearl(false);
+//                    alg0.setUseScore(false);
                     alg0.setUseDataOrder(true);
-                    alg0.setDepth(5);
-                    alg0.setBreakAfterImprovement(false);
-                    alg0.setOrdered(true);
+                    alg0.setDepth(12);
+                    alg0.setUncoveredDepth(8);
+                    alg0.setBreakAfterImprovement(true);
+                    alg0.setGraspAlg(5);
+                    alg0.setOrdered(false);
                     alg0.setVerbose(false);
                     alg0.setCacheScores(false);
-                    alg0.setUncoveredDepth(2);
 
                     boolean failed2 = false;
 
