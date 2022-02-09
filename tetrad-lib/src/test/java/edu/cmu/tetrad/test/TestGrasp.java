@@ -600,8 +600,8 @@ public final class TestGrasp {
 
         try {
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-//            String path = "/Users/josephramsey/Downloads/udags5.txt";
-            String path = "/Users/josephramsey/Downloads/udags6.txt";
+            String path = "/Users/josephramsey/Downloads/udags5.txt";
+//            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
             FileReader in1 = new FileReader(file);
@@ -613,26 +613,31 @@ public final class TestGrasp {
             int all = 1;
 
             List<Integer> hard = new ArrayList<>();
-            hard.add(29);
-            hard.add(30);
-            hard.add(34);
-            hard.add(38);
-            hard.add(40);
-            hard.add(44);
-            hard.add(46);
-            hard.add(72);
-            hard.add(73);
-            hard.add(75);
-            hard.add(84);
-            hard.add(85);
-            hard.add(138);
-            hard.add(154);
-            hard.add(158);
-            hard.add(159);
-            hard.add(160);
+//            hard.add(29);
+//            hard.add(30);
+//            hard.add(34);
+//            hard.add(38);
+//            hard.add(40);
+//            hard.add(44);
+//            hard.add(46);
+//            hard.add(72);
+//            hard.add(73);
+//            hard.add(75);
+//            hard.add(84);
+//            hard.add(85);
+//            hard.add(138);
+//            hard.add(154);
+//            hard.add(158);
+//            hard.add(159);
+//            hard.add(160);
+
+            hard.add(25);
+            hard.add(69);
 
             while ((line = in.readLine()) != null) {
                 index++;
+
+//                if (!hard.contains(index)) continue;
 
                 System.out.println("Line " + index + " " + line);
                 line = line.trim();
@@ -647,12 +652,11 @@ public final class TestGrasp {
                     Grasp alg0 = new Grasp(new IndTestDSep(facts));
 
                     alg0.setUsePearl(false);
-//                    alg0.setUseScore(false);
                     alg0.setUseDataOrder(true);
-                    alg0.setDepth(12);
-                    alg0.setUncoveredDepth(8);
+                    alg0.setDepth(5);
+                    alg0.setUncoveredDepth(2);
                     alg0.setBreakAfterImprovement(true);
-                    alg0.setGraspAlg(5);
+                    alg0.setGraspAlg(4);
                     alg0.setOrdered(false);
                     alg0.setVerbose(false);
                     alg0.setCacheScores(false);
@@ -689,28 +693,28 @@ public final class TestGrasp {
 
                         Graph g = estGraph;
 
-                        int current = estNumEdges;
+                        for (int r = 0; r < 0; r++) {
+                            for (int i = 0; i < variables.size(); i++) {
+                                for (int j = i + 1; j < variables.size(); j++) {
+                                    if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
+                                        if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
+                                            facts.remove(new IndependenceFact(variables.get(i), variables.get(j), new ArrayList<>()));
+                                            alg0.bestOrder(estGraphPi);
 
-                        for (int i = 0; i < variables.size(); i++) {
-                            for (int j = i + 1; j < variables.size(); j++) {
-                                if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
-                                    if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
-                                        facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
-                                        alg0.bestOrder(estGraphPi);
+                                            if (alg0.getNumEdges() < estNumEdges) {
+                                                g = alg0.getGraph(false);
+                                                estGraph = alg0.getGraph(false);
+                                                estNumEdges = estGraph.getNumEdges();
+                                            }
 
-                                        if (alg0.getNumEdges() < estNumEdges) {
-                                            g = alg0.getGraph(false);
-                                            estGraph = alg0.getGraph(false);
-                                            estNumEdges = estGraph.getNumEdges();
+                                            facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
                                         }
-
-                                        facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
                                     }
                                 }
                             }
                         }
 
-                        if (estNumEdges != spNumEdges) {
+                        if (estNumEdges > spNumEdges) {
                             found = true;
                             failingInitialPi = pi;
                             failingDag = estGraph;
@@ -719,28 +723,22 @@ public final class TestGrasp {
                         }
                     }
 
-                    if (!found) {
-                        failed2 = false;
-                    } else {
-                        failed2 = true;
-                    }
-
-                    if (failed2) {
-                        System.out.println("Failed, line " + index + " " + line);
-                        System.out.println("Elementary facts = " + facts);
-                        System.out.println("Failing initial permutation: " + failingInitialPi);
-                        System.out.println("Failing GRASP final permutation: " + failingEstPi);
-                        System.out.println("SP permutation = " + spPi);
-                        System.out.println("SP DAG = " + spGraph);
-                        System.out.println("Failing Estimated DAG = " + failingDag);
-
-                        IndTestDSep dsep = new IndTestDSep(failingDag);
-
-                        for (IndependenceFact fact : facts.getFacts()) {
-                            if (dsep.isDSeparated(fact.getX(), fact.getY(), fact.getZ())) {
-                                System.out.println("Possible unfaithful d-connection: " + fact);
-                            }
-                        }
+                    if (found) {
+//                        System.out.println("Failed, line " + index + " " + line);
+//                        System.out.println("Elementary facts = " + facts);
+//                        System.out.println("Failing initial permutation: " + failingInitialPi);
+//                        System.out.println("Failing GRASP final permutation: " + failingEstPi);
+//                        System.out.println("SP permutation = " + spPi);
+//                        System.out.println("SP DAG = " + spGraph);
+//                        System.out.println("Failing Estimated DAG = " + failingDag);
+//
+//                        IndTestDSep dsep = new IndTestDSep(failingDag);
+//
+//                        for (IndependenceFact fact : facts.getFacts()) {
+//                            if (dsep.isDSeparated(fact.getX(), fact.getY(), fact.getZ())) {
+//                                System.out.println("Possible unfaithful d-connection: " + fact);
+//                            }
+//                        }
 
 
                         failed++;
@@ -1704,7 +1702,7 @@ public final class TestGrasp {
 
         boolean verbose = false;
         int numRounds = 50;
-        int depth = 5;
+        int depth = -1;
         int maxPermSize = 6;
 
         boolean printCpdag = false;
@@ -1741,9 +1739,12 @@ public final class TestGrasp {
                 List<Node> p = GraphUtils.asList(perm, variables);
 
                 Grasp search = new Grasp(new IndTestDSep(facts.getFacts()));
-                search.setDepth(depth);
+                search.setDepth(-1);
                 search.setUseDataOrder(true);
                 search.setUsePearl(false);
+//                search.setOrdered(true);
+                search.setGraspAlg(5);
+                search.setCheckCovering(false);
                 search.setUseForwardTuckOnly(false);
                 List<Node> order = search.bestOrder(p);
 //                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());

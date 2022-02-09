@@ -431,7 +431,7 @@ public class Grasp {
                 Iterator<Node> zItr = Z.iterator();
 
 //                // Try this
-//                if (currentDepth > 1 && !covered) continue;
+                if (currentDepth > 1 && !covered) continue;
 
                 do {
                     if (first) {
@@ -444,7 +444,7 @@ public class Grasp {
                         } else continue;
                     }
 
-                    if (violatesKnowledge(scorer.getPi())) continue;
+                    if (violatesKnowledge(scorer.getOrderShallow())) continue;
 
                     sNew = scorer.score();
                     if (sNew > sOld) {
@@ -532,10 +532,6 @@ public class Grasp {
                 boolean first = true;
                 List<Node> Z = new ArrayList<>(scorer.getOrderShallow().subList(i + 1, scorer.index(y)));
                 Iterator<Node> zItr = Z.iterator();
-
-                // Try this
-                if (currentDepth > 1 && !covered) continue;
-
                 do {
                     if (first) {
                         scorer.moveTo(y, i);
@@ -548,7 +544,7 @@ public class Grasp {
                     }
                 } while (zItr.hasNext());
 
-                if (violatesKnowledge(scorer.getPi())) continue;
+                if (violatesKnowledge(scorer.getOrderShallow())) continue;
 
                 sNew = scorer.score();
                 if (sNew > sOld) {
@@ -559,16 +555,6 @@ public class Grasp {
                     return;
                 }
 
-                //                    if (covered && currentDepth < depth) {
-//                    if (sNew == sOld && currentDepth < depth) {
-//                        tucks.add(tuck);
-////                        if (!dfsHistory.contains(tucks)) {
-////                            dfsHistory.add(new HashSet<>(tucks));
-//                        graspDfs5(scorer, sOld, depth, currentDepth + 1, tucks, dfsHistory);
-////                        }
-//                        tucks.remove(tuck);
-//                    }
-
                 if (covered && currentDepth < depth) {
                     tucks.add(tuck);
                     if (!dfsHistory.contains(tucks)) {
@@ -577,7 +563,6 @@ public class Grasp {
                     }
                     tucks.remove(tuck);
                 }
-
 
                 if (scorer.score() > sOld) return;
 
