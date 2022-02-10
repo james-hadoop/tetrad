@@ -602,7 +602,7 @@ public final class TestGrasp {
         try {
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
 //            String path = "/Users/josephramsey/Downloads/udags5.txt";
-           String path = "/Users/josephramsey/Downloads/udags5 2/udags5.txt";
+            String path = "/Users/josephramsey/Downloads/udags5 2/udags5.txt";
 //            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
