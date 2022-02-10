@@ -12,7 +12,9 @@ import org.jetbrains.annotations.NotNull;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Collections.shuffle;
 
@@ -66,9 +68,11 @@ public class OtherPermAlgs {
         if (useScore && !(score instanceof GraphScore)) {
             scorer = new TeyssierScorer(test, score);
             scorer.setUseScore(true);
-            scorer.setUsePearl(usePearl);
         } else {
             scorer = new TeyssierScorer(test, score);
+            scorer.setUsePearl(usePearl);
+            scorer.score(variables);
+
             scorer.setUsePearl(usePearl);
 
             if (usePearl) {
@@ -95,6 +99,8 @@ public class OtherPermAlgs {
 
             makeValidKnowledgeOrder(order);
 
+//            System.out.println("\t\t\t\tIN BESTORDER order = " + order);
+
             scorer.score(order);
 
             if (verbose) {
@@ -110,6 +116,7 @@ public class OtherPermAlgs {
             } else if (method == Method.ESP) {
                 perm = esp(scorer);
             } else if (method == Method.SP) {
+                useDataOrder = true;
                 perm = sp(scorer);
             } else {
                 throw new IllegalArgumentException("Unrecognized method: " + method);
@@ -354,20 +361,42 @@ public class OtherPermAlgs {
     }
 
     public List<Node> sp(@NotNull TeyssierScorer scorer) {
+//        System.out.println("\t\t\t\tIN SP PI = " + scorer.getPi());
+
         float maxScore = Float.NEGATIVE_INFINITY;
         List<Node> maxP = null;
 
         List<Node> variables = scorer.getPi();
         PermutationGenerator gen = new PermutationGenerator(variables.size());
         int[] perm;
+        Set<Graph> frugalCpdags = new HashSet<>();
+
+        List<Node> pi0 = GraphUtils.asList(new int[]{0, 1, 2, 3, 4}, variables);
+        scorer.score(pi0);
+        System.out.println("\t\t\t# edges for [0, 1, 2, 3, 4] = " + scorer.getNumEdges());
 
         while ((perm = gen.next()) != null) {
             List<Node> p = GraphUtils.asList(perm, variables);
             scorer.score(p);
 
-            if (scorer.score(p) > maxScore) {
-                maxScore = scorer.score(p);
+            if (scorer.score() > maxScore) {
+                maxScore = scorer.score();
                 maxP = p;
+                frugalCpdags.clear();
+            }
+
+            if (scorer.score() == maxScore) {
+                frugalCpdags.add(scorer.getGraph(true));
+            }
+        }
+
+        if (true) {
+            System.out.println("\t\t\t# edges for frugal = " + frugalCpdags.iterator().next().getNumEdges());
+
+            if (frugalCpdags.size() == 1) {
+                System.out.println("\t!!!! U-FRUGAL BY SP !!!!");
+            } else {
+                System.out.println("\t\t# frugal cpdags BY SP = " + frugalCpdags.size());
             }
         }
 
@@ -375,6 +404,7 @@ public class OtherPermAlgs {
             System.out.println("# Edges = " + scorer.getNumEdges()
                     + " Score = " + scorer.score()
                     + " (SP)"
+//                    + " # frugal CPDAGs = " + frugalCpdags.size()
                     + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " sp"));
         }
 

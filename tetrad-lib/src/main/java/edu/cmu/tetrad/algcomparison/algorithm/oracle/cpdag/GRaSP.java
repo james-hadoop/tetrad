@@ -28,7 +28,7 @@ import java.util.List;
  * @author josephramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GRaSP",
+        name = "GRASP",
         command = "grasp",
         algoType = AlgType.forbid_latent_common_causes
 )
@@ -61,26 +61,21 @@ public class GRaSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
             Grasp grasp = new Grasp(test, score);
 
             grasp.setDepth(parameters.getInt(Params.GRASP_DEPTH));
-
-            // Need to set this after setting depth
             grasp.setUncoveredDepth(parameters.getInt(Params.GRASP_UNCOVERED_DEPTH));
             grasp.setCheckCovering(parameters.getBoolean(Params.GRASP_CHECK_COVERING));
-            grasp.setUseForwardTuckOnly(parameters.getBoolean(Params.GRASP_FORWARD_TUCK_ONLY));
-            grasp.setBreakAfterImprovement(!parameters.getBoolean(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
+            grasp.setUseTuck(parameters.getBoolean(Params.GRASP_FORWARD_TUCK_ONLY));
+            grasp.setBreakAfterImprovement(parameters.getBoolean(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
             grasp.setOrdered(parameters.getBoolean(Params.GRASP_ORDERED_ALG));
             grasp.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
             grasp.setUseDataOrder(parameters.getBoolean(Params.GRASP_USE_DATA_ORDER));
             grasp.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
+            grasp.setUseVPScoring(parameters.getBoolean(Params.GRASP_USE_VP_SCORING));
             grasp.setVerbose(parameters.getBoolean(Params.VERBOSE));
             grasp.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
-            grasp.setTimeout(parameters.getInt(Params.TIMEOUT));
-            grasp.setGraspAlg(parameters.getInt(Params.GRASP_ALG));
 
             grasp.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             grasp.setKnowledge(dataSet.getKnowledge());
             grasp.bestOrder(score.getVariables());
-            grasp.setTimeout(parameters.getInt(Params.TIMEOUT));
-
             return grasp.getGraph(parameters.getBoolean(Params.OUTPUT_CPDAG));
         } else {
             GRaSP algorithm = new GRaSP(score, test);
@@ -130,23 +125,21 @@ public class GRaSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
         // Flags
         params.add(Params.GRASP_DEPTH);
         params.add(Params.GRASP_UNCOVERED_DEPTH);
+        params.add(Params.GRASP_CHECK_COVERING);
         params.add(Params.GRASP_FORWARD_TUCK_ONLY);
+        params.add(Params.GRASP_BREAK_AFTER_IMPROVEMENT);
+        params.add(Params.GRASP_ORDERED_ALG);
+        params.add(Params.GRASP_USE_SCORE);
         params.add(Params.GRASP_USE_PEARL);
-        params.add(Params.TIMEOUT);
+        params.add(Params.GRASP_USE_VP_SCORING);
+        params.add(Params.GRASP_USE_DATA_ORDER);
+//        params.add(Params.CACHE_SCORES);
+//        params.add(Params.OUTPUT_CPDAG);
         params.add(Params.VERBOSE);
-        params.add(Params.GRASP_ALG);
 
         // Parameters
         params.add(Params.NUM_STARTS);
-
-//        params.add(Params.GRASP_CHECK_COVERING);
-//        params.add(Params.GRASP_BREAK_AFTER_IMPROVEMENT);
-//        params.add(Params.GRASP_ORDERED_ALG);
-//        params.add(Params.GRASP_USE_SCORE);
-//        params.add(Params.GRASP_USE_DATA_ORDER);
-//        params.add(Params.CACHE_SCORES);
-//        params.add(Params.OUTPUT_CPDAG);
-
+        params.add(Params.GRASP_DEPTH);
         return params;
     }
 

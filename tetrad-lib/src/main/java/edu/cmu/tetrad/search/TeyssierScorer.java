@@ -9,6 +9,7 @@ import java.util.*;
 
 import static java.lang.Math.floor;
 import static java.util.Collections.shuffle;
+import static java.util.Collections.sort;
 
 
 /**
@@ -39,6 +40,7 @@ public class TeyssierScorer {
 
     private boolean useScore = true;
     private boolean usePearl = false;
+    private boolean useVPScoring = false;
     private boolean cachingScores = true;
 
     public TeyssierScorer(IndependenceTest test, Score score) {
@@ -95,6 +97,11 @@ public class TeyssierScorer {
      */
     public void setUsePearl(boolean usePearl) {
         this.usePearl = usePearl;
+        this.useScore = false;
+    }
+
+    public void setUseVPScoring(boolean useVPScoring) {
+        this.useVPScoring = useVPScoring;
     }
 
     /**
@@ -333,6 +340,59 @@ public class TeyssierScorer {
         return new ArrayList<>(pairs);
     }
 
+    public Map<Node, Set<Node>> getAdjMap() {
+        Map<Node, Set<Node>> adjMap = new HashMap<>();
+        for (Node node1 : getPi()) {
+            if (!adjMap.containsKey(node1)) {
+                adjMap.put(node1, new HashSet<>());
+            }
+            for (Node node2 : getParents(node1)) {
+                if (!adjMap.containsKey(node2)) {
+                    adjMap.put(node2, new HashSet<>());
+                }
+                adjMap.get(node1).add(node2);
+                adjMap.get(node2).add(node1);
+            }
+        }
+        return adjMap;
+    }
+
+
+    public Map<Node, Set<Node>> getChildMap() {
+        Map<Node, Set<Node>> childMap = new HashMap<>();
+        for (Node node1 : getPi()) {
+            for (Node node2 : getParents(node1)) {
+                if (!childMap.containsKey(node2)) {
+                    childMap.put(node2, new HashSet<>());
+                }
+                childMap.get(node2).add(node1);
+            }
+        }
+        return childMap;
+    }
+
+    public Set<Node> getAncestors(Node node) {
+        Set<Node> ancestors = new HashSet<>();
+        collectAncestorsVisit(node, ancestors);
+
+        return ancestors;
+    }
+
+    private void collectAncestorsVisit(Node node, Set<Node> ancestors) {
+        if (ancestors.contains(node)) {
+            return;
+        }
+
+        ancestors.add(node);
+        Set<Node> parents = getParents(node);
+
+        if (!parents.isEmpty()) {
+            for (Node parent : parents) {
+                collectAncestorsVisit(parent, ancestors);
+            }
+        }
+    }
+
     /**
      * Returns a list of edges for the current graph as a list of ordered pairs.
      * @return This list.
@@ -437,6 +497,12 @@ public class TeyssierScorer {
         pi = new LinkedList<>(pi);
         shuffle(pi);
         score(pi);
+    }
+
+    public List<Node> getShuffledVariables() {
+        List<Node> variables = getPi();
+        shuffle(variables);
+        return variables;
     }
 
     /**
@@ -618,6 +684,13 @@ public class TeyssierScorer {
         float sMax = score(n, new HashSet<>());
         List<Node> prefix = new ArrayList<>(getPrefix(p));
 
+        // Verma-Pearl scoring
+        if (useVPScoring) {
+            parents.addAll(prefix);
+            sMax = score(n, parents);
+            changed = false;
+        }
+
         // Grow-shrink
         while (changed) {
             changed = false;
@@ -748,8 +821,10 @@ public class TeyssierScorer {
         for (Node y : prefix) {
             Set<Node> minus = new HashSet<>(prefix);
             minus.remove(y);
+            ArrayList<Node> z = new ArrayList<>(minus);
+            sort(z);
 
-            if (test.isDependent(x, y, new ArrayList<>(minus))) {
+            if (test.isDependent(x, y, z)) {
                 parents.add(y);
             }
         }
@@ -771,34 +846,6 @@ public class TeyssierScorer {
         }
 
         return skeleton;
-    }
-
-    public Set<Node> getAncestors(Node node) {
-        Set<Node> ancestors = new HashSet<>();
-        collectAncestorsVisit(node, ancestors);
-
-        return ancestors;
-    }
-
-    private void collectAncestorsVisit(Node node, Set<Node> ancestors) {
-        if (ancestors.contains(node)) {
-            return;
-        }
-
-        ancestors.add(node);
-        Set<Node> parents = getParents(node);
-
-        if (!parents.isEmpty()) {
-            for (Node parent :  parents) {
-                collectAncestorsVisit(parent, ancestors);
-            }
-        }
-    }
-
-    public List<Node> getShuffledVariables() {
-        List<Node> variables = getPi();
-        shuffle(variables);
-        return variables;
     }
 
     private static class Pair {

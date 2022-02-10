@@ -3110,8 +3110,8 @@ public final class GraphUtils {
     public static List<Node> asList(int[] indices, List<Node> nodes) {
         List<Node> list = new LinkedList<>();
 
-        for (int i : indices) {
-            list.add(nodes.get(i));
+        for (int index : indices) {
+            list.add(nodes.get(index));
         }
 
         return list;
@@ -4132,10 +4132,14 @@ public final class GraphUtils {
         Set<EdgeNode> V = new HashSet<>();
 
         for (Edge edge : graph.getEdges(x)) {
+            if (edge.getNode1() == edge.getNode2()) {
+                throw new IllegalArgumentException("Graph contains a self-loop");
+            }
+
 //            if (!Edges.isDirectedEdge(edge)) continue;
             EdgeNode edgeNode = new EdgeNode(edge, x);
 
-            if (edgeNode.edge.getNode2() == y) {
+            if (edgeNode.edge.getDistalNode(x) == y) {
                 return true;
             }
 
@@ -4145,10 +4149,15 @@ public final class GraphUtils {
 
         while (!Q.isEmpty()) {
             EdgeNode t = Q.poll();
+
+            if (t.getEdge().getNode1() == t.getEdge().getNode2()) {
+                throw new IllegalArgumentException("Graph contains a self-loop");
+            }
+
             Edge edge1 = t.getEdge();
 //            if (!Edges.isDirectedEdge(edge1)) continue;
-            Node a = edge1.getNode1();
-            Node b = edge1.getNode2();
+            Node a = t.getNode();
+            Node b = edge1.getDistalNode(a);
 
             for (Edge edge2 : graph.getEdges(b)) {
 //                if (!Edges.isDirectedEdge(edge2)) continue;

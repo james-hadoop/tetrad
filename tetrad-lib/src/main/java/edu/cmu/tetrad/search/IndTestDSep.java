@@ -63,6 +63,11 @@ public class IndTestDSep implements IndependenceTest {
         this(graph, false);
     }
 
+    public IndTestDSep(IndependenceFacts facts, List<Node> variables) {
+        this(facts, false);
+        facts.setNodes(variables);
+    }
+
     public IndTestDSep(IndependenceFacts facts) {
         this(facts, false);
     }
