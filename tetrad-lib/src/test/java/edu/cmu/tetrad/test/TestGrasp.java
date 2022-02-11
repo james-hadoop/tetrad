@@ -612,7 +612,7 @@ public final class TestGrasp {
             int index = 0;
             int indexed = 0;
             int existsNonfrugal = 0;
-            int all = 1;
+            int all = 0;
 
             List<Integer> hard = new ArrayList<>();
             hard.add(29);
@@ -641,7 +641,9 @@ public final class TestGrasp {
             while ((line = in.readLine()) != null) {
                 index++;
 
-//                if (index != 29) continue;
+//                if (index != 17) continue;
+
+                all++;
 
                 System.out.println("\nLine " + index + " " + line);
                 line = line.trim();
@@ -703,22 +705,19 @@ public final class TestGrasp {
                         Graph estGraph = alg0.getGraph(false);
                         int estNumEdges = alg0.getNumEdges();
 
-//                        Graph g = estGraph;
-//
 //                        for (int i = 0; i < variables.size(); i++) {
 //                            for (int j = i + 1; j < variables.size(); j++) {
-//                                if (!g.isAdjacentTo(variables.get(i), variables.get(j))) {
-//                                    if (facts.isIndependent(variables.get(i), variables.get(j), new ArrayList<>())) {
+//                                if (!estGraph.isAdjacentTo(variables.get(i), variables.get(j))) {
+//                                    if (facts.isIndependent(variables.get(i), variables.get(j))) {
 //                                        facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
-//                                        alg0.bestOrder(estGraphPi);
+//                                        alg0.bestOrder(pi);
 //
-//                                        if (alg0.getNumEdges() < estNumEdges) {
-//                                            g = alg0.getGraph(false);
+//                                        if (alg0.getNumEdges() < estGraph.getNumEdges()) {
 //                                            estGraph = alg0.getGraph(false);
 //                                            estNumEdges = estGraph.getNumEdges();
+//                                        } else {
+//                                            facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
 //                                        }
-//
-//                                        facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
 //                                    }
 //                                }
 //                            }
@@ -735,14 +734,13 @@ public final class TestGrasp {
                     if (failingInitialPi != null) {
                         System.out.println("\t#### line = " + index + " FOUND NON-FRUGAL MODEL, INITIAL = " + failingInitialPi + " FINAL = "
                                 + failingEstPi);
-//                        printExistsNonfrugalCase(line, index, facts, spPi, spGraph, failingInitialPi, failingDag, failingEstPi);
+                        printExistsNonfrugalCase(line, index, facts, spPi, spGraph, failingInitialPi, failingDag, failingEstPi);
                         existsNonfrugal++;
                     }
 
                 }
 
                 System.out.println("\tExists nonfrugal = " + existsNonfrugal + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
-                all++;
             }
 
             System.out.println("\nTOTAL: exists nonfrugal = " + existsNonfrugal + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");

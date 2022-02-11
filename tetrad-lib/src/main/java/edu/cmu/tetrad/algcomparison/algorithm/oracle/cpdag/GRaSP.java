@@ -28,7 +28,7 @@ import java.util.List;
  * @author josephramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "GRASP",
+        name = "GRaSP",
         command = "grasp",
         algoType = AlgType.forbid_latent_common_causes
 )
@@ -109,7 +109,7 @@ public class GRaSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
 
     @Override
     public String getDescription() {
-        return "GRASP (Greedy, Relaxed, Adjusted Sparsest Permutation) using " + test.getDescription()
+        return "GRaSP (Greedy Relaxed Sparsest Permutation) using " + test.getDescription()
                 + " or " + score.getDescription();
     }
 
@@ -123,16 +123,15 @@ public class GRaSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
         ArrayList<String> params = new ArrayList<>();
 
         // Flags
-        params.add(Params.GRASP_DEPTH);
-        params.add(Params.GRASP_UNCOVERED_DEPTH);
-        params.add(Params.GRASP_CHECK_COVERING);
-        params.add(Params.GRASP_FORWARD_TUCK_ONLY);
-        params.add(Params.GRASP_BREAK_AFTER_IMPROVEMENT);
-        params.add(Params.GRASP_ORDERED_ALG);
-        params.add(Params.GRASP_USE_SCORE);
+//        params.add(Params.GRASP_UNCOVERED_DEPTH);
+//        params.add(Params.GRASP_CHECK_COVERING);
+//        params.add(Params.GRASP_FORWARD_TUCK_ONLY);
+//        params.add(Params.GRASP_BREAK_AFTER_IMPROVEMENT);
+//        params.add(Params.GRASP_ORDERED_ALG);
+//        params.add(Params.GRASP_USE_SCORE);
         params.add(Params.GRASP_USE_PEARL);
-        params.add(Params.GRASP_USE_VP_SCORING);
-        params.add(Params.GRASP_USE_DATA_ORDER);
+//        params.add(Params.GRASP_USE_VP_SCORING);
+//        params.add(Params.GRASP_USE_DATA_ORDER);
 //        params.add(Params.CACHE_SCORES);
 //        params.add(Params.OUTPUT_CPDAG);
         params.add(Params.VERBOSE);
@@ -140,6 +139,7 @@ public class GRaSP implements Algorithm, UsesScoreWrapper, TakesIndependenceWrap
         // Parameters
         params.add(Params.NUM_STARTS);
         params.add(Params.GRASP_DEPTH);
+
         return params;
     }
 

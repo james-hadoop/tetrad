@@ -114,8 +114,8 @@ public class Grasp {
 //                setUseTuck(_useTuck);
 //                setCheckCovering(_checkCovering);
 //            } else {
-            perm = grasp5(scorer);
-//            }
+            perm = grasp_2(scorer);
+//              }
 
             scorer.score(perm);
 
@@ -161,7 +161,7 @@ public class Grasp {
         }
     }
 
-    public List<Node> grasp(@NotNull TeyssierScorer scorer) {
+    public List<Node> grasp_1(@NotNull TeyssierScorer scorer) {
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
 
@@ -181,7 +181,7 @@ public class Grasp {
         do {
             sOld = sNew;
             shuffle(ops);
-            graspDfs(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>());
+            grasp_1_Dfs(scorer, sOld, depth, 1, ops, new HashSet<>(), new HashSet<>());
             sNew = scorer.score();
         } while (sNew > sOld);
 
@@ -195,8 +195,8 @@ public class Grasp {
         return scorer.getPi();
     }
 
-    private void graspDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
-                          List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory) {
+    private void grasp_1_Dfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth,
+                             List<int[]> ops, Set<Set<Node>> branchHistory, Set<Set<Set<Node>>> dfsHistory) {
         for (int[] op : ops) {
             Node x = scorer.get(op[0]);
             Node y = scorer.get(op[1]);
@@ -231,7 +231,7 @@ public class Grasp {
                 sNew = scorer.score();
 
                 if (sNew == sOld && currentDepth < depth) {
-                    graspDfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
+                    grasp_1_Dfs(scorer, sNew, depth, currentDepth + 1, ops, current, dfsHistory);
                     sNew = scorer.score();
                 }
 
@@ -254,7 +254,7 @@ public class Grasp {
         }
     }
 
-    public List<Node> grasp2(@NotNull TeyssierScorer scorer) {
+    public List<Node> grasp_1b(@NotNull TeyssierScorer scorer) {
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         int uncoveredDepth = this.uncoveredDepth < 0 ? this.depth : this.uncoveredDepth;
         scorer.clearBookmarks();
@@ -469,7 +469,7 @@ public class Grasp {
         }
     }
 
-    public List<Node> grasp4(@NotNull TeyssierScorer scorer) {
+    public List<Node> grasp_2(@NotNull TeyssierScorer scorer) {
         int depth = this.depth < 1 ? Integer.MAX_VALUE : this.depth;
         scorer.clearBookmarks();
 
@@ -742,72 +742,6 @@ public class Grasp {
 
     public void setTestFlag(boolean testFlag) {
         this.testFlag = testFlag;
-    }
-
-    public List<Node> moveChunk(@NotNull TeyssierScorer scorer, int chunk) {
-        List<Node> pi = scorer.getPi();
-        double s;
-        double sp = scorer.score(pi);
-
-        if (chunk < 1 || chunk > scorer.size()) {
-            throw new IllegalArgumentException("Chunk must be in [1, |V|");
-        }
-
-        scorer.bookmark(0);
-        List<Node> pi0 = scorer.getPi();
-
-        D:
-        do {
-            s = sp;
-
-//            System.out.println("Baseline score = " + scorer.score());
-
-            scorer.bookmark(1);
-            sp = scorer.score();
-
-            F:
-            for (int i = 0; i < scorer.size() - chunk + 1; i++) {
-
-                for (int j = 0; j < scorer.size() - chunk + 1; j++) {
-                    if (i == j) continue;
-
-                    scorer.goToBookmark(0);
-                    scorer.bookmark(0);
-
-                    if (i < j) {
-                        for (int k = chunk - 1; k >= 0; k--) {
-                            scorer.moveTo(pi0.get(i + k), j + k);
-                        }
-                    } else {
-                        for (int k = 0; k < chunk; k++) {
-                            scorer.moveTo(pi0.get(i + k), j + k);
-                        }
-                    }
-
-                    if (scorer.score() > sp) {
-                        if (!violatesKnowledge(scorer.getPi())) {
-                            sp = scorer.score();
-
-//                            System.out.println("Better score = " + scorer.score());
-
-                            scorer.bookmark(1);
-//                            break F;
-                        }
-                    }
-                }
-            }
-
-            scorer.goToBookmark(1);
-        } while (sp > s);
-
-        if (verbose) {
-            System.out.println("# Edges = " + scorer.getNumEdges()
-                    + " Score = " + scorer.score()
-                    + " (betterMutation)"
-                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " sp"));
-        }
-
-        return scorer.getPi();
     }
 
     public void setUsePearl(boolean usePearl) {
