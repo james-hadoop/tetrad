@@ -373,7 +373,7 @@ public class OtherPermAlgs {
 
         List<Node> pi0 = GraphUtils.asList(new int[]{0, 1, 2, 3, 4}, variables);
         scorer.score(pi0);
-        System.out.println("\t\t\t# edges for [0, 1, 2, 3, 4] = " + scorer.getNumEdges());
+        System.out.println("\t\t# edges for [0, 1, 2, 3, 4] = " + scorer.getNumEdges());
 
         while ((perm = gen.next()) != null) {
             List<Node> p = GraphUtils.asList(perm, variables);
@@ -391,12 +391,11 @@ public class OtherPermAlgs {
         }
 
         if (true) {
-            System.out.println("\t\t\t# edges for frugal = " + frugalCpdags.iterator().next().getNumEdges());
+            System.out.println("\t\t# frugal cpdags BY SP = " + frugalCpdags.size());
+            System.out.println("\t\t# edges for frugal = " + frugalCpdags.iterator().next().getNumEdges());
 
             if (frugalCpdags.size() == 1) {
-                System.out.println("\t!!!! U-FRUGAL BY SP !!!!");
-            } else {
-                System.out.println("\t\t# frugal cpdags BY SP = " + frugalCpdags.size());
+                System.out.println("\t!!!! U-FRUGAL BY SP");
             }
         }
 

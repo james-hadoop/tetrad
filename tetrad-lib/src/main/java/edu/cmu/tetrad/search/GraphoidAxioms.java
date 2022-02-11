@@ -16,6 +16,7 @@ import java.util.*;
  */
 public class GraphoidAxioms {
     private final Set<GraphoidIndFact> facts;
+    private final List<Node> nodes;
     private boolean trivialtyAssumed = false;
     private Map<GraphoidAxioms.GraphoidIndFact, String> textSpecs = null;
 
@@ -24,13 +25,16 @@ public class GraphoidAxioms {
      *
      * @param facts A set of GraphoidIdFacts.
      */
-    public GraphoidAxioms(Set<GraphoidIndFact> facts) {
+    public GraphoidAxioms(Set<GraphoidIndFact> facts, List<Node> nodes) {
         this.facts = new LinkedHashSet<>(facts);
+        this.nodes = new ArrayList<>(nodes);
     }
 
     public GraphoidAxioms(Set<GraphoidIndFact> facts,
+                          List<Node> nodes,
                           Map<GraphoidAxioms.GraphoidIndFact, String> textSpecs) {
         this.facts = new LinkedHashSet<>(facts);
+        this.nodes = new ArrayList<>(nodes);
         this.textSpecs = new HashMap<>(textSpecs);
     }
 
@@ -50,17 +54,17 @@ public class GraphoidAxioms {
      * Assumes decompositiona nd composition.
      */
     public IndependenceFacts getIndependenceFacts() {
-        Set<Node> nodes = new LinkedHashSet<>();
+//        Set<Node> nodes = new LinkedHashSet<>();
+//
+//        for (GraphoidIndFact ic : facts) {
+//            nodes.addAll(ic.getX());
+//            nodes.addAll(ic.getY());
+//            nodes.addAll(ic.getZ());
+//        }
 
-        for (GraphoidIndFact ic : facts) {
-            nodes.addAll(ic.getX());
-            nodes.addAll(ic.getY());
-            nodes.addAll(ic.getZ());
-        }
+//        List<Node> nodesList = new ArrayList<>(nodes);
 
-        List<Node> nodesList = new ArrayList<>(nodes);
-
-        Collections.sort(nodesList);
+//        Collections.sort(nodesList);
 
         IndependenceFacts ifFacts = new IndependenceFacts();
 
@@ -72,7 +76,7 @@ public class GraphoidAxioms {
             }
         }
 
-        ifFacts.setNodes(nodesList);
+        ifFacts.setNodes(nodes);
 
         return ifFacts;
     }
@@ -264,13 +268,13 @@ public class GraphoidAxioms {
                             TetradLogger.getInstance().forceLogMessage("Contraction fails:" +
                                     " Have " + textSpecs.get(fact1) + " and " + textSpecs.get(fact2) +
                                     "; Missing " + newFact);
-                            return false;
                         } else {
                             TetradLogger.getInstance().forceLogMessage("Contraction fails:" +
                                     " Have " + fact1 + " and " + fact2 +
                                     "; Missing " + newFact);
-                            return false;
                         }
+
+                        return false;
                     }
                 }
             }
@@ -334,13 +338,13 @@ public class GraphoidAxioms {
                             TetradLogger.getInstance().forceLogMessage("Intersection fails:" +
                                     " Have " + textSpecs.get(fact1) + " and " + textSpecs.get(fact2) +
                                     "; Missing " + newFact);
-                            return false;
                         } else {
                             TetradLogger.getInstance().forceLogMessage("Intersection fails:" +
                                     " Have " + fact1 + " and " + fact2 +
                                     "; Missing " + newFact);
-                            return false;
                         }
+
+                        return false;
                     }
                 }
             }
@@ -382,13 +386,13 @@ public class GraphoidAxioms {
                             TetradLogger.getInstance().forceLogMessage("Composition fails:" +
                                     " Have " + textSpecs.get(fact1) + " and " + textSpecs.get(fact2) +
                                     "; Missing " + newFact);
-                            return false;
                         } else {
                             TetradLogger.getInstance().forceLogMessage("Composition fails:" +
                                     " Have " + fact1 + " and " + fact2 +
                                     "; Missing " + newFact);
-                            return false;
                         }
+
+                        return false;
                     }
                 }
             }

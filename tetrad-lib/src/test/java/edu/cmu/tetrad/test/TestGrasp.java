@@ -611,7 +611,7 @@ public final class TestGrasp {
             String line;
             int index = 0;
             int indexed = 0;
-            int failed = 0;
+            int existsNonfrugal = 0;
             int all = 1;
 
             List<Integer> hard = new ArrayList<>();
@@ -643,7 +643,7 @@ public final class TestGrasp {
 
 //                if (index != 29) continue;
 
-                System.out.println("Line " + index + " " + line);
+                System.out.println("\nLine " + index + " " + line);
                 line = line.trim();
 
                 GraphoidAxioms axioms = getGraphoidAxioms(line, variables);
@@ -653,7 +653,7 @@ public final class TestGrasp {
                 System.out.println(axioms.getIndependenceFacts().getVariableNames());
 
                 if (axioms.graphoid()) {
-                    System.out.println("GRAPHOID");
+                    System.out.println("\tGRAPHOID");
                 }
 
                 if (true) {
@@ -699,8 +699,6 @@ public final class TestGrasp {
                     while ((perm = gen.next()) != null) {
                         List<Node> pi = GraphUtils.asList(perm, variables);
 
-//                        System.out.println("\t\t\t\tPI FROM PERMUTTION = " + pi);
-
                         List<Node> estGraphPi = alg0.bestOrder(pi);
                         Graph estGraph = alg0.getGraph(false);
                         int estNumEdges = alg0.getNumEdges();
@@ -735,24 +733,25 @@ public final class TestGrasp {
                     }
 
                     if (failingInitialPi != null) {
-                        System.out.println("\tline = " + index + " FOUND NON-FRUGAL MODEL, INITIAL = " + failingInitialPi + " FINAL = " + failingEstPi);
-//                        printFailedCase(line, index, facts, spPi, spGraph, failingInitialPi, failingDag, failingEstPi);
-                        failed++;
+                        System.out.println("\t#### line = " + index + " FOUND NON-FRUGAL MODEL, INITIAL = " + failingInitialPi + " FINAL = "
+                                + failingEstPi);
+//                        printExistsNonfrugalCase(line, index, facts, spPi, spGraph, failingInitialPi, failingDag, failingEstPi);
+                        existsNonfrugal++;
                     }
 
-//                    System.out.println("\tFailed = " + failed + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
                 }
 
+                System.out.println("\tExists nonfrugal = " + existsNonfrugal + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
                 all++;
             }
 
-            System.out.println("\nTOTAL: Failed = " + failed + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
+            System.out.println("\nTOTAL: exists nonfrugal = " + existsNonfrugal + " all = " + all + " (" + (System.currentTimeMillis() - start) / 1000.0 + " s)");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void printFailedCase(String line, int index, IndependenceFacts facts, List<Node> spPi, Graph spGraph, List<Node> failingInitialPi, Graph failingDag, List<Node> failingEstPi) {
+    private void printExistsNonfrugalCase(String line, int index, IndependenceFacts facts, List<Node> spPi, Graph spGraph, List<Node> failingInitialPi, Graph failingDag, List<Node> failingEstPi) {
         System.out.println("Failed, line " + index + " " + line);
         System.out.println("Elementary facts = " + facts);
         System.out.println("Failing initial permutation: " + failingInitialPi);
@@ -797,12 +796,12 @@ public final class TestGrasp {
         comparison.saveToFiles("/Users/josephramsey/Downloads/grasp/simulation", simulation, params);
     }
 
-    private GraphoidAxioms getGraphoidAxioms(String line, List<Node> variables) throws IOException {
-        Map<Integer, Node> nodes = new HashMap<>();
-
-        for (int i = 0; i < variables.size(); i++) {
-            nodes.put(i, variables.get(i));
-        }
+    private GraphoidAxioms getGraphoidAxioms(String line, List<Node> nodes) throws IOException {
+//        Map<Integer, Node> nodes = new HashMap<>();
+//
+//        for (int i = 0; i < variables.size(); i++) {
+//            nodes.put(i, variables.get(i));
+//        }
 
         Set<GraphoidAxioms.GraphoidIndFact> facts = new LinkedHashSet<>();
         Map<GraphoidAxioms.GraphoidIndFact, String> textSpecs = new HashMap<>();
@@ -819,7 +818,7 @@ public final class TestGrasp {
 
                 for (int i = 0; i < tokens2[0].length(); i++) {
                     int i1 = Integer.parseInt(tokens2[0].substring(i, i + 1).trim());
-                    Node node;
+//                    Node node;
 
 //                    if (nodes.get(i1) == null) {
 //                        nodes.put(i1, new GraphNode(i1 + ""));
@@ -831,7 +830,7 @@ public final class TestGrasp {
                 for (int i = 0; i < tokens2[1].length(); i++) {
                     String substring = tokens2[1].substring(i, i + 1);
                     int i1 = Integer.parseInt(substring.trim());
-                    Node node;
+//                    Node node;
 
 //                    if (nodes.get(i1) == null) {
 //                        nodes.put(i1, new GraphNode(i1 + ""));
@@ -843,7 +842,7 @@ public final class TestGrasp {
                 if (tokens1.length == 2) {
                     for (int i = 0; i < tokens1[1].length(); i++) {
                         int i1 = Integer.parseInt(tokens1[1].substring(i, i + 1).trim());
-                        Node node;
+//                        Node node;
 
 //                        if (nodes.get(i1) == null) {
 //                            nodes.put(i1, new ContinuousVariable(i1 + ""));
@@ -859,7 +858,7 @@ public final class TestGrasp {
             }
         }
 
-        return new GraphoidAxioms(facts, textSpecs);
+        return new GraphoidAxioms(facts, nodes, textSpecs);
     }
 
     @Test
