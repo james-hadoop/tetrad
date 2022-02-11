@@ -44,6 +44,8 @@ public class TeyssierScorer {
     private boolean cachingScores = true;
 
     public TeyssierScorer(IndependenceTest test, Score score) {
+        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
+
         this.score = score;
         this.test = test;
 
