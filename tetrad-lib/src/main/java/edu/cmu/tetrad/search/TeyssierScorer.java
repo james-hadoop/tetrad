@@ -30,14 +30,12 @@ public class TeyssierScorer {
     private final Map<Integer, LinkedList<Node>> bookmarkedOrders = new HashMap<>();
     private final Map<Integer, LinkedList<Pair>> bookmarkedScores = new HashMap<>();
     private final Map<Integer, Map<Node, Integer>> bookmarkedOrderHashes = new HashMap<>();
-    private final Map<Integer, Float> bookmarkedRunningScores = new HashMap<>();
     private Map<Node, Map<Set<Node>, Float>> cache = new HashMap<>();
     private Map<Node, Integer> orderHash;
     private LinkedList<Node> pi; // The current permutation.
     private LinkedList<Pair> scores;
     private IKnowledge knowledge = new Knowledge2();
     private LinkedList<Set<Node>> prefixes;
-    private float runningScore = 0F;
 
     private boolean useScore = true;
     private boolean useVermaPearl = false;
@@ -114,7 +112,6 @@ public class TeyssierScorer {
      * @return The score of it.
      */
     public float score(List<Node> order) {
-        runningScore = 0F;
         this.pi = new LinkedList<>(order);
         this.scores = new LinkedList<>();
 
@@ -132,7 +129,6 @@ public class TeyssierScorer {
      * @return The score of the current permutation.
      */
     public float score() {
-//        return runningScore;
         return sum();
     }
 
@@ -443,7 +439,6 @@ public class TeyssierScorer {
     public void bookmark(int key) {
         bookmarkedOrders.put(key, new LinkedList<>(pi));
         bookmarkedScores.put(key, new LinkedList<>(scores));
-        bookmarkedRunningScores.put(key, runningScore);
         bookmarkedOrderHashes.put(key, new HashMap<>(orderHash));
     }
 
@@ -465,7 +460,6 @@ public class TeyssierScorer {
 
         pi = bookmarkedOrders.remove(key);
         scores = bookmarkedScores.remove(key);
-        runningScore = bookmarkedRunningScores.remove(key);
         orderHash = bookmarkedOrderHashes.remove(key);
     }
 
@@ -482,7 +476,6 @@ public class TeyssierScorer {
     public void clearBookmarks() {
         bookmarkedOrders.clear();
         bookmarkedScores.clear();
-        bookmarkedRunningScores.clear();
         bookmarkedOrderHashes.clear();
     }
 
@@ -621,7 +614,6 @@ public class TeyssierScorer {
         }
 
         float v = (float) this.score.localScore(variablesHash.get(n), parentIndices);
-//        v = Math.nextDown(v);
 
         if (cachingScores) {
             cache.computeIfAbsent(n, w -> new HashMap<>());
@@ -645,16 +637,8 @@ public class TeyssierScorer {
         if (prefixes.get(p) == null || !prefixes.get(p).containsAll(getPrefix(p))) {
             Pair p1 = scores.get(p);
             Pair p2 = getParentsInternal(p);
-            updateRunningScore(p1, p2);
             scores.set(p, p2);
         }
-    }
-
-    private void updateRunningScore(Pair p1, Pair p2) {
-        float s1 = p1 == null ? 0F : p1.getScore();
-        float s2 = p2 == null ? 0F : p2.getScore();
-        runningScore -= s1;
-        runningScore += s2;
     }
 
     private void nodesHash(Map<Node, Integer> nodesHash, List<Node> variables) {
