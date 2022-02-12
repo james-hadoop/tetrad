@@ -68,9 +68,9 @@ public class GRaSP_Joe implements Algorithm, UsesScoreWrapper, TakesIndependence
 
             // Need to set this after setting depth
             grasp.setUncoveredDepth(parameters.getInt(Params.GRASP_UNCOVERED_DEPTH));
-            grasp.setCheckCovering(parameters.getBoolean(Params.GRASP_CHECK_COVERING));
-            grasp.setUseTuck(parameters.getBoolean(Params.GRASP_FORWARD_TUCK_ONLY));
-            grasp.setBreakAfterImprovement(!parameters.getBoolean(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
+//            grasp.setCheckCovering(parameters.getBoolean(Params.GRASP_CHECK_COVERING));
+//            grasp.setUseTuck(parameters.getBoolean(Params.GRASP_FORWARD_TUCK_ONLY));
+//            grasp.setBreakAfterImprovement(!parameters.getBoolean(Params.GRASP_BREAK_AFTER_IMPROVEMENT));
             grasp.setOrdered(parameters.getBoolean(Params.GRASP_ORDERED_ALG));
             grasp.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
             grasp.setUseDataOrder(parameters.getBoolean(Params.GRASP_USE_DATA_ORDER));

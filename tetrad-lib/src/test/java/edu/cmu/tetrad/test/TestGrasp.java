@@ -142,17 +142,15 @@ public final class TestGrasp {
         params.set(Params.EBIC_GAMMA, 0.8);
         params.set(Params.ALPHA, 0.001);
 
-        params.set(Params.GRASP_DEPTH, 3);
-        params.set(Params.NUM_ROUNDS, 50);
+        params.set(Params.GRASP_DEPTH, 5);
+        params.set(Params.GRASP_UNCOVERED_DEPTH, 0, 2);
+        params.set(Params.GRASP_NONSINGULAR_DEPTH, 0, 2);
 
-        params.set(Params.GRASP_CHECK_COVERING, false);
-        params.set(Params.GRASP_FORWARD_TUCK_ONLY, false);
-        params.set(Params.GRASP_BREAK_AFTER_IMPROVEMENT, false);
-        params.set(Params.GRASP_ORDERED_ALG, true);
+        params.set(Params.GRASP_ORDERED_ALG, true, false);
         params.set(Params.GRASP_USE_SCORE, true);
         params.set(Params.GRASP_USE_PEARL, false);
         params.set(Params.GRASP_USE_DATA_ORDER, false);
-        params.set(Params.GRASP_ALG, false);
+//        params.set(Params.GRASP_ALG, false);
 
 
         Algorithms algorithms = new Algorithms();
@@ -163,7 +161,9 @@ public final class TestGrasp {
 
         Statistics statistics = new Statistics();
         statistics.add(new ParameterColumn(Params.GRASP_DEPTH));
-        statistics.add(new ParameterColumn(Params.NUM_ROUNDS));
+        statistics.add(new ParameterColumn(Params.GRASP_UNCOVERED_DEPTH));
+        statistics.add(new ParameterColumn(Params.GRASP_NONSINGULAR_DEPTH));
+        statistics.add(new ParameterColumn(Params.GRASP_ORDERED_ALG));
         statistics.add(new ParameterColumn(Params.EBIC_GAMMA));
         statistics.add(new ParameterColumn(Params.NUM_MEASURES));
         statistics.add(new ParameterColumn(Params.AVG_DEGREE));
@@ -181,7 +181,7 @@ public final class TestGrasp {
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
-        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGrasp1",
+        comparison.compareFromSimulations("/Users/bandrews/Downloads/grasp/testGrasp1",
                 simulations, algorithms, statistics, params);
     }
 
@@ -482,10 +482,7 @@ public final class TestGrasp {
 
             grasp.setUsePearl(true);
             grasp.setUseDataOrder(true);
-            grasp.setUseTuck(true);
-            grasp.setBreakAfterImprovement(true);
             grasp.setOrdered(false);
-            grasp.setCheckCovering(true);
 
             grasp.setVerbose(false);
 
@@ -493,7 +490,6 @@ public final class TestGrasp {
             grasp.bestOrder(pi);
             Graph estCpdagGasp = grasp.getGraph(true);
 
-            grasp.setCheckCovering(false);
             grasp.setOrdered(true);
             grasp.bestOrder(pi);
             Graph estCpdagGrasp = grasp.getGraph(true);
@@ -569,9 +565,6 @@ public final class TestGrasp {
                 grasp.setUsePearl(true);
                 grasp.setUseDataOrder(true);
                 grasp.setDepth(100);
-                grasp.setCheckCovering(false);
-                grasp.setUseTuck(true);
-                grasp.setBreakAfterImprovement(true);
                 grasp.setOrdered(true);
                 grasp.setVerbose(false);
 
@@ -602,7 +595,7 @@ public final class TestGrasp {
         try {
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
 //            String path = "/Users/josephramsey/Downloads/udags5.txt";
-            String path = "/Users/josephramsey/Downloads/udags5 2/udags5.txt";
+            String path = "/Users/bandrews/Downloads/udags5/udags5.txt";
 //            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
@@ -686,10 +679,11 @@ public final class TestGrasp {
                     Grasp alg0 = new Grasp(test);
 
                     alg0.setDepth(5);
+                    alg0.setUncoveredDepth(5);
+                    alg0.setNonSingularDepth(5);
 //                    alg0.setUncoveredDepth(8);
                     alg0.setUseDataOrder(true);
                     alg0.setUsePearl(usePearl);
-                    alg0.setUseTuck(false);
 //                    alg0.setBreakAfterImprovement(true);
 //                    alg0.setGraspAlg(5);
 //                    alg0.setOrdered(false);
@@ -1757,9 +1751,10 @@ public final class TestGrasp {
 
                 Grasp search = new Grasp(new IndTestDSep(facts.getFacts()));
                 search.setDepth(depth);
+                search.setUncoveredDepth(depth);
+                search.setNonSingularDepth(depth);
                 search.setUseDataOrder(true);
                 search.setUsePearl(false);
-                search.setUseTuck(false);
                 List<Node> order = search.bestOrder(p);
 //                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
 //                    System.out.println(search.getGraph(false));

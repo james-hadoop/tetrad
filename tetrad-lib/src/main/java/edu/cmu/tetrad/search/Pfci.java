@@ -113,7 +113,7 @@ public final class Pfci implements GraphSearch {
 
         grasp.setDepth(depth);
         grasp.setUncoveredDepth(uncoveredDepth);
-        grasp.setUseTuck(useForwardTuckOnly);
+//        grasp.setUseTuck(useForwardTuckOnly);
         grasp.setUsePearl(usePearl);
 //        grasp.setTimeout(timeout);
         grasp.setVerbose(verbose);
