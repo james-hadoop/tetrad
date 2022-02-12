@@ -186,6 +186,69 @@ public final class TestGrasp {
     }
 
     @Test
+    public void testGraspForClark() {
+        Parameters params = new Parameters();
+        params.set(Params.NUM_MEASURES, 10);
+        params.set(Params.AVG_DEGREE, 4);
+        params.set(Params.SAMPLE_SIZE, 1000);
+        params.set(Params.NUM_RUNS, 50);
+        params.set(Params.COEF_LOW, 0);
+        params.set(Params.COEF_HIGH, 1);
+        params.set(Params.NUM_STARTS, 5);
+
+        params.set(Params.PENALTY_DISCOUNT, 2);
+        params.set(Params.ZS_RISK_BOUND, 0.001); //, 0.01, 0.1);
+        params.set(Params.EBIC_GAMMA, 0.8);
+        params.set(Params.ALPHA, 0.001);
+
+        params.set(Params.GRASP_DEPTH, 5);
+        params.set(Params.GRASP_UNCOVERED_DEPTH, 1);
+        params.set(Params.GRASP_NONSINGULAR_DEPTH, 1);
+
+        params.set(Params.GRASP_ORDERED_ALG, true);
+//        params.set(Params.GRASP_USE_SCORE, true);
+        params.set(Params.GRASP_USE_PEARL, false);
+        params.set(Params.GRASP_USE_DATA_ORDER, false);
+        params.set(Params.CACHE_SCORES, true);
+//        params.set(Params.GRASP_ALG, false);
+
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(
+                new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LinearSemSimulation(new RandomForward()));
+
+        Statistics statistics = new Statistics();
+//        statistics.add(new ParameterColumn(Params.GRASP_DEPTH));
+//        statistics.add(new ParameterColumn(Params.GRASP_UNCOVERED_DEPTH));
+//        statistics.add(new ParameterColumn(Params.GRASP_NONSINGULAR_DEPTH));
+//        statistics.add(new ParameterColumn(Params.GRASP_ORDERED_ALG));
+//        statistics.add(new ParameterColumn(Params.EBIC_GAMMA));
+//        statistics.add(new ParameterColumn(Params.NUM_MEASURES));
+//        statistics.add(new ParameterColumn(Params.AVG_DEGREE));
+//        statistics.add(new ParameterColumn(Params.SAMPLE_SIZE));
+        statistics.add(new NumberOfEdgesTrue());
+        statistics.add(new NumberOfEdgesEst());
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+        statistics.add(new ElapsedTime());
+
+        Comparison comparison = new Comparison();
+        comparison.setSaveData(false);
+        comparison.setShowAlgorithmIndices(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
+
+        comparison.compareFromSimulations("/Users/josephramsey/Downloads/grasp/testGraspForClark",
+                simulations, algorithms, statistics, params);
+    }
+
+    @Test
     public void testGrasp1Bryan() {
         Parameters params = new Parameters();
         params.set(Params.NUM_MEASURES, 100);

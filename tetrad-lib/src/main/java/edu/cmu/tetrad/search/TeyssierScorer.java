@@ -621,7 +621,7 @@ public class TeyssierScorer {
         }
 
         float v = (float) this.score.localScore(variablesHash.get(n), parentIndices);
-        v = Math.nextDown(v);
+//        v = Math.nextDown(v);
 
         if (cachingScores) {
             cache.computeIfAbsent(n, w -> new HashMap<>());

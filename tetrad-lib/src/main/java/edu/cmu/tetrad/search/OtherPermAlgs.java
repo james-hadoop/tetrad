@@ -86,7 +86,7 @@ public class OtherPermAlgs {
         scorer.setCachingScores(cachingScores);
 
         List<Node> bestPerm = new ArrayList<>(order);
-        float best = Float.NEGATIVE_INFINITY;
+        double best = Float.NEGATIVE_INFINITY;
 
         for (int r = 0; r < (useDataOrder ? 1 : numStarts); r++) {
             if (!useDataOrder) {
@@ -165,8 +165,8 @@ public class OtherPermAlgs {
     public List<Node> esp(@NotNull TeyssierScorer scorer) {
         if (depth <= 0) throw new IllegalArgumentException("Form ESP, max depth should be > 0");
 
-        float sOld;
-        float sNew = scorer.score();
+        double sOld;
+        double sNew = scorer.score();
 
         do {
             sOld = sNew;
@@ -251,7 +251,7 @@ public class OtherPermAlgs {
                 Node y = pair.getSecond();
                 if (!scorer.adjacent(x, y)) continue;
 
-                float s0 = scorer.score();
+                double s0 = scorer.score();
                 scorer.bookmark(0);
 
                 // 'tuck' operation.
@@ -263,7 +263,7 @@ public class OtherPermAlgs {
                     continue;
                 }
 
-                float sNew = scorer.score();
+                double sNew = scorer.score();
 
                 if (sNew < s0) {
                     scorer.goToBookmark(0);
@@ -285,7 +285,7 @@ public class OtherPermAlgs {
                         System.out.println("Round " + (r) + " # improvements = " + numImprovements
                                 + " # unimproved = " + numEquals
                                 + " # edges = " + scorer.getNumEdges() + " progress this round = "
-                                + nf.format(100 * visited / (float) numPairs) + "%");
+                                + nf.format(100 * visited / (double) numPairs) + "%");
                     }
                 }
             }
@@ -298,7 +298,7 @@ public class OtherPermAlgs {
                 Node y = pair.getSecond();
                 if (!scorer.adjacent(x, y)) continue;
 
-                float s0 = scorer.score();
+                double s0 = scorer.score();
                 scorer.bookmark(0);
 
                 // 'tuck' operation.
@@ -310,7 +310,7 @@ public class OtherPermAlgs {
                     continue;
                 }
 
-                float sNew = scorer.score();
+                double sNew = scorer.score();
 
                 if (sNew < s0) {
                     scorer.goToBookmark(0);
@@ -332,7 +332,7 @@ public class OtherPermAlgs {
                         System.out.println("Round " + (r) + " # improvements = " + numImprovements
                                 + " # unimproved = " + numEquals
                                 + " # edges = " + scorer.getNumEdges() + " progress this round = "
-                                + nf.format(100 * visited / (float) numPairs) + "%");
+                                + nf.format(100 * visited / (double) numPairs) + "%");
                     }
                 }
             }
@@ -361,7 +361,7 @@ public class OtherPermAlgs {
     public List<Node> sp(@NotNull TeyssierScorer scorer) {
 //        System.out.println("\t\t\t\tIN SP PI = " + scorer.getPi());
 
-        float maxScore = Float.NEGATIVE_INFINITY;
+        double maxScore = Float.NEGATIVE_INFINITY;
         List<Node> maxP = null;
 
         List<Node> variables = scorer.getPi();
@@ -475,7 +475,7 @@ public class OtherPermAlgs {
         return false;
     }
 
-    private void espDfs(@NotNull TeyssierScorer scorer, float sOld, int depth, int currentDepth) {
+    private void espDfs(@NotNull TeyssierScorer scorer, double sOld, int depth, int currentDepth) {
         for (int i = 0; i < scorer.size() - 1; i++) {
             List<Node> pi = scorer.getPi();
             scorer.swap(scorer.get(i), scorer.get(i + 1));
@@ -485,7 +485,7 @@ public class OtherPermAlgs {
                 continue;
             }
 
-            float sNew = scorer.score();
+            double sNew = scorer.score();
 
             if (sNew == sOld && currentDepth < depth) {
                 espDfs(scorer, sNew, depth, currentDepth + 1);
