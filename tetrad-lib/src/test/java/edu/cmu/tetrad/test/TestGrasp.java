@@ -594,8 +594,7 @@ public final class TestGrasp {
 
         try {
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-//            String path = "/Users/josephramsey/Downloads/udags5.txt";
-            String path = "/Users/bandrews/Downloads/udags5/udags5.txt";
+            String path = "/Users/josephramsey/Downloads/udags5.txt";
 //            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
@@ -608,23 +607,34 @@ public final class TestGrasp {
             int all = 0;
 
             List<Integer> hard = new ArrayList<>();
-            hard.add(29);
-            hard.add(30);
-            hard.add(34);
+            hard.add(7);
+            hard.add(13);
+            hard.add(36);
+            hard.add(37);
             hard.add(38);
+            hard.add(39);
             hard.add(40);
-            hard.add(44);
-            hard.add(46);
+            hard.add(41);
+            hard.add(42);
+            hard.add(47);
+            hard.add(48);
+            hard.add(50);
+            hard.add(51);
+            hard.add(52);
+            hard.add(53);
+            hard.add(54);
+            hard.add(55);
+            hard.add(56);
+            hard.add(57);
+            hard.add(58);
+            hard.add(59);
+            hard.add(63);
+            hard.add(64);
+            hard.add(65);
+            hard.add(70);
+            hard.add(71);
             hard.add(72);
             hard.add(73);
-            hard.add(75);
-            hard.add(84);
-            hard.add(85);
-            hard.add(138);
-            hard.add(154);
-            hard.add(158);
-            hard.add(159);
-            hard.add(160);
 
             List<Node> variables = new ArrayList<>();
             for (int i = 0; i < 5; i++) {
@@ -634,6 +644,7 @@ public final class TestGrasp {
             while ((line = in.readLine()) != null) {
                 index++;
 
+                if (!hard.contains(index)) continue;;
 //                if (index != 17) continue;
 
                 all++;

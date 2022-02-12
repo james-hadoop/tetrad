@@ -178,7 +178,7 @@ public class Grasp {
     }
 
     private void graspDfs(@NotNull TeyssierScorer scorer, double sOld, int[] depth, int currentDepth,
-                           Set<Set<Node>> tucks, Set<Set<Set<Node>>> dfsHistory) {
+                          Set<Set<Node>> tucks, Set<Set<Set<Node>>> dfsHistory) {
         for (Node y : scorer.getShuffledVariables()) {
             Set<Node> ancestors = scorer.getAncestors(y);
             List<Node> parents = new ArrayList<>(scorer.getParents(y));
@@ -321,7 +321,7 @@ public class Grasp {
     }
 
     public void setOrdered(boolean ordered) {
-        this.ordered = ordered;
+        this.ordered = ordered  ;
     }
 
     public void setUsePearl(boolean usePearl) {
