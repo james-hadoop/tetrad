@@ -1,6 +1,5 @@
 package edu.cmu.tetrad.search;
 
-import com.google.common.collect.Sets;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
@@ -59,9 +58,10 @@ public class Grasp {
 
     public List<Node> bestOrder(@NotNull List<Node> order) {
         long start = System.currentTimeMillis();
+        order = new ArrayList<>(order);
 
         scorer = new TeyssierScorer(test, score);
-        scorer.setUsePearl(usePearl);
+        scorer.setUseVermaPearl(usePearl);
 
         if (usePearl) {
             scorer.setUseScore(false);

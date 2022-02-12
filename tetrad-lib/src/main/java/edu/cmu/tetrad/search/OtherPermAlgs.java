@@ -70,10 +70,8 @@ public class OtherPermAlgs {
             scorer.setUseScore(true);
         } else {
             scorer = new TeyssierScorer(test, score);
-            scorer.setUsePearl(usePearl);
+            scorer.setUseVermaPearl(usePearl);
             scorer.score(variables);
-
-            scorer.setUsePearl(usePearl);
 
             if (usePearl) {
                 scorer.setUseScore(false);
