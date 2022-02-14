@@ -544,7 +544,6 @@ public final class TestGrasp {
             Grasp grasp = new Grasp(test);
 
             grasp.setUsePearl(true);
-            grasp.setUseDataOrder(true);
             grasp.setOrdered(false);
 
             grasp.setVerbose(false);
@@ -626,7 +625,6 @@ public final class TestGrasp {
                 Grasp grasp = new Grasp(new IndTestDSep(facts.getFacts()));
 
                 grasp.setUsePearl(true);
-                grasp.setUseDataOrder(true);
                 grasp.setDepth(100);
                 grasp.setOrdered(true);
                 grasp.setVerbose(false);
@@ -707,8 +705,8 @@ public final class TestGrasp {
             while ((line = in.readLine()) != null) {
                 index++;
 
-                if (!hard.contains(index)) continue;;
-//                if (index != 17) continue;
+//                if (!hard.contains(index)) continue;;
+//                if (index != 163) continue;
 
                 all++;
 
@@ -756,7 +754,6 @@ public final class TestGrasp {
                     alg0.setUncoveredDepth(5);
                     alg0.setNonSingularDepth(5);
 //                    alg0.setUncoveredDepth(8);
-                    alg0.setUseDataOrder(true);
                     alg0.setUsePearl(usePearl);
 //                    alg0.setBreakAfterImprovement(true);
 //                    alg0.setGraspAlg(5);
@@ -772,24 +769,6 @@ public final class TestGrasp {
                         List<Node> estGraphPi = alg0.bestOrder(pi);
                         Graph estGraph = alg0.getGraph(false);
                         int estNumEdges = alg0.getNumEdges();
-
-//                        for (int i = 0; i < variables.size(); i++) {
-//                            for (int j = i + 1; j < variables.size(); j++) {
-//                                if (!estGraph.isAdjacentTo(variables.get(i), variables.get(j))) {
-//                                    if (facts.isIndependent(variables.get(i), variables.get(j))) {
-//                                        facts.remove(new IndependenceFact(variables.get(i), variables.get(j)));
-//                                        alg0.bestOrder(pi);
-//
-//                                        if (alg0.getNumEdges() < estGraph.getNumEdges()) {
-//                                            estGraph = alg0.getGraph(false);
-//                                            estNumEdges = estGraph.getNumEdges();
-//                                        } else {
-//                                            facts.add(new IndependenceFact(variables.get(i), variables.get(j)));
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
 
                         if (estNumEdges > spNumEdges) {
                             failingInitialPi = pi;
@@ -1753,7 +1732,6 @@ public final class TestGrasp {
 
                 Grasp search = new Grasp(new IndTestDSep(facts.getFacts()));
                 search.setDepth(depth);
-                search.setUseDataOrder(true);
                 List<Node> order = search.bestOrder(p);
 //                System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());// + " " + search.getGraph(false));
 
@@ -1827,7 +1805,6 @@ public final class TestGrasp {
                 search.setDepth(depth);
                 search.setUncoveredDepth(depth);
                 search.setNonSingularDepth(depth);
-                search.setUseDataOrder(true);
                 search.setUsePearl(false);
                 List<Node> order = search.bestOrder(p);
 //                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());

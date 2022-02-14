@@ -386,6 +386,19 @@ public class OtherPermAlgs {
             if (scorer.score() == maxScore) {
                 frugalCpdags.add(scorer.getGraph(true));
             }
+//            if (scorer.score() == maxScore) {
+//                Graph g = scorer.getGraph(true);
+//                boolean containsCpdag = false;
+//                for (Graph h : frugalCpdags) {
+//                    if (g.equals(h)) {
+//                        containsCpdag = true;
+//                        break;
+//                    }
+//                }
+//                if (!containsCpdag) {
+//                    frugalCpdags.add(g);
+//                }
+//            }
         }
 
         if (true) {

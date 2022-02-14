@@ -1276,22 +1276,12 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     @Override
     public int hashCode() {
         int hashCode = 0;
-        int sum = 0;
-
-        for (Node node : getNodes()) {
-            sum += node.hashCode();
-        }
-
-        hashCode += 23 * sum;
-        sum = 0;
 
         for (Edge edge : getEdges()) {
-            sum += edge.hashCode();
+            hashCode += edge.hashCode();
         }
 
-        hashCode += 41 * sum;
-
-        return hashCode;
+        return (new HashSet<>(nodes)).hashCode() + hashCode;
     }
 
     /**
@@ -2006,47 +1996,4 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     public void addAttribute(String key, Object value) {
         attributes.put(key, value);
     }
-
-    private static class Pair {
-
-        private final Node x;
-        private final Node y;
-
-        Pair(Node x, Node y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        public Node getX() {
-            return x;
-        }
-
-        public Node getY() {
-            return y;
-        }
-
-        @Override
-        public int hashCode() {
-            return x.hashCode() + 17 * y.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == this) {
-                return true;
-            }
-            if (!(o instanceof Pair)) {
-                return false;
-            }
-            Pair pair = (Pair) o;
-            return x == pair.getX() && y == pair.getY();
-        }
-
-        @Override
-        public String toString() {
-            return "(" + x.toString() + ", " + y.toString() + ")";
-        }
-
-    }
-
 }
