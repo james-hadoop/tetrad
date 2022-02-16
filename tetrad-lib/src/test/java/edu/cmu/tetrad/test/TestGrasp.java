@@ -497,9 +497,8 @@ public final class TestGrasp {
 
         Algorithms algorithms = new Algorithms();
         algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
-//        algorithms.add(new GASP(new LinearGaussianBicScore()));
-//        algorithms.add(new Fges(new LinearGaussianBicScore()));
 //        algorithms.add(new PcAll(new FisherZ()));
+//        algorithms.add(new Fges(new LinearGaussianBicScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
