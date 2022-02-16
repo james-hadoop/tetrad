@@ -495,9 +495,9 @@ public final class TestGrasp {
 
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
-//        algorithms.add(new PcAll(new FisherZ()));
-//        algorithms.add(new Fges(new LinearGaussianBicScore()));
+//        algorithms.add(new GRaSP(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore(), new FisherZ()));
+//        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Pc(new FisherZ()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag.Fges(new edu.cmu.tetrad.algcomparison.score.LinearGaussianBicScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new LinearSemSimulation(new RandomForward()));
@@ -525,6 +525,8 @@ public final class TestGrasp {
 
     @Test
     public void testLuFigure6() {
+        RandomUtil.getInstance().setSeed(492939494L);
+
         Parameters params = new Parameters();
         params.set(Params.SAMPLE_SIZE, 500);
         params.set(Params.NUM_MEASURES, 60);
