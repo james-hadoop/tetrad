@@ -65,7 +65,7 @@ public class PFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
             search.setDepth(parameters.getInt(Params.GRASP_DEPTH));
             search.setUncoveredDepth(parameters.getInt(Params.GRASP_UNCOVERED_DEPTH));
             search.setUseForwardTuckOnly(parameters.getBoolean(Params.GRASP_FORWARD_TUCK_ONLY));
-            search.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
+            search.setUsePearl(parameters.getBoolean(Params.GRASP_USE_VERMA_PEARL));
             search.setTimeout(parameters.getInt(Params.TIMEOUT));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
@@ -134,7 +134,7 @@ public class PFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.GRASP_DEPTH);
         params.add(Params.GRASP_UNCOVERED_DEPTH);
         params.add(Params.GRASP_FORWARD_TUCK_ONLY);
-        params.add(Params.GRASP_USE_PEARL);
+        params.add(Params.GRASP_USE_VERMA_PEARL);
         params.add(Params.TIMEOUT);
         params.add(Params.VERBOSE);
         params.add(Params.NUM_STARTS);

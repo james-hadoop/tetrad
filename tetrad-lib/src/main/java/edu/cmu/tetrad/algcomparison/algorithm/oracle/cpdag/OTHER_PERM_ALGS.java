@@ -94,7 +94,7 @@ public class OTHER_PERM_ALGS implements Algorithm, UsesScoreWrapper, TakesIndepe
             otherPermAlgs.setNumStarts(parameters.getInt(Params.NUM_STARTS));
             otherPermAlgs.setVerbose(parameters.getBoolean(Params.VERBOSE));
             otherPermAlgs.setKnowledge(dataSet.getKnowledge());
-            otherPermAlgs.setUsePearl(parameters.getBoolean(Params.GRASP_USE_PEARL));
+            otherPermAlgs.setUsePearl(parameters.getBoolean(Params.GRASP_USE_VERMA_PEARL));
             otherPermAlgs.setDepth(parameters.getInt(Params.GRASP_DEPTH));
             otherPermAlgs.setNumRounds(parameters.getInt(Params.NUM_ROUNDS));
 
