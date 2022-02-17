@@ -42,8 +42,8 @@ public class TeyssierScorer2 {
     private boolean useBackwardScoring = false;
     private boolean cachingScores = true;
 
-    private Map<Node, Set<Node>> parentCache = new HashMap<>();
-    private Map<Node, Float> scoreCache = new HashMap<>();
+//    private Map<Node, Set<Node>> parentCache = new HashMap<>();
+//    private Map<Node, Float> scoreCache = new HashMap<>();
 
     public TeyssierScorer2(IndependenceTest test, Score score) {
         NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
@@ -104,9 +104,9 @@ public class TeyssierScorer2 {
         this.useScore = false;
     }
 
-    public void setUseBackwardScoring(boolean useBackwardScoring) {
-        this.useBackwardScoring = useBackwardScoring;
-    }
+//    public void setUseBackwardScoring(boolean useBackwardScoring) {
+//        this.useBackwardScoring = useBackwardScoring;
+//    }
 
     /**
      * Scores the given permutation. This needs to be done initially before any move or tuck
@@ -838,29 +838,29 @@ public class TeyssierScorer2 {
         return skeleton;
     }
 
-    public void initCache() {
-        for (Node n : pi) {
-            parentCache.put(n, null);
-            scoreCache.put(n, 0F);
-        }
-    }
+//    public void initCache() {
+//        for (Node n : pi) {
+//            parentCache.put(n, null);
+//            scoreCache.put(n, 0F);
+//        }
+//    }
 
-    public void updateCache() {
-        Set<Node> prefix = new HashSet<>();
-        for (Node n : pi) {
-            if (parentCache.get(n) != prefix) {
-                parentCache.replace(n, new HashSet<>(prefix));
-                int[] parentIndices = new int[pi.size()];
-                int k = 0;
-                for (Node p : pi) {
-                    parentIndices[k++] = variablesHash.get(p);
-                }
-                float v = (float) this.score.localScore(variablesHash.get(n), parentIndices);
-                scoreCache.replace(n, v);
-            }
-            prefix.add(n);
-        }
-    }
+//    public void updateCache() {
+//        Set<Node> prefix = new HashSet<>();
+//        for (Node n : pi) {
+//            if (parentCache.get(n) != prefix) {
+//                parentCache.replace(n, new HashSet<>(prefix));
+//                int[] parentIndices = new int[pi.size()];
+//                int k = 0;
+//                for (Node p : pi) {
+//                    parentIndices[k++] = variablesHash.get(p);
+//                }
+//                float v = (float) this.score.localScore(variablesHash.get(n), parentIndices);
+//                scoreCache.replace(n, v);
+//            }
+//            prefix.add(n);
+//        }
+//    }
 
     private static class Pair {
         private final Set<Node> parents;

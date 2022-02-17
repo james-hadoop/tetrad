@@ -24,14 +24,15 @@ import static java.util.Collections.shuffle;
 public class Grasp2 {
     private final List<Node> variables;
     double sNew = Double.NaN;
+    int numRounds = 8;
     private Score score;
     private IndependenceTest test;
     private IKnowledge knowledge = new Knowledge2();
-    private TeyssierScorer scorer;
+    private TeyssierScorer2 scorer;
     private long start;
     // flags
     private boolean useScore = true;
-    private boolean usePearl = false;
+    private boolean useVermaPearl = false;
     private boolean ordered = false;
     private boolean verbose = false;
     private boolean cachingScores = true;
@@ -63,10 +64,10 @@ public class Grasp2 {
         long start = System.currentTimeMillis();
         order = new ArrayList<>(order);
 
-        scorer = new TeyssierScorer(test, score);
-        scorer.setUseVermaPearl(usePearl);
+        scorer = new TeyssierScorer2(test, score);
+        scorer.setUseVermaPearl(useVermaPearl);
 
-        if (usePearl) {
+        if (useVermaPearl) {
             scorer.setUseScore(false);
         } else {
             scorer.setUseScore(useScore && !(score instanceof GraphScore));
@@ -139,71 +140,26 @@ public class Grasp2 {
         }
     }
 
-//    public List<Node> grasp(@NotNull TeyssierScorer scorer) {
-//        quickGrasp(scorer);
-//
-//        scorer.clearBookmarks();
-//        List<int[]> depths = new ArrayList<>();
-//
-//        // GRaSP-TSP
-//        if (ordered && uncoveredDepth != 0 && nonSingularDepth != 0) {
-//            depths.add(new int[] {depth < 1 ? Integer.MAX_VALUE : depth, 0, 0});
-//        }
-//
-//        // GRaSP-ESP
-//        if (ordered && nonSingularDepth != 0) {
-//            depths.add(new int[] {depth < 1 ? Integer.MAX_VALUE : depth,
-//                    uncoveredDepth < 0 ? Integer.MAX_VALUE : uncoveredDepth, 0});
-//        }
-//
-//        // GRaSP
-//        depths.add(new int[] {depth < 1 ? Integer.MAX_VALUE : depth,
-//                uncoveredDepth < 0 ? Integer.MAX_VALUE : uncoveredDepth,
-//                nonSingularDepth < 0 ? Integer.MAX_VALUE : nonSingularDepth});
-//
-//        double sNew = scorer.score();
-//        double sOld;
-//
-//        for (int[] depth : depths) {
-//            do {
-//                sOld = sNew;
-//                graspDfs(scorer, sOld, depth, 1, new HashSet<>(), new HashSet<>());
-//                sNew = scorer.score();
-//            } while (sNew > sOld);
-//        }
-//
-//        if (verbose) {
-//            TetradLogger.getInstance().forceLogMessage("# Edges = " + scorer.getNumEdges()
-//                    + " Score = " + scorer.score()
-//                    + " (GRaSP)"
-//                    + " Elapsed " + ((System.currentTimeMillis() - start) / 1000.0 + " s"));
-//        }
-//
-//        return scorer.getPi();
-//    }
-
-    public List<Node> grasp(@NotNull TeyssierScorer scorer) {
+    public List<Node> grasp(@NotNull TeyssierScorer2 scorer) {
 //        if (true) grasp4(scorer);
 
-        quickGrasp(scorer);
-
         scorer.clearBookmarks();
-        scorer.initCache();
+//        scorer.initCache();
         List<int[]> depths = new ArrayList<>();
 
         // GRaSP-TSP
         if (ordered && uncoveredDepth != 0 && nonSingularDepth != 0) {
-            depths.add(new int[] {depth < 1 ? Integer.MAX_VALUE : depth, 0, 0});
+            depths.add(new int[]{depth < 1 ? Integer.MAX_VALUE : depth, 0, 0});
         }
 
         // GRaSP-ESP
         if (ordered && nonSingularDepth != 0) {
-            depths.add(new int[] {depth < 1 ? Integer.MAX_VALUE : depth,
+            depths.add(new int[]{depth < 1 ? Integer.MAX_VALUE : depth,
                     uncoveredDepth < 0 ? Integer.MAX_VALUE : uncoveredDepth, 0});
         }
 
         // GRaSP
-        depths.add(new int[] {depth < 1 ? Integer.MAX_VALUE : depth,
+        depths.add(new int[]{depth < 1 ? Integer.MAX_VALUE : depth,
                 uncoveredDepth < 0 ? Integer.MAX_VALUE : uncoveredDepth,
                 nonSingularDepth < 0 ? Integer.MAX_VALUE : nonSingularDepth});
 
@@ -212,7 +168,7 @@ public class Grasp2 {
 
         for (int[] depth : depths) {
             do {
-                scorer.updateCache();
+//                scorer.updateCache();
                 sOld = sNew;
                 graspDfs(scorer, sOld, depth, 1, new HashSet<>(), new HashSet<>());
                 sNew = scorer.score();
@@ -229,11 +185,11 @@ public class Grasp2 {
         return scorer.getPi();
     }
 
-    private void graspDfs(@NotNull TeyssierScorer scorer, double sOld, int[] depth, int currentDepth,
+    private void graspDfs(@NotNull TeyssierScorer2 scorer, double sOld, int[] depth, int currentDepth,
                           Set<Set<Node>> tucks, Set<Set<Set<Node>>> dfsHistory) {
 
         for (Node y : scorer.getShuffledVariables()) {
-            scorer.resetCacheIfTooBig(1000000);
+//            scorer.resetCacheIfTooBig(1000000);
 
             Set<Node> ancestors = scorer.getAncestors(y);
             List<Node> parents = new ArrayList<>(scorer.getParents(y));
@@ -373,16 +329,14 @@ public class Grasp2 {
     }
 
     public void setOrdered(boolean ordered) {
-        this.ordered = ordered  ;
+        this.ordered = ordered;
     }
 
-    public void setUsePearl(boolean usePearl) {
-        this.usePearl = usePearl;
+    public void setUseVermaPearl(boolean useVermaPearl) {
+        this.useVermaPearl = useVermaPearl;
     }
 
-    int numRounds = 8;
-
-    public List<Node> quickGrasp(@NotNull TeyssierScorer scorer) {
+    public List<Node> quickGrasp(@NotNull TeyssierScorer2 scorer) {
         if (numRounds <= 0) throw new IllegalArgumentException("For quickGRaSP, #rounds should be > 0");
         scorer.clearBookmarks();
 

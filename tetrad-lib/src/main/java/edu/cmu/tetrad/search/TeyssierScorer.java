@@ -588,7 +588,7 @@ public class TeyssierScorer {
         updateScores(0, pi.size() - 1);
     }
 
-    private void updateScores(int i1, int i2) {
+    public void updateScores(int i1, int i2) {
         for (int i = i1; i <= i2; i++) {
             recalculate(i);
             orderHash.put(pi.get(i), i);
@@ -833,6 +833,21 @@ public class TeyssierScorer {
         }
 
         return skeleton;
+    }
+
+
+    public void moveToNoUpdate(Node v, int toIndex) {
+        if (!pi.contains(v)) return;
+
+        int vIndex = index(v);
+
+        if (vIndex == toIndex) return;
+
+        if (lastMoveSame(vIndex, toIndex)) return;
+
+        pi.remove(v);
+        pi.add(toIndex, v);
+
     }
 
     private static class Pair {

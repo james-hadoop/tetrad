@@ -1863,6 +1863,7 @@ public class Comparison {
 
         @Override
         public Graph search(DataModel DataModel, Parameters parameters, Graph trueGraph) {
+            Runtime.getRuntime().gc();
             return algorithmWrapper.getAlgorithm().search(DataModel, parameters, trueGraph);
         }
 
