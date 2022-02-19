@@ -663,31 +663,24 @@ public final class TestGrasp {
 
         String type;
 
-//        type = "varying_num_variables";
-//        params.set(Params.NUM_MEASURES, 20, 30, 40, 50, 60, 70, 80, 90, 100);
-//        params.set(Params.AVG_DEGREE, 6);
-//        params.set(Params.SAMPLE_SIZE, 1000);
-//
-//        testPaperSimulationsVisit(params, type);
-//
-//        type = "varying_avg_degree";
-//        params.set(Params.NUM_MEASURES, 60);
-//        params.set(Params.AVG_DEGREE, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-//        params.set(Params.SAMPLE_SIZE, 1000);
-//
-//
-//        testPaperSimulationsVisit(params, type);
-
-//        type = "varying_sample_size";
-//        params.set(Params.NUM_MEASURES, 60);
-//        params.set(Params.AVG_DEGREE, 6);
-//        params.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000);
-
-        type = "gs_vs_vp";
-        params.set(Params.NUM_MEASURES, 60);
+        type = "esp_varying_num_variables";
+        params.set(Params.NUM_MEASURES, 20, 30, 40, 50, 60, 70, 80, 90, 100);
         params.set(Params.AVG_DEGREE, 6);
         params.set(Params.SAMPLE_SIZE, 1000);
 
+        testPaperSimulationsVisit(params, type);
+
+        type = "esp_varying_avg_degree";
+        params.set(Params.NUM_MEASURES, 60);
+        params.set(Params.AVG_DEGREE, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        params.set(Params.SAMPLE_SIZE, 1000);
+
+        testPaperSimulationsVisit(params, type);
+
+        type = "esp_varying_sample_size";
+        params.set(Params.NUM_MEASURES, 60);
+        params.set(Params.AVG_DEGREE, 6);
+        params.set(Params.SAMPLE_SIZE, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000);
         testPaperSimulationsVisit(params, type);
     }
 
@@ -709,10 +702,10 @@ public final class TestGrasp {
         params.set(Params.ALPHA, 0.001);
 
         params.set(Params.GRASP_DEPTH, 3);
-        params.set(Params.GRASP_UNCOVERED_DEPTH, 1);
-        params.set(Params.GRASP_NONSINGULAR_DEPTH, 1);
+        params.set(Params.GRASP_UNCOVERED_DEPTH, 0);//1);
+        params.set(Params.GRASP_NONSINGULAR_DEPTH, 0);//1);
         params.set(Params.GRASP_ORDERED_ALG, true);
-        params.set(Params.GRASP_USE_VERMA_PEARL, false, true);
+        params.set(Params.GRASP_USE_VERMA_PEARL, false);
         params.set(Params.GRASP_USE_DATA_ORDER, false);
         params.set(Params.CACHE_SCORES, true);
 
@@ -737,7 +730,7 @@ public final class TestGrasp {
         statistics.add(new ElapsedTime());
 
         Comparison comparison = new Comparison();
-        comparison.setSaveData(true);
+        comparison.setSaveData(false);
         comparison.setShowAlgorithmIndices(true);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.True_CPDAG);
 
@@ -875,8 +868,9 @@ public final class TestGrasp {
         boolean usePearl = true;
 
         try {
+            String path = "/Users/josephramsey/Downloads/studeny_out.txt";
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-            String path = "/Users/josephramsey/Downloads/udags5.txt";
+//            String path = "/Users/josephramsey/Downloads/udags5.txt";
 //            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
@@ -940,8 +934,16 @@ public final class TestGrasp {
 
                 System.out.println(axioms.getIndependenceFacts().getVariableNames());
 
-                if (axioms.graphoid()) {
-                    System.out.println("\tGRAPHOID");
+//                if (axioms.semigraphoid()) {
+//                    System.out.println("\tSEMIGRAPHOID");
+//                }
+//
+//                if (axioms.graphoid()) {
+//                    System.out.println("\tGRAPHOID");
+//                }
+
+                if (axioms.compositionalGraphoid()) {
+//                    System.out.println("\tCOMPOSITIONAL GRAPHOID");
                 }
 
                 if (true) {
@@ -969,27 +971,24 @@ public final class TestGrasp {
                     List<List<Node>> pis = new ArrayList<>();
                     Map<List<Node>, Integer> ests = new HashMap<>();
 
-                    Grasp alg0 = new Grasp(test);
+                    Grasp grasp = new Grasp(test);
 
-                    alg0.setDepth(5);
-                    alg0.setUncoveredDepth(5);
-                    alg0.setNonSingularDepth(5);
-//                    alg0.setUncoveredDepth(8);
-                    alg0.setUsePearl(usePearl);
-//                    alg0.setBreakAfterImprovement(true);
-//                    alg0.setGraspAlg(5);
-//                    alg0.setOrdered(false);
-                    alg0.setVerbose(false);
-                    alg0.setCacheScores(false);
+                    grasp.setDepth(-1);
+                    grasp.setUncoveredDepth(4);
+                    grasp.setNonSingularDepth(4);
+                    grasp.setUsePearl(usePearl);
+                    grasp.setOrdered(true);
+                    grasp.setVerbose(false);
+                    grasp.setCacheScores(false);
 
                     int count = 0;
 
                     while ((perm = gen.next()) != null) {
                         List<Node> pi = GraphUtils.asList(perm, variables);
 
-                        List<Node> estGraphPi = alg0.bestOrder(pi);
-                        Graph estGraph = alg0.getGraph(false);
-                        int estNumEdges = alg0.getNumEdges();
+                        List<Node> estGraphPi = grasp.bestOrder(pi);
+                        Graph estGraph = grasp.getGraph(false);
+                        int estNumEdges = grasp.getNumEdges();
 
                         if (estNumEdges > spNumEdges) {
                             failingInitialPi = pi;
