@@ -106,6 +106,8 @@ public class GraphoidAxioms {
      * X ⊥⊥ (Y ∪ W) |Z ==> (X ⊥⊥ Y |Z) ∧ (X ⊥⊥ W |Z)
      */
     public boolean decomposition() {
+        boolean found0 = false;
+
         for (GraphoidIndFact fact : facts) {
             Set<Node> X = fact.getX();
             Set<Node> YW = fact.getY();
@@ -144,7 +146,7 @@ public class GraphoidAxioms {
                                 "; Missing " + fact1);
                     }
 
-                    return false;
+                    found0 = true;
                 }
 
                 found = false;
@@ -168,18 +170,20 @@ public class GraphoidAxioms {
                                 "; Missing " + fact1);
                     }
 
-                    return false;
+                    found0 = true;
                 }
             }
         }
 
-        return true;
+        return !found0;
     }
 
     /**
      * X _||_ Y U W | Z ==> X _||_ Y | Z U W
      */
     public boolean weakUnion() {
+        boolean found0 = false;
+
         for (GraphoidIndFact fact : facts) {
             Set<Node> X = fact.getX();
             Set<Node> YW = fact.getY();
@@ -220,18 +224,21 @@ public class GraphoidAxioms {
                                 " Have " + fact +
                                 "; Missing " + newFact);
                     }
-                    return false;
+
+                    found0 = true;
                 }
             }
         }
 
-        return true;
+        return !found0;
     }
 
     /**
      * (X ⊥⊥ Y |Z) ∧ (X ⊥⊥ W |Z ∪ Y) ==> X ⊥⊥ (Y ∪ W) |Z
      */
     public boolean contraction() {
+        boolean found0 = false;
+
         for (GraphoidIndFact fact1 : new HashSet<>(facts)) {
             Set<Node> X = fact1.getX();
             Set<Node> Y = fact1.getY();
@@ -274,19 +281,21 @@ public class GraphoidAxioms {
                                     "; Missing " + newFact);
                         }
 
-                        return false;
+                        found0 = true;
                     }
                 }
             }
         }
 
-        return true;
+        return !found0;
     }
 
     /**
      * (X ⊥⊥ Y | (Z ∪ W)) ∧ (X ⊥⊥ W | (Z ∪ Y)) ==> X ⊥⊥ (Y ∪ W) |Z
      */
     public boolean intersection() {
+        boolean found0 = false;
+
         for (GraphoidIndFact fact1 : facts) {
             final Set<Node> X = fact1.getX();
             Set<Node> Y = fact1.getY();
@@ -344,19 +353,21 @@ public class GraphoidAxioms {
                                     "; Missing " + newFact);
                         }
 
-                        return false;
+                        found0 = true;
                     }
                 }
             }
         }
 
-        return true;
+        return !found0;
     }
 
     /**
      * (X ⊥⊥ Y | Z) ∧ (X ⊥⊥ W |Z) ==> X ⊥⊥ (Y ∪ W) |Z
      */
     public boolean composition() {
+        boolean found0 = false;
+
         for (GraphoidIndFact fact1 : new HashSet<>(facts)) {
             Set<Node> X = fact1.getX();
             Set<Node> Y = fact1.getY();
@@ -392,13 +403,13 @@ public class GraphoidAxioms {
                                     "; Missing " + newFact);
                         }
 
-                        return false;
+                        found0 = true;
                     }
                 }
             }
         }
 
-        return true;
+        return !found0;
     }
 
     public void setTrivialtyAssumed() {

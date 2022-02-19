@@ -868,9 +868,9 @@ public final class TestGrasp {
         boolean usePearl = true;
 
         try {
-            String path = "/Users/josephramsey/Downloads/studeny_out.txt";
+//            String path = "/Users/josephramsey/Downloads/studeny_out.txt";
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-//            String path = "/Users/josephramsey/Downloads/udags5.txt";
+            String path = "/Users/josephramsey/Downloads/udags5.txt";
 //            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
@@ -921,7 +921,7 @@ public final class TestGrasp {
                 index++;
 
 //                if (!hard.contains(index)) continue;;
-//                if (index != 163) continue;
+//                if (index != 13) continue;
 
                 all++;
 
@@ -974,8 +974,8 @@ public final class TestGrasp {
                     Grasp grasp = new Grasp(test);
 
                     grasp.setDepth(-1);
-                    grasp.setUncoveredDepth(4);
-                    grasp.setNonSingularDepth(4);
+                    grasp.setUncoveredDepth(5);
+                    grasp.setNonSingularDepth(5);
                     grasp.setUsePearl(usePearl);
                     grasp.setOrdered(true);
                     grasp.setVerbose(false);
