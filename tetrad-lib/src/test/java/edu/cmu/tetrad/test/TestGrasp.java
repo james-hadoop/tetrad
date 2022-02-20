@@ -866,11 +866,14 @@ public final class TestGrasp {
 
         long start = System.currentTimeMillis();
         boolean usePearl = true;
+        int numVars = 5; // Make sure you change this in OtherParams.sp() to
 
         try {
+//            String path = "/Users/josephramsey/Downloads/grasp/out_53_0index/out_53.txt";
+//            String path = "/Users/josephramsey/Downloads/grasp/out_80_0index/out_80.txt";
 //            String path = "/Users/josephramsey/Downloads/studeny_out.txt";
-//            String path = "/Users/josephramsey/Downloads/udags4.txt";
-            String path = "/Users/josephramsey/Downloads/udags5.txt";
+            String path = "/Users/josephramsey/Downloads/udags4.txt";
+//            String path = "/Users/josephramsey/Downloads/udags5.txt";
 //            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
@@ -913,7 +916,7 @@ public final class TestGrasp {
             hard.add(73);
 
             List<Node> variables = new ArrayList<>();
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < numVars; i++) {
                 variables.add(new ContinuousVariable("" + i));
             }
 
@@ -974,8 +977,8 @@ public final class TestGrasp {
                     Grasp grasp = new Grasp(test);
 
                     grasp.setDepth(-1);
-                    grasp.setUncoveredDepth(5);
-                    grasp.setNonSingularDepth(5);
+                    grasp.setUncoveredDepth(0);
+                    grasp.setNonSingularDepth(0);
                     grasp.setUsePearl(usePearl);
                     grasp.setOrdered(true);
                     grasp.setVerbose(false);
