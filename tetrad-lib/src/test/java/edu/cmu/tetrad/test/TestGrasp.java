@@ -866,7 +866,7 @@ public final class TestGrasp {
 
         long start = System.currentTimeMillis();
         boolean usePearl = true;
-        int numVars = 4; // Make sure you change this in OtherParams.sp() to
+        int numVars = 4; // Will change this in OtherParams.sp() too
 
         try {
 //            String path = "/Users/josephramsey/Downloads/grasp/out_53_0index/out_53.txt";
