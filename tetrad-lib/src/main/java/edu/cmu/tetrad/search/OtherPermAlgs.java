@@ -369,9 +369,9 @@ public class OtherPermAlgs {
         int[] perm;
         Set<Graph> frugalCpdags = new HashSet<>();
 
-        List<Node> pi0 = GraphUtils.asList(new int[]{0, 1, 2, 3, 4}, variables);
+        List<Node> pi0 = GraphUtils.asList(new int[]{0, 1, 2, 3}, variables);
         scorer.score(pi0);
-        System.out.println("\t\t# edges for [0, 1, 2, 3, 4] = " + scorer.getNumEdges());
+        System.out.println("\t\t# edges for [0, 1, 2, 3] = " + scorer.getNumEdges());
 
         while ((perm = gen.next()) != null) {
             List<Node> p = GraphUtils.asList(perm, variables);

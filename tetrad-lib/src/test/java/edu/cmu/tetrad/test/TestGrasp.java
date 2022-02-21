@@ -866,14 +866,14 @@ public final class TestGrasp {
 
         long start = System.currentTimeMillis();
         boolean usePearl = true;
-        int numVars = 5; // Make sure you change this in OtherParams.sp() to
+        int numVars = 4; // Make sure you change this in OtherParams.sp() to
 
         try {
 //            String path = "/Users/josephramsey/Downloads/grasp/out_53_0index/out_53.txt";
-//            String path = "/Users/josephramsey/Downloads/grasp/out_80_0index/out_80.txt";
+            String path = "/Users/josephramsey/Downloads/grasp/out_80_0index/out_80.txt";
 //            String path = "/Users/josephramsey/Downloads/studeny_out.txt";
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-            String path = "/Users/josephramsey/Downloads/udags5.txt";
+//            String path = "/Users/josephramsey/Downloads/udags5.txt";
 //            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
@@ -886,37 +886,36 @@ public final class TestGrasp {
             int all = 0;
 
             List<Integer> hard = new ArrayList<>();
-            hard.add(7);
-            hard.add(13);
-            hard.add(36);
-            hard.add(37);
-            hard.add(38);
-            hard.add(39);
-            hard.add(40);
-            hard.add(41);
-            hard.add(42);
-            hard.add(47);
-            hard.add(48);
-            hard.add(50);
-            hard.add(51);
-            hard.add(52);
-            hard.add(53);
-            hard.add(54);
-            hard.add(55);
-            hard.add(56);
-            hard.add(57);
-            hard.add(58);
-            hard.add(59);
-            hard.add(63);
-            hard.add(64);
-            hard.add(65);
-            hard.add(70);
-            hard.add(71);
-            hard.add(72);
-            hard.add(73);
+//            hard.add(7);
+//            hard.add(13);
+//            hard.add(36);
+//            hard.add(37);
+//            hard.add(38);
+//            hard.add(39);
+//            hard.add(40);
+//            hard.add(41);
+//            hard.add(42);
+//            hard.add(47);
+//            hard.add(48);
+//            hard.add(50);
+//            hard.add(51);
+//            hard.add(52);
+//            hard.add(53);
+//            hard.add(54);
+//            hard.add(55);
+//            hard.add(56);
+//            hard.add(57);
+//            hard.add(58);
+//            hard.add(59);
+//            hard.add(63);
+//            hard.add(64);
+//            hard.add(65);
+//            hard.add(70);
+//            hard.add(71);
+//            hard.add(72);
+//            hard.add(73);
 
-
-            //            // all u-frugal
+            // all u-frugal
 //            hard.add(1);
 //            hard.add(2);
 //            hard.add(4);
@@ -984,15 +983,15 @@ public final class TestGrasp {
 //            hard.add(68);
 
 //            // failures by tsp
-//            hard.add(14);
-//            hard.add(20);
-//            hard.add(36);
-//            hard.add(39);
-//            hard.add(43);
-//            hard.add(44);
-//            hard.add(47);
-//            hard.add(53);
-//            hard.add(55);
+            hard.add(14);
+            hard.add(20);
+            hard.add(36);
+            hard.add(39);
+            hard.add(43);
+            hard.add(44);
+            hard.add(47);
+            hard.add(53);
+            hard.add(55);
 
             //            List<Integer> nufr = new ArrayList<>();
 //            nufr.add(1); nufr.add(2); nufr.add(4); nufr.add(5); nufr.add(25); nufr.add(33); nufr.add(43); nufr.add(44); nufr.add(45); nufr.add(61); nufr.add(62); nufr.add(66); nufr.add(67); nufr.add(72); nufr.add(74); nufr.add(76); nufr.add(78); nufr.add(79); nufr.add(80); nufr.add(81); nufr.add(82); nufr.add(84); nufr.add(85); nufr.add(86); nufr.add(95); nufr.add(96); nufr.add(100); nufr.add(103); nufr.add(104); nufr.add(106); nufr.add(107); nufr.add(108); nufr.add(109); nufr.add(110); nufr.add(111); nufr.add(113); nufr.add(114); nufr.add(115); nufr.add(127); nufr.add(128); nufr.add(129); nufr.add(130); nufr.add(133); nufr.add(135); nufr.add(136); nufr.add(137); nufr.add(139); nufr.add(140); nufr.add(141); nufr.add(144); nufr.add(145); nufr.add(148); nufr.add(149); nufr.add(150); nufr.add(151); nufr.add(152); nufr.add(153); nufr.add(155); nufr.add(156); nufr.add(157);
@@ -1008,7 +1007,7 @@ public final class TestGrasp {
             while ((line = in.readLine()) != null) {
                 index++;
 
-//                if (!hard.contains(index)) continue;;
+                if (!hard.contains(index)) continue;;
 //                if (index != 13) continue;
 
 //                if (nufr.contains(index)) continue;
@@ -1044,6 +1043,7 @@ public final class TestGrasp {
 
 //                    List<Node> variables = facts.getVariables();
                     IndTestDSep test = new IndTestDSep(facts, variables);
+
                     OtherPermAlgs spAlg = new OtherPermAlgs(test);
                     spAlg.setUsePearl(true);
                     spAlg.setMethod(OtherPermAlgs.Method.SP);
@@ -1064,7 +1064,7 @@ public final class TestGrasp {
 
                     Grasp grasp = new Grasp(test);
 
-                    grasp.setDepth(-1);
+                    grasp.setDepth(1);
                     grasp.setUncoveredDepth(0);
                     grasp.setNonSingularDepth(0);
                     grasp.setUsePearl(usePearl);
