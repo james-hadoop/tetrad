@@ -1086,7 +1086,16 @@ public final class TestGrasp {
                             failingInitialPi = pi;
                             failingDag = estGraph;
                             failingEstPi = estGraphPi;
-                            break;
+
+//                            if (failingInitialPi != null) {
+                                System.out.println("\t#### line = " + index + " FOUND NON-FRUGAL MODEL, INITIAL = " + failingInitialPi + " FINAL = "
+                                        + failingEstPi);
+                                printExistsNonfrugalCase(line, index, facts, spPi, spGraph, failingInitialPi, failingDag, failingEstPi);
+//                                existsNonfrugal++;
+//                            }
+
+
+//                            break;
                         }
                     }
 
