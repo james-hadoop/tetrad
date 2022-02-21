@@ -1048,6 +1048,7 @@ public final class TestGrasp {
                     spAlg.setUsePearl(true);
                     spAlg.setMethod(OtherPermAlgs.Method.SP);
                     spAlg.setUseDataOrder(true);
+                    spAlg.setNumVariables(numVars);
                     List<Node> spPi = spAlg.bestOrder(variables);
                     Graph spGraph = spAlg.getGraph(false);
                     int spNumEdges = spGraph.getNumEdges();

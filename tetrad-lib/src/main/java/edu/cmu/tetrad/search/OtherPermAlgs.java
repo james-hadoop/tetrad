@@ -1,5 +1,6 @@
 package edu.cmu.tetrad.search;
 
+import cern.colt.Arrays;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
@@ -42,6 +43,7 @@ public class OtherPermAlgs {
     private boolean verbose = false;
     private boolean cachingScores = true;
     private boolean useDataOrder = false;
+    private int numVars;
 
     public OtherPermAlgs(@NotNull Score score) {
         this.score = score;
@@ -369,9 +371,12 @@ public class OtherPermAlgs {
         int[] perm;
         Set<Graph> frugalCpdags = new HashSet<>();
 
-        List<Node> pi0 = GraphUtils.asList(new int[]{0, 1, 2, 3}, variables);
+        int[] v = new int[numVars];
+        for (int i = 0; i < numVars; i++) v[i] = i;
+
+        List<Node> pi0 = GraphUtils.asList(v, variables);
         scorer.score(pi0);
-        System.out.println("\t\t# edges for [0, 1, 2, 3] = " + scorer.getNumEdges());
+        System.out.println("\t\t# edges for " + pi0 + scorer.getNumEdges());
 
         while ((perm = gen.next()) != null) {
             List<Node> p = GraphUtils.asList(perm, variables);
@@ -550,6 +555,10 @@ public class OtherPermAlgs {
 
     public void setUsePearl(boolean usePearl) {
         this.usePearl = usePearl;
+    }
+
+    public void setNumVariables(int numVars) {
+        this.numVars = numVars;
     }
 
     public enum Method {RCG, GSP, ESP, SP}
