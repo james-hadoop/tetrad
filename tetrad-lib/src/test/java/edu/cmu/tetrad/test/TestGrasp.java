@@ -915,6 +915,91 @@ public final class TestGrasp {
             hard.add(72);
             hard.add(73);
 
+
+            //            // all u-frugal
+//            hard.add(1);
+//            hard.add(2);
+//            hard.add(4);
+//            hard.add(6);
+//            hard.add(8);
+//            hard.add(9);
+//            hard.add(14);
+//            hard.add(16);
+//            hard.add(17);
+//            hard.add(20);
+//            hard.add(21);
+//            hard.add(22);
+//            hard.add(24);
+//            hard.add(25);
+//            hard.add(26);
+//            hard.add(27);
+//            hard.add(28);
+//            hard.add(29);
+//            hard.add(32);
+//            hard.add(34);
+//            hard.add(35);
+//            hard.add(36);
+//            hard.add(38);
+//            hard.add(39);
+//            hard.add(43);
+//            hard.add(44);
+//            hard.add(46);
+//            hard.add(47);
+//            hard.add(48);
+//            hard.add(49);
+//            hard.add(53);
+//            hard.add(54);
+//            hard.add(55);
+//            hard.add(56);
+//            hard.add(59);
+//            hard.add(62);
+//            hard.add(64);
+//            hard.add(66);
+//            hard.add(67);
+//            hard.add(68);
+//            hard.add(69);
+//            hard.add(71);
+//            hard.add(73);
+//            hard.add(74);
+//            hard.add(75);
+//            hard.add(77);
+//            hard.add(78);
+//            hard.add(79);
+//            hard.add(80);
+
+//            // failures by grasp
+//            hard.add(9);
+//            hard.add(21);
+//            hard.add(26);
+//            hard.add(38);
+//            hard.add(48);
+//            hard.add(49);
+//            hard.add(56);
+//            hard.add(62);
+//
+//            // failures by esp
+//            hard.add(46);
+//            hard.add(59);
+//            hard.add(66);
+//            hard.add(68);
+
+//            // failures by tsp
+//            hard.add(14);
+//            hard.add(20);
+//            hard.add(36);
+//            hard.add(39);
+//            hard.add(43);
+//            hard.add(44);
+//            hard.add(47);
+//            hard.add(53);
+//            hard.add(55);
+
+            //            List<Integer> nufr = new ArrayList<>();
+//            nufr.add(1); nufr.add(2); nufr.add(4); nufr.add(5); nufr.add(25); nufr.add(33); nufr.add(43); nufr.add(44); nufr.add(45); nufr.add(61); nufr.add(62); nufr.add(66); nufr.add(67); nufr.add(72); nufr.add(74); nufr.add(76); nufr.add(78); nufr.add(79); nufr.add(80); nufr.add(81); nufr.add(82); nufr.add(84); nufr.add(85); nufr.add(86); nufr.add(95); nufr.add(96); nufr.add(100); nufr.add(103); nufr.add(104); nufr.add(106); nufr.add(107); nufr.add(108); nufr.add(109); nufr.add(110); nufr.add(111); nufr.add(113); nufr.add(114); nufr.add(115); nufr.add(127); nufr.add(128); nufr.add(129); nufr.add(130); nufr.add(133); nufr.add(135); nufr.add(136); nufr.add(137); nufr.add(139); nufr.add(140); nufr.add(141); nufr.add(144); nufr.add(145); nufr.add(148); nufr.add(149); nufr.add(150); nufr.add(151); nufr.add(152); nufr.add(153); nufr.add(155); nufr.add(156); nufr.add(157);
+//
+//            List<Integer> nfr = new ArrayList<>();
+//            nfr.add(6); nfr.add(73); nfr.add(87); nfr.add(154); nfr.add(158); nfr.add(159);
+
             List<Node> variables = new ArrayList<>();
             for (int i = 0; i < numVars; i++) {
                 variables.add(new ContinuousVariable("" + i));
@@ -925,6 +1010,9 @@ public final class TestGrasp {
 
 //                if (!hard.contains(index)) continue;;
 //                if (index != 13) continue;
+
+//                if (nufr.contains(index)) continue;
+//                if (nfr.contains(index)) continue;
 
                 all++;
 
