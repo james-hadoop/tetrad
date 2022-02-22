@@ -4125,6 +4125,8 @@ public final class GraphUtils {
     }
 
     public static boolean isDConnectedTo(Node x, Node y, List<Node> z, Graph graph) {
+
+
         return isDConnectedTo1(x, y, z, graph);
 //        return isDConnectedTo2(x, y, z, graph);
 //        return isDConnectedTo3(x, y, z, graph);
@@ -4317,107 +4319,107 @@ public final class GraphUtils {
         return Y;
     }
 
-//    // Depth first.
-//    public static boolean isDConnectedTo2(Node x, Node y, List<Node> z, Graph graph) {
-//        LinkedList<Node> path = new LinkedList<>();
-//
-//        path.add(x);
-//
-//        for (Node c : graph.getAdjacentNodes(x)) {
-//            if (isDConnectedToVisit2(x, c, y, path, z, graph)) {
-//                return true;
-//            }
-//        }
-//
-//        return false;
-//    }
+    // Depth first.
+    public static boolean isDConnectedTo2(Node x, Node y, List<Node> z, Graph graph) {
+        LinkedList<Node> path = new LinkedList<>();
 
-//    public static boolean isDConnectedTo2(Node x, Node y, List<Node> z, Graph graph, LinkedList<Node> path) {
-//        path.add(x);
-//
-//        for (Node c : graph.getAdjacentNodes(x)) {
-//            if (isDConnectedToVisit2(x, c, y, path, z, graph)) {
-//                return true;
-//            }
-//        }
-//
-//        return false;
-//    }
+        path.add(x);
 
-//    private static boolean isDConnectedToVisit2(Node a, Node b, Node y, LinkedList<Node> path, List<Node> z, Graph graph) {
-//        if (b == y) {
-//            path.addLast(b);
-//            return true;
-//        }
-//
-//        if (path.contains(b)) {
-//            return false;
-//        }
-//
-//        path.addLast(b);
-//
-//        for (Node c : graph.getAdjacentNodes(b)) {
-//            if (a == c) {
-//                continue;
-//            }
-//
-//            if (reachable(a, b, c, z, graph)) {
-//                if (isDConnectedToVisit2(b, c, y, path, z, graph)) {
-////                    path.removeLast();
-//                    return true;
-//                }
-//            }
-//        }
-//
-//        path.removeLast();
-//        return false;
-//    }
+        for (Node c : graph.getAdjacentNodes(x)) {
+            if (isDConnectedToVisit2(x, c, y, path, z, graph)) {
+                return true;
+            }
+        }
 
-//    public static boolean isDConnectedTo3(Node x, Node y, List<Node> z, Graph graph) {
-//        return reachableDConnectedNodes(x, z, graph).contains(y);
-//    }
+        return false;
+    }
 
-//    private static Set<Node> reachableDConnectedNodes(Node x, List<Node> z, Graph graph) {
-//        Set<Node> R = new HashSet<>();
-//        R.add(x);
-//
-//        Queue<OrderedPair<Node>> Q = new ArrayDeque<>();
-//        Set<OrderedPair<Node>> V = new HashSet<>();
-//
-//        for (Node node : graph.getAdjacentNodes(x)) {
-//            OrderedPair<Node> edge = new OrderedPair<>(x, node);
-//            Q.offer(edge);
-//            V.add(edge);
-//            R.add(node);
-//        }
-//
-//        while (!Q.isEmpty()) {
-//            OrderedPair<Node> t = Q.poll();
-//
-//            Node a = t.getFirst();
-//            Node b = t.getSecond();
-//
-//            for (Node c : graph.getAdjacentNodes(b)) {
-//                if (c == a) {
-//                    continue;
-//                }
-//                if (!reachable(a, b, c, z, graph, null)) {
-//                    continue;
-//                }
-//                R.add(c);
-//
-//                OrderedPair<Node> u = new OrderedPair<>(b, c);
-//                if (V.contains(u)) {
-//                    continue;
-//                }
-//
-//                V.add(u);
-//                Q.offer(u);
-//            }
-//        }
-//
-//        return R;
-//    }
+    public static boolean isDConnectedTo2(Node x, Node y, List<Node> z, Graph graph, LinkedList<Node> path) {
+        path.add(x);
+
+        for (Node c : graph.getAdjacentNodes(x)) {
+            if (isDConnectedToVisit2(x, c, y, path, z, graph)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean isDConnectedToVisit2(Node a, Node b, Node y, LinkedList<Node> path, List<Node> z, Graph graph) {
+        if (b == y) {
+            path.addLast(b);
+            return true;
+        }
+
+        if (path.contains(b)) {
+            return false;
+        }
+
+        path.addLast(b);
+
+        for (Node c : graph.getAdjacentNodes(b)) {
+            if (a == c) {
+                continue;
+            }
+
+            if (reachable(a, b, c, z, graph)) {
+                if (isDConnectedToVisit2(b, c, y, path, z, graph)) {
+//                    path.removeLast();
+                    return true;
+                }
+            }
+        }
+
+        path.removeLast();
+        return false;
+    }
+
+    public static boolean isDConnectedTo3(Node x, Node y, List<Node> z, Graph graph) {
+        return reachableDConnectedNodes(x, z, graph).contains(y);
+    }
+
+    private static Set<Node> reachableDConnectedNodes(Node x, List<Node> z, Graph graph) {
+        Set<Node> R = new HashSet<>();
+        R.add(x);
+
+        Queue<OrderedPair<Node>> Q = new ArrayDeque<>();
+        Set<OrderedPair<Node>> V = new HashSet<>();
+
+        for (Node node : graph.getAdjacentNodes(x)) {
+            OrderedPair<Node> edge = new OrderedPair<>(x, node);
+            Q.offer(edge);
+            V.add(edge);
+            R.add(node);
+        }
+
+        while (!Q.isEmpty()) {
+            OrderedPair<Node> t = Q.poll();
+
+            Node a = t.getFirst();
+            Node b = t.getSecond();
+
+            for (Node c : graph.getAdjacentNodes(b)) {
+                if (c == a) {
+                    continue;
+                }
+                if (!reachable(a, b, c, z, graph, null)) {
+                    continue;
+                }
+                R.add(c);
+
+                OrderedPair<Node> u = new OrderedPair<>(b, c);
+                if (V.contains(u)) {
+                    continue;
+                }
+
+                V.add(u);
+                Q.offer(u);
+            }
+        }
+
+        return R;
+    }
 
     // Finds a sepset for x and y, if there is one; otherwise, returns null.
     public static List<Node> getSepset(Node x, Node y, Graph graph) {
