@@ -866,14 +866,14 @@ public final class TestGrasp {
 
         long start = System.currentTimeMillis();
         boolean usePearl = true;
-        int numVars = 4; // Will change this in OtherParams.sp() too
+        int numVars = 5; // Will change this in OtherParams.sp() too
 
         try {
-            String path = "/Users/josephramsey/Downloads/grasp/out_53_0index/out_53.txt";
+//            String path = "/Users/josephramsey/Downloads/grasp/out_53_0index/out_53.txt";
 //            String path = "/Users/josephramsey/Downloads/grasp/out_80_0index/out_80.txt";
 //            String path = "/Users/josephramsey/Downloads/studeny_out.txt";
 //            String path = "/Users/josephramsey/Downloads/udags4.txt";
-//            String path = "/Users/josephramsey/Downloads/udags5.txt";
+            String path = "/Users/josephramsey/Downloads/udags5.txt";
 //            String path = "/Users/josephramsey/Downloads/udags6.txt";
             File file = new File(path);
             System.out.println(file.getAbsolutePath());
@@ -992,6 +992,53 @@ public final class TestGrasp {
 //            hard.add(47);
 //            hard.add(53);
 //            hard.add(55);
+
+
+            // new u-frugal
+            List<Integer> ufr = new ArrayList<>();
+
+            ufr.add(2);
+            ufr.add(3);
+            ufr.add(4);
+            ufr.add(5);
+            ufr.add(6);
+            ufr.add(7);
+            ufr.add(10);
+            ufr.add(11);
+            ufr.add(12);
+            ufr.add(13);
+            ufr.add(14);
+            ufr.add(15);
+            ufr.add(18);
+            ufr.add(19);
+            ufr.add(20);
+            ufr.add(21);
+            ufr.add(22);
+            ufr.add(25);
+            ufr.add(26);
+            ufr.add(31);
+            ufr.add(33);
+            ufr.add(37);
+            ufr.add(41);
+            ufr.add(43);
+            ufr.add(44);
+            ufr.add(50);
+            ufr.add(56);
+            ufr.add(57);
+            ufr.add(58);
+            ufr.add(59);
+            ufr.add(62);
+            ufr.add(63);
+            ufr.add(65);
+            ufr.add(67);
+            ufr.add(69);
+            ufr.add(70);
+            ufr.add(72);
+            ufr.add(73);
+            ufr.add(78);
+            ufr.add(83);
+            ufr.add(87);
+            ufr.add(92);
 
             //            List<Integer> nufr = new ArrayList<>();
 //            nufr.add(1); nufr.add(2); nufr.add(4); nufr.add(5); nufr.add(25); nufr.add(33); nufr.add(43); nufr.add(44); nufr.add(45); nufr.add(61); nufr.add(62); nufr.add(66); nufr.add(67); nufr.add(72); nufr.add(74); nufr.add(76); nufr.add(78); nufr.add(79); nufr.add(80); nufr.add(81); nufr.add(82); nufr.add(84); nufr.add(85); nufr.add(86); nufr.add(95); nufr.add(96); nufr.add(100); nufr.add(103); nufr.add(104); nufr.add(106); nufr.add(107); nufr.add(108); nufr.add(109); nufr.add(110); nufr.add(111); nufr.add(113); nufr.add(114); nufr.add(115); nufr.add(127); nufr.add(128); nufr.add(129); nufr.add(130); nufr.add(133); nufr.add(135); nufr.add(136); nufr.add(137); nufr.add(139); nufr.add(140); nufr.add(141); nufr.add(144); nufr.add(145); nufr.add(148); nufr.add(149); nufr.add(150); nufr.add(151); nufr.add(152); nufr.add(153); nufr.add(155); nufr.add(156); nufr.add(157);
