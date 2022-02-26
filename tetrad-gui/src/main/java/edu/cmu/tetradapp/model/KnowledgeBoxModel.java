@@ -49,7 +49,7 @@ public class KnowledgeBoxModel implements SessionModel, ParamsResettable, Knowle
 
     private String name;
     private Parameters params;
-    private IKnowledge knowledge;
+    private IKnowledge knowledge = new Knowledge2();
     private List<String> varNames = new ArrayList<>();
     private List<Node> variables = new ArrayList<>();
     private List<String> variableNames = new ArrayList<>();

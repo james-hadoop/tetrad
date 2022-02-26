@@ -25,6 +25,7 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.data.KnowledgeEdge;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
@@ -42,7 +43,7 @@ import java.util.*;
  *
  * @author jdramsey
  */
-public final class Pfci implements GraphSearch {
+public final class GraspFci implements GraphSearch {
 
     // The score used, if GS is used to build DAGs.
     private final Score score;
@@ -83,9 +84,13 @@ public final class Pfci implements GraphSearch {
     private boolean usePearl = false;
     private int timeout = -1;
     private int graspAlg = 1;
+    private int nonsingularDepth = 1;
+    private boolean ordered = true;
+    private boolean useScore = true;
+    private boolean cacheScores = true;
 
     //============================CONSTRUCTORS============================//
-    public Pfci(IndependenceTest test, Score score) {
+    public GraspFci(IndependenceTest test, Score score) {
         this.test = test;
         this.score = score;
 
@@ -113,13 +118,15 @@ public final class Pfci implements GraphSearch {
 
         grasp.setDepth(depth);
         grasp.setUncoveredDepth(uncoveredDepth);
-//        grasp.setUseTuck(useForwardTuckOnly);
+        grasp.setNonSingularDepth(nonsingularDepth);
+        grasp.setOrdered(ordered);
+        grasp.setUseScore(useScore);
         grasp.setUsePearl(usePearl);
-//        grasp.setTimeout(timeout);
         grasp.setVerbose(verbose);
+        grasp.setCacheScores(cacheScores);
+
         grasp.setNumStarts(numStarts);
         grasp.setKnowledge(knowledge);
-//        grasp.setGraspAlg(graspAlg);
 
         List<Node> perm = grasp.bestOrder(variables);
         graph = grasp.getGraph(true);
@@ -411,5 +418,21 @@ public final class Pfci implements GraphSearch {
 
     public void setGraspAlg(int graspAlg) {
         this.graspAlg = graspAlg;
+    }
+
+    public void setNonSingularDepth(int nonsingularDepth) {
+        this.nonsingularDepth = nonsingularDepth;
+    }
+
+    public void setOrdered(boolean ordered) {
+        this.ordered = ordered;
+    }
+
+    public void setUseScore(boolean useScore) {
+        this.useScore = useScore;
+    }
+
+    public void setCacheScores(boolean cacheScores) {
+        this.cacheScores = cacheScores;
     }
 }

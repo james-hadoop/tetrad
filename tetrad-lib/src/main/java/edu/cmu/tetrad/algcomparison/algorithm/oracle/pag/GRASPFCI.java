@@ -11,7 +11,7 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.search.Pfci;
+import edu.cmu.tetrad.search.GraspFci;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -34,22 +34,22 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "PFCI",
-        command = "pfci",
+        name = "GRaSP-FCI",
+        command = "graspfci",
         algoType = AlgType.allow_latent_common_causes
 )
 @Bootstrapping
-public class PFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
+public class GRASPFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapper {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
     private ScoreWrapper score;
 
-    public PFCI() {
+    public GRASPFCI() {
         // Used for reflection; do not delete.
     }
 
-    public PFCI(ScoreWrapper score, IndependenceWrapper test) {
+    public GRASPFCI(ScoreWrapper score, IndependenceWrapper test) {
         this.test = test;
         this.score = score;
     }
@@ -57,19 +57,22 @@ public class PFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
     @Override
     public Graph search(DataModel dataSet, Parameters parameters, Graph trueGraph) {
         if (parameters.getInt(Params.NUMBER_RESAMPLING) < 1) {
-            Pfci search = new Pfci(test.getTest(dataSet, parameters, trueGraph), score.getScore(dataSet, parameters));
+            GraspFci search = new GraspFci(test.getTest(dataSet, parameters, trueGraph), score.getScore(dataSet, parameters));
             search.setKnowledge(dataSet.getKnowledge());
             search.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
             search.setCompleteRuleSetUsed(parameters.getBoolean(Params.COMPLETE_RULE_SET_USED));
 
             search.setDepth(parameters.getInt(Params.GRASP_DEPTH));
             search.setUncoveredDepth(parameters.getInt(Params.GRASP_UNCOVERED_DEPTH));
-            search.setUseForwardTuckOnly(parameters.getBoolean(Params.GRASP_FORWARD_TUCK_ONLY));
+            search.setNonSingularDepth(parameters.getInt(Params.GRASP_NONSINGULAR_DEPTH));
+            search.setOrdered(parameters.getBoolean(Params.GRASP_ORDERED_ALG));
+            search.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
             search.setUsePearl(parameters.getBoolean(Params.GRASP_USE_VERMA_PEARL));
-            search.setTimeout(parameters.getInt(Params.TIMEOUT));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
+            search.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
+
             search.setNumStarts(parameters.getInt(Params.NUM_STARTS));
-            search.setGraspAlg(parameters.getInt(Params.GRASP_ALG));
+            search.setKnowledge(dataSet.getKnowledge());
 
             Object obj = parameters.get(Params.PRINT_STREAM);
 
@@ -79,7 +82,7 @@ public class PFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
             return search.search();
         } else {
-            PFCI algorithm = new PFCI(score, test);
+            GRASPFCI algorithm = new GRASPFCI(score, test);
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt(Params.NUMBER_RESAMPLING));
             search.setKnowledge(data.getKnowledge());
@@ -113,7 +116,7 @@ public class PFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
 
     @Override
     public String getDescription() {
-        return "PFCI (Permutation-step FCI) using " + test.getDescription()
+        return "GRASP-FCI (GRaSP-based FCI) using " + test.getDescription()
                 + " or " + score.getDescription();
     }
 
@@ -131,17 +134,18 @@ public class PFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceWrapp
         params.add(Params.MAX_PATH_LENGTH);
 
         // Flags
-        params.add(Params.GRASP_DEPTH);
         params.add(Params.GRASP_UNCOVERED_DEPTH);
-        params.add(Params.GRASP_FORWARD_TUCK_ONLY);
+        params.add(Params.GRASP_NONSINGULAR_DEPTH);
+        params.add(Params.GRASP_ORDERED_ALG);
+//        params.add(Params.GRASP_USE_SCORE);
         params.add(Params.GRASP_USE_VERMA_PEARL);
-        params.add(Params.TIMEOUT);
+//        params.add(Params.CACHE_SCORES);
+//        params.add(Params.OUTPUT_CPDAG);
         params.add(Params.VERBOSE);
-        params.add(Params.NUM_STARTS);
-        params.add(Params.GRASP_ALG);
 
         // Parameters
         params.add(Params.NUM_STARTS);
+        params.add(Params.GRASP_DEPTH);
 
         return params;
     }

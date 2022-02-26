@@ -92,6 +92,10 @@ public class KnowledgeBoxEditor extends JPanel {
         this(knowledgeBoxModel.getKnowledge(), vars);
     }
 
+    public KnowledgeBoxEditor(final KnowledgeBoxModel knowledgeBoxModel) {
+        this(knowledgeBoxModel.getKnowledge(), knowledgeBoxModel.getVariables());
+    }
+
     public KnowledgeBoxEditor(IKnowledge knowledge, List<Node> vars) {
         this.vars = vars;
         this.knowledge = knowledge;
