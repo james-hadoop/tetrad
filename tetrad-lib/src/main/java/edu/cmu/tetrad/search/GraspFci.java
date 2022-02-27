@@ -25,7 +25,6 @@ import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.data.KnowledgeEdge;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.util.Params;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.io.PrintStream;
@@ -80,10 +79,8 @@ public final class GraspFci implements GraphSearch {
     private int numStarts;
     private int depth = 4;
     private int uncoveredDepth = 1;
-    private boolean useForwardTuckOnly = false;
-    private boolean usePearl = false;
-    private int timeout = -1;
-    private int graspAlg = 1;
+    private boolean useRaskuttiUhler = false;
+
     private int nonsingularDepth = 1;
     private boolean ordered = true;
     private boolean useScore = true;
@@ -105,32 +102,23 @@ public final class GraspFci implements GraphSearch {
         // The PAG being constructed.
         Graph graph;
 
-        Grasp grasp;
-        List<Node> variables;
-
-        if (!usePearl && !(score instanceof GraphScore)) {
-            grasp = new Grasp(score);
-            variables = score.getVariables();
-        } else {
-            grasp = new Grasp(test);
-            variables = test.getVariables();
-        }
+        Grasp grasp = new Grasp(test, score);
 
         grasp.setDepth(depth);
         grasp.setUncoveredDepth(uncoveredDepth);
         grasp.setNonSingularDepth(nonsingularDepth);
         grasp.setOrdered(ordered);
         grasp.setUseScore(useScore);
-        grasp.setUsePearl(usePearl);
+        grasp.setUseRaskuttiUhler(useRaskuttiUhler);
         grasp.setVerbose(verbose);
         grasp.setCacheScores(cacheScores);
 
         grasp.setNumStarts(numStarts);
         grasp.setKnowledge(knowledge);
 
-        List<Node> perm = grasp.bestOrder(variables);
+        List<Node> perm = grasp.bestOrder(score.getVariables());
         graph = grasp.getGraph(true);
-        Graph bossGraph = new EdgeListGraph(graph);
+        Graph graspGraph = new EdgeListGraph(graph);
 
         graph.reorientAllWith(Endpoint.CIRCLE);
         fciOrientBk(knowledge, graph, graph.getNodes());
@@ -143,7 +131,7 @@ public final class GraspFci implements GraphSearch {
                     Node a = adj.get(i);
                     Node c = adj.get(j);
 
-                    if (!graph.isAdjacentTo(a, c) && bossGraph.isDefCollider(a, b, c)) {
+                    if (!graph.isAdjacentTo(a, c) && graspGraph.isDefCollider(a, b, c)) {
                         graph.setEndpoint(a, b, Endpoint.ARROW);
                         graph.setEndpoint(c, b, Endpoint.ARROW);
                     }
@@ -202,7 +190,7 @@ public final class GraspFci implements GraphSearch {
 
         // The maxDegree for the discriminating path step.
         int sepsetsDepth = -1;
-        SepsetProducer sepsets = new SepsetsTeyssier(bossGraph, scorer, null, sepsetsDepth);
+        SepsetProducer sepsets = new SepsetsTeyssier(graspGraph, scorer, null, sepsetsDepth);
 
         FciOrient fciOrient = new FciOrient(sepsets);
         fciOrient.setVerbose(verbose);
@@ -404,20 +392,8 @@ public final class GraspFci implements GraphSearch {
         this.uncoveredDepth = uncoveredDepth;
     }
 
-    public void setUseForwardTuckOnly(boolean useForwardTuckOnly) {
-        this.useForwardTuckOnly = useForwardTuckOnly;
-    }
-
-    public void setUsePearl(boolean usePearl) {
-        this.usePearl = usePearl;
-    }
-
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
-    }
-
-    public void setGraspAlg(int graspAlg) {
-        this.graspAlg = graspAlg;
+    public void setUseRaskuttiUhler(boolean useRaskuttiUhler) {
+        this.useRaskuttiUhler = useRaskuttiUhler;
     }
 
     public void setNonSingularDepth(int nonsingularDepth) {

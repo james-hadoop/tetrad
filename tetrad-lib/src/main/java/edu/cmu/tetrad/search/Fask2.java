@@ -216,7 +216,7 @@ public final class Fask2 implements GraphSearch {
         TetradLogger.getInstance().forceLogMessage("");
 
         Grasp grasp = new Grasp(score);
-        grasp.setUsePearl(false);
+        grasp.setUseRaskuttiUhler(false);
 //        grasp.setUseTuck(false);
 //        grasp.setCheckCovering(false);
         grasp.bestOrder(dataSet.getVariables());

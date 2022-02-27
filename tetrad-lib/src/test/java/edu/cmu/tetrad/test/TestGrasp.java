@@ -757,7 +757,7 @@ public final class TestGrasp {
 
             Grasp grasp = new Grasp(test);
 
-            grasp.setUsePearl(true);
+            grasp.setUseRaskuttiUhler(true);
             grasp.setOrdered(false);
 
             grasp.setVerbose(false);
@@ -838,7 +838,7 @@ public final class TestGrasp {
 
                 Grasp grasp = new Grasp(new IndTestDSep(facts.getFacts()));
 
-                grasp.setUsePearl(true);
+                grasp.setUseRaskuttiUhler(true);
                 grasp.setDepth(100);
                 grasp.setOrdered(true);
                 grasp.setVerbose(false);
@@ -1115,7 +1115,7 @@ public final class TestGrasp {
                     grasp.setDepth(3);
                     grasp.setUncoveredDepth(1);
                     grasp.setNonSingularDepth(1);
-                    grasp.setUsePearl(usePearl);
+                    grasp.setUseRaskuttiUhler(usePearl);
                     grasp.setOrdered(true);
                     grasp.setVerbose(false);
                     grasp.setCacheScores(false);
@@ -2113,7 +2113,7 @@ public final class TestGrasp {
                 search.setDepth(depth);
                 search.setUncoveredDepth(depth);
                 search.setNonSingularDepth(depth);
-                search.setUsePearl(false);
+                search.setUseRaskuttiUhler(false);
                 List<Node> order = search.bestOrder(p);
 //                    System.out.println(p + " " + order + " truth = " + facts.getTruth() + " found = " + search.getNumEdges());
 //                    System.out.println(search.getGraph(false));

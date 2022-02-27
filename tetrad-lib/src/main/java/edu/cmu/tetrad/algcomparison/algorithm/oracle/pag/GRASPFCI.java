@@ -67,7 +67,7 @@ public class GRASPFCI implements Algorithm, UsesScoreWrapper, TakesIndependenceW
             search.setNonSingularDepth(parameters.getInt(Params.GRASP_NONSINGULAR_DEPTH));
             search.setOrdered(parameters.getBoolean(Params.GRASP_ORDERED_ALG));
             search.setUseScore(parameters.getBoolean(Params.GRASP_USE_SCORE));
-            search.setUsePearl(parameters.getBoolean(Params.GRASP_USE_VERMA_PEARL));
+            search.setUseRaskuttiUhler(parameters.getBoolean(Params.GRASP_USE_VERMA_PEARL));
             search.setVerbose(parameters.getBoolean(Params.VERBOSE));
             search.setCacheScores(parameters.getBoolean(Params.CACHE_SCORES));
 
