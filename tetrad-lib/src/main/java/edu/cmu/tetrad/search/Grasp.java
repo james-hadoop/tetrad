@@ -284,6 +284,7 @@ public class Grasp {
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
+        test.setVerbose(verbose);
     }
 
     public void setKnowledge(IKnowledge knowledge) {

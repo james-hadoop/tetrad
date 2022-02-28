@@ -118,10 +118,17 @@ public final class GraspFci implements GraphSearch {
 
         List<Node> perm = grasp.bestOrder(score.getVariables());
         graph = grasp.getGraph(true);
+
         Graph graspGraph = new EdgeListGraph(graph);
 
+
+
         graph.reorientAllWith(Endpoint.CIRCLE);
+
+
+
         fciOrientBk(knowledge, graph, graph.getNodes());
+
 
         for (Node b : perm) {
             List<Node> adj = graph.getAdjacentNodes(b);
@@ -138,6 +145,8 @@ public final class GraspFci implements GraphSearch {
                 }
             }
         }
+
+
 
         TeyssierScorer scorer;
 
@@ -172,6 +181,7 @@ public final class GraspFci implements GraphSearch {
 
         for (Triple triple : triples) {
             Node b = triple.getX();
+            Node c = triple.getY();
             Node d = triple.getZ();
 
             graph.removeEdge(b, d);

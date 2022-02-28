@@ -360,6 +360,8 @@ public class Fas implements IFas {
                                 " score = " + nf.format(test.getScore()));
                         out.println(SearchLogUtils.independenceFactMsg(x, y, Z, test.getPValue()));
                     }
+
+                    return;
                 }
             }
         }
